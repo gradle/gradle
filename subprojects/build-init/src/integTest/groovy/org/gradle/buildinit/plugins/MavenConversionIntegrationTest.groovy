@@ -55,6 +55,8 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         gradleFilesGenerated()
+        file("build.gradle").text.contains("options.encoding = 'UTF-8'")
+        !file("webinar-war/build.gradle").text.contains("'options.encoding'")
 
         when:
         run 'clean', 'build'
@@ -334,7 +336,7 @@ Root project 'webinar-parent'
     }
 
     def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
-        MavenHttpModule module = repo.module(group, name, version)
+        MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
     }
 

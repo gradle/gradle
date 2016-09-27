@@ -37,7 +37,11 @@ public class ExclusiveFileAccessManager {
 
     public <T> T access(File exclusiveFile, Callable<T> task) throws Exception {
         final File lockFile = new File(exclusiveFile.getParentFile(), exclusiveFile.getName() + LOCK_FILE_SUFFIX);
-        lockFile.getParentFile().mkdirs();
+        File lockFileDirectory = lockFile.getParentFile();
+        if (!lockFileDirectory.mkdirs()
+            && (!lockFileDirectory.exists() || !lockFileDirectory.isDirectory())) {
+            throw new RuntimeException("Could not create parent directory for lock file " + lockFile.getAbsolutePath());
+        }
         RandomAccessFile randomAccessFile = null;
         FileChannel channel = null;
         try {

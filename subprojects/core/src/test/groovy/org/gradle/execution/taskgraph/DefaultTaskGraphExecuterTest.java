@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -284,10 +284,29 @@ public class DefaultTaskGraphExecuterTest {
 
     @Test
     public void testExecutesWhenReadyClosureBeforeExecute() {
+        assertExecutesWhenReadyListenerBeforeExecute(new Action<TestClosure>() {
+            @Override
+            public void execute(TestClosure testClosure) {
+                taskExecuter.whenReady(toClosure(testClosure));
+            }
+        });
+    }
+
+    @Test
+    public void testExecutesWhenReadyActionBeforeExecute() {
+        assertExecutesWhenReadyListenerBeforeExecute(new Action<TestClosure>() {
+            @Override
+            public void execute(TestClosure testClosure) {
+                taskExecuter.whenReady(toAction(testClosure));
+            }
+        });
+    }
+
+    void assertExecutesWhenReadyListenerBeforeExecute(Action<TestClosure> whenReadySubscriber) {
         final TestClosure runnable = context.mock(TestClosure.class);
         Task a = task("a");
 
-        taskExecuter.whenReady(toClosure(runnable));
+        whenReadySubscriber.execute(runnable);
 
         taskExecuter.addTasks(toList(a));
 
@@ -344,13 +363,30 @@ public class DefaultTaskGraphExecuterTest {
 
     @Test
     public void testNotifiesBeforeTaskClosureAsTasksAreExecuted() {
+        assertNotifiesBeforeTaskListenerAsTasksAreExecuted(new Action<TestClosure>() {
+            @Override
+            public void execute(TestClosure testClosure) {
+                taskExecuter.beforeTask(toClosure(testClosure));
+            }
+        });
+    }
+
+    @Test
+    public void testNotifiesBeforeTaskActionAsTasksAreExecuted() {
+        assertNotifiesBeforeTaskListenerAsTasksAreExecuted(new Action<TestClosure>() {
+            @Override
+            public void execute(TestClosure testClosure) {
+                taskExecuter.beforeTask(toAction(testClosure));
+            }
+        });
+    }
+
+    void assertNotifiesBeforeTaskListenerAsTasksAreExecuted(Action<TestClosure> beforeTaskSubscriber) {
         final TestClosure runnable = context.mock(TestClosure.class);
+        beforeTaskSubscriber.execute(runnable);
+
         final Task a = task("a");
         final Task b = task("b");
-
-        final Closure closure = toClosure(runnable);
-        taskExecuter.beforeTask(closure);
-
         taskExecuter.addTasks(toList(a, b));
 
         context.checking(new Expectations() {{
@@ -363,12 +399,30 @@ public class DefaultTaskGraphExecuterTest {
 
     @Test
     public void testNotifiesAfterTaskClosureAsTasksAreExecuted() {
+        assertNotifiesAfterTaskListenerAsTasksAreExecuted(new Action<TestClosure>() {
+            @Override
+            public void execute(TestClosure testClosure) {
+                taskExecuter.afterTask(toClosure(testClosure));
+            }
+        });
+    }
+
+    @Test
+    public void testNotifiesAfterTaskActionAsTasksAreExecuted() {
+        assertNotifiesAfterTaskListenerAsTasksAreExecuted(new Action<TestClosure>() {
+            @Override
+            public void execute(TestClosure testClosure) {
+                taskExecuter.afterTask(toAction(testClosure));
+            }
+        });
+    }
+
+    void assertNotifiesAfterTaskListenerAsTasksAreExecuted(Action<TestClosure> afterTaskSubscriber) {
         final TestClosure runnable = context.mock(TestClosure.class);
+        afterTaskSubscriber.execute(runnable);
+
         final Task a = task("a");
         final Task b = task("b");
-
-        taskExecuter.afterTask(toClosure(runnable));
-
         taskExecuter.addTasks(toList(a, b));
 
         context.checking(new Expectations() {{
@@ -445,6 +499,15 @@ public class DefaultTaskGraphExecuterTest {
         }
 
         assertThat(executedTasks, equalTo(toList(a, c)));
+    }
+
+    static Action toAction(final TestClosure closure) {
+        return new Action() {
+            @Override
+            public void execute(Object o) {
+                closure.call(o);
+            }
+        };
     }
 
     private void dependsOn(final Task task, final Task... dependsOn) {

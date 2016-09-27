@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.connection.GradleConnectionBuilderInternal
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -172,9 +171,17 @@ class ToolingApi implements TestRule {
         return embedded && GradleVersion.current() == dist.version
     }
 
+
+    /*
+     * TODO Stefan the embedded executor has been broken by some
+     * change after 3.0. It can no longer handle changes to the
+     * serialized form of tooling models. The current -> 3.0 tests
+     * are failing as a result. Temporarily deactivating embedded
+     * mode except for current -> current.
+     */
     boolean isEmbedded() {
         // Use in-process build when running tests in embedded mode and daemon is not required
-        return GradleContextualExecuter.embedded && !requiresDaemon
+        return GradleContextualExecuter.embedded && !requiresDaemon && GradleVersion.current() == dist.version
     }
 
     @Override
@@ -196,39 +203,5 @@ class ToolingApi implements TestRule {
                 }
             }
         };
-    }
-
-    def createCompositeBuilder() {
-        newCompositeBuilder(false)
-    }
-
-    def createIntegratedCompositeBuilder() {
-        newCompositeBuilder(true)
-    }
-
-    private newCompositeBuilder(boolean integrated) {
-        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection()
-        builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
-        builder.daemonBaseDir(new File(daemonBaseDir.path))
-        builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
-
-        if (integrated) {
-            builder.integratedComposite(integrated)
-            builder.useInstallation(dist.gradleHomeDir.absoluteFile)
-
-/*
-            if (builder.class.getMethod("embedded", Boolean.TYPE) != null) {
-                builder.embedded(embedded)
-                if (useClasspathImplementation) {
-                    builder.useClasspathDistribution()
-                }
-            }
-*/
-        }
-        builder
-    }
-
-    void addCompositeParticipant(def builder, File rootDir) {
-        builder.addParticipant(rootDir.absoluteFile).useInstallation(dist.gradleHomeDir.absoluteFile)
     }
 }

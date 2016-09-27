@@ -38,12 +38,14 @@ def getDestDir() {
 }
 
 // START SNIPPET copy-method
-task copyMethod << {
-    copy {
-        from 'src/main/webapp'
-        into 'build/explodedWar'
-        include '**/*.html'
-        include '**/*.jsp'
+task copyMethod {
+    doLast {
+        copy {
+            from 'src/main/webapp'
+            into 'build/explodedWar'
+            include '**/*.html'
+            include '**/*.jsp'
+        }
     }
 }
 // END SNIPPET copy-method

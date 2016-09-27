@@ -14,10 +14,10 @@ dependencies {
     compile project(":messaging")
     compile project(":cli")
 
-    testCompile project(":internalTesting")
-
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
+
+    testCompile project(":internalTesting")
 }
 
 useTestFixtures()

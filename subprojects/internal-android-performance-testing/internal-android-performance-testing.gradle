@@ -1,0 +1,66 @@
+configurations {
+    androidTools
+}
+
+task renameAndroidTools(type: Copy) {
+    from configurations.androidTools
+    // idea excludes jars from the "build" directory so we cannot use "$buildDir"
+    into "${buildDir}-android-libs"
+    rename { "android-$it" }
+}
+
+// workaround for idea not triggering the resolution of the `androidTools`
+tasks.ideaModule.dependsOn(renameAndroidTools)
+
+dependencies {
+    compile project(':toolingApi')
+    compile files(renameAndroidTools).asFileTree
+    androidTools('com.android.tools.build:gradle:2.2.0-beta2') {
+        exclude group: 'org.gradle'
+    }
+}
+
+task buildClassPath(type: BuildClassPath) {
+    dependsOn jar
+    classpath = files(renameAndroidTools.outputs, jar.archivePath)
+    outputFile = file("$buildDir/classpath.txt")
+}
+
+class BuildClassPath extends DefaultTask {
+    @InputFiles FileCollection classpath
+    @OutputFile File outputFile
+
+    @TaskAction
+    void buildClasspath() {
+        outputFile.withWriter { wrt ->
+            classpath.asFileTree.files.each {
+                wrt.println(it.absolutePath)
+            }
+        }
+    }
+}
+
+apply plugin: 'application'
+
+mainClassName = 'org.gradle.performance.android.Main'
+applicationName = 'android-test-app'
+
+[distZip, distTar]*.baseName = 'android-test-app'
+
+project(':distributions').buildDists.dependsOn distZip
+
+/*
+task downloadTestApp {
+    doLast {
+        def props = new Properties()
+        props.load(new URL('https://builds.gradle.org/repository/download/Gradle_Master_CommitPhase_BuildDistributions/.lastSuccessful/build-receipt.properties?guest=1').newInputStream())
+        def version = java.net.URLEncoder.encode(props.get('versionNumber'), 'utf-8')
+        new File("$buildDir/android-testapp.zip").withOutputStream { out ->
+            new URL("https://builds.gradle.org/repository/download/Gradle_Master_CommitPhase_BuildDistributions/.lastSuccessful/distributions/android-test-app-${version}.zip?guest=1").eachByte(1024) { buffer, len ->
+                out.write(buffer, 0, len)
+                print '.'
+            }
+        }
+    }
+}
+*/

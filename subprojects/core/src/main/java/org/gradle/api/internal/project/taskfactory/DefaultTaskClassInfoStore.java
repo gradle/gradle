@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.collect.Maps;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -34,28 +36,34 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
-    private final Map<Class, TaskClassInfo> classInfos = Maps.newHashMap();
+    private final TaskClassValidatorExtractor validatorExtractor;
+
+    private final LoadingCache<Class<? extends Task>, TaskClassInfo> classInfos = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<? extends Task>, TaskClassInfo>() {
+            @Override
+            public TaskClassInfo load(Class<? extends Task> type) throws Exception {
+                TaskClassInfo taskClassInfo = new TaskClassInfo();
+                findTaskActions(type, taskClassInfo);
+
+                TaskClassValidator validator = validatorExtractor.extractValidator(type);
+                taskClassInfo.setValidator(validator);
+
+                taskClassInfo.setCacheable(type.isAnnotationPresent(CacheableTask.class));
+                return taskClassInfo;
+            }
+        });
+
+    public DefaultTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
+        this.validatorExtractor = validatorExtractor;
+    }
 
     @Override
     public TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {
-        TaskClassInfo taskClassInfo = classInfos.get(type);
-        if (taskClassInfo == null) {
-            taskClassInfo = new TaskClassInfo();
-            findTaskActions(type, taskClassInfo);
-
-            TaskClassValidator validator = new TaskClassValidator();
-            validator.attachActions(null, type);
-            taskClassInfo.setValidator(validator);
-
-            taskClassInfo.setCacheable(type.isAnnotationPresent(CacheableTask.class));
-
-            classInfos.put(type, taskClassInfo);
-        }
-        return taskClassInfo;
+        return classInfos.getUnchecked(type);
     }
 
     private void findTaskActions(Class<? extends Task> type, TaskClassInfo taskClassInfo) {

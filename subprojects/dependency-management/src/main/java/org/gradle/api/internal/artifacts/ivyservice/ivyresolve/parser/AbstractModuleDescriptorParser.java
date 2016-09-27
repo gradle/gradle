@@ -46,8 +46,6 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
             throw e;
         } catch (Exception e) {
             throw new MetaDataParseException(getTypeName(), resource, e);
-        } catch (AssertionError e) {
-            throw new MetaDataParseException(getTypeName(), resource, e);
         }
     }
 

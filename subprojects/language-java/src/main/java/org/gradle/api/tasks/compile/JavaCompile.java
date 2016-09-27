@@ -21,8 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
-import org.gradle.api.internal.changedetection.state.PathSensitive;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -36,10 +34,11 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnaly
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -180,7 +179,7 @@ public class JavaCompile extends AbstractCompile {
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
-    @Internal
+    @Nested
     protected JavaPlatform getPlatform() {
         return DefaultJavaPlatform.current();
     }

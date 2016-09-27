@@ -31,7 +31,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -71,6 +71,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from multiple missing modules"() {
@@ -88,7 +94,7 @@ dependencies {
     missing 'group:projectA:1.2'
     missing 'group:projectB:1.0-milestone-9'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -120,6 +126,12 @@ Required by:
         moduleA.jar.expectGet()
         moduleB.ivy.expectGet()
         moduleB.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds('showMissing')
@@ -161,7 +173,7 @@ project(':child1') {
         compile 'group:projectD:1.0GA'
     }
 }
-task showMissing << { println configurations.compile.files }
+task showMissing { doLast { println configurations.compile.files } }
 """
 
         when:
@@ -201,6 +213,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from missing module when dependency declaration references an artifact"() {
@@ -216,7 +234,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2:thing'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -242,6 +260,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from module missing from multiple repositories"() {
@@ -260,7 +284,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -289,6 +313,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from missing module when no repositories defined"() {
@@ -298,7 +328,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         expect:
@@ -318,6 +348,12 @@ task showMissing << { println configurations.missing.files }
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from failed Ivy descriptor download"() {
@@ -334,7 +370,7 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken << { println configurations.broken.files }
+task showBroken { doLast { println configurations.broken.files } }
 """
 
         when:
@@ -352,6 +388,12 @@ task showBroken << { println configurations.broken.files }
         server.resetExpectations()
         module.ivy.expectGet()
         module.jar.expectGet()
+
+        then:
+        succeeds("showBroken")
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds("showBroken")
@@ -433,6 +475,13 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         module.jar.expectGet()
+
+        then:
+        succeeds "retrieve"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds "retrieve"

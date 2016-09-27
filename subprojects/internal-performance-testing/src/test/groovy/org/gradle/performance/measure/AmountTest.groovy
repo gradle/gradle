@@ -217,6 +217,19 @@ class AmountTest extends Specification {
         125    | Fruit.oranges | 23.4   | Fruit.grapefruit | 3.205128
     }
 
+    def "can multiply amount by a unitless value"() {
+        expect:
+        Amount.valueOf(a, Fruit.apples) * b == Amount.valueOf(c, Fruit.apples)
+
+        where:
+        a     | b   | c
+        0     | 200 | 0
+        2     | 1   | 2
+        5     | 10  | 50
+        10    | -2  | -20
+        0.25  | 8   | 2
+    }
+
     def "can convert to absolute value"() {
         expect:
         Amount.valueOf(12, Fruit.grapefruit).abs() == Amount.valueOf(12, Fruit.grapefruit)

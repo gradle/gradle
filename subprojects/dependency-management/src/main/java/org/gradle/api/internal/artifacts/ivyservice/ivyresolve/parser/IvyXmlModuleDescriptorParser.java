@@ -50,6 +50,8 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
@@ -507,15 +509,51 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
             });
             checkErrors();
-            checkConfigurations();
+            maybeAddDefaultConfiguration();
             replaceConfigurationWildcards();
+            maybeAddDefaultArtifact();
+            validateConfigurations();
+            validateArtifacts();
+            validateExcludes();
+            getMd().check();
+        }
+
+        private void validateConfigurations() {
+            for (Configuration configuration : getMd().getConfigurations()) {
+                for (String parent : configuration.getExtends()) {
+                    if (getMd().getConfiguration(parent) == null) {
+                        throw new IllegalArgumentException("Configuration '" + configuration.getName() + "' extends configuration '" + parent + "' which is not declared.");
+                    }
+                }
+            }
+        }
+
+        private void validateExcludes() {
+            for (ExcludeRule excludeRule : getMd().getAllExcludeRules()) {
+                for (String conf : excludeRule.getConfigurations()) {
+                    if (getMd().getConfiguration(conf) == null) {
+                        throw new IllegalArgumentException("Exclude rule " + excludeRule.getId() + " is mapped to configuration '" + conf + "' which is not declared.");
+                    }
+                }
+            }
+        }
+
+        private void validateArtifacts() {
+            for (Artifact artifact : metaData.getArtifacts()) {
+                for (String conf : artifact.getConfigurations()) {
+                    if (getMd().getConfiguration(conf) == null) {
+                        throw new IllegalArgumentException("Artifact " + artifact.getArtifactName() + " is mapped to configuration '" + conf + "' which is not declared.");
+                    }
+                }
+            }
+        }
+
+        private void maybeAddDefaultArtifact() {
             if (!artifactsDeclared) {
                 IvyArtifactName implicitArtifact = new DefaultIvyArtifactName(getMd().getModuleRevisionId().getName(), "jar", "jar");
                 Set<String> configurationNames = Sets.newHashSet(getMd().getConfigurationsNames());
                 metaData.addArtifact(implicitArtifact, configurationNames);
             }
-            checkErrors();
-            getMd().check();
         }
 
         public void startElement(String uri, String localName, String qName, Attributes attributes)
@@ -553,7 +591,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     dependenciesStarted(attributes);
                 } else if ("conflicts".equals(qName)) {
                     state = State.CONFLICT;
-                    checkConfigurations();
+                    maybeAddDefaultConfiguration();
                 } else if ("artifact".equals(qName)) {
                     artifactStarted(qName, attributes);
                 } else if ("include".equals(qName) && state == State.DEP) {
@@ -752,7 +790,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private void publicationsStarted(Attributes attributes) {
             state = State.PUB;
             artifactsDeclared = true;
-            checkConfigurations();
+            maybeAddDefaultConfiguration();
             String defaultConf = substitute(attributes.getValue("defaultconf"));
             if (defaultConf != null) {
                 this.publicationsDefaultConf = defaultConf.split(",");
@@ -932,7 +970,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             if (confMappingOverride != null) {
                 getMd().setMappingOverride(Boolean.valueOf(confMappingOverride));
             }
-            checkConfigurations();
+            maybeAddDefaultConfiguration();
         }
 
         private void configurationStarted(Attributes attributes) {
@@ -1110,7 +1148,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 metaData.addArtifact(artifact.getArtifact(), artifact.getConfigurations());
                 artifact = null;
             } else if ("configurations".equals(qName)) {
-                checkConfigurations();
+                maybeAddDefaultConfiguration();
             } else if ((state == State.DEP_ARTIFACT && "artifact".equals(qName))
                     || (state == State.ARTIFACT_INCLUDE && "include".equals(qName))
                     || (state == State.ARTIFACT_EXCLUDE && "exclude".equals(qName))) {
@@ -1159,7 +1197,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             }
         }
 
-        private void checkConfigurations() {
+        private void maybeAddDefaultConfiguration() {
             if (getMd().getConfigurations().length == 0) {
                 getMd().addConfiguration(new Configuration("default"));
             }
@@ -1272,7 +1310,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 // Set the context classloader to the bootstrap classloader, to work around how JAXP locates implementation classes
                 // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
                 ClassLoader original = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader().getParent());
+                Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
                 try {
                     SAXParser parser = newSAXParser(schema, schemaStream);
                     parser.parse(xmlStream, handler);

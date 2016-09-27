@@ -47,7 +47,7 @@
             <listitem>
                 <para>
                     Full support is limited to Play 2.3.x applications.
-                    Limited support is available for Play 2.4.x &amp;2.5.x applications. Gradle does not include support for a few new build-related features in 2.4.0+
+                    Limited support is available for Play 2.4.x &amp; 2.5.x applications. Gradle does not include support for a few new build-related features in 2.4.0+
                     Specifically, Gradle does not yet support aggregate reverse routes.
                     Future Gradle versions will add more support for Play 2.6.x.
                 </para>

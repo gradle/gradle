@@ -40,8 +40,10 @@ dependencies {
        dependency("group:projectB:1.3")
     }
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.3.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.3.jar']
+    }
 }
 """
 
@@ -81,11 +83,15 @@ dependencies {
     regular "group:projectA:1.2"
     clientModule module("group:projectA:1.2")
 }
-task listJars << {
-    assert configurations.regular.collect { it.name } == ['projectA-1.2.jar', 'projectA-1.2-extra.jar']
+task listJars {
+    doLast {
+        assert configurations.regular.collect { it.name } == ['projectA-1.2.jar', 'projectA-1.2-extra.jar']
+    }
 }
-task listClientModuleJars << {
-    assert configurations.clientModule.collect { it.name } == ['projectA-1.2.jar']
+task listClientModuleJars {
+    doLast {
+        assert configurations.clientModule.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 

@@ -16,7 +16,13 @@
 package org.gradle.nativeplatform.plugins;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Namer;
+import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
@@ -39,9 +45,43 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.model.*;
-import org.gradle.nativeplatform.*;
-import org.gradle.nativeplatform.internal.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.BuildTypeContainer;
+import org.gradle.nativeplatform.FlavorContainer;
+import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.NativeDependencySet;
+import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.NativeExecutableSpec;
+import org.gradle.nativeplatform.NativeLibrarySpec;
+import org.gradle.nativeplatform.PrebuiltLibraries;
+import org.gradle.nativeplatform.PrebuiltLibrary;
+import org.gradle.nativeplatform.Repositories;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.TargetedNativeComponent;
+import org.gradle.nativeplatform.internal.DefaultBuildTypeContainer;
+import org.gradle.nativeplatform.internal.DefaultFlavor;
+import org.gradle.nativeplatform.internal.DefaultFlavorContainer;
+import org.gradle.nativeplatform.internal.DefaultNativeExecutableBinarySpec;
+import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec;
+import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec;
+import org.gradle.nativeplatform.internal.DefaultSharedLibraryBinarySpec;
+import org.gradle.nativeplatform.internal.DefaultStaticLibraryBinarySpec;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.internal.NativeComponents;
+import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
+import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal;
+import org.gradle.nativeplatform.internal.NativePlatformResolver;
+import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal;
+import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal;
+import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.internal.configure.NativeComponentRules;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
@@ -55,10 +95,17 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.Platform;
+import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.SourceComponentSpec;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -337,11 +384,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Finalize
         void applyHeaderSourceSetConventions(@Each HeaderExportingSourceSet headerSourceSet) {
             // Only apply default locations when none explicitly configured
-            if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+            if (headerSourceSet.getExportedHeaders().getSourceDirectories().isEmpty()) {
                 headerSourceSet.getExportedHeaders().srcDir("src/" + headerSourceSet.getParentName() + "/headers");
             }
 
-            headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+            headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSourceDirectories());
             headerSourceSet.getImplicitHeaders().include("**/*.h");
         }
 

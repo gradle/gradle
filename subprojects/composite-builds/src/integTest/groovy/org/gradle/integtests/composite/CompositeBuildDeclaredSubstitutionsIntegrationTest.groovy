@@ -18,34 +18,19 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     BuildTestFile buildC
-    MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
         mavenRepo.module("org.test", "b2", "1.0").publish()
 
-        buildA = multiProjectBuild("buildA", ['a1', 'a2']) {
-            buildFile << """
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                allprojects {
-                    apply plugin: 'java'
-                    configurations { compile }
-                }
-"""
-        }
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -81,10 +66,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         expect:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
             module("org.test:b2:1.0")
@@ -103,10 +88,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         expect:
         resolvedGraph {
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:XXX:1.0", "project buildC::", "org.test:buildC:1.0") {
+            edge("org.test:XXX:1.0", "project :buildC:", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -123,7 +108,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:buildX:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:buildX:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
         }
@@ -151,32 +136,37 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.gradle:buildX:1.0", "project buildB2::", "org.test:buildB2:1.0") {
+            edge("org.gradle:buildX:1.0", "project :buildB2:", "org.test:buildB2:1.0") {
                 compositeSubstitute()
             }
         }
     }
 
-    def dependency(String notation) {
-        buildA.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
-    }
+    def "substitutes external dependency with project dependency from same participant build"() {
+        given:
+        dependency "org.test:buildB:1.0"
+        dependency buildB, "org.test:b2:1.0"
 
-    def includeBuild(File build, def mappings = "") {
-        buildA.settingsFile << """
-            includeBuild('${build.toURI()}') {
-                dependencySubstitution {
-                    $mappings
+        when:
+        includeBuild buildB, """
+            substitute module("org.test:buildB") with project(":")
+            substitute module("org.test:b2:1.0") with project(":b2")
+"""
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
+                compositeSubstitute()
+                edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                    compositeSubstitute()
                 }
-            }
-"""
 
+            }
+        }
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
+        def resolve = new ResolveTestFixture(buildA.buildFile)
         resolve.prepare()
         execute(buildA, ":checkDeps", buildArgs)
         resolve.expectGraph {

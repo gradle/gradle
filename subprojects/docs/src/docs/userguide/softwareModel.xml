@@ -26,12 +26,6 @@
     <section id="sec:background">
         <title>Background</title>
         <para>
-            Rule based model configuration is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
-            It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="native_software">native software</link> and
-            <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
-            Gradle also includes some initial support for building <link linkend="java_software">Java libraries</link> using this configuration model.
-        </para>
-        <para>
             Rule based model configuration facilitates easier domain modelling: communicating intent (i.e. the what) over mechanics (i.e. the how).
             Domain modelling is a core tenet of Gradle and provides Gradle with several advantages over prior generation build tools such as Apache Ant that focus on the execution model.
             It allows humans to understand builds at a level that is meaningful to them.
@@ -40,6 +34,11 @@
             As well as helping humans, a strong domain model also helps the dutiful machines.
             Plugins can more effectively collaborate around a strong domain model (e.g. plugins can say something about Java applications, such as providing conventions).
             Very importantly, by having a model of the <emphasis>what</emphasis> instead of the <emphasis>how</emphasis> Gradle can make intelligent choices on just how to do the how.
+        </para>
+        <para>
+            Gradle's support for building <link linkend="native_software">native software</link> and
+            <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
+            Gradle also includes some initial support for building <link linkend="java_software">Java libraries</link> using this configuration model.
         </para>
     </section>
     <section id="sec:motivations_for_change">

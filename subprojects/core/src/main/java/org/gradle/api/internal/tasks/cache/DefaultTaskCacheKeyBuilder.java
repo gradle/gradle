@@ -86,7 +86,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKey build() {
         HashCode hashCode = hasher.hash();
-        LOGGER.info("Hash code generated: {}", hashCode);
+        LOGGER.debug("Hash code generated: {}", hashCode);
         return new DefaultTaskCacheKey(hashCode);
     }
 
@@ -100,6 +100,11 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
 
         @Override
         public String getHashCode() {
+            return hashCode.toString();
+        }
+
+        @Override
+        public String toString() {
             return hashCode.toString();
         }
     }

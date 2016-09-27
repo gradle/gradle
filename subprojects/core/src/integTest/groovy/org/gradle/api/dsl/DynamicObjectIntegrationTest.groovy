@@ -39,8 +39,8 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         file("child/build.gradle").writelns(
                 "ext.childProperty = 'child'",
                 "ext.sharedProperty = 'shared'",
-                "task testTask << {",
-                "  new Reporter().checkProperties(project)",
+                "task testTask {",
+                "  doLast { new Reporter().checkProperties(project) }",
                 "}",
                 "assert 'root' == rootProperty",
                 "assert 'root' == property('rootProperty')",
@@ -84,8 +84,8 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         file("child/build.gradle").writelns(
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
-                "task testTask << {",
-                "  new Reporter().checkMethods(project)",
+                "task testTask {",
+                "  doLast { new Reporter().checkMethods(project) }",
                 "}",
                 // Use a separate class, to isolate Project from the script
                 "class Reporter {",
@@ -417,10 +417,12 @@ assert 'overridden value' == global
             project.l1.extensions.create("l2", Extension, "l2")
             project.l1.l2.extensions.create("l3", Extension, "l3")
 
-            task test << {
-                assert project.l1.name == "l1"
-                assert project.l1.l2.name == "l2"
-                assert project.l1.l2.l3.name == "l3"
+            task test {
+                doLast {
+                    assert project.l1.name == "l1"
+                    assert project.l1.l2.name == "l2"
+                    assert project.l1.l2.l3.name == "l3"
+                }
             }
         '''
 
@@ -476,9 +478,11 @@ assert 'overridden value' == global
             }
         """
         file("child1/build.gradle") << """
-            task testTask << {
-               assert useSomeProperty() == 'child1'
-               assert useSomeMethod('f') == file('f')
+            task testTask {
+                doLast {
+                    assert useSomeProperty() == 'child1'
+                    assert useSomeMethod('f') == file('f')
+                }
             }
         """
 
@@ -507,19 +511,21 @@ assert 'overridden value' == global
             assert p1 == 2
             assert ext.p1 == 2
 
-            task run << { task ->
-                assert !task.hasProperty("p1")
+            task run {
+                doLast { task ->
+                    assert !task.hasProperty("p1")
 
-                ext {
-                    set "p1", 1
+                    ext {
+                        set "p1", 1
+                    }
+                    assert p1 == 1
+                    assert task.hasProperty("p1")
+                    assert task.property("p1") == 1
+
+                    p1 = 2
+                    assert p1 == 2
+                    assert ext.p1 == 2
                 }
-                assert p1 == 1
-                assert task.hasProperty("p1")
-                assert task.property("p1") == 1
-
-                p1 = 2
-                assert p1 == 2
-                assert ext.p1 == 2
             }
         """
 
@@ -789,10 +795,12 @@ task print(type: MyTask) {
             // best way to decorate right now
             extensions.create('bean', CustomBean)
 
-            task run << {
-                assert bean.b == false
-                bean.conventionMapping.b = { true }
-                assert bean.b == true
+            task run {
+                doLast {
+                    assert bean.b == false
+                    bean.conventionMapping.b = { true }
+                    assert bean.b == true
+                }
             }
         """
 
@@ -980,8 +988,10 @@ task print(type: MyTask) {
 
     def findPropertyShouldReturnValueIfFound() {
         buildFile << """
-            task run << {
-                assert project.findProperty('foundProperty') == 'foundValue'
+            task run {
+                doLast {
+                    assert project.findProperty('foundProperty') == 'foundValue'
+                }
             }
         """
 
@@ -992,8 +1002,10 @@ task print(type: MyTask) {
 
     def findPropertyShouldReturnNullIfNotFound() {
         buildFile << """
-            task run << {
-                assert project.findProperty('notFoundProperty') == null
+            task run {
+                doLast {
+                    assert project.findProperty('notFoundProperty') == null
+                }
             }
         """
 

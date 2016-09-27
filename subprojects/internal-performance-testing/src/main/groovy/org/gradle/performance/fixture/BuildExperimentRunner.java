@@ -38,6 +38,7 @@ public class BuildExperimentRunner {
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
     private final OperationTimer timer = new OperationTimer();
+    private final HonestProfilerCollector honestProfiler;
 
     public enum Phase {
         WARMUP,
@@ -59,7 +60,12 @@ public class BuildExperimentRunner {
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
         GCLoggingCollector gcCollector = new GCLoggingCollector();
         PerformanceCounterCollector performanceCounterCollector = new PerformanceCounterCollector();
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector());
+        honestProfiler = new HonestProfilerCollector();
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector(), honestProfiler);
+    }
+
+    public HonestProfilerCollector getHonestProfiler() {
+        return honestProfiler;
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -168,7 +174,11 @@ public class BuildExperimentRunner {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        return 10;
+        if (usesDaemon(experiment)) {
+            return 20;
+        } else {
+            return 40;
+        }
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
@@ -179,14 +189,21 @@ public class BuildExperimentRunner {
         if (experiment.getWarmUpCount() != null) {
             return experiment.getWarmUpCount();
         }
-        // Use more invocations to warmup when using the daemon, to allow the JVM to warm things up
+        if (usesDaemon(experiment)) {
+            return 10;
+        } else {
+            return 1;
+        }
+    }
+
+    private boolean usesDaemon(BuildExperimentSpec experiment) {
         InvocationSpec invocation = experiment.getInvocation();
         if (invocation instanceof GradleInvocationSpec) {
             if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return 5;
+                return true;
             }
         }
-        return 1;
+        return false;
     }
 
     // the JIT compiler seems to wait for idle period before compiling

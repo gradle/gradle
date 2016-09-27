@@ -177,8 +177,10 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         file("child1/build.gradle") << plugin.build().useDeclaration
         file("child2/build.gradle") << plugin.useDeclaration
         buildFile << """
-            task compare << {
-              project("child1").tasks.helloWorld1.getClass() == project("child2").tasks.helloWorld1.getClass()
+            task compare {
+                doLast {
+                    project("child1").tasks.helloWorld1.getClass() == project("child2").tasks.helloWorld1.getClass()
+                }
             }
         """
 

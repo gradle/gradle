@@ -20,8 +20,6 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.Duration.millis
-
 @Category([JavaPerformanceTest])
 class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' eclipse")
@@ -30,7 +28,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testId = "eclipse $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = targetVersions
         runner.useDaemon = true
 
@@ -41,10 +38,10 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression | targetVersions
-        "small"           | millis(800)                | ['2.0', '2.8', 'last']
-        "multi"           | millis(500)                | ['2.8', 'last']
-        "lotDependencies" | millis(500)                | ['2.8', 'last']
+        testProject       | targetVersions
+        "small"           | ['last']
+        "multi"           | ['last']
+        "lotDependencies" | ['last']
     }
 
     @Unroll("Project '#testProject' idea")
@@ -53,7 +50,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testId = "idea $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = targetVersions
         runner.useDaemon = true
 
@@ -64,9 +60,9 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression | targetVersions
-        "small"           | millis(800)                | ['2.0', '2.8', 'last']
-        "multi"           | millis(500)                | ['2.8', 'last']
-        "lotDependencies" | millis(500)                | ['2.8', 'last']
+        testProject       | targetVersions
+        "small"           | ['last']
+        "multi"           | ['last']
+        "lotDependencies" | ['last']
     }
 }

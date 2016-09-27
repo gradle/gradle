@@ -16,22 +16,19 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.api.Incubating;
-
 /**
  * Dependency on a module in a project.
  *
  * @since 1.0-milestone-5
  */
 public interface IdeaModuleDependency extends IdeaDependency {
+
     /**
-     * Returns the identifier of the target Idea module.
+     * Returns the name of the target module
      *
-     * @return The target identifier, never null.
-     * @since 2.14
+     * @return target module name
      */
-    @Incubating
-    IdeaModuleIdentifier getTarget();
+    String getTargetModuleName();
 
     /**
      * returns dependency module, or null if the dependency module is not in the same Gradle build.

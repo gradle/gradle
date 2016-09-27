@@ -155,9 +155,6 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         return new Amount<Q>(units.scaleTo(value, other.units).subtract(other.value), other.units);
     }
 
-    public Amount<Q> multiply(long other) {
-        return div(BigDecimal.valueOf(other));
-    }
     public Amount<Q> multiply(BigDecimal other) {
         return new Amount<Q>(value.multiply(other), units);
     }

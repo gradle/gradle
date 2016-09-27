@@ -21,20 +21,20 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata {
-    private final DependencyMetadata delegate;
+    private final LocalOriginDependencyMetadata delegate;
     private final ModuleDependency source;
 
-    public DslOriginDependencyMetadataWrapper(DependencyMetadata delegate, ModuleDependency source) {
+    public DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, ModuleDependency source) {
         this.delegate = delegate;
         this.source = source;
     }
@@ -44,22 +44,34 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.toString();
     }
 
+    @Override
     public ModuleDependency getSource() {
         return source;
     }
 
+    @Override
     public ModuleVersionSelector getRequested() {
         return delegate.getRequested();
     }
 
     @Override
-    public String[] getModuleConfigurations() {
+    public String getModuleConfiguration() {
+        return delegate.getModuleConfiguration();
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent);
+    }
+
+    @Override
+    public Set<String> getModuleConfigurations() {
         return delegate.getModuleConfigurations();
     }
 
     @Override
-    public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
-        return delegate.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
+    public String getDependencyConfiguration() {
+        return delegate.getDependencyConfiguration();
     }
 
     @Override
@@ -67,46 +79,52 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.getExclusions(fromConfiguration);
     }
 
-    public List<Exclude> getExcludes(Collection<String> configurations) {
-        return delegate.getExcludes(configurations);
+    @Override
+    public List<Exclude> getExcludes() {
+        return delegate.getExcludes();
     }
 
+    @Override
     public String getDynamicConstraintVersion() {
         return delegate.getDynamicConstraintVersion();
     }
 
+    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }
 
+    @Override
     public boolean isTransitive() {
         return delegate.isTransitive();
     }
 
+    @Override
     public boolean isForce() {
         return delegate.isForce();
     }
 
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         return delegate.getArtifacts(fromConfiguration, toConfiguration);
     }
 
+    @Override
     public Set<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
     }
 
-    public DependencyMetadata withRequestedVersion(String requestedVersion) {
+    @Override
+    public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
         return delegate.withRequestedVersion(requestedVersion);
     }
 
-    public DependencyMetadata withTarget(ComponentSelector target) {
+    @Override
+    public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
 
-    public DependencyMetadata withChanging() {
-        return delegate.withChanging();
-    }
-
+    @Override
     public ComponentSelector getSelector() {
         return delegate.getSelector();
     }

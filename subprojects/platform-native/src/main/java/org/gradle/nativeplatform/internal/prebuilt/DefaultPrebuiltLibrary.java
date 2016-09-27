@@ -31,8 +31,13 @@ public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
 
     public DefaultPrebuiltLibrary(String name, SourceDirectorySetFactory sourceDirectorySetFactory) {
         this.name = name;
-        headers = sourceDirectorySetFactory.create("headers");
+        headers = sourceDirectorySetFactory.create("headers", "headers for prebuilt library '" + name + "'");
         binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
+    }
+
+    @Override
+    public String toString() {
+        return "prebuilt library '" + name + "'";
     }
 
     @Override

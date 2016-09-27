@@ -42,10 +42,26 @@ public interface IvyModule extends Module {
 
     IvyModule extendsFrom(Map<String, ?> attributes);
 
+    /**
+     * Attributes:
+     *  organisation
+     *  module
+     *  revision
+     *  conf
+     */
     IvyModule dependsOn(Map<String, ?> attributes);
 
-    IvyModule dependsOn(IvyModule ivyModule);
+    IvyModule dependsOn(Module target);
 
+    IvyModule dependsOn(Map<String, ?> attributes, Module target);
+
+    /**
+     * Options:
+     *  name
+     *  type
+     *  classifier
+     *  conf
+     */
     IvyModule artifact(Map<String, ?> options);
 
     /**
@@ -57,6 +73,12 @@ public interface IvyModule extends Module {
 
     IvyModule configuration(String name);
 
+    /**
+     * Options:
+     *  extendsFrom
+     *  transitive
+     *  visibility
+     */
     IvyModule configuration(Map<String, ?> options, String name);
 
     /**

@@ -17,34 +17,18 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     MavenModule publishedModuleB
-    MavenFileRepository mavenRepo
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
         publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
-
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-
-                task resolve(type: Copy) {
-                    from configurations.compile
-                    into 'libs'
-                }
-"""
-        }
+        new ResolveTestFixture(buildA.buildFile).prepare()
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -53,7 +37,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
                 }
 """
         }
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     def "passes project properties to included build"() {
@@ -70,7 +54,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         }
 
         when:
-        execute(buildA, ":resolve", ["-PpassedProperty=foo"])
+        execute(buildA, ":checkDeps", ["-PpassedProperty=foo"])
 
         then:
         executed ":buildB:jar"
@@ -90,7 +74,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         }
 
         when:
-        execute(buildA, ":resolve", ["-DpassedProperty=foo"])
+        execute(buildA, ":checkDeps", ["-DpassedProperty=foo"])
 
         then:
         executed ":buildB:jar"
@@ -109,7 +93,7 @@ includeBuild '${buildB.toURI()}'
         def args = ["--include-build", '../buildB', "--include-build", '../buildB']
 
         when:
-        execute(buildA, ":resolve", args)
+        execute(buildA, ":checkDeps", args)
 
         then:
         executed ":buildB:jar"
@@ -126,7 +110,7 @@ rootProject.buildFileName='build-copy.gradle'
         buildA.file("build-copy.gradle").copyFrom(buildA.buildFile)
 
         when:
-        execute(buildA, ":resolve", ["--build-file", "build-copy.gradle"])
+        execute(buildA, ":checkDeps", ["--build-file", "build-copy.gradle"])
 
         then:
         executed ":buildB:jar"
@@ -142,7 +126,7 @@ includeBuild '../buildB'
 """
 
         when:
-        execute(buildA, ":resolve", ["--settings-file", "settings-copy.gradle"])
+        execute(buildA, ":checkDeps", ["--settings-file", "settings-copy.gradle"])
 
         then:
         executed ":buildB:jar"
@@ -153,18 +137,10 @@ includeBuild '../buildB'
         dependency 'org.test:buildB:1.0'
 
         when:
-        execute(buildA, ":resolve", ["--exclude-task", "jar"])
+        execute(buildA, ":checkDeps", ["--exclude-task", "jar"])
 
         then:
         executed ":buildB:jar"
-    }
-
-    def dependency(String notation) {
-        buildA.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
     }
 
 }

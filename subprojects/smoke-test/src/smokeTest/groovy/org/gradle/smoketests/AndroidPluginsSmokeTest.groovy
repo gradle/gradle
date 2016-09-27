@@ -22,6 +22,7 @@ import org.gradle.testkit.runner.TaskOutcome
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
+    public static final ANDROID_PLUGIN_VERSION = '2.2.0-beta2'
 
     def "android application plugin"() {
         given:
@@ -66,7 +67,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
         when:
-        def result = runner('build', '-x', 'lint').build()
+        def result = runner('androidDependencies', 'build', '-x', 'lint').build()
 
         then:
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
@@ -170,7 +171,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
 
                 dependencies {
-                    classpath 'com.android.tools.build:gradle:2.2.0-alpha6'
+                    classpath 'com.android.tools.build:gradle:${ANDROID_PLUGIN_VERSION}'
                 }
             }
 

@@ -134,14 +134,10 @@ class HttpTaskOutputCacheIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
-        println "\n\n\n-----------------------------------------\n\n\n"
-
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
-
-        println "\n\n\n-----------------------------------------\n\n\n"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD

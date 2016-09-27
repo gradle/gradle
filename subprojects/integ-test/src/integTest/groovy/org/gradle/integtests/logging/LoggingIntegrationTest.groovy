@@ -87,7 +87,6 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'An info log message logged using JCL',
                 'An info log message logged using Log4j',
                 'An info log message logged using JUL',
-                'A config log message logged using JUL',
                 'infoProject2Out',
                 'infoProject2ScriptClassPathOut',
                 'settings info out',
@@ -111,8 +110,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         )
         debug(
                 'A debug log message.',
-                '[ant:echo] A debug message logged from Ant',
-                'A fine log message logged using JUL'
+                '[ant:echo] A debug message logged from Ant'
         )
         trace(
                 'A trace log message.'

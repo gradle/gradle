@@ -104,6 +104,18 @@ public class AbstractFileTreeTest extends Specification {
         sum.files.sort() == [file1, file2]
     }
 
+    public void "can visit root elements"() {
+        def tree = new TestFileTree([])
+        def visitor = Mock(FileCollectionVisitor)
+
+        when:
+        tree.visitRootElements(visitor)
+
+        then:
+        1 * visitor.visitTree(tree)
+        0 * visitor._
+    }
+
     FileVisitDetails fileVisitDetails(File file) {
         return Stub(FileVisitDetails) {
             getFile() >> { file }

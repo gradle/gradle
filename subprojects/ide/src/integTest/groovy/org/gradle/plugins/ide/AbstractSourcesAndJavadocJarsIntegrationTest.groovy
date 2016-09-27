@@ -333,8 +333,10 @@ eclipse {
     }
 }
 
-task resolve << {
-    configurations.compile.each { println it }
+task resolve {
+    doLast {
+        configurations.compile.each { println it }
+    }
 }
 """
     }

@@ -1,0 +1,14 @@
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'idea'
+
+group = 'org.sample'
+version = '1.0-SNAPSHOT'
+
+gradlePlugin {
+    plugins {
+        customPlugin {
+            id = 'org.sample.greeting'
+            implementationClass = 'org.sample.GreetingPlugin'
+        }
+    }
+}

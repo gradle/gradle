@@ -19,14 +19,50 @@ package org.gradle.integtests.composite
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.test.fixtures.file.TestFile
-
 /**
  * Tests for composite build.
  */
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
-    List builds = []
+    BuildTestFile buildA
+    List includedBuilds = []
+
+    def setup() {
+        buildTestFixture.withBuildInSubDir()
+        buildA = singleProjectBuild("buildA") {
+            buildFile << """
+                apply plugin: 'java'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+"""
+        }
+    }
+
+    def dependency(BuildTestFile sourceBuild = buildA, String notation) {
+        sourceBuild.buildFile << """
+            dependencies {
+                compile '${notation}'
+            }
+"""
+    }
+
+    def includeBuild(File build, def mappings = "") {
+        if (mappings == "") {
+            buildA.settingsFile << """
+                includeBuild('${build.toURI()}')
+"""
+        } else {
+            buildA.settingsFile << """
+                includeBuild('${build.toURI()}') {
+                    dependencySubstitution {
+                        $mappings
+                    }
+                }
+"""
+
+        }
+    }
 
     protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
@@ -41,10 +77,9 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     private void prepare(BuildTestFile build, Iterable<String> arguments) {
         executer.inDirectory(build)
 
-        List<File> includedBuilds = Lists.newArrayList(builds)
-        includedBuilds.remove(build)
-        for (File includedBuild : includedBuilds) {
-            build.settingsFile << "includeBuild '${includedBuild.toURI()}'\n"
+        List<File> includedBuilds = Lists.newArrayList(includedBuilds)
+        includedBuilds.each {
+            includeBuild(it)
         }
         for (String arg : arguments) {
             executer.withArgument(arg)
@@ -65,13 +100,5 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
     TestFile getRootDir() {
         temporaryFolder.testDirectory
-    }
-
-    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
-    }
-
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
     }
 }

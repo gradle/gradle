@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
@@ -173,6 +174,6 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         }
 
         // TODO - validate that it's a valid model path
-        return ModelPath.pathString(names);
+        return ModelPath.pathString(Iterables.toArray(names, String.class));
     }
 }

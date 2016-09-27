@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
-import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link Checkstyle} task.
@@ -35,7 +35,7 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      * @return The checkstyle HTML report
      * @since 2.10
      */
-    @Nested
+    @Internal
     SingleFileReport getHtml();
 
     /**
@@ -45,6 +45,6 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      *
      * @return The checkstyle XML report
      */
-    @Nested
+    @Internal
     SingleFileReport getXml();
 }

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.language.nativeplatform.internal.incremental
+
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -37,7 +39,8 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(Compiler)
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
-    def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain)
+    def directoryTreeFactory = TestFiles.directoryFileTreeFactory()
+    def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain, directoryTreeFactory)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -94,7 +97,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain)
+       def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain, directoryTreeFactory)
        then:
        compiler.importsAreIncludes
        where:

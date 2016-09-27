@@ -44,7 +44,7 @@ public class ResolutionStrategySamplesIntegrationTest extends AbstractIntegratio
                 conf "org.codehaus:groovy-all:2.4.7"
                 conf "log4j:log4j:1.2"
             }
-            task resolveConf << { configurations.conf.files }
+            task resolveConf { doLast { configurations.conf.files } }
         """
 
         when:

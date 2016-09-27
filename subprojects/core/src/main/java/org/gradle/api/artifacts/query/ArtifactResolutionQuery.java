@@ -27,16 +27,18 @@ import org.gradle.api.component.Component;
  * <pre autoTested=''>
  * apply plugin: 'java'
  *
- * task resolveCompileSources << {
- *     def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+ * task resolveCompileSources {
+ *     doLast {
+ *         def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
  *
- *     def result = dependencies.createArtifactResolutionQuery()
- *                              .forComponents(componentIds)
- *                              .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
- *                              .execute()
+ *         def result = dependencies.createArtifactResolutionQuery()
+ *                                  .forComponents(componentIds)
+ *                                  .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
+ *                                  .execute()
  *
- *     for (component in result.resolvedComponents) {
- *         component.getArtifacts(SourcesArtifact).each { println "Source artifact for ${component.id}: ${it.file}" }
+ *         for (component in result.resolvedComponents) {
+ *             component.getArtifacts(SourcesArtifact).each { println "Source artifact for ${component.id}: ${it.file}" }
+ *         }
  *     }
  * }
  * </pre>

@@ -20,7 +20,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
-import org.gradle.api.Incubating;
 
 import java.util.Map;
 
@@ -31,7 +30,6 @@ public class ModuleDependency implements Dependency {
 
     private String name;
     private String scope;
-    private String gradlePath;
     private boolean exported;
 
     public ModuleDependency(String name, String scope) {
@@ -66,16 +64,6 @@ public class ModuleDependency implements Dependency {
 
     public void setScope(String scope) {
         this.scope = scope;
-    }
-
-    @Incubating
-    public String getGradlePath() {
-        return gradlePath;
-    }
-
-    @Incubating
-    public void setGradlePath(String gradlePath) {
-        this.gradlePath = gradlePath;
     }
 
     public boolean isExported() {

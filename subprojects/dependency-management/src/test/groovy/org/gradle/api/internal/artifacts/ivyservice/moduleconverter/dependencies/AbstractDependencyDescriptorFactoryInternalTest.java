@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -35,7 +36,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -75,9 +75,10 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
                 setTransitive(true);
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(DependencyMetadata dependencyMetadata) {
-        assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetadata.getExcludes(Collections.singleton(TEST_CONF)).get(0));
-        assertThat(dependencyMetadata.getDependencyConfigurations(TEST_CONF, TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
+    protected void assertDependencyDescriptorHasCommonFixtureValues(DslOriginDependencyMetadata dependencyMetadata) {
+        assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetadata.getExcludes().get(0));
+        assertThat(dependencyMetadata.getModuleConfiguration(), equalTo(TEST_CONF));
+        assertThat(dependencyMetadata.getDependencyConfiguration(), equalTo(TEST_DEP_CONF));
         assertThat(dependencyMetadata.isTransitive(), equalTo(true));
         assertDependencyDescriptorHasArtifacts(dependencyMetadata);
     }

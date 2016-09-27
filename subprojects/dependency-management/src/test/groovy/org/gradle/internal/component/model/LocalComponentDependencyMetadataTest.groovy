@@ -17,46 +17,85 @@
 package org.gradle.internal.component.model
 
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
 class LocalComponentDependencyMetadataTest extends Specification {
+    def "returns this when same version requested"() {
+        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], false, false, true)
+
+        expect:
+        dep.withRequestedVersion("12").is(dep)
+        dep.withTarget(DefaultModuleComponentSelector.newSelector("a", "b", "12")).is(dep)
+    }
+
+    def "returns this when same target requested"() {
+        def selector = Stub(ProjectComponentSelector)
+        def dep = new LocalComponentDependencyMetadata(selector, Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+
+        expect:
+        dep.withTarget(selector).is(dep)
+    }
+
+    def "selects the target configuration from target component"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata)
+        def fromConfig = Stub(ConfigurationMetadata)
+        def toConfig = Stub(ConfigurationMetadata)
+        fromConfig.hierarchy >> ["from"]
+
+        given:
+        toComponent.getConfiguration("to") >> toConfig
+
+        expect:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent) == [toConfig] as Set
+    }
+
+    def "fails to select target configuration when not present in the target component"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata)
+        def fromConfig = Stub(ConfigurationMetadata)
+        fromComponent.componentId >> Stub(ComponentIdentifier) { getDisplayName() >> "thing a" }
+        toComponent.componentId >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
+        fromConfig.hierarchy >> ["from"]
+
+        given:
+        toComponent.getConfiguration("to") >> null
+
+        when:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent)
+
+        then:
+        def e = thrown(ConfigurationNotFoundException)
+        e.message == "Thing a declares a dependency from configuration 'from' to configuration 'to' which is not declared in the descriptor for thing b."
+    }
+
     def "excludes nothing when no exclude rules provided"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
-        dep.getExclusions(configuration("from")) == ModuleExclusions.excludeNone()
-        dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
+        def exclusions = dep.getExclusions(configuration("from"))
+        exclusions == ModuleExclusions.excludeNone()
+        exclusions.is(dep.getExclusions(configuration("other", "from")))
     }
 
-    def "excludes nothing when traversing a different configuration"() {
-        def exclude = new DefaultExclude("group", "*")
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [exclude], false, false, true)
+    def "applies exclude rules when traversing the from configuration"() {
+        def exclude1 = new DefaultExclude("group1", "*")
+        def exclude2 = new DefaultExclude("group2", "*")
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true)
 
         expect:
-        dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
-    }
-
-    def "applies and caches exclude rules when traversing the from configuration"() {
-        def exclude = new DefaultExclude("group", "*")
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [exclude], false, false, true)
-        def configuration = configuration("from")
-
-        expect:
-        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude)
-        dep.getExclusions(configuration).is(dep.getExclusions(configuration))
-    }
-
-    def "applies and caches exclude rules when traversing a child of from configuration"() {
-        def exclude = new DefaultExclude("group", "*")
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [exclude], false, false, true)
-        def configuration = configuration("child", "from")
-
-        expect:
-        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude)
-        dep.getExclusions(configuration).is(dep.getExclusions(configuration))
+        def exclusions = dep.getExclusions(configuration("from"))
+        exclusions == ModuleExclusions.excludeAny(exclude1, exclude2)
+        exclusions.is(dep.getExclusions(configuration("other", "from")))
     }
 
     def configuration(String name, String... parents) {

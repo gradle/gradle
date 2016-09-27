@@ -30,8 +30,6 @@ import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
 import java.io.File;
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 public class PCHCompileTaskConfig extends CompileTaskConfig {
     public PCHCompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
@@ -47,11 +45,7 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         task.setDescription("Compiles a pre-compiled header for the " + sourceSet + " of " + binary);
 
         // Add the source of the source set to the include paths to resolve any headers that may be in source directories
-        task.includes(new Callable<Set<File>>() {
-            public Set<File> call() throws Exception {
-                return sourceSet.getSource().getSrcDirs();
-            }
-        });
+        task.includes(sourceSet.getSource().getSourceDirectories());
 
         final Project project = task.getProject();
         task.source(sourceSet.getPrefixHeaderFile());

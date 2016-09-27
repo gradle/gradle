@@ -19,28 +19,16 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenFileRepository
-
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
 class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
-    MavenFileRepository mavenRepo
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
-
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
+        buildA.buildFile << """
+            apply plugin: 'idea'
 """
-        }
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -53,7 +41,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 }
 """
         }
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     def "builds IDEA metadata with substituted dependency"() {
@@ -145,7 +133,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 apply plugin: 'idea'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         idea()
@@ -227,7 +215,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
             group = 'org.test'
             version = '1.0'
 """
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         idea()
@@ -246,7 +234,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 apply plugin: 'idea'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         idea()
@@ -292,7 +280,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 apply plugin: 'java'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         idea()
@@ -323,7 +311,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 """
         }
 
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         idea()
@@ -332,14 +320,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/c2/c2.iml"
         // This is actually invalid: no `buildC.iml` file exists in the project. Should not substitute?
         imlHasDependencies "b1", "buildC", "c2"
-    }
-
-    def dependency(BuildTestFile buildRoot = buildA, String notation) {
-        buildRoot.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
     }
 
     def idea(BuildTestFile projectDir = buildA) {

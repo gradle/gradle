@@ -323,13 +323,15 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 substitute module('org.utils:api:1.3') with module('org.utils:api:1.+')
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 1
-                assert deps[0].requested.version == '1.3'
-                assert deps[0].selected.id.version == '1.5'
-                assert !deps[0].selected.selectionReason.forced
-                assert deps[0].selected.selectionReason.selectedByRule
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0].requested.version == '1.3'
+                    assert deps[0].selected.id.version == '1.5'
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
             }
 """
 
@@ -396,9 +398,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             $common
 
             project(":api") {
-                task build << {
-                    mkdir(projectDir)
-                    file("artifact.txt") << "Lajos"
+                task build {
+                    doLast {
+                        mkdir(projectDir)
+                        file("artifact.txt") << "Lajos"
+                    }
                 }
 
                 artifacts {
@@ -417,10 +421,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     substitute module("org.utils:api") with project(":api")
                 }
 
-                task check(dependsOn: configurations.conf) << {
-                    def files = configurations.conf.files
-                    assert files*.name.sort() == ["api.jar", "artifact.txt"]
-                    assert files[1].text == "Lajos"
+                task check(dependsOn: configurations.conf) {
+                    doLast {
+                        def files = configurations.conf.files
+                        assert files*.name.sort() == ["api.jar", "artifact.txt"]
+                        assert files[1].text == "Lajos"
+                    }
                 }
             }
 """
@@ -537,16 +543,18 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     substitute module("org.utils:api") with project(":api")
                 }
 
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+                task check {
+                    doLast {
+                        def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                        assert deps.size() == 1
+                        assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == projectId(":api")
+                        assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
+                        assert deps[0].selected.componentId == projectId(":api")
 
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
+                        assert !deps[0].selected.selectionReason.forced
+                        assert deps[0].selected.selectionReason.selectedByRule
+                    }
                 }
             }
 """
@@ -703,7 +711,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':impl:checkDeps'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':impl:conf'.")
-        failure.assertHasCause("project ':doesnotexist' not found.")
+        failure.assertHasCause("project :doesnotexist not found.")
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"()
@@ -789,29 +797,31 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     substitute project(":api") with module("org.utils:api:1.6")
                 }
 
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 2
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(projectId(":api")) &&
-                        it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
-                        !it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule &&
-                        it.selected.selectionReason.conflictResolution
-                    }
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "api", "2.0")) &&
-                        it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
-                        !it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule &&
-                        it.selected.selectionReason.conflictResolution
-                    }
+                task check {
+                    doLast {
+                        def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                        assert deps.size() == 2
+                        assert deps.find {
+                            it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                            it.requested.matchesStrictly(projectId(":api")) &&
+                            it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
+                            !it.selected.selectionReason.forced &&
+                            !it.selected.selectionReason.selectedByRule &&
+                            it.selected.selectionReason.conflictResolution
+                        }
+                        assert deps.find {
+                            it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                            it.requested.matchesStrictly(moduleId("org.utils", "api", "2.0")) &&
+                            it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
+                            !it.selected.selectionReason.forced &&
+                            !it.selected.selectionReason.selectedByRule &&
+                            it.selected.selectionReason.conflictResolution
+                        }
 
-                    def resolvedDeps = configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
-                    resolvedDeps.size() == 1
-                    resolvedDeps[0].module.id == moduleId("org.utils", "api", "2.0")
+                        def resolvedDeps = configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
+                        resolvedDeps.size() == 1
+                        resolvedDeps[0].module.id == moduleId("org.utils", "api", "2.0")
+                    }
                 }
             }
 """
@@ -1025,15 +1035,17 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 substitute module('org.utils:api:1.3') with module('org.utils:api:1.123.15')
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 1
-                assert deps[0].attempted.group == 'org.utils'
-                assert deps[0].attempted.module == 'api'
-                assert deps[0].attempted.version == '1.123.15'
-                assert deps[0].attemptedReason.selectedByRule
-                assert deps[0].failure.message.contains('1.123.15')
-                assert deps[0].requested.version == '1.3'
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0].attempted.group == 'org.utils'
+                    assert deps[0].attempted.module == 'api'
+                    assert deps[0].attempted.version == '1.123.15'
+                    assert deps[0].attemptedReason.selectedByRule
+                    assert deps[0].failure.message.contains('1.123.15')
+                    assert deps[0].requested.version == '1.3'
+                }
             }
 """
 
@@ -1084,9 +1096,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
 
-            task check << {
-                configurations.conf.resolve()
-                assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+            task check {
+                doLast {
+                    configurations.conf.resolve()
+                    assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+                }
             }
 """
 

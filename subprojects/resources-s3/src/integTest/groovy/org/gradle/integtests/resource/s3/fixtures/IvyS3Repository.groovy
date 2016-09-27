@@ -50,7 +50,7 @@ class IvyS3Repository implements RemoteIvyRepository {
     }
 
     @Override
-    IvyS3Module module(String organisation, String module, Object revision) {
+    IvyS3Module module(String organisation, String module, String revision) {
         return new IvyS3Module(server, backingRepository.module(organisation, module, revision), repositoryPath, bucket)
     }
 

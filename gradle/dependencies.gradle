@@ -87,12 +87,11 @@ libraries += [
         groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0@jar",
-        jna: 'net.java.dev.jna:jna:3.2.7@jar',
         junit: 'junit:junit:4.12@jar',
         xmlunit: 'xmlunit:xmlunit:1.3',
         nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
         xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
-        nativePlatform: 'net.rubygrapefruit:native-platform:0.10',
+        nativePlatform: 'net.rubygrapefruit:native-platform:0.11',
         xerces: "xerces:xercesImpl:2.9.1",
         objenesis: 'org.objenesis:objenesis:1.2@jar',
         jsoup:'org.jsoup:jsoup:1.6.3'

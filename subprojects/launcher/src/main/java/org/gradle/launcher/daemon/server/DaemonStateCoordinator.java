@@ -202,8 +202,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void requestCancel() {
         lock.lock();
         try {
-            if (state == State.Busy || state == State.StopRequested) {
+            if (state == State.Busy) {
                 setState(State.Canceled);
+            } else if (state == State.StopRequested) {
+                requestForcefulStop("the build was canceled after a stop was requested");
             }
         } finally {
             lock.unlock();

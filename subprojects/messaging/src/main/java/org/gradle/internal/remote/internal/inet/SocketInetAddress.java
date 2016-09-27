@@ -15,11 +15,17 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.List;
 
 public class SocketInetAddress implements InetEndpoint {
+    public static final org.gradle.internal.serialize.Serializer<SocketInetAddress> SERIALIZER = new Serializer();
+
     private final InetAddress address;
     private final int port;
 
@@ -64,5 +70,27 @@ public class SocketInetAddress implements InetEndpoint {
 
     public int getPort() {
         return port;
+    }
+
+    private static class Serializer implements org.gradle.internal.serialize.Serializer<SocketInetAddress> {
+
+        @Override
+        public SocketInetAddress read(Decoder decoder) throws Exception {
+            return new SocketInetAddress(readAddress(decoder), decoder.readInt());
+        }
+
+        private InetAddress readAddress(Decoder decoder) throws IOException {
+            return InetAddress.getByAddress(decoder.readBinary());
+        }
+
+        @Override
+        public void write(Encoder encoder, SocketInetAddress address) throws Exception {
+            writeAddress(encoder, address);
+            encoder.writeInt(address.port);
+        }
+
+        private void writeAddress(Encoder encoder, SocketInetAddress address) throws IOException {
+            encoder.writeBinary(address.address.getAddress());
+        }
     }
 }

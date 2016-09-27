@@ -87,8 +87,10 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
 
-                task wrapper << {
-                    println "running custom wrapper task"
+                task wrapper {
+                    doLast {
+                        println "running custom wrapper task"
+                    }
                 }
             """
         run 'wrapper'

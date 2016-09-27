@@ -36,23 +36,27 @@ if (project.hasProperty('explicitDeps')) {
         conf "org:bar:1.0"
     }
 }
-task checkDefault << {
-    if (project.hasProperty('resolveChild')) {
-        configurations.child.resolve()
+task checkDefault {
+    doLast {
+        if (project.hasProperty('resolveChild')) {
+            configurations.child.resolve()
+        }
+
+        def deps = configurations.conf.incoming.resolutionResult.allDependencies
+        assert deps*.selected.id.displayName == ['org:foo:1.0']
+
+        def files = configurations.conf.files
+        assert files*.name == ["foo-1.0.jar"]
     }
-
-    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-    assert deps*.selected.id.displayName == ['org:foo:1.0']
-
-    def files = configurations.conf.files
-    assert files*.name == ["foo-1.0.jar"]
 }
-task checkExplicit << {
-    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-    assert deps*.selected.id.displayName == ['org:bar:1.0']
+task checkExplicit {
+    doLast {
+        def deps = configurations.conf.incoming.resolutionResult.allDependencies
+        assert deps*.selected.id.displayName == ['org:bar:1.0']
 
-    def files = configurations.conf.files
-    assert files*.name == ["bar-1.0.jar"]
+        def files = configurations.conf.files
+        assert files*.name == ["bar-1.0.jar"]
+    }
 }
 """
     }

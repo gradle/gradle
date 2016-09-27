@@ -37,7 +37,7 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
         distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'
         distro.file("init.d/init.gradle") << """
             gradle.allprojects {
-                task echo << { println "from distro $i" }
+                task echo { doLast { println "from distro $i" } }
             }
         """
         distro

@@ -21,6 +21,7 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -43,6 +44,7 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
                 getBuildStandardInput(),
                 get(ExecutorFactory.class),
                 get(IdGenerator.class),
-                get(DocumentationRegistry.class));
+                get(DocumentationRegistry.class),
+                get(ProcessEnvironment.class));
     }
 }

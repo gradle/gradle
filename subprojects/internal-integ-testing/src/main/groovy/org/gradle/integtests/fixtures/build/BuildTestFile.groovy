@@ -22,7 +22,7 @@ class BuildTestFile extends TestFile {
     private final String projectName
 
     BuildTestFile(TestFile rootDir, String projectName) {
-        super(rootDir, [projectName])
+        super(rootDir)
         this.projectName = projectName
     }
 
@@ -36,6 +36,10 @@ class BuildTestFile extends TestFile {
 
     TestFile getSettingsFile() {
         file("settings.gradle")
+    }
+
+    TestFile getGradlePropertiesFile() {
+        file("gradle.properties")
     }
 
     void addChildDir(String name) {

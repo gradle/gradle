@@ -20,14 +20,8 @@ buildscript {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
     dependencies {
-        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.6'
+        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.14'
     }
 }
 
-ext {
-    isCiServer = System.getenv().containsKey('TEAMCITY_VERSION')
-}
-
-if (isCiServer) {
-    apply plugin: org.gradle.ci.tagging.plugin.TeamCityBuildTagPlugin
-}
+apply plugin: org.gradle.ci.tagging.plugin.TeamCityBuildTagPlugin

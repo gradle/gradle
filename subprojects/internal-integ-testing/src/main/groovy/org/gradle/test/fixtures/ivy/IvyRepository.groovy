@@ -22,9 +22,11 @@ interface IvyRepository extends Repository {
 
     String getIvyPattern()
 
+    @Override
     IvyModule module(String organisation, String module)
 
-    IvyModule module(String organisation, String module, Object revision)
+    @Override
+    IvyModule module(String organisation, String module, String revision)
 }
 
 

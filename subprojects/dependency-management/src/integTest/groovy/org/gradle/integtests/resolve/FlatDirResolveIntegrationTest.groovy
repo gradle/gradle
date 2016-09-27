@@ -34,8 +34,10 @@ dependencies {
     compile 'group:c:'
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['a-1.4.jar', 'b.jar', 'c.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['a-1.4.jar', 'b.jar', 'c.jar']
+    }
 }
 """
 
@@ -56,8 +58,10 @@ dependencies {
     compile 'group:a:1.4:classifier'
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['a-1.4-classifier.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['a-1.4-classifier.jar']
+    }
 }
 """
 
@@ -77,8 +81,10 @@ dependencies {
     compile 'group:a:1.4@zip'
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['a-1.4.zip']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['a-1.4.zip']
+    }
 }
 """
 

@@ -167,8 +167,10 @@ An open question is the syntax to use for the injection. Some candidates:
 
     @Inject FileOperations files
 
-    task myTask << {
-        files.file('my-file').text = 'hi'
+    task myTask {
+        doLast {
+            files.file('my-file').text = 'hi'
+        }
     }
 
 The property declaration must appear at the start of the script, or perhaps in the `buildscript` section, so that they can be statically inspected.
@@ -177,16 +179,20 @@ The property declaration must appear at the start of the script, or perhaps in t
 
     // implicit getFileOperations() is added for FileOperations service
 
-    task myTask << {
-        fileOperations.file('my-file').text = 'hi'
+    task myTask {
+        doLast {
+            fileOperations.file('my-file').text = 'hi'
+        }
     }
 
 3. Imperative lookup:
 
     // Add <T> T Script.getService(Class<T>)
 
-    task myTask << {
-        getService(FileOperations).file('my-file').text = 'hi'
+    task myTask {
+        doLast {
+            getService(FileOperations).file('my-file').text = 'hi'
+        }
     }
 
 Options 2 and 3 are imperative options, and so cannot be statically inspected. They allow auto-detection of dependencies on other plugins, but the

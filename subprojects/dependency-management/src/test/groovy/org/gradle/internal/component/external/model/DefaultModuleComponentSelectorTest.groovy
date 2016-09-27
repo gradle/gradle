@@ -18,10 +18,10 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultModuleComponentSelectorTest extends Specification {
@@ -95,7 +95,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
     def "does not match id for unexpected component selector type"() {
         when:
         ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
-        boolean matches = defaultModuleComponentSelector.matchesStrictly(new DefaultProjectComponentIdentifier(':mypath'))
+        boolean matches = defaultModuleComponentSelector.matchesStrictly(newProjectId(':mypath'))
 
         then:
         assert !matches

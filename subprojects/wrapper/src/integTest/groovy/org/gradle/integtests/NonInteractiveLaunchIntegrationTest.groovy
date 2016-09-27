@@ -25,8 +25,10 @@ class NonInteractiveLaunchIntegrationTest extends AbstractWrapperIntegrationSpec
     def "can execute from Finder"() {
         given:
         file("build.gradle") << """
-task hello << {
-    file('hello.txt').createNewFile()
+task hello {
+    doLast {
+        file('hello.txt').createNewFile()
+    }
 }
 defaultTasks 'hello'
         """

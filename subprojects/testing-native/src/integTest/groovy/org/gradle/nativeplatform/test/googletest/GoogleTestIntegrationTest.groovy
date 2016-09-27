@@ -140,7 +140,7 @@ model {
         useConventionalSourceLocations()
         useStandardConfig()
         buildFile << "apply plugin: 'c'"
-        file("src/hello/c").createDir().file("foo.c").text = "int foobar() { return 0; }"
+        file("src/hello/c/foo.c").text = "int foobar() { return 0; }"
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -328,6 +328,7 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
+    @Issue("GRADLE-3528")
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()

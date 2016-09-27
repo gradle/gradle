@@ -167,7 +167,7 @@ idea.module.excludeDirs += file('foo')
 
         def fakeRepo = file("repo")
 
-        def dependency = new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
+        def dependency = new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", "1.0")
         dependency.artifact(classifier: 'sources')
         dependency.artifact(classifier: 'javadoc')
         dependency.publish()
@@ -284,7 +284,6 @@ project(':impl') {
     }
 
     def "offline model should not resolve external dependencies"() {
-
 
         file('build.gradle').text = """
 subprojects {

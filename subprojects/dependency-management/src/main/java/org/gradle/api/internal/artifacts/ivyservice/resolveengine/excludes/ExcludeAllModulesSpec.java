@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 class ExcludeAllModulesSpec extends AbstractModuleExclusion {
     @Override
     public String toString() {
-        return "{all modules}";
+        return "{exclude-all}";
     }
 
     @Override

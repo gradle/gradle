@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
@@ -39,6 +40,6 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T> {
     }
 
     public T execute(final InternalBuildController buildController) {
-        return action.execute(new BuildControllerAdapter(new ProtocolToModelAdapter(), buildController, new ModelMapping(), rootDir));
+        return action.execute(new BuildControllerAdapter(new ProtocolToModelAdapter(new ConsumerTargetTypeProvider()), buildController, new ModelMapping(), rootDir));
     }
 }

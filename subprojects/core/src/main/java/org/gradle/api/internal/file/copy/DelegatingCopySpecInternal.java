@@ -251,4 +251,14 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     public void setFilteringCharset(String charset) {
         getDelegateCopySpec().setFilteringCharset(charset);
     }
+
+    @Override
+    public void addChildSpecListener(CopySpecListener listener) {
+        getDelegateCopySpec().addChildSpecListener(listener);
+    }
+
+    @Override
+    public void visit(CopySpecAddress parentPath, CopySpecVisitor visitor) {
+        getDelegateCopySpec().visit(parentPath, visitor);
+    }
 }

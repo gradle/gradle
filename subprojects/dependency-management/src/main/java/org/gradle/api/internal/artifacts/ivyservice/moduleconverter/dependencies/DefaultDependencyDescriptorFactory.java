@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;
+import java.util.Map;
 
 public class DefaultDependencyDescriptorFactory implements DependencyDescriptorFactory {
     private List<IvyDependencyDescriptorFactory> dependencyDescriptorFactories;
@@ -30,9 +31,9 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         this.dependencyDescriptorFactories = WrapUtil.toList(dependencyDescriptorFactories);
     }
 
-    public DependencyMetadata createDependencyDescriptor(String configuration, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> attributes, ModuleDependency dependency) {
         IvyDependencyDescriptorFactory factoryInternal = findFactoryForDependency(dependency);
-        return factoryInternal.createDependencyDescriptor(configuration, dependency);
+        return factoryInternal.createDependencyDescriptor(clientConfiguration, attributes, dependency);
     }
 
     private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {

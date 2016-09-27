@@ -26,10 +26,13 @@ import static PrettyCalculator.toMillis
 
 @CompileStatic
 class BaselineVersion implements VersionResults {
+    // To give us < 0.3% odds of a falsely identified regression.
+    // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
+    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3.0")
+    // We want to ignore regressions of less than 2% over the baseline.
+    static final BigDecimal MINIMUM_REGRESSION_PERCENTAGE = new BigDecimal("0.02")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
-    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
-    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BaselineVersion(String version) {
         this.version = version
@@ -49,7 +52,7 @@ class BaselineVersion implements VersionResults {
 
             def diff = currentVersionAverage - thisVersionAverage
             def desc = diff > Duration.millis(0) ? "slower" : "faster"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression(current).format()}\n")
+            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression().format()}\n")
             sb.append(current.speedStats)
             sb.append(results.speedStats)
             sb.append("\n")
@@ -72,7 +75,7 @@ class BaselineVersion implements VersionResults {
 
             def diff = currentVersionAverage - thisVersionAverage
             def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression(current).format()}\n")
+            sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression().format()}\n")
             sb.append(current.memoryStats)
             sb.append(results.memoryStats)
             sb.append("\n")
@@ -83,30 +86,20 @@ class BaselineVersion implements VersionResults {
     }
 
     boolean fasterThan(MeasuredOperationList current) {
-        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression(current)
+        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression()
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
-        results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression(current)
+        results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression()
     }
 
-    Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
-        if (strict) {
-            (current.totalTime.sdom + results.totalTime.sdom) * 1.5
-        } else {
-            maxExecutionTimeRegression
-        }
+    Amount<Duration> getMaxExecutionTimeRegression() {
+        def allowedPercentageRegression = results.totalTime.average * MINIMUM_REGRESSION_PERCENTAGE
+        def allowedStatisticalRegression = results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
+        (allowedStatisticalRegression > allowedPercentageRegression) ? allowedStatisticalRegression : allowedPercentageRegression
     }
 
-    Amount<DataAmount> getMaxMemoryRegression(MeasuredOperationList current) {
-        if (strict) {
-            (current.totalMemoryUsed.sdom + results.totalMemoryUsed.sdom) * 1.5
-        } else {
-            maxMemoryRegression
-        }
-    }
-
-    static boolean isStrict() {
-        return Boolean.valueOf(System.getProperty("org.gradle.performance.strict", "false"))
+    Amount<DataAmount> getMaxMemoryRegression() {
+        results.totalMemoryUsed.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 }

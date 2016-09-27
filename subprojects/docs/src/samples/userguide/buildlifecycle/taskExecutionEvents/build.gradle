@@ -1,7 +1,9 @@
 task ok
 
-task broken(dependsOn: ok) << {
-    throw new RuntimeException('broken')
+task broken(dependsOn: ok) {
+    doLast {
+        throw new RuntimeException('broken')
+    }
 }
 
 gradle.taskGraph.beforeTask { Task task ->

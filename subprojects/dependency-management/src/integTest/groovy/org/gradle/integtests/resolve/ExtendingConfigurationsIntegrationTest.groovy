@@ -40,17 +40,19 @@ public class ExtendingConfigurationsIntegrationTest extends AbstractDependencyRe
                 barConf 'org:bar:1.0'
             }
 
-            task check << {
-                configurations.conf.extendsFrom(configurations.fooConf)
-                assert configurations.conf.allDependencies*.name == ['foo']
+            task check {
+                doLast {
+                    configurations.conf.extendsFrom(configurations.fooConf)
+                    assert configurations.conf.allDependencies*.name == ['foo']
 
-                //purposefully again:
-                configurations.conf.extendsFrom(configurations.fooConf)
-                assert configurations.conf.allDependencies*.name == ['foo']
+                    //purposefully again:
+                    configurations.conf.extendsFrom(configurations.fooConf)
+                    assert configurations.conf.allDependencies*.name == ['foo']
 
-                //replace:
-                configurations.conf.extendsFrom = [configurations.barConf] as Set
-                assert configurations.conf.allDependencies*.name == ['bar']
+                    //replace:
+                    configurations.conf.extendsFrom = [configurations.barConf] as Set
+                    assert configurations.conf.allDependencies*.name == ['bar']
+                }
             }
         """
 

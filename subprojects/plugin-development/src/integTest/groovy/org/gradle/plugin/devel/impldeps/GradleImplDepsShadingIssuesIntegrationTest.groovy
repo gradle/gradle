@@ -117,4 +117,34 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'test'
 
     }
+
+    @Issue("GRADLE-3525")
+    def "can use newer Servlet API"() {
+        when:
+        buildFile << testableGroovyProject()
+
+
+        buildFile << """
+            dependencies {
+                testCompile "javax.servlet:javax.servlet-api:3.1.0"
+            }
+        """
+
+        file('src/test/groovy/ServletApiTest.groovy') << '''
+            import org.junit.Test
+
+            public class ServletApiTest {
+
+                @Test
+                public void canLoadNewerServletApi() {
+                    Class clazz = Class.forName("javax.servlet.AsyncContext")
+                    URL source = clazz.classLoader.getResource("javax/servlet/http/HttpServletRequest.class")
+                    assert source.toString().contains('servlet-api-3.1.0')
+                }
+            }
+        '''.stripIndent()
+
+        then:
+        succeeds 'test'
+    }
 }

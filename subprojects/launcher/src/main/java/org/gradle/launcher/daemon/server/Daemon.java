@@ -148,7 +148,6 @@ public class Daemon implements Stoppable {
             Runnable onCancelCommand = new Runnable() {
                 @Override
                 public void run() {
-                    LOGGER.warn(DaemonMessages.CANCELED_BUILD);
                     registryUpdater.onCancel();
                 }
             };

@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -30,16 +29,15 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.ObjectFile;
+import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
@@ -73,11 +71,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         task.setTargetPlatform(binary.getTargetPlatform());
         task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
 
-        task.includes(new Callable<Set<File>>() {
-            public Set<File> call() throws Exception {
-                return ((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs();
-            }
-        });
+        task.includes(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSourceDirectories());
         task.includes(new Callable<List<FileCollection>>() {
             public List<FileCollection> call() {
                 Collection<NativeDependencySet> libs = binary.getLibs((DependentSourceSet) sourceSet);

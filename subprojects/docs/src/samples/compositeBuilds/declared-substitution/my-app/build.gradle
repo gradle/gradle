@@ -1,0 +1,8 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "org.sample.myapp.Main"
+
+dependencies {
+    compile "org.sample:number-utils:1.0"
+}

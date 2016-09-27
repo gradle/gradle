@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.runtimeshaded
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
 import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
@@ -201,7 +203,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     def "remaps old-style string class literals"() {
         given:
         def clazz = IvySettings
-        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.','/')}.class").bytes
+        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.', '/')}.class").bytes
 
         when:
         def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
@@ -221,7 +223,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     def "remaps class literals in strings"() {
         given:
         def clazz = XercesBridge
-        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.','/')}.class").bytes
+        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.', '/')}.class").bytes
 
         when:
         def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
@@ -239,7 +241,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     def "remaps class literals in strings with slashes"() {
         given:
         def clazz = JavaAdapter
-        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.','/')}.class").bytes
+        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.', '/')}.class").bytes
 
         when:
         def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
@@ -254,12 +256,28 @@ org.gradle.api.internal.tasks.CompileServices"""
         bytecode.contains('LDC "org/gradle/internal/impldep/org/mozilla/javascript/Context"')
     }
 
+    def "ignores slf4j logger bindings"() {
+        given:
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def jarFile = inputFilesDir.file('lib.jar')
+        createJarFileWithClassFiles(jarFile, ["org.slf4j.impl.StaticLoggerBinder"])
+        progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile])
+
+        then:
+        handleAsJarFile(outputJar) {
+            it.getEntry("org/slf4j/impl/StaticLoggerBinder.class")
+        }
+    }
+
     def "remaps resources"() {
         given:
         def noRelocationResources = ['org/gradle/reporting/report.js',
-                                      'javax/servlet/http/LocalStrings.properties']
+                                     'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib']
         def duplicateResources = ['aQute/libg/tuple/packageinfo',
-                                    'org/joda/time/tz/data/Africa/Abidjan']
+                                  'org/joda/time/tz/data/Africa/Abidjan']
         def onlyRelocatedResources = ['com/sun/jna/win32-amd64/jnidispatch.dll']
         def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
         def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
@@ -340,17 +358,8 @@ org.gradle.api.internal.tasks.CompileServices"""
         contents.zipTo(jar)
     }
 
-    static void handleAsJarFile(TestFile jar, Closure c) {
-        def jarFile
-
-        try {
-            jarFile = new JarFile(jar)
-            c(jarFile)
-        } finally {
-            if (jarFile != null) {
-                jarFile.close()
-            }
-        }
+    static void handleAsJarFile(File jar, @ClosureParams(value = SimpleType, options = ["java.util.jar.JarFile"]) Closure<?> c) {
+        new JarFile(jar).withCloseable(c)
     }
 
     public static class JavaAdapter {

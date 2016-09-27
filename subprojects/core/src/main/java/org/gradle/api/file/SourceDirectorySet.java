@@ -26,8 +26,7 @@ import java.util.Set;
  * <p>A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories, along
  * with associated include and exclude patterns.</p>
  *
- * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
- * TODO - allow add FileTree
+ * <p>{@code SourceDirectorySet} extends {@link FileTree}. The contents of the file tree represent the source files of this set, arranged in a hierarchy. The file tree is live and reflects changes to the source directories and their contents.</p>
  */
 @UnmanagedStruct
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
@@ -38,15 +37,15 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
     String getName();
 
     /**
-     * Adds the given source directory to this set.
+     * Adds the given source directory to this set. The given directory does not need to exist. Directories that do not exist are ignored.
      *
-     * @param srcPath The source directory. This is evaluated as per {@link org.gradle.api.Project#file(Object)}
+     * @param srcPath The source directory. This is evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
      */
     SourceDirectorySet srcDir(Object srcPath);
 
     /**
-     * Adds the given source directories to this set.
+     * Adds the given source directories to this set. The given directories to not need to exist. Directories that do no exist are ignored.
      *
      * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
@@ -54,7 +53,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
     SourceDirectorySet srcDirs(Object... srcPaths);
 
     /**
-     * Returns the source directories which make up this set. Does not filter source directories which do not exist.
+     * Returns the source directories that make up this set. Does not filter source directories that do not exist.
      *
      * @return The source directories. Returns an empty set when this set contains no source directories.
      */
@@ -77,7 +76,15 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
     SourceDirectorySet source(SourceDirectorySet source);
 
     /**
-     * Returns the source directory trees which make up this set. Does not filter source directories which do not exist.
+     * Returns the source directories that make up this set, represented as a {@link FileCollection}. Does not filter source directories that do not exist.
+     * Generally, it is preferable to use this method instead of {@link #getSrcDirs()}, as this method does not require the source directories to be calculated when it is called. Instead, the source directories are calculated when queried. The return value of this method also maintains dependency information.
+     *
+     * <p>The returned collection is live and reflects changes to this source directory set.
+     */
+    FileCollection getSourceDirectories();
+
+    /**
+     * Returns the source directory trees that make up this set. Does not filter source directories that do not exist.
      *
      * @return The source directory trees. Returns an empty set when this set contains no source directories.
      */
@@ -85,8 +92,8 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
 
     /**
      * Returns the filter used to select the source from the source directories. These filter patterns are applied after
-     * the include and exclude patterns of the source directory set itself. Generally, the filter patterns are used to
-     * select certain types of files, eg {@code *.java}.
+     * the include and exclude patterns of this source directory set. Generally, the filter patterns are used to
+     * restrict the contents to certain types of files, eg {@code *.java}.
      *
      * @return The filter patterns.
      */

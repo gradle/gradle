@@ -120,7 +120,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
                                                                     ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
-                                                                    GlobalDependencyResolutionRules globalDependencyResolutionRules) {
+                                                                    GlobalDependencyResolutionRules globalDependencyResolutionRules, ComponentIdentifierFactory componentIdentifierFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -131,7 +131,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     projectFinder,
                     metaDataBuilder,
                     fileCollectionFactory,
-                    globalDependencyResolutionRules.getDependencySubstitutionRules()
+                    globalDependencyResolutionRules.getDependencySubstitutionRules(),
+                    componentIdentifierFactory
                 );
         }
 

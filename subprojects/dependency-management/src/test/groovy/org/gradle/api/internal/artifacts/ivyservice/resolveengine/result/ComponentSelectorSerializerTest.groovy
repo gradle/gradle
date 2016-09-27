@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
@@ -52,7 +52,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes BuildComponentSelector"() {
         given:
-        ProjectComponentSelector selection = new DefaultProjectComponentSelector(':myPath')
+        ProjectComponentSelector selection = TestComponentIdentifiers.newSelector(':myPath')
 
         when:
         ProjectComponentSelector result = serialize(selection, serializer)

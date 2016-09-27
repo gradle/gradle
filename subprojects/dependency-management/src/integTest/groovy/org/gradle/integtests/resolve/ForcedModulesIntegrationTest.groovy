@@ -35,8 +35,10 @@ configurations.all {
     resolutionStrategy.force 'org:foo:1.4.4'
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['foo-1.4.4.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['foo-1.4.4.jar']
+    }
 }
 """
 
@@ -124,15 +126,17 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
-    task checkDeps(dependsOn: configurations.compile) << {
-        assert configurations.compile*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
-        def metadata = configurations.compile.resolvedConfiguration
-        def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
-        assert api.children.size() == 1
-        assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
-        def impl = metadata.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
-        assert impl.children.size() == 1
-        assert impl.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
+    task checkDeps(dependsOn: configurations.compile) {
+        doLast {
+            assert configurations.compile*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
+            def metadata = configurations.compile.resolvedConfiguration
+            def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
+            assert api.children.size() == 1
+            assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
+            def impl = metadata.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
+            assert impl.children.size() == 1
+            assert impl.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
+        }
     }
 }
 
@@ -186,8 +190,10 @@ project(':tool') {
 	        force 'org:foo:1.3.3'
 	    }
 	}
-    task checkDeps(dependsOn: configurations.compile) << {
-        assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+    task checkDeps(dependsOn: configurations.compile) {
+        doLast {
+            assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+        }
     }
 }
 """
@@ -253,8 +259,10 @@ dependencies {
     compile ('org:foo:1.3.3') { force = true }
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['foo-1.3.3.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['foo-1.3.3.jar']
+    }
 }
 """
 
@@ -278,8 +286,10 @@ configurations.all {
     resolutionStrategy.force 'hello:world:1.4.4'
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['foo-1.3.3.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['foo-1.3.3.jar']
+    }
 }
 """
 
@@ -306,8 +316,10 @@ configurations.all {
     }
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['foo-2.0.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['foo-2.0.jar']
+    }
 }
 """
 

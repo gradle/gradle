@@ -16,63 +16,44 @@
 
 package org.gradle.launcher.daemon.server.health;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.memory.MemoryInfo;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
 /** An expiry strategy which only triggers when system memory falls below a threshold. */
 public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final MemoryInfo memoryInfo;
-    protected final long minFreeMemoryBytes;
+    protected final long memoryThresholdInBytes;
     private static final Logger LOG = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
 
     public static final String EXPIRATION_REASON = "to reclaim system memory";
 
-    private LowMemoryDaemonExpirationStrategy(MemoryInfo memoryInfo, long minFreeMemoryBytes) {
-        Preconditions.checkArgument(minFreeMemoryBytes >= 0);
-        this.memoryInfo = Preconditions.checkNotNull(memoryInfo);
-        this.minFreeMemoryBytes = minFreeMemoryBytes;
-    }
+    // Reasonable default threshold bounds: between 384M and 1G
+    public static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024;
+    public static final long MAX_THRESHOLD_BYTES = 1024 * 1024 * 1024;
 
-    /**
-     * Creates an expiration strategy which expires the daemon when free memory drops below the specific byte count.
-     *
-     * @param minFreeMemoryBytes when free memory drops below this positive value in bytes, the daemon will expire.
-     */
-    public static LowMemoryDaemonExpirationStrategy belowFreeBytes(long minFreeMemoryBytes) {
-        return new LowMemoryDaemonExpirationStrategy(new MemoryInfo(), minFreeMemoryBytes);
-    }
-
-    /**
-     * Creates an expiration strategy which expires the daemon when free memory drops below the specific % of total.
-     *
-     * @param minFreeMemoryPercentage when free memory drops below this percentage between 0 and 1, the daemon will expire.
-     */
-    public static LowMemoryDaemonExpirationStrategy belowFreePercentage(double minFreeMemoryPercentage) {
-        return belowFreePercentage(minFreeMemoryPercentage, new MemoryInfo());
-    }
-
-    @VisibleForTesting
-    static LowMemoryDaemonExpirationStrategy belowFreePercentage(double minFreeMemoryPercentage, MemoryInfo memInfo) {
+    public LowMemoryDaemonExpirationStrategy(MemoryInfo memoryInfo, double minFreeMemoryPercentage) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
 
-        return new LowMemoryDaemonExpirationStrategy(
-            memInfo,
-            (long) (memInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage)
-        );
+        this.memoryInfo = Preconditions.checkNotNull(memoryInfo);
+        this.memoryThresholdInBytes = normalizeThreshold((long) (memoryInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
+    }
+
+    private long normalizeThreshold(final long thresholdIn, final long minValue, final long maxValue) {
+        return Math.min(maxValue, Math.max(minValue, thresholdIn));
     }
 
     public DaemonExpirationResult checkExpiration() {
         long freeMem = memoryInfo.getFreePhysicalMemory();
-        if (freeMem < minFreeMemoryBytes) {
-            LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(minFreeMemoryBytes));
+        if (freeMem < memoryThresholdInBytes) {
+            LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(memoryThresholdInBytes));
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;

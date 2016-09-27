@@ -80,6 +80,31 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
+     * Returns the current {@link #setPreferProjectModules} setting
+     *
+     * @return prefer project modules
+     * @since 3.2
+     */
+    boolean isPreferProjectModules();
+
+    /**
+     * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
+     * The default is <b>by version number</b>.<p>
+     * This applies to both first level and transitive dependencies. See example below:
+     *
+     * <pre autoTested=''>
+     * apply plugin: 'java' //so that there are some configurations
+     *
+     * configurations.all {
+     *   resolutionStrategy.preferProjectModules = true
+     * }
+     * </pre>
+     *
+     * @since 3.2
+     */
+    void setPreferProjectModules(boolean value);
+
+    /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
      * <b>Appends</b> new forced modules to be considered when resolving dependencies.
      * <p>

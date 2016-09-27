@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.*;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -31,7 +34,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         byte id = decoder.readByte();
 
         if (Implementation.BUILD.getId() == id) {
-            return new DefaultProjectComponentSelector(decoder.readString());
+            return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
@@ -55,6 +58,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         } else if (value instanceof DefaultProjectComponentSelector) {
             ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector) value;
             encoder.writeByte(Implementation.BUILD.getId());
+            encoder.writeString(projectComponentSelector.getBuildName());
             encoder.writeString(projectComponentSelector.getProjectPath());
         } else if (value instanceof DefaultLibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) value;
@@ -67,16 +71,16 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         }
     }
 
-    private static enum Implementation {
+    private enum Implementation {
         MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3), BINARY((byte) 4);
 
         private final byte id;
 
-        private Implementation(byte id) {
+        Implementation(byte id) {
             this.id = id;
         }
 
-        private byte getId() {
+        byte getId() {
             return id;
         }
     }

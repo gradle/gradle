@@ -1,5 +1,7 @@
-task(hello) << {
-    println "hello"
+task(hello) {
+    doLast {
+        println "hello"
+    }
 }
 
 task(copy, type: Copy) {

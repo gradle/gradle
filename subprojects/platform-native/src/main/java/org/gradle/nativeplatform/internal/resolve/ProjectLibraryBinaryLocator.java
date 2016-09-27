@@ -16,13 +16,13 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 
@@ -34,14 +34,15 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     }
 
     // Converts the binaries of a project library into regular binary instances
+    @Nullable
     @Override
-    public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
-        ModelRegistry projectModel = findProject(requirement);
+    public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier libraryIdentifier) {
+        ModelRegistry projectModel = projectModelResolver.resolveProjectModel(libraryIdentifier.getProjectPath());
         ComponentSpecContainer components = projectModel.find("components", ComponentSpecContainer.class);
         if (components == null) {
             return null;
         }
-        String libraryName = requirement.getLibraryName();
+        String libraryName = libraryIdentifier.getLibraryName();
         NativeLibrarySpec library = components.withType(NativeLibrarySpec.class).get(libraryName);
         if (library == null) {
             return null;
@@ -53,9 +54,4 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         }
         return binaries;
     }
-
-    private ModelRegistry findProject(NativeLibraryRequirement requirement) {
-        return projectModelResolver.resolveProjectModel(requirement.getProjectPath());
-    }
-
 }

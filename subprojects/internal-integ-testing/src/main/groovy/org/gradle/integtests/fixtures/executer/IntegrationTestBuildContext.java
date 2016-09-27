@@ -92,7 +92,6 @@ public class IntegrationTestBuildContext {
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
-
     private static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
@@ -101,4 +100,5 @@ public class IntegrationTestBuildContext {
         }
         return new TestFile(new File(path));
     }
+
 }

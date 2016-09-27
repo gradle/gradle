@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 import org.gradle.testing.performance.generator.DependencyGenerator
-import org.gradle.testing.performance.generator.tasks.*
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
 }
@@ -287,6 +291,16 @@ task manyProjectsNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
+task native420Prj3Mod10Src10Func(type: NativeProjectGeneratorTask) {
+    projects = 420
+    sourceFiles = 10
+    templateArgs = [
+        moduleCount: 10,
+        functionCount: 10
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
 task smallPCHNative(type: NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
@@ -553,7 +567,32 @@ task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
 }
 
 tasks.withType(JvmProjectGeneratorTask) {
-    if(project.hasProperty("springDmPluginVersion")) {
+    if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
+}
+
+task mediumAndroidBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-android-medium.git'
+    branch = 'cc-gradle-profile'
+
+    doLast {
+        // WordPress specific setup
+        file("$outputDirectory/WordPress/gradle.properties") << file("$outputDirectory/WordPress/gradle.properties-example").text
+    }
+}
+
+task largeAndroidBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-android-large.git'
+    branch = 'master'
+}
+
+// The Android Studio performance tests use custom model classes which need to be found in
+// a dedicated project in order for the classpath to be setup properly
+def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
+androidRemoteProjects.all {
+    dependsOn project(':internalAndroidPerformanceTesting').buildClassPath
+    doLast {
+        file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text
     }
 }

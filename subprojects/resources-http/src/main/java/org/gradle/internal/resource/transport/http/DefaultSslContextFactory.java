@@ -100,7 +100,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                         String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
                         FileInputStream instream = new FileInputStream(trustStoreFile);
                         try {
-                            trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : EMPTY_PASSWORD);
+                            trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
                         } finally {
                             instream.close();
                         }

@@ -34,7 +34,7 @@ class MavenSftpRepository implements MavenRepository {
         new URI("sftp://${server.hostAddress}:${server.port}${contextPath}")
     }
 
-    MavenSftpModule module(String organisation, String module, Object revision = "1.0") {
+    MavenSftpModule module(String organisation, String module, String revision = "1.0") {
         new MavenSftpModule(server, backingRepository.module(organisation, module, revision))
     }
 }

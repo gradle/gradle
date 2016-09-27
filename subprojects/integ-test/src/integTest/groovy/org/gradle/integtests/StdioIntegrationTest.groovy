@@ -25,14 +25,16 @@ class StdioIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.requireOwnGradleUserHomeDir()
         buildFile << '''
-task echo << {
-    def reader = new BufferedReader(new InputStreamReader(System.in))
-    while (true) {
-        def line = reader.readLine() // readline will chomp the newline off the end
-        if (!line || line == 'close') {
-            break
+task echo {
+    doLast {
+        def reader = new BufferedReader(new InputStreamReader(System.in))
+        while (true) {
+            def line = reader.readLine() // readline will chomp the newline off the end
+            if (!line || line == 'close') {
+                break
+            }
+            print "[$line]"
         }
-        print "[$line]"
     }
 }
 '''
@@ -57,14 +59,16 @@ task echo << {
         given:
         requireOwnGradleUserHomeDir()
         buildFile << '''
-task echo << {
-    def reader = new BufferedReader(new InputStreamReader(System.in))
-    while (true) {
-        def line = reader.readLine() // readline will chomp the newline off the end
-        if (!line || line == 'close') {
-            break
+task echo {
+    doLast {
+        def reader = new BufferedReader(new InputStreamReader(System.in))
+        while (true) {
+            def line = reader.readLine() // readline will chomp the newline off the end
+            if (!line || line == 'close') {
+                break
+            }
+            print "[$line]"
         }
-        print "[$line]"
     }
 }
 '''

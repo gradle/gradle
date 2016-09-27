@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 
@@ -33,17 +35,17 @@ import java.util.List;
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
-    // TODO:DAZ Get rid of this once we remove the "old" TAPI-based composites
-    private final Factory<GradleLauncher> nestedLauncherFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
-    private GradleLauncher gradleLauncher;
     private DefaultDependencySubstitutions dependencySubstitutions;
-    private String name;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, Factory<GradleLauncher> nestedLauncherFactory) {
+    // State that must be purged together
+    private GradleLauncher gradleLauncher;
+    private SettingsInternal settings;
+    private GradleInternal gradle;
+
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory) {
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
-        this.nestedLauncherFactory = nestedLauncherFactory;
     }
 
     public File getProjectDir() {
@@ -51,11 +53,14 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
+    public TaskReference task(String path) {
+        Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
+        return new IncludedBuildTaskReference(getName(), path);
+    }
+
+    @Override
     public synchronized String getName() {
-        if (name == null) {
-            name = initialize().getRootProject().getName();
-        }
-        return name;
+        return getLoadedSettings().getRootProject().getName();
     }
 
     @Override
@@ -68,7 +73,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
-            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(getName());
+            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this);
 
             for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
                 action.execute(dependencySubstitutions);
@@ -78,17 +83,24 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public SettingsInternal initialize() {
-        GradleLauncher gradleLauncher = getGradleLauncher();
-        gradleLauncher.load();
-        return gradleLauncher.getSettings();
+    public SettingsInternal getLoadedSettings() {
+        if (settings == null) {
+            GradleLauncher gradleLauncher = getGradleLauncher();
+            gradleLauncher.load();
+            settings = gradleLauncher.getSettings();
+        }
+        return settings;
     }
 
     @Override
-    public GradleInternal configure() {
-        GradleLauncher gradleLauncher = getGradleLauncher();
-        gradleLauncher.getBuildAnalysis();
-        return gradleLauncher.getGradle();
+    public GradleInternal getConfiguredBuild() {
+        if (gradle == null) {
+            GradleLauncher gradleLauncher = getGradleLauncher();
+            gradleLauncher.getBuildAnalysis();
+            settings = gradleLauncher.getSettings();
+            gradle = gradleLauncher.getGradle();
+        }
+        return gradle;
     }
 
     private GradleLauncher getGradleLauncher() {
@@ -100,19 +112,20 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public BuildResult execute(Iterable<String> tasks) {
-        // TODO:DAZ Get rid of this when we remove TAPI-composite
-        if (nestedLauncherFactory != null) {
-            gradleLauncher = nestedLauncherFactory.create();
-        }
-
         GradleLauncher launcher = getGradleLauncher();
         launcher.getGradle().getStartParameter().setTaskNames(tasks);
         try {
             return launcher.run();
         } finally {
             // Can no longer use a configured Gradle instance after tasks are executed.
-            gradleLauncher = null;
+            reset();
         }
+    }
+
+    private void reset() {
+        gradleLauncher = null;
+        gradle = null;
+        settings = null;
     }
 
     @Override

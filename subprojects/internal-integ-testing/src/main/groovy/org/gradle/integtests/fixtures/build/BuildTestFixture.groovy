@@ -16,27 +16,49 @@
 
 package org.gradle.integtests.fixtures.build
 
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
 class BuildTestFixture {
+    private final TestDirectoryProvider provider
     private final TestFile rootDir
+    private boolean buildInRootDir = true
+
+    BuildTestFixture(TestDirectoryProvider provider) {
+        this.provider = provider
+        this.rootDir = null
+    }
 
     BuildTestFixture(TestFile rootDir) {
+        this.provider = null
         this.rootDir = rootDir
     }
 
+    TestFile getRootDir() {
+        return rootDir ?: provider.testDirectory
+    }
+
+    BuildTestFixture withBuildInRootDir() {
+        buildInRootDir = true
+        this
+    }
+
+    BuildTestFixture withBuildInSubDir() {
+        buildInRootDir = false
+        this
+    }
+
     def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
-        def project = new BuildTestFile(rootDir, projectName)
+        def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
+        project.settingsFile << """
+                    rootProject.name = '${projectName}'
+                """
         project.with(cl)
         project
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         def project = populate(projectName) {
-            settingsFile << """
-                    rootProject.name = '${rootProjectName}'
-                """
-
             buildFile << """
                     group = 'org.test'
                     version = '1.0'
@@ -51,7 +73,6 @@ class BuildTestFixture {
         String subprojectList = subprojects.collect({ "'$it'" }).join(',')
         def rootMulti = populate(projectName) {
             settingsFile << """
-                    rootProject.name = '${rootProjectName}'
                     include ${subprojectList}
                 """
 

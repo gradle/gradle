@@ -20,9 +20,6 @@ import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.mbytes
-import static org.gradle.performance.measure.Duration.millis
-
 @Category([Experiment])
 class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("incremental full assemble Java build - #testProject")
@@ -32,8 +29,6 @@ class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVe
         runner.previousTestIds = ["incremental build java project $testProject which doesn't declare any API"]
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
-        runner.maxExecutionTimeRegression = maxTimeRegression
-        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
@@ -46,8 +41,6 @@ class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
+        testProject << ["smallJavaSwModelCompileAvoidanceWithoutApi", "largeJavaSwModelCompileAvoidanceWithoutApi"]
     }
 }

@@ -149,8 +149,8 @@ org:leaf2:1.0
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
-        mavenRepo.module("org", "leaf2", 1.5).publish()
-        mavenRepo.module("org", "leaf2", 2.5).publish()
+        mavenRepo.module("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "leaf2", "2.5").publish()
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
@@ -203,11 +203,11 @@ org:leaf2:1.5 -> 2.5
 
     def "shows forced version"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
             repositories {
@@ -297,11 +297,11 @@ org:leaf:latest.integration -> 1.0
 
     def "shows versions substitute by resolve rule"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
             repositories {
@@ -338,10 +338,10 @@ org:leaf:2.0 -> 1.0
 
     def "shows substituted modules"() {
         given:
-        mavenRepo.module("org", "new-leaf", 77).publish()
+        mavenRepo.module("org", "new-leaf", "77").publish()
 
-        mavenRepo.module("org", "foo", 2.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "foo", "2.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
             repositories {
@@ -429,11 +429,11 @@ org:leaf:latest.integration -> 1.6
 
     def "forced version matches the conflict resolution"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
             repositories {
@@ -469,12 +469,12 @@ org:leaf:1.0 -> 2.0
 
     def "forced version does not match anything in the graph"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
-        mavenRepo.module("org", "leaf", 1.5).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
+        mavenRepo.module("org", "leaf", "1.5").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
             repositories {
@@ -512,11 +512,11 @@ org:leaf:2.0 -> 1.5
 
     def "forced version at dependency level"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
             repositories {
@@ -648,7 +648,7 @@ org:middle:1.0 FAILED
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
-        mavenRepo.module("org", "middle", 1.0).publish()
+        mavenRepo.module("org", "middle", "1.0").publish()
 
         file("build.gradle") << """
             repositories {
@@ -686,7 +686,7 @@ org:middle:1.0 -> 2.0 FAILED
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
-        mavenRepo.module("org", "middle", 1.0).publish()
+        mavenRepo.module("org", "middle", "1.0").publish()
 
         file("build.gradle") << """
             repositories {

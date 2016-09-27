@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.rules.ExternalResource
 
 import javax.servlet.http.HttpServletRequest
@@ -34,7 +33,6 @@ import javax.servlet.http.HttpServletResponse
 
 import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 
-@LeaksFileHandles
 class PluginResolutionServiceTestServer extends ExternalResource {
 
     public final static String API_PATH = "api"

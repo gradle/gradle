@@ -54,7 +54,7 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
         return module(groupId, artifactId, "1.0")
     }
 
-    MavenHttpModule module(String groupId, String artifactId, Object version) {
+    MavenHttpModule module(String groupId, String artifactId, String version) {
         def backingModule = backingRepository.module(groupId, artifactId, version)
         return new MavenHttpModule(server, contextPath, backingModule)
     }

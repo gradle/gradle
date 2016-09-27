@@ -34,6 +34,7 @@ import java.util.jar.JarFile;
 import java.io.*;
 import java.util.*;
 
+@CacheableTask
 public class ShadedJar extends DefaultTask {
     private FileCollection sourceFiles;
     private File classesDir;
@@ -81,7 +82,7 @@ public class ShadedJar extends DefaultTask {
     }
 
     /**
-     * Retain only those classes in the keep package hierachies, plus any classes that are reachable from these classes.
+     * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.
      */
     @Input
     public Set<String> getKeepPackages() {
@@ -119,6 +120,7 @@ public class ShadedJar extends DefaultTask {
     /**
      * The source files to generate the jar from.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getSourceFiles() {
         return sourceFiles;

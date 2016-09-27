@@ -573,8 +573,10 @@ In the following scenarios, we describe how Gradle version 2.12 behaves running 
 In this scenario, we have the following `build.gradle` file:
 
 ```
-task printProps << {
-  println "Favorite Color: " + System.properties['favoriteColor']
+task printProps {
+  doLast {
+    println "Favorite Color: " + System.properties['favoriteColor']
+  }
 }
 ```
 

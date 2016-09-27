@@ -256,7 +256,7 @@ class CompositeFileCollectionSpec extends Specification {
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
     }
 
-    def "descendent can avoid visiting content when task dependencies are queried"() {
+    def "descendant can avoid visiting content when task dependencies are queried"() {
         def task = Stub(Task)
         def dependency1 = Stub(Task)
         def dependency2 = Stub(Task)
@@ -288,6 +288,30 @@ class CompositeFileCollectionSpec extends Specification {
 
         expect:
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
+    }
+
+    public void "can visit root elements"() {
+        def child1 = Stub(FileCollectionInternal)
+        def child2 = Stub(FileTreeInternal)
+
+        def tree = new TestCollection() {
+            @Override
+            void visitContents(FileCollectionResolveContext context) {
+                context.add(child1)
+                context.add(child2)
+            }
+        }
+        def visitor = Mock(FileCollectionVisitor)
+
+        when:
+        tree.visitRootElements(visitor)
+
+        then:
+        child1.visitRootElements(visitor) >> { FileCollectionVisitor v -> v.visitCollection(child1) }
+        child2.visitRootElements(visitor) >> { FileCollectionVisitor v -> v.visitTree(child2) }
+        1 * visitor.visitCollection(child1)
+        1 * visitor.visitTree(child2)
+        0 * visitor._
     }
 
     def collectionDependsOn(Task... tasks) {

@@ -16,9 +16,8 @@
 
 package org.gradle.api.initialization;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -30,20 +29,17 @@ import java.io.File;
 @HasInternalProtocol
 public interface IncludedBuild {
     /**
+     * The name of the included build.
+     */
+    String getName();
+
+    /**
      * The root directory of the included build.
      */
     File getProjectDir();
 
     /**
-     * Configures the dependency substitution rules for this included build.
-     *
-     * The action receives an instance of {@link DependencySubstitutions} which can be configured with substitution rules.
-     * Project dependencies are resolved in the context of the included build.
-     *
-     * @see org.gradle.api.artifacts.ResolutionStrategy#dependencySubstitution(Action)
-     * @see DependencySubstitutions
-     * @since 2.5
+     * Produces a reference to a task in the included build.
      */
-    @Incubating
-    void dependencySubstitution(Action<? super DependencySubstitutions> action);
+    TaskReference task(String path);
 }

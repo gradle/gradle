@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dsl
 
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
@@ -66,7 +66,7 @@ class DependencyResultSpecTest extends Specification {
 
     def "does not match for dependencies other than requested ModuleComponentSelector"() {
         expect:
-        !new DependencyResultSpec(notation).isSatisfiedBy(newDependency(new DefaultProjectComponentSelector(":myPath"), "org.foo", "foo-core", "1.22"))
+        !new DependencyResultSpec(notation).isSatisfiedBy(newDependency(TestComponentIdentifiers.newSelector(":myPath"), "org.foo", "foo-core", "1.22"))
 
         where:
         notation << ['1.+']

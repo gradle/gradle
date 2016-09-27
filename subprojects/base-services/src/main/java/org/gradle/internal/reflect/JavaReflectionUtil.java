@@ -16,7 +16,6 @@
 
 package org.gradle.internal.reflect;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -243,30 +242,8 @@ public class JavaReflectionUtil {
     /**
      * Locates the given method. Searches all methods, including private methods.
      */
-    public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, Method method) throws NoSuchMethodException {
-        return new JavaMethod<T, R>(target, returnType, method);
-    }
-
-    /**
-     * Locates the given method. Searches all methods, including private methods.
-     */
-    public static <T, R> JavaMethod<T, R> method(T target, Class<R> returnType, Method method) throws NoSuchMethodException {
-        @SuppressWarnings("unchecked")
-        Class<T> targetClass = (Class<T>) target.getClass();
-        return new JavaMethod<T, R>(targetClass, returnType, method);
-    }
-
-    /**
-     * Search methods in an inheritance aware fashion, stopping when stopIndicator returns true.
-     */
-    public static void searchMethods(Class<?> target, final Transformer<Boolean, Method> stopIndicator) {
-        Spec<Method> stopIndicatorAsSpec = new Spec<Method>() {
-            public boolean isSatisfiedBy(Method element) {
-                return stopIndicator.transform(element);
-            }
-        };
-
-        findAllMethodsInternal(target, stopIndicatorAsSpec, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
+    public static <T, R> JavaMethod<T, R> method(Class<R> returnType, Method method) throws NoSuchMethodException {
+        return new JavaMethod<T, R>(returnType, method);
     }
 
     public static Method findMethod(Class<?> target, Spec<Method> predicate) {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.execution.TaskOutputCacheListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -47,11 +48,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
     private TaskOutputCache cache;
+    private final TaskOutputCacheListener taskOutputCacheListener;
 
-    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputCacheListener taskOutputCacheListener, TaskExecuter delegate) {
         this.taskCaching = taskCaching;
         this.startParameter = startParameter;
         this.packer = packer;
+        this.taskOutputCacheListener = taskOutputCacheListener;
         this.delegate = delegate;
         SingleMessageLogger.incubatingFeatureUsed("Task output caching");
     }
@@ -61,11 +64,10 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final Clock clock = new Clock();
 
         final TaskOutputsInternal taskOutputs = task.getOutputs();
-        boolean cacheAllowed = taskOutputs.isCacheAllowed();
 
-        boolean shouldCache;
+        boolean cacheEnabled;
         try {
-            shouldCache = cacheAllowed && taskOutputs.isCacheEnabled();
+            cacheEnabled = taskOutputs.isCacheEnabled();
         } catch (Exception t) {
             throw new GradleException(String.format("Could not evaluate TaskOutputs.cacheIf for %s.", task), t);
         }
@@ -73,39 +75,48 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskCacheKey cacheKey = null;
-        if (shouldCache) {
-            TaskArtifactState taskState = context.getTaskArtifactState();
-            try {
-                cacheKey = taskState.calculateCacheKey();
-                LOGGER.debug("Cache key for {} is {}", task, cacheKey);
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not build cache key for %s.", task), e);
+        boolean cacheable = false;
+        if (cacheEnabled) {
+            if (taskOutputs.hasDeclaredOutputs()) {
+                if (taskOutputs.isCacheAllowed()) {
+                    cacheable = true;
+                    TaskArtifactState taskState = context.getTaskArtifactState();
+                    try {
+                        cacheKey = taskState.calculateCacheKey();
+                        LOGGER.info("Cache key for {} is {}", task, cacheKey);
+                    } catch (Exception e) {
+                        throw new GradleException(String.format("Could not build cache key for %s.", task), e);
+                    }
+
+                    if (cacheKey != null) {
+                        try {
+                            boolean found = getCache().load(cacheKey, new TaskOutputReader() {
+                                @Override
+                                public void readFrom(InputStream input) throws IOException {
+                                    packer.unpack(taskOutputs, input);
+                                    LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
+                                }
+                            });
+                            if (found) {
+                                state.upToDate("FROM-CACHE");
+                                taskOutputCacheListener.fromCache(task);
+                                return;
+                            }
+                        } catch (Exception e) {
+                            LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
+                        }
+                    }
+                } else {
+                    LOGGER.info("Not caching {} because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`", task);
+                }
+            } else {
+                LOGGER.info("Not caching {} as task has declared no outputs", task);
             }
         } else {
-            if (!cacheAllowed) {
-                LOGGER.debug("Not caching {} as it is not allowed", task);
-            } else {
-                LOGGER.debug("Not caching {} as task output is not cacheable.", task);
-            }
+            LOGGER.debug("Not caching {} as task output is not cacheable.", task);
         }
 
-        if (cacheKey != null) {
-            try {
-                boolean found = getCache().load(cacheKey, new TaskOutputReader() {
-                    @Override
-                    public void readFrom(InputStream input) throws IOException {
-                        packer.unpack(taskOutputs, input);
-                        LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
-                    }
-                });
-                if (found) {
-                    state.upToDate("FROM-CACHE");
-                    return;
-                }
-            } catch (Exception e) {
-                LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
-            }
-        }
+        taskOutputCacheListener.notCached(task, cacheable);
 
         delegate.execute(task, state, context);
 

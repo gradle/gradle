@@ -16,18 +16,37 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class PackageListGeneratorIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final ArrayList<String> EXPECTED_PACKAGE_LIST = ['com/acme', 'com/foo/internal', 'javax/servlet/http']
+    private static final DEFAULT_EXCLUDES_FOR_TEST = [
+        "org/gradle",
+        "java",
+        "javax/xml",
+        "javax/inject",
+        "groovy",
+        "groovyjarjarantlr",
+        "net/rubygrapefruit",
+        "org/codehaus/groovy",
+        "org/apache/tools/ant",
+        "org/apache/commons/logging",
+        "org/slf4j",
+        "org/apache/log4j",
+        "org/apache/xerces",
+        "org/w3c/dom",
+        "org/xml/sax"]
+
     def "generates a curated list of package prefixes from directories"() {
         given:
-        buildFile << '''
+        buildFile << """
             task generatePackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
-                outputFile = file("$buildDir/package-list.txt")
-                classpath = files("$buildDir/classes")
+                excludes = ['${DEFAULT_EXCLUDES_FOR_TEST.join("', '")}']
+                outputFile = file("\$buildDir/package-list.txt")
+                classpath = files("\$buildDir/classes")
             }
-        '''
+        """
         and:
         someClasses()
 
@@ -38,7 +57,7 @@ class PackageListGeneratorIntegrationTest extends AbstractIntegrationSpec {
         def packagesFile = file('build/package-list.txt')
         packagesFile.exists()
         Set<String> packages = packagesFile as String[]
-        packages == ['com/acme', 'com/foo/internal'] as Set
+        packages == EXPECTED_PACKAGE_LIST as Set
     }
 
     def "generates a curated list of package prefixes from jars"() {
@@ -47,13 +66,14 @@ class PackageListGeneratorIntegrationTest extends AbstractIntegrationSpec {
         aJar()
 
         and:
-        buildFile << '''
+        buildFile << """
             task generatePackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
                 dependsOn jar
-                outputFile = file("$buildDir/package-list.txt")
+                excludes = ['${DEFAULT_EXCLUDES_FOR_TEST.join("', '")}']
+                outputFile = file("\$buildDir/package-list.txt")
                 classpath = files(jar.archivePath)
             }
-        '''
+        """
 
         when:
         succeeds 'generatePackageList'
@@ -62,17 +82,18 @@ class PackageListGeneratorIntegrationTest extends AbstractIntegrationSpec {
         def packagesFile = file('build/package-list.txt')
         packagesFile.exists()
         Set<String> packages = packagesFile as String[]
-        packages == ['com/acme', 'com/foo/internal'] as Set
+        packages == EXPECTED_PACKAGE_LIST as Set
     }
 
     def "package list excludes default packages"() {
         given:
-        buildFile << '''
+        buildFile << """
             task generatePackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
-                outputFile = file("$buildDir/package-list.txt")
-                classpath = files("$buildDir/classes")
+                excludes = ['${DEFAULT_EXCLUDES_FOR_TEST.join("', '")}']
+                outputFile = file("\$buildDir/package-list.txt")
+                classpath = files("\$buildDir/classes")
             }
-        '''
+        """
         and:
         someClasses()
         someClassesInDefaultPackages()
@@ -84,17 +105,18 @@ class PackageListGeneratorIntegrationTest extends AbstractIntegrationSpec {
         def packagesFile = file('build/package-list.txt')
         packagesFile.exists()
         Set<String> packages = packagesFile as String[]
-        packages == ['com/acme', 'com/foo/internal'] as Set
+        packages == EXPECTED_PACKAGE_LIST as Set
     }
 
     private void someClasses() {
         file('build/classes/com/acme/Foo.class') << ''
         file('build/classes/com/acme/internal/FooInternal.class') << ''
         file('build/classes/com/foo/internal/FooInternal.class') << ''
+        file('build/classes/javax/servlet/http/HttpServletRequest.class') << ''
     }
 
     private void someClassesInDefaultPackages() {
-        PackageListGenerator.DEFAULT_EXCLUDES.eachWithIndex { pkg, i ->
+        DEFAULT_EXCLUDES_FOR_TEST.eachWithIndex { pkg, i ->
             file("build/classes/$pkg/Foo${i}.class") << ''
         }
     }

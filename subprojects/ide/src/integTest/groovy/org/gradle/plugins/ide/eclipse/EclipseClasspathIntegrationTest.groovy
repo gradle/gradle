@@ -927,8 +927,8 @@ apply plugin: "eclipse"
 sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
 sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
 
-task generateForMain << {}
-task generateForTest << {}
+task generateForMain
+task generateForTest
 ''')
         //then
         result.assertTasksExecuted(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')

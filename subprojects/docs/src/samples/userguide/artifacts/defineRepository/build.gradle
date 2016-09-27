@@ -219,11 +219,13 @@ repositories.withType(IvyArtifactRepository) {
 }
 //END SNIPPET ivy-repo-dynamic-mode
 
-task lookup << {
-    //START SNIPPET lookup-resolver
-    println repositories.localRepository.name
-    println repositories['localRepository'].name
-    //END SNIPPET lookup-resolver
+task lookup {
+    doLast {
+        //START SNIPPET lookup-resolver
+        println repositories.localRepository.name
+        println repositories['localRepository'].name
+        //END SNIPPET lookup-resolver
+    }
 }
 
 //START SNIPPET configure-resolver

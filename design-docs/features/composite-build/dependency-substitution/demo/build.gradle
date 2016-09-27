@@ -15,45 +15,49 @@ def createComposite() {
     builder.build()
 }
 
-task executeTasks << {
-    def targetBuildDir = compositeRootDirs().find { it.toString().endsWith(project.targetBuild) }
-    def targetTasks = project.targetTasks
-    println "Running tasks '$targetTasks' in $targetBuild"
+task executeTasks {
+    doLast {
+        def targetBuildDir = compositeRootDirs().find { it.toString().endsWith(project.targetBuild) }
+        def targetTasks = project.targetTasks
+        println "Running tasks '$targetTasks' in $targetBuild"
 
-    def connection = createComposite()
+        def connection = createComposite()
 
-    def buildLauncher = connection.newBuild()
-    buildLauncher.forTasks(targetBuildDir, targetTasks.split(','))
-    buildLauncher.standardOutput = System.out
-    buildLauncher.standardError = System.err
-    println "-------------"
-    buildLauncher.run()
-    println "-------------\n\n"
-    connection.close()
+        def buildLauncher = connection.newBuild()
+        buildLauncher.forTasks(targetBuildDir, targetTasks.split(','))
+        buildLauncher.standardOutput = System.out
+        buildLauncher.standardError = System.err
+        println "-------------"
+        buildLauncher.run()
+        println "-------------\n\n"
+        connection.close()
+    }
 }
 
-task printModel << {
-    def connection = createComposite()
+task printModel {
+    doLast {
+        def connection = createComposite()
 
-    def eclipseProjects = connection.getModels(EclipseProject).collect { it.model }
-    def rootProjects = eclipseProjects.grep({ findRootProject(it) == it }).sort({ it.projectDirectory })
-    rootProjects.each { rootProject ->
-        renderEclipseProject("", rootProject)
-    }
+        def eclipseProjects = connection.getModels(EclipseProject).collect { it.model }
+        def rootProjects = eclipseProjects.grep({ findRootProject(it) == it }).sort({ it.projectDirectory })
+        rootProjects.each { rootProject ->
+            renderEclipseProject("", rootProject)
+        }
 
-    def gradleProjects = connection.getModels(GradleProject).collect { it.model }
-    gradleProjects.each { gradleProject ->
-        println "GradleProject: " + gradleProject.path
-    }
+        def gradleProjects = connection.getModels(GradleProject).collect { it.model }
+        gradleProjects.each { gradleProject ->
+            println "GradleProject: " + gradleProject.path
+        }
 
-    def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications).collect {it.model}
-    publicationResults.each { publicationResult ->
-        println "Pubs: " + publicationResult.projectIdentifier + " :: " + publicationResult.publications*.id
-    }
+        def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications).collect { it.model }
+        publicationResults.each { publicationResult ->
+            println "Pubs: " + publicationResult.projectIdentifier + " :: " + publicationResult.publications*.id
+        }
 
-    def buildEnvironments = connection.getModels(org.gradle.tooling.model.build.BuildEnvironment).collect { it.model }
-    buildEnvironments.each { env ->
-        println "Env: gradleVersion=${env.gradle.gradleVersion}, javaHome=${env.java.javaHome}"
+        def buildEnvironments = connection.getModels(org.gradle.tooling.model.build.BuildEnvironment).collect { it.model }
+        buildEnvironments.each { env ->
+            println "Env: gradleVersion=${env.gradle.gradleVersion}, javaHome=${env.java.javaHome}"
+        }
     }
 }
 

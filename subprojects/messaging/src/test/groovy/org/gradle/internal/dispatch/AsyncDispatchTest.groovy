@@ -15,199 +15,225 @@
  */
 package org.gradle.internal.dispatch
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.MultithreadedTestCase
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.gradle.util.MultithreadedTestRule
+import org.junit.Rule
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.fail
+import static org.hamcrest.CoreMatchers.sameInstance
 
-@RunWith(JMock.class)
-public class AsyncDispatchTest extends MultithreadedTestCase {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Dispatch<String> target1 = context.mock(Dispatch.class, "target1")
-    private final Dispatch<String> target2 = context.mock(Dispatch.class, "target2")
-    private final AsyncDispatch<String> dispatch = new AsyncDispatch<String>(executor)
+public class AsyncDispatchTest extends Specification {
+    private final Dispatch<String> target1 = Mock()
 
-    @Test
-    public void dispatchesMessageToAnIdleTarget() {
-        context.checking {
-            one(target1).dispatch('message1')
-            one(target1).dispatch('message2')
-        }
+    @Rule
+    public MultithreadedTestRule parallel = new MultithreadedTestRule()
+    private final AsyncDispatch<String> dispatch = new AsyncDispatch<String>(parallel.executor)
 
+    def 'dispatches message to an idle target'() {
+        when:
         dispatch.dispatchTo(target1)
-
         dispatch.dispatch('message1')
         dispatch.dispatch('message2')
-
         dispatch.stop()
+
+        then:
+        1 * target1.dispatch('message1')
+        then:
+        1 * target1.dispatch('message2')
     }
 
-    @Test
-    public void dispatchDoesNotBlockWhileNoIdleTargetAvailable() {
-        context.checking {
-            one(target1).dispatch('message1')
-            will {
-                syncAt(1)
-                syncAt(2)
-            }
-            one(target2).dispatch('message2')
-            will {
-                syncAt(2)
-                syncAt(3)
-            }
-            one(target1).dispatch('message3')
-            will {
-                syncAt(3)
-            }
-        }
+    def 'dispatch does not block while no idle target available'() {
+        given:
+        Dispatch<String> target1 = new DispatchStub(
+                message1: {
+                    parallel.syncAt(1)
+                    parallel.syncAt(2)
+                },
+                message3: { parallel.syncAt(3) })
+        Dispatch<String> target2 = new DispatchStub(
+                message2: {
+                    parallel.syncAt(2)
+                    parallel.syncAt(3)
+                })
 
-        run {
+        when:
+        parallel.run {
             dispatch.dispatchTo(target1)
             dispatch.dispatch('message1')
-            syncAt(1)
+            parallel.syncAt(1)
 
             dispatch.dispatchTo(target2)
             dispatch.dispatch('message2')
-            syncAt(2)
+            parallel.syncAt(2)
 
             dispatch.dispatch('message3')
-            syncAt(3)
+            parallel.syncAt(3)
         }
 
         dispatch.stop()
+
+        then:
+        target1.receivedMessages == ['message1', 'message3']
+        target2.receivedMessages == ['message2']
     }
 
-    @Test
-    public void canStopFromMultipleThreads() {
+    def 'can stop from multiple threads'() {
+        when:
         dispatch.dispatchTo(target1)
 
-        start {
+        parallel.start {
             dispatch.stop()
         }
-        start {
+        parallel.start {
             dispatch.stop()
         }
+
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    public void canRequestStopFromMultipleThreads() {
+    def 'can request stop from multiple threads'() {
+        when:
         dispatch.dispatchTo(target1)
 
-        start {
+        parallel.start {
             dispatch.requestStop()
         }
-        start {
+        parallel.start {
             dispatch.requestStop()
         }
 
-        waitForAll()
+        parallel.waitForAll()
         dispatch.stop()
+
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    public void stopBlocksUntilAllMessagesDispatched() {
-        context.checking {
-            one(target1).dispatch('message1')
-            will {
-                syncAt(1)
-                syncAt(2)
-                syncAt(3)
+    def 'stop blocks until all messages are dispatched'() {
+        given:
+        def target1 = new DispatchStub(
+            message1: {
+                parallel.syncAt(1)
+                parallel.syncAt(2)
+                parallel.syncAt(3)
             }
-        }
-
-        context.checking {
-            one(target2).dispatch('message2')
-            will {
-                syncAt(2)
-                syncAt(3)
+        )
+        def target2 = new DispatchStub(
+            message2: {
+                parallel.syncAt(2)
+                parallel.syncAt(3)
             }
-        }
+        )
 
-        run {
+        when:
+        parallel.run {
             dispatch.dispatchTo(target1)
             dispatch.dispatch('message1')
-            syncAt(1)
+            parallel.syncAt(1)
 
             dispatch.dispatchTo(target2)
             dispatch.dispatch('message2')
-            syncAt(2)
+            parallel.syncAt(2)
 
-            expectBlocksUntil(3) {
+            parallel.expectBlocksUntil(3) {
                 dispatch.stop()
             }
         }
+
+        then:
+        target1.receivedMessages == ['message1']
+        target2.receivedMessages == ['message2']
     }
 
-    @Test
-    public void requestStopDoesNotBlockWhenMessagesAreQueued() {
-        context.checking {
-            one(target1).dispatch('message1')
-            will {
-                syncAt(1)
-                syncAt(2)
+    def 'requestStop does not block when messages are queued'() {
+        given:
+        def target1 = new DispatchStub(
+            message1: {
+                parallel.syncAt(1)
+                parallel.syncAt(2)
             }
-        }
+        )
 
-        run {
+        when:
+        parallel.run {
             dispatch.dispatchTo(target1)
             dispatch.dispatch('message1')
-            syncAt(1)
+            parallel.syncAt(1)
             dispatch.requestStop()
-            shouldBeAt(1)
-            syncAt(2)
+            parallel.shouldBeAt(1)
+            parallel.syncAt(2)
         }
 
-        waitForAll()
+        parallel.waitForAll()
         dispatch.stop()
+
+        then:
+        target1.receivedMessages == ['message1']
     }
 
-    @Test
-    public void stopFailsWhenNoTargetsAvailableToDeliverQueuedMessages() {
+    def 'stop fails when no targets are available to deliver queued messages'() {
+        given:
         dispatch.dispatch('message1')
-        try {
-            dispatch.stop()
-            fail()
-        } catch (IllegalStateException e) {
-            assertThat(e.message, equalTo('Cannot wait for messages to be dispatched, as there are no dispatch threads running.'))
-        }
+
+        when:
+        dispatch.stop()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot wait for messages to be dispatched, as there are no dispatch threads running.'
     }
 
-    @Test
-    public void stopFailsWhenAllTargetsHaveFailed() {
-        context.checking {
-            one(target1).dispatch('message1')
-            will {
-                RuntimeException failure = new RuntimeException()
-                willFailWith(sameInstance(failure))
-                throw failure
-            }
-        }
+    def 'stop fails when all targets have failed'() {
+        when:
         dispatch.dispatchTo(target1)
         dispatch.dispatch('message1')
         dispatch.dispatch('message2')
+        dispatch.stop()
 
-        try {
-            dispatch.stop()
-            fail()
-        } catch (IllegalStateException e) {
-            assertThat(e.message, equalTo('Cannot wait for messages to be dispatched, as there are no dispatch threads running.'))
+        then:
+        1 * target1.dispatch('message1') >> {
+            RuntimeException failure = new RuntimeException()
+            parallel.willFailWith(sameInstance(failure))
+            throw failure
         }
+        0 * _._
+        IllegalStateException e = thrown()
+        e.message == 'Cannot wait for messages to be dispatched, as there are no dispatch threads running.'
     }
 
-    @Test
-    public void cannotDispatchMessagesAfterStop() {
+    def 'cannot dispatch messages after stop'() {
+        given:
         dispatch.stop()
-        try {
-            dispatch.dispatch('message')
-            fail()
-        } catch (IllegalStateException e) {
-            assertThat(e.message, equalTo('Cannot dispatch message, as this message dispatch has been stopped. Message: message'))
+
+        when:
+        dispatch.dispatch('message')
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot dispatch message, as this message dispatch has been stopped. Message: message'
+    }
+
+    /**
+     * We use a manual stub/mock here since {@link org.spockframework.mock.runtime.MockController#handle}
+     * is synchronized and only allows that one mocked method is executed at a time. This would
+     * make these tests block and fail.
+     */
+    public static class DispatchStub implements Dispatch<String> {
+        private Map<String, Closure> behaviour
+
+        private List<String> receivedMessages = []
+        DispatchStub(Map<String, Closure> behaviour) {
+            this.behaviour = behaviour
+        }
+
+        @Override
+        void dispatch(String message) {
+            receivedMessages.add(message)
+            behaviour[message]?.call()
+        }
+
+        List<String> getReceivedMessages() {
+            return receivedMessages
         }
     }
 }

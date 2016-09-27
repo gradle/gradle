@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @LeaksFileHandles("Putting an generated Jar on the classpath of the buildscript")
+    @LeaksFileHandles("Puts gradle user home in integration test dir")
     def "root component identifier has the correct type when resolving a script classpath"() {
         given:
         def module = mavenRepo().module("org.gradle", "test", "1.45")
@@ -45,13 +45,15 @@ buildscript {
     }
 }
 
-task check << {
-    assert buildscript.configurations.classpath.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
-    def result = buildscript.configurations.classpath.incoming.resolutionResult
+task check {
+    doLast {
+        assert buildscript.configurations.classpath.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+        def result = buildscript.configurations.classpath.incoming.resolutionResult
 
-    // Check root component
-    def rootId = result.root.id
-    assert rootId instanceof ProjectComponentIdentifier
+        // Check root component
+        def rootId = result.root.id
+        assert rootId instanceof ProjectComponentIdentifier
+    }
 }
 """
 

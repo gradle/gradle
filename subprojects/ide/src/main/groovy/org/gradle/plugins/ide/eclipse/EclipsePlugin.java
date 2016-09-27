@@ -44,7 +44,6 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
@@ -66,6 +65,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -129,7 +130,7 @@ public class EclipsePlugin extends IdePlugin {
 
     private static void registerEclipseArtifacts(Project project) {
         ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-        ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath());
+        ProjectComponentIdentifier projectId = newProjectId(project);
         String projectName = project.getExtensions().getByType(EclipseModel.class).getProject().getName();
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project));
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project));
@@ -137,8 +138,7 @@ public class EclipsePlugin extends IdePlugin {
 
     private static LocalComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
         File projectFile = new File(project.getProjectDir(), "." + extension);
-        String taskName = project.getPath().equals(":") ? ":eclipseProject" : project.getPath() + ":eclipseProject";
-        Task byName = project.getTasks().getByPath(taskName);
+        Task byName = project.getTasks().getByName("eclipseProject");
         String type = "eclipse." + extension;
         PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, type, publishArtifact);

@@ -11,14 +11,18 @@ ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory()
     }
 })
 
-task startHeartBeat << {
-    logger.lifecycle("Starting heartbeat.")
-    executor.execute(new Heartbeat(logger));
+task startHeartBeat {
+    doLast {
+        logger.lifecycle("Starting heartbeat.")
+        executor.execute(new Heartbeat(logger))
+    }
 }
 
-task stopHeartBeat << {
-    logger.lifecycle("Shutting down heartbeat.")
-    executor.shutdownNow();
+task stopHeartBeat {
+    doLast {
+        logger.lifecycle("Shutting down heartbeat.")
+        executor.shutdownNow()
+    }
 }
 
 class Heartbeat implements Runnable {

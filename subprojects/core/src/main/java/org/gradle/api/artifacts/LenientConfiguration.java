@@ -32,7 +32,15 @@ public interface LenientConfiguration {
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
      */
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
+    Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
+
+    /**
+     * Returns all successfully resolved dependencies including transitive dependencies.
+     *
+     * @since 3.1
+     * @return all resolved dependencies
+     */
+    Set<ResolvedDependency> getAllModuleDependencies();
 
     /**
      * returns dependencies that were attempted to resolve but failed.
@@ -40,7 +48,7 @@ public interface LenientConfiguration {
      *
      * @return only unresolved dependencies
      */
-    public Set<UnresolvedDependency> getUnresolvedModuleDependencies();
+    Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 
     /**
      * Returns successfully resolved files for successfully resolved dependencies.
@@ -48,7 +56,7 @@ public interface LenientConfiguration {
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
      */
-    public Set<File> getFiles(Spec<? super Dependency> dependencySpec);
+    Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
     /**
      * Gets successfully resolved artifacts for dependencies that match given dependency spec.

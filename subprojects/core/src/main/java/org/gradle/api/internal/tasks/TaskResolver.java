@@ -16,7 +16,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskReference;
 
 public interface TaskResolver {
     Task resolveTask(String path);
+    Task resolveTask(TaskReference reference);
 }

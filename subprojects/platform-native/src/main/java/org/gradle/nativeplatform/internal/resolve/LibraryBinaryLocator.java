@@ -17,9 +17,15 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Nullable;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
 
 public interface LibraryBinaryLocator {
-    DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement);
+    /**
+     * Locates the binaries for the given library.
+     *
+     * @return null when no such library.
+     */
+    @Nullable
+    DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library);
 }

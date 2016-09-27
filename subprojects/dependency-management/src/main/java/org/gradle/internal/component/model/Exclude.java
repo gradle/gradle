@@ -18,12 +18,14 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
+import java.util.Set;
+
 public interface Exclude {
     ModuleIdentifier getModuleId();
 
     IvyArtifactName getArtifact();
 
-    String[] getConfigurations();
+    Set<String> getConfigurations();
 
     String getMatcher();
 

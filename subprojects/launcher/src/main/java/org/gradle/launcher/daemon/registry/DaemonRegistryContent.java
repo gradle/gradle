@@ -17,7 +17,14 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.internal.remote.internal.inet.SocketInetAddress;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,8 +35,22 @@ import java.util.Map;
 
 public class DaemonRegistryContent implements Serializable {
 
-    private Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>();
-    private List<DaemonStopEvent> stopEvents = new ArrayList<DaemonStopEvent>();
+    public static final org.gradle.internal.serialize.Serializer<DaemonRegistryContent> SERIALIZER = new Serializer();
+
+    private static final MultiChoiceAddressSerializer MULTI_CHOICE_ADDRESS_SERIALIZER = new MultiChoiceAddressSerializer();
+
+    private final Map<Address, DaemonInfo> infosMap;
+    private final List<DaemonStopEvent> stopEvents;
+
+    public DaemonRegistryContent() {
+        infosMap = new HashMap<Address, DaemonInfo>();
+        stopEvents = new ArrayList<DaemonStopEvent>();
+    }
+
+    private DaemonRegistryContent(Map<Address, DaemonInfo> infosMap, List<DaemonStopEvent> stopEvents) {
+        this.infosMap = infosMap;
+        this.stopEvents = stopEvents;
+    }
 
     /**
      * returns all statuses. May be empty.
@@ -78,5 +99,119 @@ public class DaemonRegistryContent implements Serializable {
      */
     public void setStatus(Address address, DaemonInfo daemonInfo) {
         infosMap.put(address, daemonInfo);
+    }
+
+    /**
+     * Data layout:
+     * 0 - number of daemon infos
+     * 1 - addresses
+     * 2 - daemon infos
+     * 3 - number of stop events
+     * 4 - stop events
+     */
+    private static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonRegistryContent> {
+
+        @Override
+        public DaemonRegistryContent read(Decoder decoder) throws Exception {
+            if (decoder.readBoolean()) {
+                List<Address> addresses = readAdresses(decoder);
+                Map<Address, DaemonInfo> infosMap = readInfosMap(decoder, addresses);
+                List<DaemonStopEvent> stopEvents = readStopEvents(decoder);
+                return new DaemonRegistryContent(infosMap, stopEvents);
+            }
+            return null;
+        }
+
+        private List<DaemonStopEvent> readStopEvents(Decoder decoder) throws Exception {
+            int len = decoder.readInt();
+            List<DaemonStopEvent> out = new ArrayList<DaemonStopEvent>(len);
+            for (int i=0; i<len; i++) {
+                out.add(DaemonStopEvent.SERIALIZER.read(decoder));
+            }
+            return out;
+        }
+
+        private Map<Address, DaemonInfo> readInfosMap(Decoder decoder, List<Address> addresses) throws Exception {
+            Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>(addresses.size());
+            DaemonInfo.Serializer daemonInfoSerializer = new DaemonInfo.Serializer(addresses);
+            for (Address address : addresses) {
+                infosMap.put(address, daemonInfoSerializer.read(decoder));
+            }
+            return infosMap;
+        }
+
+        @Override
+        public void write(Encoder encoder, DaemonRegistryContent registry) throws Exception {
+            if (registry != null) {
+                encoder.writeBoolean(true);
+                Map<Address, DaemonInfo> infosMap = registry.infosMap;
+                int infosSize = infosMap.size();
+                // make sure we can store it in order or we'll have surprises on deserialization
+                List<Address> addresses = new ArrayList<Address>(infosMap.keySet());
+                writeAddresses(encoder, infosSize, addresses);
+                writeDaemonInfos(encoder, infosMap, addresses);
+                writeStopEvents(encoder, registry);
+            } else {
+                encoder.writeBoolean(false);
+            }
+        }
+
+        private void writeStopEvents(Encoder encoder, DaemonRegistryContent registry) throws Exception {
+            List<DaemonStopEvent> stopEvents = registry.stopEvents;
+            encoder.writeInt(stopEvents.size());
+            for (DaemonStopEvent stopEvent : stopEvents) {
+                DaemonStopEvent.SERIALIZER.write(encoder, stopEvent);
+            }
+        }
+
+        private void writeDaemonInfos(Encoder encoder, Map<Address, DaemonInfo> infosMap, List<Address> addresses) throws Exception {
+            DaemonInfo.Serializer daemonInfoSerializer = new DaemonInfo.Serializer(addresses);
+            for (Address address : addresses) {
+                DaemonInfo info = infosMap.get(address);
+                daemonInfoSerializer.write(encoder, info);
+            }
+        }
+
+
+        private void writeAddresses(Encoder encoder, int infosSize, List<Address> addresses) throws Exception {
+            encoder.writeInt(infosSize);
+            ObjectOutputStream oos = new ObjectOutputStream(encoder.getOutputStream());
+            for (Address address : addresses) {
+                byte type = (byte) (address instanceof SocketInetAddress ? 0
+                    : address instanceof MultiChoiceAddress ? 1
+                    : 2);
+                encoder.writeByte(type);
+                switch (type) {
+                    case 0:
+                        SocketInetAddress.SERIALIZER.write(encoder, (SocketInetAddress) address);
+                        break;
+                    case 1:
+                        MULTI_CHOICE_ADDRESS_SERIALIZER.write(encoder, (MultiChoiceAddress) address);
+                        break;
+                    default:
+                        oos.writeObject(address);
+                }
+            }
+        }
+
+        private List<Address> readAdresses(Decoder decoder) throws Exception {
+            int infosSize = decoder.readInt();
+            List<Address> out = new ArrayList<Address>();
+            ObjectInputStream ois = new ObjectInputStream(decoder.getInputStream());
+            for (int i=0; i<infosSize; i++) {
+                byte type = decoder.readByte();
+                switch (type) {
+                    case 0:
+                        out.add(SocketInetAddress.SERIALIZER.read(decoder));
+                        break;
+                    case 1:
+                        out.add(MULTI_CHOICE_ADDRESS_SERIALIZER.read(decoder));
+                        break;
+                    default:
+                        out.add((Address) ois.readObject());
+                }
+            }
+            return out;
+        }
     }
 }

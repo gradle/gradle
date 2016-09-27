@@ -183,8 +183,10 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         when:
         buildScript """
             apply from: "fooTask.gradle"
-            task check << {
-              assert getTasksByName("foo", false).toList().first().name == "foo"
+            task check {
+                doLast {
+                    assert getTasksByName("foo", false).toList().first().name == "foo"
+                }
             }
         """
 

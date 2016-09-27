@@ -13,15 +13,17 @@ dependencies {
 // END SNIPPET define-classpath
 
 // START SNIPPET use-classpath
-task check << {
-    ant.taskdef(name: 'pmd',
-                classname: 'net.sourceforge.pmd.ant.PMDTask',
-                classpath: configurations.pmd.asPath)
-    ant.pmd(shortFilenames: 'true',
-            failonruleviolation: 'true',
-            rulesetfiles: file('pmd-rules.xml').toURI().toString()) {
-        formatter(type: 'text', toConsole: 'true')
-        fileset(dir: 'src')
+task check {
+    doLast {
+        ant.taskdef(name: 'pmd',
+                    classname: 'net.sourceforge.pmd.ant.PMDTask',
+                    classpath: configurations.pmd.asPath)
+        ant.pmd(shortFilenames: 'true',
+                failonruleviolation: 'true',
+                rulesetfiles: file('pmd-rules.xml').toURI().toString()) {
+            formatter(type: 'text', toConsole: 'true')
+            fileset(dir: 'src')
+        }
     }
 }
 // END SNIPPET use-classpath

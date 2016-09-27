@@ -17,8 +17,6 @@
 package org.gradle.performance.fixture
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionPerformanceResults
 
 class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
@@ -39,9 +37,8 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    def "passes when average execution time for current release is within specified range of average execution time for previous releases"() {
+    def "passes when average execution time for current release is within allowed range of average execution time for previous releases"() {
         given:
-        result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
@@ -51,9 +48,9 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.3").results << operation(totalTime: 110)
 
         and:
-        result.current << operation(totalTime: 110)
-        result.current << operation(totalTime: 110)
-        result.current << operation(totalTime: 110)
+        result.current << operation(totalTime: 100)
+        result.current << operation(totalTime: 100)
+        result.current << operation(totalTime: 100)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -61,15 +58,13 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
 
     def "fails when average execution time for current release is larger than average execution time for previous releases"() {
         given:
-        result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
 
-        result.baseline("1.3").maxExecutionTimeRegression = Duration.millis(10)
-        result.baseline("1.3").results << operation(totalTime: 101)
-        result.baseline("1.3").results << operation(totalTime: 100)
-        result.baseline("1.3").results << operation(totalTime: 100)
+        result.baseline("1.3").results << operation(totalTime: 110)
+        result.baseline("1.3").results << operation(totalTime: 110)
+        result.baseline("1.3").results << operation(totalTime: 111)
 
         and:
         result.current << operation(totalTime: 110)
@@ -105,43 +100,20 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    def "passes when average heap usage for current release is slightly larger than average heap usage for previous releases"() {
-        given:
-        result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
-
-        result.baseline("1.3").maxMemoryRegression = DataAmount.bytes(100)
-        result.baseline("1.3").results << operation(totalMemoryUsed: 900)
-        result.baseline("1.3").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.3").results << operation(totalMemoryUsed: 1100)
-
-        and:
-        result.current << operation(totalMemoryUsed: 1100)
-        result.current << operation(totalMemoryUsed: 1100)
-        result.current << operation(totalMemoryUsed: 1100)
-
-        expect:
-        result.assertCurrentVersionHasNotRegressed()
-    }
-
     def "fails when average heap usage for current release is larger than average heap usage for previous releases"() {
         given:
-        result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
 
-        result.baseline("1.2").maxMemoryRegression = DataAmount.bytes(100)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
 
         and:
-        result.current << operation(totalMemoryUsed: 1100)
-        result.current << operation(totalMemoryUsed: 1100)
-        result.current << operation(totalMemoryUsed: 1101)
+        result.current << operation(totalMemoryUsed: 1000)
+        result.current << operation(totalMemoryUsed: 1001)
+        result.current << operation(totalMemoryUsed: 1001)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -149,7 +121,7 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.startsWith("Memory ${result.displayName}: we need more memory than 1.2.")
-        e.message.contains('Difference: 100.333 B more (100.333 B), 10.03%')
+        e.message.contains('Difference: 0.667 B more (0.667 B), 0.07%')
         !e.message.contains('than 1.0')
     }
 

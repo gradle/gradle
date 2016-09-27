@@ -15,14 +15,19 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
+import com.google.common.base.Optional;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 
 import java.util.Map;
 import java.util.Set;
 
+import static groovy.lang.Closure.DELEGATE_FIRST;
+
 /**
  * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
- * project.
+ * build.
  * <p>
  * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
  */
@@ -54,7 +59,6 @@ public interface ModuleDependency extends Dependency {
      *     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
      *   }
      * }
-    
      * </pre>
      *
      * @param excludeProperties the properties to define the exclude rule.
@@ -97,7 +101,21 @@ public interface ModuleDependency extends Dependency {
      *
      * @return this
      */
-    DependencyArtifact artifact(Closure configureClosure);
+    DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
+
+    /**
+     * <p>Adds an artifact to this dependency. The given action is passed a {@link
+     * org.gradle.api.artifacts.DependencyArtifact} instance, which it can configure.</p>
+     *
+     * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
+     * same name as the module and its type and extension is <em>jar</em>. If at least one artifact is explicitly added,
+     * the implicit default artifact won't be used any longer.</p>
+     *
+     * @return this
+     *
+     * @since 3.1
+     */
+    DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction);
 
     /**
      * Returns whether this dependency should be resolved including or excluding its transitive dependencies.
@@ -121,8 +139,20 @@ public interface ModuleDependency extends Dependency {
      * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}. A dependency source
      * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
      * for this dependency module.
+     *
+     * @deprecated Use {@link #getTargetConfiguration()} instead
      */
+    @Deprecated
     String getConfiguration();
+
+    /**
+     * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
+     * returns null. If absent, the default configuration should be used. A dependency source
+     * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
+     * for this dependency module.
+     *
+     */
+    Optional<String> getTargetConfiguration();
 
     /**
      * {@inheritDoc}

@@ -25,9 +25,9 @@ class ModelPathTest extends Specification {
 
         expect:
         path.toString() == "<root>"
-        path.components == []
+        path.toList() == []
         path.name == ""
-        path.depth == 0
+        path.size() == 0
         path.parent == null
         path.rootParent == null
     }
@@ -37,9 +37,9 @@ class ModelPathTest extends Specification {
 
         expect:
         path.toString() == "p"
-        path.components == ["p"]
+        path.toList() == ["p"]
         path.name == "p"
-        path.depth == 1
+        path.size() == 1
         path.parent == ModelPath.ROOT
         path.rootParent == null
         path == ModelPath.ROOT.child("p")
@@ -50,9 +50,9 @@ class ModelPathTest extends Specification {
 
         expect:
         path.toString() == "a.b.c"
-        path.components == ["a", "b", "c"]
+        path.toList() == ["a", "b", "c"]
         path.name == "c"
-        path.depth == 3
+        path.size() == 3
         path.parent == ModelPath.path(["a", "b"])
         path.parent.toString() == "a.b"
         path.rootParent == ModelPath.path("a")
@@ -77,26 +77,26 @@ class ModelPathTest extends Specification {
         def child = ModelPath.path([name, name, name])
 
         expect:
-        parent.components == [name]
+        parent.toList() == [name]
         parent.name == name
         parent.toString() == name
-        parent.depth == 1
+        parent.size() == 1
         parent.parent == ModelPath.ROOT
         parent.rootParent == null
 
-        path.components == [name, name]
+        path.toList() == [name, name]
         path.name == name
-        path.toString() == "${name}.${name}"
+        path.toString() == "${name}.${name}" as String
         path.parent == parent
         path.rootParent == parent
         path.name == name
-        path.depth == 2
+        path.size() == 2
 
-        child.components == [name, name, name]
+        child.toList() == [name, name, name]
         child.name == name
         child.parent == path
         child.rootParent == parent
-        child.depth == 3
+        child.size() == 3
 
         where:
         name       | _
@@ -112,8 +112,8 @@ class ModelPathTest extends Specification {
         expect:
         child.parent == path
         child.name == name
-        child.depth == 2
-        child.toString() == "parent.${name}"
+        child.size() == 2
+        child.toString() == "parent.${name}" as String
 
         where:
         name       | _

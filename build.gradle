@@ -186,6 +186,7 @@ ext {
         project(':wrapper'),
         project(':baseServices'),
         project(':baseServicesGroovy'),
+        project(':dependencyManagement'),
         project(':messaging'),
         project(':processServices'),
         project(':resources')
@@ -272,7 +273,7 @@ def patchedExternalModules = fileTree(patchedExternalModulesDir) {
 }
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.3.0'
+    externalModules 'org.gradle:gradle-script-kotlin:0.3.2'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
@@ -287,6 +288,7 @@ task patchExternalModules(type: Sync) {
     // Include any dependency jars that are not available in the core runtime
     from configurations.externalModulesRuntime.minus(configurations.coreRuntime)
     into patchedExternalModulesDir
+    outputs.cacheIf { true }
     doLast {
         new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, configurations.externalModules)
             .writePatchedFilesTo(destinationDir)
@@ -296,10 +298,12 @@ task patchExternalModules(type: Sync) {
     }
 }
 
-task verifyIsProductionBuildEnvironment << {
-    assert javaVersion.java7: "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
-    def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-    assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
+task verifyIsProductionBuildEnvironment {
+    doLast {
+        assert javaVersion.java7: "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
+        def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
+    }
 }
 
 task waitForDaemonsToDie {

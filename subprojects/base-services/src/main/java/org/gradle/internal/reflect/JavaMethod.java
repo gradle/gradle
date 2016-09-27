@@ -29,22 +29,20 @@ public class JavaMethod<T, R> {
     private final Class<R> returnType;
 
     public JavaMethod(Class<T> target, Class<R> returnType, String name, boolean allowStatic, Class<?>... paramTypes) {
-        this.returnType = returnType;
-        method = findMethod(target, target, name, allowStatic, paramTypes);
-        method.setAccessible(true);
+        this(returnType, findMethod(target, target, name, allowStatic, paramTypes));
     }
 
     public JavaMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
         this(target, returnType, name, false, paramTypes);
     }
 
-    public JavaMethod(Class<T> target, Class<R> returnType, Method method) {
+    public JavaMethod(Class<R> returnType, Method method) {
         this.returnType = returnType;
         this.method = method;
         method.setAccessible(true);
     }
 
-    private Method findMethod(Class origTarget, Class target, String name, boolean allowStatic, Class<?>[] paramTypes) {
+    private static Method findMethod(Class origTarget, Class target, String name, boolean allowStatic, Class<?>[] paramTypes) {
         for (Method method : target.getDeclaredMethods()) {
             if (!allowStatic && Modifier.isStatic(method.getModifiers())) {
                 continue;

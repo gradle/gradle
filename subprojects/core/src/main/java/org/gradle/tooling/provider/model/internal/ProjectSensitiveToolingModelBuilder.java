@@ -19,14 +19,12 @@ package org.gradle.tooling.provider.model.internal;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-import java.util.Map;
-
 /**
  * {@link ToolingModelBuilder} that can behave differently when called from
  * a simple {@code ProjectConnection.getModel(Class)} and when called inside
  * {@code BuildAction} with a passed Project parameter
  */
-public abstract class ProjectSensitiveToolingModelBuilder implements ToolingModelBuilder, ProjectToolingModelBuilder {
+public abstract class ProjectSensitiveToolingModelBuilder implements ToolingModelBuilder {
 
     /**
      * Callback to create requested model.
@@ -39,13 +37,5 @@ public abstract class ProjectSensitiveToolingModelBuilder implements ToolingMode
      */
     public Object buildAll(String modelName, Project project, boolean implicitProject) {
         return buildAll(modelName, project);
-    }
-
-    @Override
-    public void addModels(String modelName, Project project, Map<String, Object> models) {
-        models.put(project.getPath(), buildAll(modelName, project, false));
-        for (Project childProject : project.getChildProjects().values()) {
-            addModels(modelName, childProject, models);
-        }
     }
 }

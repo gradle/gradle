@@ -57,10 +57,15 @@ import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
+import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.cache.TaskExecutionEventAdapter;
+import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
@@ -97,21 +102,18 @@ import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultSettingsFinder;
-import org.gradle.initialization.DefaultSettingsLoader;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
-import org.gradle.initialization.NotifyingSettingsLoader;
 import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.SettingsLoader;
 import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
@@ -125,6 +127,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -238,8 +241,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(withActionsEvaluator);
     }
 
-    protected TaskClassInfoStore createTaskClassInfoStore() {
-        return new DefaultTaskClassInfoStore();
+    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(ServiceRegistry registry) {
+        return new DefaultTaskClassValidatorExtractor(registry.getAll(PropertyAnnotationHandler.class));
+    }
+
+    protected TaskClassInfoStore createTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
+        return new DefaultTaskClassInfoStore(validatorExtractor);
     }
 
     protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {
@@ -302,25 +309,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(PluginRepositoryFactory.class));
     }
 
-    protected SettingsLoader createSettingsLoader(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
-                                                  ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                  BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor) {
-        return new NotifyingSettingsLoader(
-            new DefaultSettingsLoader(
-                new DefaultSettingsFinder(
-                    new BuildLayoutFactory()),
-                settingsProcessor,
-                new BuildSourceBuilder(
-                    gradleLauncherFactory,
-                    classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                    cacheRepository,
-                    buildOperationExecutor)),
-            buildLoader);
-    }
-
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry) {
+                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -328,7 +320,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 gradleLauncherFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 cacheRepository,
-                buildOperationExecutor),
+                buildOperationExecutor,
+                cachedClasspathTransformer),
             buildLoader,
             serviceRegistry
         );
@@ -392,6 +385,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProfileEventAdapter createProfileEventAdapter() {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
+    }
+
+    protected TaskExecutionEventAdapter createTaskOutputCacheAdapter() {
+        return new TaskExecutionEventAdapter(get(ListenerManager.class).getBroadcaster(TaskExecutionStatisticsListener.class));
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {

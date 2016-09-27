@@ -17,14 +17,17 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import groovy.lang.GString;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.DeprecationLogger;
@@ -35,9 +38,9 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.UNORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.ABSOLUTE;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -45,16 +48,17 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
     private final FileResolver resolver;
-    private final String taskName;
+    private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private final List<PropertySpec> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskInputFilePropertySpec> fileProperties;
 
-    public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
+    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
-        this.taskName = taskName;
+        this.task = task;
         this.taskMutator = taskMutator;
+        String taskName = task.getName();
         this.allInputFiles = new TaskInputUnionFileCollection("task '" + taskName + "' input files", false);
         this.allSourceFiles = new TaskInputUnionFileCollection("task '" + taskName + "' source files", true);
     }
@@ -79,30 +83,30 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputFilePropertyBuilder files(final Object... paths) {
-        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilder>() {
+    public TaskInputFilePropertyBuilderInternal files(final Object... paths) {
+        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
-            public TaskInputFilePropertyBuilder call() {
+            public TaskInputFilePropertyBuilderInternal call() {
                 return addSpec(paths);
             }
         });
     }
 
     @Override
-    public TaskInputFilePropertyBuilder file(final Object path) {
-        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilder>() {
+    public TaskInputFilePropertyBuilderInternal file(final Object path) {
+        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
-            public TaskInputFilePropertyBuilder call() {
+            public TaskInputFilePropertyBuilderInternal call() {
                 return addSpec(path);
             }
         });
     }
 
     @Override
-    public TaskInputFilePropertyBuilder dir(final Object dirPath) {
-        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilder>() {
+    public TaskInputFilePropertyBuilderInternal dir(final Object dirPath) {
+        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
-            public TaskInputFilePropertyBuilder call() {
+            public TaskInputFilePropertyBuilderInternal call() {
                 return addSpec(resolver.resolveFilesAsTree(dirPath));
             }
         });
@@ -159,12 +163,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private TaskInputFilePropertyBuilder addSpec(Object paths) {
+    private TaskInputFilePropertyBuilderInternal addSpec(Object paths) {
         return addSpec(paths, false);
     }
 
-    private TaskInputFilePropertyBuilder addSpec(Object paths, boolean skipWhenEmpty) {
-        PropertySpec spec = new PropertySpec(taskName, skipWhenEmpty, resolver, paths);
+    private TaskInputFilePropertyBuilderInternal addSpec(Object paths, boolean skipWhenEmpty) {
+        PropertySpec spec = new PropertySpec(task.getName(), skipWhenEmpty, resolver, paths);
         filePropertiesInternal.add(spec);
         return spec;
     }
@@ -172,8 +176,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            Object value = prepareValue(entry.getValue());
-            actualProperties.put(entry.getKey(), value);
+            String propertyName = entry.getKey();
+            try {
+                Object value = prepareValue(entry.getValue());
+                actualProperties.put(propertyName, value);
+            } catch (Exception ex) {
+                throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
+            }
         }
         return actualProperties;
     }
@@ -214,13 +223,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilder {
+    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
 
         private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;
         private boolean optional;
-        private TaskFilePropertyCompareType compareType = UNORDERED;
-        private TaskFilePropertyPathSensitivityType pathSensitivity = ABSOLUTE;
+        private TaskFilePropertyCompareStrategy compareStrategy = UNORDERED;
+        private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
             this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -233,7 +242,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder withPropertyName(String propertyName) {
+        public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
             setPropertyName(propertyName);
             return this;
         }
@@ -243,13 +252,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder skipWhenEmpty(boolean skipWhenEmpty) {
+        public TaskInputFilePropertyBuilderInternal skipWhenEmpty(boolean skipWhenEmpty) {
             this.skipWhenEmpty = skipWhenEmpty;
             return this;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder skipWhenEmpty() {
+        public TaskInputFilePropertyBuilderInternal skipWhenEmpty() {
             return skipWhenEmpty(true);
         }
 
@@ -258,41 +267,51 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder optional(boolean optional) {
+        public TaskInputFilePropertyBuilderInternal optional(boolean optional) {
             this.optional = optional;
             return this;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder optional() {
+        public TaskInputFilePropertyBuilderInternal optional() {
             return optional(true);
         }
 
         @Override
-        public TaskFilePropertyCompareType getCompareType() {
-            return compareType;
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
+            return compareStrategy;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder orderSensitive() {
+        public TaskInputFilePropertyBuilderInternal orderSensitive() {
             return orderSensitive(true);
         }
 
         @Override
-        public TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive) {
-            this.compareType = orderSensitive ? ORDERED : UNORDERED;
+        public TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive) {
+            this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
             return this;
         }
 
         @Override
-        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
-            return pathSensitivity;
+        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+            return snapshotNormalizationStrategy;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.pathSensitivity = TaskFilePropertyPathSensitivityType.valueOf(sensitivity);
+        public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
+            return withSnapshotNormalizationStrategy(TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity));
+        }
+
+        @Override
+        public TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+            this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
             return this;
+        }
+
+        @Override
+        public String toString() {
+            return getPropertyName() + " (" + compareStrategy + ", " + snapshotNormalizationStrategy + ")";
         }
 
         // --- Deprecated delegate methods

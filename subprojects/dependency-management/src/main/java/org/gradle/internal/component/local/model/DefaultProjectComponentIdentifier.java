@@ -15,20 +15,35 @@
  */
 package org.gradle.internal.component.local.model;
 
+import com.google.common.base.Objects;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
+    private final BuildIdentifier buildIdentifier;
     private final String projectPath;
     private final String displayName;
 
-    public DefaultProjectComponentIdentifier(String projectPath) {
+    public DefaultProjectComponentIdentifier(BuildIdentifier buildIdentifier, String projectPath) {
+        assert buildIdentifier != null : "build cannot be null";
         assert projectPath != null : "project path cannot be null";
+        this.buildIdentifier = buildIdentifier;
         this.projectPath = projectPath;
-        displayName = "project " + projectPath;
+        displayName = "project " + fullPath(buildIdentifier, projectPath);
     }
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    @Override
+    public BuildIdentifier getBuild() {
+        return buildIdentifier;
     }
 
     public String getProjectPath() {
@@ -45,17 +60,13 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         }
 
         DefaultProjectComponentIdentifier that = (DefaultProjectComponentIdentifier) o;
-
-        if (!projectPath.equals(that.projectPath)) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(projectPath, that.projectPath)
+            && Objects.equal(buildIdentifier, that.buildIdentifier);
     }
 
     @Override
     public int hashCode() {
-        return projectPath.hashCode();
+        return Objects.hashCode(projectPath, buildIdentifier);
     }
 
     @Override
@@ -63,7 +74,21 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return displayName;
     }
 
-    public static ProjectComponentIdentifier newId(String projectPath) {
-        return new DefaultProjectComponentIdentifier(projectPath);
+    private static String fullPath(BuildIdentifier build, String projectPath) {
+        if (build.isCurrentBuild()) {
+            return projectPath;
+        }
+        return ":" + build.getName() + projectPath;
     }
+
+    public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
+        return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
+    }
+
+    public static ProjectComponentIdentifier newProjectId(Project project) {
+        BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
+        return new DefaultProjectComponentIdentifier(buildId, project.getPath());
+    }
+
 }

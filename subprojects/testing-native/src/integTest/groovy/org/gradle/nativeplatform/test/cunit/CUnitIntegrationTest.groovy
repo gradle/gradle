@@ -126,7 +126,7 @@ model {
         useConventionalSourceLocations()
         useStandardConfig()
         buildFile << "apply plugin: 'cpp'"
-        file("src/hello/cpp").createDir().file("foo.cpp").text = "class foobar { };"
+        file("src/hello/cpp/foo.cpp").text = "class foobar { };"
 
         when:
         run "check"

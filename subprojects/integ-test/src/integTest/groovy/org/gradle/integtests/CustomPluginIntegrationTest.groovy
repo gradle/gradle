@@ -17,7 +17,6 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
 public class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
     public void "can reference plugin in buildSrc by id"() {
@@ -47,7 +46,6 @@ task test
         succeeds('test')
     }
 
-    @LeaksFileHandles("keeps file handle on external.jar")
     public void "can reference plugin in external jar by id"() {
         given:
         ArtifactBuilder builder = artifactBuilder()
@@ -82,7 +80,6 @@ task test
         succeeds('test')
     }
 
-    @LeaksFileHandles("keeps file handle on external.jar")
     public void "loads plugin in correct environment"() {
         given:
         def implClassName = 'com.google.common.collect.Multimap'

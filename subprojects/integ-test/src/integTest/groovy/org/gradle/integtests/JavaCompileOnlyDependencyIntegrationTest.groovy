@@ -102,16 +102,22 @@ dependencies {
     runtime 'org.gradle.test:runtime:1.1'
 }
 
-task checkCompile << {
-    assert configurations.compile.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}')] as Set
+task checkCompile {
+    doLast {
+        assert configurations.compile.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}')] as Set
+    }
 }
 
-task checkCompileOnly << {
-    assert configurations.compileOnly.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+task checkCompileOnly {
+    doLast {
+        assert configurations.compileOnly.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+    }
 }
 
-task checkRuntime << {
-    assert configurations.runtime.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
+task checkRuntime {
+    doLast {
+        assert configurations.runtime.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
+    }
 }
 """
 
@@ -138,12 +144,16 @@ dependencies {
     compileOnly 'org.gradle.test:compileOnly:1.0'
 }
 
-task checkCompile << {
-    assert configurations.compile.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}')] as Set
+task checkCompile {
+    doLast {
+        assert configurations.compile.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}')] as Set
+    }
 }
 
-task checkCompileOnly << {
-    assert configurations.compileOnly.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+task checkCompileOnly {
+    doLast {
+        assert configurations.compileOnly.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+    }
 }
 """
         expect:
@@ -177,8 +187,10 @@ project(':projectB') {
         compile project(':projectA')
     }
 
-    task checkClasspath << {
-        assert configurations.compile.files == [project(':projectA').jar.archivePath] as Set
+    task checkClasspath {
+        doLast {
+            assert configurations.compile.files == [project(':projectA').jar.archivePath] as Set
+        }
     }
 }
 """
@@ -207,9 +219,11 @@ project(':projectB') {
                     compileOnly project(':projectA')
                 }
 
-                task checkClasspath << {
-                    assert configurations.compileOnly.files == [project(':projectA').jar.archivePath] as Set
-                    assert configurations.compile.files == [] as Set
+                task checkClasspath {
+                    doLast {
+                        assert configurations.compileOnly.files == [project(':projectA').jar.archivePath] as Set
+                        assert configurations.compile.files == [] as Set
+                    }
                 }
             }
         """.stripIndent()

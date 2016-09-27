@@ -18,7 +18,10 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.*;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
@@ -33,14 +36,19 @@ import java.util.List;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+    private final TaskActionExecutionListener internalListener;
     private final TaskActionListener listener;
 
-    public ExecuteActionsTaskExecuter(TaskActionListener listener) {
-        this.listener = listener;
+    public ExecuteActionsTaskExecuter(TaskActionExecutionListener internalListener, TaskActionListener publicListener) {
+        this.internalListener = internalListener;
+        this.listener = publicListener;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         listener.beforeActions(task);
+        if (!task.getTaskActions().isEmpty()) {
+            internalListener.startTaskActions();
+        }
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state, context);

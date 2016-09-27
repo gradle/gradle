@@ -43,36 +43,38 @@ dependencies {
     compile "org.gradle:test:1.45"
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'test-1.45-classifier.jar', 'test-extra-1.45.jar', 'other-preview-1.jar']
-    def result = configurations.compile.incoming.resolutionResult
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'test-1.45-classifier.jar', 'test-extra-1.45.jar', 'other-preview-1.jar']
+        def result = configurations.compile.incoming.resolutionResult
 
-    // Check root component
-    def rootId = result.root.id
-    assert rootId instanceof ProjectComponentIdentifier
-    def rootPublishedAs = result.root.moduleVersion
-    assert rootPublishedAs.group == 'org.gradle'
-    assert rootPublishedAs.name == 'testproject'
-    assert rootPublishedAs.version == '1.0'
+        // Check root component
+        def rootId = result.root.id
+        assert rootId instanceof ProjectComponentIdentifier
+        def rootPublishedAs = result.root.moduleVersion
+        assert rootPublishedAs.group == 'org.gradle'
+        assert rootPublishedAs.name == 'testproject'
+        assert rootPublishedAs.version == '1.0'
 
-    // Check external module components
-    def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
-    assert externalComponents.size() == 1
-    def selectedExternalComponent = externalComponents[0]
-    assert selectedExternalComponent.id.group == 'org.gradle'
-    assert selectedExternalComponent.id.module == 'test'
-    assert selectedExternalComponent.id.version == '1.45'
-    assert selectedExternalComponent.moduleVersion.group == 'org.gradle'
-    assert selectedExternalComponent.moduleVersion.name == 'test'
-    assert selectedExternalComponent.moduleVersion.version == '1.45'
+        // Check external module components
+        def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
+        assert externalComponents.size() == 1
+        def selectedExternalComponent = externalComponents[0]
+        assert selectedExternalComponent.id.group == 'org.gradle'
+        assert selectedExternalComponent.id.module == 'test'
+        assert selectedExternalComponent.id.version == '1.45'
+        assert selectedExternalComponent.moduleVersion.group == 'org.gradle'
+        assert selectedExternalComponent.moduleVersion.name == 'test'
+        assert selectedExternalComponent.moduleVersion.version == '1.45'
 
-    // Check external dependencies
-    def externalDependencies = result.root.dependencies.requested.findAll { it instanceof ModuleComponentSelector }
-    assert externalDependencies.size() == 1
-    def requestedExternalDependency = externalDependencies[0]
-    assert requestedExternalDependency.group == 'org.gradle'
-    assert requestedExternalDependency.module == 'test'
-    assert requestedExternalDependency.version == '1.45'
+        // Check external dependencies
+        def externalDependencies = result.root.dependencies.requested.findAll { it instanceof ModuleComponentSelector }
+        assert externalDependencies.size() == 1
+        def requestedExternalDependency = externalDependencies[0]
+        assert requestedExternalDependency.group == 'org.gradle'
+        assert requestedExternalDependency.module == 'test'
+        assert requestedExternalDependency.version == '1.45'
+    }
 }
 """
 
@@ -101,8 +103,10 @@ dependencies {
     compile "org.gradle:test:1.45"
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-1.45.jar']
+    }
 }
 """
 
@@ -132,8 +136,10 @@ dependencies {
     compile "org.gradle:test:1.45:classifier"
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45-classifier.jar', 'other-preview-1.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-1.45-classifier.jar', 'other-preview-1.jar']
+    }
 }
 """
 
@@ -153,8 +159,10 @@ dependencies {
     compile "org.gradle:test:1.45:classifier"
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45-classifier.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-1.45-classifier.jar']
+    }
 }
 """
 
@@ -184,8 +192,10 @@ dependencies {
     }
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-extra-1.45.jar', 'other-preview-1.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-extra-1.45.jar', 'other-preview-1.jar']
+    }
 }
 """
 
@@ -224,8 +234,10 @@ dependencies {
     }
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['my-test-artifact-1.45.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['my-test-artifact-1.45.jar']
+    }
 }
 """
 
@@ -259,14 +271,16 @@ dependencies {
     runtime "org.gradle:other:preview-1"
 }
 
-task check << {
-    def spec = { it.name == 'test' } as Spec
+task check {
+    doLast {
+        def spec = { it.name == 'test' } as Spec
 
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
-    assert configurations.compile.resolvedConfiguration.getFiles(spec).collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+        assert configurations.compile.resolvedConfiguration.getFiles(spec).collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
 
-    assert configurations.runtime.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar', 'other2-7.jar']
-    assert configurations.compile.resolvedConfiguration.getFiles(spec).collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+        assert configurations.runtime.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar', 'other2-7.jar']
+        assert configurations.compile.resolvedConfiguration.getFiles(spec).collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+    }
 }
 """
 

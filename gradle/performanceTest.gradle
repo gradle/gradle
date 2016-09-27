@@ -17,7 +17,10 @@
 
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.performance.generator.tasks.*
+import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 apply plugin: 'java'
 
@@ -83,6 +86,7 @@ task prepareSamples {
 
 task cleanSamples(type: Delete) {
     delete {tasks.withType(ProjectGeneratorTask)*.destDir}
+    delete {tasks.withType(RemoteProject)*.outputDirectory}
 }
 
 def withPerformanceDb = { task ->
@@ -122,8 +126,9 @@ performanceTestTasks.all { PerformanceTest task ->
     dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
     finalizedBy performanceReport
 
-    if (project.findProperty("org.gradle.performance.strict")) {
-        systemProperty "org.gradle.performance.strict", "true"
+    project.task("clean${task.name.capitalize()}", type: Delete) {
+        delete task.outputs
+        dependsOn cleanPerformanceReport
     }
 
     if (project.findProperty('org.gradle.performance.baselines')) {
@@ -209,6 +214,9 @@ configure([performanceTest, performanceExperiment, fullPerformanceTest, performa
     if (project.hasProperty('org.gradle.performance.hotspotlog')) {
         systemProperties['org.gradle.performance.hotspotlog'] = '1'
     }
+    if (project.hasProperty('org.gradle.performance.honestprofiler')) {
+        systemProperties['org.gradle.performance.honestprofiler'] = '1'
+    }
     if (project.hasProperty('performanceTest.verbose')) {
         testLogging.showStandardStreams = true
     }
@@ -259,6 +267,10 @@ tasks.withType(AbstractProjectGeneratorTask) {
     }
 }
 
+tasks.withType(RemoteProject).all {
+    dependsOn ':internalPerformanceTesting:measurementPluginJar'
+}
+
 // add task that zips the junit xml test report files to a zip file
 // this file can be used to combine the test reports of the distributed test runs into a single report in the coordinator
 tasks.withType(PerformanceTest) { task ->
@@ -280,6 +292,7 @@ tasks.withType(PerformanceTest) { task ->
                     }
                 }
             }
+            from(task.debugArtifactsDirectory)
             destinationDir = buildDir
             archiveName = "test-results-${junitXmlDir.name}.zip"
         }
@@ -288,6 +301,6 @@ tasks.withType(PerformanceTest) { task ->
         def cleanTestResultsZipTask = tasks.create(name: "clean${testResultsZipTask.name.capitalize()}", type: Delete) {
             delete testResultsZipTask.archivePath
         }
-        tasks.getByName("clean${task.name.capitalize()}").finalizedBy cleanTestResultsZipTask
+        tasks.getByName("clean${task.name.capitalize()}").dependsOn cleanTestResultsZipTask
     }
 }

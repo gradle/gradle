@@ -36,25 +36,35 @@ include 'b:c'
 rootProject.name = 'test'
 '''
         buildFile << '''
-task t1 << {
-    println "t1 in $project.name"
+task t1 {
+    doLast {
+        println "t1 in $project.name"
+    }
 }
 
 project(':b') {
-    task t3 << {
-        println "t3 in $project.name"
+    task t3 {
+        doLast {
+            println "t3 in $project.name"
+        }
     }
-    task t2 << {
-        println "t2 in $project.name"
+    task t2 {
+        doLast {
+            println "t2 in $project.name"
+        }
     }
 }
 
 project(':b:c') {
-    task t1 << {
-        println "t1 in $project.name"
+    task t1 {
+        doLast {
+            println "t1 in $project.name"
+        }
     }
-    task t2 << {
-        println "t2 in $project.name"
+    task t2 {
+        doLast {
+            println "t2 in $project.name"
+        }
     }
 }'''
     }

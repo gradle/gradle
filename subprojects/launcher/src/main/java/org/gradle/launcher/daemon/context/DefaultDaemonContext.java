@@ -16,8 +16,11 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,6 +29,8 @@ import java.util.List;
  * @see DaemonContextBuilder
  */
 public class DefaultDaemonContext implements DaemonContext {
+
+    public static final org.gradle.internal.serialize.Serializer<DefaultDaemonContext> SERIALIZER = new Serializer();
 
     private final String uid;
     private final File javaHome;
@@ -45,7 +50,7 @@ public class DefaultDaemonContext implements DaemonContext {
 
     public String toString() {
         return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,daemonOpts=%s]",
-                uid, javaHome, daemonRegistryDir, pid, idleTimeout, Joiner.on(',').join(daemonOpts));
+            uid, javaHome, daemonRegistryDir, pid, idleTimeout, Joiner.on(',').join(daemonOpts));
     }
 
     public String getUid() {
@@ -70,5 +75,43 @@ public class DefaultDaemonContext implements DaemonContext {
 
     public List<String> getDaemonOpts() {
         return daemonOpts;
+    }
+
+    private static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
+
+        @Override
+        public DefaultDaemonContext read(Decoder decoder) throws Exception {
+            String uid = decoder.readNullableString();
+            String pathname = decoder.readString();
+            File javaHome = new File(pathname);
+            File registryDir = new File(decoder.readString());
+            Long pid = decoder.readBoolean() ? decoder.readLong() : null;
+            Integer idle = decoder.readBoolean() ? decoder.readInt() : null;
+            int daemonOptCount = decoder.readInt();
+            List<String> daemonOpts = new ArrayList<String>(daemonOptCount);
+            for (int i=0; i<daemonOptCount; i++) {
+                daemonOpts.add(decoder.readString());
+            }
+            return new DefaultDaemonContext(uid, javaHome, registryDir, pid, idle, daemonOpts);
+        }
+
+        @Override
+        public void write(Encoder encoder, DefaultDaemonContext context) throws Exception {
+            encoder.writeNullableString(context.uid);
+            encoder.writeString(context.javaHome.getPath());
+            encoder.writeString(context.daemonRegistryDir.getPath());
+            encoder.writeBoolean(context.pid != null);
+            if (context.pid != null) {
+                encoder.writeLong(context.pid);
+            }
+            encoder.writeBoolean(context.idleTimeout != null);
+            if (context.idleTimeout != null) {
+                encoder.writeInt(context.idleTimeout);
+            }
+            encoder.writeInt(context.daemonOpts.size());
+            for (String daemonOpt : context.daemonOpts) {
+                encoder.writeString(daemonOpt);
+            }
+        }
     }
 }

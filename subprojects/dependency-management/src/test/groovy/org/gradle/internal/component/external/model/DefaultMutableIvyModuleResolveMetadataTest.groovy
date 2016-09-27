@@ -18,24 +18,34 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor)
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor, configurations, dependencies)
+    }
+
+    @Override
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts) {
+        return new DefaultMutableIvyModuleResolveMetadata(id, artifacts)
     }
 
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         descriptor.branch = "b"
+        configuration("runtime", [])
+        configuration("default", ["runtime"])
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, configurations, [])
         metadata.componentId == id
         metadata.id == DefaultModuleVersionIdentifier.newId(id)
         metadata.status == "2"
@@ -57,6 +67,12 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.generated
         immutable.branch == "b"
         !immutable.changing
+        immutable.configurationNames == ["runtime", "default"] as Set
+        immutable.getConfiguration("runtime")
+        immutable.getConfiguration("default")
+        immutable.getConfiguration("default").hierarchy == ["runtime", "default"] as Set
+        immutable.getConfiguration("default").transitive
+        immutable.getConfiguration("default").visible
 
         and:
         def copy = immutable.asMutable()
@@ -76,7 +92,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, [], [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -117,7 +133,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -160,7 +176,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, [], [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId

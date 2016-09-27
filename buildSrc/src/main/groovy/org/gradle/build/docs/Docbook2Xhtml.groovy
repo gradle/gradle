@@ -23,7 +23,7 @@ import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
 
 class Docbook2Xhtml extends SourceTask {
-    @InputFiles
+    @Classpath
     FileCollection classpath
 
     @OutputFile @Optional
@@ -32,12 +32,15 @@ class Docbook2Xhtml extends SourceTask {
     @OutputDirectory @Optional
     File destDir
 
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     File stylesheetsDir
 
     String stylesheetName
 
-    @InputFiles @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Optional
+    @InputFiles
     FileCollection resources
 
     @TaskAction

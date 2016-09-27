@@ -19,8 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
@@ -38,11 +40,17 @@ class IvyModuleResolveMetaDataBuilder {
         artifacts.add(new Artifact(newArtifact, configurations));
     }
 
+    public List<Artifact> getArtifacts() {
+        return artifacts;
+    }
+
     public DefaultMutableIvyModuleResolveMetadata build() {
         ModuleDescriptorState descriptorState = IvyModuleDescriptorConverter.forIvyModuleDescriptor(ivyDescriptor);
         for (Artifact artifact : artifacts) {
             descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
         }
-        return new DefaultMutableIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState);
+        List<Configuration> configurations = IvyModuleDescriptorConverter.extractConfigurations(ivyDescriptor);
+        List<IvyDependencyMetadata> dependencies = IvyModuleDescriptorConverter.extractDependencies(ivyDescriptor);
+        return new DefaultMutableIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState, configurations, dependencies);
     }
 }

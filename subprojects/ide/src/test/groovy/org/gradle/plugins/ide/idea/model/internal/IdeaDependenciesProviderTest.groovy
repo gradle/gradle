@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
+import org.gradle.api.internal.composite.CompositeBuildContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
@@ -29,7 +30,9 @@ import org.gradle.util.TestUtil
 public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
-    def serviceRegistry = new DefaultServiceRegistry().add(LocalComponentRegistry, Stub(LocalComponentRegistry))
+    def serviceRegistry = new DefaultServiceRegistry()
+        .add(LocalComponentRegistry, Stub(LocalComponentRegistry))
+        .add(CompositeBuildContext, Stub(CompositeBuildContext))
     private final dependenciesProvider = new IdeaDependenciesProvider(serviceRegistry)
 
     def "no dependencies test"() {

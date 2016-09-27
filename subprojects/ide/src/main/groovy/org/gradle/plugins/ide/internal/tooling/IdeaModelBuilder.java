@@ -137,17 +137,17 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 }
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
-                ModuleDependency d = (ModuleDependency) dependency;
-                DefaultIdeaModule targetModule = modules.get(d.getName());
-                File targetProjectDirectory = targetModule == null
-                    ? compositeProjectMapper.getProjectDirectory(d.getGradlePath())
-                    : targetModule.getGradleProject().getProjectDirectory();
-                DefaultIdeaModuleDependency defaultDependency = new DefaultIdeaModuleDependency()
-                    .setExported(d.isExported())
-                    .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                    .setDependencyModule(targetModule)
-                    .setProjectDirectory(targetProjectDirectory);
-                dependencies.add(defaultDependency);
+                ModuleDependency moduleDependency = (ModuleDependency) dependency;
+
+                DefaultIdeaModuleDependency ideaModuleDependency = new DefaultIdeaModuleDependency(moduleDependency.getName())
+                    .setExported(moduleDependency.isExported())
+                    .setScope(new DefaultIdeaDependencyScope(moduleDependency.getScope()));
+
+                // Find IdeaModule model for dependency within same build: may be null
+                DefaultIdeaModule targetModule = modules.get(moduleDependency.getName());
+                ideaModuleDependency.setDependencyModule(targetModule);
+
+                dependencies.add(ideaModuleDependency);
             }
         }
         modules.get(ideaModule.getName()).setDependencies(dependencies);

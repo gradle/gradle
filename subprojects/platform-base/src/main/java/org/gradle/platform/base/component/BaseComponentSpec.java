@@ -22,6 +22,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.GeneralComponentSpec;
 import org.gradle.platform.base.component.internal.DefaultComponentSpec;
@@ -33,6 +34,7 @@ import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 @Incubating
 public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
     private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
+    private static final ModelType<Binary> BINARY_MODEL_TYPE = ModelType.of(Binary.class);
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
@@ -51,5 +53,10 @@ public class BaseComponentSpec extends DefaultComponentSpec implements GeneralCo
     @Override
     public ModelMap<BinarySpec> getBinaries() {
         return ModelMaps.toView(binaries, BINARY_SPEC_MODEL_TYPE);
+    }
+
+    @Override
+    public Iterable<Binary> getVariants() {
+        return ModelMaps.toView(binaries, BINARY_MODEL_TYPE);
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaProject
 
 @TargetGradleVersion('>=1.8')
@@ -53,7 +52,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.2")
-    def "action classes are reused"() {
+    def "action classes are reused in daemon"() {
         toolingApi.requireIsolatedDaemons()
 
         expect:
@@ -66,7 +65,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=1.8 <=2.1")
-    def "action classes are reused when daemon is idle when operation starts"() {
+    def "action classes are reused in daemon when daemon is idle when operation starts"() {
         toolingApi.requireIsolatedDaemons()
 
         expect:
@@ -117,14 +116,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.message.startsWith('Could not run build action using')
     }
 
-    def causes(Throwable throwable) {
-        def causes = []
-        for (def c = throwable.cause; c != null; c = c.cause) {
-            causes << c
-        }
-        return causes
-    }
-
     @ToolingApiVersion('current')
     @TargetGradleVersion('>=1.2 <1.8')
     def "gives reasonable error message when target Gradle version does not support build actions"() {
@@ -134,19 +125,5 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         UnsupportedVersionException e = thrown()
         e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
-    }
-
-    @TargetGradleVersion('>=2.13')
-    def "can use build action to retrieve BuildEnvironment model"() {
-        given:
-        file("settings.gradle") << 'rootProject.name="hello-world"'
-
-        when:
-        BuildEnvironment buildEnvironment = withConnection { it.action(new FetchBuildEnvironment()).run() }
-
-        then:
-        buildEnvironment.gradle.gradleVersion == targetDist.getVersion().version
-        buildEnvironment.java.javaHome
-        !buildEnvironment.java.jvmArguments.empty
     }
 }

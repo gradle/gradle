@@ -170,7 +170,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->
-            def m = service.m2repo.module("test", "test", n)
+            def m = service.m2repo.module("test", "test", n as String)
             m.publish().allowAll()
 
             file("j$n").with {
@@ -203,12 +203,16 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
             $USE
 
-            task scriptTask << {
-                println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            task scriptTask {
+                doLast {
+                    println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+                }
             }
 
-            task buildscriptDependencies << {
-                println "buildscriptDependencies - " + buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+            task buildscriptDependencies {
+                doLast {
+                    println "buildscriptDependencies - " + buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+                }
             }
         """
 

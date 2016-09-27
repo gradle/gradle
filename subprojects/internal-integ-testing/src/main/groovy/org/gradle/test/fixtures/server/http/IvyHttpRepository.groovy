@@ -52,7 +52,7 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
         return new HttpDirectoryResource(server, "$contextPath/$organisation/$module/", backingRepository.moduleDir(organisation, module))
     }
 
-    IvyHttpModule module(String organisation, String module, Object revision = "1.0") {
+    IvyHttpModule module(String organisation, String module, String revision = "1.0") {
         def path = backingRepository.getDirPath(organisation, module, revision.toString())
         return new IvyHttpModule(this, server, "$contextPath/$path", backingRepository.module(organisation, module, revision))
     }

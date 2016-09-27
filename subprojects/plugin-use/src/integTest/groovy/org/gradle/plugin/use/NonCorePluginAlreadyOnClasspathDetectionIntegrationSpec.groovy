@@ -18,11 +18,9 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver.pluginOnClasspathErrorMessage
 
-@LeaksFileHandles
 class NonCorePluginAlreadyOnClasspathDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
     private testPluginBuildscriptBlock() {

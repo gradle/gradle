@@ -18,8 +18,10 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.initialization.BuildRequestContext;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
@@ -47,16 +49,33 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         this.sharedServices = sharedServices;
     }
 
-    @Override
-    public IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext) {
-        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, requestContext, sharedServices);
-        Factory<GradleLauncher> nestedFactory = requestContext == null ? null : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
-        return instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, nestedFactory);
+    private void validateBuildDirectory(File dir) {
+        if (!dir.exists()) {
+            throw new InvalidUserDataException(String.format("Included build '%s' does not exist.", dir));
+        }
+        if (!dir.isDirectory()) {
+            throw new InvalidUserDataException(String.format("Included build '%s' is not a directory.", dir));
+        }
+    }
+
+    private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
+        if (!new File(settings.getSettingsDir(), "settings.gradle").exists()) {
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a 'settings.gradle' file.", includedBuild.getName()));
+        }
+        if (!settings.getIncludedBuilds().isEmpty()) {
+            throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", includedBuild.getName()));
+        }
     }
 
     @Override
-    public IncludedBuild createBuild(File buildDirectory) {
-        return createBuild(buildDirectory, null);
+    public ConfigurableIncludedBuild createBuild(File buildDirectory) {
+        validateBuildDirectory(buildDirectory);
+        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, sharedServices);
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory);
+
+        SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
+        validateIncludedBuild(includedBuild, settingsInternal);
+        return includedBuild;
     }
 
     @Override
@@ -68,14 +87,12 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         private final File buildDirectory;
         private final GradleLauncherFactory gradleLauncherFactory;
         private final StartParameter buildStartParam;
-        private final BuildRequestContext requestContext;
         private final ServiceRegistry sharedServices;
 
-        public ContextualGradleLauncherFactory(File buildDirectory, GradleLauncherFactory gradleLauncherFactory, StartParameter buildStartParam, BuildRequestContext requestContext, ServiceRegistry sharedServices) {
+        public ContextualGradleLauncherFactory(File buildDirectory, GradleLauncherFactory gradleLauncherFactory, StartParameter buildStartParam, ServiceRegistry sharedServices) {
             this.buildDirectory = buildDirectory;
             this.gradleLauncherFactory = gradleLauncherFactory;
             this.buildStartParam = buildStartParam;
-            this.requestContext = requestContext;
             this.sharedServices = sharedServices;
         }
 
@@ -83,15 +100,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         public GradleLauncher create() {
             StartParameter participantStartParam = createStartParameter(buildDirectory);
 
-            GradleLauncher gradleLauncher;
-            if (requestContext == null) {
-                gradleLauncher = gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
-            } else {
-                gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
-                gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
-                gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
-            }
-
+            GradleLauncher gradleLauncher = gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
             launchers.add(gradleLauncher);
             return gradleLauncher;
         }
@@ -100,6 +109,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
             StartParameter includedBuildStartParam = buildStartParam.newBuild();
             includedBuildStartParam.setProjectDir(buildDirectory);
             includedBuildStartParam.setSearchUpwards(false);
+            // TODO:DAZ Consider if we still really need this
             includedBuildStartParam.setConfigureOnDemand(false);
             return includedBuildStartParam;
         }

@@ -381,8 +381,8 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2979")
     def "renders a mix of project and external dependencies"() {
         given:
-        mavenRepo.module("foo", "bar", 1.0).publish()
-        mavenRepo.module("foo", "bar", 2.0).publish()
+        mavenRepo.module("foo", "bar", "1.0").publish()
+        mavenRepo.module("foo", "bar", "2.0").publish()
 
         file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'

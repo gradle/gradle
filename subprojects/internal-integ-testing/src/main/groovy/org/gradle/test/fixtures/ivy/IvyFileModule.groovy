@@ -19,6 +19,7 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 
 class IvyFileModule extends AbstractModule implements IvyModule {
@@ -51,6 +52,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         this.m2Compatible = m2Compatible
         configurations['runtime'] = [extendsFrom: [], transitive: true, visibility: 'public']
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true, visibility: 'public']
+    }
+
+    @Override
+    String getGroup() {
+        return organisation
+    }
+
+    @Override
+    String getVersion() {
+        return revision
     }
 
     IvyDescriptor getParsedIvy() {
@@ -93,13 +104,23 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyFileModule dependsOn(Map<String, ?> attributes, Module target) {
+        def allAttrs = [organisation: target.group, module: target.module, revision: target.version]
+        allAttrs.putAll(attributes)
+        dependsOn(allAttrs)
+        return this
+    }
+
     IvyFileModule dependsOn(Map<String, ?> attributes) {
         dependencies << attributes
         return this
     }
 
-    IvyModule dependsOn(IvyModule ivyModule) {
-        return dependsOn(ivyModule.getOrganisation(), ivyModule.getModule(), ivyModule.getRevision())
+    @Override
+    IvyFileModule dependsOn(Module target) {
+        dependsOn(target.group, target.module, target.version)
+        return this
     }
 
     IvyFileModule dependsOn(String... modules) {

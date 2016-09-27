@@ -413,6 +413,18 @@ public class AbstractFileCollectionTest extends Specification {
         assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")));
     }
 
+    public void canVisitRootElements() {
+        def collection = new TestFileCollection()
+        def visitor = Mock(FileCollectionVisitor)
+
+        when:
+        collection.visitRootElements(visitor)
+
+        then:
+        1 * visitor.visitCollection(collection)
+        0 * visitor._
+    }
+
     private void assertHasSameDependencies(FileCollection tree) {
         final Task task = Mock(Task.class);
         final Task depTask = Mock(Task.class);

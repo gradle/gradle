@@ -34,6 +34,7 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import com.google.common.base.Optional
 
 class DefaultIvyPublicationTest extends Specification {
     @Rule
@@ -114,7 +115,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.group >> "org"
         moduleDependency.name >> "name"
         moduleDependency.version >> "version"
-        moduleDependency.configuration >> "dep-configuration"
+        moduleDependency.targetConfiguration >> Optional.of("dep-configuration")
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
 
@@ -147,7 +148,7 @@ class DefaultIvyPublicationTest extends Specification {
 
         and:
         projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
-        projectDependency.configuration >> "dep-configuration"
+        projectDependency.targetConfiguration >> Optional.of("dep-configuration")
         projectDependency.excludeRules >> [exclude]
 
         when:

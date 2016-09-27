@@ -248,6 +248,7 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
+        samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
         samplesByDir.get('webApplication/customized')*.allowDeprecation = true
         samplesByDir.get('webApplication/quickstart')*.allowDeprecation = true
 

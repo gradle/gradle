@@ -279,8 +279,8 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem, patternSetFactory);
     }
 
-    DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory) {
-        return new DefaultDirectoryFileTreeFactory(patternSetFactory);
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
+        return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }
 
     FileCollectionFactory createFileCollectionFactory() {
@@ -366,5 +366,4 @@ public class GlobalScopeServices {
     DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
         return new DependencyInjectingInstantiator.ConstructorCache();
     }
-
 }

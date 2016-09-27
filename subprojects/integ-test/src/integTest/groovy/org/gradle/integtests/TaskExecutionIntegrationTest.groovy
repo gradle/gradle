@@ -27,15 +27,17 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def taskCanAccessTaskGraph() {
         buildFile << """
     boolean notified = false
-    task a(dependsOn: 'b') << { task ->
-        assert notified
-        assert gradle.taskGraph.hasTask(task)
-        assert gradle.taskGraph.hasTask(':a')
-        assert gradle.taskGraph.hasTask(a)
-        assert gradle.taskGraph.hasTask(':b')
-        assert gradle.taskGraph.hasTask(b)
-        assert gradle.taskGraph.allTasks.contains(task)
-        assert gradle.taskGraph.allTasks.contains(tasks.getByName('b'))
+    task a(dependsOn: 'b') {
+        doLast { task ->
+            assert notified
+            assert gradle.taskGraph.hasTask(task)
+            assert gradle.taskGraph.hasTask(':a')
+            assert gradle.taskGraph.hasTask(a)
+            assert gradle.taskGraph.hasTask(':b')
+            assert gradle.taskGraph.hasTask(b)
+            assert gradle.taskGraph.allTasks.contains(task)
+            assert gradle.taskGraph.allTasks.contains(tasks.getByName('b'))
+        }
     }
     task b
     gradle.taskGraph.whenReady { graph ->
@@ -58,10 +60,16 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         buildFile << """
     gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }
-    task a << { task -> project.ext.executedA = task }
-    task b << { 
-        assert a == project.executedA
-        assert gradle.taskGraph.hasTask(':a')
+    task a {
+        doLast { task ->
+            project.ext.executedA = task
+        }
+    }
+    task b {
+        doLast {
+            assert a == project.executedA
+            assert gradle.taskGraph.hasTask(':a')
+        }
     }
     task c(dependsOn: a)
     task d(dependsOn: a)
@@ -106,8 +114,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def doesNotExecuteTaskActionsWhenDryRunSpecified() {
         buildFile << """
-    task a << { fail() }
-    task b(dependsOn: a) << { fail() }
+    task a { doLast { fail() } }
+    task b(dependsOn: a) { doLast { fail() } }
     defaultTasks 'b'
 """
 
@@ -121,7 +129,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def executesTaskActionsInCorrectEnvironment() {
         buildFile << """
     // An action attached to built-in task
-    task a << { assert Thread.currentThread().contextClassLoader == getClass().classLoader }
+    task a { doLast { assert Thread.currentThread().contextClassLoader == getClass().classLoader } }
 
     // An action defined by a custom task
     task b(type: CustomTask)
@@ -279,7 +287,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "explicit tasks are preferred over placeholder tasks"() {
         buildFile << """
-        task someTask << {println "explicit sometask"}
+        task someTask { doLast {println "explicit sometask"} }
         tasks.addPlaceholderAction("someTask", DefaultTask) {
             println  "placeholder action triggered"
             it.doLast { throw new RuntimeException() }

@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.ProjectDependency;
 
 /**
@@ -29,15 +28,6 @@ public interface EclipseProjectDependency extends ProjectDependency, EclipseClas
     */
     @Deprecated
     HierarchicalEclipseProject getTargetProject();
-
-    /**
-     * Returns the identifier of the target eclipse project.
-     *
-     * @return The target identifier, never null.
-     * @since 2.14
-     */
-    @Incubating
-    EclipseProjectIdentifier getTarget();
 
     /**
      * Returns the path to use for this project dependency.

@@ -25,7 +25,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateFile;
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateFile;
 import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
 import static org.gradle.util.GUtil.uncheckedCall;

@@ -126,11 +126,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-            task copy << {
-                copy {
-                    from 'reference.txt'
-                    into 'build/tmp'
-                    fileMode = $mode
+            task copy {
+                doLast {
+                    copy {
+                        from 'reference.txt'
+                        into 'build/tmp'
+                        fileMode = $mode
+                    }
                 }
             }
             """

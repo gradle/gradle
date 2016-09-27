@@ -24,13 +24,13 @@ import spock.lang.Specification
 public class ClasspathTest extends Specification {
     final fileReferenceFactory = new FileReferenceFactory()
     final customEntries = [
-            new ProjectDependency("/test2", null),
-            new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"),
-            new Library(fileReferenceFactory.fromPath("/apache-ant-1.7.1/lib/ant-antlr.jar")),
-            new SourceFolder("src", "bin2"),
-            new Variable(fileReferenceFactory.fromVariablePath("GRADLE_CACHE/ant-1.6.5.jar")),
-            new Container("org.eclipse.jdt.USER_LIBRARY/gradle"),
-            new Output("bin")]
+        new ProjectDependency("/test2"),
+        new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"),
+        new Library(fileReferenceFactory.fromPath("/apache-ant-1.7.1/lib/ant-antlr.jar")),
+        new SourceFolder("src", "bin2"),
+        new Variable(fileReferenceFactory.fromVariablePath("GRADLE_CACHE/ant-1.6.5.jar")),
+        new Container("org.eclipse.jdt.USER_LIBRARY/gradle"),
+        new Output("bin")]
     final projectDependency = [customEntries[0]]
     final jreContainer = [customEntries[1]]
 

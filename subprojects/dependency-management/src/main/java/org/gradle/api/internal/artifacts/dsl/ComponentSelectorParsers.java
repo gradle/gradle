@@ -93,7 +93,7 @@ public class ComponentSelectorParsers {
 
         @Override
         public void convert(Project notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
-            result.converted(DefaultProjectComponentSelector.newSelector(notation.getPath()));
+            result.converted(DefaultProjectComponentSelector.newSelector(notation));
         }
     }
 }

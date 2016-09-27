@@ -27,7 +27,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
             gradle.addListener(listener)
 
             allprojects {
-                task foo << {}
+                task foo
             }
 
             class MyListener implements TaskExecutionListener {

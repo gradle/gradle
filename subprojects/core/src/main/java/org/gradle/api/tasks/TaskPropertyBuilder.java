@@ -17,11 +17,12 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Describes a property of a task that contains zero or more files.
+ * Describes a property of a task.
+ *
+ * @since 3.0
  */
 @Incubating
 @HasInternalProtocol
@@ -34,9 +35,4 @@ public interface TaskPropertyBuilder {
      * will be assigned to the property automatically.</p>
      */
     TaskPropertyBuilder withPropertyName(String propertyName);
-
-    /**
-     * Sets which part of the path of files should be considered during up-to-date checks.
-     */
-    TaskPropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 }

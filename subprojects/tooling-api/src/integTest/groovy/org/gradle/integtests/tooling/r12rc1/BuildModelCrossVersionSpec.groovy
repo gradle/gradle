@@ -25,9 +25,11 @@ class BuildModelCrossVersionSpec extends ToolingApiSpecification {
         file('build.gradle').text = '''
 apply plugin: 'java'
 
-task setup << {
-    println "run"
-    project.description = 'this is a project'
+task setup {
+    doLast {
+        println "run"
+        project.description = 'this is a project'
+    }
 }
 '''
 

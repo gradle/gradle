@@ -38,7 +38,7 @@ class MavenS3Repository implements MavenRepository {
         new URI("s3://${bucket}${repositoryPath}")
     }
 
-    MavenS3Module module(String organisation, String module, Object revision = "1.0") {
+    MavenS3Module module(String organisation, String module, String revision = "1.0") {
         new MavenS3Module(server, backingRepository.module(organisation, module, revision), repositoryPath, bucket)
     }
 }

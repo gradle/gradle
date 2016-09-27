@@ -18,34 +18,18 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
-
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
-    MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        buildA = multiProjectBuild("buildA", ['a1', 'a2']) {
-            buildFile << """
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                allprojects {
-                    apply plugin: 'java'
-                    configurations { compile }
-                }
-"""
-        }
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -60,7 +44,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 }
 """
         }
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     def "reports failure to configure one participant build"() {
@@ -70,7 +54,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 throw new RuntimeException('exception thrown on configure')
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependenciesFails()
@@ -78,19 +62,6 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
             .assertHasCause("exception thrown on configure")
-    }
-
-    def "reports failure for duplicate project path"() {
-        given:
-        def buildC = singleProjectBuild("buildC")
-        buildC.settingsFile.text = "rootProject.name = 'buildB'"
-        builds << buildC
-
-        when:
-        checkDependenciesFails()
-
-        then:
-        failure.assertHasDescription("Project path 'buildB::' is not unique in composite.")
     }
 
     def "does no substitution when no project matches external dependencies"() {
@@ -128,7 +99,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -148,17 +119,17 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 compile "org.test:buildC:1.0"
             }
 """
-        builds = []
+        includedBuilds = []
 
         when:
         checkDependencies()
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -178,10 +149,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
+            edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
                 compositeSubstitute()
             }
         }
@@ -205,9 +176,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
+                edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
                     compositeSubstitute()
                 }
 
@@ -235,7 +206,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 module("org.test:transitive2:1.0") {
                     module("org.test:transitive1:1.0")
@@ -271,10 +242,10 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                project("buildB::b1", "org.test:b1:2.0") {
-                    project("buildB::b1:b11", "org.test:b11:2.0") {}
+                project(":buildB:b1", "org.test:b1:2.0") {
+                    project(":buildB:b1:b11", "org.test:b11:2.0") {}
                 }
             }
         }
@@ -302,7 +273,7 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 module("org.test:transitive2:1.0")
             }
@@ -326,16 +297,16 @@ include ':b1:b11'
                 apply plugin: 'java'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependencies()
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
                     compositeSubstitute()
                 }
             }
@@ -358,7 +329,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -378,7 +349,7 @@ include ':b1:b11'
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -401,7 +372,7 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -437,10 +408,10 @@ include ':b1:b11'
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:something:1.0", "project buildB::", "org.test:buildB:2.0") {
+                edge("org.test:something:1.0", "project :buildB:", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
-                edge("org.other:something-else:1.0", "project buildB::b1", "org.test:b1:2.0") {
+                edge("org.other:something-else:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                     compositeSubstitute()
                 }
             }
@@ -468,7 +439,7 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("group.requires.subproject.evaluation:b1:1.0", "project buildB::b1", "group.requires.subproject.evaluation:b1:2.0") {
+            edge("group.requires.subproject.evaluation:b1:1.0", "project :buildB:b1", "group.requires.subproject.evaluation:b1:2.0") {
                 compositeSubstitute()
             }
         }
@@ -478,74 +449,6 @@ afterEvaluate {
         "regular build"       | []
         "configure on demand" | ["--configure-on-demand"]
         "parallel"            | ["--parallel"]
-    }
-
-    def "can resolve with dependency cycle between substituted projects in a multiproject build"() {
-        given:
-        buildA.buildFile << """
-            dependencies {
-                compile "org.test:buildB:1.0"
-            }
-"""
-        buildB.buildFile << """
-            dependencies {
-                compile "org.test:b1:1.0"
-            }
-            project(':b1') {
-                dependencies {
-                    compile "org.test:b2:1.0"
-                }
-            }
-            project(':b2') {
-                dependencies {
-                    compile "org.test:b1:1.0"
-                }
-            }
-"""
-
-        when:
-        resolve.withoutBuildingArtifacts()
-        checkDependencies()
-
-        then:
-        checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                compositeSubstitute()
-                edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
-                    compositeSubstitute()
-                    edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
-                        compositeSubstitute()
-                        edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {}
-                    }
-                }
-            }
-        }
-    }
-
-    def "can resolve with dependency cycle between substituted participants in a composite build"() {
-        given:
-        buildA.buildFile << """
-            dependencies {
-                compile "org.test:buildB:1.0"
-            }
-"""
-        buildB.buildFile << """
-            dependencies {
-                compile "org.test:buildA:1.0"
-            }
-"""
-
-        when:
-        resolve.withoutBuildingArtifacts()
-        checkDependencies()
-
-        then:
-        checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                compositeSubstitute()
-                edge("org.test:buildA:1.0", "project :", "org.test:buildA:1.0") {}
-            }
-        }
     }
 
     def "substitutes dependency in composite containing participants with same root directory name"() {
@@ -566,17 +469,17 @@ afterEvaluate {
             group = 'org.test'
             version = '1.0'
 """
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependencies()
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -591,7 +494,7 @@ afterEvaluate {
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -605,10 +508,10 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:c1:1.0", "project buildC::c1", "org.test:c1:1.0") {
+            edge("org.test:c1:1.0", "project :buildC:c1", "org.test:c1:1.0") {
                 compositeSubstitute()
             }
         }
@@ -624,7 +527,7 @@ afterEvaluate {
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -636,7 +539,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by [project :buildB:b1, project :buildC:b1].")
     }
 
     def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
@@ -651,7 +554,7 @@ afterEvaluate {
                 apply plugin: 'java'
             }
 """
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -663,7 +566,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
+        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by [project :buildC:c1, project :buildC:nested:c1].")
     }
 
     def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
@@ -674,7 +577,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by [project :buildB:b1, project :buildC:b1].")
     }
 
     def "resolve transitive project dependency that is ambiguous in the composite"() {
@@ -686,9 +589,9 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                project("buildB::b1", "org.test:b1:2.0") {}
+                project(":buildB:b1", "org.test:b1:2.0") {}
             }
         }
     }
@@ -702,7 +605,7 @@ afterEvaluate {
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildB.buildFile << """
             dependencies {
@@ -720,7 +623,7 @@ afterEvaluate {
     def "handles unused participant with no defined configurations"() {
         given:
         def buildC = singleProjectBuild("buildC")
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -733,7 +636,7 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -742,7 +645,7 @@ afterEvaluate {
     def "reports failure when substituted project does not have requested configuration"() {
         given:
         def buildC = singleProjectBuild("buildC")
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -754,7 +657,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version org.test:buildA:1.0, configuration 'compile' declares a dependency on configuration 'default' which is not declared in the module descriptor for org.test:buildC:1.0")
+        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'default' which is not declared in the descriptor for project :buildC:.")
     }
 
     private void withArgs(List<String> args) {

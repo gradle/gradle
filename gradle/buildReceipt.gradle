@@ -113,6 +113,7 @@ task createBuildReceipt(dependsOn: determineCommitId) {
     inputs.property "buildTimestamp", { buildTimestamp }
     inputs.property "commitId", { devBuild ? "HEAD" : determineCommitId.commitId }
     outputs.file receiptFile
+    outputs.cacheIf { true }
     doLast {
         def data = [
                 commitId: devBuild ? "HEAD" : determineCommitId.commitId,
@@ -122,11 +123,6 @@ task createBuildReceipt(dependsOn: determineCommitId) {
                 buildTimestamp: buildTimestamp,
         ]
 
-        receiptFile.parentFile.mkdirs()
-
-        // We write this out ourself instead of using the properties class to avoid the
-        // annoying timestamp that insists on placing in there, that throws out incremental.
-        def content = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
-        receiptFile.setText(content, "ISO-8859-1")
+        org.gradle.build.ReproduciblePropertiesWriter.store(data, receiptFile)
     }
 }

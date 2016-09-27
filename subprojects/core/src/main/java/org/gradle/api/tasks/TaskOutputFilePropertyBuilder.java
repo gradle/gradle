@@ -20,16 +20,17 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Describes an output property of a task that contains zero or more files.
+ *
+ * @since 3.0
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskOutputFilePropertyBuilder extends TaskPropertyBuilder, TaskOutputs {
+public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskOutputs {
     /**
      * {@inheritDoc}
      */

@@ -39,11 +39,11 @@ class ContextClassLoaderDispatchTest extends Specification {
 
         then:
         1 * target.dispatch('message') >> {
-            contextClassloaderIs(appClassLoader)
+            assertContextClassloaderIs(appClassLoader)
         }
         0 * _._
 
-        contextClassloaderIs(original)
+        assertContextClassloaderIs(original)
     }
 
     def 'cleans up after failure'() {
@@ -55,16 +55,16 @@ class ContextClassLoaderDispatchTest extends Specification {
 
         then:
         1 * target.dispatch('message') >> {
-            contextClassloaderIs(appClassLoader)
+            assertContextClassloaderIs(appClassLoader)
             throw failure
         }
         0 * _._
         RuntimeException e = thrown()
         e.is(failure)
-        contextClassloaderIs(original)
+        assertContextClassloaderIs(original)
     }
 
-    private void contextClassloaderIs(ClassLoader expectedClassloader) {
+    private static void assertContextClassloaderIs(ClassLoader expectedClassloader) {
         assert Thread.currentThread().contextClassLoader.is(expectedClassloader)
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * A classpath entry representing a project dependency.
@@ -31,17 +32,35 @@ public class ProjectDependency extends AbstractClasspathEntry {
         assertPathIsValid();
     }
 
-    public ProjectDependency(String path, String gradlePath) {
+    /**
+     * Create a dependency on another Eclipse project.
+     * @param path The path to the Eclipse project, which is the name of the eclipse project preceded by "/".
+     */
+    public ProjectDependency(String path) {
         super(path);
         assertPathIsValid();
+    }
+
+    /**
+     * Create a dependency on another Eclipse project.
+     * @deprecated Use {@link #ProjectDependency(String)} instead
+     */
+    @Deprecated
+    public ProjectDependency(String path, String gradlePath) {
+        this(path);
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ProjectDependency(String path, String gradlePath)", "Please use ProjectDependency(String path) instead.");
         this.gradlePath = gradlePath;
     }
 
+    @Deprecated
     public String getGradlePath() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ProjectDependency.getGradlePath()");
         return gradlePath;
     }
 
+    @Deprecated
     public void setGradlePath(String gradlePath) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ProjectDependency.setGradlePath(String)");
         this.gradlePath = gradlePath;
     }
 

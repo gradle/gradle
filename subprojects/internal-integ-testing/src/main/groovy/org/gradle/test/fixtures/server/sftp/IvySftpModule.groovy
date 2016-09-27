@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.sftp
 
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import org.gradle.test.fixtures.ivy.IvyFileModule
@@ -77,8 +78,14 @@ class IvySftpModule implements RemoteIvyModule {
         return backingModule.dependsOn(attributes)
     }
 
-    IvyModule dependsOn(IvyModule ivyModule) {
-        return backingModule.dependsOn(ivyModule)
+    @Override
+    IvyModule dependsOn(Map<String, ?> attributes, Module module) {
+        return backingModule.dependsOn(attributes, module)
+    }
+
+    @Override
+    IvyModule dependsOn(Module module) {
+        return backingModule.dependsOn(module)
     }
 
     IvyModule artifact(Map<String, ?> options) {
@@ -117,12 +124,22 @@ class IvySftpModule implements RemoteIvyModule {
         backingModule.assertIvyAndJarFilePublished()
     }
 
+    @Override
+    String getGroup() {
+        return backingModule.group
+    }
+
     String getOrganisation() {
         return backingModule.organisation
     }
 
     String getModule() {
         return backingModule.module
+    }
+
+    @Override
+    String getVersion() {
+        return backingModule.version
     }
 
     String getRevision() {

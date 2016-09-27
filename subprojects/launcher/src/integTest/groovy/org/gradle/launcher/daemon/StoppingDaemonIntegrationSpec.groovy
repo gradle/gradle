@@ -29,8 +29,10 @@ class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
 
     def "daemon process exits and client logs nice error message when daemon stopped"() {
         buildFile << """
-task block << {
-    new URL("$server.uri").text
+task block {
+    doLast {
+        new URL("$server.uri").text
+    }
 }
 """
 
@@ -48,8 +50,10 @@ task block << {
 
     def "can handle multiple concurrent stop requests"() {
         buildFile << """
-task block << {
-    new URL("$server.uri").text
+task block {
+    doLast {
+        new URL("$server.uri").text
+    }
 }
 """
 

@@ -17,12 +17,16 @@
 package org.gradle.testing;
 
 import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.Optional;
+import java.io.File;
 
 /**
  * A test that checks execution time and memory consumption.
  */
+@CacheableTask
 public class PerformanceTest extends DistributionTest {
 
 
@@ -31,6 +35,7 @@ public class PerformanceTest extends DistributionTest {
     private String runs;
     private String checks;
     private String channel;
+    private File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName());
 
     @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
     public void setScenarios(String scenarios) {
@@ -91,5 +96,22 @@ public class PerformanceTest extends DistributionTest {
     public void setChannel(String channel) {
         this.channel = channel;
         systemProperty("org.gradle.performance.execution.channel", channel);
+    }
+
+    @OutputDirectory
+    public File getDebugArtifactsDirectory() {
+        return debugArtifactsDirectory;
+    }
+
+    public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
+        this.debugArtifactsDirectory = debugArtifactsDirectory;
+    }
+
+    @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
+    public void setFlamegraphs(String flamegraphs) {
+        if ("true".equals(flamegraphs)) {
+            File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
+            systemProperty("org.gradle.performance.honestprofiler", artifactsDirectory.getAbsolutePath());
+        }
     }
 }

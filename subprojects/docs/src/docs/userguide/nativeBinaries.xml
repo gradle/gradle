@@ -822,8 +822,10 @@
             <title>Selecting the build types, platforms and flavors for a component</title>
             <para>
                 For a default component, Gradle will attempt to create a native binary variant for each and every combination of <literal>buildType</literal>
-                and <literal>flavor</literal> defined for the project and <literal>platform</literal> defined for the components. It is possible to override this on a per-component
-                basis, by specifying the set of <literal>targetBuildTypes</literal>, <literal>targetPlatform</literal> and/or <literal>targetFlavors</literal>.
+                and <literal>flavor</literal> defined for the project. It is possible to override this on a per-component
+                basis, by specifying the set of <literal>targetBuildTypes</literal> and/or <literal>targetFlavors</literal>.
+                By default, Gradle will build for the default platform, see <link linkend="native_binaries:platform">above</link>,
+                unless specified explicitly on a per-component basis by specifying a set of <literal>targetPlatforms</literal>.
             </para>
             <sample id="targets" dir="native-binaries/variants" title="Targeting a component at particular platforms">
                 <sourcefile file="build.gradle" snippet="target-platforms"/>

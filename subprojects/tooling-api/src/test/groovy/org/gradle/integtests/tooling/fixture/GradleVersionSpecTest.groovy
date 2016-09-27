@@ -163,4 +163,21 @@ class GradleVersionSpecTest extends Specification {
         !spec.isSatisfiedBy(GradleVersion.version("1.5-rc-1"))
         !spec.isSatisfiedBy(GradleVersion.version("12.45"))
     }
+
+    def "can exclude versions"() {
+        def spec = GradleVersionSpec.toSpec("!1.1 !1.3")
+
+        expect:
+        spec.isSatisfiedBy(GradleVersion.version("1.0"))
+        spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+
+        !spec.isSatisfiedBy(GradleVersion.version("1.1"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.1-rc-1"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.1-12341010120000+1000"))
+
+        !spec.isSatisfiedBy(GradleVersion.version("1.3"))
+
+        spec.isSatisfiedBy(GradleVersion.version("1.4"))
+        spec.isSatisfiedBy(GradleVersion.version("1.4-12341010120000+1000"))
+    }
 }

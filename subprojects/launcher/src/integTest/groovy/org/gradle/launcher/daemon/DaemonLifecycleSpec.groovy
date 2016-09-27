@@ -26,6 +26,9 @@ import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -82,19 +85,23 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
                 executer.withDefaultCharacterEncoding(buildEncoding)
             }
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
-                task('watch') << {
-                    println "waiting for stop file"
-                    long sanityCheck = System.currentTimeMillis() + 120000L
-                    while(!file("stop").exists()) {
-                        sleep 100
-                        if (file("exit").exists()) {
-                            System.exit(1)
+                task('watch') {
+                    doLast {
+                        println "waiting for stop file"
+                        long sanityCheck = System.currentTimeMillis() + 120000L
+                        while(!file("stop").exists()) {
+                            sleep 100
+                            if (file("exit").exists()) {
+                                println "found exit file, exiting"
+                                System.exit(1)
+                            }
+                            if (System.currentTimeMillis() > sanityCheck) {
+                                println "timed out waiting for stop file, failing"
+                                throw new RuntimeException("It seems the stop file was never created")
+                            }
                         }
-                        if (System.currentTimeMillis() > sanityCheck) {
-                            throw new RuntimeException("It seems the stop file was never created")
-                        }
+                        println 'noticed stop file, finishing'
                     }
-                    println 'noticed stop file, finishing'
                 }
             """)
             builds << executer.start()
@@ -108,9 +115,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    void waitForFileDelete(File file) {
-        run {
-            poll(10) { assert(!file.exists()) }
+    private static deleteFile(File file) {
+        // Repeat the attempt to delete in case it was temporarily locked
+        poll(10) {
+            if (file.exists()) {
+                file.delete()
+            }
+            assert !file.exists()
         }
     }
 
@@ -304,7 +315,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         then:
         busy()
         daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
         }
 
         when:
@@ -333,7 +345,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
         }
 
         then:
@@ -348,7 +361,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         then:
         busy()
         daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
         }
         startBuild()
         waitForBuildToWait(1)
@@ -380,8 +394,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         busy()
         daemonContext {
             registry = new DaemonDir(executer.daemonBaseDir).registry
-            registry.delete()
-            waitForFileDelete(registry)
+            deleteFile(registry)
         }
 
         when:
@@ -411,7 +424,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         and:
         foregroundDaemonContext {
-            assert javaHome == AvailableJavaHomes.differentJdk.javaHome
+            assert javaHome.canonicalPath == AvailableJavaHomes.differentJdk.javaHome.canonicalPath
         }
 
         when:
@@ -500,6 +513,32 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         state 0, 1
+    }
+
+    // GradleHandle.abort() does not work reliably on windows and creates flakiness
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
+    def "daemon stops immediately if stop is requested and then client disconnects"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        // Cause the daemon to want to stop
+        daemonContext {
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
+        }
+
+        and:
+        waitForDaemonExpiration()
+
+        when:
+        killBuild()
+
+        then:
+        stopped()
     }
 
     def cleanup() {

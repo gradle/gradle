@@ -24,20 +24,13 @@ import spock.lang.Unroll
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-"""
-        }
         resolve = new ResolveTestFixture(buildA.buildFile)
-
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
@@ -71,7 +64,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -92,7 +85,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -127,10 +120,10 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -157,7 +150,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
             includeBuild buildB
         } else {
             includeBuild buildB, """
-                substitute module("org.test:buildB") with project(":")
+                substitute module("org.test:buildB:") with project(":")
     """
         }
 
@@ -196,10 +189,10 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
         }
@@ -207,24 +200,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         and:
         executed(":buildB:jar", ":buildB:b1:jar")
         output.count('Configured buildB') == 1
-    }
-
-    def dependency(String notation) {
-        buildA.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
-    }
-
-    def includeBuild(File build, def mappings = "") {
-        buildA.settingsFile << """
-            includeBuild('${build.toURI()}') {
-                dependencySubstitution {
-                    $mappings
-                }
-            }
-"""
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {

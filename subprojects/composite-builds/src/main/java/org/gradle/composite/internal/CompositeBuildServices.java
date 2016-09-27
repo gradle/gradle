@@ -19,8 +19,12 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.tasks.TaskReferenceResolver;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.IncludedBuilds;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -29,6 +33,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class CompositeBuildServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
@@ -36,6 +41,7 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new CompositeBuildBuildScopeServices());
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
@@ -44,21 +50,41 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
-    public static class CompositeBuildSessionScopeServices {
+    private static class CompositeBuildGlobalScopeServices {
+        public TaskReferenceResolver createResolver() {
+            return new IncludedBuildTaskReferenceResolver();
+        }
+    }
+
+    private static class CompositeBuildSessionScopeServices {
         public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry serviceRegistry) {
             return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
         }
 
-        public CompositeBuildContext createCompositeBuildContext() {
-            return new DefaultBuildableCompositeBuildContext();
+        public DefaultIncludedBuilds createIncludedBuilds() {
+            return new DefaultIncludedBuilds();
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(CompositeBuildContext context) {
-            return new DefaultCompositeContextBuilder(context);
+        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds) {
+            return new DefaultBuildableCompositeBuildContext(includedBuilds);
         }
 
-        public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext) {
-            return new CompositeProjectArtifactBuilder(compositeBuildContext);
+        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, CompositeBuildContext context) {
+            return new DefaultCompositeContextBuilder(includedBuilds, context);
+        }
+
+        public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
+            return new DefaultIncludedBuildExecuter(includedBuilds);
+        }
+
+        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
+            return new IncludedBuildArtifactBuilder(includedBuildExecuter);
+        }
+    }
+
+    private static class CompositeBuildBuildScopeServices {
+        public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {
+            return new CompositeProjectArtifactBuilder(builder, buildIdentity);
         }
     }
 

@@ -31,13 +31,13 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
 
     def "selection reasons are described"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
-        mavenRepo.module("org", "foo", 0.5).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
+        mavenRepo.module("org", "foo", "0.5").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
-        mavenRepo.module("org", "baz", 1.0).dependsOn('org', 'foo',  '1.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "baz", "1.0").dependsOn('org', 'foo',  '1.0').publish()
 
         file("settings.gradle") << "rootProject.name = 'cool-project'"
 
@@ -53,14 +53,16 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
             dependencies {
                 conf 'org:foo:0.5', 'org:bar:1.0', 'org:baz:1.0'
             }
-            task resolutionResult << {
-                def result = configurations.conf.incoming.resolutionResult
-                result.allComponents {
-                    if(it.id instanceof ModuleComponentIdentifier) {
-                        println it.id.module + ":" + it.id.version + " " + it.selectionReason.description
-                    }
-                    else if(it.id instanceof ProjectComponentIdentifier) {
-                        println it.moduleVersion.name + ":" + it.moduleVersion.version + " " + it.selectionReason.description
+            task resolutionResult {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    result.allComponents {
+                        if(it.id instanceof ModuleComponentIdentifier) {
+                            println it.id.module + ":" + it.id.version + " " + it.selectionReason.description
+                        }
+                        else if(it.id instanceof ProjectComponentIdentifier) {
+                            println it.moduleVersion.name + ":" + it.moduleVersion.version + " " + it.selectionReason.description
+                        }
                     }
                 }
             }

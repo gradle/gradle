@@ -27,11 +27,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
@@ -51,6 +48,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginRequestsSerializer;
@@ -122,7 +121,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         public void apply(final Object target) {
             final DefaultServiceRegistry services = new DefaultServiceRegistry() {
                 Factory<PatternSet> createPatternSetFactory() {
-                    return PatternSets.getNonCachingPatternSetFactory();
+                    return fileLookup.getFileResolver().getPatternSetFactory();
                 }
             };
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);

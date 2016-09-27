@@ -18,14 +18,13 @@ package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.ExecuterDecoratingGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -57,10 +56,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     int maxPermSizeMB = 256
 
     List<String> targetVersions = []
-    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
-    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BuildExperimentListener buildExperimentListener
+    GradleExecuterDecorator executerDecorator
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
         this.reporter = reporter
@@ -102,16 +100,14 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
-        LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
+        runVersion(current, perVersionWorkingDirectory('current'), results.current)
+
+        def baselineVersions = toBaselineVersions(releases, targetVersions)
 
         baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
-            baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
-            baselineVersion.maxMemoryRegression = maxMemoryRegression
-            runVersion(buildContext.distribution(baselineVersion.version), workingDir, baselineVersion.results)
+            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
         }
-
-        runVersion(current, workingDir, results.current)
 
         results.endTime = System.currentTimeMillis()
 
@@ -125,48 +121,82 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return results
     }
 
-    static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
+    protected File perVersionWorkingDirectory(String version) {
+        def perVersion = new File(workingDir, version)
+        if (!perVersion.exists()) {
+            perVersion.mkdirs()
+        } else {
+            throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersion")
+        }
+        perVersion
+    }
+
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
+        Iterable<String> versions
+        boolean addMostRecentFinalRelease = true
+        def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
+        if (overrideBaselinesProperty) {
+            versions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions)
+            addMostRecentFinalRelease = false
+        } else {
+            versions = targetVersions
+        }
+
+        def baselineVersions = new LinkedHashSet<String>()
+
         def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
         def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def baselineVersions = new LinkedHashSet<String>()
-        Set<String> overridenTargetVersions = Splitter.on(COMMA_OR_SEMICOLON)
-            .omitEmptyStrings()
-            .splitToList(System.getProperty('org.gradle.performance.baselines','').replace('defaults', targetVersions.join(',')))
-            .collect(new LinkedHashSet<String>()) {
-            it == 'nightly' ? mostRecentSnapshot : (it == 'last' ? mostRecentFinalRelease : it)
-        }
-        if (overridenTargetVersions) {
-            baselineVersions = overridenTargetVersions
-        } else {
-            for (String version : targetVersions) {
-                if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
-                    // These are all treated specially below
-                    continue
-                }
-                def releasedVersion = findRelease(releases, version)
-                if (releasedVersion) {
-                    baselineVersions.add(releasedVersion.version.version)
-                } else if (GradleVersion.version(version).snapshot) {
-                    // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
-                    // blindly add it to the list and trust the test author
-                    baselineVersions.add(version)
-                } else {
-                    throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
-                }
 
+        for (String version : versions) {
+            if (version == currentBaseVersion) {
+                // current version is run by default, skip adding it to baseline
+                continue
             }
-            if (baselineVersions.collect { !GradleVersion.version(it).snapshot }.every { it } ) {
-                // if we didn't add any snapshot version to the baselines, look at adding the latest release or snapshot
-                if (!targetVersions.contains('nightly')) {
-                    // Include the most recent final release if we're not testing against a nightly
-                    baselineVersions.add(mostRecentFinalRelease)
-                } else {
-                    baselineVersions.add(mostRecentSnapshot)
-                }
+            if (version == 'last') {
+                addMostRecentFinalRelease = false
+                baselineVersions.add(mostRecentFinalRelease)
+                continue
+            }
+            if (version == 'nightly') {
+                addMostRecentFinalRelease = false
+                baselineVersions.add(mostRecentSnapshot)
+                continue
+            }
+            if (version == 'none') {
+                // when 'none' is the only target version, no baselines will be used
+                addMostRecentFinalRelease = false
+                continue
+            }
+            if (version == 'defaults') {
+                throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
+            }
+            def releasedVersion = findRelease(releases, version)
+            if (releasedVersion) {
+                baselineVersions.add(releasedVersion.version.version)
+            } else if (GradleVersion.version(version).snapshot) {
+                // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
+                // blindly add it to the list and trust the test author
+                addMostRecentFinalRelease = false
+                baselineVersions.add(version)
+            } else {
+                throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
             }
         }
+
+        if (addMostRecentFinalRelease) {
+            // Always include the most recent final release if we're not testing against a nightly or a snapshot
+            baselineVersions.add(mostRecentFinalRelease)
+        }
+
         baselineVersions
+    }
+
+    private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
+        def versions = Splitter.on(COMMA_OR_SEMICOLON)
+            .omitEmptyStrings()
+            .splitToList(overrideBaselinesProperty)
+        versions.collectMany([] as Set) { version -> version == 'defaults' ? targetVersions : [version] }
     }
 
     protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
@@ -193,15 +223,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .listener(buildExperimentListener)
             .invocation {
                 workingDirectory(workingDir)
-                distribution(dist)
+                distribution(new ExecuterDecoratingGradleDistribution(dist, executerDecorator))
                 tasksToRun(this.tasksToRun as String[])
                 args(this.args as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }
-
+        builder.workingDirectory = workingDir
         def spec = builder.build()
-
+        if (experimentRunner.honestProfiler) {
+            experimentRunner.honestProfiler.sessionId = "${testId}-${dist.version.version}".replaceAll('[^a-zA-Z0-9.-]', '_').replaceAll('[_]+', '_')
+        }
         experimentRunner.run(spec, results)
     }
 
@@ -213,4 +245,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         gradleOptsInUse
     }
 
+    HonestProfilerCollector getHonestProfiler() {
+        return experimentRunner.honestProfiler
+    }
 }

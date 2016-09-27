@@ -44,4 +44,9 @@ class DirSnapshot implements IncrementalFileSnapshot {
     public HashCode getHash() {
         return SIGNATURE;
     }
+
+    @Override
+    public String toString() {
+        return "DIR";
+    }
 }

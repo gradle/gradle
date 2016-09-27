@@ -21,7 +21,9 @@ import org.gradle.test.fixtures.Repository
  * A fixture for dealing with Maven repositories.
  */
 interface MavenRepository extends Repository {
+    @Override
     MavenModule module(String groupId, String artifactId)
 
-    MavenModule module(String groupId, String artifactId, Object version)
+    @Override
+    MavenModule module(String groupId, String artifactId, String version)
 }

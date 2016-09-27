@@ -15,16 +15,17 @@
  */
 
 package org.gradle.play.plugins
+
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import spock.lang.Specification
+
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
     def "only attempts to rename projects and not external dependencies based on component id"() {
@@ -32,7 +33,7 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
         String projectFileName = 'project.jar'
         File projectFile = new File(projectFileName)
         String newProjectName = "subproject-" + projectFileName
-        ResolvedArtifact projectArtifact = resolvedArtifact(projectFile, projectId(":subproject"))
+        ResolvedArtifact projectArtifact = resolvedArtifact(projectFile, newProjectId(":subproject"))
         FileCopyDetails projectFcd = Mock()
         projectFcd.getFile() >> projectFile
 
@@ -118,16 +119,13 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
     }
 
     private String renameForProject(String projectPath, String fileName) {
-        return PlayDistributionPlugin.PrefixArtifactFileNames.renameForProject(projectId(projectPath), new File(fileName))
+        return PlayDistributionPlugin.PrefixArtifactFileNames.renameForProject(newProjectId(projectPath), new File(fileName))
     }
 
     private String renameForModule(String groupName, String fileName) {
         return PlayDistributionPlugin.PrefixArtifactFileNames.renameForModule(moduleId(groupName), new File(fileName))
     }
 
-    private ProjectComponentIdentifier projectId(String path) {
-        return new DefaultProjectComponentIdentifier(path)
-    }
 
     private ModuleComponentIdentifier moduleId(String group) {
         return new DefaultModuleComponentIdentifier(group, "module", "1.0")

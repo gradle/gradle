@@ -15,11 +15,17 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskOutputsUtil;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
 
@@ -32,8 +38,19 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPr
     }
 
     @Override
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+        TaskOutputFilePropertyBuilder propertyBuilder;
+        if (Map.class.isAssignableFrom(context.getType())) {
+            propertyBuilder = task.getOutputs().namedFiles(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
+        } else {
+            propertyBuilder = task.getOutputs().files(futureValue);
+        }
+        return propertyBuilder;
+    }
+
+    @Override
     protected void doValidate(String propertyName, File file, Collection<String> messages) {
-        OutputPropertyAnnotationUtil.validateFile(propertyName, file, messages);
+        TaskOutputsUtil.validateFile(propertyName, file, messages);
     }
 
     @Override

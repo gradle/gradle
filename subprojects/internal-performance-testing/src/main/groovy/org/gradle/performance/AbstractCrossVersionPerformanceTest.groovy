@@ -23,8 +23,6 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,14 +36,12 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
     static def resultStore = new CrossVersionResultsStore()
 
-    final def runner = new CrossVersionPerformanceTestRunner(
+    final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
         new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions())
 
     def setup() {
         runner.workingDir = tmpDir.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution()
-        runner.maxExecutionTimeRegression = Duration.millis(500)
-        runner.maxMemoryRegression = DataAmount.mbytes(25)
     }
 
     static {

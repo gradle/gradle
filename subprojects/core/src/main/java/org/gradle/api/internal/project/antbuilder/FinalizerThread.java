@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.api.internal.project.antbuilder.Cleanup.Mode.CLOSE_CLASSLOADER;
+import static org.gradle.api.internal.project.antbuilder.Cleanup.Mode.DONT_CLOSE_CLASSLOADER;
+
 class FinalizerThread extends Thread {
     private final static Logger LOG = Logging.getLogger(FinalizerThread.class);
 
@@ -51,14 +54,14 @@ class FinalizerThread extends Thread {
             while (!stopped.get()) {
                 Cleanup entry = (Cleanup) referenceQueue.remove();
                 ClassPath key = entry.getKey();
-                removeCacheEntry(key, entry);
+                removeCacheEntry(key, entry, DONT_CLOSE_CLASSLOADER);
             }
         } catch (InterruptedException ex) {
             LOG.debug("Shutdown of classloader cache in progress");
         }
     }
 
-    private void removeCacheEntry(ClassPath key, Cleanup entry) {
+    private void removeCacheEntry(ClassPath key, Cleanup entry, Cleanup.Mode mode) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Removing classloader from cache, classpath = {}", key.getAsURIs());
         }
@@ -71,7 +74,7 @@ class FinalizerThread extends Thread {
         }
         try {
             entry.clear();
-            entry.cleanup();
+            entry.cleanup(mode);
         } catch (Exception ex) {
             LOG.error("Unable to perform cleanup of classloader for classpath: "+key, ex);
         }
@@ -88,7 +91,7 @@ class FinalizerThread extends Thread {
         try {
             while (!cleanups.isEmpty()) {
                 Map.Entry<ClassPath, Cleanup> entry = cleanups.entrySet().iterator().next();
-                removeCacheEntry(entry.getKey(), entry.getValue());
+                removeCacheEntry(entry.getKey(), entry.getValue(), CLOSE_CLASSLOADER);
             }
             LOG.debug("Completed shutdown");
         } finally {

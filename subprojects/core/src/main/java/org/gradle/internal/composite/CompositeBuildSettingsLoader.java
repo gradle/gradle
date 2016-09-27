@@ -17,7 +17,9 @@
 package org.gradle.internal.composite;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -28,6 +30,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
@@ -44,6 +47,8 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
+            gradle.setIncludedBuilds(includedBuilds);
+
             CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
             compositeContextBuilder.addToCompositeContext(includedBuilds);
         }
@@ -62,7 +67,24 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
             }
         }
 
-        return includedBuildMap.values();
+        return validateBuildNames(includedBuildMap.values(), settings);
+    }
+
+    private Collection<IncludedBuild> validateBuildNames(Collection<IncludedBuild> builds, SettingsInternal settings) {
+        Set<String> names = Sets.newHashSet();
+        for (IncludedBuild build : builds) {
+            String buildName = build.getName();
+            if (!names.add(buildName)) {
+                throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
+            }
+            if (settings.getRootProject().getName().equals(buildName)) {
+                throw new GradleException("Included build '" + buildName + "' collides with root project name.");
+            }
+            if (settings.findProject(":" + buildName) != null) {
+                throw new GradleException("Included build '" + buildName + "' collides with subproject of the same name.");
+            }
+        }
+        return builds;
     }
 
 }

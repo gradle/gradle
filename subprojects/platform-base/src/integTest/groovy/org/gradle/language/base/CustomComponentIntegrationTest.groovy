@@ -66,7 +66,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, SourceComponentSpec, VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [ComponentSpec, SourceComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "presents a public view for custom managed ApplicationSpec"() {
@@ -183,7 +183,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     @Unroll

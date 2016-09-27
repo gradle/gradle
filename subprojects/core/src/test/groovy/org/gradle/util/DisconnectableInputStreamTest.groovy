@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.greaterThan
 import static org.junit.Assert.assertThat
 
 @RunWith(JMock)
-class DisconnectableInputStreamTest extends MultithreadedTestCase {
+class DisconnectableInputStreamTest extends MultithreadedTestRule {
     final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     Action<Runnable> toActionExecuter(ExecutorFactory factory) {

@@ -17,15 +17,14 @@
 package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 
-public interface IncludedBuildInternal extends IncludedBuild {
-    String getName();
+public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     DependencySubstitutionsInternal resolveDependencySubstitutions();
-    SettingsInternal initialize();
-    GradleInternal configure();
+    SettingsInternal getLoadedSettings();
+    GradleInternal getConfiguredBuild();
     BuildResult execute(Iterable<String> tasks);
 }

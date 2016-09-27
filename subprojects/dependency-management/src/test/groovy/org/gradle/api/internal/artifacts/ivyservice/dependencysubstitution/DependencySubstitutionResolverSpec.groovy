@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
+
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector

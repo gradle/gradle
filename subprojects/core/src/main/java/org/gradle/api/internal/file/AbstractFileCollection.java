@@ -230,6 +230,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    public void visitRootElements(FileCollectionVisitor visitor) {
+        visitor.visitCollection(this);
+    }
+
+    @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         for (File file : getFiles()) {
             builder.add(file);

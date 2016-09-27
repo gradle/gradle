@@ -31,16 +31,14 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static TaskFilePropertyCompareType.OUTPUT
-import static TaskFilePropertyCompareType.UNORDERED
-import static TaskFilePropertyPathSensitivityType.ABSOLUTE
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED
+import static TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver())
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -64,14 +62,70 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def getFilesReturnsOnlyTheFilesWhichExisted() {
         given:
         TestFile file = tmpDir.createFile('file1')
-        TestFile dir = tmpDir.createDir('file2')
+        TestFile dir = tmpDir.createDir('dir')
+        TestFile file2 = dir.createFile('file2')
         TestFile noExist = tmpDir.file('file3')
 
         when:
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
 
         then:
-        snapshot.files as List == [file]
+        snapshot.files as List == [file, file2]
+    }
+
+    def "retains order of files in the snapshot"() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.createFile('file2')
+        TestFile file3 = tmpDir.createFile('file3')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, file2, file3), ORDERED, ABSOLUTE)
+
+        then:
+        snapshot.files == [file, file2, file3]
+    }
+
+    def getElementsReturnsAllFilesRegardlessOfWhetherTheyExistedOrNot() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile noExist = tmpDir.file('file3')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, noExist), UNORDERED, ABSOLUTE)
+
+        then:
+        snapshot.elements == [file, noExist]
+    }
+
+    def getElementsIncludesRootDirectories() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile dir = tmpDir.createDir('dir')
+        TestFile dir2 = dir.createDir('dir2')
+        TestFile file2 = dir2.createFile('file2')
+        TestFile noExist = tmpDir.file('file3')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
+
+        then:
+        snapshot.elements == [file, dir, dir2, file2, noExist]
+    }
+
+    // Documenting existing behaviour
+    def "retains order of elements in the snapshot with missing files at the end"() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.file('file2')
+        TestFile file3 = tmpDir.file('file3')
+        TestFile file4 = tmpDir.createFile('file4')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, file2, file3, file4), ORDERED, ABSOLUTE)
+
+        then:
+        snapshot.elements == [file, file4, file2, file3]
     }
 
     def generatesEventWhenFileAdded() {
@@ -257,16 +311,34 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
-    def "retains order of files in the snapshot"() {
+    def "caches file type in memory until notified of potential changes"() {
+        def dir = tmpDir.createDir('dir')
+        def file = tmpDir.createFile('file')
+        def missing = tmpDir.file('missing')
+
         given:
-        def testfiles = [*10..1].collect { tmpDir.createFile("file$it") }
-        def testfileNames = testfiles.collect { it.name }
+        def snapshot = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
 
         when:
-        def snapshot = snapshotter.snapshot(files(testfiles as File[]), ORDERED, ABSOLUTE)
+        dir.deleteDir().createFile()
+        missing.createFile()
+
+        def snapshot2 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+        changes(snapshot2, snapshot, listener)
 
         then:
-        snapshot.files.collect { it.name } == testfileNames
+        0 * listener._
+
+        when:
+        snapshotter.startTaskActions()
+
+        def snapshot3 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+        changes(snapshot3, snapshot, listener)
+
+        then:
+        1 * listener.changed(dir.absolutePath)
+        1 * listener.changed(missing.absolutePath)
+        0 * listener._
     }
 
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {

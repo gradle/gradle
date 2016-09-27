@@ -55,8 +55,9 @@ public class ExecuteActionsTaskExecuterTest {
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
-    private final TaskActionListener listener = context.mock(TaskActionListener.class);
-    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(listener);
+    private final TaskActionListener publicListener = context.mock(TaskActionListener.class);
+    private final TaskActionExecutionListener internalListener = context.mock(TaskActionExecutionListener.class);
+    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener);
 
     @Before
     public void setUp() {
@@ -82,7 +83,7 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(emptyList()));
 
-            oneOf(listener).beforeActions(task);
+            oneOf(publicListener).beforeActions(task);
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -94,7 +95,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            oneOf(listener).afterActions(task);
+            oneOf(publicListener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -107,7 +108,10 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            oneOf(listener).beforeActions(task);
+            oneOf(publicListener).beforeActions(task);
+            inSequence(sequence);
+
+            oneOf(internalListener).startTaskActions();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -155,7 +159,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            oneOf(listener).afterActions(task);
+            oneOf(publicListener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -172,7 +176,10 @@ public class ExecuteActionsTaskExecuterTest {
                 allowing(task).getTaskActions();
                 will(returnValue(toList(action1)));
 
-                oneOf(listener).beforeActions(task);
+                oneOf(publicListener).beforeActions(task);
+                inSequence(sequence);
+
+                oneOf(internalListener).startTaskActions();
                 inSequence(sequence);
 
                 oneOf(state).setExecuting(true);
@@ -207,7 +214,7 @@ public class ExecuteActionsTaskExecuterTest {
                 oneOf(state).setExecuting(false);
                 inSequence(sequence);
 
-                oneOf(listener).afterActions(task);
+                oneOf(publicListener).afterActions(task);
                 inSequence(sequence);
             }
         });
@@ -223,7 +230,10 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            oneOf(listener).beforeActions(task);
+            oneOf(publicListener).beforeActions(task);
+            inSequence(sequence);
+
+            oneOf(internalListener).startTaskActions();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -255,7 +265,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            oneOf(listener).afterActions(task);
+            oneOf(publicListener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -274,7 +284,10 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            oneOf(listener).beforeActions(task);
+            oneOf(publicListener).beforeActions(task);
+            inSequence(sequence);
+
+            oneOf(internalListener).startTaskActions();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -305,7 +318,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            oneOf(listener).afterActions(task);
+            oneOf(publicListener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -318,7 +331,10 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            oneOf(listener).beforeActions(task);
+            oneOf(publicListener).beforeActions(task);
+            inSequence(sequence);
+
+            oneOf(internalListener).startTaskActions();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -367,7 +383,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            oneOf(listener).afterActions(task);
+            oneOf(publicListener).afterActions(task);
             inSequence(sequence);
         }});
 

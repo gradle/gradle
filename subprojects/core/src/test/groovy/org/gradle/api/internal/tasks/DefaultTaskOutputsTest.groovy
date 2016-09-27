@@ -21,11 +21,12 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType.FILE
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
@@ -110,20 +111,16 @@ class DefaultTaskOutputsTest extends Specification {
         when: outputs.files("a", "b")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['$1$1', '$1$2']
+        outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register unnamed output files with property name"() {
         when: outputs.files("a", "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['prop$1', 'prop$2']
+        outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register named output files"() {
@@ -136,14 +133,19 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
-    def "can register named output files with property name"() {
-        when: outputs.namedFiles("fileA": "a", "fileB": "b").withPropertyName("prop")
+    @Unroll
+    def "can register named #name with property name"() {
+        when: outputs."named${name.capitalize()}"("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
+        outputs.fileProperties*.outputType == [type, type]
+        where:
+        name          | type
+        "files"       | FILE
+        "directories" | DIRECTORY
     }
 
     def "can register future named output files"() {

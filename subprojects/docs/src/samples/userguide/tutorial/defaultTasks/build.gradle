@@ -1,13 +1,19 @@
 defaultTasks 'clean', 'run'
 
-task clean << {
-    println 'Default Cleaning!'
+task clean {
+    doLast {
+        println 'Default Cleaning!'
+    }
 }
 
-task run << {
-    println 'Default Running!'
+task run {
+    doLast {
+        println 'Default Running!'
+    }
 }
 
-task other << {
-    println "I'm not a default task!"
+task other {
+    doLast {
+        println "I'm not a default task!"
+    }
 }

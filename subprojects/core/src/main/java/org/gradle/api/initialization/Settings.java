@@ -188,6 +188,6 @@ public interface Settings extends PluginAware {
      * @param configuration An action to configure the included build.
      */
     @Incubating
-    void includeBuild(Object rootProject, Action<IncludedBuild> configuration);
+    void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration);
 
 }

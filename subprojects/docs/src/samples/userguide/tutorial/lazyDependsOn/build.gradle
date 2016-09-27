@@ -1,6 +1,10 @@
-task taskX(dependsOn: 'taskY') << {
-    println 'taskX'
+task taskX(dependsOn: 'taskY') {
+    doLast {
+        println 'taskX'
+    }
 }
-task taskY << {
-    println 'taskY'
+task taskY {
+    doLast {
+        println 'taskY'
+    }
 }

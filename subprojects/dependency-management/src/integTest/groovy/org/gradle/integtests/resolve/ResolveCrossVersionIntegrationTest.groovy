@@ -64,8 +64,10 @@ dependencies {
     compile 'test:lang:2.+'
 }
 
-task check << {
-    assert configurations.compile*.name as Set == ['io-1.4.jar', 'lang-2.6.jar'] as Set
+task check {
+    doLast {
+        assert configurations.compile*.name as Set == ['io-1.4.jar', 'lang-2.6.jar'] as Set
+    }
 }
 """
 
@@ -120,8 +122,10 @@ dependencies {
     compile 'test:io:1.4'
 }
 
-task check << {
-    assert configurations.compile*.name as Set == ['io-1.4.jar'] as Set
+task check {
+    doLast {
+        assert configurations.compile*.name as Set == ['io-1.4.jar'] as Set
+    }
 }
 """
 

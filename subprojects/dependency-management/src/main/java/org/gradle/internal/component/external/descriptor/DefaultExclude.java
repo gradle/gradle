@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.descriptor;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
@@ -23,31 +24,38 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Set;
+
 public class DefaultExclude implements Exclude {
     private final ModuleIdentifier moduleId;
     private final IvyArtifactName artifact;
-    private final String[] configurations;
+    private final Set<String> configurations;
     private final String patternMatcher;
 
     public DefaultExclude(String group, String module, String artifact, String type, String extension, String[] configurations, String patternMatcher) {
         this.moduleId = DefaultModuleIdentifier.newId(group, module);
         this.artifact = new DefaultIvyArtifactName(artifact, type, extension);
-        this.configurations = configurations;
+        this.configurations = ImmutableSet.copyOf(configurations);
         this.patternMatcher = patternMatcher;
     }
 
     public DefaultExclude(String group, String module, String[] configurations, String patternMatcher) {
         this.moduleId = DefaultModuleIdentifier.newId(group, module);
         this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
-        this.configurations = configurations;
+        this.configurations = ImmutableSet.copyOf(configurations);
         this.patternMatcher = patternMatcher;
     }
 
     public DefaultExclude(String group, String module) {
         this.moduleId = DefaultModuleIdentifier.newId(group, module);
         this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
-        this.configurations = new String[0];
+        this.configurations = ImmutableSet.of();
         this.patternMatcher = PatternMatchers.EXACT;
+    }
+
+    @Override
+    public String toString() {
+        return "{exclude moduleId: " + moduleId + ", artifact: " + artifact + "}";
     }
 
     @Override
@@ -61,7 +69,7 @@ public class DefaultExclude implements Exclude {
     }
 
     @Override
-    public String[] getConfigurations() {
+    public Set<String> getConfigurations() {
         return configurations;
     }
 

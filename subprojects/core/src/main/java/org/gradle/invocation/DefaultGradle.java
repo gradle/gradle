@@ -16,6 +16,7 @@
 
 package org.gradle.invocation;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
@@ -23,6 +24,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -49,6 +51,9 @@ import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private ProjectInternal rootProject;
@@ -58,6 +63,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
+    private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
     private ActionBroadcast<Project> rootProjectActions = new ActionBroadcast<Project>();
 
     private final ClassLoaderScope classLoaderScope;
@@ -213,6 +219,26 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     public Gradle getGradle() {
         return this;
+    }
+
+    @Override
+    public Collection<IncludedBuild> getIncludedBuilds() {
+        return Collections.unmodifiableCollection(includedBuilds);
+    }
+
+    @Override
+    public void setIncludedBuilds(Collection<IncludedBuild> includedBuilds) {
+        this.includedBuilds.addAll(includedBuilds);
+    }
+
+    @Override
+    public IncludedBuild includedBuild(final String name) {
+        for (IncludedBuild includedBuild : includedBuilds) {
+            if (includedBuild.getName().equals(name)) {
+                return includedBuild;
+            }
+        }
+        throw new NoSuchElementException("Included build '" + name + "' not found.");
     }
 
     public ServiceRegistry getServices() {

@@ -29,8 +29,10 @@ import org.gradle.util.GradleVersion
 class ToolingApiUnsupportedVersionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file("build.gradle") << """
-task noop << {
-    println "noop"
+task noop {
+    doLast {
+        println "noop"
+    }
 }
 """
     }

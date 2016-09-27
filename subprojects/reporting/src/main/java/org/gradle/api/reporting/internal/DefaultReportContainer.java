@@ -16,6 +16,10 @@
 
 package org.gradle.api.reporting.internal;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
@@ -26,9 +30,39 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import java.io.File;
+import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
+
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Maps.transformValues;
+import static com.google.common.collect.Maps.uniqueIndex;
 
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
+
+    private static final Function<Report, String> REPORT_NAME = new Function<Report, String>() {
+        @Override
+        public String apply(Report report) {
+            return report.getName();
+        }
+    };
+
+    private static final Function<Report, File> TO_FILE = new Function<Report, File>() {
+        @Override
+        public File apply(Report report) {
+            return report.getDestination();
+        }
+    };
+
+    private static final Predicate<Report> IS_DIRECTORY_OUTPUT_TYPE = new Predicate<Report>() {
+        @Override
+        public boolean apply(Report report) {
+            return report.getOutputType() == Report.OutputType.DIRECTORY;
+        }
+    };
+
 
     private NamedDomainObjectSet<T> enabled;
 
@@ -56,7 +90,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         ConfigureUtil.configureSelf(cl, this);
         return this;
     }
-    
+
     public T getFirstEnabled() {
         SortedMap<String, T> map = enabled.getAsMap();
         if (map.isEmpty()) {
@@ -76,5 +110,20 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         getStore().add(report);
         index();
         return report;
+    }
+
+    @Override
+    public Map<String, File> getEnabledDirectoryReportDestinations() {
+        return transformValues(uniqueIndex(filter(getEnabled(), IS_DIRECTORY_OUTPUT_TYPE), REPORT_NAME), TO_FILE);
+    }
+
+    @Override
+    public Map<String, File> getEnabledFileReportDestinations() {
+        return transformValues(uniqueIndex(filter(getEnabled(), not(IS_DIRECTORY_OUTPUT_TYPE)), REPORT_NAME), TO_FILE);
+    }
+
+    @Override
+    public SortedSet<String> getEnabledReportNames() {
+        return Sets.newTreeSet(Iterables.transform(getEnabled(), REPORT_NAME));
     }
 }

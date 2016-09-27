@@ -26,6 +26,8 @@ import org.gradle.api.specs.internal.ClosureSpec;
  * @param <T> The target type for this Spec
  */
 public class AndSpec<T> extends CompositeSpec<T> {
+    public static final AndSpec<?> EMPTY = new AndSpec<Object>();
+
     public AndSpec() {
         super();
     }
@@ -63,8 +65,13 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return new AndSpec<T>(combinedSpecs);
     }
 
+    @SuppressWarnings("unchecked")
     public AndSpec<T> and(Closure spec) {
         return and(new ClosureSpec<T>(spec));
+    }
+
+    public static <T> AndSpec<T> empty() {
+        return uncheckedCast(EMPTY);
     }
 
     @Override

@@ -67,7 +67,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-task check << { assert gradle.gradleVersion == '${otherVersion.version.version}' }
+task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
 """
         executer.withTasks('wrapper').run()
 
@@ -86,7 +86,7 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version.version}'
         projectDir.file('build.gradle') << """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 allprojects {
-    task check << { assert gradle.gradleVersion == '${otherVersion.version.version}' }
+    task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
 }
 """
         projectDir.file('child').createDir()
@@ -177,19 +177,21 @@ allprojects {
                 systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
             }
 
-            task thing << {
-                def startMarkerFile = file("start.marker")
-                startMarkerFile << new Date().toString()
-                println "start marker written (\$startMarkerFile)"
+            task thing {
+                doLast {
+                    def startMarkerFile = file("start.marker")
+                    startMarkerFile << new Date().toString()
+                    println "start marker written (\$startMarkerFile)"
 
-                def stopMarkerFile = file("stop.marker")
-                def startedAt = System.currentTimeMillis()
-                println "waiting for stop marker (\$stopMarkerFile)"
-                while(!stopMarkerFile.exists()) {
-                    if (System.currentTimeMillis() - startedAt > $stateChangeTimeoutMs) {
-                        throw new Exception("Timeout ($stateChangeTimeoutMs ms) waiting for stop marker")
+                    def stopMarkerFile = file("stop.marker")
+                    def startedAt = System.currentTimeMillis()
+                    println "waiting for stop marker (\$stopMarkerFile)"
+                    while(!stopMarkerFile.exists()) {
+                        if (System.currentTimeMillis() - startedAt > $stateChangeTimeoutMs) {
+                            throw new Exception("Timeout ($stateChangeTimeoutMs ms) waiting for stop marker")
+                        }
+                        sleep $retryIntervalMs
                     }
-                    sleep $retryIntervalMs
                 }
             }
         """

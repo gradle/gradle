@@ -110,7 +110,7 @@
     </section>
     <section id="sec:custom_classpath">
         <title>External dependencies for the init script</title>
-        <para>In <xref linkend='sec:external_dependencies'/> it was explained how to add external dependencies to a
+        <para>In <xref linkend='sec:build_script_external_dependencies'/> it was explained how to add external dependencies to a
             build script. Init scripts can also declare dependencies.  You do this with the
             <literal>initscript()</literal> method, passing in a closure which declares the init script classpath.
         </para>

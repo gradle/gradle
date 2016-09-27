@@ -21,6 +21,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
@@ -88,7 +89,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
 
-        def fileTree = new DirectoryFileTree(rootDir, patterns, { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, patterns, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
@@ -151,7 +152,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
     }
 
     private List<FileVisitDetails> walkFiles(rootDir, walkerInstance) {
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
@@ -170,7 +171,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def link = rootDir.file("a/d")
         link.createLink(dir)
 
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
@@ -201,7 +202,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def link = rootDir.file("a/d").createDir().file("e.txt")
         link.createLink(file)
 
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
@@ -230,7 +231,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def link = rootDir.file("a/d")
         link.createLink(dir)
 
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
@@ -265,7 +266,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
 
         def patternSet = new PatternSet()
         patternSet.include("*.txt")
-        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
@@ -295,7 +296,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
         def walkerInstance = new Jdk7DirectoryWalker()
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visitedFiles = []
         def visitedDirectories = []
         def fileVisitor = [visitFile: { visitedFiles << it }, visitDir: { visitedDirectories << it }] as FileVisitor

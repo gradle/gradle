@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -32,9 +31,6 @@ import java.util.Set;
 public interface CompositeBuildContext extends LocalComponentProvider, DependencySubstitutionRules {
     File getProjectDirectory(ProjectComponentIdentifier project);
     Set<ProjectComponentIdentifier> getAllProjects();
-
-    IncludedBuild getBuild(ProjectComponentIdentifier project);
-    void registerBuild(String name, IncludedBuild build);
 
     void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
     void registerSubstitution(Action<DependencySubstitution> substitutions);

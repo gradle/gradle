@@ -19,13 +19,16 @@ import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Represents an invocation of Gradle.
@@ -271,4 +274,16 @@ public interface Gradle extends PluginAware {
      * @return this. Never returns null.
      */
     Gradle getGradle();
+
+    /**
+     * Returns the included builds for this build.
+     */
+    @Incubating
+    Collection<IncludedBuild> getIncludedBuilds();
+
+    /**
+     * Returns the included build with the specified name for this build.
+     */
+    @Incubating
+    IncludedBuild includedBuild(String name);
 }

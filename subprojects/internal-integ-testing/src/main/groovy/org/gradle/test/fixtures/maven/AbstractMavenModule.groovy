@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
 import org.gradle.test.fixtures.AbstractModule
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 
 import java.text.SimpleDateFormat
@@ -43,6 +44,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         this.groupId = groupId
         this.artifactId = artifactId
         this.version = version
+    }
+
+    @Override
+    String getGroup() {
+        return groupId
+    }
+
+    @Override
+    String getModule() {
+        return artifactId
     }
 
     MavenModule parent(String group, String artifactId, String version) {
@@ -86,8 +97,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
-    MavenModule dependsOn(MavenModule module) {
-        return dependsOn(module.groupId, module.artifactId, module.version)
+    MavenModule dependsOn(Module target) {
+        dependsOn(target.group, target.module, target.version)
+    }
+
+    @Override
+    MavenModule dependsOn(Map<String, ?> attributes, Module target) {
+        this.dependencies << [groupId: target.group, artifactId: target.module, version: target.version, type: attributes.type, scope: attributes.scope, classifier: attributes.classifier, optional: attributes.optional, exclusions: attributes.exclusions]
+        return this
     }
 
     MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null, Collection<Map> exclusions = null) {
@@ -283,6 +300,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 }
                                 if (dep.classifier) {
                                     classifier(dep.classifier)
+                                }
+                                if (dep.optional) {
+                                    optional(true)
                                 }
                                 if (dep.exclusions) {
                                     exclusions {

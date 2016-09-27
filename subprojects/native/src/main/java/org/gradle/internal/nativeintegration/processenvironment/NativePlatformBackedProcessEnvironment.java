@@ -50,4 +50,9 @@ public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvir
     public Long getPid() {
         return Long.valueOf(process.getProcessId());
     }
+
+    @Override
+    public void maybeDetach() {
+        process.detach();
+    }
 }

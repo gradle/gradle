@@ -1,5 +1,7 @@
-task hello << {
-    println 'hello world'
+task hello {
+    doLast {
+        println 'hello world'
+    }
 }
 
 hello.onlyIf { !project.hasProperty('skipHello') }

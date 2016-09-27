@@ -32,7 +32,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -72,6 +72,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from multiple missing modules"() {
@@ -89,7 +95,7 @@ dependencies {
     missing 'group:projectA:1.2'
     missing 'group:projectB:1.0-milestone-9'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -121,6 +127,12 @@ Required by:
         moduleA.artifact.expectGet()
         moduleB.pom.expectGet()
         moduleB.artifact.expectGet()
+
+        then:
+        succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds('showMissing')
@@ -162,7 +174,7 @@ project(':child1') {
         compile 'group:projectD:1.0GA'
     }
 }
-task showMissing << { println configurations.compile.files }
+task showMissing { doLast { println configurations.compile.files } }
 """
 
         when:
@@ -202,6 +214,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from failed POM download"() {
@@ -218,7 +236,7 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken << { println configurations.broken.files }
+task showBroken { doLast { println configurations.broken.files } }
 """
 
         when:
@@ -236,6 +254,12 @@ task showBroken << { println configurations.broken.files }
         server.resetExpectations()
         module.pom.expectGet()
         module.artifact.expectGet()
+
+        then:
+        succeeds("showBroken")
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds("showBroken")
@@ -274,6 +298,13 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         module.artifact.expectGet()
+
+        then:
+        succeeds "retrieve"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds "retrieve"

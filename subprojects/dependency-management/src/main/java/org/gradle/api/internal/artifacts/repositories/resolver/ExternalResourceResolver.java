@@ -80,7 +80,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
+public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata, S extends MutableModuleComponentResolveMetadata> implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final String name;
@@ -98,13 +98,13 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private String id;
 
-    public ExternalResourceResolver(String name,
-                                    boolean local,
-                                    ExternalResourceRepository repository,
-                                    CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                    VersionLister versionLister,
-                                    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                    FileStore<ModuleComponentArtifactMetadata> artifactFileStore) {
+    protected ExternalResourceResolver(String name,
+                                       boolean local,
+                                       ExternalResourceRepository repository,
+                                       CacheAwareExternalResourceAccessor cachingResourceAccessor,
+                                       VersionLister versionLister,
+                                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+                                       FileStore<ModuleComponentArtifactMetadata> artifactFileStore) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -125,6 +125,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     public String getName() {
         return name;
     }
+
+    protected abstract Class<T> getSupportedMetadataType();
 
     public boolean isDynamicResolveMode() {
         return false;
@@ -190,7 +192,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     @Nullable
-    protected MutableModuleComponentResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+    protected S parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
         LocallyAvailableExternalResource metaDataResource = artifactResolver.resolveArtifact(artifact, result);
         if (metaDataResource == null) {
@@ -201,7 +203,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 
-    private MutableModuleComponentResolveMetadata createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+    private S createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         Set<IvyArtifactName> artifacts = overrideMetadata.getArtifacts();
         for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), artifacts)) {
             if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
@@ -211,9 +213,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return null;
     }
 
-    protected abstract MutableModuleComponentResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts);
+    protected abstract S createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts);
 
-    protected abstract MutableModuleComponentResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
+    protected abstract S parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
 
     private Set<IvyArtifactName> getDependencyArtifactNames(String moduleName, Set<IvyArtifactName> artifacts) {
         Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
@@ -385,8 +387,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            ModuleComponentResolveMetadata moduleMetaData = (ModuleComponentResolveMetadata) component;
-
+            T moduleMetaData = getSupportedMetadataType().cast(component);
             if (artifactType == ArtifactType.JAVADOC) {
                 resolveJavadocArtifacts(moduleMetaData, result);
             } else if (artifactType == ArtifactType.SOURCES) {
@@ -398,17 +399,17 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            resolveModuleArtifacts((ModuleComponentResolveMetadata) component, result);
+            T moduleMetaData = getSupportedMetadataType().cast(component);
+            resolveModuleArtifacts(moduleMetaData, result);
         }
 
-        protected abstract void resolveModuleArtifacts(ModuleComponentResolveMetadata module, BuildableComponentArtifactsResolveResult result);
+        protected abstract void resolveModuleArtifacts(T module, BuildableComponentArtifactsResolveResult result);
 
-        protected abstract void resolveMetaDataArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result);
+        protected abstract void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result);
 
-        protected abstract void resolveJavadocArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result);
+        protected abstract void resolveJavadocArtifacts(T module, BuildableArtifactSetResolveResult result);
 
-        protected abstract void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result);
-
+        protected abstract void resolveSourceArtifacts(T module, BuildableArtifactSetResolveResult result);
     }
 
     protected abstract class LocalRepositoryAccess extends AbstractRepositoryAccess {
@@ -426,7 +427,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         @Override
-        protected final void resolveMetaDataArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
+        protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
             ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(module.getComponentId());
             result.resolved(Collections.singleton(artifact));
         }
@@ -473,7 +474,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         @Override
-        protected final void resolveMetaDataArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
+        protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
             // Meta data  artifacts are determined locally
         }
 

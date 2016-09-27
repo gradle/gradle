@@ -25,6 +25,7 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -44,7 +45,8 @@ import static org.junit.Assert.assertFalse
 public abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
-    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new DefaultTaskClassInfoStore(), new TaskFactory(new AsmBackedClassGenerator()))
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
+    private final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory(new AsmBackedClassGenerator()))
 
     public abstract AbstractTask getTask();
 
@@ -57,7 +59,7 @@ public abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createChild(project, DirectInstantiator.INSTANCE).createTask(
+        Task task = taskFactory.createChild(project, DirectInstantiator.INSTANCE).createTask(
                 GUtil.map(Task.TASK_TYPE, type,
                         Task.TASK_NAME, name))
         assert type.isAssignableFrom(task.getClass())

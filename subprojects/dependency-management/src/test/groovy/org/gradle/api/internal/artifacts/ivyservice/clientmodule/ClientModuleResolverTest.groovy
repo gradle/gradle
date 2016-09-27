@@ -25,13 +25,13 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import com.google.common.base.Optional
 
 class ClientModuleResolverTest extends Specification {
     final target = Mock(ComponentMetaDataResolver)
@@ -49,7 +49,7 @@ class ClientModuleResolverTest extends Specification {
     def "replaces meta-data for a client module dependency"() {
         def clientModule = Mock(ClientModule)
         def dep = Mock(ModuleDependency)
-        def dependencyMetaData = Mock(DependencyMetadata)
+        def dependencyMetaData = Mock(DslOriginDependencyMetadata)
         def artifact = Mock(ModuleComponentArtifactMetadata)
 
         when:
@@ -62,8 +62,8 @@ class ClientModuleResolverTest extends Specification {
         1 * result.getMetaData() >> metaData
         1 * metaData.asMutable() >> mutableMetaData
         1 * clientModule.getDependencies() >> ([dep] as Set)
-        1 * dep.getConfiguration() >> "config"
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", dep) >> dependencyMetaData
+        1 * dep.getTargetConfiguration() >> Optional.of("config")
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dep) >> dependencyMetaData
         1 * mutableMetaData.setDependencies([dependencyMetaData])
         1 * mutableMetaData.artifact('jar', 'jar', null) >> artifact
         1 * mutableMetaData.setArtifacts({

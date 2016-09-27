@@ -16,7 +16,10 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface ConfigurationMetadata {
@@ -27,6 +30,9 @@ public interface ConfigurationMetadata {
 
     String getName();
 
+    /**
+     * Returns the dependencies that apply to this configuration.
+     */
     List<DependencyMetadata> getDependencies();
 
     /**
@@ -34,11 +40,16 @@ public interface ConfigurationMetadata {
      */
     Set<ComponentArtifactMetadata> getArtifacts();
 
-    Set<Exclude> getExcludes();
+    /**
+     * Returns the exclusions to apply to outgoing dependencies from this configuration.
+     */
+    ModuleExclusion getExclusions();
 
     boolean isTransitive();
 
     boolean isVisible();
+
+    Map<String, String> getAttributes();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

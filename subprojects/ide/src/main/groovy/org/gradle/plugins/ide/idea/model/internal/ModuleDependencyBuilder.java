@@ -29,9 +29,7 @@ class ModuleDependencyBuilder {
     }
 
     public ModuleDependency create(IdeProjectDependency dependency, String scope) {
-        ModuleDependency moduleDependency = new ModuleDependency(determineProjectName(dependency), scope);
-        moduleDependency.setGradlePath(dependency.getProjectPath());
-        return moduleDependency;
+        return new ModuleDependency(determineProjectName(dependency), scope);
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {

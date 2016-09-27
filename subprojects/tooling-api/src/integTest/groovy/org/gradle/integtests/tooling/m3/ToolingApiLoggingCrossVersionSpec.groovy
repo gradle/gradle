@@ -32,10 +32,12 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
         def finishedMessage = "logging task: finished"
 
         file("build.gradle") << """
-task log << {
-    println "${waitingMessage}"
-    new URL("${server.uri}").text
-    println "${finishedMessage}"
+task log {
+    doLast {
+        println "${waitingMessage}"
+        new URL("${server.uri}").text
+        println "${finishedMessage}"
+    }
 }
 """
 

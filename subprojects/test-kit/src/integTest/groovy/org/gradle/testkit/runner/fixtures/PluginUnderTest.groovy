@@ -183,8 +183,10 @@ class PluginUnderTest {
 
     String echoClassNameTask() {
         """
-            task echo$suffix << {
-                println "class name: " + ${taskClassName}.name
+            task echo$suffix {
+                doLast {
+                    println "class name: " + ${taskClassName}.name
+                }
             }
         """
     }
@@ -192,11 +194,13 @@ class PluginUnderTest {
     String echoClassNameTaskRuntime() {
         """
             def loader = getClass().classLoader
-            task echo$suffix << {
-                try {
-                  println "class name: " + loader.loadClass("$taskClassName").name
-                } catch (ClassNotFoundException e) {
-                  throw new RuntimeException("failed to load class $taskClassName")
+            task echo$suffix {
+                doLast {
+                    try {
+                      println "class name: " + loader.loadClass("$taskClassName").name
+                    } catch (ClassNotFoundException e) {
+                      throw new RuntimeException("failed to load class $taskClassName")
+                    }
                 }
             }
         """

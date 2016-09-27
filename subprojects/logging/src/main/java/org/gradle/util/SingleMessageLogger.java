@@ -42,7 +42,6 @@ public class SingleMessageLogger {
         }
     };
 
-    public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
     private static final Lock LOCK = new ReentrantLock();

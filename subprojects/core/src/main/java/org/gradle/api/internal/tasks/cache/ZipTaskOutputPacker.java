@@ -22,13 +22,15 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,48 +47,52 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
         final ZipOutputStream zipOutput = new ZipOutputStream(output);
-        for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
-            final String propertyName = propertySpec.getPropertyName();
-            switch (propertySpec.getOutputType()) {
-                case DIRECTORY:
-                    final String propertyRoot = "property-" + propertyName + "/";
-                    zipOutput.putNextEntry(new ZipEntry(propertyRoot));
-                    new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
-                        @Override
-                        public void visitDir(FileVisitDetails dirDetails) {
-                            String path = dirDetails.getRelativePath().getPathString();
-                            try {
-                                zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
-                            } catch (IOException e) {
-                                throw Throwables.propagate(e);
-                            }
-                        }
-
-                        @Override
-                        public void visitFile(FileVisitDetails fileDetails) {
-                            String path = fileDetails.getRelativePath().getPathString();
-                            try {
-                                zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
-                                fileDetails.copyTo(zipOutput);
-                            } catch (IOException e) {
-                                throw Throwables.propagate(e);
-                            }
-                        }
-                    });
-                    break;
-                case FILE:
-                    try {
-                        zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
-                        Files.copy(propertySpec.getOutputFile(), zipOutput);
-                    } catch (IOException e) {
-                        throw Throwables.propagate(e);
-                    }
-                    break;
-                default:
-                    throw new AssertionError();
+        for (TaskOutputFilePropertySpec spec : taskOutputs.getFileProperties()) {
+            try {
+                packProperty((CacheableTaskOutputFilePropertySpec) spec, zipOutput);
+            } catch (Exception ex) {
+                throw new GradleException(String.format("Could not pack property '%s'", spec.getPropertyName()), ex);
             }
         }
         zipOutput.finish();
+    }
+
+    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final ZipOutputStream zipOutput) throws IOException {
+        final String propertyName = propertySpec.getPropertyName();
+        switch (propertySpec.getOutputType()) {
+            case DIRECTORY:
+                final String propertyRoot = "property-" + propertyName + "/";
+                zipOutput.putNextEntry(new ZipEntry(propertyRoot));
+                new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        String path = dirDetails.getRelativePath().getPathString();
+                        try {
+                            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
+                        } catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        String path = fileDetails.getRelativePath().getPathString();
+                        try {
+                            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
+                            fileDetails.copyTo(zipOutput);
+                        } catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+                });
+                break;
+            case FILE:
+                zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
+                Files.copy(propertySpec.getOutputFile(), zipOutput);
+                break;
+            default:
+                throw new AssertionError();
+        }
     }
 
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
@@ -109,7 +115,7 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
                 continue;
             }
             String propertyName = matcher.group(1);
-            TaskOutputFilePropertySpec propertySpec = propertySpecs.get(propertyName);
+            CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
             if (propertySpec == null) {
                 throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
             }
