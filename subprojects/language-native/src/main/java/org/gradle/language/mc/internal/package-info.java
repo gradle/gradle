@@ -18,4 +18,4 @@
  * Model classes for building from Windows Message scripts.
  */
 @org.gradle.api.Incubating
-package org.gradle.language.mc.plugins;
+package org.gradle.language.mc.internal;
