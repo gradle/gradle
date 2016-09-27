@@ -90,6 +90,13 @@ public class BTreePersistentIndexedCacheTest {
     }
 
     @Test
+    public void persistsUpdates() {
+        createCache();
+        checkUpdates(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
+        verifyAndCloseCache();
+    }
+
+    @Test
     public void persistsAddedEntriesAfterReopen() {
         createCache();
 
@@ -340,6 +347,38 @@ public class BTreePersistentIndexedCacheTest {
 
         return added;
     }
+
+    private void checkUpdates(Integer... values) {
+        checkUpdates(Arrays.asList(values));
+    }
+
+    private Map<Integer, Integer> checkUpdates(Iterable<Integer> values) {
+        Map<Integer, Integer> updated = new LinkedHashMap<Integer, Integer>();
+
+        for (int i = 0; i < 10; i++) {
+            for (Integer value : values) {
+                String key = String.format("key_%d", value);
+                int newValue = value + (i * 100);
+                cache.put(key, newValue);
+                updated.put(value, newValue);
+            }
+
+            for (Map.Entry<Integer, Integer> entry : updated.entrySet()) {
+                String key = String.format("key_%d", entry.getKey());
+                assertThat(cache.get(key), equalTo(entry.getValue()));
+            }
+        }
+
+        cache.reset();
+
+        for (Map.Entry<Integer, Integer> entry : updated.entrySet()) {
+            String key = String.format("key_%d", entry.getKey());
+            assertThat(cache.get(key), equalTo(entry.getValue()));
+        }
+
+        return updated;
+    }
+
 
     private void checkAddsAndRemoves(Integer... values) {
         checkAddsAndRemoves(null, values);

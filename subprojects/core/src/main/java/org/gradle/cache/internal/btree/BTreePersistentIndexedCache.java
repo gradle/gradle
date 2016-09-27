@@ -695,6 +695,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             setValue(value);
             boolean ok = buffer.totalBytesUnread() <= size;
             if (ok) {
+                this.value = value;
                 store.write(this);
                 return DataBlockUpdateResult.success();
             } else {
