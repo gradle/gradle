@@ -24,7 +24,7 @@ class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceT
 
     def "test"() {
         when:
-        runner.testId = "local cache"
+        runner.testId = "local cache multi clean build"
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName("multi").displayName("cached").invocation {
