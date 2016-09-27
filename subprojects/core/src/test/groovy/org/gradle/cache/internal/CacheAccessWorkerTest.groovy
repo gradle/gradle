@@ -19,6 +19,8 @@ package org.gradle.cache.internal
 import org.gradle.cache.CacheAccess
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+import java.util.concurrent.CountDownLatch
+
 class CacheAccessWorkerTest extends ConcurrentSpec {
     def cacheAccess
 
@@ -35,12 +37,19 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
             Thread.sleep(200L)
             counter++
         } as Runnable
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        def runningLatch = new CountDownLatch(1)
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L) {
+            @Override
+            protected Runnable takeFromQueue() throws InterruptedException {
+                runningLatch.countDown()
+                return super.takeFromQueue()
+            }
+        }
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
         start(cacheAccessWorker)
-        Thread.sleep(200L) // wait that CacheAccessWorker sets it's running flag
+        runningLatch.await()
 
         when:
         cacheAccessWorker.stop()

@@ -134,7 +134,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         try {
             while (!Thread.currentThread().isInterrupted() && !closed) {
                 try {
-                    final Runnable runnable = workQueue.take();
+                    final Runnable runnable = takeFromQueue();
                     final Class<? extends Runnable> runnableClass = runnable.getClass();
                     if (runnableClass == ShutdownOperationsCommand.class) {
                         break;
@@ -166,6 +166,11 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             running = false;
             doneSignal.countDown();
         }
+    }
+
+    // separate method for testing by subclassing
+    protected Runnable takeFromQueue() throws InterruptedException {
+        return workQueue.take();
     }
 
     private void flushOperations(final Runnable updateOperation, final long timeoutMillis, final long maximumLockingTimeMillis) {
