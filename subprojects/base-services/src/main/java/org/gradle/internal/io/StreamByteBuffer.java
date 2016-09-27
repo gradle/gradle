@@ -65,6 +65,30 @@ public class StreamByteBuffer {
         input = new StreamByteBufferInputStream();
     }
 
+    public static StreamByteBuffer of(InputStream inputStream) throws IOException {
+        StreamByteBuffer buffer = new StreamByteBuffer(chunkSizeInDefaultRange(inputStream.available()));
+        buffer.readFully(inputStream);
+        return buffer;
+    }
+
+    public static StreamByteBuffer of(InputStream inputStream, int len) throws IOException {
+        StreamByteBuffer buffer = new StreamByteBuffer(chunkSizeInDefaultRange(len));
+        buffer.readFrom(inputStream, len);
+        return buffer;
+    }
+
+    public static StreamByteBuffer createWithChunkSizeInDefaultRange(int value) {
+        return new StreamByteBuffer(chunkSizeInDefaultRange(value));
+    }
+
+    static int chunkSizeInDefaultRange(int value) {
+        return valueInRange(value, DEFAULT_CHUNK_SIZE, MAX_CHUNK_SIZE);
+    }
+
+    private static int valueInRange(int value, int min, int max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
     public OutputStream getOutputStream() {
         return output;
     }

@@ -54,15 +54,45 @@ class StreamByteBufferTest extends Specification {
         byteBuffer.readAsByteArray() == testbuffer
     }
 
+    def "can create buffer from InputStream"() {
+        given:
+        def byteArrayInputStream = new ByteArrayInputStream(testbuffer)
+
+        when:
+        def byteBuffer = StreamByteBuffer.of(byteArrayInputStream)
+
+        then:
+        byteBuffer.totalBytesUnread() == testbuffer.length
+        byteBuffer.readAsByteArray() == testbuffer
+    }
+
     def "reads source InputStream up to limit"() {
         given:
-        def byteBuffer = new StreamByteBuffer()
+        def byteBuffer = new StreamByteBuffer(chunkSize)
         def byteArrayInputStream = new ByteArrayInputStream(testbuffer)
         byte[] testBufferPart = new byte[limit]
         System.arraycopy(testbuffer, 0, testBufferPart, 0, limit)
 
         when:
         byteBuffer.readFrom(byteArrayInputStream, limit)
+
+        then:
+        byteBuffer.totalBytesUnread() == limit
+        byteBuffer.readAsByteArray() == testBufferPart
+
+        where:
+        chunkSize = 8192
+        limit << [1, 8191, 8192, 8193, 8194]
+    }
+
+    def "can create buffer from InputStream and limiting size"() {
+        given:
+        def byteArrayInputStream = new ByteArrayInputStream(testbuffer)
+        byte[] testBufferPart = new byte[limit]
+        System.arraycopy(testbuffer, 0, testBufferPart, 0, limit)
+
+        when:
+        def byteBuffer = StreamByteBuffer.of(byteArrayInputStream, limit)
 
         then:
         byteBuffer.totalBytesUnread() == limit
@@ -257,5 +287,29 @@ class StreamByteBufferTest extends Specification {
                 partsize = bytesLeft
             }
         }
+    }
+
+    def "returns chunk size in range"() {
+        given:
+        def defaultChunkSize = StreamByteBuffer.DEFAULT_CHUNK_SIZE
+        def maxChunkSize = StreamByteBuffer.MAX_CHUNK_SIZE
+        expect:
+        StreamByteBuffer.chunkSizeInDefaultRange(1) == defaultChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(0) == defaultChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(-1) == defaultChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(defaultChunkSize + 1) == defaultChunkSize + 1
+        StreamByteBuffer.chunkSizeInDefaultRange(defaultChunkSize) == defaultChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(defaultChunkSize - 1) == defaultChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(maxChunkSize) == maxChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(maxChunkSize - 1) == maxChunkSize - 1
+        StreamByteBuffer.chunkSizeInDefaultRange(maxChunkSize + 1) == maxChunkSize
+        StreamByteBuffer.chunkSizeInDefaultRange(2 * maxChunkSize) == maxChunkSize
+    }
+
+    def "creates new instance with chunk size in range"() {
+        when:
+        def buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(1)
+        then:
+        buffer.chunkSize == StreamByteBuffer.DEFAULT_CHUNK_SIZE
     }
 }

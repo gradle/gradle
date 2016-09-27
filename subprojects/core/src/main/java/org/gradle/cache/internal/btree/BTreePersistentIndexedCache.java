@@ -646,7 +646,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
 
         public void setValue(V value) throws Exception {
-            buffer = new StreamByteBuffer();
+            buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(size);
             KryoBackedEncoder encoder = new KryoBackedEncoder(buffer.getOutputStream());
             serializer.write(encoder, value);
             encoder.flush();
@@ -673,8 +673,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         public void read(DataInputStream instr) throws Exception {
             size = instr.readInt();
             int bytes = instr.readInt();
-            buffer = new StreamByteBuffer();
-            buffer.readFrom(instr, bytes);
+            buffer = StreamByteBuffer.of(instr, bytes);
         }
 
         public void write(DataOutputStream outstr) throws Exception {
