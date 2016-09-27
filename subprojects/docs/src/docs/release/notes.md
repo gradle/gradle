@@ -10,10 +10,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Native Build Dependents
-
-TBD
-
 ### Origin of deprecation warning within build script is rendered on command line
 
 For each deprecation warning Gradle now prints its location in the
@@ -46,6 +42,15 @@ Continuous build now ignores changes in the root project's `.gradle` directory a
 This change is important for projects that have the project directory as an input in some task in the build. 
 Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
 Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
+
+### Build Dependents for Native Binaries
+
+Sometimes, you may need to *assemble* (compile and link) or *build* (compile, link and test) a component or binary and its *dependents* (things that depend upon the component or binary). The native software model now provides tasks that enable this capability.
+
+First, the *dependent components* report gives insight about the relationships between each component.
+Second, the *build and assemble dependents* tasks allow you to assemble or build a component and its dependents in one step.
+
+See the User guide section on “[Assembling or building dependents](userguide/native_binaries.html#sec:dependents)“ in the “[Building native software](userguide/native_binaries.html)“ chapter for more information.
 
 ## Promoted features
 
