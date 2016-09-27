@@ -16,11 +16,8 @@
 
 package org.gradle.integtests.fixtures.daemon
 
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.ProcessFixture
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.process.internal.streams.SafeStreams
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
