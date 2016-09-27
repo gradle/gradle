@@ -26,6 +26,10 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         createSampleProjectSetup()
     }
 
+    def cleanup() {
+        testDirectory.usingNativeTools().deleteDir() //remove symlinks
+    }
+
     public static boolean shellAvailable(String shellCommand) {
         return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && (
             new File("/bin/$shellCommand").exists()
@@ -43,8 +47,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.output.contains('Hello World!')
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
@@ -57,8 +59,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.output.contains('Hello World!')
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
@@ -71,8 +71,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.output.contains('Hello World!')
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
@@ -86,8 +84,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
@@ -101,8 +97,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
@@ -116,8 +110,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
@@ -131,8 +123,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         then:
         result.output.contains('Arg: someArg1')
         result.output.contains('Arg: some arg 2')
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
@@ -146,8 +136,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         then:
         result.output.contains('Arg: someArg1')
         result.output.contains('Arg: some arg 2')
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
@@ -161,8 +149,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         then:
         result.output.contains('Arg: someArg1')
         result.output.contains('Arg: some arg 2')
-
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
     }
 
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {

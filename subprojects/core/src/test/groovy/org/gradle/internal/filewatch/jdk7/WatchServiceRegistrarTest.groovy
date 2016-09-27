@@ -28,10 +28,12 @@ import java.nio.file.WatchService
 import java.nio.file.spi.FileSystemProvider
 
 class WatchServiceRegistrarTest extends Specification {
+    def fileSystem = Stub(org.gradle.internal.nativeintegration.filesystem.FileSystem)
+
     def "registering gets retried"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
         def rootDirPath = Mock(Path)
         def watchKey = Mock(WatchKey)
 
@@ -49,7 +51,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "exception gets thrown after retrying once"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
         def rootDirPath = Mock(Path)
 
         when:
@@ -67,7 +69,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "silently ignore exception for deleted files"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
         def rootDirPath = Mock(Path)
         def fileSystem = Mock(FileSystem)
         def fileSystemProvider = Mock(FileSystemProvider)
@@ -88,7 +90,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "rethrow without retrying"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
         def rootDirPath = Mock(Path)
         def fileSystem = Mock(FileSystem)
         def fileSystemProvider = Mock(FileSystemProvider)

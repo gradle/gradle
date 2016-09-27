@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,7 +33,7 @@ class DefaultCacheFactoryTest extends Specification {
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
-    private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())) {
+    private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory)) {
         @Override
         void onOpen(Object cache) {
             opened.execute(cache)
@@ -47,19 +48,6 @@ class DefaultCacheFactoryTest extends Specification {
     def setup() {
         _ * metaDataProvider.processIdentifier >> '123'
         _ * metaDataProvider.processDisplayName >> 'process'
-    }
-
-    public void "creates directory backed store instance"() {
-        when:
-        def cache = factory.openStore(tmpDir.testDirectory, "<display>", mode(Shared), null)
-
-        then:
-        cache.reference.cache instanceof DefaultPersistentDirectoryStore
-        cache.baseDir == tmpDir.testDirectory
-        cache.toString().startsWith "<display>"
-
-        cleanup:
-        factory.close()
     }
 
     public void "creates directory backed cache instance"() {
@@ -91,22 +79,6 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    public void "reuses directory backed store instances"() {
-        when:
-        def ref1 = factory.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
-        def ref2 = factory.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
-
-        then:
-        ref1.reference.cache.is(ref2.reference.cache)
-
-        and:
-        1 * opened.execute(_)
-        0 * opened._
-
-        cleanup:
-        factory.close()
-    }
-
     public void "closes cache instance when factory is closed"() {
         def implementation
 
@@ -125,7 +97,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "loses cache instance when reference is closed"() {
+    public void "closes cache instance when reference is closed"() {
         def implementation
 
         when:
@@ -197,7 +169,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cache '${tmpDir.testDirectory}' is already open with different state."
+        e.message == "Cache '${tmpDir.testDirectory}' is already open with different properties."
 
         cleanup:
         factory.close()

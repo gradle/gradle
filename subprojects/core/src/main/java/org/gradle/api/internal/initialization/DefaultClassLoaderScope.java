@@ -25,13 +25,11 @@ import org.gradle.internal.classpath.ClassPath;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultClassLoaderScope implements ClassLoaderScope {
+public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
-    final ClassLoaderScopeIdentifier id;
     private final ClassLoaderScope parent;
-    private final ClassLoaderCache classLoaderCache;
 
     private boolean locked;
 
@@ -49,9 +47,8 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     private ClassLoader effectiveExportClassLoader;
 
     public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
-        this.id = id;
+        super(id, classLoaderCache);
         this.parent = parent;
-        this.classLoaderCache = classLoaderCache;
     }
 
     private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath) {
@@ -227,14 +224,6 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         if (locked) {
             throw new IllegalStateException("class loader scope is locked");
         }
-    }
-
-    @Override
-    public ClassLoaderScope createChild(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("'name' cannot be null");
-        }
-        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
 
     @Override

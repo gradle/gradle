@@ -26,6 +26,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
@@ -66,6 +67,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
+        _ * loggingServices.get(FileSystem) >> Mock(FileSystem)
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
         _ * loggingServices.getAll(_) >> []
     }

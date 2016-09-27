@@ -36,9 +36,8 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
-    def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -53,9 +52,6 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
             return Stub(FileSnapshot) {
                 getHash() >> Files.asByteSource(file).hash(Hashing.md5())
             }
-        }
-        cacheAccess.useCache(_, _) >> { String name, Runnable action ->
-            action.run()
         }
     }
 
@@ -330,7 +326,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * listener._
 
         when:
-        snapshotter.startTaskActions()
+        snapshotter.beforeTaskOutputsGenerated()
 
         def snapshot3 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
         changes(snapshot3, snapshot, listener)

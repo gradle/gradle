@@ -141,7 +141,7 @@ public class JavaCompile extends AbstractCompile {
             }
         };
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getCachingFileSnapshotter().createThreadSafeWrapper(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
+            getFileOperations(), getCachingFileSnapshotter(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
     }

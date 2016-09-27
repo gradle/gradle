@@ -38,7 +38,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx")
+        then: failure.assertHasCause("Could not add entry ':foo' to cache taskArtifacts.bin")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
@@ -292,9 +292,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             if(project.hasProperty('flushCaches')) {
                 println "Flushing InMemoryTaskArtifactCache"
                 gradle.taskGraph.whenReady {
-                    gradle.services.get(InMemoryTaskArtifactCache).cache.asMap().each { k, v ->
-                        v.invalidateAll()
-                    }
+                    gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
                 }
             }
 """

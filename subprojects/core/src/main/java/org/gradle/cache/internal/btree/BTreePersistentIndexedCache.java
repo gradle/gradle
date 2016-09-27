@@ -17,14 +17,13 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -634,7 +633,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     private class DataBlock extends BlockPayload {
         private int size;
-        private byte[] serialisedValue;
+        private StreamByteBuffer buffer;
         private V value;
 
         private DataBlock() {
@@ -643,20 +642,20 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         public DataBlock(V value) throws Exception {
             this.value = value;
             setValue(value);
-            size = serialisedValue.length;
+            size = buffer.totalBytesUnread();
         }
 
         public void setValue(V value) throws Exception {
-            ByteArrayOutputStream outStr = new ByteArrayOutputStream();
-            KryoBackedEncoder encoder = new KryoBackedEncoder(outStr);
+            buffer = new StreamByteBuffer();
+            KryoBackedEncoder encoder = new KryoBackedEncoder(buffer.getOutputStream());
             serializer.write(encoder, value);
             encoder.flush();
-            this.serialisedValue = outStr.toByteArray();
         }
 
         public V getValue() throws Exception {
             if (value == null) {
-                value = serializer.read(new KryoBackedDecoder(new ByteArrayInputStream(serialisedValue)));
+                value = serializer.read(new KryoBackedDecoder(buffer.getInputStream()));
+                buffer = null;
             }
             return value;
         }
@@ -674,19 +673,20 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         public void read(DataInputStream instr) throws Exception {
             size = instr.readInt();
             int bytes = instr.readInt();
-            serialisedValue = new byte[bytes];
-            instr.readFully(serialisedValue);
+            buffer = new StreamByteBuffer();
+            buffer.readFrom(instr, bytes);
         }
 
         public void write(DataOutputStream outstr) throws Exception {
             outstr.writeInt(size);
-            outstr.writeInt(serialisedValue.length);
-            outstr.write(serialisedValue);
+            outstr.writeInt(buffer.totalBytesUnread());
+            buffer.writeTo(outstr);
+            buffer = null;
         }
 
         public boolean useNewValue(V value) throws Exception {
             setValue(value);
-            boolean ok = serialisedValue.length <= size;
+            boolean ok = buffer.totalBytesUnread() <= size;
             if (ok) {
                 store.write(this);
             }

@@ -29,7 +29,10 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
-        runner.targetVersions = ['2.11', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        runner.targetVersions = ['3.2-20160915000027+0000']
         runner.useDaemon = true
 
         when:

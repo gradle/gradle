@@ -35,6 +35,11 @@ public interface TaskArtifactState {
     IncrementalTaskInputs getInputChanges();
 
     /**
+     * Returns whether it is okay to use results loaded from cache instead of executing the task.
+     */
+    boolean isAllowedToUseCachedResults();
+
+    /**
      * Returns the calculated cache key for the task's current state, or {@code null} if the task is not cacheable.
      */
     TaskCacheKey calculateCacheKey();

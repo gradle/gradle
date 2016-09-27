@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherListener;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -32,16 +33,18 @@ import java.util.concurrent.ExecutorService;
 public class Jdk7FileWatcherFactory implements FileWatcherFactory {
 
     private final ListeningExecutorService executor;
+    private final FileSystem fileSystem;
 
-    public Jdk7FileWatcherFactory(ExecutorService executor) {
+    public Jdk7FileWatcherFactory(ExecutorService executor, FileSystem fileSystem) {
         this.executor = MoreExecutors.listeningDecorator(executor);
+        this.fileSystem = fileSystem;
     }
 
     @Override
     public FileWatcher watch(Action<? super Throwable> onError, FileWatcherListener listener) {
         try {
             WatchService watchService = FileSystems.getDefault().newWatchService();
-            WatchServiceFileWatcherBacking backing = new WatchServiceFileWatcherBacking(onError, listener, watchService);
+            WatchServiceFileWatcherBacking backing = new WatchServiceFileWatcherBacking(onError, listener, watchService, fileSystem);
             return backing.start(executor);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

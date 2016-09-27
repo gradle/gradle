@@ -25,11 +25,11 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.Factory;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -196,9 +196,9 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         private byte[] generateContent() {
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream(Math.max(((int) file.length()) + 64, 256));
-            copyTo(buffer);
-            return buffer.toByteArray();
+            StreamByteBuffer buffer = new StreamByteBuffer();
+            copyTo(buffer.getOutputStream());
+            return buffer.readAsByteArray();
         }
 
         private boolean hasContent(byte[] generatedContent, File file) {

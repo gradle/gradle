@@ -27,7 +27,7 @@ class CacheCapSizerTest extends Specification {
 
     def "cache cap sizer adjusts caps based on maximum heap size"() {
         given:
-        def capSizer = new InMemoryTaskArtifactCache.CacheCapSizer(maxHeapMB)
+        def capSizer = new CacheCapSizer(maxHeapMB)
 
         when:
         def caps = capSizer.calculateCaps()
@@ -48,7 +48,7 @@ class CacheCapSizerTest extends Specification {
     def "cache cap sizer honors reserved space when specified"() {
         given:
         System.setProperty(HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY, reserved.toString())
-        def capSizer = new InMemoryTaskArtifactCache.CacheCapSizer(maxHeapMB)
+        def capSizer = new CacheCapSizer(maxHeapMB)
 
         when:
         def caps = capSizer.calculateCaps()

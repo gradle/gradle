@@ -453,7 +453,7 @@
             <sample id="testing-junit-standalone" dir="javaLibraryPlugin/testing-junit-standalone" title="Using the JUnit plugin">
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
             </sample>
-            <para>In the example above, <literal>test</literal> is the name of our test suite. By convention, Gradle will create two source sets for the test suite, based on the name of the component: one for Java sources, and the other for resources: <filename>src/test/java</filename> and <filename>src/resources/java</filename>. If the component was named <literal>integTest</literal>, then sources and resources would have been found respectively in <filename>src/integTest/java</filename> and <filename>src/integTest/resources</filename>.</para>
+            <para>In the example above, <literal>test</literal> is the name of our test suite. By convention, Gradle will create two source sets for the test suite, based on the name of the component: one for Java sources, and the other for resources: <filename>src/test/java</filename> and <filename>src/test/resources</filename>. If the component was named <literal>integTest</literal>, then sources and resources would have been found respectively in <filename>src/integTest/java</filename> and <filename>src/integTest/resources</filename>.</para>
             <para>Once the component is created, the test suite can be executed running the <literal>&lt;&lt;test suite name&gt;&gt;BinaryTest</literal> task:</para>
             <sample id="testing-junit-standalone-run" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
                 <sourcefile file="src/test/java/org/gradle/MyTest.java"/>

@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
-
-public interface TaskActionExecutionListener {
-    /**
-     * Invoked when the actions for a task are about to be executed.
-     */
-    void startTaskActions();
+def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url']
+if (remoteCacheUrl) {
+    gradle.taskCaching.useCacheFactory(new org.gradle.cache.tasks.http.HttpTaskOutputCacheFactory(new URI(remoteCacheUrl)))
 }

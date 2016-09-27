@@ -37,9 +37,7 @@ public class DefaultSourceIncludesParser implements SourceIncludesParser {
         if (importAware) {
             return parsedIncludes;
         } else {
-            DefaultIncludeDirectives includesOnly = new DefaultIncludeDirectives();
-            includesOnly.addAll(parsedIncludes.getIncludesOnly());
-            return includesOnly;
+            return new DefaultIncludeDirectives(parsedIncludes.getIncludesOnly());
         }
     }
 

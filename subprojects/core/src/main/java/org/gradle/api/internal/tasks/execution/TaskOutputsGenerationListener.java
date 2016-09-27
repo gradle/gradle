@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache.diagnostics;
+package org.gradle.api.internal.tasks.execution;
 
-public interface TaskExecutionStatisticsListener {
-    void buildFinished(TaskExecutionStatistics statistics);
+public interface TaskOutputsGenerationListener {
+    /**
+     * Invoked when the outputs for a task are about to be generated.
+     * This is for example just before the task actions are executed or the outputs are loaded from the cache.
+     */
+    void beforeTaskOutputsGenerated();
 }

@@ -15,7 +15,9 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -23,7 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class IncrementalCompileProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileProcessor.class);
@@ -33,8 +40,7 @@ public class IncrementalCompileProcessor {
     private final SourceIncludesResolver sourceIncludesResolver;
     private final FileSnapshotter snapshotter;
 
-    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser,
-                                       FileSnapshotter snapshotter) {
+    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser, FileSnapshotter snapshotter) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.sourceIncludesResolver = sourceIncludesResolver;
         this.sourceIncludesParser = sourceIncludesParser;
@@ -49,13 +55,13 @@ public class IncrementalCompileProcessor {
             result.processSource(sourceFile);
         }
 
-        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs());
+        return new DefaultIncrementalCompilation(result.current.snapshot(), result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs());
     }
 
     private class IncrementalCompileFiles {
 
         private final CompilationState previous;
-        private final CompilationState current = new CompilationState();
+        private final BuildableCompilationState current = new BuildableCompilationState();
 
         private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
         private final List<File> toRecompile = new ArrayList<File>();
@@ -87,17 +93,19 @@ public class IncrementalCompileProcessor {
             processed.put(file, false);
 
             CompilationFileState previousState = previous.getState(file);
-            CompilationFileState newState = new CompilationFileState(snapshotter.snapshot(file).getHash());
+            HashCode newHash = snapshotter.snapshot(file).getHash();
 
-            if (!sameHash(previousState, newState)) {
+            IncludeDirectives includeDirectives;
+            if (!sameHash(previousState, newHash)) {
                 changed = true;
-                newState.setIncludeDirectives(sourceIncludesParser.parseIncludes(file));
+                includeDirectives = sourceIncludesParser.parseIncludes(file);
             } else {
-                newState.setIncludeDirectives(previousState.getIncludeDirectives());
+                includeDirectives = previousState.getIncludeDirectives();
             }
+            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, includeDirectives);
 
-            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, newState.getIncludeDirectives());
-            newState.setResolvedIncludes(resolutionResult.getResolvedIncludes());
+            CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludes()));
+
             discoveredInputs.addAll(resolutionResult.getCheckedLocations());
 
             // Compare the previous resolved includes with resolving now.
@@ -122,8 +130,8 @@ public class IncrementalCompileProcessor {
             return changed;
         }
 
-        private boolean sameHash(CompilationFileState previousState, CompilationFileState newState) {
-            return previousState != null && newState.getHash().equals(previousState.getHash());
+        private boolean sameHash(CompilationFileState previousState, HashCode newHash) {
+            return previousState != null && newHash.equals(previousState.getHash());
         }
 
         private boolean sameResolved(CompilationFileState previousState, CompilationFileState newState) {

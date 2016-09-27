@@ -31,7 +31,7 @@ class CachingFileSnapshotterTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def target = Mock(Hasher)
     def cache = Mock(PersistentIndexedCache)
-    def cacheAccess = Mock(TaskArtifactStateCacheAccess)
+    def cacheAccess = Mock(TaskHistoryStore)
     def hash = Hashing.md5().hashString("hello", Charsets.UTF_8)
     def file = tmpDir.createFile("testfile")
     CachingFileSnapshotter hasher

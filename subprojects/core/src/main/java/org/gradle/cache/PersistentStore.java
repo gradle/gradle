@@ -19,19 +19,26 @@ package org.gradle.cache;
 import org.gradle.internal.serialize.Serializer;
 
 /**
- * Represents some persistent store.
+ * Represents some data store, made up of zero or more {@link PersistentIndexedCache} instances.
  *
- * <p>You can use {@link #useCache(String, org.gradle.internal.Factory)} to perform some action on the store while holding an exclusive
- * lock on the store.</p>
+ * <p>A store may be shared between processes or may be private to this process. When private to this process, the store is transient and the contents are lost when the process exits.</p>
+ *
+ * <p>Stores are safe for concurrent access by multiple threads and multiple processes, when shared.</p>
  */
-public interface PersistentStore extends CacheAccess {
+public interface PersistentStore {
     /**
-     * Creates an indexed cache implementation that is contained within this store. This method may be used at any time.
+     * Opens an indexed cache in this store, creating it if it does not exist.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.internal.Factory)}.
-     * In this instance, an exclusive lock will be held on the cache.
+     * <p>Keys and values must be immutable, as they may be shared by multiple threads.
      *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
+     * <p>The indexed cache may be safely used by multiple threads concurrently. Updates are visible to all threads in this process as soon as they are made.
+     *
+     * <p>The indexed cache may be shared between processes. When shared, the indexed cache may be safely used by multiple processes concurrently. Updates are visible to threads in other processes some point after they are made.</p>
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
+
+    /**
+     * Flushes any pending changes. This makes the changes persistent and makes them visible to other processes, as relevant for this store. Blocks until complete.
+     */
+    void flush();
 }

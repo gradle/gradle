@@ -25,13 +25,13 @@ import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepo
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.DefaultTaskArtifactStateCacheAccess
+import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.NoOpDecorator
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
@@ -76,10 +76,10 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         gradle = project.getGradle()
         task  = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
+        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+        fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter)
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
@@ -614,12 +614,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
             // reset state
-            fileCollectionSnapshotter.startTaskActions()
+            fileCollectionSnapshotter.beforeTaskOutputsGenerated()
             task.execute()
             state.afterTask()
         }
         // reset state
-        fileCollectionSnapshotter.startTaskActions()
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
     }
 
     private static class ChangedFiles {

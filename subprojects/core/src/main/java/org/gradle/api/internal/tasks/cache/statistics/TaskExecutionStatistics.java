@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache.diagnostics;
+package org.gradle.api.internal.tasks.cache.statistics;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
@@ -23,13 +23,13 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class TaskExecutionStatistics {
-    private final Map<TaskExecutionEvent, Integer> taskCounts = Maps.newHashMap(Maps.toMap(Arrays.asList(TaskExecutionEvent.values()), Functions.constant(0)));
+    private final Map<TaskExecutionOutcome, Integer> taskCounts = Maps.newHashMap(Maps.toMap(Arrays.asList(TaskExecutionOutcome.values()), Functions.constant(0)));
     private int allTasksCount;
     private int cacheableTasksCount;
 
-    public void event(TaskExecutionEvent event) {
+    public void event(TaskExecutionOutcome outcome) {
         allTasksCount++;
-        taskCounts.put(event, taskCounts.get(event) + 1);
+        taskCounts.put(outcome, taskCounts.get(outcome) + 1);
     }
 
     public void taskCacheable(boolean cacheable) {
@@ -47,18 +47,18 @@ public class TaskExecutionStatistics {
     }
 
     public int getUpToDateTasksCount() {
-        return taskCounts.get(TaskExecutionEvent.UP_TO_DATE);
+        return taskCounts.get(TaskExecutionOutcome.UP_TO_DATE);
     }
 
-    public int getCachedTasksCount() {
-        return taskCounts.get(TaskExecutionEvent.CACHED);
+    public int getFromCacheTasksCount() {
+        return taskCounts.get(TaskExecutionOutcome.FROM_CACHE);
     }
 
     public int getSkippedTasksCount() {
-        return taskCounts.get(TaskExecutionEvent.SKIPPED);
+        return taskCounts.get(TaskExecutionOutcome.SKIPPED);
     }
 
     public int getExecutedTasksCount() {
-        return taskCounts.get(TaskExecutionEvent.EXECUTED);
+        return taskCounts.get(TaskExecutionOutcome.EXECUTED);
     }
 }

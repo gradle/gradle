@@ -65,7 +65,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.cache.TaskExecutionEventAdapter;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;

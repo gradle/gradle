@@ -80,8 +80,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
+        public boolean isAllowedToUseCachedResults() {
+            return false;
+        }
+
+        @Override
         public TaskCacheKey calculateCacheKey() {
-            return null;
+            return delegate.calculateCacheKey();
         }
 
         public TaskExecutionHistory getExecutionHistory() {

@@ -20,21 +20,19 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess, Closeable {
-    private final CacheDecorator inMemoryDecorator;
+public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
+    private final InMemoryTaskArtifactCache inMemoryTaskArtifactCache;
     private final PersistentCache cache;
 
-    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, CacheDecorator decorator) {
-        this.inMemoryDecorator = decorator;
+    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
+        this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
         cache = cacheRepository
                 .cache(gradle, "taskArtifacts")
                 .withDisplayName("task history cache")
@@ -48,23 +46,13 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
 
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryDecorator);
+                .cacheDecorator(inMemoryTaskArtifactCache);
         return cache.createCache(parameters);
     }
 
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cache.useCache(operationDisplayName, action);
-    }
-
-    public void useCache(String operationDisplayName, Runnable action) {
-        cache.useCache(operationDisplayName, action);
-    }
-
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cache.longRunningOperation(operationDisplayName, action);
-    }
-
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
-        cache.longRunningOperation(operationDisplayName, action);
+    @Override
+    public void flush() {
+        cache.flush();
+        inMemoryTaskArtifactCache.onFlush();
     }
 }

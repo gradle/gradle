@@ -29,6 +29,7 @@ public class TaskStateInternal implements TaskState {
     private String skippedMessage;
     private boolean skipped;
     private boolean upToDate;
+    private boolean cacheable;
 
     public TaskStateInternal(String description) {
         this.description = description;
@@ -96,6 +97,14 @@ public class TaskStateInternal implements TaskState {
 
     public void setExecuting(boolean executing) {
         this.executing = executing;
+    }
+
+    public void setCacheable(boolean cacheable) {
+        this.cacheable = cacheable;
+    }
+
+    public boolean isCacheable() {
+        return cacheable;
     }
 
     public Throwable getFailure() {

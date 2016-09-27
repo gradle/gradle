@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
@@ -247,7 +248,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         CommandLineParser parser = new CommandLineParser();
         ParametersConverter parametersConverter = new ParametersConverter();
         parametersConverter.configure(parser);
-        parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
+        final Parameters parameters = new Parameters(startParameter);
+        parametersConverter.convert(parser.parse(getAllArgs()), parameters);
+        if (parameters.getDaemonParameters().isStop()) {
+            // --stop should simulate stopping the daemon
+            cleanupCachedClassLoaders();
+            GLOBAL_SERVICES.get(InMemoryTaskArtifactCache.class).invalidateAll();
+        }
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 

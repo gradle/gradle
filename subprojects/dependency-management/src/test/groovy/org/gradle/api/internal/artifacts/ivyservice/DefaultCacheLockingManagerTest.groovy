@@ -44,7 +44,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         fileStore == new File(testCacheDir, CacheLayout.FILE_STORE.key)
 
         and:
-        1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
+        1 * cacheRepository.cache(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
         1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
@@ -58,13 +58,13 @@ class DefaultCacheLockingManagerTest extends Specification {
 
         when:
         CacheLockingManager cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
-        File fileStore = cacheLockingManager.createMetaDataStore()
+        File fileStore = cacheLockingManager.getMetaDataStoreDirectory()
 
         then:
         fileStore == new File(testCacheDir, CacheLayout.META_DATA.key + System.properties['file.separator'] + 'descriptors')
 
         and:
-        1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
+        1 * cacheRepository.cache(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
         1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder

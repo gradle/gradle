@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.cache.internal;
 
-import org.gradle.api.Task;
-
-/**
- * Listener for events of the Task output cache.
- */
-public interface TaskOutputCacheListener {
-    /**
-     * Called when a task has been found in the cache.
-     */
-    void fromCache(Task task);
-    /**
-     * Called when a task has been not been found in the cache.
-     *
-     * @param cacheable true if the task satisfies the requirements for being cacheable
-     */
-    void notCached(Task task, boolean cacheable);
+public class AsyncCacheAccessDecorator implements CacheDecorator {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, AsyncCacheAccess asyncCacheAccess) {
+        return new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache);
+    }
 }

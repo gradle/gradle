@@ -95,9 +95,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private static IncludeDirectives includes(Set<ResolvedInclude> deps) {
-        def includes = new DefaultIncludeDirectives()
-        includes.addAll(deps.collect { '<' + it.file.name + '>' })
-        return includes
+        return new DefaultIncludeDirectives(deps.collect { '<' + it.file.name + '>' })
     }
 
     def added(TestFile sourceFile) {

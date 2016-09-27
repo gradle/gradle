@@ -40,7 +40,9 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject         | targetVersions
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "createLotsOfTasks" | ['3.1-20160818000032+0000']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "createLotsOfTasks" | ['3.2-20160915000027+0000']
     }
 }

@@ -40,6 +40,13 @@ As stated in the User guide, please note that this shouldn't be used over insecu
 
 In Gradle 3.1 we made a number of improvements to allow the daemon to cancel a running build when a client disconnects unexpectedly, but there were situations where pressing ctrl-c during a build could still cause the Daemon to exit.  With this release, any time ctrl-c is sent, the Daemon will attempt to cancel the running build.  As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
 
+### Continuous build usability improvements
+
+Continuous build now ignores changes in the root project's `.gradle` directory and in all `build` directories. 
+This change is important for projects that have the project directory as an input in some task in the build. 
+Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
+Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -111,11 +118,14 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
-- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning
+- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning, remove output files when task loses all its source files
 - [Jeff Baranski](https://github.com/jbaranski) - Fix doc bug with turning off daemon in a .bat file
 - [Justin Sievenpiper](https://github.com/jsievenpiper) - Prevent navigating down to JDK classes when detecting the parent test class
 - [Alex Proca](https://github.com/alexproca) - Limit Unix Start Scripts to use POSIX standard sh
-- [Spencer Allain](https://github.com/merscwog) - Do not require password for truststore
+- [Spencer Allain](https://github.com/merscwog) - Do not require a password when using custom `javax.net.ssl.trustStore` for HTTP resource access over TLS 
+- [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
+- [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
+- [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
