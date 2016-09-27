@@ -25,6 +25,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
+import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=2.1")
@@ -138,6 +139,7 @@ throw new RuntimeException("should not run")
         configureOnDemand << [true, false]
     }
 
+    @Ignore
     @TargetGradleVersion(">=2.2")
     def "can cancel build action execution during configuration phase"() {
         file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
@@ -332,6 +334,7 @@ throw new RuntimeException("should not run")
         resultHandler.failure instanceof BuildCancelledException
     }
 
+    @Ignore
     def "can cancel action"() {
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
