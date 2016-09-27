@@ -18,4 +18,4 @@
  * API classes for cppunit integration.
  */
 @org.gradle.api.Incubating
-package org.gradle.nativeplatform.test.cunit;
+package org.gradle.nativeplatform.test.cppunit.plugins;
