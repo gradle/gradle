@@ -20,7 +20,8 @@ import org.gradle.util.VersionNumber;
 
 public enum VisualStudioVersion {
     VISUALSTUDIO_2012("11.0", "2012"),
-    VISUALSTUDIO_2013("12.0", "2013");
+    VISUALSTUDIO_2013("12.0", "2013"),
+    VISUALSTUDIO_2015("14.0", "2015");
 
     private final VersionNumber visualCppVersion;
     private final String version;
