@@ -101,7 +101,7 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
-        d.targetConfiguration.get() == 'compile'
+        d.targetConfiguration == 'compile'
         d.transitive
 
         !d.force

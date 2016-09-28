@@ -51,7 +51,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
             selector, requested, clientConfiguration,
             clientAttributes,
-            projectDependency.getTargetConfiguration().orNull(),
+            projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
             convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
             false, false, dependency.isTransitive());
