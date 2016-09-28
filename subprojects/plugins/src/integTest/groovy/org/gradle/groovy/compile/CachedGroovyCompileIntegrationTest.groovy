@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.compile
 
+import groovy.transform.NotYetImplemented
 import org.gradle.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
@@ -81,5 +82,88 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
 
         then:
         compileIsNotCached()
+    }
+
+    @NotYetImplemented
+    def "compilation works with overlapping output dirs"() {
+        given:
+        buildScript """
+            plugins {
+                id 'groovy'
+            }
+
+            dependencies {
+                compile localGroovy()
+            }
+        """
+        file('src/main/java/RequiredByGroovy.java') << """
+            public class RequiredByGroovy {
+                public static void printSomething() {
+                    java.lang.System.out.println("Hello from Java");
+                }
+            }
+        """
+        file('src/main/java/RequiredByGroovy.java').makeOlder()
+
+        file('src/main/groovy/UsesJava.groovy') << """
+            @groovy.transform.CompileStatic
+            class UsesJava {
+                public void printSomething() {
+                    RequiredByGroovy.printSomething()
+                }
+            }
+        """
+        file('src/main/groovy/UsesJava.groovy').makeOlder()
+        def compiledJavaClass = file('build/classes/main/RequiredByGroovy.class')
+        def compiledGroovyClass = file('build/classes/main/UsesJava.class')
+
+        when:
+        succeedsWithCache ':compileJava', ':compileGroovy'
+
+        then:
+        compiledJavaClass.exists()
+        compiledGroovyClass.exists()
+
+        when:
+        succeedsWithCache ':clean', ':compileJava'
+
+        then:
+        skippedTasks.contains(':compileJava')
+
+        when:
+        // This line is crucial to expose the bug
+        // When doing this and then loading the classes for
+        // compileGroovy from the cache the compiled java
+        // classes are replaced and recorded as changed
+        compiledJavaClass.makeOlder()
+        succeedsWithCache ':compileGroovy'
+
+        then:
+        skippedTasks.containsAll([':compileJava', ':compileGroovy'])
+
+        when:
+        file('src/main/java/RequiredByGroovy.java').text = """
+            public class RequiredByGroovy {
+                public static void printSomethingNew() {
+                    java.lang.System.out.println("Hello from Java");
+                    // Different
+                }
+            }
+        """
+        file('src/main/groovy/UsesJava.groovy').text = """
+            @groovy.transform.CompileStatic
+            class UsesJava {
+                public void printSomething() {
+                    RequiredByGroovy.printSomethingNew()
+                    // Some comment
+                }
+            }
+        """
+
+        succeedsWithCache ':compileGroovy'
+
+        then:
+        compiledJavaClass.exists()
+        compiledGroovyClass.exists()
     }
 }
