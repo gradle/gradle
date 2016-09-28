@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec.*
+import static AbstractProjectDependencyConflictResolutionIntegrationSpec.*
 
 class DependencyResolveRulesPreferProjectModulesIntegrationTest extends AbstractIntegrationSpec {
 

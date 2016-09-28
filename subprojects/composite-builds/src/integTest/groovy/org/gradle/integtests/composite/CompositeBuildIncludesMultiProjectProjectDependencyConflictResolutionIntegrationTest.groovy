@@ -17,19 +17,19 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.resolve.AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec
+import org.gradle.integtests.resolve.AbstractProjectDependencyConflictResolutionIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 /**
- * This is a variation of {@link org.gradle.integtests.resolve.MultiProjectProjectDependencyConflictResolutionConfigurationIntegrationTest}
+ * This is a variation of {@link org.gradle.integtests.resolve.MultiProjectProjectDependencyConflictResolutionIntegrationTest}
  * where the multi-project build is included in a composite build that steers the build process. By this, the automatic substitution behavior of
  * replacing a binary dependency with an included project dependency (if available) independent of versions, is applied in the whole build.
  * This yields a slightly different conflict resolution behavior compared to executing the multi-project build independently.
- * See: 'winner' vs 'winnerAutoSubstitution' in {@link AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec}.
+ * See: 'winner' vs 'winnerAutoSubstitution' in {@link AbstractProjectDependencyConflictResolutionIntegrationSpec}.
  *
- * Hence: {@link CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionConfigurationIntegrationTest#isAutoDependencySubstitution()} is 'true'
+ * Hence: {@link CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionIntegrationTest#isAutoDependencySubstitution()} is 'true'
  */
-class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionConfigurationIntegrationTest extends AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec {
+class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionIntegrationTest extends AbstractProjectDependencyConflictResolutionIntegrationSpec {
 
     BuildTestFile multiProject
 
