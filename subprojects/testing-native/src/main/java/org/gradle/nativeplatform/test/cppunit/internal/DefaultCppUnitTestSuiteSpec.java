@@ -25,7 +25,7 @@ public class DefaultCppUnitTestSuiteSpec extends AbstractNativeComponentSpec imp
 
     @Override
     protected String getTypeName() {
-        return "Cunit test suite";
+        return "CppUnit test suite";
     }
 
     @Override
