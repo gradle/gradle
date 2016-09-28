@@ -125,6 +125,44 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         output.contains ":buildSrc:jar FROM-CACHE"
     }
 
+    def "tasks stay cached after buildSrc is rebuilt"() {
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text
+                }
+            }
+        """
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/build").deleteDir()
+        file("buildSrc/.gradle").deleteDir()
+        // Run this without cache, so buildSrc gets rebuilt
+        succeeds "clean"
+
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
+    }
+
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
