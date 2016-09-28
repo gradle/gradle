@@ -17,8 +17,10 @@
 package org.gradle.testfixtures
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -27,7 +29,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     public static final String HELLO_WORLD_PLUGIN_GRADLE_VERSION       = '2.7'
-    public static final String PROJECT_BUILDER_GRADLE_VERSION          = '3.2-snapshot-1' /* 3.0 and 3.1 will fail as they are affected by the issue tested */
+    public static final String PROJECT_BUILDER_GRADLE_VERSION          = '3.2+' /* 3.0 and 3.1 will fail as they are affected by the issue tested */
     public static final String PROJECT_BUILDER_GRADLE_VERSION_AFFECTED = '3.0'
 
     def "can use plugin built with 2.x to execute a test on top of ProjectBuilder run with Gradle 3.2+ in a test"() {
@@ -228,10 +230,6 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
         createGradleExecutor(PROJECT_BUILDER_GRADLE_VERSION_AFFECTED, applyPluginWithProjectBuilderDir, 'test').run()
     }
 
-    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir, String... tasks) {
-        version(buildContext.distribution(gradleVersion)).inDirectory(projectDir).withTasks(tasks)
-    }
-
     private TestFile publishHelloWorldPluginWithOldGradleVersion() {
         TestFile helloWorldPluginDir = temporaryFolder.createDir('hello')
         TestFile repoDir = new TestFile(testDirectory, 'repo')
@@ -291,5 +289,13 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
         createGradleExecutor(HELLO_WORLD_PLUGIN_GRADLE_VERSION, helloWorldPluginDir, 'publish').run()
 
         return repoDir
+    }
+
+    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir, String... tasks) {
+        if (gradleVersion == '3.2+') {
+            new GradleContextualExecuter(new UnderDevelopmentGradleDistribution(), temporaryFolder)
+        } else {
+            version(buildContext.distribution(gradleVersion)).inDirectory(projectDir).withTasks(tasks)
+        }
     }
 }
