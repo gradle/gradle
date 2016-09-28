@@ -42,6 +42,16 @@ This change is important for projects that have the project directory as an inpu
 Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
 Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
 
+### New preferProjectModules() conflict resolution strategy for multi-project builds
+
+The `preferProjectModules()` configuration option can now be used in multi-project builds.
+
+    configurations.all.resolutionStrategy.preferProjectModules()
+
+With this option it is possible to tell Gradle to always resolve a project dependency to a subproject,
+if the corresponding subproject exists in the build. Without this option, other dependencies to a higher
+version of the same module cause the replacement of the subproject by the other version in the dependency tree.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
