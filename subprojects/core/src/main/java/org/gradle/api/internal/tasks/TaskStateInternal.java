@@ -48,6 +48,10 @@ public class TaskStateInternal implements TaskState {
         return !getExecuted() && !executing;
     }
 
+    public TaskExecutionOutcome getOutcome() {
+        return outcome;
+    }
+
     public void setOutcome(TaskExecutionOutcome outcome) {
         assert this.outcome == null;
         this.outcome = outcome;
