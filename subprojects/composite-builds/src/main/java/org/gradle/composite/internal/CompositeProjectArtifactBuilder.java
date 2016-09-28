@@ -16,50 +16,26 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
-import org.gradle.initialization.IncludedBuildExecuter;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-import java.util.Collection;
-
 class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
-    private final Multimap<ProjectComponentIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
-    private final IncludedBuildExecuter includedBuildExecuter;
+    private final IncludedBuildArtifactBuilder artifactBuilder;
+    private final BuildIdentity buildIdentity;
 
-    CompositeProjectArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
-        this.includedBuildExecuter = includedBuildExecuter;
+    CompositeProjectArtifactBuilder(IncludedBuildArtifactBuilder artifactBuilder, BuildIdentity buildIdentity) {
+        this.artifactBuilder = artifactBuilder;
+        this.buildIdentity = buildIdentity;
     }
 
     @Override
     public void willBuild(ComponentArtifactMetadata artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            ProjectComponentIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
-            addTasksForBuild(buildId, compositeBuildArtifact);
-        }
+        artifactBuilder.willBuild(artifact);
     }
 
     @Override
     public void build(ComponentArtifactMetadata artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            ProjectComponentIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
-            Collection<String> tasksToExecute = addTasksForBuild(buildId, compositeBuildArtifact);
-            includedBuildExecuter.execute(buildId, tasksToExecute);
-        }
+        artifactBuilder.build(buildIdentity.getCurrentBuild(), artifact);
     }
-
-    private synchronized Collection<String> addTasksForBuild(ProjectComponentIdentifier buildId, CompositeProjectComponentArtifactMetadata compositeBuildArtifact) {
-        tasksForBuild.putAll(buildId, compositeBuildArtifact.getTasks());
-        return tasksForBuild.get(buildId);
-    }
-
-    private ProjectComponentIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
-        return DefaultProjectComponentIdentifier.rootId(artifact.getComponentId());
-    }
-
 }

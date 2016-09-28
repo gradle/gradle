@@ -33,4 +33,12 @@ public interface FileCollectionInternal extends FileCollection {
      */
     void registerWatchPoints(FileSystemSubset.Builder builder);
 
+    /**
+     * Visits the root elements of this file collection. These are the nested collections and trees that make up this collection, if any.
+     *
+     * <p>The implementation of this method should not do any work to calculate the files that make up this collection. The visitor may choose to query each element it receives for its elements, or may not.
+     *
+     * <p>The implementation should call the most specific method on {@link FileCollectionVisitor} that it is able to.</p>
+     */
+    void visitRootElements(FileCollectionVisitor visitor);
 }

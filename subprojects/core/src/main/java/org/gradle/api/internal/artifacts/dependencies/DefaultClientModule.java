@@ -52,7 +52,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
     }
 
     public ClientModule copy() {
-        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getConfiguration());
+        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getTargetConfiguration().orNull());
         copyTo(copiedClientModule);
         for (ModuleDependency dependency : dependencies) {
             copiedClientModule.addDependency(dependency.copy());

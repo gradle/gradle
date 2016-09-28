@@ -26,10 +26,12 @@ class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile.setText("""
-task check << {
-    assert java.nio.charset.Charset.defaultCharset().name() == "ISO-8859-15"
-    // embed a euro character in the text - this is encoded differently in ISO-8859-12 and UTF-8
-    assert '\u20AC'.charAt(0) == 0x20AC
+task check {
+    doLast {
+        assert java.nio.charset.Charset.defaultCharset().name() == "ISO-8859-15"
+        // embed a euro character in the text - this is encoded differently in ISO-8859-12 and UTF-8
+        assert '\u20AC'.charAt(0) == 0x20AC
+    }
 }
 """, "UTF-8")
         assert file('build.gradle').getText("ISO-8859-15") != file('build.gradle').getText("UTF-8")

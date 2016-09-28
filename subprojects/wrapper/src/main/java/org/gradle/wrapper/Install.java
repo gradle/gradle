@@ -53,11 +53,12 @@ public class Install {
                 }
 
                 boolean needsDownload = !localZipFile.isFile();
+                URI safeDistributionUrl = Download.safeUri(distributionUrl);
 
                 if (needsDownload) {
                     File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
                     tmpZipFile.delete();
-                    logger.log("Downloading " + distributionUrl);
+                    logger.log("Downloading " + safeDistributionUrl);
                     download.download(distributionUrl, tmpZipFile);
                     tmpZipFile.renameTo(localZipFile);
                 }
@@ -73,7 +74,7 @@ public class Install {
                 logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
                 unzip(localZipFile, distDir);
 
-                File root = getAndVerifyDistributionRoot(distDir, distributionUrl.toString());
+                File root = getAndVerifyDistributionRoot(distDir, safeDistributionUrl.toString());
                 setExecutablePermissions(root);
                 markerFile.createNewFile();
 

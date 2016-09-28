@@ -27,7 +27,7 @@ import java.util.Map;
 public class TaskPropertyValidationAccess {
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> task, Map<String, Boolean> problems) {
-        TaskClassInfoStore infoStore = new DefaultTaskClassInfoStore();
+        TaskClassInfoStore infoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor());
         TaskClassInfo info = infoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(task));
         for (String nonAnnotatedPropertyName : info.getNonAnnotatedPropertyNames()) {
             problems.put(String.format("Task type '%s' declares property that is not annotated: '%s'.", task.getName(), nonAnnotatedPropertyName), Boolean.FALSE);

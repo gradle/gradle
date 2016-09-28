@@ -157,7 +157,7 @@ project.description = text
     def "handles standard input concurrently when running build"() {
         when:
         threads.times { idx ->
-            file("build$idx/build.gradle") << "task show << { println System.in.text}"
+            file("build$idx/build.gradle") << "task show { doLast { println System.in.text} }"
         }
 
         then:

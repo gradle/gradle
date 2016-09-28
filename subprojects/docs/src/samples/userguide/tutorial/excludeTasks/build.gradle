@@ -1,15 +1,23 @@
-task compile << {
-    println 'compiling source'
+task compile {
+    doLast {
+        println 'compiling source'
+    }
 }
 
-task compileTest(dependsOn: compile) << {
-    println 'compiling unit tests'
+task compileTest(dependsOn: compile) {
+    doLast {
+        println 'compiling unit tests'
+    }
 }
 
-task test(dependsOn: [compile, compileTest]) << {
-    println 'running unit tests'
+task test(dependsOn: [compile, compileTest]) {
+    doLast {
+        println 'running unit tests'
+    }
 }
 
-task dist(dependsOn: [compile, test]) << {
-    println 'building the distribution'
+task dist(dependsOn: [compile, test]) {
+    doLast {
+        println 'building the distribution'
+    }
 }

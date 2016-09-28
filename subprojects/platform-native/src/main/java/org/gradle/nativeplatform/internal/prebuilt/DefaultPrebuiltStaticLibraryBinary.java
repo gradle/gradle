@@ -50,11 +50,11 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
 
     @Override
     public FileCollection getLinkFiles() {
-        return createFileCollection(getStaticLibraryFile(), "Link files", "Static library file");
+        return createFileCollection(getStaticLibraryFile(), "link files", "Static library file");
     }
 
     @Override
     public FileCollection getRuntimeFiles() {
-        return fileCollectionFactory.empty("Runtime files for " + getDisplayName());
+        return fileCollectionFactory.empty("runtime files for " + getDisplayName());
     }
 }

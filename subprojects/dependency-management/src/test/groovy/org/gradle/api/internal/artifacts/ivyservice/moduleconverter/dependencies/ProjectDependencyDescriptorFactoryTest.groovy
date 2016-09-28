@@ -49,7 +49,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     public void testCreateFromProjectDependency() {
         ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
-        DslOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency);
+        DslOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, projectDependency);
 
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());

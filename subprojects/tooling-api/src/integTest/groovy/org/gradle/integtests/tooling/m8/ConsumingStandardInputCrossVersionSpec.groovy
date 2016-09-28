@@ -82,8 +82,10 @@ description = "empty" + System.in.text
     def "consumes input when running tasks"() {
         given:
         file('build.gradle') << """
-task createFile << {
-    file('input.txt') << System.in.text
+task createFile {
+    doLast {
+        file('input.txt') << System.in.text
+    }
 }
 """
         when:

@@ -27,7 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class RealizableTaskCollection<T extends Task> implements TaskCollection<T>, Iterable<T> {
+public class RealizableTaskCollection<T extends Task> implements TaskCollection<T> {
 
     private final TaskCollection<T> delegate;
     private final Class<T> type;
@@ -70,6 +70,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public T getByName(String name, Closure configureClosure) throws UnknownTaskException {
         return delegate.getByName(name, configureClosure);
+    }
+
+    @Override
+    public T getByName(String name, Action<? super T> configureAction) throws UnknownTaskException {
+        return delegate.getByName(name, configureAction);
     }
 
     @Override

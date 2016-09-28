@@ -17,12 +17,9 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
-import spock.lang.IgnoreIf
-
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -359,8 +356,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel}) // Currently fails with --parallel due to dumb cyclic build detection
-    def "build dependency artifacts only once when depended on by different subprojects"() {
+    def "build dependency artifacts only once when depended on by multiple subprojects"() {
         given:
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
@@ -388,7 +384,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         execute(buildB, "jar")
 
         then:
-        executed ":buildC:jar", ":b2:jar", ":b1:jar"
+        // Need to assert order separately to cater for parallel execution
+        executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar"
+        executedInOrder ":buildC:jar", ":b2:classes", ":b2:jar"
     }
 
     def "builds multiple configurations for the same project via separate dependency paths"() {
@@ -430,53 +428,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar'), buildC.file("build/libs/buildC-1.0.jar")
     }
 
-    def "reports failure to build artifacts with cycle involving substituted other-build dependency"() {
-        given:
-        dependency "org.test:buildB:1.0"
-        buildB.buildFile << """
-            dependencies {
-                compile "org.test:buildC:1.0"
-            }
-"""
-
-        def buildC = singleProjectBuild("buildC") {
-            buildFile << """
-            apply plugin: 'java'
-            dependencies {
-                compile "org.test:buildB:1.0"
-            }
-"""
-        }
-        includedBuilds << buildC
-
-        when:
-        resolveArtifactsFails()
-
-        then:
-        failure.assertHasCause("Dependency cycle including project :buildB")
-    }
-
-    def "reports failure to build artifacts with cycle involving substituted subproject dependency"() {
-        given:
-        dependency "org.test:buildB:1.0"
-        buildB.buildFile << """
-            dependencies {
-                compile "org.test:b1:1.0"
-            }
-            project(":b1") {
-                dependencies {
-                    compile "org.test:buildB:1.0"
-                }
-            }
-"""
-
-        when:
-        resolveArtifactsFails()
-
-        then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-    }
-
     def "reports failure to build dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -490,7 +441,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':jar'")
+        failure
+            .assertHasDescription("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Execution failed for task ':jar'")
             .assertHasCause("jar task failed")
     }
 
@@ -517,7 +470,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':jar'")
+        failure
+            .assertHasDescription("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Execution failed for task ':jar'")
             .assertHasCause("jar task failed")
     }
 

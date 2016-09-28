@@ -15,17 +15,19 @@
  */
 package org.gradle.cache.internal.btree;
 
-import com.google.common.io.CountingInputStream;
-import com.google.common.io.CountingOutputStream;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.io.RandomAccessFileInputStream;
-import org.gradle.internal.io.RandomAccessFileOutputStream;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 public class FileBackedBlockStore implements BlockStore {
-    private RandomAccessFile file;
     private final File cacheFile;
+    private RandomAccessFile file;
+    private ByteOutput output;
+    private ByteInput input;
     private long nextBlock;
     private Factory factory;
     private long currentFileSize;
@@ -44,6 +46,8 @@ public class FileBackedBlockStore implements BlockStore {
         try {
             cacheFile.getParentFile().mkdirs();
             file = new RandomAccessFile(cacheFile, "rw");
+            output = new ByteOutput(file);
+            input = new ByteInput(file);
             currentFileSize = file.length();
             nextBlock = currentFileSize;
             if (currentFileSize == 0) {
@@ -122,9 +126,8 @@ public class FileBackedBlockStore implements BlockStore {
     }
 
     private final class BlockImpl extends Block {
-        private static final int HEADER_SIZE = 2 + INT_SIZE;
-        private static final int TAIL_SIZE = LONG_SIZE;
-        static final int BLOCK_MARKER = 0xCC;
+        private static final int HEADER_SIZE = 1 + INT_SIZE; // type, payload size
+        private static final int TAIL_SIZE = INT_SIZE;
 
         private BlockPointer pos;
         private int payloadSize;
@@ -175,16 +178,12 @@ public class FileBackedBlockStore implements BlockStore {
 
         public void write() throws Exception {
             long pos = getPos().getPos();
-            file.seek(pos);
 
-            CountingOutputStream countingOutputStream = new CountingOutputStream(new BufferedOutputStream(
-                new RandomAccessFileOutputStream(file)));
-            DataOutputStream outputStream = new DataOutputStream(countingOutputStream);
+            DataOutputStream outputStream = output.start(pos);
 
             BlockPayload payload = getPayload();
 
             // Write header
-            outputStream.writeByte(BLOCK_MARKER);
             outputStream.writeByte(payload.getType());
             outputStream.writeInt(payloadSize);
             long finalSize = pos + HEADER_SIZE + TAIL_SIZE + payloadSize;
@@ -193,8 +192,12 @@ public class FileBackedBlockStore implements BlockStore {
             payload.write(outputStream);
 
             // Write count
-            outputStream.writeLong(countingOutputStream.getCount());
-            outputStream.close();
+            long bytesWritten = output.getBytesWritten();
+            if (bytesWritten > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("Block payload exceeds maximum size");
+            }
+            outputStream.writeInt((int) bytesWritten);
+            output.done();
 
             // Pad
             if (currentFileSize < finalSize) {
@@ -209,21 +212,14 @@ public class FileBackedBlockStore implements BlockStore {
             if (pos + HEADER_SIZE >= currentFileSize) {
                 throw blockCorruptedException();
             }
-            file.seek(pos);
 
-            CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(
-                    new RandomAccessFileInputStream(file)));
-            DataInputStream inputStream = new DataInputStream(countingInputStream);
+            DataInputStream inputStream = input.start(pos);
 
             BlockPayload payload = getPayload();
 
             // Read header
             byte type = inputStream.readByte();
-            if (type != (byte) BLOCK_MARKER) {
-                throw blockCorruptedException();
-            }
-            type = inputStream.readByte();
-            if (type != (byte) payload.getType()) {
+            if (type != payload.getType()) {
                 throw blockCorruptedException();
             }
 
@@ -235,12 +231,12 @@ public class FileBackedBlockStore implements BlockStore {
             payload.read(inputStream);
 
             // Read and verify count
-            long actualCount = countingInputStream.getCount();
-            long count = inputStream.readLong();
+            long actualCount = input.getBytesRead();
+            long count = inputStream.readInt();
             if (actualCount != count) {
                 throw blockCorruptedException();
             }
-            inputStream.close();
+            input.done();
         }
 
         public RuntimeException blockCorruptedException() {
@@ -248,4 +244,5 @@ public class FileBackedBlockStore implements BlockStore {
                     FileBackedBlockStore.this));
         }
     }
+
 }

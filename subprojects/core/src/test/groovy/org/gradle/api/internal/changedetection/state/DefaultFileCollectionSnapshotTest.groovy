@@ -17,9 +17,11 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.DefaultNormalizedFileSnapshot
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder
 import spock.lang.Specification
+
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED
 
 class DefaultFileCollectionSnapshotTest extends Specification {
 
@@ -28,11 +30,11 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-        ], TaskFilePropertyCompareType.UNORDERED)
+        ], UNORDERED, false)
         def newSnapshot = new DefaultFileCollectionSnapshot([
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
-        ], TaskFilePropertyCompareType.UNORDERED)
+        ], UNORDERED, false)
         when:
         oldSnapshot.appendToCacheKey(builder)
         then:
@@ -57,11 +59,11 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-        ], TaskFilePropertyCompareType.ORDERED)
+        ], ORDERED, false)
         def newSnapshot = new DefaultFileCollectionSnapshot([
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
-        ], TaskFilePropertyCompareType.ORDERED)
+        ], ORDERED, false)
         when:
         oldSnapshot.appendToCacheKey(builder)
         then:

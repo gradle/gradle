@@ -52,11 +52,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                         assert it.target.toString() == 'org.gradle.test:a:1.3'
                     }
                 }
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0].selected.id instanceof ModuleComponentIdentifier
-                    assert deps[0].selected.id.version == '1.3'
+                task check {
+                    doLast {
+                        def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                        assert deps.size() == 1
+                        assert deps[0].selected.id instanceof ModuleComponentIdentifier
+                        assert deps[0].selected.id.version == '1.3'
+                    }
                 }
             }
 """
@@ -130,12 +132,14 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                assert deps*.selected.id.module == ['foo', 'impl', 'api']
-                assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
-                assert deps*.selected.selectionReason.forced         == [false, false, false]
-                assert deps*.selected.selectionReason.selectedByRule == [false, true, true]
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                    assert deps*.selected.id.module == ['foo', 'impl', 'api']
+                    assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
+                    assert deps*.selected.selectionReason.forced         == [false, false, false]
+                    assert deps*.selected.selectionReason.selectedByRule == [false, true, true]
+                }
             }
 """
 
@@ -178,13 +182,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                assert deps.size() == 2
-                deps.each {
-                    assert it.selected.id.version == '1.5'
-                    assert it.selected.selectionReason.selectedByRule
-                    assert it.selected.selectionReason.description == 'selected by rule'
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                    assert deps.size() == 2
+                    deps.each {
+                        assert it.selected.id.version == '1.5'
+                        assert it.selected.selectionReason.selectedByRule
+                        assert it.selected.selectionReason.description == 'selected by rule'
+                    }
                 }
             }
 """
@@ -220,14 +226,16 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                assert deps.size() == 2
-                deps.each {
-                    assert it.selected.id.version == '1.3'
-                    def reason = it.selected.selectionReason
-                    assert !reason.forced
-                    assert reason.selectedByRule
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                    assert deps.size() == 2
+                    deps.each {
+                        assert it.selected.id.version == '1.3'
+                        def reason = it.selected.selectionReason
+                        assert !reason.forced
+                        assert reason.selectedByRule
+                    }
                 }
             }
 """
@@ -263,14 +271,16 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                assert deps.size() == 2
-                deps.each {
-                    assert it.selected.id.version == '1.3'
-                    def reason = it.selected.selectionReason
-                    assert !reason.forced
-                    assert reason.selectedByRule
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                    assert deps.size() == 2
+                    deps.each {
+                        assert it.selected.id.version == '1.3'
+                        def reason = it.selected.selectionReason
+                        assert !reason.forced
+                        assert reason.selectedByRule
+                    }
                 }
             }
 """
@@ -308,20 +318,22 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                assert deps.find {
-                    it.selected.id.module == 'impl' &&
-                    it.selected.id.version == '1.5' &&
-                    it.selected.selectionReason.forced &&
-                    !it.selected.selectionReason.selectedByRule
-                }
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                    assert deps.find {
+                        it.selected.id.module == 'impl' &&
+                        it.selected.id.version == '1.5' &&
+                        it.selected.selectionReason.forced &&
+                        !it.selected.selectionReason.selectedByRule
+                    }
 
-                assert deps.find {
-                    it.selected.id.module == 'api' &&
-                    it.selected.id.version == '1.5' &&
-                    !it.selected.selectionReason.forced &&
-                    it.selected.selectionReason.selectedByRule
+                    assert deps.find {
+                        it.selected.id.module == 'api' &&
+                        it.selected.id.version == '1.5' &&
+                        !it.selected.selectionReason.forced &&
+                        it.selected.selectionReason.selectedByRule
+                    }
                 }
             }
 """
@@ -350,13 +362,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 it.useVersion '1.+'
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 1
-                assert deps[0].requested.version == '1.3'
-                assert deps[0].selected.id.version == '1.5'
-                assert !deps[0].selected.selectionReason.forced
-                assert deps[0].selected.selectionReason.selectedByRule
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0].requested.version == '1.3'
+                    assert deps[0].selected.id.version == '1.5'
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
             }
 """
 
@@ -389,14 +403,16 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                def a = modules.find { it.id.module == 'a' }
-                assert a.id.version == '1.4'
-                assert a.selectionReason.conflictResolution
-                assert a.selectionReason.selectedByRule
-                assert !a.selectionReason.forced
-                assert a.selectionReason.description == 'selected by rule and conflict resolution'
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    def a = modules.find { it.id.module == 'a' }
+                    assert a.id.version == '1.4'
+                    assert a.selectionReason.conflictResolution
+                    assert a.selectionReason.selectedByRule
+                    assert !a.selectionReason.forced
+                    assert a.selectionReason.description == 'selected by rule and conflict resolution'
+                }
             }
 """
 
@@ -427,13 +443,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                def a = modules.find { it.id.module == 'a' }
-                assert a.id.version == '1.3'
-                assert a.selectionReason.conflictResolution
-                assert !a.selectionReason.selectedByRule
-                assert !a.selectionReason.forced
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    def a = modules.find { it.id.module == 'a' }
+                    assert a.id.version == '1.3'
+                    assert a.selectionReason.conflictResolution
+                    assert !a.selectionReason.selectedByRule
+                    assert !a.selectionReason.forced
+                }
             }
 """
 
@@ -461,12 +479,14 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 1
-                deps[0].requested.version == 'default'
-                deps[0].selected.id.version == '1.3'
-                deps[0].selected.selectionReason.selectedByRule
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    deps[0].requested.version == 'default'
+                    deps[0].selected.id.version == '1.3'
+                    deps[0].selected.selectionReason.selectedByRule
+                }
             }
 """
 
@@ -495,13 +515,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 2
-                def api = deps.find { it.requested.module == 'api' }
-                api.requested.version == 'default'
-                api.selected.id.version == '1.3'
-                api.selected.selectionReason.selectedByRule
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 2
+                    def api = deps.find { it.requested.module == 'api' }
+                    api.requested.version == 'default'
+                    api.selected.id.version == '1.3'
+                    api.selected.selectionReason.selectedByRule
+                }
             }
 """
 
@@ -527,15 +549,17 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 it.useVersion '1.123.15' //does not exist
             }
 
-            task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 1
-                assert deps[0].attempted.group == 'org.utils'
-                assert deps[0].attempted.module == 'api'
-                assert deps[0].attempted.version == '1.123.15'
-                assert deps[0].attemptedReason.selectedByRule
-                assert deps[0].failure.message.contains('1.123.15')
-                assert deps[0].requested.version == '1.3'
+            task check {
+                doLast {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0].attempted.group == 'org.utils'
+                    assert deps[0].attempted.module == 'api'
+                    assert deps[0].attempted.version == '1.123.15'
+                    assert deps[0].attemptedReason.selectedByRule
+                    assert deps[0].failure.message.contains('1.123.15')
+                    assert deps[0].requested.version == '1.3'
+                }
             }
 """
 
@@ -583,9 +607,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                configurations.conf.resolve()
-                assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+            task check {
+                doLast {
+                    configurations.conf.resolve()
+                    assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+                }
             }
 """
 
@@ -650,15 +676,17 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                assert !modules.find { it.id.module == 'a' }
-                def b = modules.find { it.id.module == 'b' }
-                assert b.id.version == '2.1'
-                assert b.selectionReason.conflictResolution
-                assert b.selectionReason.selectedByRule
-                assert !b.selectionReason.forced
-                assert b.selectionReason.description == 'selected by rule and conflict resolution'
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    assert !modules.find { it.id.module == 'a' }
+                    def b = modules.find { it.id.module == 'b' }
+                    assert b.id.version == '2.1'
+                    assert b.selectionReason.conflictResolution
+                    assert b.selectionReason.selectedByRule
+                    assert !b.selectionReason.forced
+                    assert b.selectionReason.description == 'selected by rule and conflict resolution'
+                }
             }
 """
 
@@ -819,9 +847,11 @@ conf
                 conf 'org:b:3.0', 'org:b:4.0', 'org:a:1.0', 'org:a:2.0'
             }
 
-            task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                assert modules.find { it.id.module == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    assert modules.find { it.id.module == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
+                }
             }
 """
 
@@ -834,7 +864,7 @@ conf
         repositories {
             maven { url "${mavenRepo.uri}" }
         }
-        task resolveConf << { configurations.conf.files }
+        task resolveConf { doLast { configurations.conf.files } }
 
         //resolving the configuration at the end:
         gradle.startParameter.taskNames += 'resolveConf'

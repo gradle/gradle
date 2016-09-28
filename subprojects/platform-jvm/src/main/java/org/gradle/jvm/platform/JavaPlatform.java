@@ -18,6 +18,7 @@ package org.gradle.jvm.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.tasks.Internal;
 import org.gradle.platform.base.Platform;
 
 /**
@@ -40,6 +41,7 @@ import org.gradle.platform.base.Platform;
  */
 @Incubating
 public interface JavaPlatform extends Platform {
+    @Internal
     JavaVersion getTargetCompatibility();
     void setTargetCompatibility(JavaVersion targetCompatibility);
 }

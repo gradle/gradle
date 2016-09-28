@@ -22,7 +22,7 @@ import org.gradle.testkit.runner.TaskOutcome
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
-    public static final ANDROID_PLUGIN_VERSION = '2.2.0-beta2'
+    public static final ANDROID_PLUGIN_VERSION = '2.2.0'
 
     def "android application plugin"() {
         given:

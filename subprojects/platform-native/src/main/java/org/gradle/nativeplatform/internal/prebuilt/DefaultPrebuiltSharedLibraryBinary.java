@@ -64,11 +64,11 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
 
     @Override
     public FileCollection getLinkFiles() {
-        return createFileCollection(getSharedLibraryLinkFile(), "Link files", "Shared library link file");
+        return createFileCollection(getSharedLibraryLinkFile(), "link files", "Shared library link files");
     }
 
     @Override
     public FileCollection getRuntimeFiles() {
-        return createFileCollection(getSharedLibraryFile(), "Runtime files", "Shared library runtime file");
+        return createFileCollection(getSharedLibraryFile(), "runtime files", "Shared library runtime files");
     }
 }

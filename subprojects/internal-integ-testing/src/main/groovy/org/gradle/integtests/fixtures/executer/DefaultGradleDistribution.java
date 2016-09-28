@@ -135,13 +135,20 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    public boolean isToolingApiLocksBuildActionClasses() {
+        return isSameOrOlder("3.0");
+    }
+
+    @Override
     public boolean isToolingApiLoggingInEmbeddedModeSupported() {
         return isSameOrNewer("2.9-rc-1");
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("3.1-rc-1")) {
-            return VersionNumber.parse("2.20");
+        if (isSameOrNewer("3.2-rc-1")) {
+            return VersionNumber.parse("2.22");
+        } else if (isSameOrNewer("3.1-rc-1")) {
+            return VersionNumber.parse("2.21");
         } else if (isSameOrNewer("3.0-milestone-1")) {
             return VersionNumber.parse("2.17");
         } else if (isSameOrNewer("2.8-rc-1")) {

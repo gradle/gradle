@@ -73,7 +73,6 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
 
         LogManager.getLogManager().reset();
         SLF4JBridgeHandler.install();
-        logger.setLevel(java.util.logging.Level.FINE);
         installed = true;
     }
 

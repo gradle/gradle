@@ -54,6 +54,15 @@ public class ClassLoaderCache {
         }
     }
 
+    public ClassLoaderDetails maybeGetDetails(ClassLoader classLoader) {
+        lock.lock();
+        try {
+            return classLoaderDetails.getIfPresent(classLoader);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public ClassLoaderDetails getDetails(ClassLoader classLoader, Transformer<ClassLoaderDetails, ClassLoader> factory) {
         lock.lock();
         try {

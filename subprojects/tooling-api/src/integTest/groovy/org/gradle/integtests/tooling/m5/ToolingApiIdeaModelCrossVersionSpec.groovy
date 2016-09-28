@@ -285,7 +285,6 @@ project(':impl') {
 
     def "offline model should not resolve external dependencies"() {
 
-
         file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'

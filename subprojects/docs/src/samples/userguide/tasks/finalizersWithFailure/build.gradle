@@ -1,9 +1,13 @@
-task taskX << {
-    println 'taskX'
-    throw new RuntimeException()
+task taskX {
+    doLast {
+        println 'taskX'
+        throw new RuntimeException()
+    }
 }
-task taskY << {
-    println 'taskY'
+task taskY {
+    doLast {
+        println 'taskY'
+    }
 }
 
 taskX.finalizedBy taskY

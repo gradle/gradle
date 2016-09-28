@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 public class SingleParentCopySpec extends DefaultCopySpec {
 
-    CopySpecResolver parentResolver;
+    private final CopySpecResolver parentResolver;
 
     public SingleParentCopySpec(FileResolver resolver, Instantiator instantiator, CopySpecResolver parentResolver) {
         super(resolver, instantiator);
@@ -30,13 +30,13 @@ public class SingleParentCopySpec extends DefaultCopySpec {
 
     public CopySpecInternal addChild() {
         DefaultCopySpec child = new SingleParentCopySpec(fileResolver, instantiator, buildResolverRelativeToParent(parentResolver));
-        childSpecs.add(child);
+        addChildSpec(child);
         return child;
     }
 
     protected CopySpecInternal addChildAtPosition(int position) {
         DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, instantiator, buildResolverRelativeToParent(parentResolver));
-        childSpecs.add(position, child);
+        addChildSpec(position, child);
         return child;
     }
 

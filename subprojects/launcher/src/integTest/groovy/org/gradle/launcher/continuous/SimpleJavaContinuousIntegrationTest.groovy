@@ -55,7 +55,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds()
-        ":compileJava" in skippedTasks
+        ":compileJava" in nonSkippedTasks
         ":build" in executedTasks
     }
 

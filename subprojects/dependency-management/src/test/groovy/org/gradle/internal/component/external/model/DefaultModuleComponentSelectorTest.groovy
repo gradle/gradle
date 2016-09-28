@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultModuleComponentSelectorTest extends Specification {

@@ -46,9 +46,11 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
            classpath = sourceSets.custom.runtimeClasspath
         }
 
-        task verify << {
-           assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-           assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+        task verify {
+            doLast {
+                assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+                assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+            }
         }
         """
 
@@ -76,9 +78,11 @@ task scaladoc(type: ScalaDoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
-task verify << {
-    assert configurations.customCompile.state.toString() == "UNRESOLVED"
-    assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+task verify {
+    doLast {
+        assert configurations.customCompile.state.toString() == "UNRESOLVED"
+        assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+    }
 }
         """
 

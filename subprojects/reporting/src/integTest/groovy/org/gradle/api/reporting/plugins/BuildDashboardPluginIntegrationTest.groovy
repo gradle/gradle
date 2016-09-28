@@ -95,7 +95,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     private void failingDependenciesForTestTask() {
         buildFile << """
-            task failingTask << { throw new RuntimeException() }
+            task failingTask { doLast { throw new RuntimeException() } }
 
             test.dependsOn failingTask
         """

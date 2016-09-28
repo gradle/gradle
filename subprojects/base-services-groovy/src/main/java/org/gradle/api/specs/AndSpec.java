@@ -65,6 +65,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return new AndSpec<T>(combinedSpecs);
     }
 
+    @SuppressWarnings("unchecked")
     public AndSpec<T> and(Closure spec) {
         return and(new ClosureSpec<T>(spec));
     }

@@ -72,6 +72,11 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
         }
 
         @Override
+        public NativeLibraryRequirement withProjectPath(String projectPath) {
+            return new ApiAdaptedNativeLibraryRequirement(original.withProjectPath(projectPath));
+        }
+
+        @Override
         public String getProjectPath() {
             return original.getProjectPath();
         }

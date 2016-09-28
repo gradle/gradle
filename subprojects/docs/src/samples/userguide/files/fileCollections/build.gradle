@@ -12,42 +12,46 @@ file('src2/dir1').mkdirs()
 file('src2/dir2').mkdirs()
 
 // START SNIPPET closure
-task list << {
-    File srcDir
+task list {
+    doLast {
+        File srcDir
 
-    // Create a file collection using a closure
-    collection = files { srcDir.listFiles() }
+        // Create a file collection using a closure
+        collection = files { srcDir.listFiles() }
 
-    srcDir = file('src')
-    println "Contents of $srcDir.name"
-    collection.collect { relativePath(it) }.sort().each { println it }
+        srcDir = file('src')
+        println "Contents of $srcDir.name"
+        collection.collect { relativePath(it) }.sort().each { println it }
 
-    srcDir = file('src2')
-    println "Contents of $srcDir.name"
-    collection.collect { relativePath(it) }.sort().each { println it }
+        srcDir = file('src2')
+        println "Contents of $srcDir.name"
+        collection.collect { relativePath(it) }.sort().each { println it }
+    }
 }
 // END SNIPPET closure
 
-task usage << {
-collection = files('src/file1.txt')
+task usage {
+    doLast {
+        collection = files('src/file1.txt')
 
-//START SNIPPET usage
-// Iterate over the files in the collection
-collection.each {File file ->
-    println file.name
-}
+        //START SNIPPET usage
+        // Iterate over the files in the collection
+        collection.each { File file ->
+            println file.name
+        }
 
-// Convert the collection to various types
-Set set = collection.files
-Set set2 = collection as Set
-List list = collection as List
-String path = collection.asPath
-File file = collection.singleFile
-File file2 = collection as File
+        // Convert the collection to various types
+        Set set = collection.files
+        Set set2 = collection as Set
+        List list = collection as List
+        String path = collection.asPath
+        File file = collection.singleFile
+        File file2 = collection as File
 
-// Add and subtract collections
-def union = collection + files('src/file3.txt')
-def different = collection - files('src/file3.txt')
+        // Add and subtract collections
+        def union = collection + files('src/file3.txt')
+        def different = collection - files('src/file3.txt')
 
-//END SNIPPET usage
+        //END SNIPPET usage
+    }
 }

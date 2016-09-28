@@ -18,7 +18,13 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.scala.AntScalaDoc;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -58,8 +64,7 @@ public class ScalaDoc extends SourceTask {
      *
      * @return The classpath.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -71,8 +76,7 @@ public class ScalaDoc extends SourceTask {
     /**
      * Returns the classpath to use to load the ScalaDoc tool.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
     }

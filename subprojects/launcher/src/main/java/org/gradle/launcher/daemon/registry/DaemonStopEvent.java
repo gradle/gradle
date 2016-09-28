@@ -33,13 +33,14 @@ public class DaemonStopEvent implements Serializable {
     public static final org.gradle.internal.serialize.Serializer<DaemonStopEvent> SERIALIZER = new Serializer();
 
     private final Date timestamp;
-    private final long pid;
+    @Nullable
+    private final Long pid;
     @Nullable
     private final DaemonExpirationStatus status;
     @Nullable
     private final String reason;
 
-    public DaemonStopEvent(Date timestamp, long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
+    public DaemonStopEvent(Date timestamp, @Nullable Long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
         this.timestamp = timestamp;
         this.status = status;
         this.reason = reason;
@@ -50,7 +51,8 @@ public class DaemonStopEvent implements Serializable {
         return timestamp;
     }
 
-    public long getPid() {
+    @Nullable
+    public Long getPid() {
         return pid;
     }
 

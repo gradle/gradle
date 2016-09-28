@@ -98,6 +98,11 @@ public class ExecuterDecoratingGradleDistribution implements GradleDistribution 
     }
 
     @Override
+    public boolean isToolingApiLocksBuildActionClasses() {
+        return distribution.isToolingApiLocksBuildActionClasses();
+    }
+
+    @Override
     public VersionNumber getArtifactCacheLayoutVersion() {
         return distribution.getArtifactCacheLayoutVersion();
     }

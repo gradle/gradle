@@ -59,7 +59,6 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
     @Override
     public void close() throws IOException {
         loadedClasses.clear();
-        ClassLoaderUtils.tryClose(parent);
     }
 
     public static class Spec extends ClassLoaderSpec {

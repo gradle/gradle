@@ -57,8 +57,10 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
             class Message { public static final String MSG = "::msg::" }
         """
         buildScript """
-            task echoMsg << {
-                println pkg.Message.MSG
+            task echoMsg {
+                doLast {
+                    println pkg.Message.MSG
+                }
             }
         """
 
@@ -77,15 +79,19 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
             def startLatch = new java.util.concurrent.CountDownLatch(1)
             def stopLatch = new java.util.concurrent.CountDownLatch(1)
             project(":a") {
-              task t << {
-                startLatch.countDown() // allow b to finish
-                stopLatch.await() // wait for d to start
+              task t {
+                doLast {
+                  startLatch.countDown() // allow b to finish
+                  stopLatch.await() // wait for d to start
+                }
               }
             }
 
             project(":b") {
-              task t << {
-                startLatch.await() // wait for a to start
+              task t {
+                doLast {
+                  startLatch.await() // wait for a to start
+                }
               }
             }
 

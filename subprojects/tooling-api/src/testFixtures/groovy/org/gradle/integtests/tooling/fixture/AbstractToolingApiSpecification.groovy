@@ -106,19 +106,19 @@ abstract class AbstractToolingApiSpecification extends Specification {
     }
 
     TestFile singleProjectBuildInSubfolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(projectDir).singleProjectBuild(projectName, projectDir.file(projectName), cl)
+        new BuildTestFixture(projectDir).withBuildInSubDir().singleProjectBuild(projectName, cl)
     }
 
     TestFile singleProjectBuildInRootFolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(projectDir).singleProjectBuild(projectName, projectDir, cl)
+        new BuildTestFixture(projectDir).withBuildInRootDir().singleProjectBuild(projectName, cl)
     }
 
     TestFile multiProjectBuildInSubFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(projectDir).multiProjectBuild(projectName, projectDir.file(projectName), subprojects, cl)
+        new BuildTestFixture(projectDir).withBuildInSubDir().multiProjectBuild(projectName, subprojects, cl)
     }
 
     void multiProjectBuildInRootFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(projectDir).multiProjectBuild(projectName, projectDir, subprojects, cl)
+        new BuildTestFixture(projectDir).withBuildInRootDir().multiProjectBuild(projectName, subprojects, cl)
     }
 
     def includeBuilds(File... includedBuilds) {

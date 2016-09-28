@@ -3,8 +3,10 @@ task myTask {
     ext.myProperty = "myValue"
 }
 
-task printTaskProperties << {
-    println myTask.myProperty
+task printTaskProperties {
+    doLast {
+        println myTask.myProperty
+    }
 }
 // END SNIPPET taskProperties
 
@@ -30,9 +32,11 @@ sourceSets {
     }
 }
 
-task printProperties << {
-    println springVersion
-    println emailNotification
-    sourceSets.matching { it.purpose == "production" }.each { println it.name }
+task printProperties {
+    doLast {
+        println springVersion
+        println emailNotification
+        sourceSets.matching { it.purpose == "production" }.each { println it.name }
+    }
 }
 // END SNIPPET extraProperties

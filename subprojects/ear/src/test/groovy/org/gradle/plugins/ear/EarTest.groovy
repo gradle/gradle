@@ -29,6 +29,8 @@ class EarTest extends AbstractArchiveTaskTest {
     def setup() {
         ear = createTask(Ear)
         configure(ear)
+        // This would normally be set by the EarPlugin
+        ear.libDirName = "lib"
     }
 
     @Override

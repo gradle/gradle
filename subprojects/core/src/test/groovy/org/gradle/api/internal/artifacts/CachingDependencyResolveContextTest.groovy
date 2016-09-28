@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.UnionFileCollection
 
 class CachingDependencyResolveContextTest extends Specification {
-    private final CachingDependencyResolveContext context = new CachingDependencyResolveContext(true)
+    private final CachingDependencyResolveContext context = new CachingDependencyResolveContext(true, null)
 
     def resolvesAFileCollection() {
         ResolvableDependency dependency = Mock()

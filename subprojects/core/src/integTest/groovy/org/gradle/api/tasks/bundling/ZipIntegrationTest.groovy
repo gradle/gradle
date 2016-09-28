@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
@@ -189,16 +188,17 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         null            | "metadataCharset must not be null"
     }
 
-    @NotYetImplemented
     @Issue("https://issues.gradle.org/browse/GRADLE-1346")
-    def "Zip task notices updates to build.gradle"() {
+    def "task is out of date after `into` changes"() {
         file("src/main/java/Main.java") << "public class Main {}"
         buildFile << """
             apply plugin: "java"
 
             task zip(type: Zip) {
                 into('src') {
-                    from sourceSets.main.java
+                    into('data') {
+                        from sourceSets.main.java
+                    }
                 }
             }
         """
@@ -211,7 +211,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "zip"
         then:
-        skippedTasks as List == ["zip"]
+        skippedTasks as List == [":zip"]
 
         buildFile.delete()
         buildFile << """
@@ -219,15 +219,19 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
 
             task zip(type: Zip) {
                 into('sources') {
-                    from sourceSets.main.java
+                    into('data') {
+                        from sourceSets.main.java
+                    }
                 }
             }
         """
 
         when:
-        succeeds "zip"
+        succeeds "zip", "--info"
         then:
         skippedTasks.empty
+        output.contains "Value of input property 'rootSpec\$1\$1.destPath' has changed for task ':zip'"
+        output.contains "Value of input property 'rootSpec\$1\$1\$1.destPath' has changed for task ':zip'"
     }
 
     private def createTestFiles() {

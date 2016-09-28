@@ -40,8 +40,10 @@ $ReportDaemonStatusClient.STATUS_FOOTER.*""".toString()
     def "reports idle, busy and stopped statuses of daemons"() {
         given:
         buildFile << """
-task block << {
-    new URL("$server.uri").text
+task block {
+    doLast {
+        new URL("$server.uri").text
+    }
 }
 """
         daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))

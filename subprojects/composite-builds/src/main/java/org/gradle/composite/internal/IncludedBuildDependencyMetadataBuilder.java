@@ -50,7 +50,7 @@ public class IncludedBuildDependencyMetadataBuilder {
     }
 
     public void build(IncludedBuildInternal build) {
-        Gradle gradle = build.configure();
+        Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
             registerProject(build, (ProjectInternal) project);
         }
@@ -77,7 +77,7 @@ public class IncludedBuildDependencyMetadataBuilder {
             LocalConfigurationMetadata originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);
             compositeComponentMetadata.addConfiguration(configurationName,
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
-                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), new DefaultTaskDependency());
+                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes(), new DefaultTaskDependency());
 
             final Set<String> targetTasks = determineTargetTasks(originalConfiguration);
 

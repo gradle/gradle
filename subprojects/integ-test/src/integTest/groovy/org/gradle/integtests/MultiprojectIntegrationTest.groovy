@@ -25,9 +25,11 @@ class MultiprojectIntegrationTest extends AbstractIntegrationTest {
         testFile('build.gradle') << '''
             allprojects {
                 def destDir = buildDir
-                task test << {
-                    destDir.mkdirs()
-                    new File(destDir, 'test.txt') << 'content'
+                task test {
+                    doLast {
+                        destDir.mkdirs()
+                        new File(destDir, 'test.txt') << 'content'
+                    }
                 }
                 gradle.taskGraph.whenReady {
                     destDir.mkdirs()

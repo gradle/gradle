@@ -23,6 +23,7 @@ public class ProcessTemplates extends DefaultTask {
 
     @SkipWhenEmpty
     @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
     public FileCollection getSourceFiles() {
         return this.sourceFiles;
     }
@@ -67,4 +68,6 @@ public class ProcessTemplates extends DefaultTask {
             }
         });
     }
+// START SNIPPET custom-task-class
 }
+// END SNIPPET custom-task-class

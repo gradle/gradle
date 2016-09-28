@@ -49,11 +49,17 @@ public class CreateEmptyDirectory extends DefaultTask {
     }
 }
 '''
-        when:
+
+        expect:
+        succeeds("checkCreated")
+        succeeds("checkCreated")
+        result.assertTaskSkipped(":createEmpty")
+
         succeeds("clean", "checkCreated")
-        succeeds("clean", "checkCreated")
-        then:
-        noExceptionThrown()
+        result.assertTaskNotSkipped(":createEmpty")
+
+        succeeds("checkCreated")
+        result.assertTaskSkipped(":createEmpty")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-834")
@@ -68,7 +74,9 @@ public class CreateEmptyDirectory extends DefaultTask {
 
         when:
         succeeds "jar"
+
         then:
+        result.assertTaskSkipped(":classes")
         outputContains ":classes UP-TO-DATE"
     }
 }

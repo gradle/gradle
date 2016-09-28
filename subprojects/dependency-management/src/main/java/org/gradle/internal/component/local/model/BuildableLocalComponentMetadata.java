@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
+import java.util.Map;
 import java.util.Set;
 
 public interface BuildableLocalComponentMetadata {
@@ -28,8 +29,9 @@ public interface BuildableLocalComponentMetadata {
 
     /**
      * @param hierarchy Must include name
+     * @param attributes the attributes of the configuration. Can be null.
      */
-    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies);
+    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, TaskDependency buildDependencies);
 
     void addDependency(LocalOriginDependencyMetadata dependency);
 

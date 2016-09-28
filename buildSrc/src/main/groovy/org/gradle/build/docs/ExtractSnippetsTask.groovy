@@ -15,21 +15,32 @@
  */
 package org.gradle.build.docs
 
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceTask
+import org.gradle.api.tasks.TaskAction
+
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.file.FileVisitDetails
-
 /**
  * Produces the snippets files for a set of sample source files.
  */
+@CacheableTask
 public class ExtractSnippetsTask extends SourceTask {
     @OutputDirectory
     File destDir
     @OutputDirectory
     File snippetsDir
+
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource()
+    }
 
     @TaskAction
     def extract() {

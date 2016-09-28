@@ -24,8 +24,10 @@ class BrokenCompressedResourceIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 def resource = resources.bzip2("compressed")
 
-task show << {
-    resource.read()
+task show {
+    doLast {
+        resource.read()
+    }
 }
 """
 
@@ -43,8 +45,10 @@ task show << {
         buildFile << """
 def resource = resources.bzip2("compressed")
 
-task show << {
-    resource.read()
+task show {
+    doLast {
+        resource.read()
+    }
 }
 """
 
@@ -60,8 +64,10 @@ task show << {
         buildFile << """
 def resource = resources.gzip("compressed")
 
-task show << {
-    resource.read()
+task show {
+    doLast {
+        resource.read()
+    }
 }
 """
 
@@ -79,8 +85,10 @@ task show << {
         buildFile << """
 def resource = resources.gzip("compressed")
 
-task show << {
-    resource.read()
+task show {
+    doLast {
+        resource.read()
+    }
 }
 """
 

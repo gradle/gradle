@@ -230,11 +230,11 @@
             </para>
             <para>
                 The built-in dependencyInsight task is a part of the 'Help' tasks group.
-                The task needs to configured with the dependency and the configuration.
+                The task needs to be configured with the dependency and the configuration.
                 The report looks for the dependencies that match the specified dependency spec in the specified configuration.
-                If Java related plugin is applied, the dependencyInsight task is pre-configured with 'compile' configuration because typically it's the compile dependencies we are interested in.
+                If Java related plugins are applied, the dependencyInsight task is pre-configured with the 'compile' configuration because typically it's the compile dependencies we are interested in.
                 You should specify the dependency you are interested in via the command line '--dependency' option.
-                If you don't like the defaults you may select the configuration via '--configuration' option.
+                If you don't like the defaults you may select the configuration via the '--configuration' option.
                 For more information see the <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/> class in the API documentation.
             </para>
         </section>

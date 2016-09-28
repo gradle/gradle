@@ -28,9 +28,11 @@ class CompressedResourceIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 def resource = resources.bzip2("compressed")
 
-task show << {
-    def stream = resource.read()
-    try { println stream.text } finally { stream.close() }
+task show {
+    doLast {
+        def stream = resource.read()
+        try { println stream.text } finally { stream.close() }
+    }
 }
 """
 
@@ -50,9 +52,11 @@ task show << {
         buildFile << """
 def resource = resources.gzip("compressed")
 
-task show << {
-    def stream = resource.read()
-    try { println stream.text } finally { stream.close() }
+task show {
+    doLast {
+        def stream = resource.read()
+        try { println stream.text } finally { stream.close() }
+    }
 }
 """
 

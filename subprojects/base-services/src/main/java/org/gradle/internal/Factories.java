@@ -15,6 +15,9 @@
  */
 package org.gradle.internal;
 
+import java.lang.ref.SoftReference;
+import java.util.concurrent.atomic.AtomicReference;
+
 public abstract class Factories {
     public static <T> Factory<T> toFactory(final Runnable runnable) {
         return new Factory<T>() {
@@ -35,5 +38,28 @@ public abstract class Factories {
 
     public static <T> Factory<T> constantNull() {
         return constant(null);
+    }
+
+    public static <T> Factory<T> softReferenceCache(Factory<T> factory) {
+        return new CachingSoftReferenceFactory<T>(factory);
+    }
+
+    private static class CachingSoftReferenceFactory<T> implements Factory<T> {
+        private final Factory<T> factory;
+        private final AtomicReference<SoftReference<T>> cachedReference = new AtomicReference<SoftReference<T>>();
+
+        public CachingSoftReferenceFactory(Factory<T> factory) {
+            this.factory = factory;
+        }
+
+        public T create() {
+            SoftReference<T> reference = cachedReference.get();
+            T value = reference != null ? reference.get() : null;
+            if (value == null) {
+                value = factory.create();
+                cachedReference.set(new SoftReference<T>(value));
+            }
+            return value;
+        }
     }
 }

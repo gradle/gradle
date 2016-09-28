@@ -45,6 +45,11 @@ public class PropertiesToStartParameterConverter {
             }
         }
 
+        String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
+        if (isTrue(taskOutputCache)) {
+            startParameter.setTaskOutputCacheEnabled(true);
+        }
+
         return startParameter;
     }
 

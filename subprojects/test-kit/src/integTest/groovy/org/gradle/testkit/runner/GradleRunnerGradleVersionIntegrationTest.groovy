@@ -37,10 +37,12 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         given:
         requireIsolatedTestKitDir = true
         buildFile << """
-            task writeVersion << {
-                file("version.txt").with {
-                    createNewFile()
-                    text = gradle.gradleVersion
+            task writeVersion {
+                doLast {
+                    file("version.txt").with {
+                        createNewFile()
+                        text = gradle.gradleVersion
+                    }
                 }
             }
         """
@@ -67,9 +69,11 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         given:
         requireIsolatedTestKitDir = true
 
-        buildFile << '''task v << {
-            file("gradleVersion.txt").text = gradle.gradleVersion
-            file("gradleHomeDir.txt").text = gradle.gradleHomeDir.canonicalPath
+        buildFile << '''task v {
+            doLast {
+                file("gradleVersion.txt").text = gradle.gradleVersion
+                file("gradleHomeDir.txt").text = gradle.gradleHomeDir.canonicalPath
+            }
         }'''
 
         when:

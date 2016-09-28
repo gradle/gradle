@@ -17,22 +17,23 @@ package org.gradle.internal.classloader;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
 public abstract class ClassLoaderUtils {
+    /**
+     * Returns the ClassLoader that contains the Java platform classes only. This is different to {@link ClassLoader#getSystemClassLoader()}, which includes the application classes in addition to the platform classes.
+     */
+    public static ClassLoader getPlatformClassLoader() {
+        return ClassLoader.getSystemClassLoader().getParent();
+    }
+
     public static void tryClose(@Nullable ClassLoader classLoader) {
-        if (classLoader instanceof Closeable) {
-            try {
-                ((Closeable) classLoader).close();
-            } catch (IOException ignore) {
-                // do nothing.
-            }
-        }
+        CompositeStoppable.stoppable(classLoader).stop();
     }
 
     public static void disableUrlConnectionCaching() {

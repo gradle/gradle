@@ -33,9 +33,8 @@ class DefaultPrebuiltStaticLibraryBinaryTest extends Specification {
         expect:
         binary.toString() == "prebuilt static library 'lib:name'"
         binary.displayName == "prebuilt static library 'lib:name'"
-        binary.headerDirs.toString() == "Headers for prebuilt static library 'lib:name'"
-        binary.linkFiles.toString() == "Link files for prebuilt static library 'lib:name'"
-        binary.runtimeFiles.toString() == "Runtime files for prebuilt static library 'lib:name'"
+        binary.linkFiles.toString() == "link files for prebuilt static library 'lib:name'"
+        binary.runtimeFiles.toString() == "runtime files for prebuilt static library 'lib:name'"
     }
 
     def "can set static library file"() {

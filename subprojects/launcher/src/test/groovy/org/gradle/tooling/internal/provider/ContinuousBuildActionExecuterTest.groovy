@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.StartParameter
+import org.gradle.api.Project
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -66,6 +67,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def globalServices = Stub(ServiceRegistry)
     def executer = executer()
     def sessionService = Mock(Stoppable)
+    def taskInternal = Stub(TaskInternal)
 
     private File file = new File('file')
 
@@ -80,6 +82,11 @@ class ContinuousBuildActionExecuterTest extends Specification {
         ]
         waiterFactory.createChangeWaiter(_) >> waiter
         waiter.isWatching() >> true
+        def project = Stub(Project)
+        taskInternal.getProject() >> project
+        def rootProject = Stub(Project)
+        project.getRootProject() >> rootProject
+        rootProject.getRootDir() >> new File('rootDir')
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -212,7 +219,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void declareInput(File file) {
-        listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
+        listenerManager.getBroadcaster(TaskInputsListener).onExecute(taskInternal, new SimpleFileCollection(file))
     }
 
     private ContinuousBuildActionExecuter executer() {

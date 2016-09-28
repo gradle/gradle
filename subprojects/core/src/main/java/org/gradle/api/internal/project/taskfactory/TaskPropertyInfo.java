@@ -16,22 +16,16 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
 
-public class TaskPropertyInfo implements TaskPropertyActionContext {
+public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
     private static final ValidationAction NO_OP_VALIDATION_ACTION = new ValidationAction() {
         public void validate(String propertyName, Object value, Collection<String> messages) {
         }
@@ -52,24 +46,22 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
         }
     };
 
-    private final TaskClassValidator validator;
     private final TaskPropertyInfo parent;
     private final String propertyName;
     private final Method method;
-    // Would be more correct as a Set, but lists are cheaper and duplicates don't actually cause any trouble here
-    private final List<Annotation> annotations = Lists.newLinkedList();
-    private ValidationAction validationAction = NO_OP_VALIDATION_ACTION;
-    private ValidationAction notNullValidator = NO_OP_VALIDATION_ACTION;
-    private UpdateAction configureAction = NO_OP_CONFIGURATION_ACTION;
-    private boolean validationRequired;
-    private Field instanceVariableField;
+    private final Class<?> type;
+    private final ValidationAction validationAction;
+    private final UpdateAction configureAction;
+    private final boolean optional;
 
-    TaskPropertyInfo(TaskClassValidator validator, TaskPropertyInfo parent, String propertyName, Method method, Field instanceVariableField) {
-        this.validator = validator;
+    TaskPropertyInfo(TaskPropertyInfo parent, String propertyName, Method method, Class<?> type, ValidationAction validationAction, UpdateAction configureAction, boolean optional) {
         this.parent = parent;
         this.propertyName = propertyName;
         this.method = method;
-        this.instanceVariableField = instanceVariableField;
+        this.type = type;
+        this.validationAction = validationAction == null ? NO_OP_VALIDATION_ACTION : validationAction;
+        this.configureAction = configureAction == null ? NO_OP_CONFIGURATION_ACTION : configureAction;
+        this.optional = optional;
     }
 
     @Override
@@ -77,90 +69,33 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
         return propertyName;
     }
 
-    @Override
     public String getName() {
         return propertyName;
     }
 
-    public Field getInstanceVariableField() {
-        return instanceVariableField;
-    }
-
-    public void setInstanceVariableField(Field instanceVariableField) {
-        this.instanceVariableField = instanceVariableField;
-    }
-
-    @Override
     public Class<?> getType() {
-        return instanceVariableField != null ? instanceVariableField.getType() : method.getReturnType();
-    }
-
-    public void addAnnotations(Annotation... annotations) {
-        Collections.addAll(this.annotations, annotations);
-    }
-
-    @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        for (Annotation annotation : annotations) {
-            if (annotationType.isInstance(annotation)) {
-                return Cast.uncheckedCast(annotation);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
-    }
-
-    @Override
-    public void setValidationAction(ValidationAction action) {
-        validationAction = action;
+        return type;
     }
 
     public UpdateAction getConfigureAction() {
         return configureAction;
     }
 
-    @Override
-    public void setConfigureAction(UpdateAction action) {
-        configureAction = action;
-    }
-
-    public void setNotNullValidator(ValidationAction notNullValidator) {
-        this.notNullValidator = notNullValidator;
-    }
-
-    @Override
-    public void attachActions(Class<?> type) {
-        validator.attachActions(this, type);
-    }
-
-    public void attachActions(PropertyAnnotationHandler handler) {
-        if (handler.attachActions(this)) {
-            validationRequired = true;
-        }
-    }
-
-    public boolean isValidationRequired() {
-        return validationRequired;
-    }
-
     public TaskPropertyValue getValue(Object rootObject) {
-        Object bean = rootObject;
+        final Object bean;
         if (parent != null) {
             TaskPropertyValue parentValue = parent.getValue(rootObject);
             if (parentValue.getValue() == null) {
                 return NO_OP_VALUE;
             }
             bean = parentValue.getValue();
+        } else {
+            bean = rootObject;
         }
 
-        final Object finalBean = bean;
         final Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
             public Object create() {
-                return JavaReflectionUtil.method(finalBean, Object.class, method).invoke(finalBean);
+                return JavaReflectionUtil.method(Object.class, method).invoke(bean);
             }
         });
 
@@ -172,7 +107,9 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
 
             @Override
             public void checkNotNull(Collection<String> messages) {
-                notNullValidator.validate(propertyName, value, messages);
+                if (value == null && !optional) {
+                    messages.add(String.format("No value has been specified for property '%s'.", propertyName));
+                }
             }
 
             @Override
@@ -182,5 +119,10 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
                 }
             }
         };
+    }
+
+    @Override
+    public int compareTo(TaskPropertyInfo o) {
+        return propertyName.compareTo(o.getName());
     }
 }

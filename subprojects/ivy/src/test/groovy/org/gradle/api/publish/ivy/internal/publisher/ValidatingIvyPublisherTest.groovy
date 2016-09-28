@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
+
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
@@ -25,7 +26,6 @@ import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIden
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -198,7 +198,6 @@ public class ValidatingIvyPublisherTest extends Specification {
         "org"        | "module"     | "version-mod" | "supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file)."
     }
 
-    @Ignore
     def "reports and fails with invalid descriptor file"() {
         given:
         IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version"))

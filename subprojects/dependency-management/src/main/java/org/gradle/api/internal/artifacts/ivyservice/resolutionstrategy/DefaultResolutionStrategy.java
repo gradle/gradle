@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -60,8 +61,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean assumeFluidDependencies;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
-    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules) {
-        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(), globalDependencySubstitutionRules);
+    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory) {
+        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory), globalDependencySubstitutionRules);
     }
 
     DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules) {
@@ -89,6 +90,12 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         mutationValidator.validateMutation(STRATEGY);
         this.conflictResolution = new StrictConflictResolution();
         return this;
+    }
+
+    public void preferProjectModules() {
+        if (this.conflictResolution instanceof LatestConflictResolution) {
+            this.conflictResolution = new PreferProjectModulesConflictResolution();
+        }
     }
 
     public ConflictResolution getConflictResolution() {
@@ -182,6 +189,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();
+        } else if (conflictResolution instanceof PreferProjectModulesConflictResolution) {
+            out.preferProjectModules();
         }
         out.setForcedModules(getForcedModules());
         for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {

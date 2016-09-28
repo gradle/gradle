@@ -16,13 +16,16 @@
 package org.gradle.performance.android;
 
 import com.android.builder.model.AndroidProject;
+import org.gradle.api.Action;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
 
 import java.util.Map;
 
 public class SyncAction {
-    public static void withProjectConnection(ProjectConnection connect) {
+    // DO NOT change the signature of this method: it is a convention used in
+    // our internal performance testing infrastructure
+    public static void withProjectConnection(ProjectConnection connect, Action<? super BuildActionExecuter<Map<String, AndroidProject>>> modelBuilderAction) {
 
         System.out.println("* Running sync");
 
@@ -36,6 +39,9 @@ public class SyncAction {
             "-Pandroid.injected.invoked.from.ide=true",
             "-Pandroid.injected.build.model.only.versioned=2");
         modelBuilder.setJvmArguments("-Xmx2g");
+        if (modelBuilderAction != null) {
+            modelBuilderAction.execute(modelBuilder);
+        }
 
         Timer actionTimer = new Timer();
         Map<String, AndroidProject> models = modelBuilder.run();

@@ -17,41 +17,31 @@
 package org.gradle.tooling.internal.provider;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
-import org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup;
+import org.gradle.internal.io.StreamByteBuffer;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @ThreadSafe
 public class PayloadSerializer {
-    private static final short SYSTEM_CLASS_LOADER_ID = (short) -1;
-    private static final ClassLoader SYSTEM_CLASS_LOADER = new DefaultClassLoaderFactory().getIsolatedSystemClassLoader();
-    private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
-    private final Transformer<ObjectStreamClass, Class<?>> classLookup;
     private final PayloadClassLoaderRegistry classLoaderRegistry;
-
-    static {
-        for (ClassLoader cl = SYSTEM_CLASS_LOADER; cl != null; cl = cl.getParent()) {
-            SYSTEM_CLASS_LOADERS.add(cl);
-        }
-    }
 
     public PayloadSerializer(PayloadClassLoaderRegistry registry) {
         classLoaderRegistry = registry;
-        classLookup = new Jdk6ClassLookup();
     }
 
     public SerializedPayload serialize(Object payload) {
         final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
-            ByteArrayOutputStream content = new ByteArrayOutputStream();
-            final ObjectOutputStream objectStream = new ObjectOutputStream(content) {
+            StreamByteBuffer buffer = new StreamByteBuffer();
+            final ObjectOutputStream objectStream = new ObjectOutputStream(buffer.getOutputStream()) {
                 @Override
                 protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
                     Class<?> targetClass = desc.forClass();
@@ -72,40 +62,31 @@ public class PayloadSerializer {
                 }
 
                 private void writeClassLoader(Class<?> targetClass) throws IOException {
-                    ClassLoader classLoader = targetClass.getClassLoader();
-                    if (classLoader == null || SYSTEM_CLASS_LOADERS.contains(classLoader)) {
-                        writeShort(SYSTEM_CLASS_LOADER_ID);
-                    } else {
-                        writeShort(map.visitClass(targetClass));
-                    }
+                    writeShort(map.visitClass(targetClass));
                 }
             };
 
             objectStream.writeObject(payload);
             objectStream.close();
 
-            Map<Short, ClassLoaderDetails> classLoaders = map.getClassLoaders();
-            if (classLoaders.containsKey(SYSTEM_CLASS_LOADER_ID)) {
-                throw new IllegalArgumentException("Unexpected ClassLoader id found");
-            }
-            return new SerializedPayload(classLoaders, content.toByteArray());
+            Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
+            map.collectClassLoaderDefinitions(classLoaders);
+            return new SerializedPayload(classLoaders, buffer.readAsByteArray());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     public Object deserialize(SerializedPayload payload) {
-        // TODO: The classloaders in this map might need to be cleaned up, but we have unit tests that expect them to persist between deserialize() calls.
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
-            final ClassLoader systemClassLoader = SYSTEM_CLASS_LOADER;
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
 
             final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {
                 @Override
                 protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
                     Class<?> aClass = readClass();
-                    ObjectStreamClass descriptor = classLookup.transform(aClass);
+                    ObjectStreamClass descriptor = ObjectStreamClass.lookupAny(aClass);
                     if (descriptor == null) {
                         throw new ClassNotFoundException(aClass.getName());
                     }
@@ -120,9 +101,6 @@ public class PayloadSerializer {
                 private Class<?> readClass() throws IOException, ClassNotFoundException {
                     short id = readShort();
                     String className = readUTF();
-                    if (id == SYSTEM_CLASS_LOADER_ID) {
-                        return Class.forName(className, false, systemClassLoader);
-                    }
                     ClassLoaderDetails classLoader = classLoaderDetails.get(id);
                     return map.resolveClass(classLoader, className);
                 }

@@ -52,7 +52,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         given:
         settingsFile << "";
-        buildFile << "task hello << { println hello }"
+        buildFile << "task hello { doLast { println hello } }"
 
         and:
         server.expectGet("/custom-dist.zip", distribution.binDistribution)
@@ -84,7 +84,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         given:
         settingsFile << "";
-        buildFile << "task hello << { println hello }"
+        buildFile << "task hello { doLast { println hello } }"
         CancellationTokenSource tokenSource = new DefaultCancellationTokenSource()
         CountDownLatch latch = new CountDownLatch(1)
 

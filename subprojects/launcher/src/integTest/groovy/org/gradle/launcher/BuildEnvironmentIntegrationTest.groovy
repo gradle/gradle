@@ -32,8 +32,10 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile.setText("""
-task check << {
-    assert Locale.getDefault().toString() == "${locale}"
+task check {
+    doLast {
+        assert Locale.getDefault().toString() == "${locale}"
+    }
 }
 """, "UTF-8")
 
@@ -53,8 +55,10 @@ task check << {
 
         and:
         buildFile.setText("""
-task check << {
-    assert Locale.getDefault().toString() == "${nonDefaultLocale}"
+task check {
+    doLast {
+        assert Locale.getDefault().toString() == "${nonDefaultLocale}"
+    }
 }
 """, "UTF-8")
 
@@ -70,8 +74,10 @@ task check << {
 
         and:
         buildFile.setText("""
-task check << {
-    assert Locale.getDefault().toString() == "${nonDefaultLocale}"
+task check {
+    doLast {
+        assert Locale.getDefault().toString() == "${nonDefaultLocale}"
+    }
 }
 """, "UTF-8")
 
@@ -88,8 +94,10 @@ task check << {
 
         and:
         buildFile.setText("""
-task check << {
-    assert ${Charset.class.name}.defaultCharset().name() == "${nonDefaultEncoding}"
+task check {
+    doLast {
+        assert ${Charset.class.name}.defaultCharset().name() == "${nonDefaultEncoding}"
+    }
 }
 """, "UTF-8")
 
@@ -107,8 +115,10 @@ task check << {
 
         and:
         buildFile.setText("""
-task check << {
-    assert ${Charset.class.name}.defaultCharset().name() == "${nonDefaultEncoding}"
+task check {
+    doLast {
+        assert ${Charset.class.name}.defaultCharset().name() == "${nonDefaultEncoding}"
+    }
 }
 """, "UTF-8")
 

@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-interface IncrementalFileSnapshot extends FileSnapshot {
+/**
+ * An immutable snapshot of the type and content of a file.
+ *
+ * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these.
+ */
+public interface IncrementalFileSnapshot extends FileSnapshot {
     boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
 
     boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);

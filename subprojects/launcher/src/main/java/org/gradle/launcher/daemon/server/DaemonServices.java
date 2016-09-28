@@ -44,7 +44,6 @@ import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
 import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput;
 import org.gradle.launcher.daemon.server.exec.HandleCancel;
-import org.gradle.launcher.daemon.server.exec.HintGCAfterBuild;
 import org.gradle.launcher.daemon.server.exec.LogAndCheckHealth;
 import org.gradle.launcher.daemon.server.exec.LogToClient;
 import org.gradle.launcher.daemon.server.exec.RequestStopIfSingleUsedDaemon;
@@ -146,7 +145,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             new HandleReportStatus(),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
-            new HintGCAfterBuild(),
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new LogAndCheckHealth(healthStats, healthCheck),

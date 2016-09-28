@@ -35,6 +35,27 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
         def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, 'classifier')
         noExtension.displayName == "name-classifier (group:module:version)"
         noExtension.toString() == "name-classifier (group:module:version)"
+
+        def nameOnly = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, null)
+        nameOnly.displayName == "name (group:module:version)"
+        nameOnly.toString() == "name (group:module:version)"
+    }
+
+    def "calculates a file name from attributes"() {
+        def componentId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+
+        expect:
+        def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
+        noClassifier.fileName == "name-version.ext"
+
+        def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
+        withClassifier.fileName == "name-version-classifier.ext"
+
+        def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, 'classifier')
+        noExtension.fileName == "name-version-classifier"
+
+        def nameOnly = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, null)
+        nameOnly.fileName == "name-version"
     }
 
     def "is equal when all attributes and module version are the same"() {

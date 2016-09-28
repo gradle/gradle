@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
@@ -37,11 +42,11 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final List<ResourcePattern> ivyPatterns;
     private final List<ResourcePattern> artifactPatterns;
-    private final FileStore<ModuleComponentArtifactMetadata> fileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> fileStore;
     private final CacheAwareExternalResourceAccessor resourceAccessor;
 
     public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                                   List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, FileStore<ModuleComponentArtifactMetadata> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
+                                                   List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, FileStore<ModuleComponentArtifactIdentifier> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.ivyPatterns = ivyPatterns;
@@ -91,7 +96,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             try {
                 LocallyAvailableExternalResource resource = resourceAccessor.getResource(location.getUri(), new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                     public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                        return fileStore.move(artifact, downloadedResource);
+                        return fileStore.move(artifact.getId(), downloadedResource);
                     }
                 }, localCandidates);
                 if (resource != null) {

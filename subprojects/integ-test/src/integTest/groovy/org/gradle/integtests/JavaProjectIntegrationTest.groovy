@@ -125,9 +125,9 @@ version = ''
         buildFile << '''
 apply plugin: 'java'
 
-task generateResource << {}
-task generateTestResource << {}
-task notRegistered << {}
+task generateResource
+task generateTestResource
+task notRegistered
 
 sourceSets.main.output.dir "$buildDir/generatedResources", builtBy: 'generateResource'
 sourceSets.main.output.dir "$buildDir/generatedResourcesWithoutBuilder"

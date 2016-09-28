@@ -29,12 +29,7 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
         return annotationType;
     }
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
-        return false;
+    public void attachActions(final TaskPropertyActionContext context) {
     }
 
-    @Override
-    public boolean getMustNotBeNullByDefault() {
-        return false;
-    }
 }

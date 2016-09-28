@@ -19,6 +19,8 @@ package org.gradle.execution.taskgraph;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionAdapter;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
@@ -28,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.BuildCancellationToken;
@@ -126,6 +129,15 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", closure));
     }
 
+    public void whenReady(final Action<TaskExecutionGraph> action) {
+        graphListeners.add(new TaskExecutionGraphListener() {
+            @Override
+            public void graphPopulated(TaskExecutionGraph graph) {
+                action.execute(graph);
+            }
+        });
+    }
+
     public void addTaskExecutionListener(TaskExecutionListener listener) {
         taskListeners.add(listener);
     }
@@ -138,8 +150,26 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         taskListeners.add(new ClosureBackedMethodInvocationDispatch("beforeExecute", closure));
     }
 
+    public void beforeTask(final Action<Task> action) {
+        taskListeners.add(new TaskExecutionAdapter() {
+            @Override
+            public void beforeExecute(Task task) {
+                action.execute(task);
+            }
+        });
+    }
+
     public void afterTask(final Closure closure) {
         taskListeners.add(new ClosureBackedMethodInvocationDispatch("afterExecute", closure));
+    }
+
+    public void afterTask(final Action<Task> action) {
+        taskListeners.add(new TaskExecutionAdapter() {
+            @Override
+            public void afterExecute(Task task, TaskState state) {
+                action.execute(task);
+            }
+        });
     }
 
     public boolean hasTask(Task task) {

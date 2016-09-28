@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     final FileLock lock = Mock()
     final cacheDir = tmpDir.file("dir")
     final cacheFile = cacheDir.file("some-content.bin")
-    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager)
+    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager, Mock(ExecutorFactory))
 
     def "has useful toString() implementation"() {
         expect:
@@ -60,7 +61,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open locks cache directory with requested mode"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), lockManager)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), lockManager, Mock(ExecutorFactory))
 
         when:
         store.open()
@@ -78,7 +79,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open does not lock cache directory when None mode requested"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager, Mock(ExecutorFactory))
 
         when:
         store.open()

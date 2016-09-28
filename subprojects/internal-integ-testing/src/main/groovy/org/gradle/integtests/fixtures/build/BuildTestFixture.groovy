@@ -56,6 +56,7 @@ class BuildTestFixture {
         project.with(cl)
         project
     }
+
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         def project = populate(projectName) {
             buildFile << """
@@ -65,7 +66,7 @@ class BuildTestFixture {
             file('src/main/java/Dummy.java') << "public class Dummy {}"
         }
         project.with(cl)
-        project
+        return project
     }
 
     def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
@@ -87,7 +88,7 @@ class BuildTestFixture {
         subprojects.each {
             rootMulti.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
         }
-        project
+        return rootMulti
     }
 
     void includeBuilds(List<File> includedBuilds) {

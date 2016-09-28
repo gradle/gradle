@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
@@ -45,7 +46,6 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -69,15 +69,19 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         if (SHUTDOWN_REGISTERED.compareAndSet(false, true)) {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 public void run() {
-                    DefaultGradleConnector.close();
+                    try {
+                        DefaultGradleConnector.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }, CLEANUP_THREAD_NAME));
         }
     }
 
     public GradleExecutionResult run(GradleExecutionParameters parameters) {
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        final OutputStream syncOutput = new SynchronizedOutputStream(output);
+        final StreamByteBuffer outputBuffer = new StreamByteBuffer();
+        final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer.getOutputStream());
 
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
@@ -121,7 +125,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         } catch (UnsupportedVersionException e) {
             throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
         } catch (BuildException t) {
-            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), output.toString(), tasks, t);
+            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks, t);
         } catch (GradleConnectionException t) {
             StringBuilder message = new StringBuilder("An error occurred executing build with ");
             if (parameters.getBuildArgs().isEmpty()) {
@@ -134,7 +138,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
             message.append(" in directory '").append(parameters.getProjectDir().getAbsolutePath()).append("'");
 
-            String capturedOutput = output.toString();
+            String capturedOutput = outputBuffer.readAsString();
             if (!capturedOutput.isEmpty()) {
                 message.append(". Output before error:")
                     .append(SystemProperties.getInstance().getLineSeparator())
@@ -148,7 +152,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
         }
 
-        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), output.toString(), tasks);
+        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks);
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {

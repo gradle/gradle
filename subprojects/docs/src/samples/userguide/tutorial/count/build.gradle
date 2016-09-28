@@ -1,3 +1,5 @@
-task count << {
-    4.times { print "$it " }
+task count {
+    doLast {
+        4.times { print "$it " }
+    }
 }

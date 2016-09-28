@@ -28,6 +28,8 @@ public interface TaskDependencyResolveContext {
      *
      * <li>{@link org.gradle.api.tasks.TaskDependency}</li>
      *
+     * <li>{@link org.gradle.api.tasks.TaskReference}</li>
+     *
      * <li>{@link org.gradle.api.internal.tasks.TaskDependencyInternal}</li>
      *
      * <li>{@link org.gradle.api.internal.tasks.TaskDependencyContainer}</li>

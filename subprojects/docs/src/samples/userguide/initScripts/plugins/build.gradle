@@ -19,9 +19,11 @@ repositories{
     mavenCentral()
 }
 
- task showRepositories << {
-    repositories.each{
-        println "repository: ${it.name} ('${it.url}')"
-    }
+ task showRepositories {
+     doLast {
+         repositories.each {
+             println "repository: ${it.name} ('${it.url}')"
+         }
+     }
 }
 // END SNIPPET show-repos-task

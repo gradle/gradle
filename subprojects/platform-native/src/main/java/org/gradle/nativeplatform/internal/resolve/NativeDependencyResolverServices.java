@@ -15,11 +15,7 @@
  */
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryBinaryLocator;
 
@@ -27,17 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NativeDependencyResolverServices {
-
-    public ProjectModelResolver createProjectLocator(ProjectRegistry<ProjectInternal> projectRegistry, DependencyMetaDataProvider metaDataProvider) {
-        String currentProjectPath = metaDataProvider.getModule().getProjectPath();
-        return new CurrentProjectModelResolver(currentProjectPath, new DefaultProjectModelResolver(projectRegistry));
-    }
-
     public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
         locators.add(new ProjectLibraryBinaryLocator(projectModelResolver));
         locators.add(new PrebuiltLibraryBinaryLocator(projectModelResolver));
-        return new ChainedLibraryBinaryLocator(locators);
+        return new CachingLibraryBinaryLocator(new ChainedLibraryBinaryLocator(locators));
     }
 
     public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, FileCollectionFactory fileCollectionFactory) {
@@ -47,5 +37,4 @@ public class NativeDependencyResolverServices {
         resolver = new SourceSetNativeDependencyResolver(resolver, fileCollectionFactory);
         return new InputHandlingNativeDependencyResolver(resolver);
     }
-
 }

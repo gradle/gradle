@@ -232,7 +232,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         private void resolveModuleArtifactsFromCache(String contextId, ComponentResolveMetadata component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
-            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
+            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getComponentId(), contextId);
             BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
@@ -340,7 +340,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             if (result.getFailure() == null) {
                 Set<ModuleComponentArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getResult(), new ArtifactMetaDataToId());
-                moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), cacheKey(artifactType), moduleSource.getDescriptorHash(), artifactIdentifierSet);
+                moduleArtifactsCache.cacheArtifacts(delegate, component.getComponentId(), cacheKey(artifactType), moduleSource.getDescriptorHash(), artifactIdentifierSet);
             }
         }
 
@@ -352,7 +352,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (result.getFailure() == null) {
                 FixedComponentArtifacts artifacts = (FixedComponentArtifacts) result.getResult();
                 Set<ModuleComponentArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(artifacts.getArtifacts(), new ArtifactMetaDataToId());
-                moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), "component:", moduleSource.getDescriptorHash(), artifactIdentifierSet);
+                moduleArtifactsCache.cacheArtifacts(delegate, component.getComponentId(), "component:", moduleSource.getDescriptorHash(), artifactIdentifierSet);
             }
         }
 

@@ -31,8 +31,10 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "throws deprecation warning when applied in build with #taskName"() {
         buildFile << """
 
-        task $taskName << {
-            println "custom $taskName task"
+        task $taskName {
+            doLast {
+                println "custom $taskName task"
+            }
         }
         """
 

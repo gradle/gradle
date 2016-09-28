@@ -31,6 +31,9 @@
             <tr>
                 <td>startParameter</td>
             </tr>
+            <tr>
+                <td>includedBuilds</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -82,6 +85,9 @@
             </tr>
             <tr>
                 <td>allprojects</td>
+            </tr>
+            <tr>
+                <td>includedBuild</td>
             </tr>
         </table>
     </section>

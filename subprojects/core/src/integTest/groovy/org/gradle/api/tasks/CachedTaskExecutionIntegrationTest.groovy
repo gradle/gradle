@@ -17,7 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -38,16 +41,36 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     File cacheDir
 
     def setup() {
-        buildFile << """
+        // Make sure cache dir is empty for every test execution
+        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+
+        setupProjectInDirectory(testDirectory)
+    }
+
+    private static void setupProjectInDirectory(TestFile dir, String sourceDir = "main") {
+        dir.file("build.gradle") << """
             apply plugin: "java"
         """
 
-        file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
-        file("src/main/resources/resource.properties") << """
+        dir.file("src/$sourceDir/java/Hello.java") << ORIGINAL_HELLO_WORLD
+        dir.file("src/$sourceDir/resources/resource.properties") << """
             test=true
         """
 
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+        if (sourceDir != "main") {
+            dir.file("build.gradle") << """
+                sourceSets {
+                    main {
+                        java {
+                            srcDir "src/$sourceDir/java"
+                        }
+                        resources {
+                            srcDir "src/$sourceDir/resources"
+                        }
+                    }
+                }
+            """
+        }
     }
 
     def "no task is re-executed when inputs are unchanged"() {
@@ -63,6 +86,81 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWithCache "jar"
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def 'cached tasks are executed with --rerun-tasks'() {
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+
+        when:
+        succeedsWithCache "jar", "--rerun-tasks"
+        then:
+        nonSkippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def "buildSrc is loaded from cache"() {
+        file("buildSrc/src/main/groovy/MyTask.groovy") << """
+            import org.gradle.api.*
+
+            class MyTask extends DefaultTask {}
+        """
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+        file("buildSrc/build").deleteDir()
+
+        when:
+        succeedsWithCache "jar"
+        then:
+        output.contains ":buildSrc:compileGroovy FROM-CACHE"
+        output.contains ":buildSrc:jar FROM-CACHE"
+    }
+
+    def "tasks stay cached after buildSrc is rebuilt"() {
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text
+                }
+            }
+        """
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/build").deleteDir()
+        file("buildSrc/.gradle").deleteDir()
+        // Run this without cache, so buildSrc gets rebuilt
+        succeeds "clean"
+
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
     }
 
     def "outputs are correctly loaded from cache"() {
@@ -98,14 +196,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
-        println "\n\n\n-----------------------------------------\n\n\n"
-
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
-
-        println "\n\n\n-----------------------------------------\n\n\n"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
@@ -150,6 +244,48 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWithCache "clean"
         then:
         nonSkippedTasks.contains ":clean"
+    }
+
+    def "task gets loaded from cache when it is executed from a different directory"() {
+        // Compile Java in a different copy of the project
+        def remoteProjectDir = file("remote-project")
+        setupProjectInDirectory(remoteProjectDir)
+
+        when:
+        executer.inDirectory(remoteProjectDir)
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.empty
+        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+
+        // Remove the project completely
+        remoteProjectDir.deleteDir()
+
+        when:
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        file("build/classes/main/Hello.class").exists()
+    }
+
+    def "compile task gets loaded from cache when source is moved to another directory"() {
+        def remoteProjectDir = file("remote-project")
+        setupProjectInDirectory(remoteProjectDir, "other-than-main")
+
+        when:
+        executer.inDirectory(remoteProjectDir)
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.empty
+        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+
+        remoteProjectDir.deleteDir()
+
+        when:
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        file("build/classes/main/Hello.class").exists()
     }
 
     def "cacheable task with cache disabled doesn't get cached"() {
@@ -217,6 +353,156 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWithCache "jar"
         then:
         skippedTasks.contains ":customTask"
+    }
+
+    def 'ad hoc tasks are not cacheable by default'() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+
+        expect:
+        taskIsNotCached ':adHocTask'
+    }
+
+    def 'ad hoc tasks are cached when explicitly requested'() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << 'adHocTask { outputs.cacheIf { true } }'
+
+        expect:
+        taskIsCached ':adHocTask'
+    }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def 'can load twice from the cache with no changes'() {
+        given:
+        buildFile << """
+            apply plugin: "application"
+            mainClassName = "Hello"
+        """
+
+        when:
+        runWithCache 'clean', 'run'
+
+        then:
+        nonSkippedTasks.contains ':compileJava'
+
+        when:
+        runWithCache 'clean', 'run'
+
+        then:
+        skippedTasks.contains ':compileJava'
+
+        when:
+        runWithCache 'clean', 'run'
+
+        then:
+        skippedTasks.contains ':compileJava'
+    }
+
+    def 'task execution statistics are reported'() {
+        given:
+        // Force a forking executer
+        // This is necessary since for the embedded executer
+        // the Task statistics are not part of the output
+        // returned by "this.output"
+        executer.requireGradleDistribution()
+
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << """
+            adHocTask { outputs.cacheIf { true } }
+
+            task executedTask {
+                doLast {
+                    println 'Hello world'
+                }
+            }
+        """
+
+        when:
+        runWithCache 'adHocTask', 'executedTask', 'compileJava'
+
+        then:
+        assertStatistics allTasksCount: 3, cacheableTasksCount: 2, executedTasksCount: 3
+
+        when:
+        assert file('build/output.txt').delete()
+        runWithCache 'adHocTask', 'executedTask', 'compileJava'
+
+        then:
+        assertStatistics allTasksCount: 3, cacheableTasksCount: 1, fromCacheTasksCount: 1, upToDateTasksCount: 1, executedTasksCount: 1
+    }
+
+    void assertStatistics(LinkedHashMap<String, Integer> options) {
+        options = [
+            allTasksCount: 0,
+            cacheableTasksCount: 0,
+            skippedTasksCount: 0,
+            upToDateTasksCount: 0,
+            executedTasksCount: 0,
+            fromCacheTasksCount: 0
+        ] + options
+
+        def logOutputToCount = [
+            'executed': 'executed',
+            'loaded from cache': 'fromCache',
+            'up-to-date': 'upToDate',
+            'skipped': 'skipped'
+        ]
+
+        List<String> statisticsOutput = output.readLines().dropWhile { String line ->
+            !line.contains('tasks in build, out of which')
+        }
+
+        def firstLineMatcher = statisticsOutput[0] =~ /(\d+) tasks in build, out of which (\d+) \(\d+%\) were cacheable/
+        Map loggedStatistics = [
+            allTasksCount: Integer.parseInt(firstLineMatcher[0][1]),
+            cacheableTasksCount: Integer.parseInt(firstLineMatcher[0][2])
+        ]
+
+        loggedStatistics += statisticsOutput.drop(1).collectEntries { String line ->
+            def matcher = line =~ /(\d+)\s+\(\d+%\) (.*)/
+            matcher.matches() ? [("${logOutputToCount[matcher[0][2]]}TasksCount".toString()): Integer.parseInt(matcher[0][1])] : null
+        }
+
+        options.each { count, value ->
+            assert (loggedStatistics[count] ?: 0) == value
+        }
+
+    }
+
+    String adHocTaskWithInputs() {
+        """
+        task adHocTask {
+            def outputFile = file("\$buildDir/output.txt")
+            inputs.file(file("input.txt"))
+            outputs.file(outputFile)
+            doLast {
+                project.mkdir outputFile.parentFile
+                outputFile.text = file("input.txt").text
+            }
+        }
+        """.stripIndent()
+    }
+
+    void taskIsNotCached(String task) {
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+        runWithCache 'clean'
+
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+    }
+
+    void taskIsCached(String task) {
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+        runWithCache 'clean'
+
+        runWithCache task
+        assert skippedTasks.contains(task)
     }
 
     def runWithCache(String... tasks) {

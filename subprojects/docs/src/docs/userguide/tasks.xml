@@ -476,55 +476,55 @@
                         </tr>
                     </thead>
                     <tr>
-                        <td><literal>@Input</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Input"/></literal></td>
                         <td>Any serializable type</td>
                         <td>A simple input value</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@InputFile</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.InputFile"/></literal></td>
                         <td><literal>File</literal>*</td>
                         <td>A single input file (not directory)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@InputDirectory</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.InputDirectory"/></literal></td>
                         <td><literal>File</literal>*</td>
                         <td>A single input directory (not file)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@InputFiles</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.InputFiles"/></literal></td>
                         <td><literal>Iterable&lt;File&gt;</literal>*</td>
                         <td>An iterable of input files (no directories)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@OutputFile</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.OutputFile"/></literal></td>
                         <td><literal>File</literal>*</td>
                         <td>A single output file (not directory)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@OutputDirectory</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.OutputDirectory"/></literal></td>
                         <td><literal>File</literal>*</td>
                         <td>A single output directory (not file)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@OutputFiles</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.OutputFiles"/></literal></td>
                         <td><literal>Iterable&lt;File&gt;</literal>*</td>
                         <td>An iterable of output files (no directories)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@OutputDirectories</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.OutputDirectories"/></literal></td>
                         <td><literal>Iterable&lt;File&gt;</literal>*</td>
                         <td>An iterable of output directories (no files)</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@Nested</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Nested"/></literal></td>
                         <td>Any custom type</td>
                         <td>A custom type that may not implement <literal>Serializable</literal> but does
                             have at least one field or property marked with one of the annotations in this
@@ -532,7 +532,7 @@
                     </tr>
 
                     <tr>
-                        <td><literal>@Console</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Console"/></literal></td>
                         <td>Any type</td>
                         <td>Indicates that the property is neither an input nor an output. It simply
                             affects the console output of the task in some way, such as increasing or
@@ -540,28 +540,46 @@
                     </tr>
 
                     <tr>
-                        <td><literal>@Internal</literal></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Internal"/></literal></td>
                         <td>Any type</td>
                         <td>Indicates that the property is used internally but is neither an input nor
                             an output.</td>
                     </tr>
 
                     <tr>
-                        <td><literal>@SkipWhenEmpty</literal></td>
-                        <td></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.SkipWhenEmpty"/></literal></td>
+                        <td/>
                         <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
                             to tell Gradle to skip the task if the corresponding iterable of files or
                             directory are empty.
                         </td>
                     </tr>
                     <tr>
-                        <td><literal>@Optional</literal></td>
-                        <td></td>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Optional"/></literal></td>
+                        <td/>
                         <td>Used with any of the other incremental build annotations listed in the
                             <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
                             This annotation disables validation checks on the corresponding property.
                             See <link linkend="sec:task_input_output_validation">the section on validation</link>
                             for more details.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.OrderSensitive"/></literal></td>
+                        <td/>
+                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
+                            to tell Gradle that a change in the order of the files should mark the task
+                            out-of-date.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.PathSensitive"/></literal></td>
+                        <td/>
+                        <td>Used with any input file property to tell Gradle to only consider the given
+                            part of the file paths as important. For example, if a property is annotated
+                            with <literal>@PathSensitive(PathSensitivity.NAME_ONLY)</literal>, then
+                            moving the files around without changing their contents will not make the
+                            task out-of-date.
                         </td>
                     </tr>
                     <tfoot>
@@ -586,7 +604,7 @@
                     so that you can take advantage of the <link linkend="javaGradle_plugin">Java Gradle
                     Plugin Development plugin</link> to help you develop and publish your own plugins.
                     This plugin checks whether any properties of your custom task classes lack an
-                    incremental buildannotation. This protects you from forgetting to add an appropriate
+                    incremental build annotation. This protects you from forgetting to add an appropriate
                     annotation during development.
                 </para>
 

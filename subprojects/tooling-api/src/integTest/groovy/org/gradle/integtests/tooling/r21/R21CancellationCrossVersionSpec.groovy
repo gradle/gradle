@@ -96,20 +96,24 @@ throw new RuntimeException("should not run")
 import org.gradle.initialization.BuildCancellationToken
 import java.util.concurrent.CountDownLatch
 
-task hang << {
-    def cancellationToken = services.get(BuildCancellationToken.class)
-    def latch = new CountDownLatch(1)
+task hang {
+    doLast {
+        def cancellationToken = services.get(BuildCancellationToken.class)
+        def latch = new CountDownLatch(1)
 
-    cancellationToken.addCallback {
-        latch.countDown()
+        cancellationToken.addCallback {
+            latch.countDown()
+        }
+
+        new URL("${server.uri}").text
+        latch.await()
     }
-
-    new URL("${server.uri}").text
-    latch.await()
 }
 
-task notExecuted(dependsOn: hang) << {
-    throw new RuntimeException("should not run")
+task notExecuted(dependsOn: hang) {
+    doLast {
+        throw new RuntimeException("should not run")
+    }
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -147,16 +151,18 @@ task notExecuted(dependsOn: hang) << {
 import org.gradle.initialization.BuildCancellationToken
 import java.util.concurrent.CountDownLatch
 
-task hang << {
-    def cancellationToken = services.get(BuildCancellationToken.class)
-    def latch = new CountDownLatch(1)
+task hang {
+    doLast {
+        def cancellationToken = services.get(BuildCancellationToken.class)
+        def latch = new CountDownLatch(1)
 
-    cancellationToken.addCallback {
-        latch.countDown()
+        cancellationToken.addCallback {
+            latch.countDown()
+        }
+
+        new URL("${server.uri}").text
+        latch.await()
     }
-
-    new URL("${server.uri}").text
-    latch.await()
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -190,8 +196,10 @@ task hang << {
         def daemons = toolingApi.daemons
 
         buildFile << """
-task hang << {
-    new URL("${server.uri}").text
+task hang {
+    doLast {
+        new URL("${server.uri}").text
+    }
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()

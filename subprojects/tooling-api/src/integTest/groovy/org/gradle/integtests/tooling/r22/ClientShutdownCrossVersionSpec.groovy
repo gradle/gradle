@@ -66,7 +66,7 @@ class ClientShutdownCrossVersionSpec extends ProjectConnectionToolingApiSpecific
     def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
         given:
         buildFile << """
-task slow << { new URL("${server.uri}").text }
+task slow { doLast { new URL("${server.uri}").text } }
 """
 
         toolingApi.requireIsolatedDaemons()

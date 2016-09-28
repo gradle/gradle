@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.PreferProjectModulesConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
@@ -39,8 +41,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -59,17 +59,14 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ResolveIvyFactory ivyFactory;
     private final CacheLockingManager cacheLockingManager;
     private final VersionComparator versionComparator;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
     public DefaultArtifactDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
-                                             CacheLockingManager cacheLockingManager, VersionComparator versionComparator,
-                                             ProjectRegistry<ProjectInternal> projectRegistry) {
+                                             CacheLockingManager cacheLockingManager, VersionComparator versionComparator) {
         this.serviceRegistry = serviceRegistry;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
         this.cacheLockingManager = cacheLockingManager;
         this.versionComparator = versionComparator;
-        this.projectRegistry = projectRegistry;
     }
 
     @Override
@@ -87,7 +84,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolvers componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules) {
 
-        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), resolutionStrategy.getDependencySubstitutionRule(), projectRegistry);
+        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), resolutionStrategy.getDependencySubstitutionRule());
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
 
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
@@ -115,10 +112,14 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
         ModuleConflictResolver conflictResolver;
-        if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+        ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
+        if (conflictResolution instanceof StrictConflictResolution) {
             conflictResolver = new StrictConflictResolver();
         } else {
             conflictResolver = new LatestModuleConflictResolver(versionComparator);
+            if (conflictResolution instanceof PreferProjectModulesConflictResolution) {
+                conflictResolver = new ProjectDependencyForcingResolver(conflictResolver);
+            }
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());

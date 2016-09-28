@@ -36,10 +36,12 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            task checkConf << {
-                def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
-                assert artifacts.size() == 0
-                assert candidates.empty
+            task checkConf {
+                doLast {
+                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    assert artifacts.size() == 0
+                    assert candidates.empty
+                }
             }
 """
         expect:
@@ -153,9 +155,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 conf "org:child:1.0"
             }
 
-            task resolveConf << {
-                configurations.conf.files
-                assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+            task resolveConf {
+                doLast {
+                    configurations.conf.files
+                    assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+                }
             }
         """
 
@@ -200,9 +204,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 conf "org:child:1.0"
             }
 
-            task resolveConf << {
-                configurations.conf.files
-                assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+            task resolveConf {
+                doLast {
+                    configurations.conf.files
+                    assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+                }
             }
         """
 
@@ -360,10 +366,12 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
             configurations.add(configurations.conf.copy())
 
-            task('checkConf') << {
-                assert configurations.conf.files*.name == ['api-1.1.jar']
-                assert configurations.confCopy.files*.name == ['api-1.1.jar']
-                assert configurations.notCopy.files*.name == ['api-1.2.jar']
+            task('checkConf') {
+                doLast {
+                    assert configurations.conf.files*.name == ['api-1.1.jar']
+                    assert configurations.confCopy.files*.name == ['api-1.1.jar']
+                    assert configurations.notCopy.files*.name == ['api-1.2.jar']
+                }
             }
         """
 

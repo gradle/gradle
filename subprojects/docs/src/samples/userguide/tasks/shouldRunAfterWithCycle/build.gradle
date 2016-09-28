@@ -1,11 +1,17 @@
-task taskX << {
-    println 'taskX'
+task taskX {
+    doLast {
+        println 'taskX'
+    }
 }
-task taskY << {
-    println 'taskY'
+task taskY {
+    doLast {
+        println 'taskY'
+    }
 }
-task taskZ << {
-    println 'taskZ'
+task taskZ {
+    doLast {
+        println 'taskZ'
+    }
 }
 taskX.dependsOn taskY
 taskY.dependsOn taskZ

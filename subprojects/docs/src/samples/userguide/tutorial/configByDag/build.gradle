@@ -1,9 +1,13 @@
-task distribution << {
-    println "We build the zip with version=$version"
+task distribution {
+    doLast {
+        println "We build the zip with version=$version"
+    }
 }
 
-task release(dependsOn: 'distribution') << {
-    println 'We release now'
+task release(dependsOn: 'distribution') {
+    doLast {
+        println 'We release now'
+    }
 }
 
 gradle.taskGraph.whenReady {taskGraph ->

@@ -33,4 +33,9 @@ public class ClassLoaderDetails implements Serializable {
         this.uuid = uuid;
         this.spec = spec;
     }
+
+    @Override
+    public String toString() {
+        return "{" + getClass().getSimpleName() + " uuid: " + uuid + " spec: " + spec + " parents: " + parents + "}";
+    }
 }

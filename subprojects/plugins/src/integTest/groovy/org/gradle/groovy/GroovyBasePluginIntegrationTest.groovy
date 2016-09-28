@@ -38,9 +38,11 @@ task groovydoc(type: Groovydoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
-task verify << {
-    assert compileCustomGroovy.groovyClasspath.files.any { it.name == "$jarFile" }
-    assert groovydoc.groovyClasspath.files.any { it.name == "$jarFile" }
+task verify {
+    doLast {
+        assert compileCustomGroovy.groovyClasspath.files.any { it.name == "$jarFile" }
+        assert groovydoc.groovyClasspath.files.any { it.name == "$jarFile" }
+    }
 }
 """
 
@@ -74,9 +76,11 @@ task groovydoc(type: Groovydoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
-task verify << {
-    assert configurations.customCompile.state.toString() == "UNRESOLVED"
-    assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+task verify {
+    doLast {
+        assert configurations.customCompile.state.toString() == "UNRESOLVED"
+        assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+    }
 }
         """
 

@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.cache.TaskCacheKey
 import org.gradle.api.internal.tasks.cache.TaskOutputCache
@@ -47,8 +48,9 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
     def cacheKey = Mock(TaskCacheKey)
+    def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
-    def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, delegate)
+    def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
         when:
@@ -62,16 +64,19 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
         1 * taskOutputCache.getDescription() >> "test"
         1 * taskOutputCache.load(cacheKey, _) >> true
-        1 * taskState.upToDate("FROM-CACHE")
+        1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
+        1 * taskState.setCacheable(true)
+        1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         0 * _
     }
 
-    def "executes task when no cached result is available"() {
+    def "executes task and stores result when no cached result is available"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -83,6 +88,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -92,8 +98,36 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
+        1 * taskState.setCacheable(true)
 
         then:
+        1 * taskOutputCache.store(cacheKey, _)
+        0 * _
+    }
+
+    def "executes task and stores result when use of cached result is not allowed"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> false
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.getFailure() >> null
+        1 * taskState.setCacheable(true)
+
+        then:
+        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
+        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
+        1 * taskOutputCache.getDescription() >> "test"
         1 * taskOutputCache.store(cacheKey, _)
         0 * _
     }
@@ -110,6 +144,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -119,6 +154,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> new RuntimeException()
+        1 * taskState.setCacheable(true)
         0 * _
     }
 
@@ -132,6 +168,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -147,6 +184,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -161,6 +199,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -209,6 +248,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -218,6 +258,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
+        1 * taskState.setCacheable(true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _)
@@ -236,6 +277,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -245,6 +287,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
+        1 * taskState.setCacheable(true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }

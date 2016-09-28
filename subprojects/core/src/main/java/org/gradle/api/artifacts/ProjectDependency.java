@@ -33,7 +33,9 @@ public interface ProjectDependency extends ModuleDependency, SelfResolvingDepend
      * associated with this project dependency.
      *
      * @see #getDependencyProject()
+     * @deprecated A project dependency may select different configurations.
      */
+    @Deprecated
     Configuration getProjectConfiguration();
 
     /**

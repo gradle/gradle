@@ -19,17 +19,20 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -41,6 +44,7 @@ import java.io.File;
 /**
  * Runs CodeNarc against some source files.
  */
+@CacheableTask
 public class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
 
     private FileCollection codenarcClasspath;
@@ -67,6 +71,15 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     @Internal
     public File getConfigFile() {
         return getConfig() == null ? null : getConfig().asFile();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource();
     }
 
     /**
@@ -109,8 +122,7 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     /**
      * The class path containing the CodeNarc library to be used.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getCodenarcClasspath() {
         return codenarcClasspath;
     }

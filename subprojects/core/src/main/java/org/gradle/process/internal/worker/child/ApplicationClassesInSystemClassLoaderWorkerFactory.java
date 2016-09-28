@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -35,8 +36,6 @@ import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.util.GUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -103,9 +102,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
         // Serialize configuration for the worker process to it stdin
 
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        StreamByteBuffer buffer = new StreamByteBuffer();
         try {
-            DataOutputStream outstr = new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
+            DataOutputStream outstr = new DataOutputStream(new EncodedStream.EncodedOutput(buffer.getOutputStream()));
             if (!useOptionsFile) {
                 // Serialize the application classpath, this is consumed by BootstrapSecurityManager
                 outstr.writeInt(applicationClasspath.size());
@@ -142,8 +141,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        byte[] encodedConfig = bytes.toByteArray();
-        execSpec.setStandardInput(new ByteArrayInputStream(encodedConfig));
+        execSpec.setStandardInput(buffer.getInputStream());
     }
 
     private boolean shouldUseOptionsFile(JavaExecHandleBuilder execSpec) {

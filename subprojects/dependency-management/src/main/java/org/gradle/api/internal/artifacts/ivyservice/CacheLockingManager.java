@@ -49,5 +49,5 @@ public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess 
      *
      * @return Metadata store location
      */
-    File createMetaDataStore();
+    File getMetaDataStoreDirectory();
 }

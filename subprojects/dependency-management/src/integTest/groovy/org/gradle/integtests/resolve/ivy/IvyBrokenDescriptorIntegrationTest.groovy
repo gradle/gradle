@@ -19,19 +19,24 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class IvyBrokenDescriptorIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def setup() {
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${ivyHttpRepo.uri}"
+                }
+            }
+            configurations { compile }
+            task showBroken { doLast { println configurations.compile.files } }
+        """
+    }
+
     def "reports Ivy descriptor that cannot be parsed"() {
         given:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyHttpRepo.uri}"
-    }
-}
-configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
 """
 
         and:
@@ -52,16 +57,15 @@ task showBroken << { println configurations.compile.files }
     def "reports local Ivy descriptor that cannot be parsed"() {
         given:
         buildFile << """
+repositories.clear()
 repositories {
     ivy {
         url "${ivyRepo.uri}"
     }
 }
-configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
 """
 
         and:
@@ -81,16 +85,9 @@ task showBroken << { println configurations.compile.files }
     def "reports Ivy descriptor with configuration that extends unknown configuration"() {
         given:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyHttpRepo.uri}"
-    }
-}
-configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
 """
 
         and:
@@ -104,22 +101,37 @@ task showBroken << { println configurations.compile.files }
         failure
             .assertResolutionFailure(":compile")
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
-            .assertHasCause("unknown configuration 'unknown'. It is extended by conf")
+            .assertHasCause("Configuration 'conf' extends configuration 'unknown' which is not declared.")
+    }
+
+    def "reports Ivy descriptor with artifact mapped to unknown configuration"() {
+        given:
+        buildFile << """
+dependencies {
+    compile 'group:projectA:1.2'
+}
+"""
+
+        and:
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').artifact(conf: 'default,unknown').publish()
+
+        when:
+        module.ivy.expectGet()
+
+        then:
+        fails "showBroken"
+        failure
+            .assertResolutionFailure(":compile")
+            .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
+            .assertHasCause("Artifact projectA.jar is mapped to configuration 'unknown' which is not declared.")
     }
 
     def "reports missing parent descriptor"() {
         given:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyHttpRepo.uri}"
-    }
-}
-configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
 """
 
         and:
@@ -145,16 +157,9 @@ Searched in the following locations:
     def "reports parent descriptor that cannot be parsed"() {
         given:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyHttpRepo.uri}"
-    }
-}
-configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
 """
 
         and:

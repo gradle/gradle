@@ -32,8 +32,6 @@ import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal;
 import org.gradle.platform.base.BinarySpec;
 
 import java.io.File;
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskConfig {
     @Override
@@ -57,11 +55,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         task.setToolChain(binary.getToolChain());
         task.setTargetPlatform(binary.getTargetPlatform());
 
-        task.includes(new Callable<Set<File>>() {
-            public Set<File> call() {
-                return sourceSet.getExportedHeaders().getSrcDirs();
-            }
-        });
+        task.includes(sourceSet.getExportedHeaders().getSourceDirectories());
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();

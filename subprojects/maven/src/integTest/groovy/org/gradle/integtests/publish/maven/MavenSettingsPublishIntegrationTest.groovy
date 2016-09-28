@@ -32,7 +32,7 @@ class MavenSettingsPublishIntegrationTest extends AbstractIntegrationSpec {
         using m2
 
         TestFile m2Home = temporaryFolder.createDir("m2_home");
-        m2Home.file("conf/settings.xml").createFile().text = """
+        m2Home.file("conf/settings.xml").text = """
 <settings>
   <mirrors>
     <mirror>

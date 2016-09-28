@@ -92,7 +92,7 @@ task retrieve(type: Sync) {
             dependencies {
                 compile "group:artifact:1.0"
             }
-            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] }
+            task libs { doLast { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] } }
         """
 
         and:

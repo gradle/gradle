@@ -20,9 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class BuildTestFile extends TestFile {
 
-    BuildTestFile(TestFile rootDir) {
-        super(rootDir)
-    }
+    private final String projectName
 
     BuildTestFile(TestFile rootDir, String projectName) {
         super(rootDir)

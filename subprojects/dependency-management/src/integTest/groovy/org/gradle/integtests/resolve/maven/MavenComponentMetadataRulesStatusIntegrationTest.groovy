@@ -56,8 +56,10 @@ dependencies {
     }
 }
 
-task resolve << {
-    configurations.compile.resolve()
+task resolve {
+    doLast {
+        configurations.compile.resolve()
+    }
 }
 """
 

@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
@@ -40,6 +41,7 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new CompositeBuildBuildScopeServices());
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
@@ -54,7 +56,7 @@ public class CompositeBuildServices implements PluginServiceRegistry {
         }
     }
 
-    public static class CompositeBuildSessionScopeServices {
+    private static class CompositeBuildSessionScopeServices {
         public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry serviceRegistry) {
             return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
         }
@@ -75,8 +77,14 @@ public class CompositeBuildServices implements PluginServiceRegistry {
             return new DefaultIncludedBuildExecuter(includedBuilds);
         }
 
-        public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
-            return new CompositeProjectArtifactBuilder(includedBuildExecuter);
+        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
+            return new IncludedBuildArtifactBuilder(includedBuildExecuter);
+        }
+    }
+
+    private static class CompositeBuildBuildScopeServices {
+        public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {
+            return new CompositeProjectArtifactBuilder(builder, buildIdentity);
         }
     }
 

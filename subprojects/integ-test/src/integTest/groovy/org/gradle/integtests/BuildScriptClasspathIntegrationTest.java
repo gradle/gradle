@@ -57,7 +57,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "sourceSets.main.java.srcDirs = ['../gradle/src']"
         );
         testFile("build.gradle").writelns(
-                "task test << { new BuildClass() }"
+                "task test { doLast { new BuildClass() } }"
         );
 
         inTestDirectory().withTasks("test").run();
@@ -116,12 +116,14 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "    classpath name: 'test', version: '1.+'",
                 "  }",
                 "}",
-                "task hello << {",
-                "  new org.gradle.test.ImportedClass()",
-                "  println someValue",
-                "  println anotherValue",
-                "  new ImportedClass()",
-                "  new OnDemandImportedClass()",
+                "task hello {",
+                "  doLast {",
+                "    new org.gradle.test.ImportedClass()",
+                "    println someValue",
+                "    println anotherValue",
+                "    new ImportedClass()",
+                "    new OnDemandImportedClass()",
+                "  }",
                 "}",
                 "ext.a = new ImportedClass()",
                 "ext.b = OnDemandImportedClass",
@@ -191,9 +193,10 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         );
         testFile("child/build.gradle").writelns(
                 "assert parent.buildscript.classLoader == buildscript.classLoader",
-                "task hello << ",
-                "{",
-                "    new org.gradle.test.BuildClass()",
+                "task hello {",
+                "    doLast {",
+                "        new org.gradle.test.BuildClass()",
+                "    }",
                 "}"
         );
         inTestDirectory().withTasks("hello").run();

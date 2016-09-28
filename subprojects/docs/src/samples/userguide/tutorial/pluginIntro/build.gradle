@@ -1,9 +1,11 @@
 // START SNIPPET apply-by-id
 apply plugin: 'java'
 
-task show << {
-    println relativePath(compileJava.destinationDir)
-    println relativePath(processResources.destinationDir)
+task show {
+    doLast {
+        println relativePath(compileJava.destinationDir)
+        println relativePath(processResources.destinationDir)
+    }
 }
 // END SNIPPET apply-by-id
 // START SNIPPET apply-by-type

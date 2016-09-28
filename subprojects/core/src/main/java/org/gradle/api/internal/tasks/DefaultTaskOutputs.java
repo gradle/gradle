@@ -28,9 +28,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.DeprecationLogger;
@@ -50,7 +51,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.OUTPUT;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -217,6 +218,27 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
+    public TaskOutputFilePropertyBuilder namedDirectories(final Callable<Map<?, ?>> paths) {
+        return taskMutator.mutate("TaskOutputs.namedDirectories(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                return addSpec(new CompositePropertySpec(resolver, OutputType.DIRECTORY, paths));
+            }
+        });
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder namedDirectories(final Map<?, ?> paths) {
+        return taskMutator.mutate("TaskOutputs.namedDirectories(Map)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
+                return addSpec(new CompositePropertySpec(resolver, OutputType.DIRECTORY, callable));
+            }
+        });
+    }
+
+    @Override
     public TaskOutputFilePropertyBuilder files(final Object... paths) {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
@@ -246,7 +268,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     abstract private class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
         private boolean optional;
-        private TaskFilePropertyPathSensitivityType pathSensitivity = TaskFilePropertyPathSensitivityType.ABSOLUTE;
+        private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
         @Override
         public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -269,18 +291,23 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return this;
         }
 
-        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
-            return pathSensitivity;
+        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+            return snapshotNormalizationStrategy;
         }
 
         @Override
         public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.pathSensitivity = TaskFilePropertyPathSensitivityType.valueOf(sensitivity);
+            this.snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity);
             return this;
         }
 
-        public TaskFilePropertyCompareType getCompareType() {
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
             return OUTPUT;
+        }
+
+        @Override
+        public String toString() {
+            return getPropertyName() + " (" + getCompareStrategy() + " " + snapshotNormalizationStrategy + ")";
         }
 
         // --- Deprecated delegate methods
@@ -447,18 +474,23 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public TaskFilePropertyCompareType getCompareType() {
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
             return OUTPUT;
         }
 
         @Override
-        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
-            return parentProperty.getPathSensitivity();
+        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+            return parentProperty.getSnapshotNormalizationStrategy();
         }
 
         @Override
         public int compareTo(TaskPropertySpec o) {
             return getPropertyName().compareTo(o.getPropertyName());
+        }
+
+        @Override
+        public String toString() {
+            return getPropertyName();
         }
     }
 }

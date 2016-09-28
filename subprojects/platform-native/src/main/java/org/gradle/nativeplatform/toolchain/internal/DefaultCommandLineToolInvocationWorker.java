@@ -17,15 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
     private final String name;
@@ -72,10 +72,10 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
         toolExec.environment(invocation.getEnvironment());
 
-        ByteArrayOutputStream errOutput = new ByteArrayOutputStream();
-        ByteArrayOutputStream stdOutput = new ByteArrayOutputStream();
-        toolExec.setErrorOutput(errOutput);
-        toolExec.setStandardOutput(stdOutput);
+        StreamByteBuffer errOutput = new StreamByteBuffer();
+        StreamByteBuffer stdOutput = new StreamByteBuffer();
+        toolExec.setErrorOutput(errOutput.getOutputStream());
+        toolExec.setStandardOutput(stdOutput.getOutputStream());
 
         try {
             toolExec.execute();
@@ -86,7 +86,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         }
     }
 
-    private String combineOutput(OutputStream stdOutput, OutputStream errOutput) {
-        return stdOutput.toString() + errOutput.toString();
+    private String combineOutput(StreamByteBuffer stdOutput, StreamByteBuffer errOutput) {
+        return stdOutput.readAsString(Charset.defaultCharset()) + errOutput.readAsString(Charset.defaultCharset());
     }
 }

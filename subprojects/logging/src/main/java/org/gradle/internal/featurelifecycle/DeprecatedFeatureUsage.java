@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class DeprecatedFeatureUsage {
     private final String message;
-    private final Class<?> calledFrom;
     private final List<StackTraceElement> stack;
+    private final Class<?> calledFrom;
 
     public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
         this.message = message;
@@ -34,10 +34,13 @@ public class DeprecatedFeatureUsage {
         this.stack = Collections.emptyList();
     }
 
-    private DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
+    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
+        if (stack == null) {
+            throw new NullPointerException("stack");
+        }
         this.message = usage.message;
         this.calledFrom = usage.calledFrom;
-        this.stack = stack;
+        this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
     }
 
     public String getMessage() {
@@ -58,31 +61,42 @@ public class DeprecatedFeatureUsage {
         }
 
         StackTraceElement[] originalStack = new Exception().getStackTrace();
-        int caller = 0;
-        while (caller < originalStack.length && !originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
-            caller++;
+        final String calledFromName = calledFrom.getName();
+        boolean calledFromFound = false;
+        int caller;
+        for (caller = 0; caller < originalStack.length; caller++) {
+            StackTraceElement current = originalStack[caller];
+            if (!calledFromFound) {
+                if (current.getClassName().startsWith(calledFromName)) {
+                    calledFromFound = true;
+                }
+            } else {
+                if (!current.getClassName().startsWith(calledFromName)) {
+                    break;
+                }
+            }
         }
-        while (caller < originalStack.length && originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
-            caller++;
-        }
+
         caller = skipSystemStackElements(originalStack, caller);
-        caller++;
-        caller = skipSystemStackElements(originalStack, caller);
-        List<StackTraceElement> stack = new ArrayList<StackTraceElement>();
+
+        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
         for (; caller < originalStack.length; caller++) {
-            stack.add(originalStack[caller]);
+            result.add(originalStack[caller]);
         }
-        return new DeprecatedFeatureUsage(this, stack);
+        return new DeprecatedFeatureUsage(this, result);
     }
 
-    private int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
-        while (caller < stackTrace.length && stackTrace[caller].getClassName().startsWith("org.codehaus.groovy.")
-                || stackTrace[caller].getClassName().startsWith("org.gradle.internal.metaobject.")
-                || stackTrace[caller].getClassName().startsWith("groovy.")
-                || stackTrace[caller].getClassName().startsWith("java.")
-                || stackTrace[caller].getClassName().startsWith("sun.")
-                || stackTrace[caller].getClassName().startsWith("jdk.internal.")) {
-            caller++;
+    private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
+        for (; caller < stackTrace.length; caller++) {
+            String currentClassName = stackTrace[caller].getClassName();
+            if (!currentClassName.startsWith("org.codehaus.groovy.")
+                && !currentClassName.startsWith("org.gradle.internal.metaobject.")
+                && !currentClassName.startsWith("groovy.")
+                && !currentClassName.startsWith("java.")
+                && !currentClassName.startsWith("jdk.internal.")
+                ) {
+                break;
+            }
         }
         return caller;
     }

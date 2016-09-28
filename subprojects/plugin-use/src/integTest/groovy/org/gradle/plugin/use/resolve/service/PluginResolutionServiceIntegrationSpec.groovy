@@ -89,8 +89,10 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
                 id "$id" version "$version"
             }
 
-            task verify << {
-                assert pluginApplied
+            task verify {
+                doLast {
+                    assert pluginApplied
+                }
             }
         """
     }

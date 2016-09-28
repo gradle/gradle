@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
@@ -136,12 +135,14 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         discovered = [ 'file0.txt', 'file1.txt', 'file2.txt' ]
     }
 
-    task incrementalCheck(dependsOn: "incremental") << {
-        assert incremental.incrementalExecution == project.ext.incrementalExecution
-        assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
-        assert incremental.changedFiles.collect({ it.name }).sort() == project.ext.changed
-        assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
-        assert incremental.discoveredFiles.collect({ it.name }).sort() == project.ext.discovered
+    task incrementalCheck(dependsOn: "incremental") {
+        doLast {
+            assert incremental.incrementalExecution == project.ext.incrementalExecution
+            assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
+            assert incremental.changedFiles.collect({ it.name }).sort() == project.ext.changed
+            assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
+            assert incremental.discoveredFiles.collect({ it.name }).sort() == project.ext.discovered
+        }
     }
 """
     }
@@ -162,7 +163,6 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         ":incremental" in skippedTasks
     }
 
-    @NotYetImplemented
     def "incremental task is skipped when run with no changes with discovered empty directory"() {
         discoveredDir.file('empty/dir').mkdirs()
 

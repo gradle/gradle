@@ -30,7 +30,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
     private final String displayName;
     private final UsageKind usage;
-    private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP);
+    private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, null);
     private final VariantsMetaData variants;
     private final Iterable<DependencySpec> dependencies;
 

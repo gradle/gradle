@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.performance.measure.Amount;
@@ -36,13 +37,20 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         PrintWriter out = new PrintWriter(output);
         List<? extends PerformanceTestExecution> sortedResults = Lists.reverse(testHistory.getExecutions());
         out.println("{");
-        out.println("\"labels\": [");
+        out.println("\"executionLabels\": [");
         for (int i = 0; i < sortedResults.size(); i++) {
             PerformanceTestExecution results = sortedResults.get(i);
             if (i > 0) {
-                out.print(", ");
+                out.println(", ");
             }
-            out.print("\"" + format.date(new Date(results.getStartTime())) + "\"");
+            out.print("{");
+            out.print("\"id\": \"" + results.getExecutionId() + "\"");
+            out.print(", \"branch\":\"" + results.getVcsBranch() + "\"");
+            out.print(", \"date\":\"" + format.date(new Date(results.getStartTime())) + "\"");
+            out.print(", \"commits\":[\"");
+            out.print(Joiner.on("\",\"").join(results.getVcsCommits()));
+            out.print("\"]");
+            out.print("}");
         }
         out.println("],");
         out.print("\"totalTime\":");

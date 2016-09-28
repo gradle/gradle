@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
+/**
+ * Reads from a {@link RandomAccessFile}. Each operation reads from and advances the current position of the file.
+ *
+ * <p>Closing this stream does not close the underlying file.
+ */
 public class RandomAccessFileInputStream extends InputStream {
     private final RandomAccessFile file;
 

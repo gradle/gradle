@@ -16,9 +16,14 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+import spock.lang.IgnoreIf
 
 class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
@@ -98,5 +103,35 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         ConcurrentTestUtil.poll(buildTimeout, 0.5) {
             assert !gradle.isRunning()
         }
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.daemon })
+    def "does not log daemon cancel message for continuous build"() {
+        setup:
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+        setupJavaProject()
+
+        when:
+        succeeds("build")
+
+        and:
+        sendEOT()
+
+        then:
+        ConcurrentTestUtil.poll(buildTimeout, 0.5) {
+            assert !gradle.isRunning()
+        }
+
+        and:
+        !output.contains(DaemonMessages.CANCELED_BUILD)
+        !daemons.daemon.log.contains(DaemonMessages.CANCELED_BUILD)
+
+        cleanup:
+        daemons.killAll()
+    }
+
+    DaemonsFixture getDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }

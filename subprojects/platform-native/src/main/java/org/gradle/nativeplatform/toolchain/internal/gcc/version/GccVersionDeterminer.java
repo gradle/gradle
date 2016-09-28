@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.io.NullOutputStream;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -78,15 +80,15 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         exec.executable(gccBinary.getAbsolutePath());
         exec.setWorkingDir(gccBinary.getParentFile());
         exec.args(args);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        exec.setStandardOutput(baos);
-        exec.setErrorOutput(new ByteArrayOutputStream());
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        exec.setStandardOutput(buffer.getOutputStream());
+        exec.setErrorOutput(NullOutputStream.INSTANCE);
         exec.setIgnoreExitValue(true);
         ExecResult result = exec.execute();
 
         int exitValue = result.getExitValue();
         if (exitValue == 0) {
-            return new String(baos.toByteArray());
+            return buffer.readAsString();
         } else {
             return null;
         }

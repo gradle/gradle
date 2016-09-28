@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
-import org.gradle.tooling.internal.consumer.converters.EclipseModelCompatibilityMapping;
 import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.converters.IdeaModelCompatibilityMapping;
@@ -35,12 +34,10 @@ public class HasCompatibilityMapping {
 
     private final Action<ViewBuilder<?>> taskPropertyHandlerMapper;
     private final Action<ViewBuilder<?>> ideaProjectCompatibilityMapper;
-    private final Action<ViewBuilder<?>> eclipseProjectDependencyCompatibilityMapper;
 
     public HasCompatibilityMapping(VersionDetails versionDetails) {
         taskPropertyHandlerMapper = new TaskDisplayNameCompatibilityMapping(versionDetails);
         ideaProjectCompatibilityMapper = new IdeaModelCompatibilityMapping(versionDetails);
-        eclipseProjectDependencyCompatibilityMapper = new EclipseModelCompatibilityMapping(versionDetails);
     }
 
     public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, ProjectIdentifier projectIdentifier) {
@@ -50,7 +47,6 @@ public class HasCompatibilityMapping {
         new FixedProjectIdentifierProvider(projectIdentifier).applyTo(viewBuilder);
         taskPropertyHandlerMapper.execute(viewBuilder);
         ideaProjectCompatibilityMapper.execute(viewBuilder);
-        eclipseProjectDependencyCompatibilityMapper.execute(viewBuilder);
         return viewBuilder;
     }
 

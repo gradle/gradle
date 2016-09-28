@@ -41,6 +41,7 @@ import static org.gradle.internal.FileUtils.hasExtension;
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
+    protected static final String JAVA_LANG_OBJECT = "java/lang/Object";
 
     private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
@@ -80,7 +81,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         if (superTestClassFile != null) {
             return superTestClassFile;
-        } else { // super test class file not in test class directories
+        } else if (JAVA_LANG_OBJECT.equals(superClassName)) {
+            // java.lang.Object found, which is not a test class
+            return null;
+        } else {
+            // super test class file not in test class directories
             return classFileExtractionManager.getLibraryClassFile(superClassName);
         }
     }

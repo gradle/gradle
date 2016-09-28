@@ -41,17 +41,6 @@ class DefaultCacheRepositoryTest extends Specification {
     private final CacheScopeMapping scopeMapping = Mock()
     private final DefaultCacheRepository repository = new DefaultCacheRepository(scopeMapping, cacheFactory)
 
-    public void createsGlobalDirectoryBackedStore() {
-        when:
-        def result = repository.store("a/b/c").open()
-
-        then:
-        result == cache
-        1 * scopeMapping.getBaseDirectory(null, "a/b/c", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.openStore(sharedCacheDir, null, mode(Shared), null) >> cache
-        0 * cacheFactory._
-    }
-
     public void createsGlobalDirectoryBackedCache() {
         when:
         def result = repository.cache("a/b/c").open()

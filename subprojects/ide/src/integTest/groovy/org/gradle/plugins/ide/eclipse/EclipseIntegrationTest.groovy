@@ -254,9 +254,11 @@ eclipse {
     }
 }
 
-tasks.eclipse << {
-    assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks shoold be fired for domain model objects"
-    assert whenConfiguredObjects == 5 : "whenConfigured() hooks shoold be fired for domain model objects"
+tasks.eclipse {
+    doLast {
+        assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks shoold be fired for domain model objects"
+        assert whenConfiguredObjects == 5 : "whenConfigured() hooks shoold be fired for domain model objects"
+    }
 }
 ''')
 

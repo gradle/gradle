@@ -39,7 +39,7 @@ public abstract class BlockPayload {
 
     protected abstract int getSize();
 
-    protected abstract int getType();
+    protected abstract byte getType();
 
     protected abstract void read(DataInputStream inputStream) throws Exception;
 

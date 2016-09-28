@@ -32,6 +32,9 @@ public class RequirementParsingNativeDependencyResolver implements NativeDepende
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
             NativeLibraryRequirement requirement = parser.parseNotation(resolution.getInput());
+            if (requirement.getProjectPath() == null || requirement.getProjectPath().isEmpty()) {
+                requirement = requirement.withProjectPath(nativeBinaryResolveResult.getTarget().getProjectPath());
+            }
             resolution.setRequirement(requirement);
         }
         delegate.resolve(nativeBinaryResolveResult);

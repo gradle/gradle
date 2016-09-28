@@ -95,7 +95,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         return matches;
     }
 
-    public Set<ResolvedDependency> getAllDependencies() {
+    public Set<ResolvedDependency> getAllModuleDependencies() {
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<ResolvedDependency>();
         Deque<ResolvedDependency> workQueue = new LinkedList<ResolvedDependency>();
         workQueue.addAll(loadTransientGraphResults().getRoot().getChildren());

@@ -70,9 +70,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allArtifacts.put(configuration, artifactMetadata);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, TaskDependency buildDependencies) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, buildDependencies);
         allConfigurations.put(name, conf);
     }
 
@@ -141,18 +141,20 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final boolean visible;
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
+        private final Map<String, String> attributes;
         private final TaskDependency buildDependencies;
 
         private List<DependencyMetadata> configurationDependencies;
         private ModuleExclusion configurationExclude;
 
-        private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
+        private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, Map<String, String> attributes, TaskDependency buildDependencies) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
             this.visible = visible;
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
+            this.attributes = attributes;
             this.buildDependencies = buildDependencies;
         }
 
@@ -192,6 +194,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         public boolean isVisible() {
             return visible;
+        }
+
+        @Override
+        public Map<String, String> getAttributes() {
+            return attributes;
         }
 
         public List<DependencyMetadata> getDependencies() {

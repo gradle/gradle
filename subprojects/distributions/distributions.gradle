@@ -45,6 +45,7 @@ ext {
     zipRootFolder = "gradle-$version"
 
     binDistImage = copySpec {
+        from("$rootDir/LICENSE")
         from('src/toplevel') {
             exclude 'media/**'
             expand(version: version)

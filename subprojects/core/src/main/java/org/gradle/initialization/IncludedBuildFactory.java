@@ -22,6 +22,4 @@ import java.io.File;
 
 public interface IncludedBuildFactory {
     ConfigurableIncludedBuild createBuild(File buildDirectory);
-    // TODO:DAZ Delete this once we remove old TAPI for composite builds
-    ConfigurableIncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext);
 }

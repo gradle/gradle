@@ -17,22 +17,22 @@ package org.gradle.initialization;
 
 public interface ClassLoaderRegistry {
     /**
-     * Returns the root class loader shared by all builds. This class loader exposes the Gradle API and built-in plugins.
+     * Returns the root class loader shared by all builds. This class loader exposes the Gradle API and APIs for the built-in plugins.
      */
     ClassLoader getGradleApiClassLoader();
 
     /**
-     * Returns the class loader for the Gradle runtime.
+     * Returns the implementation class loader for the Gradle core.
      */
     ClassLoader getRuntimeClassLoader();
 
     /**
-     * Returns the class loader for the plugins.
+     * Returns the implementation class loader for the built-in plugins.
      */
     ClassLoader getPluginsClassLoader();
 
     /**
-     * Just the core API, no core plugins.
+     * Just the Gradle core API, no core plugins.
      */
     ClassLoader getGradleCoreApiClassLoader();
 }

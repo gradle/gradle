@@ -36,6 +36,9 @@ import java.util.concurrent.TimeUnit;
  *     // e.g. multiple different versions of the same dependency (group and name are equal)
  *     failOnVersionConflict()
  *
+ *     // prefer modules that are part of this build (multi-project or composite build) over external modules
+ *     preferProjectModules()
+ *
  *     // force certain versions of dependencies (including transitive)
  *     //  *append new forced modules:
  *     force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
@@ -78,6 +81,24 @@ public interface ResolutionStrategy {
      * @since 1.0-milestone-6
      */
     ResolutionStrategy failOnVersionConflict();
+
+    /**
+     * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
+     * The default is <b>by version number</b>.<p>
+     * This applies to both first level and transitive dependencies. See example below:
+     *
+     * <pre autoTested=''>
+     * apply plugin: 'java' //so that there are some configurations
+     *
+     * configurations.all {
+     *   resolutionStrategy.preferProjectModules()
+     * }
+     * </pre>
+     *
+     * @since 3.2
+     */
+    @Incubating
+    void preferProjectModules();
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.

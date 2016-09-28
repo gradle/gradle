@@ -103,7 +103,7 @@ public class BuildModelsActionRunner implements BuildActionRunner {
     private void collectModelsFromIncludedBuild(String modelName, InternalModelResults<Object> compositeResults, IncludedBuild includedBuild) {
         IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
         try {
-            GradleInternal includedGradle = includedBuildInternal.configure();
+            GradleInternal includedGradle = includedBuildInternal.getConfiguredBuild();
             forceFullConfiguration(includedGradle);
             collectModels(includedGradle, modelName, compositeResults);
         } catch (RuntimeException e) {

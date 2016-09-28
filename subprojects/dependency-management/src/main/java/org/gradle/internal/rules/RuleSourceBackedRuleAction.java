@@ -73,7 +73,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
             throw new RuleActionValidationException(problemsFormatter.format());
         }
 
-        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), mutateMethods.get(0)));
+        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(subjectType.getConcreteClass(), mutateMethods.get(0)));
     }
 
     public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {

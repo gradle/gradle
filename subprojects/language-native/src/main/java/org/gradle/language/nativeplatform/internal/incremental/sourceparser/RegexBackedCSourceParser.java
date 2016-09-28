@@ -22,7 +22,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,9 +40,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     @Override
     public IncludeDirectives parseSource(File sourceFile) {
-        DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives();
-        sourceIncludes.addAll(parseFile(sourceFile));
-        return sourceIncludes;
+        return new DefaultIncludeDirectives(parseFile(sourceFile));
     }
 
     private List<Include> parseFile(File file) {

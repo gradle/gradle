@@ -35,9 +35,11 @@ rootProject.name = 'cancelling'
 
     def "cancel with older provider issues warning only"() {
         buildFile << """
-task t << {
-    new URL("${server.uri}").text
-    println "finished"
+task t {
+    doLast {
+        new URL("${server.uri}").text
+        println "finished"
+    }
 }
 """
 

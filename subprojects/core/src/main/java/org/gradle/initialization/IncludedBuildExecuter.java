@@ -16,8 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildExecuter {
-    void execute(ProjectComponentIdentifier buildIdentifier, Iterable<String> taskNames);
+    void execute(BuildIdentifier sourceBuild, BuildIdentifier targetBuild, Iterable<String> taskNames);
 }

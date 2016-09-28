@@ -17,83 +17,66 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 
 class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'extra properties are inherited to child projects'() {
+    def 'extra properties are inherited to child and grandchild projects'() {
         given:
-        multiProjectBuild('extra-properties', ['a', 'b']) {
-            buildFile << """
-                ext.testProp = 'rootValue'
-
-                allprojects {
-                    task checkTestProp {
-                        doLast {
-                            assert testProp == 'rootValue'
-                        }
-                    }
-                }
-            """.stripIndent()
-        }
+        extraPropertiesMultiBuild()
 
         expect:
-        succeeds ':a:checkTestProp', ':b:checkTestProp'
-    }
-
-    def 'extra properties are inherited to grand child projects'() {
-        given:
-        multiProjectBuild('extra-properties', ['a', 'b']) {
-            buildFile << """
-                ext.testProp = 'rootValue'
-
-                allprojects {
-                    task checkTestProp {
-                        doLast {
-                            assert testProp == 'rootValue'
-                        }
-                    }
-                }
-            """.stripIndent()
-
-            settingsFile << "include ':a:a1'"
-        }
-
-        expect:
-        succeeds ':a:a1:checkTestProp'
+        succeeds checkTestPropTasks()
     }
 
     @Issue('GRADLE-3530')
     def 'extra properties can be overridden on child projects'() {
         given:
-        multiProjectBuild('extra-properties', ['a', 'b']) {
+        extraPropertiesMultiBuild('a': 'aValue', 'a:a1': 'aValue') {
+            buildFile << """
+                project(':a') {
+                    ext.testProp = 'aValue'
+                }
+            """.stripIndent()
+        }
+
+        expect:
+        succeeds checkTestPropTasks()
+    }
+
+    BuildTestFile extraPropertiesMultiBuild(Map expectedPropPerProject = [:], @DelegatesTo(BuildTestFile) Closure configuration = {}) {
+        expectedPropPerProject = [a: 'rootValue', b: 'rootValue', 'a:a1': 'rootValue'] + expectedPropPerProject
+        def root = multiProjectBuild('extra-properties', ['a', 'b']) {
+            settingsFile << "include ':a:a1'"
+
             buildFile << """
                 ext.testProp = 'rootValue'
 
-                project(':a') {
-                    ext.testProp = 'aValue'
-                    allprojects {
-                        task checkTestProp {
-                            doLast {
-                                assert testProp == 'aValue'
-                            }
-                        }
-                    }
-                }
-
-                project(':b') {
-                    task checkTestProp {
-                        doLast {
-                            assert testProp == 'rootValue'
-                        }
+                task checkTestProp {
+                    doLast {
+                        assert testProp == 'rootValue'
                     }
                 }
             """.stripIndent()
 
-            settingsFile << "include ':a:a1'"
+            ['a', 'b', 'a:a1'].each {
+                buildFile << """
+                project(':${it}') {
+                    task checkTestProp {
+                        doLast {
+                            assert testProp == '${expectedPropPerProject[it]}'
+                        }
+                    }
+                }
+            """.stripIndent()
+            }
         }
+        root.with(configuration)
+        root
+    }
 
-        expect:
-        succeeds(*(['a', 'b', 'a:a1'].collect { ":${it}:checkTestProp".toString() }))
+    String[] checkTestPropTasks() {
+        ['', ':a', ':b', ':a:a1'].collect { "${it}:checkTestProp".toString() }
     }
 }

@@ -56,6 +56,7 @@ public class HeapProportionalCacheSizer {
         if (referenceValue < granularity) {
             throw new IllegalArgumentException("reference value must be larger than granularity");
         }
-        return (int) ((double) referenceValue * sizingRatio) / granularity * granularity;
+        int scaledValue = (int) ((double) referenceValue * sizingRatio) / granularity * granularity;
+        return Math.max(scaledValue, granularity);
     }
 }

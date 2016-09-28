@@ -19,14 +19,17 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
@@ -80,6 +83,7 @@ import java.util.List;
  * }
  * </pre>
  */
+@CacheableTask
 @ParallelizableTask
 public class Javadoc extends SourceTask {
     private File destinationDir;
@@ -153,6 +157,15 @@ public class Javadoc extends SourceTask {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Override
+    public FileTree getSource() {
+        return super.getSource();
+    }
+
+    /**
      * Returns the tool chain that will be used to generate the Javadoc.
      */
     @Incubating @Inject
@@ -204,7 +217,7 @@ public class Javadoc extends SourceTask {
     /**
      * Returns the amount of memory allocated to this task.
      */
-    @Optional @Input
+    @Internal
     public String getMaxMemory() {
         return maxMemory;
     }
@@ -263,8 +276,7 @@ public class Javadoc extends SourceTask {
      *
      * @return The classpath.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }

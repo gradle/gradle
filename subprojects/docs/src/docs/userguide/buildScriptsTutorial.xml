@@ -76,13 +76,22 @@
     </section>
     <section id="sec:a_shortcut_task_definition">
         <title>A shortcut task definition</title>
+        <note>
+            <para>
+                This functionality is deprecated and will be removed in Gradle 4.0 without replacement.
+                Use the methods <apilink class="org.gradle.api.Task" method="doFirst(org.gradle.api.Action)"/> and <apilink class="org.gradle.api.Task" method="doLast(org.gradle.api.Action)"/>
+                to define an action instead.
+            </para>
+        </note>
         <para>There is a shorthand way to define a task like our <literal>hello</literal> task above, which is more
             concise.</para>
         <sample id="helloShortcut" dir="userguide/tutorial/helloShortcut" title="A task definition shortcut">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Again, this defines a task called <literal>hello</literal> with a single closure to execute.
-            We will use this task definition style throughout the user guide.</para>
+        <para>
+            Again, this defines a task called <literal>hello</literal> with a single closure to execute.
+            The <literal>&lt;&lt;</literal> operator is simply an alias for <literal>doLast</literal>.
+        </para>
     </section>
     <section id="sec:build_scripts_are_code">
         <title>Build scripts are code</title>
@@ -144,14 +153,12 @@
         </sample>
         <para>The calls <literal>doFirst</literal> and <literal>doLast</literal> can be executed multiple times.
             They add an action to the beginning or the end of the task's actions list. When the task executes, the
-            actions in the action list are executed in order. The <literal>&lt;&lt;</literal> operator is simply an
-            alias for <literal>doLast</literal>.
+            actions in the action list are executed in order.
         </para>
     </section>
     <section id="sec:shortcut_notations">
         <title>Shortcut notations</title>
-        <para>As you might have noticed in the previous examples, there is a convenient notation for accessing an
-            <emphasis>existing</emphasis> task. Each task is available as a property of the build script:
+        <para>There is a convenient notation for accessing an <emphasis>existing</emphasis> task. Each task is available as a property of the build script:
         </para>
         <sample id="helloWithShortCut" dir="userguide/tutorial/helloWithShortCut" title="Accessing task as a property of the build script">
             <sourcefile file="build.gradle"/>

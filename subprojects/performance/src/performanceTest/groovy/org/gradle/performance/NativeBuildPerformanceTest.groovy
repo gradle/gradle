@@ -39,8 +39,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         type           | fastestVersion
-        // TODO: Restore 'last' when sufficent performance gains are made.
-        "small"        | '3.1-20160818000032+0000'
+        "small"        | 'last'
         "medium"       | '2.14.1'
         "big"          | '2.14.1'
         "multi"        | '2.14.1'

@@ -344,8 +344,10 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     def "can change script while build is running"() {
         given:
         buildFile << """
-task someLongRunningTask << {
-    new URL("${server.uri}").text
+task someLongRunningTask {
+    doLast {
+        new URL("${server.uri}").text
+    }
 }
 """
 
@@ -602,7 +604,11 @@ task fastTask { }
             }
             'build.gradle'('''apply from:'main.gradle' ''')
             'main.gradle'('''
-                task success << { println 'ok' }
+                task success {
+                    doLast {
+                        println 'ok'
+                    }
+                }
             ''')
         }
         executer = new ForkingGradleExecuter(distribution, temporaryFolder)

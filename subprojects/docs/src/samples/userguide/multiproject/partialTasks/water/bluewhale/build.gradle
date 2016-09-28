@@ -1,6 +1,12 @@
 ext.arctic = true
-hello << { println "- I'm the largest animal that has ever lived on this planet." }
+hello {
+    doLast {
+        println "- I'm the largest animal that has ever lived on this planet."
+    }
+}
 
-task distanceToIceberg << {
-    println '20 nautical miles'
+task distanceToIceberg {
+    doLast {
+        println '20 nautical miles'
+    }
 }

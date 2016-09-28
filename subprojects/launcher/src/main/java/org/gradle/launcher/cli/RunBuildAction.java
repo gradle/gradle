@@ -16,7 +16,12 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -28,22 +33,30 @@ public class RunBuildAction implements Runnable {
     private final long startTime;
     private final BuildActionParameters buildActionParameters;
     private final ServiceRegistry sharedServices;
+    private final Stoppable stoppable;
 
     public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameter startParameter, BuildClientMetaData clientMetaData, long startTime,
-                          BuildActionParameters buildActionParameters, ServiceRegistry sharedServices) {
+                          BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
         this.executer = executer;
         this.startParameter = startParameter;
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.buildActionParameters = buildActionParameters;
         this.sharedServices = sharedServices;
+        this.stoppable = stoppable;
     }
 
     public void run() {
-        executer.execute(
-                new ExecuteBuildAction(startParameter),
-                new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
-                buildActionParameters,
-                sharedServices);
+        try {
+            executer.execute(
+                    new ExecuteBuildAction(startParameter),
+                    new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
+                    buildActionParameters,
+                    sharedServices);
+        } finally {
+            if (stoppable != null) {
+                stoppable.stop();
+            }
+        }
     }
 }

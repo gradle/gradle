@@ -18,7 +18,14 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.BuildType;
+import org.gradle.nativeplatform.Flavor;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeDependencySet;
+import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.nativeplatform.NativeLibraryRequirement;
+import org.gradle.nativeplatform.SharedLibraryBinary;
+import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.util.GUtil;
 
@@ -36,7 +43,7 @@ class DefaultLibraryResolver {
     }
 
     public NativeLibraryBinary resolveLibraryBinary() {
-        DomainObjectSet<NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(requirement);
+        DomainObjectSet<NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(new LibraryIdentifier(requirement.getProjectPath(), requirement.getLibraryName()));
         if (binaries == null) {
             throw new LibraryResolveException(getFailureMessage(requirement));
         }
@@ -48,7 +55,7 @@ class DefaultLibraryResolver {
     }
 
     private String getFailureMessage(NativeLibraryRequirement requirement) {
-        return requirement.getProjectPath() == null
+        return requirement.getProjectPath() == null || requirement.getProjectPath().equals(context.getProjectPath())
             ? String.format("Could not locate library '%s' required by %s.", requirement.getLibraryName(), getContextMessage())
             : String.format("Could not locate library '%s' in project '%s' required by %s.", requirement.getLibraryName(), requirement.getProjectPath(), getContextMessage());
     }

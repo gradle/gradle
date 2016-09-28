@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
@@ -29,15 +28,6 @@ import java.io.File;
  * @since 1.0-milestone-3
  */
 public interface HierarchicalEclipseProject extends HierarchicalElement, HasGradleProject {
-    /**
-     * The unique identifier for this eclipse project.
-     * Useful to correlate project dependencies with `EclipseProject` instances.
-     *
-     * @return The unique identifier for this eclipse project.
-     * @since 2.14
-     */
-    @Incubating
-    EclipseProjectIdentifier getIdentifier();
 
     /**
      * {@inheritDoc}

@@ -52,7 +52,7 @@
             <para>
                 Task implementations declare their file system inputs by annotating their properties with
                 <apilink class="org.gradle.api.tasks.InputFiles" /> and other similar annotations.
-                Please see <xref linkend="incrementalTask"/> for more information.
+                Please see <xref linkend="sec:up_to_date_checks"/> for more information.
             </para>
         </tip>
         <para>

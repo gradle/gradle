@@ -55,6 +55,8 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         gradleFilesGenerated()
+        file("build.gradle").text.contains("options.encoding = 'UTF-8'")
+        !file("webinar-war/build.gradle").text.contains("'options.encoding'")
 
         when:
         run 'clean', 'build'

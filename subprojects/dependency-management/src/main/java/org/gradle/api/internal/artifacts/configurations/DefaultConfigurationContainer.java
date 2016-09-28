@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
@@ -49,6 +50,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final FileCollectionFactory fileCollectionFactory;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
@@ -56,7 +58,8 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
                                          Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener,
                                          ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                         FileCollectionFactory fileCollectionFactory, DependencySubstitutionRules globalDependencySubstitutionRules) {
+                                         FileCollectionFactory fileCollectionFactory, DependencySubstitutionRules globalDependencySubstitutionRules,
+                                         ComponentIdentifierFactory componentIdentifierFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -68,13 +71,15 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
         this.fileCollectionFactory = fileCollectionFactory;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
+        this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultResolutionStrategy resolutionStrategy = instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules);
+        DefaultResolutionStrategy resolutionStrategy = instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory);
         return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, resolver,
-                listenerManager, dependencyMetaDataProvider, resolutionStrategy, projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory);
+                listenerManager, dependencyMetaDataProvider, resolutionStrategy, projectAccessListener, projectFinder,
+                configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory);
     }
 
     public Set<Configuration> getAll() {
@@ -101,7 +106,8 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
                 name, name, detachedConfigurationsProvider, resolver,
-                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(globalDependencySubstitutionRules), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory);
+                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(globalDependencySubstitutionRules, componentIdentifierFactory), projectAccessListener, projectFinder,
+                configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
