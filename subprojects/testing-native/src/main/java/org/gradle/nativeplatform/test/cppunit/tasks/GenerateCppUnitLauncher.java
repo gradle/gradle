@@ -24,7 +24,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 /**
- * Generated the Gradle CUnit launcher: main method and header.
+ * Generated the Gradle CPPUnit launcher: main method and header.
  */
 public class GenerateCppUnitLauncher extends DefaultTask {
     private File sourceDir;
@@ -32,8 +32,8 @@ public class GenerateCppUnitLauncher extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        writeToFile(sourceDir, "gradle_cunit_main.c");
-        writeToFile(headerDir, "gradle_cunit_register.h");
+        writeToFile(sourceDir, "gradle_cppunit_main.c");
+        writeToFile(headerDir, "gradle_cppunit_register.h");
     }
 
     private void writeToFile(File directory, String fileName) {
