@@ -21,34 +21,25 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
+import groovy.json.JsonOutput.toJson
 
 import java.net.URL
 
 import java.util.*
-
-fun classLoaderHierarchyJsonFor(klass: Class<*>, targetScope: ClassLoaderScope): String {
-    val outputStream = ByteArrayOutputStream()
-    writeClassLoaderHierarchyJsonTo(outputStream.let(::PrintStream), klass, targetScope)
-    return outputStream.toString()
-}
 
 /**
  * A formatter for strings that might contain file system paths.
  */
 typealias PathStringFormatter = (String) -> String
 
-fun writeClassLoaderHierarchyJsonTo(writer: PrintStream,
-                                    klass: Class<*>,
-                                    targetScope: ClassLoaderScope,
-                                    pathFormatter: PathStringFormatter = { it }) {
-    writeClassLoaderHierarchyJsonTo(
-        writer,
+internal
+fun classLoaderHierarchyJsonFor(klass: Class<*>,
+                                targetScope: ClassLoaderScope,
+                                pathFormatter: PathStringFormatter = { it }) =
+    classLoaderHierarchyJsonFor(
         hierarchyOf(klass.classLoader),
         hierarchyOf(targetScope),
         pathFormatter)
-}
 
 private
 typealias ClassLoaderId = String
@@ -62,48 +53,31 @@ class ClassLoaderNode(
 
 
 private
-fun writeClassLoaderHierarchyJsonTo(writer: PrintStream,
-                                    classLoaders: List<ClassLoaderNode>,
-                                    scopes: List<ClassLoaderScope>,
-                                    pathFormatter: PathStringFormatter) {
+fun classLoaderHierarchyJsonFor(classLoaders: List<ClassLoaderNode>,
+                                scopes: List<ClassLoaderScope>,
+                                pathFormatter: PathStringFormatter): String {
 
     fun labelFor(scope: ClassLoaderScope) =
         pathFormatter(if (scope is AbstractClassLoaderScope) scope.path else scope.toString())
 
-    writer.run {
-        println("{")
-        println("\"classLoaders\": [")
-        for ((i, record) in classLoaders.withIndex()) {
-            if (i > 0) println(",")
-            print("""
-                { "id": "${record.id}"
-                , "label": "${record.label}"
-                , "classPath": ${toJsonArray(record.classPath.map { pathFormatter(it.toString()) })}
-                , "parents": ${toJsonArray(record.parents)}
-                }
-            """.replaceIndent("  "))
-        }
-        println()
-        println("],")
-        println("\"scopes\": [")
-        for ((i, scope) in scopes.withIndex()) {
-            if (i > 0) println(",")
-            print("""
-                { "label": "${labelFor(scope)}"
-                , "localClassLoader": "${idOf(scope.localClassLoader)}"
-                , "exportClassLoader": "${idOf(scope.exportClassLoader)}"
-                , "isLocked": "${scope.isLocked}"
-                }
-            """.replaceIndent("  "))
-        }
-        println("]")
-        println("}")
-    }
+    return toJson(
+        mapOf(
+            "classLoaders" to classLoaders.map {
+                mapOf(
+                    "id" to it.id,
+                    "label" to it.label,
+                    "classPath" to it.classPath.map { pathFormatter(it.toString()) },
+                    "parents" to it.parents)
+            },
+            "scopes" to scopes.map {
+                mapOf(
+                    "label" to labelFor(it),
+                    "localClassLoader" to idOf(it.localClassLoader),
+                    "exportClassLoader" to idOf(it.exportClassLoader),
+                    "isLocked" to it.isLocked)
+            }
+        ))
 }
-
-private
-fun toJsonArray(array: Collection<*>) =
-    array.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }
 
 private
 fun hierarchyOf(initialScope: ClassLoaderScope): List<ClassLoaderScope> {

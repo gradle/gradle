@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
 import org.slf4j.Logger
 
 import java.io.File
-import java.io.PrintStream
 
 import java.lang.reflect.InvocationTargetException
 
@@ -205,9 +204,8 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun logClassLoaderHierarchyOf(scriptClass: Class<*>, project: Project) {
-        classLoaderHierarchyFileFor(project).let(::PrintStream).use {
-            writeClassLoaderHierarchyJsonTo(it, scriptClass, targetScope, pathFormatterFor(project))
-        }
+        classLoaderHierarchyFileFor(project).writeText(
+            classLoaderHierarchyJsonFor(scriptClass, targetScope, pathFormatterFor(project)))
     }
 
     private fun classLoaderHierarchyFileFor(project: Project) =
