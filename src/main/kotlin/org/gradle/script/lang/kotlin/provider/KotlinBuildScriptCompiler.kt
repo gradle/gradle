@@ -140,13 +140,13 @@ class KotlinBuildScriptCompiler(
         asFiles.any { isKotlinJar(it.name) }
 
     /**
-     * Creates a [PostDelegatingClassLoader] that reloads gradle-script-kotlin.jar in the context of
+     * Creates a [ChildFirstClassLoader] that reloads gradle-script-kotlin.jar in the context of
      * the buildscript classpath so to share the correct version of the Kotlin
      * standard library types.
      */
-    private fun isolatedKotlinClassLoaderFor(parentClassLoader: ClassLoader): PostDelegatingClassLoader {
+    private fun isolatedKotlinClassLoaderFor(parentClassLoader: ClassLoader): ChildFirstClassLoader {
         val isolatedClassPath = scriptClassPath + gradleScriptKotlinJars + buildSrc + gradleApiExtensions
-        val isolatedClassLoader = PostDelegatingClassLoader(parentClassLoader, isolatedClassPath)
+        val isolatedClassLoader = ChildFirstClassLoader(parentClassLoader, isolatedClassPath)
         exportTo(targetScope, isolatedClassLoader)
         return isolatedClassLoader
     }

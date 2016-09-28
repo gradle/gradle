@@ -22,7 +22,7 @@ import org.gradle.internal.classpath.ClassPath
 /**
  * A [VisitableURLClassLoader] that tries to load classes locally before delegating to its parent.
  */
-class PostDelegatingClassLoader(parent: ClassLoader, classPath: ClassPath) : VisitableURLClassLoader(parent, classPath) {
+class ChildFirstClassLoader(parent: ClassLoader, classPath: ClassPath) : VisitableURLClassLoader(parent, classPath) {
 
     override fun loadClass(name: String, resolve: Boolean): Class<*> =
         findLoadedClass(name)

@@ -30,7 +30,7 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
         val jar = file("fixture.jar")
         zipTo(jar, classEntriesFor(DeepThought::class.java))
 
-        val loader = PostDelegatingClassLoader(getSystemClassLoader(), DefaultClassPath.of(listOf(jar)))
+        val loader = ChildFirstClassLoader(getSystemClassLoader(), DefaultClassPath.of(listOf(jar)))
         val klass = loader.loadClass(DeepThought::class.qualifiedName)
 
         val targetScope = mock<AbstractClassLoaderScope>() {
