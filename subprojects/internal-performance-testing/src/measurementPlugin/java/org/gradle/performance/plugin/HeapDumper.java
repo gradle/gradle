@@ -22,8 +22,6 @@ import org.gradle.api.logging.Logger;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.PlatformManagedObject;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import static org.gradle.performance.plugin.ReflectionUtil.getMethodByName;
 import static org.gradle.performance.plugin.ReflectionUtil.invokeMethod;
@@ -40,7 +38,7 @@ class HeapDumper {
     static void handle(final Project project, Logger logger) {
         if (project.hasProperty(HEAP_DUMP_PROPERTY)) {
             if (shouldDumpHeap(project)) {
-                dumpHeap(logger, createFileName(project), !"all".equals(project.property(HEAP_DUMP_PROPERTY)));
+                dumpHeap(logger, MeasurementPlugin.createFileName(project, null, "heapdump", ".hprof"), !"all".equals(project.property(HEAP_DUMP_PROPERTY)));
             }
         }
     }
@@ -59,11 +57,6 @@ class HeapDumper {
             invokeMethod(hotspotDiagnosticMXBean, getMethodByName(hotspotDiagnosticMXBean.getClass(), "dumpHeap"), dumpFile.getAbsolutePath(), liveObjectsOnly);
             logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
         }
-    }
-
-    private static File createFileName(Project project) {
-        final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
-        return new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".hprof");
     }
 
     private static boolean shouldDumpHeap(Project project) {
