@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+
 import java.util.List;
 import java.util.Set;
 
@@ -37,7 +39,10 @@ public interface ConfigurationMetadata {
      */
     Set<ComponentArtifactMetadata> getArtifacts();
 
-    Set<Exclude> getExcludes();
+    /**
+     * Returns the exclusions to apply to outgoing dependencies from this configuration.
+     */
+    ModuleExclusion getExclusions();
 
     boolean isTransitive();
 

@@ -17,17 +17,16 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.Header
-import org.apache.http.HttpHeaders
-import org.apache.http.HttpResponse
-import org.apache.http.message.BasicHeader
-import spock.lang.Specification
 import org.apache.http.HttpEntity
+import org.apache.http.HttpHeaders
+import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.message.BasicHeader
 
-class HttpResponseResourceTest extends Specification {
+class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def sourceUrl = new URI("http://gradle.org")
     def method = "GET"
-    def response = Mock(HttpResponse)
+    def response = Mock(CloseableHttpResponse)
 
     def "extracts etag"() {
         given:
@@ -70,6 +69,19 @@ class HttpResponseResourceTest extends Specification {
     def "returns null when accessing value of a non existing header"() {
         expect:
         resource().getHeaderValue("X-No-Such-Header") == null
+    }
+
+    def "close closes the response"() {
+        given:
+        def mockedHttpResponse = mockedHttpResponse(response)
+
+        when:
+        resource().close()
+
+        then:
+        interaction {
+            assertIsClosedCorrectly(mockedHttpResponse)
+        }
     }
 
     HttpResponseResource resource() {

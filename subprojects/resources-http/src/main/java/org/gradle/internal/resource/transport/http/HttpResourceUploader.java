@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
-import org.apache.http.util.EntityUtils;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
@@ -38,12 +38,15 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         HttpPut method = new HttpPut(destination);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
-        HttpResponse response = http.performHttpRequest(method);
-        EntityUtils.consume(response.getEntity());
-        if (!http.wasSuccessful(response)) {
-            throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
+        CloseableHttpResponse response = null;
+        try {
+            response = http.performHttpRequest(method);
+            if (!http.wasSuccessful(response)) {
+                throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
                     destination, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
+            }
+        } finally {
+            HttpClientUtils.closeQuietly(response);
         }
-
     }
 }

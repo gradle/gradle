@@ -41,7 +41,6 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
@@ -67,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task. For projects that have the Java plugin applied, the tasks receive additional Java-specific
@@ -130,7 +131,7 @@ public class IdeaPlugin extends IdePlugin {
         });
         for (Project project : projectsWithIml) {
             ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-            ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath());
+            ProjectComponentIdentifier projectId = newProjectId(project);
             projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
         }
     }

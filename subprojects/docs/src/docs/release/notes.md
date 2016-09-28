@@ -36,6 +36,46 @@ With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to p
         }
     }
 
+### The distribution type can be selected by the Wrapper task
+
+For the [Wrapper](userguide/gradle_wrapper.html#sec:wrapper_generation) task, it is now possible to select a distribution type other than the default of `bin` by using `--distribution-type`.
+
+    gradle wrapper --distribution-type all
+
+### Initial support for Play 2.5.x
+
+Initial support for [Play 2.5.x](userguide/play_plugin.html#sec:play_limitations) has been added.
+
+### Improved IDEA code assistance performance for Kotlin based build scripts
+
+Gradle 3.1 supports version 0.3.1 of [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), a statically typed build language based on Kotlin.
+
+This new version includes an improved dependencies DSL making it possible to configure all aspects of external module and project dependencies via a type-safe and IDE friendly DSL:
+
+    dependencies {
+
+        default(group = "org.gradle", name = "foo", version = "1.0") {
+            isForce = true
+        }
+
+        compile(group = "org.gradle", name = "bar") {
+            exclude(module = "foo")
+        }
+
+        runtime("org.gradle:baz:1.0-SNAPSHOT") {
+            isChanging = true
+            isTransitive = false
+        }
+
+        testCompile(group = "junit", name = "junit")
+
+        testRuntime(project(path = ":core")) {
+            exclude(group = "org.gradle")
+        }
+    }
+
+Gradle Script Kotlin 0.3.1 also ships with Kotlin 1.1-dev-2053 greatly improving the performance of code assistance within IDEA when used together with a recent Kotlin plugin version. Please check out the full [Gradle Script Kotlin release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.1) for details.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -55,6 +95,8 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 4.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+
+- `org.gradle.plugins.ide.eclipse.model.ProjectDependency.setGradlePath()` has been deprecated without replacement.
 
 <!--
 ### Example deprecation
@@ -102,6 +144,15 @@ experience a different dependency graph than observed with earlier versions of G
 
 We do not need [JNA](https://github.com/java-native-access/jna) anymore so we removed this library from
 the Gradle distribution. Plugin authors relying on the library being present now need to ship their own.
+
+### Tooling API models have missing dependency information when importing composite builds
+
+When a composite build is imported via the Gradle Tooling API, then certain fields may not be populated:
+
+- `EclipseProjectDependency.getTargetProject` will be `null` for a project substituted in the composite: use `EclipseProject.getTarget` instead.
+- `IdeaModuelDependency.getDependencyModule` will be `null` for a project substituted in the composite: use `IdeaModuleDependency.getTarget` instead.
+
+TODO:DAZ Revisit if this breakage is necessary and/or reasonable. We might just deprecate these methods.
 
 ### Dependency resolution changes when a Maven module dependency is substituted with a Gradle project dependency
 

@@ -32,7 +32,7 @@ import java.util.Date;
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
 
 public class DuplicateIdleDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    public final static int IDLE_COMPATIBLE_TIMEOUT = 10;
+    public final static int IDLE_COMPATIBLE_TIMEOUT = 10 * 1000;
     private final Daemon daemon;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
 
@@ -80,6 +80,6 @@ public class DuplicateIdleDaemonExpirationStrategy implements DaemonExpirationSt
 
     boolean hasBeenIdle() {
         long idleTime = daemon.getStateCoordinator().getIdleMillis(System.currentTimeMillis());
-        return idleTime > IDLE_COMPATIBLE_TIMEOUT * 1000;
+        return idleTime > IDLE_COMPATIBLE_TIMEOUT;
     }
 }

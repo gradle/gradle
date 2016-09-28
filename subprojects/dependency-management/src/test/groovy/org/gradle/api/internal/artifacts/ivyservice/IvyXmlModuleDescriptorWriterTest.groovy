@@ -42,10 +42,10 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     def "can create ivy (unmodified) descriptor"() {
         when:
         def descriptor = new MutableModuleDescriptorState(id)
-        addConfiguration(descriptor, "archives")
-        addConfiguration(descriptor, "compile")
-        addConfiguration(descriptor, "runtime", ["compile"])
         def metadata = new DefaultIvyModulePublishMetadata(id, descriptor)
+        addConfiguration(metadata, "archives")
+        addConfiguration(metadata, "compile")
+        addConfiguration(metadata, "runtime", ["compile"])
         addDependencyDescriptor(metadata, "Dep1")
         addDependencyDescriptor(metadata, "Dep2")
         metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
@@ -79,7 +79,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         metadata.addDependency(dep)
     }
 
-    def addConfiguration(MutableModuleDescriptorState state, String configurationName, List extended = []) {
-        state.addConfiguration(configurationName, true, true, extended)
+    def addConfiguration(BuildableIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
+        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null)
     }
 }

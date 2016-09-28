@@ -18,15 +18,56 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "jar", false)
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "jar", false, dependencies)
+    }
+
+    @Override
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts) {
+        return new DefaultMutableMavenModuleResolveMetadata(id, artifacts)
+    }
+
+    def "defines configurations for maven scopes and several usage buckets"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def descriptor = new MutableModuleDescriptorState(id, "2", true)
+
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", true, [])
+
+        expect:
+        def immutable = metadata.asImmutable()
+        immutable.configurationNames == ["compile", "runtime", "test", "provided", "system", "optional", "master", "default", "javadoc", "sources"] as Set
+        immutable.getConfiguration("compile").hierarchy == ["compile"] as Set
+        immutable.getConfiguration("runtime").hierarchy == ["compile", "runtime"] as Set
+        immutable.getConfiguration("master").hierarchy == ["master"] as Set
+        immutable.getConfiguration("test").hierarchy == ["compile", "runtime", "test"] as Set
+        immutable.getConfiguration("default").hierarchy == ["master", "runtime", "compile", "default"] as Set
+        immutable.getConfiguration("provided").hierarchy == ["provided"] as Set
+        immutable.getConfiguration("optional").hierarchy == ["optional"] as Set
+    }
+
+    def "default metadata"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+
+        expect:
+        metadata.packaging == 'jar'
+        !metadata.relocated
+
+        def immutable = metadata.asImmutable()
+        immutable.generated
+        immutable.packaging == 'jar'
+        !immutable.relocated
+        immutable.configurationNames == ["compile", "runtime", "test", "provided", "system", "optional", "master", "default", "javadoc", "sources"] as Set
     }
 
     def "initialises values from descriptor state and defaults"() {
@@ -34,7 +75,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
 
         expect:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", true)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", true, [])
         metadata.componentId == id
         metadata.id == DefaultModuleVersionIdentifier.newId(id)
         metadata.status == "2"
@@ -82,7 +123,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "jar", false)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "jar", false, [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -127,7 +168,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "jar", false)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "jar", false, [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -175,7 +216,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", false)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", false, [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId

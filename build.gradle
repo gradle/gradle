@@ -273,7 +273,7 @@ def patchedExternalModules = fileTree(patchedExternalModulesDir) {
 }
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.3.0'
+    externalModules 'org.gradle:gradle-script-kotlin:0.3.1'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")

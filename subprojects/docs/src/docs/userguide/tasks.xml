@@ -290,52 +290,694 @@
     </section>
 
     <section id="sec:up_to_date_checks">
-        <title>Skipping tasks that are up-to-date</title>
-        <para>If you are using one of the tasks that come with Gradle, such as a task added by the Java plugin,
-            you might have noticed that Gradle will skip tasks that are up-to-date. This behaviour is also available
-            for your tasks, not just for built-in tasks.
+        <title>Up-to-date checks (AKA Incremental Build)</title>
+        <para>An important part of any build tool is the ability to avoid doing work that has already
+            been done. Consider the process of compilation. Once your source files have been compiled,
+            there should be no need to recompile them unless something has changed that affects the
+            output, such as the modification of a source file or the removal of an output file. And
+            compilation can take a significant amount of time, so skipping the step when it’s not needed
+            saves a lot of time.
         </para>
+        <para>Gradle supports this behavior out of the box through a feature it calls incremental build.
+            You have almost certainly already seen it in action: it’s active nearly<footnote>
+                <para>You will also see <literal>UP-TO-DATE</literal> next to tasks that have no actions,
+                even though that’s nothing to do with incremental build.
+                </para>
+            </footnote> every time the <literal>UP-TO-DATE</literal> text appears next to the name of a
+            task when you run a build.
+        </para>
+        <para>How does incremental build work? And what does it take to make use of it in your own
+            tasks? Let’s take a look.
+        </para>
+
         <section id="sec:task_inputs_outputs">
-            <title>Declaring a task's inputs and outputs</title>
-            <para>
-                Let's have a look at an example. Here our task generates several output files from a source XML file. Let's
-                run it a couple of times.
-            </para>
-            <sample id="generatorTask" dir="userguide/tasks/incrementalBuild/noInputsAndOutputs" title="A generator task">
-                <sourcefile file="build.gradle"/>
-                <output args="transform" ignoreExtraLines="true"/>
-                <output args="transform" ignoreExtraLines="true"/>
-            </sample>
-            <para>Notice that Gradle executes this task a second time, and does not skip the task even though nothing has
-                changed. Our example task was defined using an action closure. Gradle has no idea what the closure does and
-                cannot automatically figure out whether the task is up-to-date or not. To use Gradle's up-to-date checking,
-                you need to declare the inputs and outputs of the task.
-            </para>
-            <para>Each task has an <literal>inputs</literal> and <literal>outputs</literal> property, which you use to
-                declare the inputs and outputs of the task. Below, we have changed our example to declare that it takes
-                the source XML file as an input and produces output to a destination directory. Let's run it a couple
-                of times.
-            </para>
-            <sample id="incrementalTask" dir="userguide/tasks/incrementalBuild/inputsAndOutputs" title="Declaring the inputs and outputs of a task">
-                <sourcefile file="build.gradle"/>
-                <output args="transform" outputFile="generatorTask.out" ignoreExtraLines="true"/>
-                <output args="transform" ignoreExtraLines="true"/>
-            </sample>
-            <para>Now, Gradle knows which files to check to determine whether the task is up-to-date or not.</para>
-            <para>
-                The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
-                The task's <literal>outputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>.
-            </para>
-            <para>
-                A task with no defined outputs will <emphasis>never</emphasis> be considered up-to-date.
-                For scenarios where the outputs of a task are not files, or for more complex scenarios, the
-                <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" /> method allows you to calculate programmatically if
-                the tasks outputs should be considered up to date.
-            </para>
-            <para>
-                A task with only outputs defined will be considered up-to-date if those outputs are unchanged since the previous build.
+            <title>Task inputs and outputs</title>
+            <para>In the most common case, a task takes some inputs and generates some outputs. If we
+                use the compilation example from earlier, we can see that the source files are the
+                inputs and, in the case of Java, the generated class files are the outputs. Other inputs
+                might include things like whether debug information should be included.
             </para>
 
+            <figure>
+                <title>Example task inputs and outputs</title>
+                <imageobject>
+                    <imagedata fileref="img/taskInputsOutputs.png" width="160mm"/>
+                </imageobject>
+            </figure>
+
+            <para>An important characteristic of an input is that it affects one or more outputs, as
+                you can see from the previous figure. Different bytecode is generated depending on the
+                content of the source files and the minimum version of the Java runtime you want to
+                run the code on. That makes them task inputs. But whether the compilation runs in a
+                forked process or not, determined by the <literal>fork</literal> property, has no
+                impact on what bytecode gets generated. In Gradle terminology, <literal>fork</literal>
+                is just an internal task property.
+            </para>
+            <para>As part of incremental build, Gradle tests whether any of the task inputs or outputs
+                have changed since the last build. If they haven’t, Gradle can consider the task up to
+                date and therefore skip executing its actions. Also note that incremental build won’t
+                work unless a task has at least one task output, although tasks usually have at least
+                one input as well.
+            </para>
+            <para>What this means for build authors is simple: you need to tell Gradle which task
+                properties are inputs and which are outputs. If a task property affects the output, be
+                sure to register it as an input, otherwise the task will be considered up to date when
+                it’s not. Conversely, don’t register properties as inputs if they don’t affect the
+                output, otherwise the task will potentially execute when it doesn’t need to. Also be
+                careful of non-deterministic tasks that may generate different output for exactly the
+                same inputs: these should not be configured for incremental build as the up-to-date
+                checks won’t work.
+            </para>
+            <para>Let’s now look at how you can register task properties as inputs and outputs.</para>
+
+            <section id="sec:task_input_output_annotations">
+                <title>Custom task types</title>
+                <para>If you’re implementing a custom task as a class, then it takes just two steps to
+                    make it work with incremental build:
+                </para>
+                <orderedlist>
+                    <listitem>Create typed fields or properties (via getter methods) for each of your
+                        task inputs and outputs</listitem>
+                    <listitem>Add the appropriate annotation to each of those fields or getter methods
+                    </listitem>
+                </orderedlist>
+                <para>Gradle supports three main categories of inputs and outputs:</para>
+                <itemizedlist>
+                    <listitem><para>Simple values</para>
+                        <para>Things like strings and numbers. More generally, a simple value can have
+                        any type that implements <literal>Serializable</literal>.</para>
+                    </listitem>
+                    <listitem><para>Filesystem types</para>
+                        <para>These consist of the standard <literal>File</literal> class but also
+                        derivatives of Gradle’s <apilink class="org.gradle.api.file.FileCollection"/>
+                        type and anything else that can be passed to either the
+                        <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
+                        method - for single file/directory properties - or the
+                        <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>
+                        method.</para>
+                    </listitem>
+                    <listitem><para>Nested values</para>
+                        <para>Custom types that don’t conform to the other two categories but have
+                        their own properties that are inputs or outputs. In effect, the task inputs
+                        or outputs are nested inside these custom types.</para>
+                    </listitem>
+                </itemizedlist>
+                <para>As an example, imagine you have a task that processes templates of varying types,
+                    such as FreeMarker, Velocity, Moustache, etc. It takes template source files and
+                    combines them with some model data to generate populated versions of the template files.
+                </para>
+                <para>This task will have three inputs and one output:</para>
+                <itemizedlist>
+                    <listitem>Template source files</listitem>
+                    <listitem>Model data</listitem>
+                    <listitem>Template engine</listitem>
+                    <listitem>Where the output files are written</listitem>
+                </itemizedlist>
+                <para>When you’re writing a custom task class, it’s easy to register properties as
+                    inputs or outputs via annotations. To demonstrate, here is a skeleton task
+                    implementation with some suitable inputs and outputs, along with their annotations:
+                </para>
+                <sample id="customTaskClassWithInputOutputAnnotations"
+                        dir="userguide/tasks/incrementalBuild/customTaskClass"
+                        title="Custom task class">
+                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java"
+                                snippet="custom-task-class"/>
+                    <sourcefile file="buildSrc/src/main/java/org/example/TemplateData.java"/>
+                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"
+                            outputFile="customTaskClassWithInputOutputAnnotationsUpToDate.out"/>
+                </sample>
+                <para>There’s plenty to talk about in this example, so let’s work through each of the
+                    input and output properties in turn:</para>
+                <itemizedlist>
+                    <listitem><para><literal>templateEngine</literal></para>
+                        <para>Represents which engine to use when processing the source templates, e.g.
+                            FreeMarker, Velocity, etc. You could implement this as a string, but in this
+                            case we have gone for a custom enum as it provides greater type information
+                            and safety. Since enums implement <literal>Serializable</literal> automatically,
+                            we can treat this as a simple value and use the <literal>@Input</literal>
+                            annotation, just as we would with a <literal>String</literal> property.
+                        </para>
+                    </listitem>
+                    <listitem><para><literal>sourceFiles</literal></para>
+                        <para>The source templates that the task will be processing. Single files and
+                            collections of files need their own special annotations. In this case, we’re
+                            dealing with a collection of input files and so we use the
+                            <literal>@InputFiles</literal> annotation. You’ll see more file-oriented
+                            annotations in a table later.
+                        </para>
+                    </listitem>
+                    <listitem><para><literal>templateData</literal></para>
+                        <para>For this example, we’re using a custom class to represent the model data.
+                            However, it does not implement <literal>Serializable</literal>, so we can’t
+                            use the <literal>@Input</literal> annotation. That’s not a problem as the
+                            properties within <literal>TemplateData</literal> - a string and a hash map
+                            with serializable type parameters - are serializable and can be annotated with
+                            <literal>@Input</literal>. We use <literal>@Nested</literal> on
+                            <literal>templateData</literal> to let Gradle know that this is a value with
+                            nested input properties.
+                       </para>
+                    </listitem>
+                    <listitem><para><literal>outputDir</literal></para>
+                        <para>The directory where the generated files go. As with input files, there are
+                            several annotations for output files and directories. A property representing
+                            a single directory requires <literal>@OutputDirectory</literal>. You’ll learn
+                            about the others soon.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+
+                <para>These annotated properties mean that Gradle will skip the task if none of the source
+                    files, template engine, model data or generated files have changed since the previous
+                    time Gradle executed the task. This will often save a significant amount of time. You
+                    can learn how Gradle detects <link linkend="sec:how_does_it_work">changes later</link>.
+                </para>
+
+                <para>This example is particularly interesting because it works with collections of source
+                    files. What happens if only one source file changes? Does the task process all the
+                    source files again or just the modified one? That depends on the task implementation.
+                    If the latter, then the task itself is incremental, but that’s a different feature to
+                    the one we’re discussing here. Gradle does help task implementers with this via its
+                    <link linkend="incremental_tasks">incremental task inputs</link> feature.
+                </para>
+
+                <para>Now that you have seen some of the input and output annotations in practice, let’s
+                    take a look at all the annotations available to you and when you should use them. The
+                    table below lists the available annotations and the corresponding property type you
+                    can use with each one.
+                </para>
+                <table>
+                    <title>Incremental build annotations</title>
+                    <thead>
+                        <tr>
+                            <th>Annotation</th>
+                            <th>Expected property type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td><literal>@Input</literal></td>
+                        <td>Any serializable type</td>
+                        <td>A simple input value</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@InputFile</literal></td>
+                        <td><literal>File</literal>*</td>
+                        <td>A single input file (not directory)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@InputDirectory</literal></td>
+                        <td><literal>File</literal>*</td>
+                        <td>A single input directory (not file)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@InputFiles</literal></td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of input files (no directories)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@OutputFile</literal></td>
+                        <td><literal>File</literal>*</td>
+                        <td>A single output file (not directory)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@OutputDirectory</literal></td>
+                        <td><literal>File</literal>*</td>
+                        <td>A single output directory (not file)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@OutputFiles</literal></td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of output files (no directories)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@OutputDirectories</literal></td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of output directories (no files)</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@Nested</literal></td>
+                        <td>Any custom type</td>
+                        <td>A custom type that may not implement <literal>Serializable</literal> but does
+                            have at least one field or property marked with one of the annotations in this
+                            table. It could even be another <literal>@Nested</literal>.</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@Console</literal></td>
+                        <td>Any type</td>
+                        <td>Indicates that the property is neither an input nor an output. It simply
+                            affects the console output of the task in some way, such as increasing or
+                            decreasing the verbosity of the task.</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@Internal</literal></td>
+                        <td>Any type</td>
+                        <td>Indicates that the property is used internally but is neither an input nor
+                            an output.</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@SkipWhenEmpty</literal></td>
+                        <td></td>
+                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
+                            to tell Gradle to skip the task if the corresponding iterable of files or
+                            directory are empty.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@Optional</literal></td>
+                        <td></td>
+                        <td>Used with any of the other incremental build annotations listed in the
+                            <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
+                            This annotation disables validation checks on the corresponding property.
+                            See <link linkend="sec:task_input_output_validation">the section on validation</link>
+                            for more details.
+                        </td>
+                    </tr>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3"><emphasis role="bold">*</emphasis> In fact, <literal>File</literal>
+                                can be any type accepted by
+                                <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
+                                and <literal>Iterable&lt;File&gt;</literal> can be any type accepted by
+                                <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>.
+                                This includes instances of <literal>Callable</literal>, such as closures,
+                                allowing for lazy evaluation of the property values. Be aware that the types
+                                <literal>FileCollection</literal> and <literal>FileTree</literal> are
+                                <literal>Iterable&lt;File&gt;</literal>s.
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <para>The <apilink class="org.gradle.api.tasks.Console"/> and
+                    <apilink class="org.gradle.api.tasks.Internal"/> annotations in the table are special
+                    cases as they don’t declare either task inputs or task outputs. So why use them? It's
+                    so that you can take advantage of the <link linkend="javaGradle_plugin">Java Gradle
+                    Plugin Development plugin</link> to help you develop and publish your own plugins.
+                    This plugin checks whether any properties of your custom task classes lack an
+                    incremental buildannotation. This protects you from forgetting to add an appropriate
+                    annotation during development.
+                </para>
+
+                <para>Custom task classes are an easy way to bring your own build logic into the arena
+                    of incremental build, but you don’t always have that option. That's why Gradle also
+                    provides an alternative API that can be used with any tasks, which we look at next.
+                </para>
+            </section>
+
+            <section id="sec:task_input_output_runtime_api">
+                <title>Runtime API</title>
+                <para>When you don’t have access to the source for a custom task class, there is no way
+                    to add any of the annotations we covered in the previous section. Fortunately, Gradle
+                    provides a runtime API for scenarios just like that. It can also be used for ad-hoc
+                    tasks, as you'll see next.
+                </para>
+
+                <section id="sec:runtime_api_for_adhoc">
+                    <title>Using it for ad-hoc tasks</title>
+                    <para>This runtime API is provided through a couple of aptly named properties that
+                        are available on every Gradle task:</para>
+                    <itemizedlist>
+                        <listitem>
+                            <apilink class="org.gradle.api.Task" method="getInputs()"/> of type <apilink class="org.gradle.api.tasks.TaskInputs"/>
+                        </listitem>
+                        <listitem>
+                            <apilink class="org.gradle.api.Task" method="getOutputs()"/> of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>
+                        </listitem>
+                    </itemizedlist>
+                    <para>These objects have methods that allow you to specify files, directories and
+                        values which constitute the task’s inputs and outputs. In fact, the runtime API
+                        has almost feature parity with the annotations. All it lacks is validation of
+                        whether declared files are actually files and declared directories are directories.
+                        Nor will it create output directories if they don't exist. But that's it.
+                    </para>
+                    <para>Let’s take the template processing example from before and see how it would
+                        look as an ad-hoc task that uses the runtime API:</para>
+                    <sample id="incrementalAdHocTask"
+                            dir="userguide/tasks/incrementalBuild/customTaskClass"
+                            title="Ad-hoc task">
+                        <sourcefile file="build.gradle" snippet="ad-hoc-task"/>
+                        <output args="processTemplatesAdHoc" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    </sample>
+                    <para>As before, there’s much to talk about. To begin with, you should really write
+                        a custom task class for this as it’s a non-trivial implementation that has
+                        several configuration options. In this case, there are no task properties to
+                        store the root source folder, the location of the output directory or any of
+                        the other settings. That’s deliberate to highlight the fact that the runtime
+                        API doesn’t require the task to have any state. In terms of incremental build,
+                        the above ad-hoc task will behave the same as the custom task class.
+                    </para>
+                    <para>All the input and output definitions are done through the methods on
+                        <literal>inputs</literal> and <literal>outputs</literal>, such as
+                        <literal>property()</literal>, <literal>files()</literal>, and
+                        <literal>dir()</literal>. Gradle performs up-to-date checks on the argument
+                        values to determine whether the task needs to run again or not. Each method
+                        corresponds to one of the incremental build annotations, for example
+                        <literal>inputs.property()</literal> maps to <literal>@Input</literal> and
+                        <literal>outputs.dir()</literal> maps to <literal>@OutputDirectory</literal>.
+                        The only difference is that the <literal>file()</literal>, <literal>files()</literal>,
+                        <literal>dir()</literal> and <literal>dirs()</literal> methods don’t validate
+                        the type of file object at the given path (file or directory), unlike the annotations.
+                    </para>
+                    <para>One notable difference between the runtime API and the annotations is the
+                        lack of a method that corresponds directly to <literal>@Nested</literal>.
+                        That’s why the example uses two <literal>property()</literal> declarations
+                        for the template data, one for each <literal>TemplateData</literal> property.
+                        You should utilize the same technique when using the runtime API with nested
+                        values.
+                    </para>
+                </section>
+
+                <section id="sec:runtime_api_for_custom_tasks">
+                    <title>Using it for custom task types</title>
+                    <para>Another type of example involves adding input and output definitions to
+                        instances of a custom task class that lacks the requisite annotations. For
+                        example, imagine that the <literal>ProcessTemplates</literal> task is provided
+                        by a plugin and that it’s missing the incremental build annotations. In order
+                        to make up for that deficiency, you can use the runtime API:
+                    </para>
+                    <sample id="runtimeIncrementalApi"
+                            dir="userguide/tasks/incrementalBuild/customTaskClass"
+                            title="Using runtime API with custom task type">
+                        <sourcefile file="build.gradle" snippet="custom-class-runtime-api"/>
+                        <output args="processTemplatesRuntime" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                        <output args="processTemplatesRuntime" ignoreExtraLines="true" ignoreLineOrder="true"
+                                outputFile="runtimeIncrementalApiUpToDate.out"/>
+                    </sample>
+                    <para>As you can see, we can both configure the tasks properties and use those
+                        properties as arguments to the incremental build runtime API. Using the runtime
+                        API like this is a little like using <literal>doLast()</literal> and
+                        <literal>doFirst()</literal> to attach extra actions to a task, except in this
+                        case we’re attaching information about inputs and outputs. Note that if the
+                        task type is already using the incremental build annotations, the runtime API
+                        will add inputs and outputs rather than replace them.
+                    </para>
+                </section>
+
+                <section id="sec:runtime_api_configuration">
+                    <title>Fine-grained configuration</title>
+                    <para>The runtime API methods only allow you to declare your inputs and outputs in
+                        themselves. However, the file-oriented ones return a builder - of type
+                        <apilink class="org.gradle.api.tasks.TaskInputFilePropertyBuilder"/> - that let’s
+                        you provide additional information about those inputs and outputs.
+                    </para>
+                    <para>You can learn about all the options provided by the builder in its API
+                        documentation, but we’ll show you a simple example here to give you an idea of
+                        what you can do.
+                    </para>
+                    <para>Let’s say we don’t want to run the <literal>processTemplates</literal> task
+                        if there are no source files, regardless of whether it’s a clean build or not.
+                        After all, if there are no source files, there’s nothing for the task to do. The
+                        builder allows us to configure this like so:
+                    </para>
+                    <sample id="runtimeIncrementalApiConfiguration"
+                            dir="userguide/tasks/incrementalBuild/customTaskClass"
+                            title="Using skipWhenEmpty() via the runtime API">
+                        <sourcefile file="build.gradle" snippet="runtime-api-conf"/>
+                        <output args="clean processTemplatesRuntimeConf"
+                                ignoreExtraLines="true"
+                                ignoreLineOrder="true"/>
+                    </sample>
+                    <para>So the <literal>TaskInputs.files()</literal> method returns a builder that has
+                        a <literal>skipWhenEmpty()</literal> method. By calling this method, we tell
+                        Gradle that the task should be considered up to date if the corresponding input
+                        file collection is empty, even if the task hasn't run before.
+                    </para>
+                    <para>Prior to Gradle 3.0, you had to use the <literal>TaskInputs.source()</literal>
+                        and <literal>TaskInputs.sourceDir()</literal> methods to get the same behavior
+                        as with <literal>skipWhenEmpty()</literal>. These methods are now deprecated and
+                        should not be used with Gradle 3.0 and above.
+                    </para>
+                    <para>Now that you have seen both the annotations and the runtime API, you may be
+                        wondering which API you should be using. Our recommendation is to use the
+                        annotations wherever possible, and it’s sometimes worth creating a custom task
+                        class just so that you can make use of them. The runtime API is more for situations
+                        in which you can’t use the annotations.
+                    </para>
+                </section>
+            </section>
+
+            <section id="sec:task_input_output_side_effects">
+                <title>Important beneficial side effects</title>
+                <para>Once you declare a task’s formal inputs and outputs, Gradle can then infer things
+                    about those properties. For example, if an input of one task is set to the output of
+                    another, that means the first task depends on the second, right? Gradle knows this
+                    and can act upon it.
+                </para>
+                <para>We’ll look at this feature next and also some other features that come from Gradle
+                    knowing things about inputs and outputs.
+                </para>
+
+                <section id="sec:inferred_task_dependencies">
+                    <title>Inferred task dependencies</title>
+                    <para>Consider an archive task that packages the output of the
+                        <literal>processTemplates</literal> task. A build author will see that the archive
+                        task obviously requires <literal>processTemplates</literal> to run first and so
+                        may add an explicit <literal>dependsOn</literal>. However, if you define the
+                        archive task like so:
+                    </para>
+                    <sample id="inferredTaskDep"
+                            dir="userguide/tasks/incrementalBuild/customTaskClass"
+                            title="Inferred task dependency via task outputs">
+                        <sourcefile file="build.gradle" snippet="inferred-task-dep-via-outputs"/>
+                        <output args="clean packageFiles" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    </sample>
+                    <para>Gradle will automatically make <literal>packageFiles</literal> depend on
+                        <literal>processTemplates</literal>. It can do this because it’s aware that one
+                        of the inputs of packageFiles requires the output of the processTemplates task.
+                        We call this an inferred task dependency.
+                    </para>
+                    <para>The above example can also be written as</para>
+                    <sample id="inferredTaskDep2"
+                            dir="userguide/tasks/incrementalBuild/customTaskClass"
+                            title="Inferred task dependency via a task argument">
+                        <sourcefile file="build.gradle" snippet="inferred-task-dep-via-task"/>
+                        <output args="clean packageFiles2" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    </sample>
+                    <para>This is because the <literal>from()</literal> method can accept a task object
+                        as an argument. Behind the scenes, <literal>from()</literal> uses the
+                        <literal>project.files()</literal> method to wrap the argument, which in turn
+                        exposes the task’s formal outputs as a file collection. In other words, it’s a
+                        special case!
+                    </para>
+                </section>
+
+                <section id="sec:task_input_output_validation">
+                    <title>Input and output validation</title>
+                    <para>The incremental build annotations provide enough information for Gradle to
+                        perform some basic validation on the annotated properties. In particular, it does
+                        the following for each property before the task executes:
+                    </para>
+                    <itemizedlist>
+                        <listitem><literal>@InputFile</literal> - verifies that the property has a value
+                            and that the path corresponds to a file (not a directory) that exists.
+                        </listitem>
+                        <listitem><literal>@InputDirectory</literal> - same as for <literal>@InputFile</literal>,
+                            except the path must correspond to a directory.
+                        </listitem>
+                        <listitem><literal>@OutputDirectory</literal> - verifies that the path doesn’t
+                            match a file and also creates the directory if it doesn’t already exist.
+                        </listitem>
+                    </itemizedlist>
+                    <para>Such validation improves the robustness of the build, allowing you to identify
+                        issues related to inputs and outputs quickly.
+                    </para>
+                    <para>You will occasionally want to disable some of this validation, specifically
+                        when an input file may validly not exist. That’s why Gradle provides the
+                        <literal>@Optional</literal> annotation: you use it to tell Gradle that a
+                        particular input is optional and therefore the build should not fail if the
+                        corresponding file or directory doesn’t exist.
+                    </para>
+                </section>
+                <section id="sec:task_input_output_continuous_build">
+                    <title>Continuous build</title>
+                    <para>One last benefit of defining task inputs and outputs is continuous build. Since
+                        Gradle knows what files a task depends on, it can automatically run a task again
+                        if any of its inputs change. By activating continuous build when you run Gradle -
+                        through the <literal>--continuous</literal> or <literal>-t</literal> options - you
+                        will put Gradle into a state in which it continually checks for changes and executes
+                        the requested tasks when it encounters such changes.
+                    </para>
+                    <para>You can find out more about this feature in <xref linkend="continuous_build"/>.
+                    </para>
+                </section>
+            </section>
+        </section>
+
+        <section id="sec:advanced_inc_build">
+            <title>Advanced techniques</title>
+            <para>Everything you’ve seen so far in this section will cover most of the use cases you’ll
+                encounter, but there are some scenarios that need special treatment. We’ll present a few
+                of those next with the appropriate solutions.
+            </para>
+
+            <section id="sec:add_cached_input_output_methods">
+                <title>Adding your own cached input/output methods</title>
+                <para>Have you ever wondered how the <literal>from()</literal> method of the
+                    <literal>Copy</literal> task works? It’s not annotated with <literal>@InputFiles</literal>
+                    and yet any files passed to it are treated as formal inputs of the task. What’s
+                    happening?
+                </para>
+                <para>The implementation is quite simple and you can use the same technique for your own
+                    tasks to improve their APIs. Write your methods so that they add files directly to
+                    the appropriate annotated property. As an example, here’s how to add a
+                    <literal>sources()</literal> method to the custom <literal>ProcessTemplates</literal>
+                    class we introduced earlier:
+                </para>
+                <sample id="incrementalBuildCustomMethods"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Declaring a method to add task inputs">
+                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java"
+                                snippet="custom-task-class"/>
+                    <sourcefile file="build.gradle" snippet="custom-task-class"/>
+                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                </sample>
+                <para>In other words, as long as you add values and files to formal task inputs and outputs
+                    during the configuration phase, they will be treated as such regardless from where in
+                    the build you add them.
+                </para>
+                <para>If we want to support tasks as arguments as well and treat their outputs as the
+                    inputs, we can use the <literal>project.files()</literal> method like so:
+                </para>
+                <sample id="incrementalBuildCustomMethodsWithTaskArg"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Declaring a method to add a task as an input">
+                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java"
+                                snippet="task-arg-method"/>
+                    <sourcefile file="build.gradle" snippet="task-arg-method"/>
+                    <output args="processTemplates2" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                </sample>
+                <para>This technique can make your custom task easier to use and result in cleaner build
+                    files. As an added benefit, our use of <literal>getProject().files()</literal> means
+                    that our custom method can set up an inferred task dependency.</para>
+                <para>One last thing to note: if you are developing a task that takes collections of source
+                    files as inputs, like this example, consider using the built-in
+                    <apilink class="org.gradle.api.tasks.SourceTask"/>. It will save you having to
+                    implement some of the plumbing that we put into <literal>ProcessTemplates</literal>.
+                </para>
+            </section>
+
+            <section id="sec:link_output_dir_to_input_files">
+                <title>Linking an <literal>@OutputDirectory</literal> to an <literal>@InputFiles</literal></title>
+                <para>When you want to link the output of one task to the input of another, the types
+                    often match and a simple property assignment will provide that link. For example, a
+                    <literal>File</literal> output property can be assigned to a <literal>File</literal>
+                    input.
+                </para>
+                <para>Unfortunately, this approach breaks down when you want the files in a task’s
+                    <literal>@OutputDirectory</literal> (of type <literal>File</literal>) to become the
+                    source for another task’s <literal>@InputFiles</literal> property (of type
+                    <literal>FileCollection</literal>). Since the two have different types, property
+                    assignment won’t work.
+                </para>
+                <para>As an example, imagine you want to use the output of a Java compilation task - via
+                    the <literal>destinationDir</literal> property - as the input of a custom task that
+                    instruments a set of files containing Java bytecode. This custom task, which we’ll
+                    call <literal>Instrument</literal>, has a <literal>classFiles</literal> property
+                    annotated with <literal>@InputFiles</literal>. You might initially try to configure
+                    the task like so:
+                </para>
+                <sample id="incrementalBuildBadInputFilesConfig"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Failed attempt at setting up an inferred task dependency">
+                    <sourcefile file="build.gradle" snippet="failed-inferred-task-dep"/>
+                    <output args="clean badInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                </sample>
+                <para>There’s nothing obviously wrong with this code, but you can see from the console
+                    output that the compilation task is missing. In this case you would need to add an
+                    explicit task dependency between <literal>instrumentClasses</literal> and
+                    <literal>compileJava</literal> via <literal>dependsOn</literal>. The use of
+                    <literal>fileTree()</literal> means that Gradle can’t infer the task dependency itself.
+                </para>
+                <para>One solution is to use the <literal>TaskOutputs.files</literal> property, as
+                    demonstrated by the following example:</para>
+                <sample id="incrementalBuildInputFilesConfig"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Setting up an inferred task dependency between output dir and input files">
+                    <sourcefile file="build.gradle" snippet="inferred-task-dep"/>
+                    <output args="clean instrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                </sample>
+                <para>Alternatively, you can get Gradle to access the appropriate property itself by using the
+                    <literal>project.files()</literal> method in place of <literal>project.fileTree()</literal>:
+                </para>
+                <sample id="incrementalBuildInputFilesConfigUsingTask"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Setting up an inferred task dependency with files()">
+                    <sourcefile file="build.gradle" snippet="inferred-task-dep-with-files"/>
+                    <output args="clean instrumentClasses2" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                </sample>
+                <para>Remember that <literal>files()</literal> can take tasks as arguments, whereas
+                    <literal>fileTree()</literal> cannot.
+                </para>
+                <para>The downside of this approach is that all file outputs of the source task become the
+                    input files of the target - <literal>instrumentClasses</literal> in this case. That’s fine
+                    as long as the source task only has a single file-based output, like the
+                    <literal>JavaCompile</literal> task. But if you have to link just one output property
+                    among several, then you need to explicitly tell Gradle which task generates the input
+                    files using the <literal>builtBy</literal> method:
+                </para>
+                <sample id="inferredTaskDependencyWithBuiltBy"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Setting up an inferred task dependency with builtBy()">
+                    <sourcefile file="build.gradle" snippet="inferred-task-dep-with-builtby"/>
+                    <output args="clean instrumentClassesBuiltBy" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                </sample>
+                <para>You can of course just add an explicit task dependency via <literal>dependsOn</literal>,
+                    but the above approach provides more semantic meaning, explaining why
+                    <literal>compileJava</literal> has to run beforehand.
+                </para>
+            </section>
+
+            <section id="sec:custom_up_to_date_logic">
+                <title>Providing custom up-to-date logic</title>
+                <para>Gradle automatically handles up-to-date checks for output files and directories, but what
+                    if the task output is something else entirely? Perhaps it’s an update to a web service or a
+                    database table. Gradle has no way of knowing how to check whether the task is up to date in
+                    such cases.
+                </para>
+                <para>That’s where the <literal>upToDateWhen()</literal> method on <literal>TaskOutputs</literal>
+                    comes in. This takes a predicate function that is used to determine whether a task is up to
+                    date or not. One use case is to disable up-to-date checks completely for a task, like so:
+                </para>
+                <sample id="incrementalBuildUpToDateWhen"
+                        dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced"
+                        title="Ignoring up-to-date checks">
+                    <sourcefile file="build.gradle" snippet="up-to-date-when"/>
+                    <test args="clean"/>
+                    <output args="clean alwaysInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    <output args="alwaysInstrumentClasses" ignoreExtraLines="true"
+                            ignoreLineOrder="true" outputFile="incrementalBuildUpToDateWhenAgain.out"/>
+                </sample>
+                <para>The <literal>{ false }</literal> closure ensures that <literal>copyResources</literal>
+                    will always perform the copy, irrespective of whether there is no change in the inputs or
+                    outputs.
+                </para>
+                <para>You can of course put more complex logic into the closure. You could check whether a
+                    particular record in a database table exists or has changed for example. Just be aware
+                    that up-to-date checks should _save_ you time. Don’t add checks that cost as much or
+                    more time than the standard execution of the task. In fact, if a task ends up running
+                    frequently anyway, because it’s rarely up to date, then it may not be worth having an
+                    up-to-date check at all. Remember that your checks will always run if the task is in the
+                    execution task graph.
+                </para>
+                <para>One common mistake is to use <literal>upToDateWhen()</literal> instead of
+                    <literal>Task.onlyIf()</literal>. If you want to skip a task on the basis of some condition
+                    unrelated to the task inputs and outputs, then you should use <literal>onlyIf()</literal>.
+                    For example, in cases where you want to skip a task when a particular property is set or
+                    not set.
+                </para>
+            </section>
         </section>
         <section id="sec:how_does_it_work">
             <title>How does it work?</title>
@@ -353,7 +995,7 @@
                 for the next time the task is executed.
             </para>
             <para>
-                Gradle also considers the <emphasis>​code</emphasis> of the task as part of the inputs to the task. When a task,
+                Gradle also considers the <emphasis>code</emphasis> of the task as part of the inputs to the task. When a task,
                 its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
             </para>
             <para>

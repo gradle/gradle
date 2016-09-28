@@ -18,8 +18,9 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -36,11 +37,11 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     private final String method;
     private final URI source;
-    private final HttpResponse response;
+    private final CloseableHttpResponse response;
     private final ExternalResourceMetaData metaData;
     private boolean wasOpened;
 
-    public HttpResponseResource(String method, URI source, HttpResponse response) {
+    public HttpResponseResource(String method, URI source, CloseableHttpResponse response) {
         this.method = method;
         this.source = source;
         this.response = response;
@@ -121,7 +122,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     @Override
     public void close() throws IOException {
-        EntityUtils.consume(response.getEntity());
+        HttpClientUtils.closeQuietly(response);
     }
 
     private static String getEtag(HttpResponse response) {

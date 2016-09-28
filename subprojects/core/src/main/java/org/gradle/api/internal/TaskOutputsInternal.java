@@ -64,7 +64,14 @@ public interface TaskOutputsInternal extends TaskOutputs {
     boolean isCacheEnabled();
 
     /**
-     * Checks if caching is allowed based on the output properties.
+     * Returns whether the task has declared any outputs.
+     */
+    boolean hasDeclaredOutputs();
+
+    /**
+     * Returns {@code false} if the task declares any multiple-output properties via {@link #files(Object...)},
+     * {@literal @}{@link org.gradle.api.tasks.OutputFiles} or
+     * {@literal @}{@link org.gradle.api.tasks.OutputDirectories}; or {@code true} otherwise.
      */
     boolean isCacheAllowed();
 }

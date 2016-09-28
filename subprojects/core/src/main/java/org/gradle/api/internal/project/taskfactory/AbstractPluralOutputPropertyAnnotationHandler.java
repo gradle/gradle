@@ -51,6 +51,7 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
         } else {
             propertyBuilder = task.getOutputs().files(futureValue);
         }
+        propertyBuilder.withPropertyName(context.getName());
         propertyBuilder.withPathSensitivity(getPathSensitivity(context));
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {

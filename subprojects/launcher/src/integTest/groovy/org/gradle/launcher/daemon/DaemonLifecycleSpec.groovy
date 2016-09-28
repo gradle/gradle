@@ -26,6 +26,8 @@ import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -508,6 +510,31 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         state 0, 1
+    }
+
+    // GradleHandle.abort() does not work reliably on windows and creates flakiness
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "daemon stops immediately if stop is requested and then client disconnects"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        // Cause the daemon to want to stop
+        daemonContext {
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
+        }
+
+        and:
+        waitForDaemonExpiration()
+
+        when:
+        killBuild()
+
+        then:
+        stopped()
     }
 
     def cleanup() {

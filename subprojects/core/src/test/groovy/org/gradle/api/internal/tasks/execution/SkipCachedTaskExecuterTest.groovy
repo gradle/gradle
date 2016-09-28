@@ -56,6 +56,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> true
 
@@ -76,6 +77,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> true
 
@@ -102,6 +104,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> true
 
@@ -125,7 +128,6 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> false
 
         then:
@@ -139,7 +141,23 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheEnabled() >> true
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> false
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        0 * _
+    }
+
+    def "executes task and does not cache results when task does not declare outputs"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheEnabled() >> true
+        1 * outputs.hasDeclaredOutputs() >> false
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -157,7 +175,6 @@ public class SkipCachedTaskExecuterTest extends Specification {
         ex.cause.message == "Bad cacheIf() clause"
 
         1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
     }
 
@@ -172,6 +189,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         ex.cause.message == "Bad cache key"
 
         1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> true
 
@@ -185,6 +203,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> true
 
@@ -211,6 +230,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
         1 * outputs.isCacheAllowed() >> true
         1 * outputs.isCacheEnabled() >> true
 

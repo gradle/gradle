@@ -24,6 +24,15 @@ class BuildTestFile extends TestFile {
         super(rootDir)
     }
 
+    BuildTestFile(TestFile rootDir, String projectName) {
+        super(rootDir)
+        this.projectName = projectName
+    }
+
+    String getRootProjectName() {
+        projectName
+    }
+
     TestFile getBuildFile() {
         file("build.gradle")
     }
@@ -32,4 +41,11 @@ class BuildTestFile extends TestFile {
         file("settings.gradle")
     }
 
+    TestFile getGradlePropertiesFile() {
+        file("gradle.properties")
+    }
+
+    void addChildDir(String name) {
+        file(name).file("build.gradle") << "// Dummy child build"
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -53,7 +54,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public TaskReference task(String path) {
-        // TODO:DAZ Validate path starts with ':'
+        Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
         return new IncludedBuildTaskReference(getName(), path);
     }
 
@@ -75,7 +76,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
-            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(getName());
+            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this);
 
             for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
                 action.execute(dependencySubstitutions);
@@ -107,7 +108,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public BuildResult execute(Iterable<String> tasks) {
-        // TODO:DAZ Get rid of this when we remove TAPI-composite
         if (nestedLauncherFactory != null) {
             gradleLauncher = nestedLauncherFactory.create();
         }

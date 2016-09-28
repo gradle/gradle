@@ -168,8 +168,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             }
         }
 
-        // TODO:DAZ Better exception message
-        throw new UnknownTaskException(String.format("Task '%s' not found in %s.", reference.getName(), project));
+        throw new UnknownTaskException(String.format("Task reference '%s' could not be resolved in %s.", reference.getName(), project));
     }
 
     public Task getByPath(String path) throws UnknownTaskException {

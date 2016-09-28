@@ -142,20 +142,74 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
-    def "url connections are not cached by default"() {
+    def "url connection caching is not disabled by default"() {
         given:
         buildFile << """
             task checkUrlConnectionCaching {
                 doLast {
                     URL url = new URL("jar:file://valid_jar_url_syntax.jar!/")
                     URLConnection urlConnection = url.openConnection()
-                    assert !urlConnection.defaultUseCaches
+                    assert urlConnection.defaultUseCaches
                 }
             }
         """
 
         expect:
         succeeds("checkUrlConnectionCaching")
+    }
+
+    def "jars with resources on buildscript classpath can change"() {
+        given:
+        buildFile << '''
+            buildscript {
+                repositories { flatDir { dirs 'repo' }}
+                dependencies { classpath name: 'test', version: '1.3-BUILD-SNAPSHOT' }
+            }
+
+            task hello << {
+                println new org.gradle.test.BuildClass().message()
+            }
+        '''
+        ArtifactBuilder builder = artifactBuilder()
+        File jarFile = file("repo/test-1.3-BUILD-SNAPSHOT.jar")
+
+        when:
+        builder.sourceFile("org/gradle/test/BuildClass.java").createFile().text = '''
+            package org.gradle.test;
+            import java.util.Properties;
+            import java.io.IOException;
+            import java.net.URL;
+            public class BuildClass {
+                public String message() throws IOException {
+                    Properties props = new Properties();
+                    URL resource = getClass().getResource("test.properties");
+                    props.load(resource.openStream());
+                    return props.getProperty("text", "PROPERTY NOT FOUND");
+                }
+            }
+        '''
+        builder.resourceFile("org/gradle/test/test.properties").createFile().text = "text=hello world"
+        builder.buildJar(jarFile)
+
+        then:
+        Thread.sleep(sleepBefore)
+        succeeds("hello")
+        result.assertOutputContains("hello world")
+
+        when:
+        builder = artifactBuilder()
+        builder.sourceFile("org/gradle/test/BuildClass.java").text = builder.sourceFile("org/gradle/test/BuildClass.java").text.replace("test.properties", "test2.properties")
+        builder.resourceFile("org/gradle/test/test2.properties").createFile().text = "text=hello again"
+        builder.resourceFile("org/gradle/test/test.properties").delete()
+        builder.buildJar(jarFile)
+
+        then:
+        Thread.sleep(sleepBefore)
+        succeeds("hello")
+        result.assertOutputContains("hello again")
+
+        where:
+        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     void notInJarCache(String filename) {

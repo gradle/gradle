@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -302,14 +301,9 @@ public class IdeaProject {
     }
 
     private void includeModulesFromComposite(Project xmlProject) {
-        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
-        ProjectComponentIdentifier thisProjectId = DefaultProjectComponentIdentifier.newId(project.getRootProject().getName() + ":" + project.getPath());
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
         for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {
-            if (thisProjectId.equals(otherProjectId)) {
-                continue;
-            }
             File imlFile = moduleToProjectMapper.resolveArtifactFile(otherProjectId, "iml");
             if (imlFile != null) {
                 xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));

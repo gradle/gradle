@@ -22,13 +22,13 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -40,6 +40,8 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import java.io.File;
 import java.util.Set;
 
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+
 public class IncludedBuildDependencyMetadataBuilder {
     private final CompositeBuildContext context;
 
@@ -50,17 +52,17 @@ public class IncludedBuildDependencyMetadataBuilder {
     public void build(IncludedBuildInternal build) {
         Gradle gradle = build.configure();
         for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(build.getName(), (ProjectInternal) project);
+            registerProject(build, (ProjectInternal) project);
         }
     }
 
-    private void registerProject(String buildName, ProjectInternal project) {
+    private void registerProject(IncludedBuild build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = DefaultProjectComponentIdentifier.newId(project.getPath());
+        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
-        LocalComponentMetadata compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent);
+        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
+        LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
 
         context.register(componentIdentifier, compositeComponent, project.getProjectDir());
         for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
@@ -68,7 +70,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         }
     }
 
-    private LocalComponentMetadata createCompositeCopy(String buildName, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
+    private LocalComponentMetadata createCompositeCopy(IncludedBuild build, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
         DefaultLocalComponentMetadata compositeComponentMetadata = new DefaultLocalComponentMetadata(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
@@ -90,9 +92,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         for (LocalOriginDependencyMetadata dependency : originalComponentMetadata.getDependencies()) {
             if (dependency.getSelector() instanceof ProjectComponentSelector) {
                 ProjectComponentSelector requested = (ProjectComponentSelector) dependency.getSelector();
-                String externalPath = createExternalProjectPath(buildName, requested.getProjectPath());
-                ProjectComponentSelector externalizedSelector = DefaultProjectComponentSelector.newSelector(externalPath);
-                dependency = dependency.withTarget(externalizedSelector);
+                dependency = dependency.withTarget(DefaultProjectComponentSelector.newSelector(build, requested));
             }
             compositeComponentMetadata.addDependency(dependency);
         }
@@ -101,10 +101,6 @@ public class IncludedBuildDependencyMetadataBuilder {
         }
 
         return compositeComponentMetadata;
-    }
-
-    private String createExternalProjectPath(String buildName, String projectPath) {
-        return buildName + ":" + projectPath;
     }
 
     private LocalComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifactMetaData) {

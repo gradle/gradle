@@ -242,7 +242,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                 return includedBuild;
             }
         }
-        throw new NoSuchElementException("No included build '" + name + "' found.");
+        throw new NoSuchElementException("Included build '" + name + "' not found.");
     }
 
     public ServiceRegistry getServices() {

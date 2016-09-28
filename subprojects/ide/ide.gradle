@@ -30,6 +30,9 @@ dependencies {
 
     testCompile libraries.xmlunit
     testCompile project(':dependencyManagement')
+
+    // Required for `ProjectBuilder` to have the correct services
+    testRuntime project(':compositeBuilds')
 }
 
 useTestFixtures()

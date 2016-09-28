@@ -90,8 +90,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     @InheritConstructors
-    private static class ToolingApiExperimentSpec extends BuildExperimentSpec {
+    public static class ToolingApiExperimentSpec extends BuildExperimentSpec {
         List<String> targetVersions = []
+        List<File> extraTestClassPath = []
 
         Closure<?> action
 
@@ -146,7 +147,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         def baselineVersion = results.baseline(version)
                     }
                     def toolingApiDistribution = resolver.resolve(dist.version.version)
-                    def testClassPath = []
+                    def testClassPath = [*experimentSpec.extraTestClassPath]
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {

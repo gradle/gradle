@@ -16,9 +16,12 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -34,10 +37,12 @@ import java.util.Set;
 public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
     private final boolean optional;
-    private final ImmutableSet<String> moduleConfigurations;
+    private final Set<String> moduleConfigurations;
+    private final List<Exclude> excludes;
+    private final ModuleExclusion exclusions;
 
     public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, artifacts, excludes);
+        super(requested, artifacts);
         this.scope = scope;
         this.optional = optional;
         if (optional && scope != MavenScope.Test && scope != MavenScope.System) {
@@ -45,6 +50,8 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         } else {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
+        this.excludes = ImmutableList.copyOf(excludes);
+        this.exclusions = ModuleExclusions.excludeAny(excludes);
     }
 
     @Override
@@ -120,5 +127,14 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     @Override
     protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
         return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getDependencyExcludes());
+    }
+
+    @Override
+    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+        return exclusions;
+    }
+
+    public List<Exclude> getDependencyExcludes() {
+        return excludes;
     }
 }

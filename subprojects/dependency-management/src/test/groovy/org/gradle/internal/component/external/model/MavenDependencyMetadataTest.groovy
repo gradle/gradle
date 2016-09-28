@@ -32,7 +32,10 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.internal.component.external.descriptor.Artifact
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -53,7 +56,6 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         return new MavenDependencyMetadata(MavenScope.Compile, false, selector, artifacts, [])
     }
 
-    @Override
     DefaultDependencyMetadata createWithExcludes(ModuleVersionSelector selector, List<Exclude> excludes) {
         return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], excludes)
     }
@@ -76,6 +78,26 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         MavenScope.Provided | true     | "optional"
         MavenScope.Test     | true     | "test"
         MavenScope.System   | true     | "system"
+    }
+
+    def "excludes nothing when no exclude rules provided"() {
+        def dep = createWithExcludes(requested, [])
+
+        expect:
+        def exclusions = dep.getExclusions(configuration("from"))
+        exclusions == ModuleExclusions.excludeNone()
+        exclusions.is(dep.getExclusions(configuration("other")))
+    }
+
+    def "applies exclude rules when traversing a configuration"() {
+        def exclude1 = new DefaultExclude("group1", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def exclude2 = new DefaultExclude("group2", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def dep = createWithExcludes(requested, [exclude1, exclude2])
+
+        expect:
+        def exclusions = dep.getExclusions(configuration("from"))
+        exclusions == ModuleExclusions.excludeAny(exclude1, exclude2)
+        exclusions.is(dep.getExclusions(configuration("other")))
     }
 
     def "selects compile and master configurations from target when traversing from compile configuration"() {

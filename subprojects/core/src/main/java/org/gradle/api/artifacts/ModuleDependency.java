@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
- * project.
+ * build.
  * <p>
  * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
  */
@@ -54,7 +54,6 @@ public interface ModuleDependency extends Dependency {
      *     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
      *   }
      * }
-    
      * </pre>
      *
      * @param excludeProperties the properties to define the exclude rule.

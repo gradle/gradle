@@ -52,7 +52,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
-        this.exclusions = excludes.isEmpty() ? null : ModuleExclusions.excludeAny(excludes);
+        this.exclusions = ModuleExclusions.excludeAny(excludes);
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -100,9 +100,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        if (exclusions == null || !fromConfiguration.getHierarchy().contains(moduleConfiguration)) {
-            return ModuleExclusions.excludeNone();
-        }
+        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
         return exclusions;
     }
 
@@ -163,8 +161,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
             ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            if (selector.equals(target) && requested.equals(requestedVersion)) {
+                return this;
+            }
             return copyWithTarget(moduleTarget, requestedVersion);
         } else if (target instanceof ProjectComponentSelector) {
+            if (target.equals(selector)) {
+                return this;
+            }
             return copyWithTarget(target, requested);
         } else {
             throw new AssertionError("Invalid component selector type for substitution: " + target);

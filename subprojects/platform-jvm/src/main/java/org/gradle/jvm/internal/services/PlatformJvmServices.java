@@ -20,22 +20,25 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
-import org.gradle.api.internal.resolve.DefaultLibraryResolutionErrorMessageBuilder;
-import org.gradle.api.internal.resolve.JvmLocalLibraryMetaDataAdapter;
+import org.gradle.jvm.internal.resolve.DefaultLibraryResolutionErrorMessageBuilder;
+import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
+import org.gradle.jvm.internal.resolve.JvmLocalLibraryMetaDataAdapter;
+import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.api.internal.resolve.VariantSelector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility;
+import org.gradle.jvm.internal.resolve.DefaultJavaPlatformVariantAxisCompatibility;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
-import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory;
-import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
-import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
+import org.gradle.jvm.internal.resolve.DefaultVariantAxisCompatibilityFactory;
+import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
+import org.gradle.jvm.internal.resolve.VariantsMetaData;
+import org.gradle.jvm.internal.resolve.JvmLibraryResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -84,21 +87,21 @@ public class PlatformJvmServices implements PluginServiceRegistry {
 
         @Override
         public boolean canCreate(ResolveContext context) {
-            return context instanceof LocalComponentResolveContext;
+            return context instanceof JvmLibraryResolveContext;
         }
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
             final ModelSchemaStore schemaStore = registry.get(ModelSchemaStore.class);
-            VariantsMetaData variants = ((LocalComponentResolveContext) context).getVariants();
+            VariantsMetaData variants = ((JvmLibraryResolveContext) context).getVariants();
+            VariantSelector variantSelector = new JvmVariantSelector(registry.getAll(VariantAxisCompatibilityFactory.class), JvmBinarySpec.class, schemaStore, variants);
             JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
-            LocalLibraryDependencyResolver<JvmBinarySpec> delegate =
-                    new LocalLibraryDependencyResolver<JvmBinarySpec>(
+            LocalLibraryDependencyResolver delegate =
+                    new LocalLibraryDependencyResolver(
                             JvmBinarySpec.class,
                             projectModelResolver,
-                            registry.getAll(VariantAxisCompatibilityFactory.class),
-                            variants,
-                            schemaStore,
+                            new DefaultLocalLibraryResolver(),
+                            variantSelector,
                             libraryMetaDataAdapter,
                             new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
                     );

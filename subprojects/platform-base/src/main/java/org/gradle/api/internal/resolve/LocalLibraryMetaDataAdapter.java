@@ -17,8 +17,8 @@
 package org.gradle.api.internal.resolve;
 
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Binary;
 
 public interface LocalLibraryMetaDataAdapter {
-    LocalComponentMetadata createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath, boolean toAssembly);
+    LocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly);
 }

@@ -17,9 +17,12 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
+import spock.lang.IgnoreIf
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -356,6 +359,38 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel}) // Currently fails with --parallel due to dumb cyclic build detection
+    def "build dependency artifacts only once when depended on by different subprojects"() {
+        given:
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+
+        buildB.buildFile << """
+            project(':b1') {
+                dependencies {
+                    compile 'org.test:buildC:1.0'
+                }
+            }
+            project(':b2') {
+                dependencies {
+                    compile 'org.test:buildC:1.0'
+                }
+            }
+"""
+        buildB.settingsFile << """
+            includeBuild '${buildC.toURI()}'
+"""
+
+        when:
+        execute(buildB, "jar")
+
+        then:
+        executed ":buildC:jar", ":b2:jar", ":b1:jar"
+    }
+
     def "builds multiple configurations for the same project via separate dependency paths"() {
         given:
         buildA.buildFile << """
@@ -418,7 +453,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasCause("Dependency cycle including project buildB::")
+        failure.assertHasCause("Dependency cycle including project :buildB")
     }
 
     def "reports failure to build artifacts with cycle involving substituted subproject dependency"() {

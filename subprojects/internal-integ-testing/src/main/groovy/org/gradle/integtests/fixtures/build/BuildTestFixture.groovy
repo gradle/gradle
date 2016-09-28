@@ -16,50 +16,76 @@
 
 package org.gradle.integtests.fixtures.build
 
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
 class BuildTestFixture {
+    private final TestDirectoryProvider provider
     private final TestFile rootDir
+    private boolean buildInRootDir = true
+
+    BuildTestFixture(TestDirectoryProvider provider) {
+        this.provider = provider
+        this.rootDir = null
+    }
 
     BuildTestFixture(TestFile rootDir) {
+        this.provider = null
         this.rootDir = rootDir
     }
 
-    BuildTestFile populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
-        def project = new BuildTestFile(rootDir.file(projectName))
-        project.with(cl)
-        project
+    TestFile getRootDir() {
+        return rootDir ?: provider.testDirectory
     }
 
-    BuildTestFile singleProjectBuild(String projectName, TestFile projectDir, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        def project = new BuildTestFile(projectDir)
-        project.settingsFile << "rootProject.name = '${projectName}'"
-        project.buildFile << """
-            group = 'org.test'
-            version = '1.0'
-        """
-        project.file('src/main/java/Dummy.java') << "public class Dummy {}"
-        project.with(cl)
-        project
+    BuildTestFixture withBuildInRootDir() {
+        buildInRootDir = true
+        this
     }
 
-    BuildTestFile multiProjectBuild(String projectName, TestFile projectDir, List<String> subProjects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        String subProjectList = subProjects.collect({ "'$it'" }).join(',')
-        def project = new BuildTestFile(projectDir)
+    BuildTestFixture withBuildInSubDir() {
+        buildInRootDir = false
+        this
+    }
+
+    def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+        def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
         project.settingsFile << """
-            rootProject.name = '${projectName}'
-            include ${subProjectList}
-        """
-        project.buildFile << """
-            allprojects {
-                group = 'org.test'
-                version = '1.0'
-            }
-        """
+                    rootProject.name = '${projectName}'
+                """
         project.with(cl)
-        project.file('src/main/java/Dummy.java') << "public class Dummy {}"
-        subProjects.each {
-            project.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
+        project
+    }
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        def project = populate(projectName) {
+            buildFile << """
+                    group = 'org.test'
+                    version = '1.0'
+                """
+            file('src/main/java/Dummy.java') << "public class Dummy {}"
+        }
+        project.with(cl)
+        project
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        String subprojectList = subprojects.collect({ "'$it'" }).join(',')
+        def rootMulti = populate(projectName) {
+            settingsFile << """
+                    include ${subprojectList}
+                """
+
+            buildFile << """
+                    allprojects {
+                        group = 'org.test'
+                        version = '1.0'
+                    }
+                """
+        }
+        rootMulti.with(cl)
+        rootMulti.file('src/main/java/Dummy.java') << "public class Dummy {}"
+        subprojects.each {
+            rootMulti.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
         }
         project
     }

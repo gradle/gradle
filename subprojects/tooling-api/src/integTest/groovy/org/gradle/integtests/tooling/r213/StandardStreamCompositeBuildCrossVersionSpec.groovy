@@ -212,7 +212,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
     private List createBuilds(int numberOfParticipants, String buildFileText) {
         def builds = []
         numberOfParticipants.times {
-            builds << populate("build-${it}") {
+            builds << singleProjectBuild("build-${it}") {
                 buildFile << buildFileText
             }
         }

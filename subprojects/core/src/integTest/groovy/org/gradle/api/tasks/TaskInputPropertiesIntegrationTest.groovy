@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -243,5 +244,47 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "b" assertTasksExecuted ":a", ":b"
+    }
+
+    @Ignore
+    @Issue("GRADLE-3537")
+    def "can use Enum from buildSrc as input property"() {
+        given:
+        file("buildSrc/src/main/java/org/gradle/MessageType.java") << """
+            package org.gradle;
+
+            public enum MessageType {
+                HELLO_WORLD
+            }
+        """
+
+        buildFile << """
+            import org.gradle.MessageType
+
+            task createFile {
+                ext.messageType = MessageType.HELLO_WORLD
+                ext.outputFile = file('output.txt')
+                inputs.property('messageType', messageType)
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile << messageType
+                }
+            }
+        """
+
+        when:
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
+        skippedTasks.empty
+
+        when:
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
+        skippedTasks == [':createFile'] as Set
     }
 }

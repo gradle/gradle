@@ -16,20 +16,40 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
     public DefaultMutableIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts));
+        this(componentIdentifier,
+            MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts),
+            ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
+            ImmutableList.<DependencyMetadata>of());
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
-        super(componentIdentifier, descriptor);
+    public DefaultMutableIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, Collection<Configuration> configurations, Collection<? extends DependencyMetadata> dependencies) {
+        super(componentIdentifier, descriptor, toMap(configurations), ImmutableList.copyOf(dependencies));
+    }
+
+    private static Map<String, Configuration> toMap(Collection<Configuration> configurations) {
+        ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builder();
+        for (Configuration configuration : configurations) {
+            builder.put(configuration.getName(), configuration);
+        }
+        return builder.build();
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleComponentResolveMetadata metadata) {

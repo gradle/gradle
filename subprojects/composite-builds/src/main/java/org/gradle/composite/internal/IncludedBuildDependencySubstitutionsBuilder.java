@@ -18,12 +18,14 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencySubstitutionsBuilder {
     private final CompositeBuildContext context;
@@ -35,19 +37,16 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     public void build(IncludedBuildInternal build) {
         Gradle gradle = build.configure();
         for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(build.getName(), (ProjectInternal) project);
+            registerProject(build, (ProjectInternal) project);
         }
     }
 
-    private void registerProject(String buildName, ProjectInternal project) {
+    private void registerProject(IncludedBuild build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = DefaultProjectComponentIdentifier.newId(project.getPath());
+        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
+        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
         context.registerSubstitution(originalComponent.getId(), componentIdentifier);
     }
 
-    private String createExternalProjectPath(String buildName, String projectPath) {
-        return buildName + ":" + projectPath;
-    }
 }

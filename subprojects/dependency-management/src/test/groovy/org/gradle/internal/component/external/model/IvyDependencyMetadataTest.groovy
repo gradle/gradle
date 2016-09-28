@@ -20,7 +20,10 @@ import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.internal.component.external.descriptor.Artifact
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
@@ -34,7 +37,6 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         return new IvyDependencyMetadata(selector, ImmutableListMultimap.of())
     }
 
-    @Override
     DefaultDependencyMetadata createWithExcludes(ModuleVersionSelector selector, List<Exclude> excludes) {
         return new IvyDependencyMetadata(selector, "12", false, false, true, ImmutableListMultimap.of(), [], excludes)
     }
@@ -42,6 +44,51 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     @Override
     DefaultDependencyMetadata createWithArtifacts(ModuleVersionSelector selector, List<Artifact> artifacts) {
         return new IvyDependencyMetadata(selector, "12", false, false, true, ImmutableListMultimap.of(), artifacts, [])
+    }
+
+    def "excludes nothing when no exclude rules provided"() {
+        def dep = createWithExcludes(requested, [])
+
+        expect:
+        dep.getExclusions(configuration("from")) == ModuleExclusions.excludeNone()
+        dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
+    }
+
+    def "excludes nothing when traversing a different configuration"() {
+        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def dep = createWithExcludes(requested, [exclude])
+
+        expect:
+        dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
+    }
+
+    def "applies exclude rules when traversing a configuration"() {
+        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def dep = createWithExcludes(requested, [exclude])
+        def configuration = configuration("from")
+
+        expect:
+        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude)
+    }
+
+    def "applies rules when traversing a child of specified configuration"() {
+        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def dep = createWithExcludes(requested, [exclude])
+        def configuration = configuration("child", "from")
+
+        expect:
+        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude)
+    }
+
+    def "applies matching exclude rules"() {
+        def exclude1 = new DefaultExclude("group1", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def exclude2 = new DefaultExclude("group2", "*", ["*"] as String[], PatternMatchers.EXACT)
+        def exclude3 = new DefaultExclude("group3", "*", ["other"] as String[], PatternMatchers.EXACT)
+        def dep = createWithExcludes(requested, [exclude1, exclude2, exclude3])
+        def configuration = configuration("from")
+
+        expect:
+        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude1, exclude2)
     }
 
     def "selects no configurations when no configuration mappings provided"() {

@@ -17,10 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -38,6 +38,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -45,7 +46,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,47 +54,17 @@ import java.util.regex.Pattern;
  * classifiers)
  */
 public class GradlePomModuleDescriptorBuilder {
-    private static final Configuration[] MAVEN2_CONFIGURATIONS = new Configuration[]{
-            new Configuration("default", Visibility.PUBLIC,
-                    "runtime dependencies and master artifact can be used with this conf",
-                    new String[]{"runtime", "master"}, true, null),
-            new Configuration("master", Visibility.PUBLIC,
-                    "contains only the artifact published by this module itself, "
-                            + "with no transitive dependencies",
-                    new String[0], true, null),
-            new Configuration("compile", Visibility.PUBLIC,
-                    "this is the default scope, used if none is specified. "
-                            + "Compile dependencies are available in all classpaths.",
-                    new String[0], true, null),
-            new Configuration("provided", Visibility.PUBLIC,
-                    "this is much like compile, but indicates you expect the JDK or a container "
-                            + "to provide it. "
-                            + "It is only available on the compilation classpath, and is not transitive.",
-                    new String[0], true, null),
-            new Configuration("runtime", Visibility.PUBLIC,
-                    "this scope indicates that the dependency is not required for compilation, "
-                            + "but is for execution. It is in the runtime and test classpaths, "
-                            + "but not the compile classpath.",
-                    new String[]{"compile"}, true, null),
-            new Configuration("test", Visibility.PRIVATE,
-                    "this scope indicates that the dependency is not required for normal use of "
-                            + "the application, and is only available for the test compilation and "
-                            + "execution phases.",
-                    new String[]{"runtime"}, true, null),
-            new Configuration("system", Visibility.PUBLIC,
-                    "this scope is similar to provided except that you have to provide the JAR "
-                            + "which contains it explicitly. The artifact is always available and is not "
-                            + "looked up in a repository.",
-                    new String[0], true, null),
-            new Configuration("sources", Visibility.PUBLIC,
-                    "this configuration contains the source artifact of this module, if any.",
-                    new String[0], true, null),
-            new Configuration("javadoc", Visibility.PUBLIC,
-                    "this configuration contains the javadoc artifact of this module, if any.",
-                    new String[0], true, null),
-            new Configuration("optional", Visibility.PUBLIC,
-                    "contains all optional dependencies", new String[0], true, null)
-    };
+    public static final Map<String, Configuration> MAVEN2_CONFIGURATIONS = ImmutableMap.<String, Configuration>builder()
+        .put("default", new Configuration("default", true, true, ImmutableSet.of("runtime", "master")))
+        .put("master", new Configuration("master", true, true, ImmutableSet.<String>of()))
+        .put("compile", new Configuration("compile", true, true, ImmutableSet.<String>of()))
+        .put("provided", new Configuration("provided", true, true, ImmutableSet.<String>of()))
+        .put("runtime", new Configuration("runtime", true, true, ImmutableSet.of("compile")))
+        .put("test", new Configuration("test", true, false, ImmutableSet.of("runtime")))
+        .put("system", new Configuration("system", true, true, ImmutableSet.<String>of()))
+        .put("sources", new Configuration("sources", true, true, ImmutableSet.<String>of()))
+        .put("javadoc", new Configuration("javadoc", true, true, ImmutableSet.<String>of()))
+        .put("optional", new Configuration("optional", true, true, ImmutableSet.<String>of())).build();
 
     private static final Map<String, MavenScope> SCOPES = ImmutableMap.<String, MavenScope>builder()
         .put("compile", MavenScope.Compile)
@@ -103,81 +73,24 @@ public class GradlePomModuleDescriptorBuilder {
         .put("test", MavenScope.Test)
         .put("system", MavenScope.System)
         .build();
-    private static final Map<MavenScope, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<MavenScope, ConfMapper>();
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
-
-    interface ConfMapper {
-        void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional);
-    }
-
-    static {
-        MAVEN2_CONF_MAPPING.put(MavenScope.Compile, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                if (isOptional) {
-                    dd.put("optional", "compile(*)");
-                    dd.put("optional", "master(*)");
-
-                } else {
-                    dd.put("compile", "compile(*)");
-                    dd.put("compile", "master(*)");
-                    dd.put("runtime", "runtime(*)");
-                }
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.Provided, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                if (isOptional) {
-                    dd.put("optional", "compile(*)");
-                    dd.put("optional", "runtime(*)");
-                    dd.put("optional", "master(*)");
-                } else {
-                    dd.put("provided", "compile(*)");
-                    dd.put("provided", "runtime(*)");
-                    dd.put("provided", "master(*)");
-                }
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.Runtime, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                if (isOptional) {
-                    dd.put("optional", "compile(*)");
-                    dd.put("optional", "runtime(*)");
-                    dd.put("optional", "master(*)");
-
-                } else {
-                    dd.put("runtime", "compile(*)");
-                    dd.put("runtime", "runtime(*)");
-                    dd.put("runtime", "master(*)");
-                }
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.Test, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                //optional doesn't make sense in the test scope
-                dd.put("test", "compile(*)");
-                dd.put("test", "runtime(*)");
-                dd.put("test", "master(*)");
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.System, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                //optional doesn't make sense in the system scope
-                dd.put("system", "master(*)");
-            }
-        });
-    }
+    private static final String[] WILDCARD = new String[]{"*"};
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
     private MutableModuleDescriptorState descriptor;
-
+    private List<DependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
 
     public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
+    }
+
+    public List<DependencyMetadata> getDependencies() {
+        return dependencies;
     }
 
     public ModuleDescriptorState getModuleDescriptor() {
@@ -196,9 +109,6 @@ public class GradlePomModuleDescriptorBuilder {
         String status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
 
         descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion), status, false);
-        for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
-            descriptor.addConfiguration(maven2Configuration.getName(), maven2Configuration.isTransitive(), maven2Configuration.getVisibility() == Visibility.PUBLIC, Lists.newArrayList(maven2Configuration.getExtends()));
-        }
     }
 
     public void setDescription(String description) {
@@ -230,11 +140,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        // TODO - this is constant
-        ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
-        ListMultimap<String, String> confMappings = ArrayListMultimap.create();
         boolean optional = dep.isOptional();
-        mapping.addMappingConfs(confMappings, optional);
 
         List<Artifact> artifacts = Lists.newArrayList();
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
@@ -264,18 +170,16 @@ public class GradlePomModuleDescriptorBuilder {
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
-        Set<String> confs = confMappings.keySet();
-        String[] confArray = confs.toArray(new String[confs.size()]);
         for (ModuleIdentifier excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(
                 excludedModule.getGroup(),
                 excludedModule.getName(),
-                confArray,
+                WILDCARD,
                 PatternMatchers.EXACT);
             excludes.add(rule);
         }
 
-        descriptor.addDependency(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
+        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {
@@ -367,16 +271,15 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         // TODO - this is a constant
-        Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
         ListMultimap<String, String> confMappings = ArrayListMultimap.create();
         // Map dependency on all public configurations
-        for (Configuration m2Conf : m2Confs) {
-            if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
+        for (Configuration m2Conf : GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS.values()) {
+            if (m2Conf.isVisible()) {
                 confMappings.put(m2Conf.getName(), m2Conf.getName());
             }
         }
 
-        descriptor.addDependency(new IvyDependencyMetadata(selector, confMappings));
+        dependencies.add(new IvyDependencyMetadata(selector, confMappings));
     }
 
     private String getDefaultVersion(PomDependencyData dep) {

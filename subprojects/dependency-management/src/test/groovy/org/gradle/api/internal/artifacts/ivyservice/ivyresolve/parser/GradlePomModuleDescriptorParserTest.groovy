@@ -54,7 +54,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         metaData instanceof MutableMavenModuleResolveMetadata
         metaData.descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        def dependency = single(metaData.descriptor.dependencies)
+        def dependency = single(metaData.dependencies)
         dependency.requested == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dependency)
         parser.typeName == 'POM'
@@ -137,17 +137,17 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size() == 3
+        metadata.dependencies.size() == 3
 
-        def dep1 = descriptor.dependencies[0]
+        def dep1 = metadata.dependencies[0]
         dep1.requested == moduleId('group-two', 'artifact-one', '11')
         dep1.scope == MavenScope.Compile
 
-        def dep2 = descriptor.dependencies[1]
+        def dep2 = metadata.dependencies[1]
         dep2.requested == moduleId('group-two', 'artifact-three', '11')
         dep2.scope == MavenScope.Compile
 
-        def inheritedDep = descriptor.dependencies[2]
+        def inheritedDep = metadata.dependencies[2]
         inheritedDep.requested == moduleId('group-two', 'artifact-two', '1.2')
         inheritedDep.scope == MavenScope.Compile
     }
@@ -190,7 +190,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
         def excludeRule = single(dep.dependencyExcludes)
@@ -302,7 +302,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
         hasDefaultDependencyArtifact(dep)
@@ -367,7 +367,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.1')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -454,7 +454,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.5')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -521,7 +521,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -575,7 +575,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -631,7 +631,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.4')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -713,7 +713,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -790,7 +790,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -872,7 +872,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -932,11 +932,11 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size() == 2
-        def artifactTwo = descriptor.dependencies[0]
+        metadata.dependencies.size() == 2
+        def artifactTwo = metadata.dependencies[0]
         artifactTwo.requested == moduleId('group-two', 'artifact-two', 'v2')
         hasDefaultDependencyArtifact(artifactTwo)
-        def artifactThree = descriptor.dependencies[1]
+        def artifactThree = metadata.dependencies[1]
         artifactThree.requested == moduleId('group-three', 'artifact-three', 'v3')
         hasDefaultDependencyArtifact(artifactThree)
     }
@@ -1017,11 +1017,11 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size() == 2
-        def artifactTwo = descriptor.dependencies[0]
+        metadata.dependencies.size() == 2
+        def artifactTwo = metadata.dependencies[0]
         artifactTwo.requested == moduleId('group-one', 'artifact-two', 'version-one')
         hasDefaultDependencyArtifact(artifactTwo)
-        def artifactThree = descriptor.dependencies[1]
+        def artifactThree = metadata.dependencies[1]
         artifactThree.requested == moduleId('group-one', 'artifact-three', 'version-one')
         hasDefaultDependencyArtifact(artifactThree)
     }
@@ -1120,7 +1120,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-one', 'artifact-two', 'some-version')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -1151,7 +1151,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDependencyArtifact(dep, 'artifact-two', 'jar', 'jar', 'classifier-two')
@@ -1183,7 +1183,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -1207,7 +1207,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        descriptor.dependencies.empty
+        metadata.dependencies.empty
     }
 
     def "fails when POM is not well formed XML"() {
@@ -1245,7 +1245,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        descriptor.dependencies.empty
+        metadata.dependencies.empty
     }
 
     def "pom with packaging 'pom'"() {
@@ -1355,7 +1355,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        descriptor.dependencies.empty
+        metadata.dependencies.empty
     }
 
     def "pom with dependency coordinates defined by custom properties"() {
@@ -1387,7 +1387,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -1458,7 +1458,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -1525,7 +1525,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -1598,7 +1598,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -1679,7 +1679,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-relocated', 'relocated', 'version-one')
         dep.confMappings.keySet() == ['default', 'master', 'compile', 'provided', 'runtime', 'system', 'sources', 'javadoc', 'optional'] as Set
         hasDefaultDependencyArtifact(dep)
@@ -1750,12 +1750,12 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size() == 2
-        def depCompile = descriptor.dependencies[0]
+        metadata.dependencies.size() == 2
+        def depCompile = metadata.dependencies[0]
         depCompile.requested == moduleId('group-two', 'artifact-two', '1.1')
         depCompile.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(depCompile)
-        def depTest = descriptor.dependencies[1]
+        def depTest = metadata.dependencies[1]
         depTest.requested == moduleId('group-two', 'artifact-two', '1.2')
         depTest.scope == MavenScope.Test
         hasDependencyArtifact(depTest, 'artifact-two', 'test-jar', 'jar', 'tests')
@@ -1863,7 +1863,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-four')
         dep.scope == MavenScope.Compile
         hasDependencyArtifact(dep, 'artifact-two', 'jar', 'jar', 'myjar')
@@ -1920,24 +1920,24 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        descriptor.dependencies.size() == 5
-        def defDep = descriptor.dependencies[0]
+        metadata.dependencies.size() == 5
+        def defDep = metadata.dependencies[0]
         defDep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         defDep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(defDep)
-        def depJar = descriptor.dependencies[1]
+        def depJar = metadata.dependencies[1]
         depJar.requested == moduleId('group-two', 'artifact-two', 'version-three')
         depJar.scope == MavenScope.Compile
         hasDependencyArtifact(depJar, 'artifact-two', 'jar', 'jar', 'myjar')
-        def depTestJar = descriptor.dependencies[2]
+        def depTestJar = metadata.dependencies[2]
         depTestJar.requested == moduleId('group-two', 'artifact-two', 'version-four')
         depTestJar.scope == MavenScope.Compile
         hasDependencyArtifact(depTestJar, 'artifact-two', 'test-jar', 'jar', 'tests')
-        def depTestJarWithClassifier = descriptor.dependencies[3]
+        def depTestJarWithClassifier = metadata.dependencies[3]
         depTestJarWithClassifier.requested == moduleId('group-two', 'artifact-two', 'version-five')
         depTestJarWithClassifier.scope == MavenScope.Compile
         hasDependencyArtifact(depTestJarWithClassifier, 'artifact-two', 'test-jar', 'jar', 'test')
-        def depEjbClient = descriptor.dependencies[4]
+        def depEjbClient = metadata.dependencies[4]
         depEjbClient.requested == moduleId('group-two', 'artifact-two', 'version-six')
         depEjbClient.scope == MavenScope.Compile
         hasDependencyArtifact(depEjbClient, 'artifact-two', 'ejb-client', 'jar', 'client')
@@ -1990,12 +1990,12 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
-        descriptor.dependencies.size() == 2
-        def defDep = descriptor.dependencies[0]
+        metadata.dependencies.size() == 2
+        def defDep = metadata.dependencies[0]
         defDep.requested == moduleId('group-one', 'artifact-two', 'version-one')
         defDep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(defDep)
-        def depJar = descriptor.dependencies[1]
+        def depJar = metadata.dependencies[1]
         depJar.requested == moduleId('group-one', 'artifact-two', 'version-one')
         depJar.scope == MavenScope.Test
         hasDependencyArtifact(depJar, 'artifact-two', 'test-jar', 'jar', 'tests')
@@ -2062,12 +2062,12 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size() == 2
-        def depGroupTwo = descriptor.dependencies[0]
+        metadata.dependencies.size() == 2
+        def depGroupTwo = metadata.dependencies[0]
         depGroupTwo.requested == moduleId('group-two', 'artifact-two', 'version-two')
         depGroupTwo.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(depGroupTwo)
-        def depGroupThree = descriptor.dependencies[1]
+        def depGroupThree = metadata.dependencies[1]
         depGroupThree.requested == moduleId('group-three', 'artifact-three', 'version-three')
         depGroupThree.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(depGroupThree)
@@ -2136,7 +2136,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.5')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
@@ -2180,8 +2180,8 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size() == 2
-        descriptor.dependencies.every {it.requested.version == outputVersion}
+        metadata.dependencies.size() == 2
+        metadata.dependencies.every {it.requested.version == outputVersion}
 
         where:
         inputVersion | outputVersion
@@ -2215,7 +2215,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(descriptor.dependencies)
+        def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDependencyArtifact(dep, 'artifact-two', type, extension, classifier)
@@ -2272,7 +2272,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         descriptor.componentIdentifier == componentId('group-one', 'artifact-one-ext', 'version-one')
 
-        def depGroupOne = single(descriptor.dependencies)
+        def depGroupOne = single(metadata.dependencies)
         depGroupOne.requested == moduleId('group-one', 'artifact-one-xxx', 'version-one')
         hasDefaultDependencyArtifact(depGroupOne)
     }

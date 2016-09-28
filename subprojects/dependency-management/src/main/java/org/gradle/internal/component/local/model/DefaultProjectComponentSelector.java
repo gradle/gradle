@@ -15,20 +15,34 @@
  */
 package org.gradle.internal.component.local.model;
 
+import com.google.common.base.Objects;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.initialization.IncludedBuild;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
+    private final BuildIdentifier build;
     private final String projectPath;
+    private final String displayName;
 
-    public DefaultProjectComponentSelector(String projectPath) {
+    public DefaultProjectComponentSelector(BuildIdentifier build, String projectPath) {
+        assert build != null : "build cannot be null";
         assert projectPath != null : "project path cannot be null";
+        this.build = build;
         this.projectPath = projectPath;
+        this.displayName = "project " + DefaultProjectComponentIdentifier.fullPath(build, projectPath);
     }
 
     public String getDisplayName() {
-        return "project ".concat(projectPath);
+        return displayName;
+    }
+
+    @Override
+    public BuildIdentifier getBuild() {
+        return build;
     }
 
     public String getProjectPath() {
@@ -38,9 +52,10 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if(identifier instanceof ProjectComponentIdentifier) {
-            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)identifier;
-            return projectPath.equals(projectComponentIdentifier.getProjectPath());
+        if (identifier instanceof ProjectComponentIdentifier) {
+            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) identifier;
+            return Objects.equal(build, projectComponentIdentifier.getBuild())
+                && Objects.equal(projectPath, projectComponentIdentifier.getProjectPath());
         }
 
         return false;
@@ -51,22 +66,17 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof DefaultProjectComponentSelector)) {
             return false;
         }
-
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
-
-        if (!projectPath.equals(that.projectPath)) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(build, that.build)
+            && Objects.equal(projectPath, that.projectPath);
     }
 
     @Override
     public int hashCode() {
-        return projectPath.hashCode();
+        return Objects.hashCode(build, projectPath);
     }
 
     @Override
@@ -74,7 +84,28 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
+    // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
     public static ProjectComponentSelector newSelector(String projectPath) {
-        return new DefaultProjectComponentSelector(projectPath);
+        return new DefaultProjectComponentSelector(new CurrentBuildIdentifier(), projectPath);
+    }
+
+    public static ProjectComponentSelector newSelector(Project project) {
+        return newSelector(project.getPath());
+    }
+
+    public static ProjectComponentSelector newSelector(IncludedBuild build, String projectPath) {
+        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(build.getName()), projectPath);
+    }
+
+    public static ProjectComponentSelector newSelector(BuildIdentifier build, String projectPath) {
+        return new DefaultProjectComponentSelector(build, projectPath);
+    }
+
+    public static ProjectComponentSelector newSelector(IncludedBuild build, ProjectComponentSelector selector) {
+        return newSelector(build, selector.getProjectPath());
+    }
+
+    public static ProjectComponentSelector newSelector(ProjectComponentIdentifier projectId) {
+        return new DefaultProjectComponentSelector(projectId.getBuild(), projectId.getProjectPath());
     }
 }

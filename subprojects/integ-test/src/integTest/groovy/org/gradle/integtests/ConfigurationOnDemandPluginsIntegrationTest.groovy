@@ -25,23 +25,22 @@ import spock.lang.Unroll
 class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpec {
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
-    def setup() {
-        file("gradle.properties") << "org.gradle.configureondemand=true"
-    }
-
     @Unroll
     @Issue('GRADLE-3534')
     def "configures only requested projects when the #plugin plugin is applied"() {
-        settingsFile << "include 'a', 'b'"
-        file('b').mkdirs()
-        buildFile << """
-            allprojects {
-                apply plugin: '${plugin}'
-            }
-            subprojects {
-                apply plugin: 'java'
-            }
-        """.stripIndent()
+        given:
+        multiProjectBuild('multi', ['a', 'b']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: '${plugin}'
+                }
+                subprojects {
+                    apply plugin: 'java'
+                }
+            """.stripIndent()
+
+            gradlePropertiesFile << "org.gradle.configureondemand=true"
+        }
 
         when:
         run ':a:build'

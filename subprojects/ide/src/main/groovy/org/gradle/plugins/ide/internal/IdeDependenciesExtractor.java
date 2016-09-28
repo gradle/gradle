@@ -16,12 +16,14 @@
 package org.gradle.plugins.ide.internal;
 
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.result.ArtifactResult;
@@ -29,6 +31,7 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver;
@@ -37,13 +40,13 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
-import org.gradle.jvm.JvmLibrary;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class IdeDependenciesExtractor {
@@ -51,17 +54,17 @@ public class IdeDependenciesExtractor {
     private final IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver();
 
     public Collection<IdeProjectDependency> extractProjectDependencies(Project project, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<String, IdeProjectDependency> deps = new LinkedHashMap<String, IdeProjectDependency>();
+        Map<ProjectComponentIdentifier, IdeProjectDependency> deps = Maps.newLinkedHashMap();
 
         for (Configuration plusConfiguration : plusConfigurations) {
             for (IdeProjectDependency dep : ideDependencyResolver.getIdeProjectDependencies(plusConfiguration, project)) {
-                deps.put(dep.getProjectPath(), dep);
+                deps.put(dep.getProjectId(), dep);
             }
         }
 
         for (Configuration minusConfiguration : minusConfigurations) {
             for (IdeProjectDependency dep : ideDependencyResolver.getIdeProjectDependencies(minusConfiguration, project)) {
-                deps.remove(dep.getProjectPath());
+                deps.remove(dep.getProjectId());
             }
         }
 

@@ -143,10 +143,22 @@ class DuplicateIdleDaemonExpirationStrategyTest extends Specification {
         !wouldExpire(d3, true)
     }
 
-    private DaemonInfo registerDaemon(DaemonStateControl.State state) {
+    def "leaves one idle daemon running, even if they have the same last idle time"() {
+        given:
+        DaemonInfo d1 = registerDaemon(Idle, 1000)
+        DaemonInfo d2 = registerDaemon(Idle, 1000)
+
+        when:
+        compatible = [ d1, d2 ]
+
+        then:
+        wouldExpire(d1) ^ wouldExpire(d2)
+    }
+
+    private DaemonInfo registerDaemon(DaemonStateControl.State state, long lastIdle=-1) {
         final String uid = UUID.randomUUID().toString()
         final int id = registry.getAll().size() + 1
-        final long lastIdleTime = id * 1000;
+        final long lastIdleTime = lastIdle == -1L ? id * 1000 : lastIdle;
         Address daemonAddress = createAddress(id)
         DaemonContext context = Mock(DaemonContext) {
             _ * getUid() >> uid
@@ -170,7 +182,7 @@ class DuplicateIdleDaemonExpirationStrategyTest extends Specification {
             _ * getDaemonContext() >> { info.getContext() }
             _ * getStateCoordinator() >> Stub(DaemonStateCoordinator) {
                 getState() >> info.state
-                getIdleMillis(_) >> { long now -> return (IDLE_COMPATIBLE_TIMEOUT * 1000) + (timeoutReached ?  1 : -1) }
+                getIdleMillis(_) >> { long now -> return IDLE_COMPATIBLE_TIMEOUT + (timeoutReached ?  1 : -1) }
             }
         }
 

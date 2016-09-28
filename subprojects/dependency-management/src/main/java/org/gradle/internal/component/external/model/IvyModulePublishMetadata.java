@@ -17,10 +17,12 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface IvyModulePublishMetadata {
     String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
@@ -29,6 +31,8 @@ public interface IvyModulePublishMetadata {
     ModuleDescriptorState getModuleDescriptor();
 
     ModuleComponentIdentifier getId();
+
+    Map<String, Configuration> getConfigurations();
 
     Collection<IvyModuleArtifactPublishMetadata> getArtifacts();
 

@@ -81,9 +81,9 @@ compile - Dependencies for source set 'main'.
         then:
         result.assertOutputContains("""
 compile - Dependencies for source set 'main'.
-+--- org.sample:b1:1.0 -> project projectB::b1
-\\--- org.sample:b2:1.0 -> project projectB::b2
-     \\--- org.sample:projectC:1.0 -> project projectC::
++--- org.sample:b1:1.0 -> project :projectB:b1
+\\--- org.sample:b2:1.0 -> project :projectB:b2
+     \\--- org.sample:projectC:1.0 -> project :projectC
 """)
     }
 

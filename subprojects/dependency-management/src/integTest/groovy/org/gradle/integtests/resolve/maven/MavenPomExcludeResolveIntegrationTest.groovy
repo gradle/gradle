@@ -16,49 +16,33 @@
 
 package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class MavenPomExcludeResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def resolve = new ResolveTestFixture(buildFile)
+
+    def setup() {
+        settingsFile << "rootProject.name='test'"
+        resolve.prepare()
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3243")
-    def "Wildcard exclude of groupId and artifactId does not exclude itself"() {
+    def "wildcard exclude of groupId and artifactId on a dependency does not include transitive dependencies"() {
         given:
-        mavenHttpRepo.module("org.gradle", "bar", "2.0").publish()
+        def notRequired = mavenHttpRepo.module("org.gradle", "bar", "2.0")
         def childDep = mavenHttpRepo.module("com.company", "foo", "1.5")
-        childDep.dependsOn("org.gradle", "bar", "2.0")
+        childDep.dependsOn(notRequired)
         childDep.publish()
         def parentDep = mavenHttpRepo.module("groupA", "projectA", "1.2")
-        parentDep.dependsOn("com.company", "foo", "1.5")
+        parentDep.dependsOn(childDep, exclusions: [[groupId: '*', artifactId: '*']])
         parentDep.publish()
-        parentDep.pomFile.text = """
-<project>
-    <groupId>groupA</groupId>
-    <artifactId>projectA</artifactId>
-    <version>1.2</version>
-    <dependencies>
-        <dependency>
-            <groupId>com.company</groupId>
-            <artifactId>foo</artifactId>
-            <version>1.5</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-    </dependencies>
-</project>
-"""
 
         and:
         buildFile << """
 repositories { maven { url '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:projectA:1.2' }
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
 """
 
         and:
@@ -68,9 +52,61 @@ task retrieve(type: Sync) {
         childDep.artifact.expectGet()
 
         when:
-        run "retrieve"
+        run "checkDeps"
 
         then:
-        file("libs").assertHasDescendants("projectA-1.2.jar", "foo-1.5.jar")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("groupA:projectA:1.2") {
+                    module("com.company:foo:1.5")
+                }
+            }
+        }
+    }
+
+    def "can exclude transitive dependencies"() {
+        given:
+        def notRequired1 = mavenHttpRepo.module("org.gradle", "excluded1", "2.0")
+        def notRequired2 = mavenHttpRepo.module("org.gradle", "excluded2", "2.0")
+        def m1 = mavenHttpRepo.module("com.company", "m1", "1.5").publish()
+
+        def m2 = mavenHttpRepo.module("com.company", "m2", "1.5")
+            .dependsOn(notRequired1)
+            .dependsOn(notRequired2)
+            .dependsOn(m1)
+            .publish()
+
+        def parentDep = mavenHttpRepo.module("groupA", "projectA", "1.2")
+            .dependsOn(m2, exclusions: [[groupId: 'org.gradle', artifactId: 'excluded1'], [groupId: 'org.gradle', artifactId: 'excluded2']])
+            .publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:projectA:1.2' }
+"""
+
+        and:
+        parentDep.pom.expectGet()
+        parentDep.artifact.expectGet()
+        m1.pom.expectGet()
+        m1.artifact.expectGet()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("groupA:projectA:1.2") {
+                    module("com.company:m2:1.5") {
+                        module("com.company:m1:1.5")
+                    }
+                }
+            }
+        }
     }
 }

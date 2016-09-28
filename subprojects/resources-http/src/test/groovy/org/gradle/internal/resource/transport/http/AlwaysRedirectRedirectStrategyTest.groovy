@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.HttpRequest
-import org.apache.http.HttpResponse
 import org.apache.http.RequestLine
+import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.message.BasicHeader
 import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
@@ -42,7 +42,7 @@ class AlwaysRedirectRedirectStrategyTest extends Specification {
     def "should get redirect for http method [#httpMethod]"() {
         setup:
         HttpRequest request = Mock()
-        HttpResponse response = Mock()
+        CloseableHttpResponse response = Mock()
         HttpContext context = Mock()
         response.getFirstHeader("location") >> new BasicHeader('location', 'http://redirectTo')
         request.getRequestLine() >> Mock(RequestLine) {

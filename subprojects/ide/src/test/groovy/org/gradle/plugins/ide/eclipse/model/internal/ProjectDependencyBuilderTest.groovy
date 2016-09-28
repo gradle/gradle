@@ -17,18 +17,22 @@ package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
+import org.gradle.api.internal.composite.CompositeBuildContext
 import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+
 class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
-    def ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId("anything")
+    def ProjectComponentIdentifier projectId = newProjectId("anything")
     def localComponentRegistry = Mock(LocalComponentRegistry)
-    def serviceRegistry = new DefaultServiceRegistry().add(LocalComponentRegistry, localComponentRegistry)
+    def serviceRegistry = new DefaultServiceRegistry()
+        .add(LocalComponentRegistry, localComponentRegistry)
+        .add(CompositeBuildContext, Stub(CompositeBuildContext))
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry))
     def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId, "test")
 

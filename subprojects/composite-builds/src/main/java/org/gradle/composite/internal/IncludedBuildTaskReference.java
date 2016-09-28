@@ -29,7 +29,7 @@ public class IncludedBuildTaskReference implements TaskReference {
 
     @Override
     public String getName() {
-        return buildName + ":" + taskPath;
+        return "_" + buildName + taskPath.replace(':', '_');
     }
 
     public String getBuildName() {

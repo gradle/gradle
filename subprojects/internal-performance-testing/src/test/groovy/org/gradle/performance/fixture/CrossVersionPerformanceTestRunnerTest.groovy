@@ -56,8 +56,12 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         releases.all >> [
             buildContext.distribution("1.0"),
             buildContext.distribution("1.1"),
+            buildContext.distribution("2.10"),
+            // "2.11" is missing intentionally to test that RC gets used when baseline version has not been released
             buildContext.distribution("2.11-rc-4"),
             buildContext.distribution("2.11-rc-2"),
+            buildContext.distribution("2.12"),
+            buildContext.distribution("2.13"),
             buildContext.distribution(MOST_RECENT_RELEASE)]
         releases.mostRecentFinalRelease >> buildContext.distribution(MOST_RECENT_RELEASE)
     }
@@ -126,10 +130,10 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
-    def "can leave target versions unspecified"() {
+    def "can use 'none' in target versions to leave the baseline unspecified"() {
         given:
         def runner = runner()
-        runner.targetVersions = null
+        runner.targetVersions = ['none']
 
         when:
         def results = runner.run()
@@ -248,12 +252,12 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         where:
         versions         | override                        | expected
-        ['2.11']         | ['2.12']                        | ['2.12']
-        ['2.11']         | ['last']                        | [MOST_RECENT_RELEASE]
-        ['2.11']         | ['nightly']                     | [MOST_RECENT_SNAPSHOT]
-        ['2.11']         | ['last', 'nightly']             | [MOST_RECENT_RELEASE, MOST_RECENT_SNAPSHOT]
-        ['2.11', '2.12'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.11', '2.12', MOST_RECENT_SNAPSHOT]
-        ['2.11', 'last'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.11', MOST_RECENT_SNAPSHOT]
+        ['2.13']         | ['2.12']                        | ['2.12']
+        ['2.13']         | ['last']                        | [MOST_RECENT_RELEASE]
+        ['2.13']         | ['nightly']                     | [MOST_RECENT_SNAPSHOT]
+        ['2.13']         | ['last', 'nightly']             | [MOST_RECENT_RELEASE, MOST_RECENT_SNAPSHOT]
+        ['2.13', '2.12'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.13', '2.12', MOST_RECENT_SNAPSHOT]
+        ['2.13', 'last'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.13', MOST_RECENT_SNAPSHOT]
     }
 
     def "can use a snapshot version in baselines"() {

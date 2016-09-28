@@ -19,12 +19,13 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = new DefaultProjectComponentIdentifier(':myPath')
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(':myPath')
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
@@ -34,7 +35,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        new DefaultProjectComponentIdentifier(null)
+        newProjectId((String) null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -44,8 +45,8 @@ class DefaultProjectComponentIdentifierTest extends Specification {
     @Unroll
     def "can compare with other instance (#projectPath)"() {
         expect:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultProjectComponentIdentifier(':myProjectPath1')
-        ProjectComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultProjectComponentIdentifier(projectPath)
+        ProjectComponentIdentifier defaultBuildComponentIdentifier1 = newProjectId(':myProjectPath1')
+        ProjectComponentIdentifier defaultBuildComponentIdentifier2 = newProjectId(projectPath)
         strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
         (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
         (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation

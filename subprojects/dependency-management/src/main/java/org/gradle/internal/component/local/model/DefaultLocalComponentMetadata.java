@@ -24,6 +24,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -34,7 +36,6 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,7 +144,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final TaskDependency buildDependencies;
 
         private List<DependencyMetadata> configurationDependencies;
-        private LinkedHashSet<Exclude> configurationExcludes;
+        private ModuleExclusion configurationExclude;
 
         private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
             this.name = name;
@@ -209,19 +210,21 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return hierarchy.contains(dependency.getModuleConfiguration());
         }
 
-        public Set<Exclude> getExcludes() {
-            if (configurationExcludes == null) {
-                configurationExcludes = new LinkedHashSet<Exclude>();
+        @Override
+        public ModuleExclusion getExclusions() {
+            if (configurationExclude == null) {
+                List<Exclude> filtered = Lists.newArrayList();
                 for (Exclude exclude : allExcludes) {
                     for (String config : exclude.getConfigurations()) {
                         if (hierarchy.contains(config)) {
-                            configurationExcludes.add(exclude);
+                            filtered.add(exclude);
                             break;
                         }
                     }
                 }
+                configurationExclude = ModuleExclusions.excludeAny(filtered);
             }
-            return configurationExcludes;
+            return configurationExclude;
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
