@@ -97,6 +97,71 @@ public class BTreePersistentIndexedCacheTest {
     }
 
     @Test
+    public void handlesUpdatesWhenBlockSizeDecreases() {
+        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<String, List<Integer>>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
+
+        List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
+        Map<Integer, List<Integer>> updated = new LinkedHashMap<Integer, List<Integer>>();
+
+        for (int i = 10; i > 0; i--) {
+            for (Integer value : values) {
+                String key = String.format("key_%d", value);
+                List<Integer> newValue = new ArrayList<Integer>(i);
+                for (int j = 0; j < i * 2; j++) {
+                    newValue.add(j);
+                }
+                cache.put(key, newValue);
+                updated.put(value, newValue);
+            }
+
+            checkListEntries(cache, updated);
+        }
+
+        cache.reset();
+
+        checkListEntries(cache, updated);
+
+        cache.verify();
+        cache.close();
+    }
+
+    private void checkListEntries(BTreePersistentIndexedCache<String, List<Integer>> cache, Map<Integer, List<Integer>> updated) {
+        for (Map.Entry<Integer, List<Integer>> entry : updated.entrySet()) {
+            String key = String.format("key_%d", entry.getKey());
+            assertThat(cache.get(key), equalTo(entry.getValue()));
+        }
+    }
+
+    @Test
+    public void handlesUpdatesWhenBlockSizeIncreases() {
+        BTreePersistentIndexedCache<String, List<Integer>> cache = new BTreePersistentIndexedCache<String, List<Integer>>(tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>(), (short) 4, 100);
+
+        List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
+        Map<Integer, List<Integer>> updated = new LinkedHashMap<Integer, List<Integer>>();
+
+        for (int i = 1; i < 10; i++) {
+            for (Integer value : values) {
+                String key = String.format("key_%d", value);
+                List<Integer> newValue = new ArrayList<Integer>(i);
+                for (int j = 0; j < i * 2; j++) {
+                    newValue.add(j);
+                }
+                cache.put(key, newValue);
+                updated.put(value, newValue);
+            }
+
+            checkListEntries(cache, updated);
+        }
+
+        cache.reset();
+
+        checkListEntries(cache, updated);
+
+        cache.verify();
+        cache.close();
+    }
+
+    @Test
     public void persistsAddedEntriesAfterReopen() {
         createCache();
 
@@ -378,7 +443,6 @@ public class BTreePersistentIndexedCacheTest {
 
         return updated;
     }
-
 
     private void checkAddsAndRemoves(Integer... values) {
         checkAddsAndRemoves(null, values);
