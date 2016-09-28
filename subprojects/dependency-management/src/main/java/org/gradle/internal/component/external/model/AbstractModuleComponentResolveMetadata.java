@@ -298,7 +298,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         @Override
         public Map<String, String> getAttributes() {
-            return null;
+            return Collections.emptyMap();
         }
 
         public List<DependencyMetadata> getDependencies() {
