@@ -40,8 +40,6 @@ public interface ProjectDependency extends ModuleDependency, SelfResolvingDepend
     @Deprecated
     Configuration getProjectConfiguration();
 
-    Configuration findProjectConfiguration(Map<String, String> attributes);
-
     /**
      * {@inheritDoc}
      */
