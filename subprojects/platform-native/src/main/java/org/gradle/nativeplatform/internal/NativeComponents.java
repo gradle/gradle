@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.internal;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
@@ -44,6 +43,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 
 public class NativeComponents {
@@ -182,11 +182,15 @@ public class NativeComponents {
     }
 
     private static String getAssembleDependentComponentsTaskName(ComponentSpec component) {
-        return ASSEMBLE_DEPENDENTS_TASK_NAME + StringUtils.capitalize(component.getName());
+        return ASSEMBLE_DEPENDENTS_TASK_NAME + capitalize(component.getName());
     }
 
     private static String getBuildDependentComponentsTaskName(ComponentSpec component) {
-        return BUILD_DEPENDENTS_TASK_NAME + StringUtils.capitalize(component.getName());
+        return BUILD_DEPENDENTS_TASK_NAME + capitalize(component.getName());
+    }
+
+    private static String capitalize(String name) {
+        return name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1);
     }
 
     public abstract static class BinaryLibs implements Callable<List<FileCollection>> {
