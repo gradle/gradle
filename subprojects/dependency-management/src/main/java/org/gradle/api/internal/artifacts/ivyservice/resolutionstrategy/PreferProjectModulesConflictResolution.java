@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import org.gradle.api.artifacts.ResolutionStrategy;
-
 /**
  *  Resolution strategy preferProjectModules().
- *  See: {@link ResolutionStrategy#preferProjectModules()}
+ *  See: {@link org.gradle.api.artifacts.ResolutionStrategy#preferProjectModules()}
  */
 public class PreferProjectModulesConflictResolution extends LatestConflictResolution {
 }
