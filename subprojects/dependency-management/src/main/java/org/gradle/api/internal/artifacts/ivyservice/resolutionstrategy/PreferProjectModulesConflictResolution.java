@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
+import org.gradle.api.artifacts.ResolutionStrategy;
 
 /**
- * Latest resolution strategy
+ *  Resolution strategy preferProjectModules().
+ *  See: {@link ResolutionStrategy#preferProjectModules()}
  */
-public class LatestConflictResolution implements ConflictResolution {
+public class PreferProjectModulesConflictResolution extends LatestConflictResolution {
 }
