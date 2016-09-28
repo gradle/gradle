@@ -85,7 +85,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
     }
 
     @NotYetImplemented
-    def "compilation works with overlapping output dirs"() {
+    def "joint Java and Groovy compilation can be cached"() {
         given:
         buildScript """
             plugins {
