@@ -50,8 +50,8 @@ class GCEventParserTest extends Specification {
         parser.parseLine "foo bar"
 
         then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains "foo bar"
+        !parser.notParsed.isEmpty()
+        parser.notParsed.contains "foo bar"
     }
 
     def "ignores events that seem to happen on windows"() {
