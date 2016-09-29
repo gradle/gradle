@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +101,8 @@ public abstract class Message {
             }
             final Throwable causeFinal = causeTmp;
 
-            ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outstr) {
+            StreamByteBuffer buffer = new StreamByteBuffer();
+            ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(buffer.getOutputStream()) {
                 boolean seenFirst;
                 @Override
                 protected Object replaceObject(Object obj) throws IOException {
@@ -120,7 +121,7 @@ public abstract class Message {
             try {
                 oos.writeObject(throwable);
                 oos.close();
-                serializedException = outstr.toByteArray();
+                serializedException = buffer.readAsByteArray();
             } catch (Throwable ignored) {
 // TODO:ADAM - switch the logging back on.
 //                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);

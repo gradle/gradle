@@ -88,8 +88,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     public Configuration findProjectConfiguration(Map<String, String> clientAttributes) {
         Configuration selectedConfiguration = null;
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
-        String declaredConfiguration = getTargetConfiguration().orNull();
-        if (declaredConfiguration == null && clientAttributes!=null && !clientAttributes.isEmpty()) {
+        String declaredConfiguration = getTargetConfiguration();
+        if (declaredConfiguration == null && !clientAttributes.isEmpty()) {
             List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {
@@ -113,7 +113,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-            getTargetConfiguration().orNull(), projectAccessListener, buildProjectDependencies);
+            getTargetConfiguration(), projectAccessListener, buildProjectDependencies);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -180,7 +180,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!this.getDependencyProject().equals(that.getDependencyProject())) {
             return false;
         }
-        if (!this.getTargetConfiguration().equals(that.getTargetConfiguration())) {
+        if (getTargetConfiguration() != null ? !this.getTargetConfiguration().equals(that.getTargetConfiguration())
+            : that.getTargetConfiguration() != null) {
             return false;
         }
         if (this.buildProjectDependencies != that.buildProjectDependencies) {
@@ -191,14 +192,14 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ getTargetConfiguration().hashCode() ^ (buildProjectDependencies ? 1 : 0);
+        return getDependencyProject().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31) ^ (buildProjectDependencies ? 1 : 0);
     }
 
 
     @Override
     public String toString() {
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
-                + getTargetConfiguration().or(Dependency.DEFAULT_CONFIGURATION) + '\'' + '}';
+                + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
     }
 
     private class TaskDependencyImpl extends AbstractTaskDependency {

@@ -23,8 +23,15 @@ import spock.lang.Specification
 class DefaultIvyArtifactNameTest extends Specification {
     def "has useful string representation"() {
         expect:
-        def name = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
+        def name = new DefaultIvyArtifactName("name", "type", "ext", "classifier")
         name.toString() == "name-classifier.ext"
+
+        where:
+        ext   | classifier   | fileName
+        "ext" | "classifier" | "name-classifier.ext"
+        "ext" | null         | "name.ext"
+        null  | "classifier" | "name-classifier"
+        null  | null         | "name"
     }
 
     def "is equal when all fields are equal"() {

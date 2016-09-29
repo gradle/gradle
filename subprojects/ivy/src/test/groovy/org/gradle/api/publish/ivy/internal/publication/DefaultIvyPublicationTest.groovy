@@ -15,8 +15,13 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publication
+
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -34,7 +39,6 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import com.google.common.base.Optional
 
 class DefaultIvyPublicationTest extends Specification {
     @Rule
@@ -115,7 +119,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.group >> "org"
         moduleDependency.name >> "name"
         moduleDependency.version >> "version"
-        moduleDependency.targetConfiguration >> Optional.of("dep-configuration")
+        moduleDependency.targetConfiguration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
 
@@ -148,7 +152,7 @@ class DefaultIvyPublicationTest extends Specification {
 
         and:
         projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
-        projectDependency.targetConfiguration >> Optional.of("dep-configuration")
+        projectDependency.targetConfiguration >> "dep-configuration"
         projectDependency.excludeRules >> [exclude]
 
         when:

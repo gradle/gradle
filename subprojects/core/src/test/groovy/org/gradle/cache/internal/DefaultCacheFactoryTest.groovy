@@ -50,19 +50,6 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    public void "creates directory backed store instance"() {
-        when:
-        def cache = factory.openStore(tmpDir.testDirectory, "<display>", mode(Shared), null)
-
-        then:
-        cache.reference.cache instanceof DefaultPersistentDirectoryStore
-        cache.baseDir == tmpDir.testDirectory
-        cache.toString().startsWith "<display>"
-
-        cleanup:
-        factory.close()
-    }
-
     public void "creates directory backed cache instance"() {
         when:
         def cache = factory.open(tmpDir.testDirectory, "<display>", null, [prop: 'value'], mode(Shared), null)
@@ -80,22 +67,6 @@ class DefaultCacheFactoryTest extends Specification {
         when:
         def ref1 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], mode(Exclusive), null)
         def ref2 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], mode(Exclusive), null)
-
-        then:
-        ref1.reference.cache.is(ref2.reference.cache)
-
-        and:
-        1 * opened.execute(_)
-        0 * opened._
-
-        cleanup:
-        factory.close()
-    }
-
-    public void "reuses directory backed store instances"() {
-        when:
-        def ref1 = factory.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
-        def ref2 = factory.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
 
         then:
         ref1.reference.cache.is(ref2.reference.cache)
@@ -126,7 +97,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "loses cache instance when reference is closed"() {
+    public void "closes cache instance when reference is closed"() {
         def implementation
 
         when:
@@ -198,7 +169,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cache '${tmpDir.testDirectory}' is already open with different state."
+        e.message == "Cache '${tmpDir.testDirectory}' is already open with different properties."
 
         cleanup:
         factory.close()

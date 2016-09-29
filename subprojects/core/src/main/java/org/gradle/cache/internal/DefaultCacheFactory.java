@@ -16,7 +16,12 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.cache.*;
+import org.gradle.api.Nullable;
+import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.CacheValidator;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
@@ -26,7 +31,10 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -47,19 +55,10 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     void onClose(Object cache) {
     }
 
-    public PersistentCache open(File cacheDir, String displayName, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer) throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, cacheValidator, properties, lockOptions, initializer);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        lock.lock();
-        try {
-            return doOpenStore(storeDir, displayName, lockOptions, initializer);
         } finally {
             lock.unlock();
         }
@@ -75,11 +74,16 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private PersistentCache doOpen(File cacheDir, String displayName, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
+    private PersistentCache doOpen(File cacheDir, String displayName, @Nullable CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer) {
         File canonicalDir = FileUtils.canonicalize(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
-            ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockOptions, action, lockManager, executorFactory);
+            ReferencablePersistentCache cache;
+            if (!properties.isEmpty() || validator != null || initializer != null) {
+                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockOptions, initializer, lockManager, executorFactory);
+            } else {
+                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, lockManager, executorFactory);
+            }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
             dirCaches.put(canonicalDir, dirCacheReference);
@@ -88,23 +92,8 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different options.", cacheDir));
             }
             if (!properties.equals(dirCacheReference.properties)) {
-                throw new IllegalStateException(String.format("Cache '%s' is already open with different state.", cacheDir));
+                throw new IllegalStateException(String.format("Cache '%s' is already open with different properties.", cacheDir));
             }
-        }
-        return new ReferenceTrackingCache(dirCacheReference);
-    }
-
-    private PersistentCache doOpenStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        if (initializer != null) {
-            throw new UnsupportedOperationException("Initializer actions are not currently supported by the directory store implementation.");
-        }
-        File canonicalDir = FileUtils.canonicalize(storeDir);
-        DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
-        if (dirCacheReference == null) {
-            ReferencablePersistentCache cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, lockManager, executorFactory);
-            cache.open();
-            dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockOptions);
-            dirCaches.put(canonicalDir, dirCacheReference);
         }
         return new ReferenceTrackingCache(dirCacheReference);
     }

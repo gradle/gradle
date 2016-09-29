@@ -16,8 +16,14 @@
 package org.gradle.cache.internal.btree;
 
 import org.apache.commons.collections.map.LRUMap;
+import org.gradle.api.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class CachingBlockStore implements BlockStore {
     private final BlockStore store;
@@ -62,7 +68,9 @@ public class CachingBlockStore implements BlockStore {
 
     public void remove(BlockPayload block) {
         dirty.remove(block.getPos());
-        indexBlockCache.remove(block.getPos());
+        if (isCacheable(block)) {
+            indexBlockCache.remove(block.getPos());
+        }
         store.remove(block);
     }
 
@@ -77,13 +85,21 @@ public class CachingBlockStore implements BlockStore {
         if (block != null) {
             return block;
         }
-        block = payloadType.cast(indexBlockCache.get(pos));
+        block = maybeGetFromCache(pos, payloadType);
         if (block != null) {
             return block;
         }
         block = store.read(pos, payloadType);
         maybeCache(block);
         return block;
+    }
+
+    @Nullable
+    private <T extends BlockPayload> T maybeGetFromCache(BlockPointer pos, Class<T> payloadType) {
+        if (cachableTypes.contains(payloadType)) {
+            return payloadType.cast(indexBlockCache.get(pos));
+        }
+        return null;
     }
 
     public void write(BlockPayload block) {
@@ -93,8 +109,12 @@ public class CachingBlockStore implements BlockStore {
     }
 
     private <T extends BlockPayload> void maybeCache(T block) {
-        if (cachableTypes.contains(block.getClass())) {
+        if (isCacheable(block)) {
             indexBlockCache.put(block.getPos(), block);
         }
+    }
+
+    private <T extends BlockPayload> boolean isCacheable(T block) {
+        return cachableTypes.contains(block.getClass());
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.cache.TaskExecutionEventAdapter;
+import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -144,7 +144,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(tracker);
 
         if (startParameter.isTaskOutputCacheEnabled()) {
-            listenerManager.addListener(serviceRegistry.get(TaskExecutionEventAdapter.class));
+            listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
             listenerManager.addListener(new CacheStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
         }
 

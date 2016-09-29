@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.SkipFirstTextStream;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.io.WriterTextStream;
 
 import java.io.*;
@@ -355,9 +356,9 @@ public class GUtil {
     }
 
     public static byte[] serialize(Object object) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        serialize(object, outputStream);
-        return outputStream.toByteArray();
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        serialize(object, buffer.getOutputStream());
+        return buffer.readAsByteArray();
     }
 
     public static void serialize(Object object, OutputStream outputStream) {

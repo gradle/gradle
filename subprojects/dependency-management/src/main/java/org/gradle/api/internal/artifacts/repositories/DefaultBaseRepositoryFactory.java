@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
@@ -46,7 +47,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
-    private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final IvyContextManager ivyContextManager;
@@ -56,8 +57,10 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                        FileStore<ModuleComponentArtifactMetadata> artifactFileStore, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                        AuthenticationSchemeRegistry authenticationSchemeRegistry, IvyContextManager ivyContextManager) {
+                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                        AuthenticationSchemeRegistry authenticationSchemeRegistry,
+                                        IvyContextManager ivyContextManager) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;

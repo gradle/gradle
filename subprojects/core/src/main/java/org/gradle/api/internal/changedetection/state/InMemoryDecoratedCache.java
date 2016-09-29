@@ -33,13 +33,13 @@ import java.util.concurrent.atomic.AtomicReference;
 class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> {
     private final static Logger LOG = Logging.getLogger(InMemoryDecoratedCache.class);
     private final static Object NULL = new Object();
-    private final Cache<Object, Object> data;
+    private final Cache<Object, Object> inMemoryCache;
     private final String cacheId;
     private final AtomicReference<FileLock.State> fileLockStateReference;
 
-    public InMemoryDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> original, Cache<Object, Object> data, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
-        super(asyncCacheAccess, original);
-        this.data = data;
+    public InMemoryDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, Cache<Object, Object> inMemoryCache, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
+        super(asyncCacheAccess, persistentCache);
+        this.inMemoryCache = inMemoryCache;
         this.cacheId = cacheId;
         this.fileLockStateReference = fileLockStateReference;
     }
@@ -48,7 +48,7 @@ class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> 
         assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
         Object value;
         try {
-            value = data.get(key, new Callable<Object>() {
+            value = inMemoryCache.get(key, new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
                     Object out = InMemoryDecoratedCache.super.get(key);
@@ -66,12 +66,12 @@ class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> 
     }
 
     public void put(final K key, final V value) {
-        data.put(key, value);
+        inMemoryCache.put(key, value);
         super.put(key, value);
     }
 
     public void remove(final K key) {
-        data.put(key, NULL);
+        inMemoryCache.put(key, NULL);
         super.remove(key);
     }
 
@@ -85,7 +85,7 @@ class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> 
             outOfDate = true;
         }
         if (outOfDate) {
-            data.invalidateAll();
+            inMemoryCache.invalidateAll();
         }
         super.onStartWork(operationDisplayName, currentCacheState);
     }

@@ -34,7 +34,12 @@ public interface MutationValidator {
         /**
          * The mutation of the artifacts of the configuration.
          */
-        ARTIFACTS;
+        ARTIFACTS,
+
+        /**
+         * The mutation of the attributes of the configuration.
+         */
+        ATTRIBUTES;
 
         @Override
         public String toString() {

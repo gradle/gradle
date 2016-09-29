@@ -24,7 +24,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.changedetection.state.CacheAccessingFileSnapshotter
+import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
@@ -117,7 +117,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
         sessionServices.get(ImportsReader) >> Mock(ImportsReader)
         sessionServices.get(StartParameter) >> startParameter
-        sessionServices.get(CacheAccessingFileSnapshotter) >> Mock(CacheAccessingFileSnapshotter)
+        sessionServices.get(FileSnapshotter) >> Mock(FileSnapshotter)
         sessionServices.get(ClassPathSnapshotter) >> Mock(ClassPathSnapshotter)
         sessionServices.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
         sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)

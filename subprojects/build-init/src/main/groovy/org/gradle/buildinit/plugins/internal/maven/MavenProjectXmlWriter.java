@@ -18,8 +18,8 @@ package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.project.MavenProject;
+import org.gradle.internal.io.StreamByteBuffer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Set;
 
@@ -43,13 +43,13 @@ public class MavenProjectXmlWriter {
     }
 
     private String toXml(MavenProject project) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StreamByteBuffer out = new StreamByteBuffer();
         try {
-            new MavenXpp3Writer().write(out, project.getModel());
+            new MavenXpp3Writer().write(out.getOutputStream(), project.getModel());
         } catch (IOException e) {
             throw new RuntimeException("Unable to serialize Maven model to XML. Maven project: " + project, e);
         }
-        return prepareXml(out.toString());
+        return prepareXml(out.readAsString());
     }
 
     String prepareXml(String xml) {

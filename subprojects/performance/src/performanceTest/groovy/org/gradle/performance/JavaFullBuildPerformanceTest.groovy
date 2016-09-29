@@ -40,10 +40,12 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         where:
         testProject       | targetVersions
         // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        "small"           | ['3.2-20160915000027+0000']
-        "multi"           | ['3.2-20160915000027+0000']
-        "lotDependencies" | ['3.2-20160915000027+0000']
+        // The regression was introduced by some code which makes parallel
+        // execution and cases work much better. That is currently a more
+        // important use case, so we are accepting the very modest (~2%)
+        // performance regression in these non-parallel cases.
+        "small"           | ['3.2-20160922000020+0000']
+        "multi"           | ['3.2-20160922000020+0000']
+        "lotDependencies" | ['3.2-20160922000020+0000']
     }
 }

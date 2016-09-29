@@ -29,7 +29,10 @@ public class RenamingCopyAction implements Action<FileCopyDetails> {
 
     public void execute(FileCopyDetails fileCopyDetails) {
         RelativePath path = fileCopyDetails.getRelativePath();
-        path = path.replaceLastName(transformer.transform(path.getLastName()));
-        fileCopyDetails.setRelativePath(path);
+        String newName = transformer.transform(path.getLastName());
+        if (newName != null) {
+            path = path.replaceLastName(newName);
+            fileCopyDetails.setRelativePath(path);
+        }
     }
 }

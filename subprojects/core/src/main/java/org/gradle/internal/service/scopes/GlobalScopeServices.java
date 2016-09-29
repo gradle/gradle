@@ -28,9 +28,10 @@ import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CacheAccessingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.SoftInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -262,7 +263,12 @@ public class GlobalScopeServices {
     }
 
     InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        return new InMemoryTaskArtifactCache();
+        if(environment.isLongLivingProcess()) {
+            return new InMemoryTaskArtifactCache();
+        } else {
+            // drop caches on memory pressure
+            return new SoftInMemoryTaskArtifactCache();
+        }
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
@@ -297,7 +303,7 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, final CacheAccessingFileSnapshotter fileSnapshotter) {
+    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, FileSnapshotter fileSnapshotter) {
         return new HashClassPathSnapshotter(fileSnapshotter);
     }
 
@@ -305,8 +311,8 @@ public class GlobalScopeServices {
         return new MapBackedInMemoryStore();
     }
 
-    CacheAccessingFileSnapshotter createCacheAccessingFileSnapshotter(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
-        return new CacheAccessingFileSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner), inMemoryStore);
+    FileSnapshotter createCacheAccessingFileSnapshotter(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
+        return new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner);
     }
 
     ClassLoaderCache createClassLoaderCache(ClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
@@ -358,10 +364,9 @@ public class GlobalScopeServices {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    protected CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CacheAccessingFileSnapshotter snapshotter) {
+    protected CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileSnapshotter snapshotter) {
         return new CrossBuildInMemoryCachingScriptClassCache(snapshotter);
     }
-
 
     DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
         return new DependencyInjectingInstantiator.ConstructorCache();

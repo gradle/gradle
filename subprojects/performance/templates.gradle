@@ -575,6 +575,27 @@ task largeAndroidBuild(type: RemoteProject) {
     branch = 'master'
 }
 
+task largeEnterpriseBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-enterprise-large.git'
+    branch = 'master'
+
+    finalizedBy 'largeEnterpriseBuildPostProcess'
+
+}
+
+task largeEnterpriseBuildPostProcess(type: GradleBuild) {
+    buildFile = file("$largeEnterpriseBuild.outputDirectory/generator/build.gradle")
+    dir = file("$largeEnterpriseBuild.outputDirectory/generator")
+    tasks = ['run']
+    doFirst {
+        ext.origBuild = file("$largeEnterpriseBuild.outputDirectory/build.gradle").text
+    }
+    doLast {
+        def buildFile = file("$largeEnterpriseBuild.outputDirectory/build.gradle")
+        buildFile.text = "${origBuild}\n${buildFile.text}"
+    }
+}
+
 // The Android Studio performance tests use custom model classes which need to be found in
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }

@@ -19,13 +19,13 @@ package org.gradle.internal.jvm.inspection;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.io.NullOutputStream;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,16 +46,16 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
     @Override
     public JavaVersion getJavaVersion(String javaCommand) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        StreamByteBuffer buffer = new StreamByteBuffer();
 
         ExecHandleBuilder builder = execHandleFactory.newExec();
         builder.setWorkingDir(new File(".").getAbsolutePath());
         builder.setCommandLine(javaCommand, "-version");
-        builder.setStandardOutput(new ByteArrayOutputStream());
-        builder.setErrorOutput(outputStream);
+        builder.setStandardOutput(NullOutputStream.INSTANCE);
+        builder.setErrorOutput(buffer.getOutputStream());
         builder.build().start().waitForFinish().assertNormalExitValue();
 
-        return parseJavaVersionCommandOutput(javaCommand, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+        return parseJavaVersionCommandOutput(javaCommand, new BufferedReader(new InputStreamReader(buffer.getInputStream())));
     }
 
     private JavaVersion parseJavaVersionCommandOutput(String javaExecutable, BufferedReader reader) {

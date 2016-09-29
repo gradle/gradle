@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
@@ -71,12 +70,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
@@ -129,12 +130,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration and target configuration is not top-level"() {
@@ -194,12 +197,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     def "explicit configuration selection should take precedence"() {
@@ -259,12 +264,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executed ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     /**
@@ -375,62 +382,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
      * with attributes too, should the attributes of parent configurations in the target project
      * be used?
      *
-     * This test implements option 1, "yes", which basically means that attributes of a configuration
-     * are inherited.
-     *
-     * Rationale: configurations are inherited, so why wouldn't be attributes too?
-     */
-    @NotYetImplemented
-    def "attributes of parent configurations should be used when matching"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << '''
-            project(':a') {
-                configurations {
-                    compile.attributes(p1: 'foo', p2: 'bar')
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                        assert configurations.compile.collect { it.name } == ['b-foo.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    debug.attributes(p1: 'foo')
-                    compile.extendsFrom debug
-                    compile.attributes(p2: 'bar')
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    debug fooJar
-                    compile barJar
-                }
-            }
-
-        '''
-
-        when:
-        run ':a:check'
-
-        then:
-        executedAndNotSkipped ':b:barJar'
-
-    }
-
-    /**
-     * If a configuration defines attributes, and that the target project declares configurations
-     * with attributes too, should the attributes of parent configurations in the target project
-     * be used?
-     *
      * This test implements option 2, "no", which basically means that attributes of a configuration
      * are never inherited.
      *
@@ -482,7 +433,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:check'
 
         then:
-        // todo: depending on choices we will make, we need to look either for a "no matching configuration" or "no such configuration 'default'" error
         failure.error.contains("default")
 
     }

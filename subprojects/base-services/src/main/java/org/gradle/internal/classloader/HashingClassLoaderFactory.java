@@ -15,18 +15,8 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.classpath.ClassPath;
-
 /**
  * A {@link ClassLoaderFactory} that also stores the hash of each created classloader which is later retrievable via {@link #getHash(ClassLoader)}.
  */
 public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoaderHasher {
-    /**
-     * Creates a custom {@link ClassLoader} with the given parent and classpath. The hash of the created classloader is stored.
-     */
-    ClassLoader createCustomClassLoader(ClassLoader parent, ClassPath classPath, CustomClassLoaderFactory factory);
-
-    interface CustomClassLoaderFactory {
-        ClassLoader create(ClassLoader parent, ClassPath classPath);
-    }
 }

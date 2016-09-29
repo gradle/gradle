@@ -42,6 +42,16 @@ This change is important for projects that have the project directory as an inpu
 Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
 Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
 
+### New preferProjectModules() conflict resolution strategy for multi-project builds
+
+The `preferProjectModules()` configuration option can now be used in multi-project builds.
+
+    configurations.all.resolutionStrategy.preferProjectModules()
+
+With this option it is possible to tell Gradle to always resolve a project dependency to a subproject,
+if the corresponding subproject exists in the build. Without this option, other dependencies to a higher
+version of the same module cause the replacement of the subproject by the other version in the dependency tree.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -113,13 +123,15 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
-- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning
+- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning, remove output files when task loses all its source files
 - [Jeff Baranski](https://github.com/jbaranski) - Fix doc bug with turning off daemon in a .bat file
 - [Justin Sievenpiper](https://github.com/jsievenpiper) - Prevent navigating down to JDK classes when detecting the parent test class
 - [Alex Proca](https://github.com/alexproca) - Limit Unix Start Scripts to use POSIX standard sh
 - [Spencer Allain](https://github.com/merscwog) - Do not require a password when using custom `javax.net.ssl.trustStore` for HTTP resource access over TLS 
 - [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
 - [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
+- [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
+- [Janito Vaqueiro Ferreira Filho](https://github.com/jvff) - Describe relationship between sources and binaries in native build documentation
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

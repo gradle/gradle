@@ -292,9 +292,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             if(project.hasProperty('flushCaches')) {
                 println "Flushing InMemoryTaskArtifactCache"
                 gradle.taskGraph.whenReady {
-                    gradle.services.get(InMemoryTaskArtifactCache).cache.asMap().each { k, v ->
-                        v.invalidateAll()
-                    }
+                    gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
                 }
             }
 """

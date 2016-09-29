@@ -60,6 +60,6 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     public FileCollection getOutputFiles() {
-        throw new UnsupportedOperationException();
+        return null;
     }
 }

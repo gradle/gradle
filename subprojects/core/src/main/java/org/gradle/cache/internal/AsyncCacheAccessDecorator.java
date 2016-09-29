@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 public class AsyncCacheAccessDecorator implements CacheDecorator {
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original, AsyncCacheAccess asyncCacheAccess) {
-        return new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, original);
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, AsyncCacheAccess asyncCacheAccess) {
+        return new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache);
     }
 }

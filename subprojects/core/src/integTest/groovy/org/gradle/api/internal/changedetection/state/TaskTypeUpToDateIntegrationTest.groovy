@@ -29,6 +29,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir buildDir
             }
         """
+        buildFile.makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
@@ -50,6 +51,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt") << "input"
 
         buildFile << declareSimpleCopyTask(false)
+        buildFile.makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
@@ -79,6 +81,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        buildFile.makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
@@ -109,6 +112,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 output = file("output.txt")
             }
         """
+        file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
@@ -134,6 +138,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/groovy/SimpleCopy.groovy") << declareSimpleCopyTaskType()
 
         file("buildSrc/build.gradle") << guavaDependency("15.0")
+        file("buildSrc/build.gradle").makeOlder()
 
         buildFile << """
             task copy(type: SimpleCopy) {

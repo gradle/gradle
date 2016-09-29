@@ -26,7 +26,11 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.*;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.Channels;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -222,32 +226,6 @@ public class CyclicBarrierHttpServer extends ExternalResource {
         synchronized (lock) {
             waitFor();
             release();
-        }
-    }
-
-    /**
-     * Blocks until the client has gone into a disconnected state
-     *
-     */
-    public void waitForDisconnect() {
-        long expiry = monotonicClockMillis() + 20000;
-        synchronized (lock) {
-            while (released && connected && !stopped) {
-                long delay = expiry - monotonicClockMillis();
-                if (delay <= 0) {
-                    throw new AssertionFailedError(String.format("Timeout waiting for client to disconnect from %s.", getUri()));
-                }
-                System.out.println("waiting for client to disconnect");
-                try {
-                    lock.wait(delay);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if (stopped) {
-                throw new AssertionFailedError(String.format("Server was stopped while waiting for client to disconnect from %s.", getUri()));
-            }
-            System.out.println("client disconnected - unblocking");
         }
     }
 }
