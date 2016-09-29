@@ -67,7 +67,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                                 LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());
                             }
                         } else {
-                            state.executed(new GradleException(String.format("Could not delete file: '%s'.", file.getAbsolutePath())));
+                            state.setOutcome(new GradleException(String.format("Could not delete file: '%s'.", file.getAbsolutePath())));
                             return;
                         }
                         deletedFiles = true;

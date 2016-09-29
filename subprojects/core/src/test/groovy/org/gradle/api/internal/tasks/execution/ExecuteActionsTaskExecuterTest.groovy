@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
@@ -34,7 +35,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     private final TaskInternal task = Mock(TaskInternal);
     private final ContextAwareTaskAction action1 = Mock(ContextAwareTaskAction)
     private final ContextAwareTaskAction action2 = Mock(ContextAwareTaskAction)
-    private final TaskStateInternal state = Mock(TaskStateInternal)
+    private final TaskStateInternal state = new TaskStateInternal("<task>")
     private final TaskExecutionContext executionContext = Mock(TaskExecutionContext)
     private final ScriptSource scriptSource = Mock(ScriptSource)
     private final StandardOutputCapture standardOutputCapture = Mock(StandardOutputCapture)
@@ -45,13 +46,13 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
         task.getProject() >> project;
+        task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
     }
 
     void noMoreInteractions() {
         interaction {
-            0 * state._
             0 * action1._
             0 * action2._
             0 * executionContext._
@@ -72,14 +73,12 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * publicListener.beforeActions(task)
 
         then:
-        1 * state.setExecuting(true)
-
-        then:
-        1 * state.setExecuting(false)
-
-        then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
+
+        state.outcome == TaskExecutionOutcome.UP_TO_DATE
+        !state.didWork
+        !state.executing
     }
 
     def executesEachActionInOrder() {
@@ -94,22 +93,17 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * internalListener.beforeTaskOutputsGenerated()
         then:
-        1 * state.setExecuting(true)
-        then:
-        1 * state.setDidWork(true)
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
         then:
-        1 * action1.execute(task)
+        1 * action1.execute(task) >> {
+            assert state.executing
+        }
         then:
         1 * action1.contextualise(null)
         then:
         1 * standardOutputCapture.stop()
-
-        then:
-        1 * state.setDidWork(true)
         then:
         1 * standardOutputCapture.start()
         then:
@@ -120,13 +114,14 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.contextualise(null)
         then:
         1 * standardOutputCapture.stop()
-
-        then:
-        1 * state.setExecuting(false)
-
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
+
+        !state.executing
+        state.didWork
+        state.outcome == TaskExecutionOutcome.EXECUTED
+        !state.failure
     }
 
     def executeDoesOperateOnNewActionListInstance() {
@@ -144,10 +139,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * internalListener.beforeTaskOutputsGenerated()
         then:
-        1 * state.setExecuting(true)
-        then:
-        1 * state.setDidWork(true)
-        then:
         1 * standardOutputCapture.start()
 
         then:
@@ -161,9 +152,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * state.setExecuting(false)
-
-        then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
     }
@@ -175,7 +163,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         action1.execute(task) >> {
             throw failure
         }
-        TaskExecutionException wrappedFailure = null
 
         when:
         executer.execute(task, state, executionContext)
@@ -185,10 +172,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * internalListener.beforeTaskOutputsGenerated()
         then:
-        1 * state.setExecuting(true)
-        then:
-        1 * state.setDidWork(true)
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
@@ -197,13 +180,13 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * state.executed(_) >> { arguments ->
-            wrappedFailure = arguments[0]
-        }
-        then:
-        1 * state.setExecuting(false)
         1 * publicListener.afterActions(task)
 
+        !state.executing
+        state.didWork
+        state.outcome == TaskExecutionOutcome.EXECUTED
+
+        TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
         wrappedFailure instanceof TaskExecutionException
         wrappedFailure.task == task
         wrappedFailure.message.startsWith("Execution failed for ")
@@ -222,10 +205,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * internalListener.beforeTaskOutputsGenerated()
         then:
-        1 * state.setExecuting(true)
-        then:
-        1 * state.setDidWork(true)
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
@@ -238,9 +217,11 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * state.setExecuting(false)
-        then:
         1 * publicListener.afterActions(task)
+        state.didWork
+        !state.executing
+        state.outcome == TaskExecutionOutcome.EXECUTED
+        !state.failure
         noMoreInteractions()
     }
 
@@ -256,10 +237,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * internalListener.beforeTaskOutputsGenerated()
         then:
-        1 * state.setExecuting(true)
-        then:
-        1 * state.setDidWork(true)
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
@@ -272,8 +249,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * state.setDidWork(true)
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action2.contextualise(executionContext)
@@ -284,9 +259,13 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * state.setExecuting(false)
-        then:
         1 * publicListener.afterActions(task)
+
+        state.didWork
+        state.outcome == TaskExecutionOutcome.EXECUTED
+        !state.executing
+        !state.failure
+
         noMoreInteractions()
     }
 }

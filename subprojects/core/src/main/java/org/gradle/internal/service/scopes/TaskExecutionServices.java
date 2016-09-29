@@ -44,7 +44,6 @@ import org.gradle.api.internal.tasks.cache.ZipTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
-import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
@@ -96,11 +95,9 @@ public class TaskExecutionServices {
                                         gradle.getTaskCaching(),
                                         packer,
                                         listenerManager,
-                                        new PostExecutionAnalysisTaskExecuter(
-                                            new ExecuteActionsTaskExecuter(
-                                                listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),
-                                                listenerManager.getBroadcaster(TaskActionListener.class)
-                                            )
+                                        new ExecuteActionsTaskExecuter(
+                                            listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),
+                                            listenerManager.getBroadcaster(TaskActionListener.class)
                                         )
                                     )
                                 )

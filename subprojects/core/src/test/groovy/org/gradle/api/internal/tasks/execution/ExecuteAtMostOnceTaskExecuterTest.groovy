@@ -47,7 +47,7 @@ class ExecuteAtMostOnceTaskExecuterTest extends Specification {
         1 * target.execute(task, state, executionContext)
 
         then:
-        1 * state.getExecuted() >> true
+        1 * state.getOutcome() >> TaskExecutionOutcome.EXECUTED
         0 * _
     }
 
@@ -63,7 +63,7 @@ class ExecuteAtMostOnceTaskExecuterTest extends Specification {
         1 * target.execute(task, state, executionContext) >> { throw failure }
 
         then:
-        1 * state.getExecuted() >> false
+        1 * state.getOutcome() >> null
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
         0 * _
 

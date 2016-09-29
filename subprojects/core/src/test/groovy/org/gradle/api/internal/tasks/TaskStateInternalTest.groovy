@@ -53,7 +53,7 @@ class TaskStateInternalTest {
     @Test
     public void canMarkTaskAsExecutedWithFailure() {
         RuntimeException failure = new RuntimeException()
-        state.executed(failure)
+        state.setOutcome(failure)
         assertTrue(state.executed)
         assertFalse(state.skipped)
         assertFalse(state.upToDate)
@@ -105,7 +105,7 @@ class TaskStateInternalTest {
     @Test
     public void rethrowsFailureWhenFailureIsRuntimeException() {
         RuntimeException failure = new RuntimeException()
-        state.executed(failure)
+        state.setOutcome(failure)
         try {
             state.rethrowFailure()
             fail()
@@ -117,7 +117,7 @@ class TaskStateInternalTest {
     @Test
     public void rethrowsFailureWhenFailureIsError() {
         Error failure = new Error()
-        state.executed(failure)
+        state.setOutcome(failure)
         try {
             state.rethrowFailure()
             fail()
@@ -129,7 +129,7 @@ class TaskStateInternalTest {
     @Test
     public void rethrowsFailureWhenFailureIsException() {
         Exception failure = new Exception()
-        state.executed(failure)
+        state.setOutcome(failure)
         try {
             state.rethrowFailure()
             fail()
