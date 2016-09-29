@@ -24,6 +24,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 
 public class CacheStatisticsReporter implements TaskExecutionStatisticsListener {
     private final StyledTextOutputFactory textOutputFactory;
@@ -58,6 +59,6 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
     private static String roundedPercentOf(float fraction, int total) {
         float out = (total == 0) ? 0 : fraction / total;
         // This uses RoundingMode.HALF_UP by default
-        return NumberFormat.getPercentInstance().format(out);
+        return NumberFormat.getPercentInstance(Locale.US).format(out);
     }
 }
