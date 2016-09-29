@@ -25,6 +25,8 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
+import java.nio.file.Files
+
 @LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
