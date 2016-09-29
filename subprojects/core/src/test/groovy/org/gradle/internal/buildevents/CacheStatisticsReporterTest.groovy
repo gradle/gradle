@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class CacheStatisticsReporterTest extends Specification {
@@ -40,14 +41,14 @@ class CacheStatisticsReporterTest extends Specification {
         statisticsReporter.buildFinished(statistics)
 
         then:
-        textOutputFactory.toString() ==
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
               |10 tasks in build, out of which 5 (50%) were cacheable
               | 2  (20%) up-to-date
               | 3  (30%) loaded from cache
               | 1  (10%) skipped
               | 4  (40%) executed
-              |""".stripMargin().denormalize()
+              |""".stripMargin()
     }
 
     def 'zero counts are not reported'() {
@@ -61,12 +62,12 @@ class CacheStatisticsReporterTest extends Specification {
         statisticsReporter.buildFinished(statistics)
 
         then:
-        textOutputFactory.toString() ==
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
               |10 tasks in build, out of which 0 (0%) were cacheable
               | 3  (30%) loaded from cache
               | 7  (70%) executed
-              |""".stripMargin().denormalize()
+              |""".stripMargin()
     }
 
     def 'percentages are rounded'() {
@@ -82,14 +83,14 @@ class CacheStatisticsReporterTest extends Specification {
         statisticsReporter.buildFinished(statistics)
 
         then:
-        textOutputFactory.toString() ==
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
               |1000 tasks in build, out of which 206 (21%) were cacheable
               | 305  (31%) up-to-date
               | 206  (21%) loaded from cache
               |  75   (8%) skipped
               | 404  (40%) executed
-              |""".stripMargin().denormalize()
+              |""".stripMargin()
     }
 
     private void recordedTaskStatistics(Map<TaskExecutionOutcome, Integer> counts, Integer allTasksCount, Integer cacheableTasksCount) {
