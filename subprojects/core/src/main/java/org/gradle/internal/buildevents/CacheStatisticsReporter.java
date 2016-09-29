@@ -39,8 +39,8 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
         int cacheableTasks = statistics.getCacheableTasksCount();
         textOutput.println();
-        int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
         int allTasks = statistics.getAllTasksCount();
+        int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
         int upToDateTasks = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE);
         textOutput.formatln("%d tasks in build, out of which %d (%s%%) were cacheable", allTasks, cacheableTasks, roundedPercentOf(cacheableTasks, allTasks));
         statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
@@ -53,16 +53,13 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         if (fraction > 0) {
             int numberLength = Integer.toString(total).length();
             String percent = String.format("(%s%%)", roundedPercentOf(fraction, total));
-            textOutput.formatln("%" + numberLength + "d " + "%6s %s", fraction, percent, description);
+            textOutput.formatln("%" + numberLength + "d %6s %s", fraction, percent, description);
         }
     }
 
-    private static String roundedPercentOf(long fraction, long total) {
-        if (total < 0 || fraction < 0) {
-            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total
-                + ". All inputs must be >= 0");
-        }
+    private static String roundedPercentOf(int fraction, int total) {
         float out = (total == 0) ? 0 : fraction * 100.0f / total;
+        // This uses RoundingMode.HALF_EVEN by default
         return PERCENT_FORMAT.format(out);
     }
 
