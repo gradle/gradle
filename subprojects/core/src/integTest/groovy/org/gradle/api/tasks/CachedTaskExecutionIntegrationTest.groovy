@@ -163,6 +163,56 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
     }
 
+    def "changing custom task implementation in buildSrc doesn't invalidate built-in task"() {
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text
+                }
+            }
+        """
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/src/main/groovy/CustomTask.groovy").text = """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text + ": modified"
+                }
+            }
+        """
+
+        run "clean"
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
+        nonSkippedTasks.contains ":customTask"
+    }
+
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
