@@ -87,7 +87,7 @@ public class SkipOnlyIfTaskExecuterTest extends Specification {
 
         then:
         1 * spec.isSatisfiedBy(task) >> { throw failure }
-        1 * state.executed(_) >> { args -> thrownException = args[0] }
+        1 * state.setOutcome(_ as Throwable) >> { args -> thrownException = args[0] }
         noMoreInteractions()
 
         thrownException.message.startsWith('Could not evaluate onlyIf predicate for')

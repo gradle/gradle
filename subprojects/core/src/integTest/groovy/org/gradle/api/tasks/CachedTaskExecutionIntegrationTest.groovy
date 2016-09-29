@@ -425,52 +425,22 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         runWithCache 'adHocTask', 'executedTask', 'compileJava'
 
         then:
-        assertStatistics allTasksCount: 3, cacheableTasksCount: 2, executedTasksCount: 3
+        output.contains """
+            3 tasks in build, out of which 2 (67%) were cacheable
+            3 (100%) executed
+        """ .stripIndent()
 
         when:
         assert file('build/output.txt').delete()
         runWithCache 'adHocTask', 'executedTask', 'compileJava'
 
         then:
-        assertStatistics allTasksCount: 3, cacheableTasksCount: 1, fromCacheTasksCount: 1, upToDateTasksCount: 1, executedTasksCount: 1
-    }
-
-    void assertStatistics(LinkedHashMap<String, Integer> options) {
-        options = [
-            allTasksCount: 0,
-            cacheableTasksCount: 0,
-            skippedTasksCount: 0,
-            upToDateTasksCount: 0,
-            executedTasksCount: 0,
-            fromCacheTasksCount: 0
-        ] + options
-
-        def logOutputToCount = [
-            'executed': 'executed',
-            'loaded from cache': 'fromCache',
-            'up-to-date': 'upToDate',
-            'skipped': 'skipped'
-        ]
-
-        List<String> statisticsOutput = output.readLines().dropWhile { String line ->
-            !line.contains('tasks in build, out of which')
-        }
-
-        def firstLineMatcher = statisticsOutput[0] =~ /(\d+) tasks in build, out of which (\d+) \(\d+%\) were cacheable/
-        Map loggedStatistics = [
-            allTasksCount: Integer.parseInt(firstLineMatcher[0][1]),
-            cacheableTasksCount: Integer.parseInt(firstLineMatcher[0][2])
-        ]
-
-        loggedStatistics += statisticsOutput.drop(1).collectEntries { String line ->
-            def matcher = line =~ /(\d+)\s+\(\d+%\) (.*)/
-            matcher.matches() ? [("${logOutputToCount[matcher[0][2]]}TasksCount".toString()): Integer.parseInt(matcher[0][1])] : null
-        }
-
-        options.each { count, value ->
-            assert (loggedStatistics[count] ?: 0) == value
-        }
-
+        output.contains """
+            3 tasks in build, out of which 1 (33%) were cacheable
+            1  (33%) up-to-date
+            1  (33%) loaded from cache
+            1  (33%) executed
+        """.stripIndent()
     }
 
     String adHocTaskWithInputs() {

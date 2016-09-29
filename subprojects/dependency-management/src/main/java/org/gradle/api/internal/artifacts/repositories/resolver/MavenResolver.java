@@ -241,7 +241,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
         @Override
         protected void resolveSourceArtifacts(MavenModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            // Javadoc artifacts are optional, so we need to probe for them remotely
+            // Source artifacts are optional, so we need to probe for them remotely
         }
     }
 

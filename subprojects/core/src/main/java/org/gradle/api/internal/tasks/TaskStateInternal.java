@@ -48,6 +48,10 @@ public class TaskStateInternal implements TaskState {
         return !getExecuted() && !executing;
     }
 
+    public TaskExecutionOutcome getOutcome() {
+        return outcome;
+    }
+
     public void setOutcome(TaskExecutionOutcome outcome) {
         assert this.outcome == null;
         this.outcome = outcome;
@@ -56,7 +60,7 @@ public class TaskStateInternal implements TaskState {
     /**
      * Marks this task as executed with the given failure. This method can be called at most once.
      */
-    public void executed(Throwable failure) {
+    public void setOutcome(Throwable failure) {
         assert this.failure == null;
         setOutcome(TaskExecutionOutcome.EXECUTED);
         this.failure = failure;
@@ -96,7 +100,7 @@ public class TaskStateInternal implements TaskState {
     }
 
     public boolean getSkipped() {
-        return getExecuted() && outcome.isSkipped();
+        return outcome != null && outcome.isSkipped();
     }
 
     public String getSkipMessage() {
@@ -104,6 +108,6 @@ public class TaskStateInternal implements TaskState {
     }
 
     public boolean getUpToDate() {
-        return getExecuted() && outcome.isUpToDate();
+        return outcome != null && outcome.isUpToDate();
     }
 }

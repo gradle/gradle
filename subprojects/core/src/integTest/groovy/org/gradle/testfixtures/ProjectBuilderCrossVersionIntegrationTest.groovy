@@ -22,9 +22,13 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import spock.lang.Issue
 
+import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER;
+
 @Issue("GRADLE-3558")
+@Requires(JDK8_OR_EARLIER)
 class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()

@@ -169,7 +169,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * previousFile.getAbsolutePath() >> "output"
 
         then:
-        state.executed(_) >> { GradleException ex ->
+        state.setOutcome(_ as Throwable) >> { GradleException ex ->
             assert ex.message == "Could not delete file: 'output'."
         }
 

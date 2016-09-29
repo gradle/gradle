@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildevents;
 
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.LogLevel;
@@ -38,14 +39,14 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
         int cacheableTasks = statistics.getCacheableTasksCount();
         textOutput.println();
-        int fromCacheTasks = statistics.getFromCacheTasksCount();
+        int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
         int allTasks = statistics.getAllTasksCount();
-        int upToDateTasks = statistics.getUpToDateTasksCount();
+        int upToDateTasks = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE);
         textOutput.formatln("%d tasks in build, out of which %d (%s%%) were cacheable", allTasks, cacheableTasks, roundedPercentOf(cacheableTasks, allTasks));
         statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
         statisticsLine(textOutput, fromCacheTasks, allTasks, "loaded from cache");
-        statisticsLine(textOutput, statistics.getSkippedTasksCount(), allTasks, "skipped");
-        statisticsLine(textOutput, statistics.getExecutedTasksCount(), allTasks, "executed");
+        statisticsLine(textOutput, statistics.getTasksCount(TaskExecutionOutcome.SKIPPED), allTasks, "skipped");
+        statisticsLine(textOutput, statistics.getTasksCount(TaskExecutionOutcome.EXECUTED), allTasks, "executed");
     }
 
     private void statisticsLine(StyledTextOutput textOutput, int fraction, int total, String description) {

@@ -43,7 +43,7 @@ public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
         try {
             executer.execute(task, state, context);
         } finally {
-            if (!state.getExecuted()) {
+            if (state.getOutcome() == null) {
                 state.setOutcome(TaskExecutionOutcome.EXECUTED);
             }
             LOGGER.debug("Finished executing {}", task);

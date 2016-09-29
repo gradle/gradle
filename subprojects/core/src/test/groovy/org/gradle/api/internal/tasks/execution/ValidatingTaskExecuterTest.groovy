@@ -49,7 +49,7 @@ class ValidatingTaskExecuterTest extends Specification {
         then:
         _ * task.validators >> [validator]
         1 * validator.validate(task, !null) >> { it[1] << 'failure' }
-        1 * state.executed(!null) >> {
+        1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
             assert failure.message == "A problem was found with the configuration of $task."
@@ -66,7 +66,7 @@ class ValidatingTaskExecuterTest extends Specification {
         then:
         _ * task.validators >> [validator]
         1 * validator.validate(task, !null) >> { it[1] << 'failure1'; it[1] << 'failure2' }
-        1 * state.executed(!null) >> {
+        1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
             assert failure.message == "Some problems were found with the configuration of $task."

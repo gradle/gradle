@@ -52,7 +52,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
             } else {
                 errorMessage = String.format("Some problems were found with the configuration of %s.", task);
             }
-            state.executed(new TaskValidationException(errorMessage, causes));
+            state.setOutcome(new TaskValidationException(errorMessage, causes));
             return;
         }
         executer.execute(task, state, context);

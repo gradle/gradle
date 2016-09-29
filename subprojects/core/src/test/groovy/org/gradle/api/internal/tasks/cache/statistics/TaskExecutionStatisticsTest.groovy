@@ -28,35 +28,28 @@ class TaskExecutionStatisticsTest extends Specification {
     def 'tasks states are counted correctly'() {
         given:
         [
-            FROM_CACHE,
-            FROM_CACHE,
-            EXECUTED,
-            SKIPPED,
-            UP_TO_DATE,
-            SKIPPED,
-            UP_TO_DATE,
-            UP_TO_DATE,
-            FROM_CACHE,
-            EXECUTED,
-            UP_TO_DATE,
-            UP_TO_DATE,
-            FROM_CACHE,
-            SKIPPED
-        ].each { statistics.event(it) }
+            [FROM_CACHE, true],
+            [FROM_CACHE, true],
+            [EXECUTED, false],
+            [SKIPPED, false],
+            [UP_TO_DATE, false],
+            [SKIPPED, true],
+            [UP_TO_DATE, false],
+            [UP_TO_DATE, false],
+            [FROM_CACHE, true],
+            [EXECUTED, true],
+            [UP_TO_DATE, false],
+            [UP_TO_DATE, false],
+            [FROM_CACHE, true],
+            [SKIPPED, false]
+        ].each { statistics.taskStatus(*it) }
 
         expect:
-        statistics.fromCacheTasksCount == 4
-        statistics.executedTasksCount == 2
-        statistics.skippedTasksCount == 3
-        statistics.upToDateTasksCount == 5
+        statistics.getTasksCount(FROM_CACHE) == 4
+        statistics.getTasksCount(EXECUTED) == 2
+        statistics.getTasksCount(SKIPPED) == 3
+        statistics.getTasksCount(UP_TO_DATE) == 5
+        statistics.cacheableTasksCount == 6
         statistics.allTasksCount == 14
-    }
-
-    def 'cacheable tasks are counted correctly'() {
-        given:
-        [true, true, false, true, false, true].each { statistics.taskCacheable(it) }
-
-        expect:
-        statistics.cacheableTasksCount == 4
     }
 }

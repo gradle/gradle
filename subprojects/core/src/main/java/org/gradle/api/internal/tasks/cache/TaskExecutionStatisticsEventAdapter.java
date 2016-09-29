@@ -18,20 +18,19 @@ package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 
-public class TaskExecutionEventAdapter implements BuildCompletionListener, TaskExecutionListener {
+public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListener, TaskExecutionListener {
     private final TaskExecutionStatistics statistics;
     private final TaskExecutionStatisticsListener listener;
 
-    public TaskExecutionEventAdapter(TaskExecutionStatisticsListener listener) {
+    public TaskExecutionStatisticsEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
-        statistics = new TaskExecutionStatistics();
+        this.statistics = new TaskExecutionStatistics();
     }
 
     @Override
@@ -46,19 +45,7 @@ public class TaskExecutionEventAdapter implements BuildCompletionListener, TaskE
 
     @Override
     public void afterExecute(Task task, TaskState state) {
-        if (state.getUpToDate()) {
-            if ("FROM-CACHE".equals(state.getSkipMessage())) {
-                statistics.event(TaskExecutionOutcome.FROM_CACHE);
-            } else {
-                statistics.event(TaskExecutionOutcome.UP_TO_DATE);
-            }
-        } else {
-            if (state.getSkipped()) {
-                statistics.event(TaskExecutionOutcome.SKIPPED);
-            } else {
-                statistics.event(TaskExecutionOutcome.EXECUTED);
-            }
-        }
-        statistics.taskCacheable(((TaskStateInternal) state).isCacheable());
+        TaskStateInternal stateInternal = (TaskStateInternal) state;
+        statistics.taskStatus(stateInternal.getOutcome(), stateInternal.isCacheable());
     }
 }

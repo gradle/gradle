@@ -44,7 +44,6 @@ import org.gradle.api.internal.tasks.cache.ZipTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
-import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
@@ -82,6 +81,7 @@ public class TaskExecutionServices {
             ? listenerManager.getBroadcaster(TaskInputsListener.class)
             : TaskInputsListener.NOOP;
 
+        TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
         return new ExecuteAtMostOnceTaskExecuter(
             new SkipOnlyIfTaskExecuter(
                 new SkipTaskWithNoActionsExecuter(
@@ -95,12 +95,10 @@ public class TaskExecutionServices {
                                         startParameter,
                                         gradle.getTaskCaching(),
                                         packer,
-                                        listenerManager,
-                                        new PostExecutionAnalysisTaskExecuter(
-                                            new ExecuteActionsTaskExecuter(
-                                                listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),
-                                                listenerManager.getBroadcaster(TaskActionListener.class)
-                                            )
+                                        taskOutputsGenerationListener,
+                                        new ExecuteActionsTaskExecuter(
+                                            taskOutputsGenerationListener,
+                                            listenerManager.getBroadcaster(TaskActionListener.class)
                                         )
                                     )
                                 )
@@ -112,9 +110,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, ListenerManager listenerManager, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputsGenerationListener.class), delegate);
+            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, taskOutputsGenerationListener, delegate);
         } else {
             return delegate;
         }
