@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.ZipTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
@@ -82,23 +83,25 @@ public class TaskExecutionServices {
             : TaskInputsListener.NOOP;
 
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
-        return new ExecuteAtMostOnceTaskExecuter(
-            new SkipOnlyIfTaskExecuter(
-                new SkipTaskWithNoActionsExecuter(
-                    new ResolveTaskArtifactStateTaskExecuter(
-                        repository,
-                        new SkipEmptySourceFilesTaskExecuter(
-                            taskInputsListener,
-                            new ValidatingTaskExecuter(
-                                new SkipUpToDateTaskExecuter(
-                                    createSkipCachedExecuterIfNecessary(
-                                        startParameter,
-                                        gradle.getTaskCaching(),
-                                        packer,
-                                        taskOutputsGenerationListener,
-                                        new ExecuteActionsTaskExecuter(
+        return new CatchExceptionTaskExecuter(
+            new ExecuteAtMostOnceTaskExecuter(
+                new SkipOnlyIfTaskExecuter(
+                    new SkipTaskWithNoActionsExecuter(
+                        new ResolveTaskArtifactStateTaskExecuter(
+                            repository,
+                            new SkipEmptySourceFilesTaskExecuter(
+                                taskInputsListener,
+                                new ValidatingTaskExecuter(
+                                    new SkipUpToDateTaskExecuter(
+                                        createSkipCachedExecuterIfNecessary(
+                                            startParameter,
+                                            gradle.getTaskCaching(),
+                                            packer,
                                             taskOutputsGenerationListener,
-                                            listenerManager.getBroadcaster(TaskActionListener.class)
+                                            new ExecuteActionsTaskExecuter(
+                                                taskOutputsGenerationListener,
+                                                listenerManager.getBroadcaster(TaskActionListener.class)
+                                            )
                                         )
                                     )
                                 )

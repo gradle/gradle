@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,26 +23,23 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-/**
- * A {@link org.gradle.api.internal.tasks.TaskExecuter} which will execute a task once only.
- */
-public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(ExecuteAtMostOnceTaskExecuter.class);
-    private final TaskExecuter executer;
+public class CatchExceptionTaskExecuter implements TaskExecuter {
+    private static final Logger LOGGER = Logging.getLogger(CatchExceptionTaskExecuter.class);
 
-    public ExecuteAtMostOnceTaskExecuter(TaskExecuter executer) {
-        this.executer = executer;
+    private TaskExecuter delegate;
+
+    public CatchExceptionTaskExecuter(TaskExecuter delegate) {
+        this.delegate = delegate;
     }
 
+    @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (state.getExecuted()) {
-            return;
-        }
-        LOGGER.debug("Starting to execute {}", task);
         try {
-            executer.execute(task, state, context);
-        } finally {
-            LOGGER.debug("Finished executing {}", task);
+            delegate.execute(task, state, context);
+        } catch (RuntimeException e) {
+            LOGGER.info("Execution of {} failed with message: {}", task, e.getMessage());
+            state.setOutcome(e);
+            throw e;
         }
     }
 }
