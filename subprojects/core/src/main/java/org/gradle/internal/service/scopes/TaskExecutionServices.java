@@ -81,6 +81,7 @@ public class TaskExecutionServices {
             ? listenerManager.getBroadcaster(TaskInputsListener.class)
             : TaskInputsListener.NOOP;
 
+        TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
         return new ExecuteAtMostOnceTaskExecuter(
             new SkipOnlyIfTaskExecuter(
                 new SkipTaskWithNoActionsExecuter(
@@ -94,9 +95,9 @@ public class TaskExecutionServices {
                                         startParameter,
                                         gradle.getTaskCaching(),
                                         packer,
-                                        listenerManager,
+                                        taskOutputsGenerationListener,
                                         new ExecuteActionsTaskExecuter(
-                                            listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),
+                                            taskOutputsGenerationListener,
                                             listenerManager.getBroadcaster(TaskActionListener.class)
                                         )
                                     )
@@ -109,9 +110,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, ListenerManager listenerManager, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputsGenerationListener.class), delegate);
+            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, taskOutputsGenerationListener, delegate);
         } else {
             return delegate;
         }
