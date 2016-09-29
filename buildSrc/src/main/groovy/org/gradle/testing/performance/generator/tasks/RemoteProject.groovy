@@ -46,7 +46,8 @@ class RemoteProject extends DefaultTask {
     }
 
     private void applyMeasurementPlugin(Project perfTesting) {
-        new File(outputDirectory, "build.gradle").text = """buildscript {
+        def buildFile = new File(outputDirectory, "build.gradle")
+        String measurementPluginConfiguration = """buildscript {
     dependencies {
         classpath files("${perfTesting.buildDir}/libs/measurement-plugin.jar")
     }
@@ -54,6 +55,12 @@ class RemoteProject extends DefaultTask {
 
 apply plugin: org.gradle.performance.plugin.MeasurementPlugin
 
-""" + new File(outputDirectory, "build.gradle").text
+"""
+        if (buildFile.exists()) {
+            buildFile.text = """$measurementPluginConfiguration
+$buildFile.text"""
+        } else {
+            buildFile.text = measurementPluginConfiguration
+        }
     }
 }
