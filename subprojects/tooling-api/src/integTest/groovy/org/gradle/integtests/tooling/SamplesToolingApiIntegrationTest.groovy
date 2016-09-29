@@ -94,7 +94,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/composite-models')
-    def "can use tooling API to compose independent projects"() {
+    def "can use tooling API to fetch models from composite builds"() {
         tweakProject()
 
         when:
