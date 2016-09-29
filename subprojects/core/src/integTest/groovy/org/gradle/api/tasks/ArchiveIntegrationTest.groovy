@@ -309,6 +309,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             dir2 {
                 file 'file2.txt'
                 file 'script.sh'
+                file 'config.properties'
             }
         }
         and:
@@ -324,6 +325,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     from 'test'
                     include '**/*.sh'
                 }
+                into('conf') {
+                    from 'test\'
+                    include '**/*.properties\'
+                    rename { null }
+                }
                 destinationDir = buildDir
                 archiveName = 'test.zip'
             }
@@ -337,7 +343,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 'prefix/dir1/renamed_file1.txt',
                 'prefix/renamed_file1.txt',
                 'prefix/dir2/renamed_file2.txt',
-                'scripts/dir2/script.sh')
+                'scripts/dir2/script.sh',
+                'conf/dir2/config.properties')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
     }
