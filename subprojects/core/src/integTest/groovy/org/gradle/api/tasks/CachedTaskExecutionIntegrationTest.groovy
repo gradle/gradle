@@ -178,6 +178,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        file("buildSrc/src/main/groovy/CustomTask.groovy").makeOlder()
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
