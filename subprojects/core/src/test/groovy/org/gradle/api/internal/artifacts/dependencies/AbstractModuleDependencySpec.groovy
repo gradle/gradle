@@ -46,7 +46,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
         dependency.configuration == Dependency.DEFAULT_CONFIGURATION
-        !dependency.targetConfiguration.present
+        dependency.targetConfiguration == null
     }
 
     def "cannot create with null name"() {

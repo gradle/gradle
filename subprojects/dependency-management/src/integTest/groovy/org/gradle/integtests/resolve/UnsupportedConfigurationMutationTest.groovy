@@ -450,4 +450,24 @@ task resolveChildFirst {
         then:
         succeeds("resolveChildFirst")
     }
+
+    def "does not allow adding attribute to a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.attribute('foo', 'bar')
+        """
+        when: fails()
+        then: failure.assertHasCause("Cannot change attributes of configuration ':a' after it has been resolved")
+    }
+
+    def "does not allow adding attributes to a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.attributes(foo: 'bar')
+        """
+        when: fails()
+        then: failure.assertHasCause("Cannot change attributes of configuration ':a' after it has been resolved")
+    }
 }

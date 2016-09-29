@@ -22,14 +22,11 @@ import org.gradle.api.tasks.TaskState;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
-    private boolean executed;
     private boolean didWork;
     private Throwable failure;
     private String description;
-    private String skippedMessage;
-    private boolean skipped;
-    private boolean upToDate;
     private boolean cacheable;
+    private TaskExecutionOutcome outcome;
 
     public TaskStateInternal(String description) {
         this.description = description;
@@ -44,18 +41,20 @@ public class TaskStateInternal implements TaskState {
     }
 
     public boolean getExecuted() {
-        return executed;
-    }
-
-    /**
-     * Marks this task as executed. This method can be called multiple times.
-     */
-    public void executed() {
-        this.executed = true;
+        return outcome != null;
     }
 
     public boolean isConfigurable(){
-        return !executed && !executing;
+        return !getExecuted() && !executing;
+    }
+
+    public TaskExecutionOutcome getOutcome() {
+        return outcome;
+    }
+
+    public void setOutcome(TaskExecutionOutcome outcome) {
+        assert this.outcome == null;
+        this.outcome = outcome;
     }
 
     /**
@@ -63,32 +62,8 @@ public class TaskStateInternal implements TaskState {
      */
     public void executed(Throwable failure) {
         assert this.failure == null;
-        this.executed = true;
+        setOutcome(TaskExecutionOutcome.EXECUTED);
         this.failure = failure;
-    }
-
-    /**
-     * Marks this task as skipped.
-     */
-    public void skipped(String skipMessage) {
-        this.executed = true;
-        this.skipped = true;
-        this.skippedMessage = skipMessage;
-    }
-
-    /**
-     * Marks this task as up-to-date.
-     */
-    public void upToDate() {
-        upToDate("UP-TO-DATE");
-    }
-
-    /**
-     * Marks this task as up-to-date with a custom message.
-     */
-    public void upToDate(String skipMessage) {
-        skipped(skipMessage);
-        upToDate = true;
     }
 
     public boolean getExecuting() {
@@ -125,14 +100,14 @@ public class TaskStateInternal implements TaskState {
     }
 
     public boolean getSkipped() {
-        return skipped;
+        return getExecuted() && outcome.isSkipped();
     }
 
     public String getSkipMessage() {
-        return skippedMessage;
+        return outcome != null ? outcome.getSkippedMessage() : null;
     }
 
     public boolean getUpToDate() {
-        return upToDate;
+        return getExecuted() && outcome.isUpToDate();
     }
 }

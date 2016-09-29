@@ -16,22 +16,18 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-    @Ignore
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
             task block {
@@ -42,10 +38,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        def build = executer.withTasks("block").start()
+        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         server.waitFor()
         daemons.daemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
 
         then:
         daemons.daemon.becomesCanceled()
@@ -54,8 +50,6 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.stops()
     }
 
-    @Ignore
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
         buildFile << """
             task block {
@@ -66,10 +60,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        def build = executer.withTasks("block").start()
+        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         server.waitFor()
         daemons.daemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
 
         then:
         daemons.daemon.becomesCanceled()
@@ -84,7 +78,6 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.log.contains(DaemonMessages.CANCELED_BUILD)
     }
 
-    // TODO: Need a windows equivalent of this test
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "session id of daemon is different from daemon client"() {
         given:
@@ -99,15 +92,39 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        args("--debug")
-        def build = executer.withTasks("block").start()
+        DaemonClientFixture client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         server.waitFor()
         daemons.daemon.assertBusy()
 
         then:
-        def clientSid = getSid(getPidFromOutput(build))
-        def daemonSid = getSid(daemons.daemon.context.pid as String)
+        def clientSid = getSid(client.process.pid)
+        def daemonSid = getSid(daemons.daemon.context.pid)
         clientSid != daemonSid
+
+        cleanup:
+        server.release()
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "daemon is not attached to a console"() {
+        given:
+        withAttachConsoleProject()
+        succeeds(":attachConsole:install")
+        buildFile << """
+            task block {
+                doLast {
+                    new URL("$server.uri").text
+                }
+            }
+        """
+
+        when:
+        executer.withTasks("block").start()
+        server.waitFor()
+        daemons.daemon.assertBusy()
+
+        then:
+        attachConsole(daemons.daemon.context.pid) == "none"
 
         cleanup:
         server.release()
@@ -151,35 +168,82 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.stops()
     }
 
-    String resultOf(String... command) {
-        def output = new ByteArrayOutputStream()
-        def e = TestFiles.execHandleFactory().newExec()
-            .commandLine(command)
-            .redirectErrorStream()
-            .setStandardOutput(output)
-            .workingDir(testDirectory) //does not matter
-            .build()
-        e.start()
-        def result = e.waitForFinish()
-        result.rethrowFailure()
-        return output.toString()
+    String getSid(Long pid) {
+        return file("getSid/build/install/getSid/lib/getSid").exec(pid as String).out.trim()
     }
 
-    String getPidFromOutput(GradleHandle build) {
-        def matcher = (build.standardOutput =~ /Executing build [^\s]+ in daemon client \{pid=(\d+)\}/)
-        if (matcher.size() > 0) {
-            return matcher[0][1]
-        } else {
-            throw new IllegalStateException("Could not infer pid from test output")
-        }
+    String attachConsole(Long pid) {
+        return file("attachConsole/build/install/attachConsole/attachConsole.bat").exec(pid as String).out.trim()
     }
 
-    String getSid(String pid) {
-        return resultOf("getSid/build/install/getSid/lib/getSid", pid).trim()
+    void withAttachConsoleProject() {
+        withProject("attachConsole", """
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <windows.h>
+
+            void ErrorExit(const char *func){
+                DWORD errCode = GetLastError();
+                char *err;
+                if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                                   NULL,
+                                   errCode,
+                                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
+                                   (LPTSTR) &err,
+                                   0,
+                                   NULL))
+                    return;
+
+                static char buffer[1024];
+                _snprintf(buffer, sizeof(buffer), "ERROR: %s failed with error: %s\\n", func, err);
+                printf("%s", buffer);
+                exit(1);
+            }
+
+            int main (int argc, char *argv[]) {
+                long pid;
+                if (argc != 2) {
+                    printf("Expected a pid parameter, but was given %d\\\\n", argc - 1);
+                    return 1;
+                } else {
+                    char *ptr;
+                    pid = strtoul(argv[1], &ptr, 10);
+                }
+
+                // We cannot attach to more than one console at a time, so we
+                // need to make sure we are detached first
+                if (!FreeConsole()) {
+                    if (GetLastError() != ERROR_INVALID_PARAMETER) {
+                        ErrorExit(TEXT("FreeConsole"));
+                    }
+                }
+
+                // AttachConsole also returns ERROR_GEN_FAILURE when the process
+                // doesn't exist, so we need to verify that the pid is valid.
+                if (OpenProcess(SYNCHRONIZE, FALSE, pid) == NULL) {
+                    ErrorExit(TEXT("OpenProcess"));
+                }
+
+                // We expect AttachConsole to fail with a particular error if the
+                // provided pid is not attached to a console
+                if (!AttachConsole(pid)) {
+                    if (GetLastError() == ERROR_GEN_FAILURE) {
+                        printf("none\\n");
+                        exit(0);
+                    } else {
+                        ErrorExit(TEXT("AttachConsole"));
+                    }
+                }
+
+                // Otherwise we return the pid to signify that we were able to attach to its console
+                printf("%d\\n", pid);
+                exit(0);
+            }
+        """)
     }
 
     void withGetSidProject() {
-        file('getSid/src/getSid/c/getsid.c') << """
+        withProject("getSid", """
             #include <unistd.h>
             #include <stdio.h>
             #include <stdlib.h>
@@ -197,19 +261,23 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
                 printf("%d\\n", sid);
                 return 0;
             }
-        """
-        file('getSid/build.gradle') << """
+        """)
+    }
+
+    void withProject(exeName, source) {
+        file("${exeName}/src/${exeName}/c/${exeName}.c") << source
+        file("${exeName}/build.gradle") << """
             apply plugin: 'org.gradle.c'
 
             model {
                 components {
-                    getSid(NativeExecutableSpec) {
+                    ${exeName}(NativeExecutableSpec) {
                     }
                 }
             }
         """
         file('settings.gradle') << """
-            include(':getSid')
+            include(':${exeName}')
         """
     }
 }

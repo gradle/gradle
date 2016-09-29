@@ -50,7 +50,7 @@ public class DefaultCacheRepository implements CacheRepository {
         return new PersistentCacheBuilder(scope, key);
     }
 
-    private abstract class AbstractCacheBuilder implements CacheBuilder {
+    private class PersistentCacheBuilder implements CacheBuilder {
         final Object scope;
         final String key;
         final File baseDir;
@@ -61,13 +61,13 @@ public class DefaultCacheRepository implements CacheRepository {
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 
-        protected AbstractCacheBuilder(Object scope, String key) {
+        PersistentCacheBuilder(Object scope, String key) {
             this.scope = scope;
             this.key = key;
             this.baseDir = null;
         }
 
-        protected AbstractCacheBuilder(File baseDir) {
+        PersistentCacheBuilder(File baseDir) {
             this.scope = null;
             this.key = null;
             this.baseDir = baseDir;
@@ -110,24 +110,7 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
             }
-            return doOpen(cacheBaseDir, properties, validator);
-        }
-
-        protected abstract PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);
-    }
-
-    private class PersistentCacheBuilder extends AbstractCacheBuilder {
-        private PersistentCacheBuilder(Object scope, String key) {
-            super(scope, key);
-        }
-
-        private PersistentCacheBuilder(File baseDir) {
-            super(baseDir);
-        }
-
-        @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.open(cacheDir, displayName, validator, properties, lockOptions, initializer);
+            return factory.open(cacheBaseDir, displayName, validator, properties, lockOptions, initializer);
         }
     }
 }

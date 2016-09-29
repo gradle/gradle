@@ -75,7 +75,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * state.setExecuting(true)
 
         then:
-        1 * state.executed(null)
         1 * state.setExecuting(false)
 
         then:
@@ -122,8 +121,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
 
-        then:
-        1 * state.executed(null)
         then:
         1 * state.setExecuting(false)
 
@@ -241,8 +238,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * state.executed(null)
-        then:
         1 * state.setExecuting(false)
         then:
         1 * publicListener.afterActions(task)
@@ -288,8 +283,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.contextualise(null)
         then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * state.executed(null)
         then:
         1 * state.setExecuting(false)
         then:

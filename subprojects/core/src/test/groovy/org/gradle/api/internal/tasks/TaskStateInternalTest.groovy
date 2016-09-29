@@ -21,6 +21,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
 import org.junit.Test
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -36,43 +37,58 @@ class TaskStateInternalTest {
         assertFalse(state.getDidWork())
         assertFalse(state.getSkipped())
         assertThat(state.getSkipMessage(), nullValue())
+        assertFalse(state.upToDate)
     }
 
     @Test
     public void canMarkTaskAsExecuted() {
-        state.executed()
+        state.setOutcome(TaskExecutionOutcome.EXECUTED)
         assertTrue(state.executed)
         assertFalse(state.skipped)
+        assertFalse(state.upToDate)
         assertFalse(state.configurable)
         assertThat(state.getFailure(), nullValue())
     }
-    
+
     @Test
     public void canMarkTaskAsExecutedWithFailure() {
         RuntimeException failure = new RuntimeException()
         state.executed(failure)
         assertTrue(state.executed)
         assertFalse(state.skipped)
+        assertFalse(state.upToDate)
         assertFalse(state.configurable)
         assertThat(state.failure, sameInstance(failure))
     }
 
     @Test
     public void canMarkTaskAsSkipped() {
-        state.skipped('skip-message')
+        state.setOutcome(TaskExecutionOutcome.SKIPPED)
         assertTrue(state.executed)
         assertTrue(state.skipped)
+        assertFalse(state.upToDate)
         assertFalse(state.configurable)
-        assertThat(state.skipMessage, equalTo('skip-message'))
+        assertThat(state.skipMessage, equalTo("SKIPPED"))
     }
 
     @Test
     public void canMarkTaskAsUpToDate() {
-        state.upToDate()
+        state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
         assertTrue(state.executed)
         assertTrue(state.skipped)
+        assertTrue(state.upToDate)
         assertFalse(state.configurable)
         assertThat(state.skipMessage, equalTo('UP-TO-DATE'))
+    }
+
+    @Test
+    public void canMarkTaskAsFromCache() {
+        state.setOutcome(TaskExecutionOutcome.FROM_CACHE)
+        assertTrue(state.executed)
+        assertTrue(state.skipped)
+        assertTrue(state.upToDate)
+        assertFalse(state.configurable)
+        assertThat(state.skipMessage, equalTo('FROM-CACHE'))
     }
 
     @Test
@@ -82,7 +98,7 @@ class TaskStateInternalTest {
 
     @Test
     public void rethrowFailureDoesNothingWhenTaskDidNotFail() {
-        state.executed()
+        state.setOutcome(TaskExecutionOutcome.EXECUTED)
         state.rethrowFailure()
     }
 

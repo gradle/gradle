@@ -23,6 +23,11 @@ import org.gradle.api.Project;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.Logger;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Gradle Plugin used in Gradle's internal performance tests to do measurements
@@ -42,8 +47,10 @@ public class MeasurementPlugin implements Plugin<Project> {
                 BuildEventTimeStamps.buildFinished(result);
                 performanceCounterMeasurement.recordFinish();
                 Project rootProject = result.getGradle().getRootProject();
-                HeapDumper.handle(rootProject, rootProject.getLogger());
-                new HeapMeasurement().handle(rootProject, rootProject.getLogger());
+                Logger logger = rootProject.getLogger();
+                JavaFlightRecorderControl.handle(rootProject, logger);
+                HeapDumper.handle(rootProject, logger);
+                new HeapMeasurement().handle(rootProject, logger);
                 ExternalResources.printAndResetStats();
             }
 
@@ -55,5 +62,13 @@ public class MeasurementPlugin implements Plugin<Project> {
                 BuildEventTimeStamps.configurationEvaluated();
             }
         });
+    }
+
+    static File createFileName(Project project, File targetDirectory, String prefix, String suffix) {
+        final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
+        if (targetDirectory == null) {
+            targetDirectory = new File(System.getProperty("java.io.tmpdir"));
+        }
+        return new File(targetDirectory, prefix + "-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + suffix);
     }
 }

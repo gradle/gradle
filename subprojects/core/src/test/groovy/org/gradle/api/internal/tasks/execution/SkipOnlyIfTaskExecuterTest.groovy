@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.ScriptSource
@@ -72,7 +73,7 @@ public class SkipOnlyIfTaskExecuterTest extends Specification {
 
         then:
         1 * spec.isSatisfiedBy(task) >> false
-        1 * state.skipped("SKIPPED")
+        1 * state.setOutcome(TaskExecutionOutcome.SKIPPED)
         noMoreInteractions()
     }
 

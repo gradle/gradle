@@ -39,7 +39,7 @@ class ValidatingTaskExecuterTest extends Specification {
         _ * task.validators >> [validator]
         1 * validator.validate(task, !null)
         1 * target.execute(task, state, executionContext)
-        0 * _._
+        0 * _
     }
 
     def failsTaskWhenThereIsAViolation() {
@@ -56,7 +56,7 @@ class ValidatingTaskExecuterTest extends Specification {
             assert failure.cause instanceof InvalidUserDataException
             assert failure.cause.message == 'failure'
         }
-        0 * _._
+        0 * _
     }
 
     def failsTaskWhenThereAreMultipleViolations() {
@@ -75,6 +75,6 @@ class ValidatingTaskExecuterTest extends Specification {
             assert failure.causes[1] instanceof InvalidUserDataException
             assert failure.causes[1].message == 'failure2'
         }
-        0 * _._
+        0 * _
     }
 }

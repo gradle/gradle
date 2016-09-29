@@ -37,8 +37,12 @@ public class SoftInMemoryTaskArtifactCache extends InMemoryTaskArtifactCache {
     }
 
     @Override
-    protected void configureCacheHolderCache(CacheBuilder<Object, Object> cacheBuilder) {
-        cacheBuilder.softValues();
+    protected void configureInMemoryCache(CacheBuilder<Object, Object> cacheBuilder, String cacheId, String cacheName) {
+        super.configureInMemoryCache(cacheBuilder, cacheId, cacheName);
+        // use soft references to values in cache for other than the fileHashes cache
+        if (!"fileHashes".equals(cacheName)) {
+            cacheBuilder.softValues();
+        }
     }
 
     @Override

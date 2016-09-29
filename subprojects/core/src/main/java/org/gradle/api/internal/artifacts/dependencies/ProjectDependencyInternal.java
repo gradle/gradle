@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 
@@ -29,4 +30,7 @@ public interface ProjectDependencyInternal extends ProjectDependency {
     public void beforeResolved();
 
     TaskDependencyInternal getTaskDependency(Map<String, String> attributes);
+
+    Configuration findProjectConfiguration(Map<String, String> attributes);
+
 }

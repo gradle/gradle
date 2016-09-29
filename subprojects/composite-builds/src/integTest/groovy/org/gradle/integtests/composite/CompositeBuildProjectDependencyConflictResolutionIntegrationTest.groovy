@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.resolve.AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec
+import org.gradle.integtests.resolve.AbstractProjectDependencyConflictResolutionIntegrationSpec
 
-class CompositeBuildProjectDependencyConflictResolutionConfigurationIntegrationTest extends AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec {
+class CompositeBuildProjectDependencyConflictResolutionIntegrationTest extends AbstractProjectDependencyConflictResolutionIntegrationSpec {
 
     @Override
     String getIncludeMechanism() {

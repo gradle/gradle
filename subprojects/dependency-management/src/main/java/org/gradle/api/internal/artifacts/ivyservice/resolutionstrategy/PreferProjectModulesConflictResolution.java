@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache.statistics;
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-public enum TaskExecutionOutcome {
-    FROM_CACHE,
-    UP_TO_DATE,
-    SKIPPED,
-    EXECUTED
+/**
+ *  Resolution strategy preferProjectModules().
+ *  See: {@link org.gradle.api.artifacts.ResolutionStrategy#preferProjectModules()}
+ */
+public class PreferProjectModulesConflictResolution extends LatestConflictResolution {
 }

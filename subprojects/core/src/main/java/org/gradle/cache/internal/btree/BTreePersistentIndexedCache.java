@@ -138,18 +138,20 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         try {
             long hashCode = keyHasher.getHashCode(key);
             Lookup lookup = header.getRoot().find(hashCode);
-            boolean needNewBlock = true;
+            DataBlock newBlock = null;
             if (lookup.entry != null) {
                 DataBlock block = store.read(lookup.entry.dataBlock, DataBlock.class);
-                needNewBlock = !block.useNewValue(value);
-                if (needNewBlock) {
+                DataBlockUpdateResult updateResult = block.useNewValue(value);
+                if (updateResult.isFailed()) {
                     store.remove(block);
+                    newBlock = new DataBlock(value, updateResult.getSerializedValue());
                 }
+            } else {
+                newBlock = new DataBlock(value);
             }
-            if (needNewBlock) {
-                DataBlock block = new DataBlock(value);
-                store.write(block);
-                lookup.indexBlock.put(hashCode, block.getPos());
+            if (newBlock != null) {
+                store.write(newBlock);
+                lookup.indexBlock.put(hashCode, newBlock.getPos());
             }
             store.flush();
         } catch (Exception e) {
@@ -645,8 +647,14 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             size = buffer.totalBytesUnread();
         }
 
+        public DataBlock(V value, StreamByteBuffer buffer) throws Exception {
+            this.value = value;
+            this.buffer = buffer;
+            size = buffer.totalBytesUnread();
+        }
+
         public void setValue(V value) throws Exception {
-            buffer = new StreamByteBuffer();
+            buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(size);
             KryoBackedEncoder encoder = new KryoBackedEncoder(buffer.getOutputStream());
             serializer.write(encoder, value);
             encoder.flush();
@@ -673,8 +681,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         public void read(DataInputStream instr) throws Exception {
             size = instr.readInt();
             int bytes = instr.readInt();
-            buffer = new StreamByteBuffer();
-            buffer.readFrom(instr, bytes);
+            buffer = StreamByteBuffer.of(instr, bytes);
         }
 
         public void write(DataOutputStream outstr) throws Exception {
@@ -684,13 +691,43 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             buffer = null;
         }
 
-        public boolean useNewValue(V value) throws Exception {
+        public DataBlockUpdateResult useNewValue(V value) throws Exception {
             setValue(value);
             boolean ok = buffer.totalBytesUnread() <= size;
             if (ok) {
+                this.value = value;
                 store.write(this);
+                return DataBlockUpdateResult.success();
+            } else {
+                return DataBlockUpdateResult.failed(buffer);
             }
-            return ok;
+        }
+    }
+
+    private static class DataBlockUpdateResult {
+        private static final DataBlockUpdateResult SUCCESS = new DataBlockUpdateResult(true, null);
+        private final boolean success;
+        private final StreamByteBuffer serializedValue;
+
+        private DataBlockUpdateResult(boolean success, StreamByteBuffer serializedValue) {
+            this.success = success;
+            this.serializedValue = serializedValue;
+        }
+
+        static DataBlockUpdateResult success() {
+            return SUCCESS;
+        }
+
+        static DataBlockUpdateResult failed(StreamByteBuffer serializedValue) {
+            return new DataBlockUpdateResult(false, serializedValue);
+        }
+
+        public boolean isFailed() {
+            return !success;
+        }
+
+        public StreamByteBuffer getSerializedValue() {
+            return serializedValue;
         }
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 import spock.lang.Subject
@@ -62,7 +63,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskExecutionHistory.outputFiles >> null
 
         then:
-        1 * state.upToDate()
+        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -90,7 +91,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * outputFiles.isEmpty() >> true
 
         then:
-        1 * state.upToDate()
+        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -129,7 +130,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * previousFile.absolutePath // depends on log level
 
         then:
-        1 * state.executed()
+        1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)

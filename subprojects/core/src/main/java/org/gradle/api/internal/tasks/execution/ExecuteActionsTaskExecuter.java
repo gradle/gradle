@@ -52,7 +52,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state, context);
-            state.executed(failure);
+            if (failure != null) {
+                state.executed(failure);
+            }
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);

@@ -43,6 +43,16 @@ This change is important for projects that have the project directory as an inpu
 Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
 Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
 
+### New preferProjectModules() conflict resolution strategy for multi-project builds
+
+The `preferProjectModules()` configuration option can now be used in multi-project builds.
+
+    configurations.all.resolutionStrategy.preferProjectModules()
+
+With this option it is possible to tell Gradle to always resolve a project dependency to a subproject,
+if the corresponding subproject exists in the build. Without this option, other dependencies to a higher
+version of the same module cause the replacement of the subproject by the other version in the dependency tree.
+
 ### Build Dependents for Native Binaries
 
 Sometimes, you may need to *assemble* (compile and link) or *build* (compile, link and test) a component or binary and its *dependents* (things that depend upon the component or binary). The native software model now provides tasks that enable this capability.
@@ -131,6 +141,7 @@ We would like to thank the following community members for making contributions 
 - [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
 - [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
 - [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
+- [Janito Vaqueiro Ferreira Filho](https://github.com/jvff) - Describe relationship between sources and binaries in native build documentation
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve
 
-class MultiProjectProjectDependencyConflictResolutionConfigurationIntegrationTest extends AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec {
+class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends AbstractProjectDependencyConflictResolutionIntegrationSpec {
 
     @Override
     String getIncludeMechanism() {

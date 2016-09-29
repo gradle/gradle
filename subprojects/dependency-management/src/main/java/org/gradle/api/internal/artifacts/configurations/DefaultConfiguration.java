@@ -712,6 +712,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attribute(String key, String value) {
+        validateMutation(MutationType.ATTRIBUTES);
         ensureAttributes();
         attributes.put(key, value);
         return this;
@@ -719,6 +720,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attributes(Map<String, String> attributes) {
+        validateMutation(MutationType.ATTRIBUTES);
         ensureAttributes();
         this.attributes.putAll(attributes);
         return this;
@@ -732,7 +734,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Map<String, String> getAttributes() {
-        return attributes == null ? null : ImmutableMap.copyOf(attributes);
+        return attributes == null ? Collections.<String, String>emptyMap() : ImmutableMap.copyOf(attributes);
     }
 
     @Override

@@ -34,7 +34,7 @@ import spock.lang.Unroll
  * This abstract specification leaves out the concrete implementation of setting up the project structure.
  * Subclasses can do that via multi-project or composite build.
  */
-abstract class AbstractProjectDependencyConflictResolutionConfigurationIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getIncludeMechanism();
 

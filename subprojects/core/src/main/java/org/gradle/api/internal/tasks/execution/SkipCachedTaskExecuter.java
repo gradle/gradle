@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
@@ -99,7 +100,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                         }
                                     });
                                     if (found) {
-                                        state.upToDate("FROM-CACHE");
+                                        state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
                                         taskOutputsGenerationListener.beforeTaskOutputsGenerated();
                                         return;
                                     }

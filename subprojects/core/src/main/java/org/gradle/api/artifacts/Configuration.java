@@ -433,8 +433,19 @@ public interface Configuration extends FileCollection {
      */
     Configuration copyRecursive(Closure dependencySpec);
 
+    /**
+     * Sets a configuration attribute.
+     * @param key the name of the attribute
+     * @param value the value of the attribute
+     * @return this configuration
+     */
     Configuration attribute(String key, String value);
 
+    /**
+     * Sets multiple configuration attributes at once. The attributes are copied from the source map.
+     * @param attributes the attributes to be copied to this configuration
+     * @return this configuration
+     */
     Configuration attributes(Map<String, String> attributes);
 
     Map<String, String> getAttributes();

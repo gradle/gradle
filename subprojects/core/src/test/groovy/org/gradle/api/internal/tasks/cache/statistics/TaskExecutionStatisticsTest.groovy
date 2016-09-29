@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.cache.statistics
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.cache.statistics.TaskExecutionOutcome.*
+import static org.gradle.api.internal.tasks.TaskExecutionOutcome.*
 
 @Subject(TaskExecutionStatistics)
 class TaskExecutionStatisticsTest extends Specification {
@@ -42,13 +42,13 @@ class TaskExecutionStatisticsTest extends Specification {
             UP_TO_DATE,
             FROM_CACHE,
             SKIPPED
-        ].each { statistics.event(it) }
+        ].each { statistics.taskOutcome(it) }
 
         expect:
-        statistics.fromCacheTasksCount == 4
-        statistics.executedTasksCount == 2
-        statistics.skippedTasksCount == 3
-        statistics.upToDateTasksCount == 5
+        statistics.getTasksCount(FROM_CACHE) == 4
+        statistics.getTasksCount(EXECUTED) == 2
+        statistics.getTasksCount(SKIPPED) == 3
+        statistics.getTasksCount(UP_TO_DATE) == 5
         statistics.allTasksCount == 14
     }
 
