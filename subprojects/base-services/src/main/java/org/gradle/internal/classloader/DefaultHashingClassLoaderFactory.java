@@ -51,13 +51,6 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
 
 
     @Override
-    public ClassLoader createCustomClassLoader(ClassLoader parent, ClassPath classPath, CustomClassLoaderFactory factory) {
-        ClassLoader classLoader = factory.create(parent, classPath);
-        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
-        return classLoader;
-    }
-
-    @Override
     public HashCode getHash(ClassLoader classLoader) {
         return hashCodes.get(classLoader);
     }
