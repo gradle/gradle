@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -117,23 +118,22 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private TaskExecutionList loadPreviousExecutions(final TaskInternal task) {
-        // The following mutates the serializer, so block on getting from the cache
-        // TODO: Fix this properly
-        synchronized (serializer) {
-            ClassLoader original = serializer.getClassLoader();
-            ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
+        boolean contextCreated = AsyncCacheAccessContext.createWhenMissing();
+        ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
+        try {
             serializer.setClassLoader(projectClassLoader);
-            try {
-                List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
-                TaskExecutionList result = new TaskExecutionList();
-                if (history != null) {
-                    for (TaskExecutionSnapshot taskExecutionSnapshot : history) {
-                        result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
-                    }
+            List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
+            TaskExecutionList result = new TaskExecutionList();
+            if (history != null) {
+                for (TaskExecutionSnapshot taskExecutionSnapshot : history) {
+                    result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
                 }
-                return result;
-            } finally {
-                serializer.setClassLoader(original);
+            }
+            return result;
+        } finally {
+            serializer.setClassLoader(null);
+            if (contextCreated) {
+                AsyncCacheAccessContext.remove();
             }
         }
     }
@@ -171,7 +171,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
-        private ClassLoader classLoader;
+        private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
         private final StringInterner stringInterner;
 
         TaskExecutionListSerializer(StringInterner stringInterner) {
@@ -181,7 +181,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public ImmutableList<TaskExecutionSnapshot> read(Decoder decoder) throws Exception {
             byte count = decoder.readByte();
             List<TaskExecutionSnapshot> executions = new ArrayList<TaskExecutionSnapshot>(count);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader, stringInterner);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
             for (int i = 0; i < count; i++) {
                 TaskExecutionSnapshot exec = executionSerializer.read(decoder);
                 executions.add(exec);
@@ -192,18 +192,26 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public void write(Encoder encoder, ImmutableList<TaskExecutionSnapshot> value) throws Exception {
             int size = value.size();
             encoder.writeByte((byte) size);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader, stringInterner);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
             for (TaskExecutionSnapshot execution : value) {
                 executionSerializer.write(encoder, execution);
             }
         }
 
         public ClassLoader getClassLoader() {
-            return classLoader;
+            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
+            if (context != null) {
+                return context.get(CONTEXT_KEY_FOR_CLASSLOADER, ClassLoader.class);
+            } else {
+                return getClass().getClassLoader();
+            }
         }
 
         public void setClassLoader(ClassLoader classLoader) {
-            this.classLoader = classLoader;
+            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
+            if (context != null) {
+                context.put(CONTEXT_KEY_FOR_CLASSLOADER, classLoader);
+            }
         }
     }
 
