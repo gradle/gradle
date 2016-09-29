@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.connection.ModelResults;
 
 /**
  * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.</p>
@@ -85,27 +86,6 @@ public interface ProjectConnection {
     <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
 
     /**
-     * Creates a launcher which can be used to execute a build.
-     *
-     * <p>Requires Gradle 1.0-milestone-8 or later.</p>
-     *
-     * @return The launcher.
-     * @since 1.0-milestone-3
-     */
-    BuildLauncher newBuild();
-
-    /**
-     * Creates a test launcher which can be used to execute tests.
-     *
-     * <p>Requires Gradle 2.6 or later.</p>
-     *
-     * @return The launcher.
-     * @since 2.6
-     */
-    @Incubating
-    TestLauncher newTestLauncher();
-
-    /**
      * Creates a builder which can be used to query the model of the given type.
      *
      * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
@@ -133,6 +113,89 @@ public interface ProjectConnection {
      * @since 1.0-milestone-3
      */
     <T> ModelBuilder<T> model(Class<T> modelType);
+
+    /**
+     * Fetches a Set of snapshots of the model of the given type for this composite. This method blocks until the model is available.
+     *
+     * <p>This method is simply a convenience for calling {@code models(modelType).get()}</p>
+     *
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @throws GradleConnectionException On failure using the connection.
+     * @throws IllegalStateException When this connection has been closed or is closing.
+     * @since 3.2
+     */
+    <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
+
+    /**
+     * Starts fetching a Set of snapshots of the model of the given type for this composite, passing the result to the given handler when complete. This method returns immediately, and the result is later
+     * passed to the given handler's {@link ResultHandler#onComplete(Object)} method after fetching all of the composite's models.
+     *
+     * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
+     * See {@link #getModels(Class)} for a description of the various exceptions that the operation may fail with.</p>
+     *
+     * <p>An operation will fail if there is a problem fetching the model from any of the composite's builds.
+     * The handler's {@code onFailure} method will only be called one time with the first failure.</p>
+     *
+     * <p>This method is simply a convenience for calling {@code models(modelType).get(handler)}</p>
+     *
+     * @param modelType The model type.
+     * @param handler The handler that will be notified of results.
+     * @param <T> The model type.
+     * @throws IllegalStateException When this connection has been closed or is closing.
+     * @since 3.2
+     */
+    <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
+
+    /**
+     * Creates a builder which can be used to query the model of the given type for all projects in the composite.
+     *
+     * <p>The set of projects is "live", so that models from projects added to the overall composite after the builder
+     * was been created will appear in the results without recreating the builder.</p>
+     *
+     * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
+     * build:
+     *
+     * <ul>
+     *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
+     *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
+     *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.BuildInvocations}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.ProjectPublications}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.IdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.BasicIdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.HierarchicalEclipseProject}</li>
+     * </ul>
+     *
+     * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
+     *
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @since 3.2
+     */
+    <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
+
+    /**
+     * Creates a launcher which can be used to execute a build.
+     *
+     * <p>Requires Gradle 1.0-milestone-8 or later.</p>
+     *
+     * @return The launcher.
+     * @since 1.0-milestone-3
+     */
+    BuildLauncher newBuild();
+
+    /**
+     * Creates a test launcher which can be used to execute tests.
+     *
+     * <p>Requires Gradle 2.6 or later.</p>
+     *
+     * @return The launcher.
+     * @since 2.6
+     */
+    @Incubating
+    TestLauncher newTestLauncher();
 
     /**
      * Creates an executer which can be used to run the given action. The action is serialized into the build

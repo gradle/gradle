@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.tooling.r214
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaModule
@@ -26,7 +26,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion(">=2.14 <=3.0")
 @TargetGradleVersion(">=1.2 <=3.0")
-class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides module identifiers for module dependencies"() {
         projectDir.file('settings.gradle').text = '''

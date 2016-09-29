@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -31,7 +31,7 @@ import spock.lang.Ignore
  * Tooling client can define a composite and execute tasks
  */
 @Ignore("Requires composite task execution")
-class ExecuteBuildCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ExecuteBuildCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "executes tasks in composite containing one single-project build"() {
         given:
@@ -50,7 +50,7 @@ task goodbye {
 """
         }
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello", "goodbye")
             buildLauncher.run()
@@ -78,7 +78,7 @@ project(':a') {
 """
         }
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello", "helloA")
             buildLauncher.run()
@@ -116,7 +116,7 @@ allprojects {
         includeBuilds(singleProjectBuild, multiProjectBuild)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks("hello")
             buildLauncher.run()
@@ -151,7 +151,7 @@ task hello {
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello")
             buildLauncher.setStandardOutput(System.out)
@@ -190,7 +190,7 @@ task hello {
         includeBuilds(build1, build2, build3)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             Task task
             connection.getModels(modelType).each { modelresult ->
                 def identifier = getBuildIdentifier(modelresult, modelType)
@@ -219,7 +219,7 @@ task hello {
 
         when:
         def jarTaskFromBuild3
-        withGradleConnection { connection ->
+        withConnection { connection ->
             connection.getModels(BuildInvocations).each { modelresult ->
                 jarTaskFromBuild3 = modelresult.model.getTasks().find { it.name == 'jar' }
             }
@@ -232,7 +232,7 @@ task hello {
             buildFile << "apply plugin: 'java'"
         }
         includeBuilds (build1, build2)
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forLaunchables(jarTaskFromBuild3)
             buildLauncher.run()
@@ -254,7 +254,7 @@ task hello {
         includeBuilds(build1, build2)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks("jar")
         }
@@ -286,7 +286,7 @@ task hello {
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "doesnotexist")
             buildLauncher.setStandardOutput(System.out)
@@ -324,7 +324,7 @@ task hello {
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello")
             buildLauncher.setStandardOutput(System.out)
@@ -364,7 +364,7 @@ task hello {
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello")
             buildLauncher.setStandardOutput(System.out)

@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 
-class BuildEnvironmentModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about build environment"() {
         when:

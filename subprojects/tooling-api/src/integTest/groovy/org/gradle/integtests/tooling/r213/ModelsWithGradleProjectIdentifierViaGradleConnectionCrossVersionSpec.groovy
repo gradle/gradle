@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -25,15 +25,15 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 
-class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "Provides identified models for single project build"() {
         setup:
         singleProjectBuildInRootFolder("A")
 
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)*.gradleProject
-        def models = getUnwrappedModelsWithGradleConnection(modelType)
+        def gradleProjects = getUnwrappedModels(EclipseProject)*.gradleProject
+        def models = getUnwrappedModels(modelType)
 
         then:
         gradleProjects.size() == 1
@@ -49,8 +49,8 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)*.gradleProject
-        def models = getUnwrappedModelsWithGradleConnection(modelType)
+        def gradleProjects = getUnwrappedModels(EclipseProject)*.gradleProject
+        def models = getUnwrappedModels(modelType)
 
         then:
         gradleProjects.size() == models.size()
@@ -66,8 +66,8 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
 
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)*.gradleProject
-        def models = getUnwrappedModelsWithGradleConnection(modelType)
+        def gradleProjects = getUnwrappedModels(EclipseProject)*.gradleProject
+        def models = getUnwrappedModels(modelType)
 
         then:
         gradleProjects.size() == models.size()
@@ -83,7 +83,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
 
         when:
-        def buildInvocationsSet = getUnwrappedModelsWithGradleConnection(BuildInvocations)
+        def buildInvocationsSet = getUnwrappedModels(BuildInvocations)
 
         then:
         buildInvocationsSet.each { BuildInvocations buildInvocations ->
@@ -102,7 +102,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         singleProjectBuildInRootfolder("A")
 
         when:
-        def modelResults = withGradleConnection { GradleConnection connection ->
+        def modelResults = withConnection { GradleConnection connection ->
             def modelBuilder = connection.models(ProjectPublications)
             modelBuilder.get()
         }.asList()

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r214
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -25,7 +25,7 @@ import spock.lang.IgnoreIf
 /**
  * Miscellaneous tests for specific functionality for integrated composite build.
  */
-class IntegratedCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class IntegratedCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     @TargetGradleVersion("current")
     @ToolingApiVersion("current")

@@ -16,7 +16,7 @@
 package org.gradle.integtests.tooling.r24
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 @ToolingApiVersion("=2.4")
 @TargetGradleVersion(">=2.4")
-class TestProgressCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     def "receive test progress events when requesting a model"() {
         given:
         goodCode()

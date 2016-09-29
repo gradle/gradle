@@ -15,13 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
-class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     def escapeHeader = "\u001b["
     def stdOutStream = new ByteArrayOutputStream()
     def stdErrStream = new ByteArrayOutputStream()
@@ -32,7 +32,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         includeBuilds(builds)
 
         when:
-        withGradleConnection { GradleConnection connection ->
+        withConnection { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardOutput(stdOutStream)
             modelBuilder.setStandardError(stdErrStream)
@@ -58,7 +58,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardOutput(stdOutStream)
@@ -92,7 +92,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         includeBuilds(builds)
 
         when:
-        withGradleConnection { GradleConnection connection ->
+        withConnection { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("log")
             modelBuilder.setStandardOutput(stdOutStream)
@@ -114,7 +114,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "alwaysUpToDate")
             buildLauncher.setStandardOutput(stdOutStream)
@@ -137,7 +137,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         includeBuilds(builds)
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardInput(stdIn)
@@ -159,7 +159,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         includeBuilds(builds)
 
         when:
-        def modelRequests = withGradleConnection { GradleConnection connection ->
+        def modelRequests = withConnection { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardInput(stdIn)
             modelBuilder.setStandardOutput(stdOutStream)

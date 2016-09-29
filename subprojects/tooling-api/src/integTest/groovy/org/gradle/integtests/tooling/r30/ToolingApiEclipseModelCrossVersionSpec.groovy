@@ -17,14 +17,14 @@
 package org.gradle.integtests.tooling.r30
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.0")
-class ToolingApiEclipseModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     String localMaven
 

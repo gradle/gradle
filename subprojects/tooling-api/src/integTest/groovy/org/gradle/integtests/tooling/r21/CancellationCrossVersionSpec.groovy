@@ -20,7 +20,7 @@ package org.gradle.integtests.tooling.r21
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
@@ -29,7 +29,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=2.1")
 @TargetGradleVersion(">=2.1")
-class CancellationCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class CancellationCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << '''
 rootProject.name = 'cancelling'

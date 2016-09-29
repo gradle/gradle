@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.2")
     def "build execution fails for pre 1.2 providers"() {
@@ -31,7 +31,7 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleC
         multiProjectBuildInRootFolder("single-build", ['a', 'b', 'c'])
 
         when:
-        withGradleConnection { GradleConnection connection ->
+        withConnection { GradleConnection connection ->
             connection.newBuild().run()
         }
 
@@ -47,7 +47,7 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleC
         multiProjectBuildInRootFolder("single-build", ['a', 'b', 'c'])
 
         when:
-        getUnwrappedModelsWithGradleConnection(EclipseProject)
+        getUnwrappedModels(EclipseProject)
 
         then:
         UnsupportedVersionException e = thrown()

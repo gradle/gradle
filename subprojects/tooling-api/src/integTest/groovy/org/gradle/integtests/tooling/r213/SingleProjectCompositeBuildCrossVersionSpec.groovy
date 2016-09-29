@@ -15,20 +15,20 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Builds a composite with a single project.
  */
-class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class SingleProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
         multiProjectBuildInRootFolder("multi-build", ['a', 'b', 'c'])
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        def models = getUnwrappedModels(EclipseProject)
 
         then:
         models.size() == 4
@@ -41,7 +41,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
         singleProjectBuildInRootFolder("single-build")
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        def models = getUnwrappedModels(EclipseProject)
 
         then:
         models.size() == 1

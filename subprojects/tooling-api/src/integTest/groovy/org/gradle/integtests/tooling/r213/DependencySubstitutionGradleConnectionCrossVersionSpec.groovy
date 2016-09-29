@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -27,7 +27,7 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
 @TargetGradleVersion(">=3.1")
-class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class DependencySubstitutionGradleConnectionCrossVersionSpec extends MultiModelToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def stdErr = new ByteArrayOutputStream()
     def buildA
@@ -107,7 +107,7 @@ compile
         includeBuilds buildC
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
@@ -129,7 +129,7 @@ compile
     }
 
     private Object dependencies() {
-        withGradleConnection{ connection ->
+        withConnection{ connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.forTasks("dependencies")

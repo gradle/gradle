@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r21
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
@@ -25,7 +25,7 @@ import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=2.1")
-class TaskVisibilityCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class TaskVisibilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile << '''

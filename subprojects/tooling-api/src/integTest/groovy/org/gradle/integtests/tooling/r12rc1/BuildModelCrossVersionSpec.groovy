@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.r12rc1
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class BuildModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class BuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "can run tasks before building Eclipse model"() {
         file('build.gradle').text = '''
 apply plugin: 'java'

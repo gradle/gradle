@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.r16
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Ignore
 
 @TargetGradleVersion(">=1.6")
-class CustomToolingModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def "plugin can contribute a custom tooling model"() {
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry

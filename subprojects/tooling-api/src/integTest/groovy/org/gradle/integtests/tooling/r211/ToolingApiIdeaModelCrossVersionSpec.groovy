@@ -17,14 +17,14 @@
 package org.gradle.integtests.tooling.r211
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion(">=2.11")
 @TargetGradleVersion(">=2.11")
-class ToolingApiIdeaModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup(){
         settingsFile << "rootProject.name = 'root'"

@@ -26,5 +26,5 @@ public class ToolingApiVersions {
 
     public static final String SUPPORTS_CANCELLATION = ">=2.1";
     public static final String SUPPORTS_RICH_PROGRESS_EVENTS = ">=2.5";
-    public static final String SUPPORTS_GRADLE_CONNECTION = ">=3.1";
+    public static final String SUPPORTS_MULTI_MODEL = ">=3.2";
 }

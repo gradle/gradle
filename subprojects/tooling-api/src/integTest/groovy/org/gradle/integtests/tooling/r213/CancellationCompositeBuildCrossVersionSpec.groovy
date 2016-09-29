@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
@@ -32,7 +32,7 @@ import spock.lang.Ignore
  * Tests cancellation of model requests in a composite build.
  */
 @TargetGradleVersion(">=2.1")
-class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def cancellationHookText(File cancelledFile, File executedAfterCancellingFile) {
@@ -87,7 +87,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
             modelBuilder.withArguments("-PwaitForCancellation")
@@ -134,7 +134,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
         cancellationToken.cancel()
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
             modelBuilder.get(resultHandler)
@@ -167,7 +167,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
         cancellationToken.cancel()
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "run")
             buildLauncher.withCancellationToken(cancellationToken.token())

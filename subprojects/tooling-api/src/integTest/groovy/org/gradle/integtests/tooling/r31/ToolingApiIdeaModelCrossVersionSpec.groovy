@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r31
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r18.FetchIdeaModel
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -25,7 +25,7 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 
-class ToolingApiIdeaModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=3.1")
     @TargetGradleVersion(">=1.2")
     def "Provides target module name for module dependencies"() {

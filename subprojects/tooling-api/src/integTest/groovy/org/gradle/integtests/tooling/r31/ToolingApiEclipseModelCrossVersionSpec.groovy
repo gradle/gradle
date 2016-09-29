@@ -17,13 +17,13 @@
 package org.gradle.integtests.tooling.r31
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=2.9')
 @TargetGradleVersion('>=3.1')
-class ToolingApiEclipseModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Eclipse model can contain GStrings"() {
         given:

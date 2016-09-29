@@ -17,12 +17,12 @@
 package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.gradle.ProjectPublications
 
 @TargetGradleVersion('>=1.12')
-class PublicationsCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     def "empty project"() {
         when:
         ProjectPublications publications = withConnection { connection ->

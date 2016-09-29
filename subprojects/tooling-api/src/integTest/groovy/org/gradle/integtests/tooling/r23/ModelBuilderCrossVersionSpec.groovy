@@ -18,14 +18,14 @@
 package org.gradle.integtests.tooling.r23
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 
-class ModelBuilderCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.3")
     def "empty list of tasks to execute when asking for BuildEnvironment is treated like null tasks and does not fail"() {

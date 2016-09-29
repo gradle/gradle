@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 
 /**
  * Tooling client requests custom model type for every project in a composite
  */
-class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class CustomModelsCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     @TargetGradleVersion(">=1.2 <1.6")
     def "decent error message for Gradle version that doesn't support custom models"() {
@@ -31,7 +31,7 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def modelResults = getModelsWithGradleConnection(CustomModel)
+        def modelResults = getModels(CustomModel)
 
         then:
         modelResults.size() == 1
@@ -48,7 +48,7 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def modelResults = getModelsWithGradleConnection(CustomModel)
+        def modelResults = getModels(CustomModel)
 
         then:
         modelResults.size() == 1
@@ -96,7 +96,7 @@ apply plugin: CustomPlugin
 """
 
         when:
-        def modelResults = getModelsWithGradleConnection(CustomModel)
+        def modelResults = getModels(CustomModel)
 
         then:
         modelResults.size() == 1

@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Timeout
 
-class ConsumingStandardInputCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //since this test treats with standard input I will not run it for embedded daemon for safety.

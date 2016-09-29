@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildAction
@@ -26,7 +26,7 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
 @LeaksFileHandles
-class BuildActionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         // disable URL caching
         // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.

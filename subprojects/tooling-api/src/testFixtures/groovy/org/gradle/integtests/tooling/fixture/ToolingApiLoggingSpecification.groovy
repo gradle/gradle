@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.fixture
 /**
  * A base class for all logging tooling API tests
  */
-abstract class ToolingApiLoggingSpecification extends ProjectConnectionToolingApiSpecification {
+abstract class ToolingApiLoggingSpecification extends ToolingApiSpecification {
     def setup() {
         if (!targetDist.toolingApiLoggingInEmbeddedModeSupported) {
             toolingApi.requireDaemons()

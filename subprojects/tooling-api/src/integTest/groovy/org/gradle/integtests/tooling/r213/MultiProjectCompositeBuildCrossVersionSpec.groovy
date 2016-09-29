@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
@@ -24,7 +25,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Tests composites with multiple participants.
  */
-class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+@TargetGradleVersion(">=3.2")
+class MultiProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "can create a composite of two single-project builds"() {
         given:
@@ -33,7 +35,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         includeBuilds(singleBuild1, singleBuild2)
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        def models = getUnwrappedModels(EclipseProject)
 
         then:
         models.size() == 3
@@ -48,7 +50,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         includeBuilds(multiBuild1, multiBuild2)
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        def models = getUnwrappedModels(EclipseProject)
 
         then:
         models.size() == 9
@@ -98,7 +100,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         includeBuilds(singleBuild, multiBuild)
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        def models = getUnwrappedModels(EclipseProject)
 
         then:
         models.size() == 6
@@ -111,9 +113,9 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def singleBuild = singleProjectBuildInSubfolder("single-build")
         def multiBuild = multiProjectBuildInSubFolder("multi-build-1", ['a1', 'b1', 'c1'])
         includeBuilds(singleBuild, multiBuild)
-        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
-        connector.forRootDirectory(projectDir)
-        def connection = connector.build()
+        def connector = toolingApi.connector()
+        connector.forProjectDirectory(projectDir)
+        def connection = connector.connect()
 
         when:
         def firstRetrieval = unwrap(connection.getModels(EclipseProject))
@@ -125,7 +127,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 
         when:
         // make single-project a multi-project build
-        singleBuild.settingsFile << "include 'a2'"
+        singleBuild.settingsFile << "\ninclude 'a2'"
 
         and:
         def secondRetrieval = unwrap(connection.getModels(EclipseProject))
@@ -137,7 +139,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 
         when:
         // adding more projects to multi-project build
-        singleBuild.settingsFile << "include 'b2', 'c2'"
+        singleBuild.settingsFile << "\ninclude 'b2', 'c2'"
 
         and:
         def thirdRetrieval = unwrap(connection.getModels(EclipseProject))
@@ -158,7 +160,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def e = thrown(GradleConnectionException)
         e.printStackTrace()
         assertFailure(e, "Could not fetch models of type 'EclipseProject'",
-            "The root project is not yet available for build.")
+            "Included build '$singleBuild' does not exist.")
 
         cleanup:
         connection?.close()

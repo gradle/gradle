@@ -17,14 +17,14 @@
 package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
 @TargetGradleVersion('>=1.8')
-class BuildScriptModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
     def "GradleProject provides details about the project's build script"() {
         when:
         buildFile << '//empty'

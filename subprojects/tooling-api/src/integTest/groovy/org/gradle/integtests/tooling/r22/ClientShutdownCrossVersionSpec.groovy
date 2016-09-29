@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnector
@@ -27,7 +27,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
 
 @ToolingApiVersion(">=2.2")
-class ClientShutdownCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 

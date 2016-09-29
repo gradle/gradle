@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -25,7 +25,7 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
-class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection provides identified models for single project build"() {
@@ -33,8 +33,8 @@ class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec exte
         singleProjectBuildInRootFolder("A")
 
         when:
-        def gradleProject = getModel(GradleProject)
-        def model = getModel(modelType)
+        def gradleProject = loadToolingModel(modelType)
+        def model = loadToolingModel(modelType)
 
         then:
         assertSameIdentifiers(gradleProject, model)

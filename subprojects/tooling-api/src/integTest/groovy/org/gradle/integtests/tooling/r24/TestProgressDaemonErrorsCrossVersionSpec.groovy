@@ -18,7 +18,7 @@
 package org.gradle.integtests.tooling.r24
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnectionException
@@ -26,7 +26,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.junit.Rule
 
-class TestProgressDaemonErrorsCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     boolean killed = false
 

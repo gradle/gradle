@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.r15
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
 @TargetGradleVersion(">=1.5")
-class ToolingApiConfigurationOnDemandCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"

@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.GradleProject
@@ -27,7 +27,7 @@ import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-class BuildInvocationsCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << '''
 include 'a'

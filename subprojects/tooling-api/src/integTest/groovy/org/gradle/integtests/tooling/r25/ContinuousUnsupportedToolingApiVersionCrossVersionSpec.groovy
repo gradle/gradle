@@ -18,14 +18,14 @@ package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import spock.lang.Timeout
 
-class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiSpecification {
     @Timeout(120)
     @ToolingApiVersion(">=2.0 <2.1")
     @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)

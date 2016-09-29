@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore
 
 @Ignore("We do not support forTasks(String) on a composite connection for now")
-class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     def "can call tasks before building composite model"() {
         given:
         singleProjectBuildInRootFolder("single") {
@@ -38,7 +38,7 @@ class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends GradleConnec
         }
 
         when:
-        def modelResults = withGradleConnection { connection ->
+        def modelResults = withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("setDescription")
             modelBuilder.get()

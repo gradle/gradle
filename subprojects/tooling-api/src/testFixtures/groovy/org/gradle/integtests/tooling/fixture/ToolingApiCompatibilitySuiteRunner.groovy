@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
-    ToolingApiCompatibilitySuiteRunner(Class<? extends ProjectConnectionToolingApiSpecification> target) {
+    ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
     }
 

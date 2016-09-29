@@ -17,13 +17,13 @@
 package org.gradle.integtests.tooling.r214
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=2.14')
 @TargetGradleVersion(">=2.14")
-class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends ToolingApiSpecification {
 
     static final def JAVA_NATURES = ['org.eclipse.jdt.core.javanature']
     static final def WTP_NATURES = ['org.eclipse.wst.common.project.facet.core.nature', 'org.eclipse.wst.common.modulecore.ModuleCoreNature', 'org.eclipse.jem.workbench.JavaEMFNature']

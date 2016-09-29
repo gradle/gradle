@@ -37,7 +37,7 @@ import spock.lang.Timeout
 @Timeout(180)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
-abstract class ContinuousBuildToolingApiSpecification extends ProjectConnectionToolingApiSpecification {
+abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()

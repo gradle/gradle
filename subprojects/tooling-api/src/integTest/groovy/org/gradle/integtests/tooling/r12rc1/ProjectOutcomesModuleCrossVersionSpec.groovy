@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.r12rc1
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 
-class ProjectOutcomesModuleCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         given:
         file('build.gradle') << '''

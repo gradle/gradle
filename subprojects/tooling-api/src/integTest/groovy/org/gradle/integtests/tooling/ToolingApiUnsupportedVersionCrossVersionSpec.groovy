@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.GradleConnectionException
@@ -26,7 +26,7 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
 
-class ToolingApiUnsupportedVersionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiUnsupportedVersionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file("build.gradle") << """
 task noop {

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.tooling.BuildLauncher
@@ -31,7 +31,7 @@ import spock.lang.Ignore
 /**
  * Tooling client provides progress listener for composite model request
  */
-class ProgressListenerCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ProgressListenerCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     static final List<String> IGNORED_EVENTS = ['Validate distribution', '', 'Compiling script into cache', 'Build', 'Starting Gradle Daemon', 'Connecting to Gradle Daemon']
     AbstractCapturingProgressListener progressListenerForComposite
     AbstractCapturingProgressListener progressListenerForRegularBuild
@@ -183,7 +183,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends GradleConnectionToo
     private void requestModels(List<File> builds) {
         includeBuilds(builds)
 
-        withGradleConnection { connection ->
+        withConnection { connection ->
             getModels(connection.models(EclipseProject), progressListenerForComposite)
         }
 
@@ -197,7 +197,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends GradleConnectionToo
     }
 
     private void executeFirstBuild(List<File> builds) {
-        withGradleConnection { connection ->
+        withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "jar")
             buildLauncher.addProgressListener(progressListenerForComposite)

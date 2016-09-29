@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.r30
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 
-class CustomToolingModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry

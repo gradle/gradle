@@ -15,7 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -30,7 +30,7 @@ import static org.gradle.util.CollectionUtils.single
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
-class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB
@@ -162,7 +162,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private ArrayList<EclipseProject> loadEclipseProjectModels() {
-        def eclipseProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        def eclipseProjects = getUnwrappedModels(EclipseProject)
         assert eclipseProjects.size() == 5
         eclipseProjectA = eclipseProjects.find { it.projectDirectory.absoluteFile == buildA.absoluteFile }
         eclipseProjectB1 = eclipseProjects.find { it.projectDirectory.absoluteFile == buildB.file('b1').absoluteFile }
@@ -172,7 +172,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private List<IdeaModule> loadIdeaModuleModels() {
-        def ideaProjects = getUnwrappedModelsWithGradleConnection(IdeaProject)
+        def ideaProjects = getUnwrappedModels(IdeaProject)
         def ideaModules = ideaProjects*.modules.flatten() as List<IdeaModule>
         assert ideaModules.size() == 5
         ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildA, ":") }

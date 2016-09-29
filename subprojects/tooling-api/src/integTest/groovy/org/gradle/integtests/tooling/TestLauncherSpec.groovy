@@ -19,7 +19,7 @@ import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -27,7 +27,7 @@ import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.junit.Rule
 
-abstract class TestLauncherSpec extends ProjectConnectionToolingApiSpecification {
+abstract class TestLauncherSpec extends ToolingApiSpecification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 

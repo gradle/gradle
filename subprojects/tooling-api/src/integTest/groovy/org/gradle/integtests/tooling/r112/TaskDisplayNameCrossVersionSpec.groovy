@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
-class TaskDisplayNameCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class TaskDisplayNameCrossVersionSpec extends ToolingApiSpecification {
     def "can get task's display name"() {
         file('build.gradle') << '''
 task a

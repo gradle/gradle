@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -29,7 +29,7 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
 
-class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     private ModelResults<EclipseProject> modelResults
 
     def "can correlate exceptions in composite with multiple single-project participants"() {
@@ -44,7 +44,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         includeBuilds(rootDirB, rootDirA, rootDirC)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
@@ -75,7 +75,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         includeBuilds(rootDirA, rootDirB)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
@@ -98,7 +98,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
         when:
         Iterable<IdeaProject> ideaProjects = []
-        withGradleConnection {
+        withConnection {
             modelResults = it.getModels(EclipseProject)
             ideaProjects = it.getModels(IdeaProject)*.model
         }
@@ -122,7 +122,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
         def ideaProjects = []
-        withGradleConnection {
+        withConnection {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
@@ -158,7 +158,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def otherPerBuildModelResults = []
         def ideaProjects = []
 
-        withGradleConnection {
+        withConnection {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier

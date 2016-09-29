@@ -16,33 +16,21 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
-import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.tooling.connection.ModelResults
-import org.junit.runner.RunWith
 
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_GRADLE_CONNECTION)
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
 @TargetGradleVersion(">=1.2")
-@RunWith(ToolingApiCompatibilitySuiteRunner)
-class GradleConnectionToolingApiSpecification extends AbstractToolingApiSpecification {
+class MultiModelToolingApiSpecification extends ToolingApiSpecification {
 
-    protected <T> T withGradleConnection(@DelegatesTo(GradleConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.connection.GradleConnection"]) Closure<T> cl = {}) {
-        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
-        connector.forRootDirectory(projectDir)
-        return toolingApi.withGradleConnection(connector, cl)
-    }
-
-    protected <T> ModelResults<T> getModelsWithGradleConnection(Class<T> modelType) {
-        withGradleConnection { connection ->
+    protected <T> ModelResults<T> getModels(Class<T> modelType) {
+        withConnection { connection ->
             return connection.getModels(modelType)
         }
     }
 
-    protected <T> List<T> getUnwrappedModelsWithGradleConnection(Class<T> modelType) {
-        unwrap(getModelsWithGradleConnection(modelType))
+    protected <T> List<T> getUnwrappedModels(Class<T> modelType) {
+        unwrap(getModels(modelType))
     }
 
     protected <T> List<T> unwrap(Iterable<ModelResult<T>> modelResults) {

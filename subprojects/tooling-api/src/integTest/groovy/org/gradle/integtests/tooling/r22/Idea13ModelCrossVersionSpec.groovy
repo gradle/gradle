@@ -16,11 +16,11 @@
 package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.*
 
-class Idea13ModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class Idea13ModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.2 <2.3")
     @ToolingApiVersion(">=2.2")

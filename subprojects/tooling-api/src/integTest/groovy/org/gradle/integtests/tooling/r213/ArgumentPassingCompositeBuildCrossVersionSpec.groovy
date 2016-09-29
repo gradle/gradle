@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
-class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def setup() {
         toolingApi.requireDaemons()
@@ -35,7 +35,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection { connection ->
+        def modelResults = withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withArguments("-PprojectProperty=foo")
             modelBuilder.get()
@@ -61,7 +61,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-PprojectProperty=foo")
@@ -85,7 +85,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection { connection ->
+        def modelResults = withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withArguments("-DsystemProperty=foo")
             modelBuilder.get()
@@ -110,7 +110,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-DsystemProperty=foo")
@@ -133,7 +133,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection { connection ->
+        def modelResults = withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setJvmArguments("-DsystemProperty=foo")
             modelBuilder.get()
@@ -158,7 +158,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
@@ -184,7 +184,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection { connection ->
+        def modelResults = withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setJavaHome(javaHome)
             modelBuilder.get()
@@ -211,7 +211,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         includeBuilds(builds)
 
         when:
-        withGradleConnection { connection ->
+        withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.setJavaHome(javaHome)
             buildLauncher.forTasks(builds[0], "run")

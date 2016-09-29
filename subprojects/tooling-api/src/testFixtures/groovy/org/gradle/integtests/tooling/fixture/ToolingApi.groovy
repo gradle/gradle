@@ -24,9 +24,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.connection.GradleConnectionBuilder
-import org.gradle.tooling.internal.connection.GradleConnectionBuilderInternal
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -121,7 +118,7 @@ class ToolingApi implements TestRule {
 
         // Verify that the exception carries the calling thread's stack information
         List<StackTraceElement> currentThreadStack = Thread.currentThread().stackTrace as List
-        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw' && currentThreadStack[0].methodName != 'withGradleConnectionRaw')) {
+        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw')) {
             currentThreadStack.remove(0)
         }
         assert currentThreadStack.size() > 1
@@ -206,44 +203,5 @@ class ToolingApi implements TestRule {
                 }
             }
         };
-    }
-
-    public <T> T withGradleConnection(Closure<T> cl) {
-        GradleConnectionBuilder connector = gradleConnectionBuilder()
-        withGradleConnection(connector, cl)
-    }
-
-    public <T> T withGradleConnection(GradleConnectionBuilder connector, Closure<T> cl) {
-        return withGradleConnectionRaw(connector, cl)
-    }
-
-    private <T> T withGradleConnectionRaw(GradleConnectionBuilder connector, Closure<T> cl) {
-        GradleConnection connection = connector.build()
-        try {
-            return connection.with(cl)
-        } catch (Throwable t) {
-            validate(t)
-            throw t
-        } finally {
-            connection.close()
-        }
-    }
-
-    GradleConnectionBuilder gradleConnectionBuilder() {
-        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection() as GradleConnectionBuilderInternal
-        builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
-        if (useSeparateDaemonBaseDir) {
-            builder.daemonBaseDir(new File(daemonBaseDir.path))
-        }
-        builder.forRootDirectory(testWorkDirProvider.testDirectory)
-        builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
-        builder.verboseLogging = verboseLogging
-        if (useClasspathImplementation) {
-            builder.useClasspathDistribution()
-        } else {
-            builder.useInstallation(dist.gradleHomeDir.absoluteFile)
-        }
-        builder.embedded(embedded)
-        builder
     }
 }

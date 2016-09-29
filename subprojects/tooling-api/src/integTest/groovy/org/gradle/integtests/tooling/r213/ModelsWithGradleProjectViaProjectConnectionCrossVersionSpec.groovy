@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -24,16 +24,15 @@ import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.gradle.GradleBuild
 
-class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends ProjectConnectionToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
+class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends ToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
     def "Provides identified GradleBuild"() {
         setup:
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def gradleBuild = getModel(GradleBuild)
+        def gradleBuild = loadToolingModel(modelType)
 
         then:
         gradleBuild.buildIdentifier == new DefaultBuildIdentifier(projectDir)
@@ -44,7 +43,7 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
         singleProjectBuildInRootFolder("A")
 
         when:
-        def gradleProjects = toGradleProjects(getModel(modelType))
+        def gradleProjects = toGradleProjects(loadToolingModel(modelType))
 
         then:
         gradleProjects.size() == 1
@@ -59,7 +58,7 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def gradleProjects = toGradleProjects(getModel(modelType))
+        def gradleProjects = toGradleProjects(loadToolingModel(modelType))
 
         then:
         gradleProjects.size() == 3
@@ -96,7 +95,7 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
         singleProjectBuildInRootFolder("A")
 
         when:
-        GradleProject project = toGradleProject(getModel(modelType))
+        GradleProject project = toGradleProject(loadToolingModel(modelType))
 
         then:
         assertProject(project, projectDir, ':', 'A', null, [])
@@ -110,7 +109,7 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        GradleProject project = toGradleProject(getModel(modelType))
+        GradleProject project = toGradleProject(loadToolingModel(modelType))
 
         then:
         assertProject(project, projectDir, ':', 'B', null, [':x', ':y'])

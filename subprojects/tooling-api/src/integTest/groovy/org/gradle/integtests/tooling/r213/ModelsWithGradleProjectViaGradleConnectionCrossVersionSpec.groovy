@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.model.gradle.GradleBuild
 
-class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
+class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends MultiModelToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
     def "Provides identified GradleBuild for each build"() {
         setup:
@@ -30,7 +30,7 @@ class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends GradleC
         includeBuilds(rootMulti, rootSingle)
 
         when:
-        def gradleBuilds = getUnwrappedModelsWithGradleConnection(GradleBuild)
+        def gradleBuilds = getUnwrappedModels(GradleBuild)
 
         then:
         gradleBuilds.size() == 3
@@ -43,7 +43,7 @@ class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends GradleC
         singleProjectBuildInRootFolder("A")
 
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(modelType).collect { toGradleProject(it) }
+        def gradleProjects = getUnwrappedModels(modelType).collect { toGradleProject(it) }
 
         then:
         gradleProjects.size() == 1
@@ -58,7 +58,7 @@ class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends GradleC
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(modelType).collect { toGradleProject(it) }
+        def gradleProjects = getUnwrappedModels(modelType).collect { toGradleProject(it) }
 
         then:
         gradleProjects.size() == 3
@@ -77,7 +77,7 @@ class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends GradleC
         includeBuilds(rootSingle, rootMulti)
 
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(modelType).collect { toGradleProject(it) }
+        def gradleProjects = getUnwrappedModels(modelType).collect { toGradleProject(it) }
 
         then:
         gradleProjects.size() == 5

@@ -17,13 +17,13 @@
 package org.gradle.integtests.tooling.r27
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseFileSeparators
 
 @TargetGradleVersion(">=2.7")
-class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
+class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
 
     def "can references sibling source folders"() {
         given:

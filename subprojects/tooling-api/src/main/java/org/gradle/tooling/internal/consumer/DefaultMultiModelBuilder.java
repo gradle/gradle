@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.connection;
+package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
@@ -23,12 +23,10 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ModelResults;
-import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
-import org.gradle.tooling.internal.consumer.BlockingResultHandler;
-import org.gradle.tooling.internal.consumer.ConnectionParameters;
-import org.gradle.tooling.internal.consumer.ExceptionTransformer;
-import org.gradle.tooling.internal.consumer.ModelExceptionTransformer;
-import org.gradle.tooling.internal.consumer.ResultHandlerAdapter;
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.connection.DefaultFailedModelResult;
+import org.gradle.tooling.internal.connection.DefaultModelResult;
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -43,11 +41,11 @@ import org.gradle.tooling.model.internal.Exceptions;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<DefaultMultiModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
+class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<DefaultMultiModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    protected DefaultMultiModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    DefaultMultiModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;
