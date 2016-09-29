@@ -111,7 +111,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     BuildTestFile populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
-        new BuildTestFixture(projectDir).populate(projectName, cl)
+        new BuildTestFixture(projectDir).withBuildInSubDir().populate(projectName, cl)
     }
 
     TestFile singleProjectBuildInSubfolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {

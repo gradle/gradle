@@ -18,17 +18,20 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
+@TargetGradleVersion(">=3.2")
 class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def setup() {
         toolingApi.requireDaemons()
     }
 
+    @Ignore("Argument passing not yet implemented")
     def "can pass additional command-line arguments for project properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -44,7 +47,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         then:
         modelResults.size() == numberOfParticipants + numberOfSubprojects.sum() + 1
         modelResults.each {
-            it.model.description == "Set from project property = foo"
+            assert it.model.description == "Set from project property = foo"
         }
 
         where:
@@ -54,7 +57,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
-    @Ignore("Requires composite task execution")
+    @Ignore("Argument passing not yet implemented")
     def "can pass additional command-line arguments for project properties when executing tasks"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -63,7 +66,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         when:
         withConnection { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "run")
+            buildLauncher.forTasks("run")
             buildLauncher.withArguments("-PprojectProperty=foo")
             buildLauncher.run()
         }
@@ -79,6 +82,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
+    @Ignore("Argument passing not yet implemented")
     def "can pass additional command-line arguments for system properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -103,7 +107,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
-    @Ignore("Requires composite task execution")
+    @Ignore("Argument passing not yet implemented")
     def "can pass additional command-line arguments for system properties when executing tasks"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -112,7 +116,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         when:
         withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "run")
+            buildLauncher.forTasks("run")
             buildLauncher.withArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -127,6 +131,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
+    @Ignore("Argument passing not yet implemented")
     def "can pass additional jvm arguments when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -151,7 +156,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
-    @Ignore("Requires composite task execution")
+    @Ignore("Argument passing not yet implemented")
     def "can pass additional jvm arguments"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -160,7 +165,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         when:
         withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "run")
+            buildLauncher.forTasks("run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -175,7 +180,6 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
-    @TargetGradleVersion(">=2.10")
     def "can set java home for model requests"() {
         given:
         File javaHome = new File("not/javahome")
@@ -190,10 +194,8 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
             modelBuilder.get()
         }
         then:
-        modelResults.size() == numberOfParticipants
-        modelResults.each {
-            assertFailure(it.failure, "The supplied javaHome seems to be invalid.")
-        }
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "The supplied javaHome seems to be invalid.")
 
         where:
         numberOfParticipants | numberOfSubprojects
@@ -202,7 +204,6 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         2                    | [3, 0]
     }
 
-    @Ignore("Requires composite task execution")
     def "can set javahome for build launcher"() {
         given:
         File javaHome = new File("not/javahome")
@@ -214,7 +215,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
         withConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.setJavaHome(javaHome)
-            buildLauncher.forTasks(builds[0], "run")
+            buildLauncher.forTasks("run")
             buildLauncher.run()
         }
         then:
@@ -228,6 +229,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApi
     }
 
     private List createBuilds(int numberOfParticipants, List numberOfSubprojects) {
+        buildFile << """
+            task run(dependsOn: gradle.includedBuilds*.task(':run'))
+        """
         createBuilds(numberOfParticipants, numberOfSubprojects,
 """
     rootProject.ext.results = rootProject.file("result")
