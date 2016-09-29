@@ -42,6 +42,7 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
                 new File(serverDir, "gradlew").executable = true
             }
         }
+        runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
 
         when:
         def result = runner.run()
