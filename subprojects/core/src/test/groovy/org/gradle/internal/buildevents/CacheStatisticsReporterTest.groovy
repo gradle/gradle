@@ -47,7 +47,7 @@ class CacheStatisticsReporterTest extends Specification {
               | 3  (30%) loaded from cache
               | 1  (10%) skipped
               | 4  (40%) executed
-              |""".stripMargin()
+              |""".stripMargin().denormalize()
     }
 
     def 'zero counts are not reported'() {
@@ -66,7 +66,7 @@ class CacheStatisticsReporterTest extends Specification {
               |10 tasks in build, out of which 0 (0%) were cacheable
               | 3  (30%) loaded from cache
               | 7  (70%) executed
-              |""".stripMargin()
+              |""".stripMargin().denormalize()
     }
 
     def 'percentages are rounded'() {
@@ -89,7 +89,7 @@ class CacheStatisticsReporterTest extends Specification {
               | 206  (21%) loaded from cache
               |  75   (8%) skipped
               | 404  (40%) executed
-              |""".stripMargin()
+              |""".stripMargin().denormalize()
     }
 
     private void recordedTaskStatistics(Map<TaskExecutionOutcome, Integer> counts, Integer allTasksCount, Integer cacheableTasksCount) {
