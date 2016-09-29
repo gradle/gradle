@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.tooling.connection.GradleConnection
+
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
@@ -102,7 +102,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         singleProjectBuildInRootfolder("A")
 
         when:
-        def modelResults = withConnection { GradleConnection connection ->
+        def modelResults = withConnection { connection ->
             def modelBuilder = connection.models(ProjectPublications)
             modelBuilder.get()
         }.asList()

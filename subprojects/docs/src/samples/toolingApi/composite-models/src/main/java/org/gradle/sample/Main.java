@@ -17,30 +17,28 @@
 package org.gradle.sample;
 
 import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.connection.*;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
-import java.util.Set;
 
 /**
- * Example application that can query the EclipseProject model of a composite of independent Gradle builds.
+ * Example application that can query the EclipseProject models of a composite Gradle build.
  */
 public class Main {
     public static void main(String... args) {
-        GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
+        GradleConnector connector = GradleConnector.newConnector();
 
         File gradleHome = new File(args[0]);
         File gradleUserHome = new File(args[1]);
-        builder.useGradleUserHomeDir(gradleUserHome);
+        connector.useGradleUserHomeDir(gradleUserHome);
+        connector.useInstallation(gradleHome);
+        connector.forProjectDirectory(new File(args[2]));
 
-        for (int i = 2; i < args.length; i++) {
-            File projectDir = new File(args[i]);
-            builder.addParticipant(projectDir).useInstallation(gradleHome);
-        }
-        GradleConnection connection = builder.build();
+        ProjectConnection connection = connector.connect();
         try {
             Iterable<ModelResult<EclipseProject>> modelResults = connection.getModels(EclipseProject.class);
             for (ModelResult<EclipseProject> modelResult : modelResults) {
@@ -53,7 +51,7 @@ public class Main {
                 String projectDir = getProjectDirectory(gradleProject);
                 String sourceLanguageLevel = getJavaVersion(eclipseProject);
 
-                System.out.println("Project: " + rootProjectName + ":" + projectPath);
+                System.out.println("Project: " + rootProjectName + projectPath);
                 System.out.println("Source Language Level: " + sourceLanguageLevel);
                 System.out.println("Project Directory: " + projectDir);
 

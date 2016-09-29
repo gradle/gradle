@@ -64,6 +64,20 @@ task noop {
     }
 
     @ToolingApiVersion("current")
+    @TargetGradleVersion("<1.2")
+    def "multi model retrieval fails for pre 1.2 providers"() {
+        given:
+        multiProjectBuildInRootFolder("single-build", ['a', 'b', 'c'])
+
+        when:
+        getUnwrappedModels(EclipseProject)
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later."
+    }
+
+    @ToolingApiVersion("current")
     @TargetGradleVersion("<1.8")
     def "build action execution fails for pre 1.8 providers"() {
         when:

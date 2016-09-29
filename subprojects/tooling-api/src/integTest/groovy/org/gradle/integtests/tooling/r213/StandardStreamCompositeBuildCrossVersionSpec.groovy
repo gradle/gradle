@@ -15,9 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
@@ -32,7 +32,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         includeBuilds(builds)
 
         when:
-        withConnection { GradleConnection connection ->
+        withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardOutput(stdOutStream)
             modelBuilder.setStandardError(stdErrStream)
@@ -92,7 +92,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         includeBuilds(builds)
 
         when:
-        withConnection { GradleConnection connection ->
+        withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("log")
             modelBuilder.setStandardOutput(stdOutStream)
@@ -159,7 +159,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         includeBuilds(builds)
 
         when:
-        def modelRequests = withConnection { GradleConnection connection ->
+        def modelRequests = withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardInput(stdIn)
             modelBuilder.setStandardOutput(stdOutStream)

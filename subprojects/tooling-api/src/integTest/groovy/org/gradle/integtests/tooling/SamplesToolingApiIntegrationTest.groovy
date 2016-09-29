@@ -101,26 +101,15 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         def result = run()
 
         then:
-        result.assertOutputContains("Project: project1::")
-        result.assertOutputContains("Project: project1::a")
-        result.assertOutputContains("Project: project1::b")
-        result.assertOutputContains("Project: project1::c")
-        result.assertOutputContains("Project: project2::")
-        result.assertOutputContains("Project: project3::")
-        result.assertOutputContains("Project: project3::a")
-        result.assertOutputContains("Project: project3::b")
-    }
-
-    @UsesSample('toolingApi/composite-tasks')
-    def "can use tooling API to compose independent projects and run tasks"() {
-        tweakProject()
-
-        when:
-        def result = run()
-
-        then:
-        result.assertOutputContains(":a:build")
-        result.assertOutputContains(":b:build")
+        result.assertOutputContains("Project: composite:")
+        result.assertOutputContains("Project: project1:")
+        result.assertOutputContains("Project: project1:a")
+        result.assertOutputContains("Project: project1:b")
+        result.assertOutputContains("Project: project1:c")
+        result.assertOutputContains("Project: project2:")
+        result.assertOutputContains("Project: project3:")
+        result.assertOutputContains("Project: project3:a")
+        result.assertOutputContains("Project: project3:b")
     }
 
     private void tweakProject(File projectDir = sample.dir) {

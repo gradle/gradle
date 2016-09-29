@@ -15,13 +15,15 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.connection.GradleConnectionBuilder
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
+
 /**
  * Tests composites with multiple participants.
  */
@@ -65,9 +67,9 @@ class MultiProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
         def singleBuild1 = singleProjectBuildInSubfolder("single-build-1")
         def singleBuild2 = singleProjectBuildInSubfolder("single-build-2")
         includeBuilds(singleBuild1, singleBuild2)
-        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
-        connector.forRootDirectory(projectDir)
-        GradleConnection connection = connector.build()
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(projectDir)
+        ProjectConnection connection = connector.connect()
 
         when:
         def models = unwrap(connection.getModels(EclipseProject))

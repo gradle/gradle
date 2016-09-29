@@ -23,7 +23,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
-import org.gradle.tooling.connection.GradleConnectionBuilder;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
@@ -35,11 +34,6 @@ public class ConnectorServices {
     public static DefaultGradleConnector createConnector() {
         checkJavaVersion();
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
-    }
-
-    public static GradleConnectionBuilder createGradleConnectionBuilder() {
-        checkJavaVersion();
-        return singletonRegistry.getFactory(GradleConnectionBuilder.class).create();
     }
 
     public static CancellationTokenSource createCancellationTokenSource() {

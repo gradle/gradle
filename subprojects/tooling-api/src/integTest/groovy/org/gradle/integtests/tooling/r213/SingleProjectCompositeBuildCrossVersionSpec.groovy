@@ -15,10 +15,12 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.connection.GradleConnectionBuilder
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.eclipse.EclipseProject
+
 /**
  * Builds a composite with a single project.
  */
@@ -52,9 +54,9 @@ class SingleProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSp
     def "sees changes to composite build when projects are added"() {
         given:
         singleProjectBuildInRootFolder("single-build")
-        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
-        connector.forRootDirectory(projectDir)
-        def connection = connector.build()
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(projectDir)
+        def connection = connector.connect()
 
         when:
         def firstRetrieval = unwrap(connection.getModels(EclipseProject))

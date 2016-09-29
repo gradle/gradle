@@ -16,15 +16,11 @@
 
 
 package org.gradle.integtests.composite
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 import org.junit.Rule
-
-import java.util.regex.Matcher
 
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
@@ -139,74 +135,5 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         then:
         executed ":anonymous-library:jar", ":run"
         outputContains("The answer is 42")
-    }
-
-    @UsesSample('compositeBuilds/tooling-api')
-    def "can publish participants and resolve dependencies in non-integrated composite"() {
-        given:
-        tweakProject()
-
-        when:
-        executer.inDirectory(sample.dir)
-        executer.withArgument("-Pintegrated=false")
-        succeeds('publishAll')
-
-        then:
-        result.assertOutputContains("Running tasks [:uploadArchives] in build: projectC")
-        result.assertOutputContains("Running tasks [:b1:uploadArchives, :b2:uploadArchives] in build: projectB")
-        result.assertOutputContains("Running tasks [:uploadArchives] in build: projectA")
-
-        when:
-        executer.inDirectory(sample.dir)
-        executer.withArgument("-Pintegrated=false")
-        succeeds('showDependencies')
-
-        then:
-        result.assertOutputContains("""
-compile - Dependencies for source set 'main'.
-+--- org.sample:b1:1.0
-\\--- org.sample:b2:1.0
-     \\--- org.sample:projectC:1.0
-""")
-    }
-
-    @UsesSample('compositeBuilds/tooling-api')
-    def "can resolve participant dependencies in integrated composite"() {
-        given:
-        tweakProject()
-
-        when:
-        executer.inDirectory(sample.dir)
-        succeeds('showDependencies')
-
-        then:
-        result.assertOutputContains("""
-compile - Dependencies for source set 'main'.
-+--- org.sample:b1:1.0 -> project :projectB:b1
-\\--- org.sample:b2:1.0 -> project :projectB:b2
-     \\--- org.sample:projectC:1.0 -> project :projectC
-""")
-    }
-
-    private void tweakProject(TestFile projectDir = sample.dir) {
-        // Inject some additional configuration into the sample build script
-        def buildFile = projectDir.file('build.gradle')
-
-        def buildContext = new IntegrationTestBuildContext()
-
-        def gradleHomePath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath))
-        def daemonBaseDirPath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.daemonBaseDir.absolutePath))
-        def gradleUserHomePath = Matcher.quoteReplacement(TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath))
-
-        def buildScript = buildFile.text
-        buildScript = buildScript.replaceAll("project\\.gradle\\.gradleHomeDir", "new File('${gradleHomePath}')")
-        buildScript = buildScript.replaceFirst(
-            "newGradleConnection\\(\\)",
-            "newGradleConnection()" +
-                ".useGradleUserHomeDir(new File('${gradleUserHomePath}'))" +
-                ".daemonBaseDir(new File('${daemonBaseDirPath}'))" +
-                ".daemonMaxIdleTime(10, java.util.concurrent.TimeUnit.SECONDS)"
-        )
-        buildFile.text = buildScript
     }
 }
