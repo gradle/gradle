@@ -31,6 +31,7 @@ public class WaitingReader {
     private static final int READAHEAD_BUFFER_SIZE = 512 * 1024;
     private static final int EOF = -1;
     private static final char NEW_LINE = '\n';
+    private static final char CARRIAGE_RETURN = '\r';
     private final BufferedReader reader;
     private final int timeoutMs;
     private final int clockTick;
@@ -52,7 +53,7 @@ public class WaitingReader {
         long upTo = System.currentTimeMillis() + timeoutMs;
         reader.mark(READAHEAD_BUFFER_SIZE);
         int character = EOF;
-        while(character != NEW_LINE) {
+        while (character != NEW_LINE && character != CARRIAGE_RETURN) {
             character = reader.read();
             if (character == EOF) {
                 if (System.currentTimeMillis() >= upTo) {
