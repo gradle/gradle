@@ -28,24 +28,31 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
-    def "relocating the project doesn't invalidate custom tasks declared in buildSrc"() {
+    def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
 
-        originalLocation.file("buildSrc/src/main/groovy/CustomTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
+        originalLocation.file("external.gradle") << """
             @CacheableTask
             class CustomTask extends DefaultTask {
-                @InputFile File inputFile
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File inputFile
+
                 @OutputFile File outputFile
+
                 @TaskAction void doSomething() {
                     outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                 }
             }
+
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
         """
         originalLocation.file("input.txt") << "input"
+        originalLocation.file("input-2.txt") << "input-2"
         originalLocation.file("src/main/java/Hello.java") << """
             public class Hello {
                 public static void main(String... args) {
@@ -56,36 +63,35 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
         originalLocation.file("build.gradle") << """
             println "Running build from: \$projectDir"
             apply plugin: "java"
-
-            task customTask(type: CustomTask) {
-                inputFile = file "input.txt"
-                outputFile = file "build/output.txt"
-            }
+            apply from: "external.gradle"
         """
 
         when:
         executer.usingProjectDirectory(originalLocation)
         succeedsWithCache "jar", "customTask"
+
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
         run "clean"
-        projectDir(originalLocation)
+
+        executer.usingProjectDirectory(originalLocation)
         succeedsWithCache "jar", "customTask"
+
         then:
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
 
         when:
         def movedLocation = temporaryFolder.file("moved-location")
         originalLocation.renameTo(movedLocation)
-        movedLocation.file("buildSrc/build").deleteDir()
-        movedLocation.file("buildSrc/.gradle").deleteDir()
-        executer.usingProjectDirectory(movedLocation)
-        run "clean"
+        movedLocation.file("build").deleteDir()
+        movedLocation.file(".gradle").deleteDir()
+
         executer.usingProjectDirectory(movedLocation)
         succeedsWithCache "jar", "customTask"
+
         then:
         // Built-in tasks are loaded from cache
         skippedTasks.containsAll ":compileJava", ":jar"
