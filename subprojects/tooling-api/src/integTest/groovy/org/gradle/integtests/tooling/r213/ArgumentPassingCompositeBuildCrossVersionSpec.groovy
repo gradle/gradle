@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject

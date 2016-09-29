@@ -31,7 +31,7 @@ import spock.lang.Ignore
 /**
  * Tests cancellation of model requests in a composite build.
  */
-@TargetGradleVersion(">=2.1")
+@TargetGradleVersion(">=3.2")
 class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
@@ -67,7 +67,7 @@ class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
         """
     }
 
-    def "can cancel model operation while a participant request is being processed"() {
+    def "can cancel model operation while an included build is being processed"() {
         given:
         def cancelledFile = file("cancelled")
         def executedAfterCancellingFile = file("executed")
@@ -102,13 +102,8 @@ class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
         }
 
         then:
-        // overall operation "succeeded"
-        resultHandler.failure == null
-        resultHandler.result.size() == 3
-        // each individual request failed
-        resultHandler.result.each { result ->
-            assertFailureHasCause(result.failure, BuildCancelledException)
-        }
+        resultHandler.failure instanceof BuildCancelledException
+
         // participant should be properly cancelled
         participantCancelledFile.exists()
         // no new builds should have been executed after cancelling
@@ -146,7 +141,6 @@ class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
         !executedAfterCancellingFile.exists()
     }
 
-    @Ignore("Requires composite task execution")
     def "check that no participant tasks are started at all when token is initially cancelled"() {
         given:
         def executedAfterCancellingFile = file("executed")
@@ -162,6 +156,9 @@ class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
             buildFile << buildFileText
         }
         includeBuilds(build1, build2)
+        buildFile << """
+            task run(dependsOn: gradle.includedBuilds*.task(':run'))
+        """
 
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
@@ -169,7 +166,7 @@ class CancellationCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
         cancellationToken.cancel()
         withConnection { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(build1, "run")
+            buildLauncher.forTasks("run")
             buildLauncher.withCancellationToken(cancellationToken.token())
             buildLauncher.run(resultHandler)
         }
