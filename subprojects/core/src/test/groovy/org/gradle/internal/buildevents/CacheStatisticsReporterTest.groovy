@@ -85,7 +85,7 @@ class CacheStatisticsReporterTest extends Specification {
         textOutputFactory.toString() ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
               |1000 tasks in build, out of which 206 (21%) were cacheable
-              | 305  (30%) up-to-date
+              | 305  (31%) up-to-date
               | 206  (21%) loaded from cache
               |  75   (8%) skipped
               | 404  (40%) executed
