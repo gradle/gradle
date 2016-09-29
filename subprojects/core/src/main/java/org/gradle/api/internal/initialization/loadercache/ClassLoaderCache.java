@@ -24,7 +24,16 @@ public interface ClassLoaderCache {
 
     int size();
 
-    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec);
+    /**
+     * Returns an existing classloader from the cache, or creates it if it cannot be found.
+     * @param id the ID of the classloader.
+     * @param classPath the classpath to use to create the classloader.
+     * @param parent the parent of the classloader.
+     * @param filterSpec the filtering to use on the classpath.
+     * @param ignoreClassPath whether the returned classloader should use the hash of the classpath or not.
+     * @return the classloader.
+     */
+    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, boolean ignoreClassPath);
 
     void remove(ClassLoaderId id);
 

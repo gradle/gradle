@@ -67,6 +67,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private static final int EMPTY_FLAG = 1;
     private static final int HAS_METHODS_FLAG = 2;
+
     private final ClassLoaderCache classLoaderCache;
     private final String[] defaultImportPackages;
     private final Map<String, List<String>> simpleNameToFQN;
@@ -329,7 +330,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
                 try {
                     // Classloader scope will be handled by the cache, class will be released when the classloader is.
-                    ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
+                    ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null, true);
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
@@ -341,7 +342,5 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
             return scriptClass;
         }
-
     }
-
 }

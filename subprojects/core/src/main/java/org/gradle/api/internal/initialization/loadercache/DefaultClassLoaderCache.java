@@ -24,11 +24,11 @@ import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassPathSnapshot;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -41,16 +41,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
     private final ClassPathSnapshotter snapshotter;
-    private final ClassLoaderFactory classLoaderFactory;
+    private final HashingClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderCache(ClassLoaderFactory classLoaderFactory, ClassPathSnapshotter snapshotter) {
+    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter snapshotter) {
         this.classLoaderFactory = classLoaderFactory;
         this.snapshotter = snapshotter;
     }
 
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+    @Override
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, boolean ignoreClassPath) {
         ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec);
+        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec, ignoreClassPath);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -89,7 +90,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = classLoaderFactory.createClassLoader(spec.parent, classPath);
+                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.ignoreHash);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -120,15 +121,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         private final ClassLoader parent;
         private final ClassPathSnapshot classPathSnapshot;
         private final FilteringClassLoader.Spec filterSpec;
+        private final boolean ignoreHash;
 
-        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec) {
+        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, boolean ignoreHash) {
             this.parent = parent;
             this.classPathSnapshot = classPathSnapshot;
             this.filterSpec = filterSpec;
+            this.ignoreHash = ignoreHash;
         }
 
         public ClassLoaderSpec unfiltered() {
-            return new ClassLoaderSpec(parent, classPathSnapshot, null);
+            return new ClassLoaderSpec(parent, classPathSnapshot, null, ignoreHash);
         }
 
         public boolean isFiltered() {
@@ -141,7 +144,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             ClassLoaderSpec that = (ClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
                 && this.classPathSnapshot.equals(that.classPathSnapshot)
-                && Objects.equal(this.filterSpec, that.filterSpec);
+                && Objects.equal(this.filterSpec, that.filterSpec)
+                && this.ignoreHash == that.ignoreHash;
         }
 
         @Override
@@ -149,6 +153,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             int result = classPathSnapshot.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
+            result = 31 * result + (ignoreHash ? 1 : 0);
             return result;
         }
     }

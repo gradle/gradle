@@ -15,8 +15,16 @@
  */
 package org.gradle.internal.classloader;
 
+import org.gradle.internal.classpath.ClassPath;
+
 /**
  * A {@link ClassLoaderFactory} that also stores the hash of each created classloader which is later retrievable via {@link #getHash(ClassLoader)}.
  */
 public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoaderHasher {
+    /**
+     * Creates a {@link ClassLoader} with the given parent and classpath.
+     * If {@code ignoreHash} is {@code true}, then a dummy hash is going to be used
+     * instead of the hash calculated from the given classpath.
+     */
+    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, boolean ignoreHash);
 }

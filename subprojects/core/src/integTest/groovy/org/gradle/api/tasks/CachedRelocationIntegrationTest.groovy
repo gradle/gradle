@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
@@ -27,7 +26,6 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
     }
 
-    @NotYetImplemented
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
 

@@ -23,7 +23,7 @@ import org.gradle.internal.classpath.ClassPath;
 import java.net.URLClassLoader;
 
 public class DummyClassLoaderCache implements ClassLoaderCache {
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, boolean ignoreClassPath) {
         return new URLClassLoader(classPath.getAsURLArray(), parent);
     }
 
