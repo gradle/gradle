@@ -15,29 +15,33 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-public class ModuleVersionArtifactIdentifierSerializer implements Serializer<ModuleComponentArtifactIdentifier> {
+public class ComponentArtifactIdentifierSerializer implements Serializer<ComponentArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
-    public void write(Encoder encoder, ModuleComponentArtifactIdentifier value) throws Exception {
-        DefaultModuleComponentArtifactIdentifier artifact = (DefaultModuleComponentArtifactIdentifier) value;
-        componentIdentifierSerializer.write(encoder, artifact.getComponentIdentifier());
-        IvyArtifactName ivyArtifactName = artifact.getName();
-        encoder.writeString(ivyArtifactName.getName());
-        encoder.writeString(ivyArtifactName.getType());
-        encoder.writeNullableString(ivyArtifactName.getExtension());
-        encoder.writeNullableString(ivyArtifactName.getClassifier());
+    public void write(Encoder encoder, ComponentArtifactIdentifier value) throws Exception {
+        if (value instanceof DefaultModuleComponentArtifactIdentifier) {
+            DefaultModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier = (DefaultModuleComponentArtifactIdentifier) value;
+            componentIdentifierSerializer.write(encoder, moduleComponentArtifactIdentifier.getComponentIdentifier());
+            IvyArtifactName ivyArtifactName = moduleComponentArtifactIdentifier.getName();
+            encoder.writeString(ivyArtifactName.getName());
+            encoder.writeString(ivyArtifactName.getType());
+            encoder.writeNullableString(ivyArtifactName.getExtension());
+            encoder.writeNullableString(ivyArtifactName.getClassifier());
+        } else {
+            throw new IllegalArgumentException("Unknown identifier type.");
+        }
     }
 
-    public ModuleComponentArtifactIdentifier read(Decoder decoder) throws Exception {
+    public ComponentArtifactIdentifier read(Decoder decoder) throws Exception {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String artifactName = decoder.readString();
         String type = decoder.readString();

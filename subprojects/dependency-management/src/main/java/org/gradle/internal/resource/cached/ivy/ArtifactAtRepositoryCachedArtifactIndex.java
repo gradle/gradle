@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.cached.ivy;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.DefaultCachedArtifact;
@@ -54,12 +54,12 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
         storeInternal(key, createMissingEntry(attemptedLocations, descriptorHash));
     }
 
-    CachedArtifact createMissingEntry(List<String> attemptedLocations, BigInteger descriptorHash) {
+    private CachedArtifact createMissingEntry(List<String> attemptedLocations, BigInteger descriptorHash) {
         return new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash);
     }
 
     private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {
-        private final Serializer<ModuleComponentArtifactIdentifier> artifactIdSerializer = new ModuleVersionArtifactIdentifierSerializer();
+        private final Serializer<ComponentArtifactIdentifier> artifactIdSerializer = new ComponentArtifactIdentifierSerializer();
 
         public void write(Encoder encoder, ArtifactAtRepositoryKey value) throws Exception {
             encoder.writeString(value.getRepositoryId());
@@ -68,7 +68,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
 
         public ArtifactAtRepositoryKey read(Decoder decoder) throws Exception {
             String repositoryId = decoder.readString();
-            ModuleComponentArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
+            ComponentArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
             return new ArtifactAtRepositoryKey(repositoryId, artifactIdentifier);
         }
     }
