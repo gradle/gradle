@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
+import com.google.common.hash.HashCode
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -50,29 +51,30 @@ class DefaultClassLoaderCacheTest extends Specification {
     def "class loaders are reused when parent, class path and hashing are the same"() {
         expect:
         def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c1"), root, null, false) == cache.get(id1, classPath("c1"), root, null, false)
-        cache.get(id1, classPath("c1"), root, null, false) != cache.get(id1, classPath("c1"), root, null, true)
-        cache.get(id1, classPath("c1"), root, null, false) != cache.get(id1, classPath("c1", "c2"), root, null, false)
+        cache.get(id1, classPath("c1"), root, null) == cache.get(id1, classPath("c1"), root, null)
+        cache.get(id1, classPath("c1"), root, null) != cache.get(id1, classPath("c1", "c2"), root, null)
+        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) == cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100))
+        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1", "c2"), root, null, HashCode.fromInt(200))
     }
 
     def "class loaders with different ids are reused"() {
         expect:
         def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c1"), root, null, false).is cache.get(id2, classPath("c1"), root, null, false)
+        cache.get(id1, classPath("c1"), root, null).is cache.get(id2, classPath("c1"), root, null)
     }
 
     def "parents are respected"() {
         expect:
         def root1 = classLoader(classPath("root1"))
         def root2 = classLoader(classPath("root2"))
-        cache.get(id1, classPath("c1"), root1, null, false) != cache.get(id2, classPath("c1"), root2, null, false)
+        cache.get(id1, classPath("c1"), root1, null) != cache.get(id2, classPath("c1"), root2, null)
     }
 
     def "null parents are respected"() {
         expect:
         def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c1"), null, null, false) == cache.get(id1, classPath("c1"), null, null, false)
-        cache.get(id1, classPath("c1"), null, null, false) != cache.get(id1, classPath("c1"), root, null, false)
+        cache.get(id1, classPath("c1"), null, null) == cache.get(id1, classPath("c1"), null, null)
+        cache.get(id1, classPath("c1"), null, null) != cache.get(id1, classPath("c1"), root, null)
     }
 
     def "filters are respected"() {
@@ -81,9 +83,9 @@ class DefaultClassLoaderCacheTest extends Specification {
         def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [], [])
 
         expect:
-        cache.get(id1, classPath("c1"), root, f1, false).is(cache.get(id1, classPath("c1"), root, f1, false))
+        cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
         cache.size() == 2
-        !cache.get(id1, classPath("c1"), root, f1, false).is(cache.get(id1, classPath("c1"), root, f2, false))
+        !cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f2))
         cache.size() == 2
     }
 
@@ -91,9 +93,9 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
-        cache.get(id1, classPath("c1"), root, f1, false)
+        cache.get(id1, classPath("c1"), root, f1)
         cache.size() == 2
-        cache.get(id1, classPath("c1"), root, null, false)
+        cache.get(id1, classPath("c1"), root, null)
         cache.size() == 1
     }
 
@@ -101,10 +103,10 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
-        cache.get(id1, classPath("c1"), root, f1, false)
-        cache.get(id2, classPath("c1"), root, f1, false)
+        cache.get(id1, classPath("c1"), root, f1)
+        cache.get(id2, classPath("c1"), root, f1)
         cache.size() == 2
-        cache.get(id1, classPath("c1"), root, null, false)
+        cache.get(id1, classPath("c1"), root, null)
         cache.size() == 2
     }
 
@@ -116,25 +118,25 @@ class DefaultClassLoaderCacheTest extends Specification {
         def cp1 = classPath("c1")
         def cp2 = classPath("c2")
 
-        cache.get(id1, cp1, root, f1, false)
-        cache.get(id2, cp1, root, f2, false)
+        cache.get(id1, cp1, root, f1)
+        cache.get(id2, cp1, root, f2)
         cache.size() == 3
-        cache.get(id1, cp2, root, f1, false)
+        cache.get(id1, cp2, root, f1)
         cache.size() == 4
-        cache.get(id1, cp1, root, null, false)
+        cache.get(id1, cp1, root, null)
         cache.size() == 2
-        cache.get(id1, cp2, root, null, false)
-        cache.get(id2, cp2, root, null, false)
+        cache.get(id1, cp2, root, null)
+        cache.get(id2, cp2, root, null)
         cache.size() == 1
     }
 
     def "removes stale classloader"() {
         def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c1"), root, null, false)
-        def c2 = cache.get(id1, classPath("c2"), root, null, false)
+        cache.get(id1, classPath("c1"), root, null)
+        def c2 = cache.get(id1, classPath("c2"), root, null)
         expect:
         cache.size() == 1
-        c2.is cache.get(id1, classPath("c2"), root, null, false)
+        c2.is cache.get(id1, classPath("c2"), root, null)
     }
 
     def "can remove loaders"() {
@@ -150,8 +152,8 @@ class DefaultClassLoaderCacheTest extends Specification {
 
         when:
         def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c2"), root, null, false)
-        cache.get(id2, classPath("c2"), root, null, false)
+        cache.get(id1, classPath("c2"), root, null)
+        cache.get(id2, classPath("c2"), root, null)
 
         then:
         cache.size() == 1 // both are the same

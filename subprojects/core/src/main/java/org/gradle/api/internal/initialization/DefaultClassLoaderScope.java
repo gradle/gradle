@@ -164,7 +164,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     private ClassLoader loader(ClassLoaderId id, ClassPath classPath) {
-        ClassLoader classLoader = classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null, false);
+        ClassLoader classLoader = classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
         if (ownLoaders == null) {
             ownLoaders = new ArrayList<ClassLoader>();
         }

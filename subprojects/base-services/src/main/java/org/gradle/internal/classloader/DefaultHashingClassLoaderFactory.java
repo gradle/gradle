@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory implements HashingClassLoaderFactory {
-    private static final HashCode IGNORED_HASH = Hashing.md5().hashString("IGNORE", Charsets.UTF_8);
-
     private final ClassPathSnapshotter snapshotter;
     private final Map<ClassLoader, HashCode> hashCodes = new WeakHashMap<ClassLoader, HashCode>();
 
@@ -51,9 +49,9 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, boolean ignoreHash) {
-        HashCode hashCode = ignoreHash
-            ? IGNORED_HASH
+    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode overrideHashCode) {
+        HashCode hashCode = overrideHashCode != null
+            ? overrideHashCode
             : calculateClassLoaderHash(classPath);
         ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
         hashCodes.put(classLoader, hashCode);

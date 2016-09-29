@@ -29,26 +29,8 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
 
-        originalLocation.file("external.gradle") << """
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile
-                @PathSensitive(PathSensitivity.NONE)
-                File inputFile
-
-                @OutputFile File outputFile
-
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text
-                }
-            }
-
-            task customTask(type: CustomTask) {
-                inputFile = file "input.txt"
-                outputFile = file "build/output.txt"
-            }
-        """
+        originalLocation.file("external.gradle").text = externalTaskDef()
+        originalLocation.file("external.gradle").makeOlder()
         originalLocation.file("input.txt") << "input"
         originalLocation.file("input-2.txt") << "input-2"
         originalLocation.file("src/main/java/Hello.java") << """
@@ -70,6 +52,15 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
+
+        when:
+        executer.usingProjectDirectory(originalLocation)
+        originalLocation.file("external.gradle").text = externalTaskDef("modified")
+        succeedsWithCache "jar", "customTask"
+
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
+        nonSkippedTasks.contains ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -95,6 +86,29 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.containsAll ":compileJava", ":jar"
         // Custom tasks are also loaded from cache
         skippedTasks.contains ":customTask"
+    }
+
+    static String externalTaskDef(String suffix = "") {
+        """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File inputFile
+
+                @OutputFile File outputFile
+
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text + '$suffix'
+                }
+            }
+
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
     }
 
     void succeedsWithCache(String... tasks) {

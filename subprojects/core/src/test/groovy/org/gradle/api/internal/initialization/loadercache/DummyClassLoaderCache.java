@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -23,8 +24,15 @@ import org.gradle.internal.classpath.ClassPath;
 import java.net.URLClassLoader;
 
 public class DummyClassLoaderCache implements ClassLoaderCache {
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, boolean ignoreClassPath) {
+
+    @Override
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
         return new URLClassLoader(classPath.getAsURLArray(), parent);
+    }
+
+    @Override
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+        return get(id, classPath, parent, filterSpec, null);
     }
 
     @Override

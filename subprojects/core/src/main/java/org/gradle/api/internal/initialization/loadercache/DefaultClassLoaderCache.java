@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -49,9 +50,14 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, boolean ignoreClassPath) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+        return get(id, classPath, parent, filterSpec, null);
+    }
+
+    @Override
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
         ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec, ignoreClassPath);
+        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec, overrideHashCode);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -90,7 +96,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.ignoreHash);
+                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.overrideHashCode);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -121,17 +127,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         private final ClassLoader parent;
         private final ClassPathSnapshot classPathSnapshot;
         private final FilteringClassLoader.Spec filterSpec;
-        private final boolean ignoreHash;
+        private final HashCode overrideHashCode;
 
-        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, boolean ignoreHash) {
+        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
             this.parent = parent;
             this.classPathSnapshot = classPathSnapshot;
             this.filterSpec = filterSpec;
-            this.ignoreHash = ignoreHash;
+            this.overrideHashCode = overrideHashCode;
         }
 
         public ClassLoaderSpec unfiltered() {
-            return new ClassLoaderSpec(parent, classPathSnapshot, null, ignoreHash);
+            return new ClassLoaderSpec(parent, classPathSnapshot, null, overrideHashCode);
         }
 
         public boolean isFiltered() {
@@ -145,7 +151,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             return Objects.equal(this.parent, that.parent)
                 && this.classPathSnapshot.equals(that.classPathSnapshot)
                 && Objects.equal(this.filterSpec, that.filterSpec)
-                && this.ignoreHash == that.ignoreHash;
+                && Objects.equal(this.overrideHashCode, that.overrideHashCode);
         }
 
         @Override
@@ -153,7 +159,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             int result = classPathSnapshot.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
-            result = 31 * result + (ignoreHash ? 1 : 0);
+            result = 31 * result + (overrideHashCode != null ? overrideHashCode.hashCode() : 0);
             return result;
         }
     }
