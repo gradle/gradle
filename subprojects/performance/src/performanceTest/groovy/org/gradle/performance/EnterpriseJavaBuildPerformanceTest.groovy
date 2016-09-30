@@ -18,8 +18,6 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -28,20 +26,12 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
 
     @Unroll("Builds '#testProject' calling #tasks (daemon)")
     def "build"() {
-        // This is just an approximation of first use. We simply recompile the scripts
         given:
         runner.testId = "Enterprise Java $testProject ${tasks.join(' ')} (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.useDaemon = true
         runner.targetVersions = ['last']
-        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo info) {
-                def serverDir = new File(info.projectDir, "maven-server")
-                new File(serverDir, "gradlew").executable = true
-            }
-        }
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
 
         when:
@@ -51,7 +41,30 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject          | tasks
+        testProject            | tasks
+        'largeEnterpriseBuild' | ['cleanIdea', 'idea']
+        'largeEnterpriseBuild' | ['clean', 'assemble']
+    }
+
+    @Unroll("Builds '#testProject' calling #tasks (daemon) in parallel")
+    def "build parallel"() {
+        given:
+        runner.testId = "Enterprise Java $testProject ${tasks.join(' ')} (daemon, parallel)"
+        runner.testProject = testProject
+        runner.tasksToRun = tasks
+        runner.useDaemon = true
+        runner.targetVersions = ['last']
+        runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
+        runner.args = ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject            | tasks
         'largeEnterpriseBuild' | ['cleanIdea', 'idea']
         'largeEnterpriseBuild' | ['clean', 'assemble']
     }
