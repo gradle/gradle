@@ -16,7 +16,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.api.Action
-import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheValidator
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestFile
@@ -47,7 +46,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == cache
-        1 * scopeMapping.getBaseDirectory(null, "a/b/c", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, null, [:], mode(Shared), null) >> cache
         0 * cacheFactory._
     }
@@ -57,7 +56,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withProperties(properties).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a/b/c", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, null, properties, mode(Shared), null) >> cache
     }
 
@@ -66,7 +65,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("scope", "a/b/c").open()
 
         then:
-        1 * scopeMapping.getBaseDirectory("scope", "a/b/c", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory("scope", "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, null, [:], mode(Shared), null) >> cache
     }
 
@@ -83,7 +82,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("scope", "a/b/c").withCrossVersionCache().open()
 
         then:
-        1 * scopeMapping.getBaseDirectory("scope", "a/b/c", CacheBuilder.VersionStrategy.SharedCache) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory("scope", "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, null, [:], mode(Shared), null) >> cache
     }
 
@@ -94,7 +93,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a").withInitializer(action).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, null, [:], mode(Shared), action) >> cache
     }
 
@@ -103,7 +102,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a").withLockOptions(mode(None)).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, null, [:], mode(None), null) >> cache
     }
 
@@ -112,7 +111,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a").withDisplayName("<cache>").open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, "<cache>", null, [:], mode(Shared), null) >> cache
     }
 
@@ -122,7 +121,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a").withValidator(validator).open()
 
         then:
-        1 * scopeMapping.getBaseDirectory(null, "a", CacheBuilder.VersionStrategy.CachePerVersion) >> sharedCacheDir
+        1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
         1 * cacheFactory.open(sharedCacheDir, null, validator, [:], mode(Shared), null) >> cache
     }
 }

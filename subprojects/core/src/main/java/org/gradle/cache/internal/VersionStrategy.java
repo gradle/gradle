@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Nullable;
-
-import java.io.File;
-
-public interface CacheScopeMapping {
-    File getBaseDirectory(@Nullable Object scope, String key, VersionStrategy versionStrategy);
+enum VersionStrategy {
+    /**
+     * A separate cache instance for each Gradle version. This is the default.
+     */
+    CachePerVersion,
+    /**
+     * A single cache instance shared by all Gradle versions. It is the caller's responsibility to make sure that this is shared only with
+     * those versions of Gradle that are compatible with the cache implementation and contents.
+     */
+    SharedCache
 }

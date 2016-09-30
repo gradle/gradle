@@ -22,17 +22,6 @@ import org.gradle.cache.internal.filelock.LockOptions;
 import java.util.Map;
 
 public interface CacheBuilder {
-    enum VersionStrategy {
-        /**
-         * A separate cache instance for each Gradle version. This is the default.
-         */
-        CachePerVersion,
-        /**
-         * A single cache instance shared by all Gradle versions. It is the caller's responsibility to make sure that this is shared only with
-         * those versions of Gradle that are compatible with the cache implementation and contents.
-         */
-        SharedCache
-    }
 
     /**
      * Specifies the additional key properties for the cache. The cache is treated as invalid if any of the properties do not match the properties used to create the cache. The default for this is an

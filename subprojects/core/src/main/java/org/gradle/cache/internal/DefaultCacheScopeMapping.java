@@ -19,7 +19,6 @@ package org.gradle.cache.internal;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -35,7 +34,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         this.buildCacheDir = buildCacheDir;
     }
 
-    public File getBaseDirectory(Object scope, String key, CacheBuilder.VersionStrategy versionStrategy) {
+    public File getBaseDirectory(Object scope, String key, VersionStrategy versionStrategy) {
         if (key.equalsIgnoreCase("projects") || key.equalsIgnoreCase("tasks") || !key.matches("\\p{Alpha}+[-//.\\w]*")) {
             throw new IllegalArgumentException(String.format("Unsupported cache key '%s'.", key));
         }
@@ -57,7 +56,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         throw new IllegalArgumentException(String.format("Don't know how to determine the cache directory for scope of type %s.", scope.getClass().getSimpleName()));
     }
 
-    private File getCacheDir(File rootDir, CacheBuilder.VersionStrategy versionStrategy, String subDir) {
+    private File getCacheDir(File rootDir, VersionStrategy versionStrategy, String subDir) {
         switch (versionStrategy) {
             case CachePerVersion:
                 return new File(rootDir, version.getVersion() + "/" + subDir);
