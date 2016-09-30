@@ -252,15 +252,52 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
     }
 
-    @NotYetImplemented
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "can show dependent components in parallel"() {
-        given:
+        given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
         buildScript multiProjectBuild()
 
-        expect:
+        when: 'two reports in parallel'
         succeeds('--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
+
+        then: 'reports are not mixed'
+        output.contains '''
+            ------------------------------------------------------------
+            Project :libraries
+            ------------------------------------------------------------
+
+            bar - Components that depend on native library 'bar'
+            +--- :libraries:bar:sharedLibrary
+            |    +--- :bootstrap:main:executable
+            |    +--- :extensions:cathedral:sharedLibrary
+            |    |    \\--- :bootstrap:main:executable
+            |    \\--- :extensions:cathedral:staticLibrary
+            \\--- :libraries:bar:staticLibrary
+
+            foo - Components that depend on native library 'foo'
+            +--- :libraries:foo:sharedLibrary
+            |    +--- :bootstrap:main:executable
+            |    +--- :extensions:bazar:sharedLibrary
+            |    |    \\--- :bootstrap:main:executable
+            |    \\--- :extensions:bazar:staticLibrary
+            \\--- :libraries:foo:staticLibrary
+        '''.stripIndent()
+        output.contains '''
+            ------------------------------------------------------------
+            Project :extensions
+            ------------------------------------------------------------
+
+            bazar - Components that depend on native library 'bazar'
+            +--- :extensions:bazar:sharedLibrary
+            |    \\--- :bootstrap:main:executable
+            \\--- :extensions:bazar:staticLibrary
+
+            cathedral - Components that depend on native library 'cathedral'
+            +--- :extensions:cathedral:sharedLibrary
+            |    \\--- :bootstrap:main:executable
+            \\--- :extensions:cathedral:staticLibrary
+        '''.stripIndent()
     }
 
     def "don't fail with prebuilt libraries"() {

@@ -36,6 +36,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
@@ -45,6 +46,13 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  */
 @Incubating
 public class DependentComponentsReport extends DefaultTask {
+
+    /**
+     * Prevents multiple parallel executions of this task.
+     * Output reports per execution, not mixed.
+     * Cross-project ModelRegistry operations do not happen concurrently.
+     */
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
     private boolean showNonBuildable;
     private boolean showTestSuites;
@@ -126,25 +134,30 @@ public class DependentComponentsReport extends DefaultTask {
 
     @TaskAction
     public void report() {
-        Project project = getProject();
-        ModelRegistry modelRegistry = getModelRegistry();
-        DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
+        LOCK.lock();
+        try {
+            Project project = getProject();
+            ModelRegistry modelRegistry = getModelRegistry();
+            DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
 
-        StyledTextOutput textOutput = getTextOutputFactory().create(DependentComponentsReport.class);
-        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
+            StyledTextOutput textOutput = getTextOutputFactory().create(DependentComponentsReport.class);
+            TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
 
-        reportRenderer.setOutput(textOutput);
-        reportRenderer.startProject(project);
+            reportRenderer.setOutput(textOutput);
+            reportRenderer.startProject(project);
 
-        Set<ComponentSpec> allComponents = getAllComponents(modelRegistry);
-        if (showTestSuites) {
-            allComponents.addAll(getAllTestSuites(modelRegistry));
+            Set<ComponentSpec> allComponents = getAllComponents(modelRegistry);
+            if (showTestSuites) {
+                allComponents.addAll(getAllTestSuites(modelRegistry));
+            }
+            reportRenderer.renderComponents(getReportedComponents(allComponents));
+            reportRenderer.renderLegend();
+
+            reportRenderer.completeProject(project);
+            reportRenderer.complete();
+        } finally {
+            LOCK.unlock();
         }
-        reportRenderer.renderComponents(getReportedComponents(allComponents));
-        reportRenderer.renderLegend();
-
-        reportRenderer.completeProject(project);
-        reportRenderer.complete();
     }
 
     private Set<ComponentSpec> getReportedComponents(Set<ComponentSpec> allComponents) {
