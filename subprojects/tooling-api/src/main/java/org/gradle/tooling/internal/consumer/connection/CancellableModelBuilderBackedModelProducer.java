@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.internal.Cast;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -25,6 +26,7 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public class CancellableModelBuilderBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
@@ -57,7 +59,25 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         if (!versionDetails.maySupportModel(elementType)) {
             throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
         }
+        if (elementType == BuildEnvironment.class) {
+            return Cast.uncheckedCast(getBuildEnvironment(operationParameters));
+        }
         return actionRunner.run(new BuildMultiModelAction<T>(elementType, operationParameters), operationParameters);
+    }
+
+    /*
+     * Using a build action to fetch the build environment does not work on
+     * older Gradle versions and it would just be inefficient regardless.
+     */
+    private InternalModelResults<BuildEnvironment> getBuildEnvironment(ConsumerOperationParameters operationParameters) {
+        InternalModelResults<BuildEnvironment> results = new InternalModelResults<BuildEnvironment>();
+        try {
+            BuildEnvironment buildEnvironment = produceModel(BuildEnvironment.class, operationParameters);
+            results.addBuildModel(operationParameters.getProjectDir(), buildEnvironment);
+        } catch (RuntimeException e) {
+            results.addBuildFailure(operationParameters.getProjectDir(), e);
+        }
+        return results;
     }
 
 }
