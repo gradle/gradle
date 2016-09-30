@@ -16,20 +16,14 @@
 
 package org.gradle.internal.classpath;
 
-import java.net.URL;
-import java.util.Collection;
+import java.io.File;
 
 /**
- * Represents a transformer that takes a given ClassPath and transforms it to a ClassPath with cached jars
+ * Represents a store of cached jars.
  */
-public interface CachedClasspathTransformer {
+public interface CachedJarFileStore {
     /**
-     * Transform a ClassPath object to a ClassPath with cached jars
+     * Returns the root directory of the store.
      */
-    ClassPath transform(ClassPath classPath);
-
-    /**
-     * Transform a collection of urls to a new collection where the file urls are cached jars
-     */
-    Collection<URL> transform(Collection<URL> urls);
+    File getJarFileStoreDirectory();
 }

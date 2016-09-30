@@ -29,10 +29,10 @@ import org.gradle.api.internal.tasks.cache.config.DefaultTaskCaching;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.file.JarCache;
@@ -106,7 +106,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(), cacheScopeMapping);
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(), getAll(CachedJarFileStore.class));
     }
 }

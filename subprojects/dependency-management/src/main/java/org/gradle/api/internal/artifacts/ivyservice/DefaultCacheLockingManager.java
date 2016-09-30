@@ -73,6 +73,11 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
         return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
     }
 
+    @Override
+    public File getJarFileStoreDirectory() {
+        return getFileStoreDirectory();
+    }
+
     public File getFileStoreDirectory() {
         return createCacheRelativeDir(CacheLayout.FILE_STORE);
     }
