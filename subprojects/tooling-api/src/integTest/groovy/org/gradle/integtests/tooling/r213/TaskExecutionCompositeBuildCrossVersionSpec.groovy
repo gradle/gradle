@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -30,6 +31,7 @@ import spock.lang.Ignore
 /**
  * Tooling client can execute tasks in a composite build
  */
+@TargetGradleVersion(">=3.1")
 class TaskExecutionCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "can execute tasks in root of composite"() {

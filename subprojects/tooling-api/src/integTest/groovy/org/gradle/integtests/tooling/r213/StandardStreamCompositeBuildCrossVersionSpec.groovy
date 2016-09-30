@@ -17,9 +17,11 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
+@TargetGradleVersion(">=3.1")
 class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     def escapeHeader = "\u001b["
     def stdOutStream = new ByteArrayOutputStream()
