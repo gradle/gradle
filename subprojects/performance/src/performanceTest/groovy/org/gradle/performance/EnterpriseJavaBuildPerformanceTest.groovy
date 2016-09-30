@@ -67,4 +67,26 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         'largeEnterpriseBuild' | ['cleanIdea', 'idea']
         'largeEnterpriseBuild' | ['clean', 'assemble']
     }
+
+    @Unroll("Builds '#testProject' calling #tasks (daemon) with local cache")
+    def "build with cache"() {
+        given:
+        runner.testId = "Enterprise Java $testProject ${tasks.join(' ')} (daemon, cached)"
+        runner.testProject = testProject
+        runner.tasksToRun = tasks
+        runner.useDaemon = true
+        runner.targetVersions = ['last']
+        runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
+        runner.args = ['-Dorg.gradle.cache.tasks=true']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject            | tasks
+        'largeEnterpriseBuild' | ['clean', 'assemble']
+    }
 }
