@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.generator;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -65,7 +66,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
     @Override
     public void store(File outputFile) {
         try {
-            OutputStream outputStream = new FileOutputStream(outputFile);
+            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
             try {
                 store(outputStream);
             } finally {
