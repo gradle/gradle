@@ -56,9 +56,6 @@ class CatchExceptionTaskExecuterTest extends Specification {
         }
         0 * _
 
-        RuntimeException thrown = thrown()
-        thrown.is(failure)
-
         state.outcome == TaskExecutionOutcome.EXECUTED
         state.failure.is(failure)
     }

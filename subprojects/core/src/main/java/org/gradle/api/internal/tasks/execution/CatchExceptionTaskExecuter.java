@@ -26,7 +26,7 @@ import org.gradle.api.logging.Logging;
 public class CatchExceptionTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(CatchExceptionTaskExecuter.class);
 
-    private TaskExecuter delegate;
+    private final TaskExecuter delegate;
 
     public CatchExceptionTaskExecuter(TaskExecuter delegate) {
         this.delegate = delegate;
@@ -37,9 +37,7 @@ public class CatchExceptionTaskExecuter implements TaskExecuter {
         try {
             delegate.execute(task, state, context);
         } catch (RuntimeException e) {
-            LOGGER.info("Execution of {} failed with message: {}", task, e.getMessage());
             state.setOutcome(e);
-            throw e;
         }
     }
 }
