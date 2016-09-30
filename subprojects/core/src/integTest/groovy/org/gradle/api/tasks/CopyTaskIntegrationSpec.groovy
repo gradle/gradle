@@ -143,6 +143,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                exclude '**/ignore/**'
                rename '(.*).a', '\$1.renamed'
                rename { it.startsWith('one.') ? "renamed_$it" : it }
+               rename { it.endsWith('two.b') ? null : it}
             }
         '''.stripIndent()
 
@@ -159,7 +160,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             'one/sub/onesub.renamed',
             'one/sub/onesub.b',
             'two/two.renamed',
-            'two/two.b'
+            'two/two.b' //do not rename with 'rename { null }'
         )
     }
 

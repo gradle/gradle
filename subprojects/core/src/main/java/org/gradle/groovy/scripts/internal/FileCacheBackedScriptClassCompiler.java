@@ -29,7 +29,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -84,7 +84,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        final String sourceHash = hashFor(source);
+        HashCode sourceHashCode = snapshotter.snapshot(source.getResource()).getHash();
+        final String sourceHash = HashUtil.createCompactMD5(sourceHashCode);
         final String dslId = operation.getId();
         final String classpathHash = dslId + classLoaderHierarchyHasher.getLenientHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
@@ -107,17 +108,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File remappedClassesDir = classesDir(remappedClassesCache);
         File remappedMetadataDir = metadataDir(remappedClassesCache);
 
-        return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
         classLoaderCache.remove(classLoaderId);
         return new EmptyCompiledScript<T, M>(operation);
-    }
-
-    private String hashFor(ScriptSource source) {
-        HashCode hash = snapshotter.snapshot(source.getResource()).getHash();
-        return new HashValue(hash.asBytes()).asCompactString();
     }
 
     public void close() {

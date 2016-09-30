@@ -44,7 +44,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, CacheScopeMapping cacheScopeMapping) {
         this.cache = cacheRepository
-            .cache("jars-1")
+            .cache("jars-2")
             .withDisplayName("jars")
             .withCrossVersionCache()
             .withLockOptions(mode(FileLockManager.LockMode.None))

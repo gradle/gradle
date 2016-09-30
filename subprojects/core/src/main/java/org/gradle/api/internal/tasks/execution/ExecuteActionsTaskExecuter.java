@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -53,7 +54,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         try {
             GradleException failure = executeActions(task, state, context);
             if (failure != null) {
-                state.executed(failure);
+                state.setOutcome(failure);
+            } else {
+                state.setOutcome(
+                    state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
+                );
             }
         } finally {
             state.setExecuting(false);

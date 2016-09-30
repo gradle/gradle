@@ -42,9 +42,9 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.ZipTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
-import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
@@ -82,23 +82,24 @@ public class TaskExecutionServices {
             ? listenerManager.getBroadcaster(TaskInputsListener.class)
             : TaskInputsListener.NOOP;
 
-        return new ExecuteAtMostOnceTaskExecuter(
-            new SkipOnlyIfTaskExecuter(
-                new SkipTaskWithNoActionsExecuter(
-                    new ResolveTaskArtifactStateTaskExecuter(
-                        repository,
-                        new SkipEmptySourceFilesTaskExecuter(
-                            taskInputsListener,
-                            new ValidatingTaskExecuter(
-                                new SkipUpToDateTaskExecuter(
-                                    createSkipCachedExecuterIfNecessary(
-                                        startParameter,
-                                        gradle.getTaskCaching(),
-                                        packer,
-                                        listenerManager,
-                                        new PostExecutionAnalysisTaskExecuter(
+        TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
+        return new CatchExceptionTaskExecuter(
+            new ExecuteAtMostOnceTaskExecuter(
+                new SkipOnlyIfTaskExecuter(
+                    new SkipTaskWithNoActionsExecuter(
+                        new ResolveTaskArtifactStateTaskExecuter(
+                            repository,
+                            new SkipEmptySourceFilesTaskExecuter(
+                                taskInputsListener,
+                                new ValidatingTaskExecuter(
+                                    new SkipUpToDateTaskExecuter(
+                                        createSkipCachedExecuterIfNecessary(
+                                            startParameter,
+                                            gradle.getTaskCaching(),
+                                            packer,
+                                            taskOutputsGenerationListener,
                                             new ExecuteActionsTaskExecuter(
-                                                listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),
+                                                taskOutputsGenerationListener,
                                                 listenerManager.getBroadcaster(TaskActionListener.class)
                                             )
                                         )
@@ -112,9 +113,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, ListenerManager listenerManager, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputsGenerationListener.class), delegate);
+            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, taskOutputsGenerationListener, delegate);
         } else {
             return delegate;
         }

@@ -54,7 +54,12 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         workQueue = new ArrayBlockingQueue<Runnable>(queueCapacity);
     }
 
+    @Override
     public void enqueue(Runnable task) {
+        addToQueue(AsyncCacheAccessRunnable.wrapWhenContextIsUsed(task));
+    }
+
+    private void addToQueue(Runnable task) {
         if (closed) {
             throw new IllegalStateException("The worker has already been closed. Cannot add more work to queue.");
         }
@@ -66,8 +71,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     public <T> T read(Callable<T> task) {
-        FutureTask<T> futureTask = new FutureTask<T>(task);
-        enqueue(futureTask);
+        FutureTask<T> futureTask = AsyncCacheAccessFutureTask.wrapWhenContextIsUsed(task);
+        addToQueue(futureTask);
         try {
             return futureTask.get();
         } catch (ExecutionException e) {
@@ -86,7 +91,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             try {
                 synchronized (failureLock) {
                     pendingFlushOperations.add(flushOperationsCommand);
-                    enqueue(flushOperationsCommand);
+                    addToQueue(flushOperationsCommand);
                     rethrowFailure();
                 }
                 synchronized (failureLock) {
@@ -231,6 +236,65 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         @Override
         public void run() {
             // do nothing
+        }
+    }
+
+    // passes ThreadLocal context from requesting thread over to worker thread
+    private static class AsyncCacheAccessFutureTask<V> extends FutureTask<V> implements Runnable {
+        private final AsyncCacheAccessContext context;
+
+        private AsyncCacheAccessFutureTask(Callable<V> callable, AsyncCacheAccessContext context) {
+            super(callable);
+            this.context = AsyncCacheAccessContext.current();
+        }
+
+        public static <V> FutureTask<V> wrapWhenContextIsUsed(Callable<V> callable) {
+            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
+            if (context != null) {
+                return new AsyncCacheAccessFutureTask(callable, context);
+            } else {
+                return new FutureTask<V>(callable);
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                AsyncCacheAccessContext.apply(context);
+                super.run();
+            } finally {
+                AsyncCacheAccessContext.remove();
+            }
+        }
+    }
+
+    // makes a copy of the ThreadLocal context and passes it from the requesting thread over to worker thread
+    private static class AsyncCacheAccessRunnable implements Runnable {
+        private final Runnable delegate;
+        private final AsyncCacheAccessContext context;
+
+        private AsyncCacheAccessRunnable(Runnable delegate, AsyncCacheAccessContext context) {
+            this.delegate = delegate;
+            this.context = context;
+        }
+
+        public static Runnable wrapWhenContextIsUsed(Runnable delegate) {
+            AsyncCacheAccessContext context = AsyncCacheAccessContext.copyOfCurrent();
+            if (context != null) {
+                return new AsyncCacheAccessRunnable(delegate, context);
+            } else {
+                return delegate;
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                AsyncCacheAccessContext.apply(context);
+                delegate.run();
+            } finally {
+                AsyncCacheAccessContext.remove();
+            }
         }
     }
 }

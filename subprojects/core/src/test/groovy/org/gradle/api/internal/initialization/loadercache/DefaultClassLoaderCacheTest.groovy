@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
+import com.google.common.hash.HashCode
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -47,11 +48,13 @@ class DefaultClassLoaderCacheTest extends Specification {
         new URLClassLoader(classPath.asURLArray)
     }
 
-    def "class loaders are reused when parent and class path are the same"() {
+    def "class loaders are reused when parent, class path and hashing are the same"() {
         expect:
         def root = classLoader(classPath("root"))
         cache.get(id1, classPath("c1"), root, null) == cache.get(id1, classPath("c1"), root, null)
         cache.get(id1, classPath("c1"), root, null) != cache.get(id1, classPath("c1", "c2"), root, null)
+        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) == cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100))
+        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1", "c2"), root, null, HashCode.fromInt(200))
     }
 
     def "class loaders with different ids are reused"() {

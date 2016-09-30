@@ -30,12 +30,9 @@ public class TaskExecutionStatistics {
     private int allTasksCount;
     private int cacheableTasksCount;
 
-    public void taskOutcome(TaskExecutionOutcome outcome) {
+    public void taskStatus(TaskExecutionOutcome outcome, boolean cacheable) {
         allTasksCount++;
         taskCounts.put(outcome, taskCounts.get(outcome) + 1);
-    }
-
-    public void taskCacheable(boolean cacheable) {
         if (cacheable) {
             cacheableTasksCount++;
         }

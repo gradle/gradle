@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GFileUtils;
@@ -34,6 +36,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GCLoggingCollector implements DataCollector {
+    private final static Logger LOG = Logging.getLogger(GCLoggingCollector.class);
+
     private File logFile;
 
     @Override
@@ -107,7 +111,7 @@ public class GCLoggingCollector implements DataCollector {
             events++;
 
             if (event.start < usageAtPreviousCollection) {
-                throw new IllegalArgumentException("Unexpected max heap size found in garbage collection event: " + line);
+                LOG.warn("Unexpected max heap size found in garbage collection event: " + line);
             }
 
             if (event.timestamp.isAfter(operation.getEnd())) {
@@ -124,7 +128,7 @@ public class GCLoggingCollector implements DataCollector {
         }
 
         if (events == 0) {
-            throw new IllegalArgumentException("Did not find any garbage collection events in garbage collection log.");
+            LOG.warn("Did not find any garbage collection events in garbage collection log.");
         }
 
         // Process the heap usage summary at the end of the log
@@ -175,5 +179,12 @@ public class GCLoggingCollector implements DataCollector {
         operation.setMaxHeapUsage(DataAmount.kbytes(BigDecimal.valueOf(maxUsage)));
         operation.setMaxUncollectedHeap(DataAmount.kbytes(BigDecimal.valueOf(maxUncollectedUsage)));
         operation.setMaxCommittedHeap(DataAmount.kbytes(BigDecimal.valueOf(maxCommittedUsage)));
+
+        List<String> notParsed = eventParser.getNotParsed();
+        if (!notParsed.isEmpty()) {
+            for (String line : notParsed) {
+                LOG.warn("Unable to parse GC log entry: {}", line);
+            }
+        }
     }
 }

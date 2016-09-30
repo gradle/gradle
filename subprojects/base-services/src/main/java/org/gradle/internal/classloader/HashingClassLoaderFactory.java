@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.classloader;
 
+import com.google.common.hash.HashCode;
 import org.gradle.internal.classpath.ClassPath;
 
 /**
@@ -22,11 +23,8 @@ import org.gradle.internal.classpath.ClassPath;
  */
 public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoaderHasher {
     /**
-     * Creates a custom {@link ClassLoader} with the given parent and classpath. The hash of the created classloader is stored.
+     * Creates a {@link ClassLoader} with the given parent and classpath. Use the given hash
+     * code, or calculate it from the given classpath when hash code is {@code null}.
      */
-    ClassLoader createCustomClassLoader(ClassLoader parent, ClassPath classPath, CustomClassLoaderFactory factory);
-
-    interface CustomClassLoaderFactory {
-        ClassLoader create(ClassLoader parent, ClassPath classPath);
-    }
+    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode overrideHashCode);
 }

@@ -46,7 +46,6 @@ public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListe
     @Override
     public void afterExecute(Task task, TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
-        statistics.taskOutcome(stateInternal.getOutcome());
-        statistics.taskCacheable(stateInternal.isCacheable());
+        statistics.taskStatus(stateInternal.getOutcome(), stateInternal.isCacheable());
     }
 }

@@ -16,15 +16,14 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory implements HashingClassLoaderFactory {
@@ -49,11 +48,13 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
         return classLoader;
     }
 
-
     @Override
-    public ClassLoader createCustomClassLoader(ClassLoader parent, ClassPath classPath, CustomClassLoaderFactory factory) {
-        ClassLoader classLoader = factory.create(parent, classPath);
-        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
+    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode overrideHashCode) {
+        HashCode hashCode = overrideHashCode != null
+            ? overrideHashCode
+            : calculateClassLoaderHash(classPath);
+        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
+        hashCodes.put(classLoader, hashCode);
         return classLoader;
     }
 
@@ -78,9 +79,14 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
         return hasher.hash();
     }
 
-    private static void addToHash(Hasher hasher, Iterable<String> items) {
-        List<String> sortedItems = Lists.newArrayList(items);
-        Collections.sort(sortedItems);
+    private static void addToHash(Hasher hasher, Set<String> items) {
+        int count = items.size();
+        hasher.putInt(count);
+        if (count == 0) {
+            return;
+        }
+        String[] sortedItems = items.toArray(new String[count]);
+        Arrays.sort(sortedItems);
         for (String item : sortedItems) {
             hasher.putInt(0);
             hasher.putString(item, Charsets.UTF_8);

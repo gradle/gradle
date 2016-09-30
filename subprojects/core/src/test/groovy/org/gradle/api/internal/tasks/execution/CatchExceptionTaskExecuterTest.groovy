@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.tasks.execution
+
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -22,43 +23,43 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
-class PostExecutionAnalysisTaskExecuterTest extends Specification {
-    def target = Mock(TaskExecuter)
-    def task = Mock(TaskInternal)
-    def state = Mock(TaskStateInternal)
-    def context = Mock(TaskExecutionContext)
-    final PostExecutionAnalysisTaskExecuter executer = new PostExecutionAnalysisTaskExecuter(target)
+class CatchExceptionTaskExecuterTest extends Specification {
+    private TaskExecuter delegate = Mock(TaskExecuter)
+    private CatchExceptionTaskExecuter executer = new CatchExceptionTaskExecuter(delegate)
+    private TaskInternal task = Mock(TaskInternal)
+    private TaskStateInternal state = new TaskStateInternal('<task>')
+    private TaskExecutionContext context = Mock(TaskExecutionContext)
 
-    def marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {
+    def 'calls delegate and does nothing'() {
         when:
         executer.execute(task, state, context)
 
         then:
-        1 * target.execute(task, state, context)
-        1 * state.didWork >> false
-        1 * state.getFailure() >> null
-        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
+        1 * delegate.execute(task, state, context) >> {
+            state.setOutcome(TaskExecutionOutcome.EXECUTED)
+        }
         0 * _
+        state.outcome == TaskExecutionOutcome.EXECUTED
+        !state.failure
     }
 
-    def 'does not mark test as up to date when it did not do work and failed'() {
+    def 'should throw exception of delegate and set the outcome to failure'() {
+        given:
+        def failure = new RuntimeException("Failure")
+
         when:
         executer.execute(task, state, context)
 
         then:
-        1 * target.execute(task, state, context)
-        1 * state.didWork >> false
-        1 * state.getFailure() >> new RuntimeException()
+        1 * delegate.execute(task, state, context) >> {
+            throw failure
+        }
         0 * _
-    }
 
-    def doesNotMarkTaskUpToDateWhenItHasActionsAndDidWork() {
-        when:
-        executer.execute(task, state, context)
+        RuntimeException thrown = thrown()
+        thrown.is(failure)
 
-        then:
-        1 * target.execute(task, state, context)
-        1 * state.didWork >> true
-        0 * _
+        state.outcome == TaskExecutionOutcome.EXECUTED
+        state.failure.is(failure)
     }
 }

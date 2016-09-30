@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,27 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
-/**
- * A {@link TaskExecuter} which marks tasks as up-to-date if they did no work.
- */
-public class PostExecutionAnalysisTaskExecuter implements TaskExecuter {
-    private final TaskExecuter executer;
+public class CatchExceptionTaskExecuter implements TaskExecuter {
+    private static final Logger LOGGER = Logging.getLogger(CatchExceptionTaskExecuter.class);
 
-    public PostExecutionAnalysisTaskExecuter(TaskExecuter executer) {
-        this.executer = executer;
+    private TaskExecuter delegate;
+
+    public CatchExceptionTaskExecuter(TaskExecuter delegate) {
+        this.delegate = delegate;
     }
 
+    @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        executer.execute(task, state, context);
-        if (!state.getDidWork() && state.getFailure() == null) {
-            state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+        try {
+            delegate.execute(task, state, context);
+        } catch (RuntimeException e) {
+            LOGGER.info("Execution of {} failed with message: {}", task, e.getMessage());
+            state.setOutcome(e);
+            throw e;
         }
     }
 }

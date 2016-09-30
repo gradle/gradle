@@ -29,11 +29,6 @@ public interface ClassLoaderFactory {
     ClassLoader createIsolatedClassLoader(ClassPath classPath);
 
     /**
-     * Creates a {@link ClassLoader} with the given parent and classpath.
-     */
-    ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath);
-
-    /**
      * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access to selected classes from the given parent ClassLoader.
      *
      * @param parent the parent ClassLoader
