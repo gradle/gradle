@@ -18,7 +18,9 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 /**
@@ -26,6 +28,19 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  */
 @TargetGradleVersion(">=3.2")
 class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
+
+    @TargetGradleVersion("<1.2")
+    def "multi model retrieval fails for pre 1.2 providers"() {
+        given:
+        multiProjectBuildInRootFolder("single-build", ['a', 'b', 'c'])
+
+        when:
+        getUnwrappedModels(EclipseProject)
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later."
+    }
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {
         when:
