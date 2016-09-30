@@ -15,10 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModule
@@ -28,31 +28,25 @@ import org.gradle.tooling.model.idea.IdeaProject
 import static org.gradle.util.CollectionUtils.single
 
 /**
- * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
+ * Dependency substitution is performed for models in a composite build
  */
+@TargetGradleVersion(">=3.2")
 class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB
-    List<String> builds = []
-    def publishedModuleB1
     EclipseProject eclipseProjectA
     EclipseProject eclipseProjectB1
     IdeaModule ideaModuleA
     IdeaModule ideaModuleB1
 
     def setup() {
-        def mavenRepo = new MavenFileRepository(file("maven-repo"))
-        publishedModuleB1 = mavenRepo.module("org.test", "b1", "1.0").publish()
 
         buildA = singleProjectBuildInSubfolder("buildA") {
             buildFile << """
         apply plugin: 'java'
         dependencies {
             compile "org.test:b1:1.0"
-        }
-        repositories {
-            maven { url '${mavenRepo.uri}' }
         }
 """
 }
@@ -63,8 +57,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
         }
 """
 }
-        builds << buildA << buildB
-        includeBuilds(builds)
+        includeBuilds(buildA, buildB)
     }
 
     def "EclipseProject model has dependencies substituted in composite"() {
@@ -75,13 +68,11 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
         assert eclipseProjectA.classpath.empty
         assert eclipseProjectA.projectDependencies.size() == 1
         with(eclipseProjectA.projectDependencies.first()) {
-            assert path == 'b1'
-            assert targetProject == null
-            assert target == eclipseProjectB1.identifier
+            it.path == 'b1'
+            it.targetProject == null
         }
     }
 
-    @TargetGradleVersion(">=3.0")
     def "EclipseProject model honours custom project name"() {
         when:
         buildB.buildFile << """
@@ -98,24 +89,18 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
             }
 """
 
-        def eclipseProjects = loadEclipseProjectModels()
-        def eclipseProjectB2 = eclipseProjects.find { it.projectDirectory.absoluteFile == buildB.file('b2').absoluteFile }
+        loadEclipseProjectModels()
 
         then:
         eclipseProjectA.projectDependencies.size() == 2
-        def depB1 = eclipseProjectA.projectDependencies.find { it.target == eclipseProjectB1.identifier }
-        depB1 != null
-        depB1.path == 'b1-renamed'
+        eclipseProjectA.projectDependencies.find { it.path == 'b1-renamed' }
 
         and:
-        def depB2 = eclipseProjectA.projectDependencies.find { it.target == eclipseProjectB2.identifier }
-        depB2 != null
-        depB2.path == 'b2-renamed'
+        eclipseProjectA.projectDependencies.find { it.path == 'b2-renamed' }
 
         and:
         def depB1onB2 = single(eclipseProjectB1.projectDependencies)
         depB1onB2.path == 'b2-renamed'
-        depB1onB2.target == eclipseProjectB2.identifier
     }
 
     def "Idea model has dependencies substituted in composite"() {
@@ -123,12 +108,11 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
         loadIdeaModuleModels()
 
         then:
-        ideaModuleB1.identifier != null
         ideaModuleA.dependencies.size() == 1
         with(ideaModuleA.dependencies.first()) {
-            assert it instanceof IdeaModuleDependency
-            assert dependencyModule == null
-            assert target == ideaModuleB1.identifier
+            it instanceof IdeaModuleDependency
+            dependencyModule == null
+            targetModuleName == ideaModuleB1.name
         }
     }
 
@@ -153,12 +137,12 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
 
         then:
         ideaModuleA.dependencies.size() == 2
-        ideaModuleA.dependencies.any { it instanceof IdeaModuleDependency && it.target == ideaModuleB1.identifier }
-        ideaModuleA.dependencies.any { it instanceof IdeaModuleDependency && it.target == ideaModuleB2.identifier }
+        ideaModuleA.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == ideaModuleB1.name }
+        ideaModuleA.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == ideaModuleB2.name }
 
         and:
         ideaModuleB1.dependencies.size() == 1
-        ideaModuleA.dependencies.any { it instanceof IdeaModuleDependency && it.target == ideaModuleB2.identifier }
+        ideaModuleA.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == ideaModuleB2.name }
     }
 
     private ArrayList<EclipseProject> loadEclipseProjectModels() {

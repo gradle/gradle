@@ -114,18 +114,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     public BuildResult execute(Iterable<String> tasks) {
         GradleLauncher launcher = getGradleLauncher();
         launcher.getGradle().getStartParameter().setTaskNames(tasks);
-        try {
-            return launcher.run();
-        } finally {
-            // Can no longer use a configured Gradle instance after tasks are executed.
-            reset();
-        }
-    }
-
-    private void reset() {
-        gradleLauncher = null;
-        gradle = null;
-        settings = null;
+        return launcher.run();
     }
 
     @Override
