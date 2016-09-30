@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -38,7 +39,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
         cache = cacheRepository
                 .cache(CacheLayout.ROOT.getKey())
-                .withCrossVersionCache()
+                .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();

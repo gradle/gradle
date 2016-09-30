@@ -37,7 +37,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     CacheBuilder cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }
-        withCrossVersionCache() >> { cacheBuilder }
+        withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
     }
     CacheRepository cacheRepository = Stub(CacheRepository) {

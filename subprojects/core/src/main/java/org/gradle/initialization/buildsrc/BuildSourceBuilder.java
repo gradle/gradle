@@ -18,6 +18,7 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -99,7 +100,7 @@ public class BuildSourceBuilder {
     PersistentCache createCache(StartParameter startParameter) {
         return cacheRepository
                 .cache(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
-                .withCrossVersionCache()
+                .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
                 .withDisplayName("buildSrc state cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
                 .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))

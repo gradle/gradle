@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
@@ -29,5 +30,5 @@ public interface CacheFactory {
     /**
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
-    PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException;
 }

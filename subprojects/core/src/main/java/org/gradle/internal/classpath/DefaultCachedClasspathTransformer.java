@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -46,7 +47,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.cache = cacheRepository
             .cache("jars-2")
             .withDisplayName("jars")
-            .withCrossVersionCache()
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
         this.jarFileTransformer = new CachedJarFileTransformer(jarCache, cache, fileStores);
