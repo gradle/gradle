@@ -60,41 +60,6 @@ class MultiProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpe
         containsProjects(models, [':', ':', ':a1', ':b1', ':c1', ':', ':a2', ':b2', ':c2'])
     }
 
-    // Validation of composite is disabled
-    @NotYetImplemented
-    def "fails when two projects becoming overlapping projects"() {
-        given:
-        def singleBuild1 = singleProjectBuildInSubfolder("single-build-1")
-        def singleBuild2 = singleProjectBuildInSubfolder("single-build-2")
-        includeBuilds(singleBuild1, singleBuild2)
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(projectDir)
-        ProjectConnection connection = connector.connect()
-
-        when:
-        def models = unwrap(connection.getModels(EclipseProject))
-
-        then:
-        models.size() == 3
-        containsProjects(models, [':', ':', ':'])
-        rootProjects(models).size() == 3
-
-        when:
-        // make singleBuild2 overlap with singleBuild1
-        singleBuild2.settingsFile << """
-            include 'a'
-            project(":a").projectDir = new File(rootDir, "../single-build-1/a")
-"""
-        and:
-        connection.getModels(EclipseProject)
-
-        then:
-        thrown(IllegalArgumentException)
-
-        cleanup:
-        connection?.close()
-    }
-
     def "can create composite of a single-project and multi-project builds"() {
         given:
         def singleBuild = singleProjectBuildInSubfolder("single-build-1")

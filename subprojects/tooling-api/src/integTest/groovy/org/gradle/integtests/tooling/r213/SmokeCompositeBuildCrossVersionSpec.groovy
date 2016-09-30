@@ -18,27 +18,15 @@ package org.gradle.integtests.tooling.r213
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 /**
  * Basic tests for building and retrieving models from a composite.
  */
+@TargetGradleVersion(">=3.2")
 class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
-
-    @NotYetImplemented
-    def "throws IllegalArgumentException when trying to add overlapping participants"() {
-        given:
-        def project = projectDir.file("project")
-        def overlapping = project.file("overlapping").createDir()
-        includeBuilds(project, overlapping)
-
-        when:
-        getModels(EclipseProject)
-
-        then:
-        thrown(IllegalArgumentException)
-    }
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {
         when:
@@ -50,13 +38,14 @@ class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecificat
 
     def "throws IllegalStateException when using a closed connection"() {
         given:
-        singleProjectBuildInSubfolder("project")
+        def singleBuild = singleProjectBuildInSubfolder("project")
+        includeBuilds(singleBuild)
 
         when:
         withConnection { connection ->
-            def models = connection.getModels(EclipseProject)
+            connection.getModels(EclipseProject)
             connection.close()
-            def modelsAgain = connection.getModels(EclipseProject)
+            connection.getModels(EclipseProject)
         }
 
         then:
@@ -65,9 +54,10 @@ class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecificat
 
     def "propagates errors when trying to retrieve models"() {
         given:
-        singleProjectBuildInSubfolder("project") {
+        def singleBuild = singleProjectBuildInSubfolder("project") {
             buildFile << "throw new RuntimeException()"
         }
+        includeBuilds(singleBuild)
 
         when:
         getUnwrappedModels(EclipseProject)
@@ -77,7 +67,7 @@ class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecificat
         assertFailure(e, "Could not fetch models of type 'EclipseProject'")
     }
 
-    def "fails to retrieve model when participant is not a Gradle project"() {
+    def "fails to retrieve model when root is not a Gradle project"() {
         setup:
         projectDir.deleteDir()
 
@@ -88,7 +78,7 @@ class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecificat
         def e = thrown(GradleConnectionException)
         assertFailure(e,
             "Could not fetch models of type 'EclipseProject'",
-            "The root project is not yet available for build")
+            "Project directory '$projectDir' does not exist.")
     }
 
     def "does not search upwards for projects"() {
