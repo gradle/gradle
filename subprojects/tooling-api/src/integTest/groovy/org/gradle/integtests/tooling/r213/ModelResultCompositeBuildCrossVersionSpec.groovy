@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -33,8 +31,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
 
 @TargetGradleVersion(">=3.2")
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
-class ModelResultCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
+class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     private ModelResults<EclipseProject> modelResults
 
     def "cannot correlate exceptions when builds need to be configured up-front"() {

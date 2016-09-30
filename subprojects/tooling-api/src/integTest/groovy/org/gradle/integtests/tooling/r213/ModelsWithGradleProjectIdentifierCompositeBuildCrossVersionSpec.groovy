@@ -17,17 +17,14 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
-class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "Provides identified models for single project build"() {
         setup:

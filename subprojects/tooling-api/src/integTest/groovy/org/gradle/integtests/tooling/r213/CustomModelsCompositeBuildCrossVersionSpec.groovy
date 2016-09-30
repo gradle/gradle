@@ -16,17 +16,14 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.integtests.tooling.r16.CustomModel
 
 /**
  * Tooling client requests custom model type for every project in a composite
  */
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
-class CustomModelsCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
+class CustomModelsCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     @TargetGradleVersion(">=1.2 <1.6")
     def "decent error message for Gradle version that doesn't support custom models"() {

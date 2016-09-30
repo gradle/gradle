@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -27,8 +25,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  * Tests composites with multiple participants.
  */
 @TargetGradleVersion(">=3.2")
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
-class MultiProjectCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
+class MultiProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "can create a composite of two single-project builds"() {
         given:

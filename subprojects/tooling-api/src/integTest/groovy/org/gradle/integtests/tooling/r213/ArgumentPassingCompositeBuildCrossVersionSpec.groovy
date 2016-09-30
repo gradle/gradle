@@ -16,18 +16,15 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
 @TargetGradleVersion(">=3.2")
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
-class ArgumentPassingCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
+class ArgumentPassingCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def setup() {
         toolingApi.requireDaemons()

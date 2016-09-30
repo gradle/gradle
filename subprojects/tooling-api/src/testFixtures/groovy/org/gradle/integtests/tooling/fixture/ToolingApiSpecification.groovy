@@ -30,8 +30,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -252,41 +250,5 @@ abstract class ToolingApiSpecification extends Specification {
 
     public <T> T loadToolingModel(Class<T> modelClass) {
         withConnection { connection -> connection.getModel(modelClass) }
-    }
-
-
-    protected <T> ModelResults<T> getModels(Class<T> modelType) {
-        withConnection { connection ->
-            return connection.getModels(modelType)
-        }
-    }
-
-    protected <T> List<T> getUnwrappedModels(Class<T> modelType) {
-        unwrap(getModels(modelType))
-    }
-
-    protected <T> List<T> unwrap(Iterable<ModelResult<T>> modelResults) {
-        modelResults.collect { it.model }
-    }
-
-    protected assertFailure(Throwable failure, String... messages) {
-        assert failure != null
-        def causes = getCauses(failure)
-
-        messages.each { message ->
-            assert causes.contains(message)
-        }
-    }
-
-    private static String getCauses(Throwable throwable) {
-        def causes = '';
-        while (throwable != null) {
-            if (throwable.message != null) {
-                causes += throwable.message
-                causes += '\n'
-            }
-            throwable = throwable.cause
-        }
-        causes
     }
 }

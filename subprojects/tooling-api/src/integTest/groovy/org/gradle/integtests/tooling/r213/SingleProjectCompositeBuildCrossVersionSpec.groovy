@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -26,8 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Builds a composite with a single project.
  */
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
-class SingleProjectCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
+class SingleProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
         multiProjectBuildInRootFolder("multi-build", ['a', 'b', 'c'])
