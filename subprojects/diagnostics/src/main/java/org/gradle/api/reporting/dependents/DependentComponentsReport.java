@@ -47,13 +47,6 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
 @Incubating
 public class DependentComponentsReport extends DefaultTask {
 
-    /**
-     * Prevents multiple parallel executions of this task.
-     * Output reports per execution, not mixed.
-     * Cross-project ModelRegistry operations do not happen concurrently.
-     */
-    private static final ReentrantLock LOCK = new ReentrantLock();
-
     private boolean showNonBuildable;
     private boolean showTestSuites;
     private List<String> components;
@@ -134,8 +127,9 @@ public class DependentComponentsReport extends DefaultTask {
 
     @TaskAction
     public void report() {
-        LOCK.lock();
-        try {
+         // Output reports per execution, not mixed.
+         // Cross-project ModelRegistry operations do not happen concurrently.
+        synchronized (DependentComponentsReport.class) {
             Project project = getProject();
             ModelRegistry modelRegistry = getModelRegistry();
             DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
@@ -155,8 +149,6 @@ public class DependentComponentsReport extends DefaultTask {
 
             reportRenderer.completeProject(project);
             reportRenderer.complete();
-        } finally {
-            LOCK.unlock();
         }
     }
 
