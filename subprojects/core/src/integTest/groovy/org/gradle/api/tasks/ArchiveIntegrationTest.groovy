@@ -326,8 +326,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     include '**/*.sh'
                 }
                 into('conf') {
-                    from 'test\'
-                    include '**/*.properties\'
+                    from 'test'
+                    include '**/*.properties'
                     rename { null }
                 }
                 destinationDir = buildDir
