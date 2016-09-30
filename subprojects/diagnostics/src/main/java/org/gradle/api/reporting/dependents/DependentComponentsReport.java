@@ -36,7 +36,6 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
