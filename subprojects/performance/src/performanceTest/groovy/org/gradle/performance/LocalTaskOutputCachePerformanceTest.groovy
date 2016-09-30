@@ -18,27 +18,34 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
 import org.junit.experimental.categories.Category
+import spock.lang.Unroll
 
 @Category(BasicPerformanceTest)
 class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
+    @Unroll("Test '#testProject' calling #tasks with local cache")
     def "test"() {
         when:
-        runner.testId = "local cache multi clean build"
+        runner.testId = "local cache $testProject ${tasks.join(' ')}"
         runner.testGroup = "task output cache"
         runner.buildSpec {
-            projectName("multi").displayName("cached").invocation {
-                tasksToRun("clean", "build").args("-Dorg.gradle.cache.tasks=true")
+            projectName(testProject).displayName("cached").invocation {
+                tasksToRun(tasks).args("-Dorg.gradle.cache.tasks=true")
             }
         }
         runner.baseline {
-            projectName("multi").displayName("non-cached").invocation {
-                tasksToRun("clean", "build")
+            projectName(testProject).displayName("non-cached").invocation {
+                tasksToRun(tasks)
             }
         }
 
         then:
         runner.run()
+
+        where:
+        testProject            | tasks
+        "multi"                | ["clean", "build"]
+        "largeEnterpriseBuild" | ["clean", "assemble"]
     }
 
 }
