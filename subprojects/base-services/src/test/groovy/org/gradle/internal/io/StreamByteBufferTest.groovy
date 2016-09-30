@@ -22,6 +22,7 @@ import spock.lang.Specification
 class StreamByteBufferTest extends Specification {
     private static final int TESTROUNDS = 10000
     private static final String TEST_STRING = "Hello \u00f6\u00e4\u00e5\u00d6\u00c4\u00c5"
+    private static final byte[] TEST_STRING_BYTES = TEST_STRING.getBytes('UTF-8')
 
     static byte[] testbuffer = new byte[256 * TESTROUNDS]
 
@@ -104,15 +105,17 @@ class StreamByteBufferTest extends Specification {
 
     def "converts to String"() {
         given:
-        def byteBuffer = new StreamByteBuffer()
-        def pw = new PrintWriter(new OutputStreamWriter(byteBuffer.getOutputStream(), "UTF-8"))
+        def byteBuffer = new StreamByteBuffer(chunkSize)
 
         when:
-        pw.print(TEST_STRING)
-        pw.close()
+        byteBuffer.getOutputStream().write(TEST_STRING_BYTES)
 
         then:
         byteBuffer.readAsString("UTF-8") == TEST_STRING
+
+        where:
+        // make sure that multi-byte unicode characters get split in different chunks
+        chunkSize << (1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000]
     }
 
     def "empty buffer to String returns empty String"() {

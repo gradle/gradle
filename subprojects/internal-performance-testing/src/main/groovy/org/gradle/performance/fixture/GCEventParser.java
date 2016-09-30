@@ -19,6 +19,8 @@ package org.gradle.performance.fixture;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +28,7 @@ class GCEventParser {
 
     private final Pattern pattern;
     private final Pattern ignorePattern;
+    private final List<String> notParsed = new ArrayList<String>();
 
     GCEventParser(char decimalSeparator) {
         pattern = Pattern.compile(String.format("(.+): \\[(?:(?:Full )?GC(?: ?(?:[^\\s]+|\\(.+?\\)))?) (?:\\d+\\%s\\d+: )?(?:--)?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator));
@@ -43,18 +46,28 @@ class GCEventParser {
                 //I see this kind of events on windows. Let's see if this approach helps resolving them.
                 return GCEvent.IGNORED;
             } else {
-                throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
+                notParsed.add(line);
+                return GCEvent.IGNORED;
             }
         }
 
-        DateTime timestamp = DateTime.parse(matcher.group(1));
-        // Some JVMs generate an incorrect timezone offset in the timestamps. Discard timezone and use the local timezone instead
-        timestamp = timestamp.toLocalDateTime().toDateTime(DateTimeZone.getDefault());
-        long start = Long.parseLong(matcher.group(2));
-        long end = Long.parseLong(matcher.group(3));
-        long committed = Long.parseLong(matcher.group(4));
+        try {
+            DateTime timestamp = DateTime.parse(matcher.group(1));
+            // Some JVMs generate an incorrect timezone offset in the timestamps. Discard timezone and use the local timezone instead
+            timestamp = timestamp.toLocalDateTime().toDateTime(DateTimeZone.getDefault());
+            long start = Long.parseLong(matcher.group(2));
+            long end = Long.parseLong(matcher.group(3));
+            long committed = Long.parseLong(matcher.group(4));
 
-        return new GCEvent(start, end, committed, timestamp);
+            return new GCEvent(start, end, committed, timestamp);
+        } catch (Exception ex) {
+            notParsed.add(line);
+            return GCEvent.IGNORED;
+        }
+    }
+
+    public List<String> getNotParsed() {
+        return notParsed;
     }
 
     static class GCEvent {

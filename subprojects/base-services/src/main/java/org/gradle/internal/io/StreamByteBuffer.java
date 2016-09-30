@@ -158,7 +158,7 @@ public class StreamByteBuffer {
             CharBuffer charbuffer = CharBuffer.allocate(unreadSize);
             ByteBuffer buf = null;
             while (prepareRead() != -1) {
-                buf = currentReadChunk.readToNioBuffer();
+                buf = currentReadChunk.readToNioBuffer(buf);
                 boolean endOfInput = prepareRead() == -1;
                 CoderResult result = decoder.decode(buf, charbuffer, endOfInput);
                 if (endOfInput) {
@@ -233,13 +233,19 @@ public class StreamByteBuffer {
             buffer = new byte[size];
         }
 
-        public ByteBuffer readToNioBuffer() {
+        public ByteBuffer readToNioBuffer(ByteBuffer previousBufferToMergeWith) {
             if (pointer < used) {
                 ByteBuffer result;
-                if (pointer > 0 || used < size) {
-                    result = ByteBuffer.wrap(buffer, pointer, used - pointer);
+                if (previousBufferToMergeWith != null && previousBufferToMergeWith.hasRemaining()) {
+                    // merge previous buffer if it has remaining bytes
+                    result = ByteBuffer.allocate(previousBufferToMergeWith.remaining() + bytesUnread()).put(previousBufferToMergeWith).put(buffer, pointer, used - pointer);
+                    result.flip();
                 } else {
-                    result = ByteBuffer.wrap(buffer);
+                    if (pointer > 0 || used < size) {
+                        result = ByteBuffer.wrap(buffer, pointer, used - pointer);
+                    } else {
+                        result = ByteBuffer.wrap(buffer);
+                    }
                 }
                 pointer = used;
                 return result;

@@ -315,7 +315,7 @@ public class GlobalScopeServices {
         return new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner);
     }
 
-    ClassLoaderCache createClassLoaderCache(ClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
+    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
         return new DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter);
     }
 

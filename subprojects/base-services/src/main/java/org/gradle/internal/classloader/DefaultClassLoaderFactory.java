@@ -39,10 +39,6 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
 
     @Override
     public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
-        return doCreateIsolatedClassLoader(classPath);
-    }
-
-    private ClassLoader doCreateIsolatedClassLoader(ClassPath classPath) {
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
         //
         // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a
@@ -62,11 +58,6 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         }
 
         return doCreateClassLoader(getIsolatedSystemClassLoader(), classPath);
-    }
-
-    @Override
-    public ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath) {
-        return doCreateClassLoader(parent, classPath);
     }
 
     @Override

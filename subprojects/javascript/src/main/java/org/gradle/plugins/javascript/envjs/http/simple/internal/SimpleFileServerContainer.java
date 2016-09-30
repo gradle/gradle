@@ -24,7 +24,13 @@ import org.simpleframework.http.core.Container;
 import org.simpleframework.http.resource.Context;
 import org.simpleframework.http.resource.Index;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
 
 public class SimpleFileServerContainer implements Container {
@@ -41,6 +47,7 @@ public class SimpleFileServerContainer implements Container {
 
         if (!targetFile.exists()) {
             resp.setCode(404);
+            resp.setText("Not Found");
             try {
                 resp.getPrintStream().println(String.format("File '%s' does not exist", targetFile.getAbsolutePath()));
                 resp.commit();

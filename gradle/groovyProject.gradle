@@ -80,11 +80,13 @@ if (file("src/jmh").exists()) {
     apply from: "$rootDir/gradle/jmh.gradle"
 }
 
-@org.gradle.api.tasks.CacheableTask
+@CacheableTask
 class ClasspathManifest extends DefaultTask {
 
+    @Classpath
     FileCollection input = project.configurations.runtime
 
+    @Input
     List<String> optionalProjects = []
 
     @OutputFile
@@ -93,16 +95,25 @@ class ClasspathManifest extends DefaultTask {
     }
 
     @Input
-    Properties getProperties() {
-        def properties = new Properties()
-        properties.runtime = input.fileCollection {
+    String getRuntime() {
+        return input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
         }.collect { it.name }.join(',')
-        properties.projects = input.allDependencies.withType(ProjectDependency).collect {
+    }
+
+    @Input
+    String getProjects() {
+        return input.allDependencies.withType(ProjectDependency).collect {
             it.dependencyProject.archivesBaseName
         }.join(',')
-        if (!optionalProjects.empty) {
-            properties.optional = optionalProjects.join(',')
+    }
+
+    Properties createProperties() {
+        def properties = new Properties()
+        properties.runtime = getRuntime()
+        properties.projects = getProjects()
+        if (!getOptionalProjects().empty) {
+            properties.optional = getOptionalProjects().join(',')
         }
         return properties
     }
@@ -111,7 +122,7 @@ class ClasspathManifest extends DefaultTask {
     def generate() {
         // Remove Properties timestamp for reproducible build
         def sw = new StringWriter()
-        getProperties().store(sw, "")
+        createProperties().store(sw, "")
         def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
         manifestFile.setText(content, "utf-8")
     }

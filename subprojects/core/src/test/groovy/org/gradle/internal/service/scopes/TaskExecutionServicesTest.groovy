@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
+import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -74,7 +74,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * cacheBuilder.open() >> Mock(PersistentCache)
 
         expect:
-        services.get(TaskExecuter) instanceof ExecuteAtMostOnceTaskExecuter
+        services.get(TaskExecuter) instanceof CatchExceptionTaskExecuter
         services.get(TaskExecuter).is(services.get(TaskExecuter))
     }
 
