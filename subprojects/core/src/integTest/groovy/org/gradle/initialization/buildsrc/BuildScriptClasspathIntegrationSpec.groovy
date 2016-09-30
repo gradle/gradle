@@ -224,6 +224,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
     void inJarCache(String filename, boolean shouldBeFound=true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }
-        assert fullpath.contains("/caches/jars-1/") == shouldBeFound
+        assert fullpath.contains("/caches/jars-2/") == shouldBeFound
     }
 }
