@@ -77,7 +77,7 @@ class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends Mu
     }
 
     @TargetGradleVersion(">=3.1")
-    def "all Launchables are identified when obtained from GradleConnection"() {
+    def "all Launchables are identified when obtained from a composite"() {
         setup:
         includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
 
@@ -98,7 +98,7 @@ class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends Mu
     @TargetGradleVersion('>=1.2 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         setup:
-        singleProjectBuildInRootfolder("A")
+        singleProjectBuildInRootFolder("A")
 
         when:
         def modelResults = withConnection { connection ->
