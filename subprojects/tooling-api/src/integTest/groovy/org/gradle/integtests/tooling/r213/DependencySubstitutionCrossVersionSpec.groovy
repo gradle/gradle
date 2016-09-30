@@ -24,10 +24,10 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
 /**
- * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
+ * Dependency substitution is performed for a composite build.
  */
 @TargetGradleVersion(">=3.1")
-class DependencySubstitutionGradleConnectionCrossVersionSpec extends MultiModelToolingApiSpecification {
+class DependencySubstitutionCrossVersionSpec extends MultiModelToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def stdErr = new ByteArrayOutputStream()
     def buildA
@@ -59,7 +59,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends MultiModelT
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
         given:
-        def expectedOutput = "org.test:buildB:1.0 -> project buildB::"
+        def expectedOutput = "org.test:buildB:1.0 -> project :buildB:"
 
         when:
         dependencies()
