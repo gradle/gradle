@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -29,10 +30,32 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
 
+@TargetGradleVersion(">=3.2")
 class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     private ModelResults<EclipseProject> modelResults
 
-    def "can correlate exceptions in composite with multiple single-project participants"() {
+    def "cannot correlate exceptions when builds need to be configured up-front"() {
+        given:
+        def rootDirA = singleProjectBuildInSubfolder("A") {
+            buildFile << "throw new GradleException('Failure in A')"
+        }
+        def rootDirB = singleProjectBuildInSubfolder("B")
+        includeBuilds(rootDirA, rootDirB)
+
+        when:
+        withConnection { connection ->
+            modelResults = connection.getModels(EclipseProject)
+        }
+
+        then:
+        modelResults.size() == 1
+        assertFailure(modelResults.head().failure,
+            "Could not fetch models of type 'EclipseProject'",
+            "A problem occurred evaluating root project 'A'.",
+            "Failure in A")
+    }
+
+    def "can correlate exceptions in composite with multiple single-project builds"() {
         given:
         def rootDirA = singleProjectBuildInSubfolder("A") {
             buildFile << "throw new GradleException('Failure in A')"
@@ -41,7 +64,23 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
         def rootDirC = singleProjectBuildInSubfolder("C") {
             buildFile << "throw new GradleException('Different failure in C')"
         }
-        includeBuilds(rootDirB, rootDirA, rootDirC)
+        settingsFile << """
+            includeBuild('A') {
+                dependencySubstitution {
+                    substitute module('org.example:a') with project(':')
+                }
+            }
+            includeBuild('B') {
+                dependencySubstitution {
+                    substitute module('org.example:b') with project(':')
+                }
+            }
+            includeBuild('C') {
+                dependencySubstitution {
+                    substitute module('org.example:c') with project(':')
+                }
+            }
+        """
 
         when:
         withConnection { connection ->
@@ -64,7 +103,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
             "Different failure in C")
     }
 
-    def "can correlate exceptions in composite with multiple multi-project participants"() {
+    def "can correlate exceptions in composite with multiple multi-project builds"() {
         given:
         def rootDirA = multiProjectBuildInSubFolder("A", ['ax', 'ay']) {
             file("ax/build.gradle") << """
@@ -72,7 +111,19 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
 """
         }
         def rootDirB = multiProjectBuildInSubFolder("B", ['bx', 'by'])
-        includeBuilds(rootDirA, rootDirB)
+
+        settingsFile << """
+            includeBuild('A') {
+                dependencySubstitution {
+                    substitute module('org.example:a') with project(':')
+                }
+            }
+            includeBuild('B') {
+                dependencySubstitution {
+                    substitute module('org.example:b') with project(':')
+                }
+            }
+        """
 
         when:
         withConnection { connection ->
@@ -92,7 +143,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
         assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirB), "B", ":", ":bx", ":by")
     }
 
-    def "can correlate models in a single project, single participant composite"() {
+    def "can correlate models in single-project root build"() {
         given:
         singleProjectBuildInRootFolder("A")
 
@@ -114,7 +165,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
         containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
-    def "can correlate models in a multi-project, single participant composite"() {
+    def "can correlate models in a multi-project root build"() {
         given:
         multiProjectBuildInRootFolder("A", ['x', 'y'])
 
