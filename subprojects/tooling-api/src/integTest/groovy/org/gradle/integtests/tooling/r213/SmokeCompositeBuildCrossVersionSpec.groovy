@@ -16,8 +16,10 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -25,7 +27,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  * Basic tests for building and retrieving models from a composite.
  */
 @TargetGradleVersion(">=3.2")
-class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
+class SmokeCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {
         when:

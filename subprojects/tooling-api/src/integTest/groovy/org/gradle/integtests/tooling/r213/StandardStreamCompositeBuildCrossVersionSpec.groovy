@@ -16,13 +16,16 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
 @TargetGradleVersion(">=3.1")
-class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
+class StandardStreamCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
     def escapeHeader = "\u001b["
     def stdOutStream = new ByteArrayOutputStream()
     def stdErrStream = new ByteArrayOutputStream()

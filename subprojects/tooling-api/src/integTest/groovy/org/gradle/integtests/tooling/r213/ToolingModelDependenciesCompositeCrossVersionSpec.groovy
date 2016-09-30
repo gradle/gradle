@@ -16,8 +16,11 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -31,7 +34,8 @@ import static org.gradle.util.CollectionUtils.single
  * Dependency substitution is performed for models in a composite build
  */
 @TargetGradleVersion(">=3.2")
-class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolingApiSpecification {
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
+class ToolingModelDependenciesCompositeCrossVersionSpec extends ToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB
