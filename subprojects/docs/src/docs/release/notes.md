@@ -52,6 +52,28 @@ With this option it is possible to tell Gradle to always resolve a project depen
 if the corresponding subproject exists in the build. Without this option, other dependencies to a higher
 version of the same module cause the replacement of the subproject by the other version in the dependency tree.
 
+### Incremental build improvements
+
+#### Relocatable Java tasks
+
+If you move your whole project on the local disk, tasks like Java compilation, code quality measurements, packaging JARs, WARs and EARs now stay up-to-date. This also allows for building your project halfway on CI, then making several copies of it, and then continuing to build it at the new locations.
+
+#### Java compilation tracks Java version used
+
+If you change the Java version used to execute compile your sources, the compile task will now become out-of-date, and the sources will be recompiled.
+
+#### Better change tracking in copy and archive tasks
+
+When changing the destination for a copy spec in a `Copy`, `Zip` or `Jar` etc. task, the task now becomes out-of-date. Previously Gradle only tracked changes to case-sensitivity, duplication strategy and file- and dir modes on the main spec; now it tracks it for child specs, too.
+
+#### Classpath tracking
+
+Input properties that should be treated as Java classpaths can now be annotated with `@Classpath`. This allows the task to ignore irrelevant changes to the property, such as changing the name of the files on the classpath. It is similar to annotating the the property with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also ignore the names of JAR files directly added to the classpath.
+
+#### Removing all sources will delete outputs
+
+For a long time Gradle supported skipping the execution of a task entirely if it didn't have any _sources._ This feature can be enabled by annotating an input file property with `@SkipWhenEmpty`. In previous versions of Gradle however, when all the sources of the task were removed since the last build, the previous outputs were left in place. This is now fixed, and in such cases the stale outputs are properly removed.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
