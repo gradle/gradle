@@ -17,10 +17,12 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.model.gradle.GradleBuild
 
+@TargetGradleVersion("3.2")
 class ModelsWithGradleProjectCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
     def "Provides identified GradleBuild for each build"() {

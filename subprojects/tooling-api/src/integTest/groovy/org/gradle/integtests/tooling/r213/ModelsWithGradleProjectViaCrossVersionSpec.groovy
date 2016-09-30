@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
 
 class ModelsWithGradleProjectViaCrossVersionSpec extends ToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
@@ -32,7 +33,7 @@ class ModelsWithGradleProjectViaCrossVersionSpec extends ToolingApiSpecification
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
         when:
-        def gradleBuild = loadToolingModel(modelType)
+        def gradleBuild = loadToolingModel(GradleBuild)
 
         then:
         gradleBuild.buildIdentifier == new DefaultBuildIdentifier(projectDir)
