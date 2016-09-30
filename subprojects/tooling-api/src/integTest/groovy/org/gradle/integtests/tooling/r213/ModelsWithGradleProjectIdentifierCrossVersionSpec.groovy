@@ -71,7 +71,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
 
     private static getModelsHavingGradleProjectIdentifier() {
         List<Class<?>> models = [BuildInvocations]
-        if (targetDist.getVersion() >= GradleVersion.version("1.12")) {
+        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
+        if (targetVersion >= GradleVersion.version("1.12")) {
             models += ProjectPublications
         }
         return models
