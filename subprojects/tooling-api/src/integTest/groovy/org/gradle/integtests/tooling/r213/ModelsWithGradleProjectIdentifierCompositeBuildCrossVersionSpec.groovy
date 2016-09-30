@@ -25,7 +25,7 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 
-class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec extends MultiModelToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "Provides identified models for single project build"() {
         setup:

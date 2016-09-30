@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends ToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
+class ModelsWithGradleProjectViaCrossVersionSpec extends ToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
     def "Provides identified GradleBuild"() {
         setup:

@@ -25,7 +25,7 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
-class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec extends ToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection provides identified models for single project build"() {
