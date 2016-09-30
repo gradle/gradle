@@ -17,7 +17,9 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
@@ -25,215 +27,46 @@ import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.gradle.BuildInvocations
 import spock.lang.Ignore
 
 /**
- * Tooling client provides progress listener for composite model request
+ * Tooling client provides progress listener for a composite build
  */
+//TODO add more coverage once composite builds report events from included builds
+@TargetGradleVersion(">=3.2")
 class ProgressListenerCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
-    static final List<String> IGNORED_EVENTS = ['Validate distribution', '', 'Compiling script into cache', 'Build', 'Starting Gradle Daemon', 'Connecting to Gradle Daemon']
-    AbstractCapturingProgressListener progressListenerForComposite
-    AbstractCapturingProgressListener progressListenerForRegularBuild
 
-    def "compare old listener events from a composite build and a regular build with single build"() {
+    def "receive build progress events when requesting models"() {
         given:
-        def builds = createBuilds(1)
-        createListeners(CapturingProgressListener)
+        def buildA = singleProjectBuildInSubfolder("buildA")
+        def buildB = singleProjectBuildInSubfolder("buildB")
+        [buildA, buildB].each { build ->
+            build.buildFile << """
+                apply plugin: 'java'
+                compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            """
+
+            build.file("src/main/java/example/MyClass.java") << """
+                package example;
+                public class MyClass {
+                    public void foo() throws Exception {
+                        Thread.sleep(100);
+                    }
+                }
+            """
+        }
+        includeBuilds(buildA, buildB)
 
         when:
-        requestModels(builds)
+        def events = new ProgressEvents()
+        withConnection {
+            models(BuildInvocations).addProgressListener(events, EnumSet.of(OperationType.GENERIC)).get()
+        }
 
         then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    @TargetGradleVersion(">=2.5")
-    def "compare new listener events from a composite build and a regular build with single build"() {
-        given:
-        def builds = createBuilds(1)
-        createListeners(CapturingEventProgressListener)
-
-        when:
-        requestModels(builds)
-
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    @Ignore("Requires composite task execution")
-    def "compare old listener events executing tasks from a composite build and a regular build with single build"() {
-        given:
-        def builds = createBuilds(1)
-        createListeners(CapturingProgressListener)
-
-        when:
-        executeFirstBuild(builds)
-
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    @TargetGradleVersion(">=2.5")
-    @Ignore("Requires composite task execution")
-    def "compare new listener events executing tasks from a composite build and a regular build with single build"() {
-        given:
-        def builds = createBuilds(1)
-        createListeners(CapturingEventProgressListener)
-
-        when:
-        executeFirstBuild(builds)
-
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    def "compare old listener events from a composite build and a regular build with 3 builds"() {
-        given:
-        def builds = createBuilds(3)
-        createListeners(CapturingProgressListener)
-
-        when:
-        requestModels(builds)
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    @TargetGradleVersion(">=2.5")
-    def "compare new listener events from a composite build and a regular build with 3 builds"() {
-        given:
-        def builds = createBuilds(3)
-        createListeners(CapturingEventProgressListener)
-
-        when:
-        requestModels(builds)
-
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    @Ignore("Requires composite task execution")
-    def "compare old listener events from task execution from a composite build and a regular build with 3 builds"() {
-        given:
-        def builds = createBuilds(3)
-        createListeners(CapturingProgressListener)
-
-        when:
-        executeFirstBuild(builds)
-
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    @TargetGradleVersion(">=2.5")
-    @Ignore("Requires composite task execution")
-    def "compare new listener events from task execution from a composite build and a regular build with 3 builds"() {
-        given:
-        def builds = createBuilds(3)
-        createListeners(CapturingEventProgressListener)
-
-        when:
-        executeFirstBuild(builds)
-
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-    }
-
-    private void createListeners(Class progressListenerType) {
-        progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
-        progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
-    }
-
-    private void assertListenerReceivedSameEventsInCompositeAndRegularConnections() {
-        def regularBuildEvents = cleanEvents(progressListenerForRegularBuild.eventDescriptions)
-        def compositeBuildEvents = cleanEvents(progressListenerForComposite.eventDescriptions)
-
-        regularBuildEvents.each { eventDescription ->
-            assert compositeBuildEvents.contains(eventDescription)
-            compositeBuildEvents.remove(eventDescription)
-        }
-    }
-
-    private static cleanEvents(List<String> eventDescriptions) {
-        def copy = []
-        String previous = null
-        for (String event : eventDescriptions) {
-            if (IGNORED_EVENTS.contains(event)) {
-                continue;
-            }
-            if (event != previous) {
-                copy.add event
-                previous = event
-            }
-        }
-
-        assert !copy.empty
-        return copy
-    }
-
-    private List<File> createBuilds(int numberOfBuilds) {
-        def builds = (1..numberOfBuilds).collect {
-            populate("build-$it") {
-                buildFile << "apply plugin: 'java'"
-            }
-        }
-        return builds
-    }
-
-    private void requestModels(List<File> builds) {
-        includeBuilds(builds)
-
-        withConnection { connection ->
-            getModels(connection.models(EclipseProject), progressListenerForComposite)
-        }
-
-        builds.each { buildDir ->
-            GradleConnector connector = toolingApi.connector()
-            connector.forProjectDirectory(buildDir.absoluteFile)
-            toolingApi.withConnection(connector) { ProjectConnection connection ->
-                getModels(connection.model(EclipseProject), progressListenerForRegularBuild)
-            }
-        }
-    }
-
-    private void executeFirstBuild(List<File> builds) {
-        withConnection { connection ->
-            BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "jar")
-            buildLauncher.addProgressListener(progressListenerForComposite)
-            buildLauncher.run()
-        }
-
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(builds[0].absoluteFile)
-        toolingApi.withConnection(connector) { ProjectConnection connection ->
-            BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("jar")
-            buildLauncher.addProgressListener(progressListenerForRegularBuild)
-            buildLauncher.run()
-        }
-    }
-
-    private def getModels(ModelBuilder modelBuilder, progressListener) {
-        modelBuilder.addProgressListener(progressListener)
-        modelBuilder.get()
-    }
-
-    static abstract class AbstractCapturingProgressListener {
-        def eventDescriptions = []
-    }
-
-    static class CapturingProgressListener extends AbstractCapturingProgressListener implements ProgressListener {
-        @Override
-        void statusChanged(ProgressEvent event) {
-            eventDescriptions.add(event.description)
-        }
-    }
-
-    static class CapturingEventProgressListener extends AbstractCapturingProgressListener implements org.gradle.tooling.events.ProgressListener {
-        @Override
-        void statusChanged(org.gradle.tooling.events.ProgressEvent event) {
-            eventDescriptions.add(event.descriptor.name)
-        }
+        events.assertIsABuild()
     }
 }
