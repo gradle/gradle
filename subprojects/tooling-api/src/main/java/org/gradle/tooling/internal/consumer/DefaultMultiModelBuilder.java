@@ -64,8 +64,7 @@ class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<DefaultMu
 
     @Override
     public DefaultMultiModelBuilder<T> forTasks(Iterable<String> tasks) {
-        operationParamsBuilder.setTasks(rationalizeInput(tasks));
-        return this;
+        throw new IllegalArgumentException("forTasks() is not supported in multi-model requests");
     }
 
     @Override

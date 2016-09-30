@@ -17,33 +17,24 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore
 
-@Ignore("We do not support forTasks(String) on a composite connection for now")
 class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
-    def "can call tasks before building composite model"() {
+    def "forTasks() is not allowed in multi-model requests"() {
         given:
-        singleProjectBuildInRootFolder("single") {
-            buildFile << """
-                apply plugin: 'java'
-
-                description = "not set"
-
-                task setDescription() << {
-                    project.description = "Set from task"
-                }
-            """
-        }
+        singleProjectBuildInRootFolder("single")
 
         when:
-        def modelResults = withConnection { connection ->
+        withConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("setDescription")
             modelBuilder.get()
         }
         then:
-        CollectionUtils.single(modelResults).model.description == "Set from task"
+        def e = thrown IllegalArgumentException
+        assertFailure(e, "forTasks() is not supported in multi-model requests")
     }
 }
