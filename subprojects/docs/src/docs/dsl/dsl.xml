@@ -318,6 +318,9 @@
                 <td>org.gradle.api.reporting.components.ComponentReport</td>
             </tr>
             <tr>
+                <td>org.gradle.api.reporting.dependents.DependentComponentsReport</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.reporting.model.ModelReport</td>
             </tr>
         </table>

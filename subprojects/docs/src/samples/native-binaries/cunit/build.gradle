@@ -1,4 +1,5 @@
 // START SNIPPET complete-example
+// START SNIPPET terse-example
 apply plugin: "c"
 apply plugin: 'cunit-test-suite'
 
@@ -12,6 +13,7 @@ model {
             architecture "x86"
         }
     }
+// END SNIPPET terse-example
     repositories {
         libs(PrebuiltLibraries) {
             cunit {
@@ -24,6 +26,7 @@ model {
             }
         }
     }
+// START SNIPPET terse-example
     components {
         operators(NativeLibrarySpec) {
             targetPlatform "x86"
@@ -35,6 +38,7 @@ model {
         }
     }
 }
+// END SNIPPET terse-example
 // START SNIPPET configure-test-binary
 model {
     binaries {

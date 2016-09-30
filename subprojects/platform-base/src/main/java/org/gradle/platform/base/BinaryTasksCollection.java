@@ -43,6 +43,11 @@ public interface BinaryTasksCollection extends DomainObjectSet<Task> {
      */
     Task getBuild();
 
+    /**
+     * The task that can be used to check this binary.
+     */
+    Task getCheck();
+
     <T extends Task> void create(String name, Class<T> type, Action<? super T> config);
 
 }

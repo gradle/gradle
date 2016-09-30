@@ -23,7 +23,7 @@ import org.gradle.testing.performance.generator.*
  *
  * Currently only supports C and PCH.
  */
-class NativeProjectGeneratorTask extends ProjectGeneratorTask {
+class NativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     void generateProjectSource(File projectDir, TestProject testProject, Map args) {
         generateProjectSource(projectDir, "c", testProject, args)

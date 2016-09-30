@@ -70,7 +70,9 @@ abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
      * Returns the set of implicit task names expected for a non-root project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.10")) {
+        if (GradleVersion.version(targetDist.version.version) > GradleVersion.version("3.1")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model']
+        } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.10")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
         } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.4")) {
             return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']

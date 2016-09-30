@@ -109,6 +109,8 @@ Binaries
         build type: build type 'debug'
         flavor: flavor 'default'
         target platform: platform '$currentNative'
+        component under test: native executable 'someExe'
+        binary under test: executable 'someExe:executable'
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/exe/someExeTest/someExeTest
 """

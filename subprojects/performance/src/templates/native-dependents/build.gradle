@@ -1,0 +1,60 @@
+apply plugin: 'cpp'
+apply plugin: 'google-test'
+
+model {
+    components {
+<%
+components.each { component ->
+    out.println """
+        ${component.name}(${component.type}) {
+            binaries.all {"""
+    component.deps.each { dep ->
+        out.println """
+                lib project: '${dep.project}', library: '${dep.library}', linkage: '${dep.linkage}'"""
+    }
+    out.println """    
+            }
+        }"""        
+}
+%>
+    }
+
+    testSuites {
+<%
+components.each { component ->
+    out.println """
+        ${component.name}Test {
+            binaries.all {"""
+    component.deps.each { dep ->
+        out.println """
+                lib project: '${dep.project}', library: '${dep.library}', linkage: '${dep.linkage}'"""
+    }
+    out.println """    
+            }
+        }"""        
+}
+%>
+    }
+
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib project: ":googleTest", library: "googleTest", linkage: "static"
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
+    }
+}
+
+// TODO: Remove this hack once a nightly supports build dependents.
+boolean supportsBuildDependents = true
+try {
+    this.getClass().getClassLoader().loadClass("org.gradle.api.reporting.dependents.DependentComponentsReport")
+} catch (Exception e) {
+    supportsBuildDependents = false
+}
+if (!supportsBuildDependents) {
+    tasks.create("buildDependents" + project.name + "0")
+    tasks.create("dependentComponents")
+}

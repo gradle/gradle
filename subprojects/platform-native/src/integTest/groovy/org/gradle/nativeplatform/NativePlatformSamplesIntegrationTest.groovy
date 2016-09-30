@@ -39,6 +39,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample prebuilt = sample(testDirProvider, 'prebuilt')
     @Rule public final Sample targetPlatforms = sample(testDirProvider, 'target-platforms')
     @Rule public final Sample sourcesetVariant = sample(testDirectoryProvider, "sourceset-variant")
+    @Rule public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
@@ -269,5 +270,25 @@ Util build type: RELEASE
         and:
         executable(sourcesetVariant.dir.file("build/exe/main/main")).assertExists()
         installation(sourcesetVariant.dir.file("build/install/main")).exec().out.contains("Attributes of '$platformName' platform")
+    }
+
+    def customcheck() {
+        given:
+        sample customCheck
+
+        when:
+        run 'check'
+
+        then:
+        executedAndNotSkipped(':myCustomCheck')
+
+        and:
+        sample customCheck
+
+        when:
+        run ':checkHelloSharedLibrary'
+
+        then:
+        executedAndNotSkipped(':myCustomCheck')
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;
+import org.gradle.api.reporting.dependents.DependentComponentsReport;
 import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.*;
 import org.gradle.configuration.Help;
@@ -47,6 +48,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
     public static final String COMPONENTS_TASK = "components";
     public static final String MODEL_TASK = "model";
+    public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
     @Override
     public void apply(final ProjectInternal project) {
@@ -63,6 +65,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.addPlaceholderAction(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
         tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
         tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
+        tasks.addPlaceholderAction(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
     }
 
     static class Rules extends RuleSource {
@@ -209,6 +212,21 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         @Override
         public void execute(ModelReport task) {
             task.setDescription("Displays the configuration model of " + projectName + ". [incubating]");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class DependentComponentsReportAction implements Action<DependentComponentsReport> {
+        private final String projectName;
+
+        public DependentComponentsReportAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        @Override
+        public void execute(DependentComponentsReport task) {
+            task.setDescription("Displays the dependent components of components in " + projectName + ". [incubating]");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         }

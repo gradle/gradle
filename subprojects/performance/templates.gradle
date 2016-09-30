@@ -17,6 +17,7 @@ import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
@@ -552,6 +553,17 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     rootProjectTemplates = ['native-monolithic']
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
+}
+
+task nativeDependents(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+}
+
+task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+    generateDeepHierarchy = true
 }
 
 tasks.withType(JvmProjectGeneratorTask) {

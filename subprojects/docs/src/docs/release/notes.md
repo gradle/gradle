@@ -9,6 +9,7 @@ Add-->
 <!--
 ### Example new and noteworthy
 -->
+
 ### Origin of deprecation warning within build script is rendered on command line
 
 For each deprecation warning Gradle now prints its location in the
@@ -19,7 +20,7 @@ The improved log message should make it much easier to spot and fix those warnin
     > gradle tasks
     The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.
             at build_dhrhtn4oo56t198zc6nkf59c4.run(/home/someuser/project-dir/build.gradle:3)
-    
+
     ...
 
 ### The Wrapper can now use HTTP Basic Authentication to download distributions
@@ -74,6 +75,15 @@ Input properties that should be treated as Java classpaths can now be annotated 
 
 For a long time Gradle supported skipping the execution of a task entirely if it didn't have any _sources._ This feature can be enabled by annotating an input file property with `@SkipWhenEmpty`. In previous versions of Gradle however, when all the sources of the task were removed since the last build, the previous outputs were left in place. This is now fixed, and in such cases the stale outputs are properly removed.
 
+### Build Dependents for Native Binaries
+
+Sometimes, you may need to *assemble* (compile and link) or *build* (compile, link and test) a component or binary and its *dependents* (things that depend upon the component or binary). The native software model now provides tasks that enable this capability.
+
+First, the *dependent components* report gives insight about the relationships between each component.
+Second, the *build and assemble dependents* tasks allow you to assemble or build a component and its dependents in one step.
+
+See the User guide section on “[Assembling or building dependents](userguide/native_binaries.html#sec:dependents)“ in the “[Building native software](userguide/native_binaries.html)“ chapter for more information.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -96,18 +106,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### The left shift operator on the Task interface
 
-The left shift (`<<`) operator acts as alias for adding a `doLast` action for an existing task. For newcomers to Gradle, the meaning of the operator is not immediately apparent and 
-leads to mixing configuration code with action code. Consequently, mis-configured task lead to unexpected runtime behavior. Let's consider the following two examples to illustrate common 
+The left shift (`<<`) operator acts as alias for adding a `doLast` action for an existing task. For newcomers to Gradle, the meaning of the operator is not immediately apparent and
+leads to mixing configuration code with action code. Consequently, mis-configured task lead to unexpected runtime behavior. Let's consider the following two examples to illustrate common
 mistakes.
- 
+
 _Definition of a default task that configures the `description` property and defines an action using the left shift operator:_ As a result, the task would not configure the task's description.
-    
+
     // WRONG: Description assigned in execution phase
     task helloWorld << {
         description = 'Prints out a message.'
         println 'Hello world!'
     }
-    
+
     // CORRECT: Description assigned in configuration phase
     task helloWorld {
         description = 'Prints out a message.'
@@ -116,7 +126,7 @@ _Definition of a default task that configures the `description` property and def
         }
     }
 
-_Definition of an enhanced task using the left shift operator:_ As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the `Copy` task are configured during the execution 
+_Definition of an enhanced task using the left shift operator:_ As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the `Copy` task are configured during the execution
 phase of the Gradle build lifecycle which is to late for Gradle to pick up the configuration.
 
     // WRONG: Configuring task in execution phase
@@ -124,7 +134,7 @@ phase of the Gradle build lifecycle which is to late for Gradle to pick up the c
         from 'source'
         into "$buildDir/output"
     }
-    
+
     // CORRECT: Configuring task in configuration phase
     task copy(type: Copy) {
         from 'source'

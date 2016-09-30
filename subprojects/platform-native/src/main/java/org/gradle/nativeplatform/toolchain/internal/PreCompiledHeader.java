@@ -111,4 +111,10 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     public TaskDependency getBuildDependencies() {
         return super.getBuildDependencies();
     }
+
+    @Internal
+    @Override
+    public Task getCheckTask() {
+        return super.getCheckTask();
+    }
 }
