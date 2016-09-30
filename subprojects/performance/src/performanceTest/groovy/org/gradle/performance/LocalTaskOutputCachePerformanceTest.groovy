@@ -23,19 +23,19 @@ import spock.lang.Unroll
 @Category(BasicPerformanceTest)
 class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll("Test '#testProject' calling #tasks with local cache")
+    @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
     def "test"() {
         when:
-        runner.testId = "local cache $testProject ${tasks.join(' ')}"
+        runner.testId = "local cache $testProject ${tasks.join(' ')} (daemon)"
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject).displayName("cached").invocation {
-                tasksToRun(tasks).args("-Dorg.gradle.cache.tasks=true")
+                tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
             }
         }
         runner.baseline {
             projectName(testProject).displayName("non-cached").invocation {
-                tasksToRun(tasks)
+                tasksToRun(tasks).useDaemon()
             }
         }
 
