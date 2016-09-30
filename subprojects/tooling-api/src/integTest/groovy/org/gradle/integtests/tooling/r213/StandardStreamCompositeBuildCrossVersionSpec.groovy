@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
@@ -51,16 +50,18 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         numberOfParticipants << [ 1, 3 ]
     }
 
-    @Ignore("Requires composite task execution")
     def "can receive stdout and stderr with build launcher"() {
         given:
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         includeBuilds(builds)
+        buildFile << """
+            task log(dependsOn: gradle.includedBuilds*.task(':log'))
+        """
 
         when:
         withConnection { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "log")
+            buildLauncher.forTasks("log")
             buildLauncher.setStandardOutput(stdOutStream)
             buildLauncher.setStandardError(stdErrStream)
             buildLauncher.run()
@@ -84,20 +85,22 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         assert stdErr.contains("Stderr from task execution in ${project}")
     }
 
-    @TargetGradleVersion(">=2.3")
-    @Ignore("We do not support forTasks(String) on a composite connection for now")
-    def "can colorize output with model requests"() {
+    def "can colorize output with build launcher"() {
         given:
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         includeBuilds(builds)
 
+        buildFile << """
+            task alwaysUpToDate(dependsOn: gradle.includedBuilds*.task(':alwaysUpToDate'))
+        """
+
         when:
         withConnection { connection ->
-            def modelBuilder = connection.models(EclipseProject)
-            modelBuilder.forTasks("log")
-            modelBuilder.setStandardOutput(stdOutStream)
-            modelBuilder.colorOutput = true
-            modelBuilder.get()
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("alwaysUpToDate")
+            buildLauncher.setStandardOutput(stdOutStream)
+            buildLauncher.colorOutput = true
+            buildLauncher.run()
         }
         then:
         stdOut.count("UP-TO-DATE" + escapeHeader) == numberOfParticipants
@@ -106,40 +109,20 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         numberOfParticipants << [ 1, 3 ]
     }
 
-    @TargetGradleVersion(">=2.3")
-    @Ignore("Requires composite task execution")
-    def "can colorize output with build launcher"() {
-        given:
-        def builds = createBuildsThatLogMessages(numberOfParticipants)
-        includeBuilds(builds)
-
-        when:
-        withConnection { connection ->
-            def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "alwaysUpToDate")
-            buildLauncher.setStandardOutput(stdOutStream)
-            buildLauncher.colorOutput = true
-            buildLauncher.run()
-        }
-        then:
-        stdOut.count("UP-TO-DATE" + escapeHeader) == 1
-
-        where:
-        numberOfParticipants << [ 1, 3 ]
-    }
-
-    // Standard input sort of works, but the first build gobbles up all of the input
-    // so none of the other participants see anything
-    @Ignore("setStandardInput unsupported by ModelBuilder and BuildLauncher")
+    @Ignore("StdIn is not yet forwarded to included builds")
     def "can provide standard input to composite when executing tasks"() {
         given:
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         includeBuilds(builds)
+        buildFile << """
+            task log(dependsOn: gradle.includedBuilds*.task(':log'))
+        """
+
         when:
         withConnection { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "log")
+            buildLauncher.forTasks("log")
             buildLauncher.setStandardInput(stdIn)
             buildLauncher.setStandardOutput(stdOutStream)
             buildLauncher.run()
@@ -151,7 +134,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
         numberOfParticipants << [ 1, 3 ]
     }
 
-    @Ignore("setStandardInput unsupported by ModelBuilder and BuildLauncher")
+    @Ignore("StdIn is not yet forwarded to included builds")
     def "can provide standard input to composite when requesting models"() {
         given:
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
@@ -212,7 +195,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends MultiModelToolingApiS
     private List createBuilds(int numberOfParticipants, String buildFileText) {
         def builds = []
         numberOfParticipants.times {
-            builds << singleProjectBuild("build-${it}") {
+            builds << singleProjectBuildInSubfolder("build-${it}") {
                 buildFile << buildFileText
             }
         }
