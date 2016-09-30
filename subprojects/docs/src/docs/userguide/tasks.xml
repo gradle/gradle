@@ -496,7 +496,13 @@
                     <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.InputFiles"/></literal></td>
                         <td><literal>Iterable&lt;File&gt;</literal>*</td>
-                        <td>An iterable of input files (no directories)</td>
+                        <td>An iterable of input files and directories</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Classpath"/></literal></td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of input files and directories that represent a Java classpath</td>
                     </tr>
 
                     <tr>
