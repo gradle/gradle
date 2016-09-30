@@ -71,7 +71,7 @@ public class PathFactory {
         }
 
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
-        String relPath = file.getAbsolutePath().replace(File.separator, "/");
+        String relPath = file.getAbsolutePath().replace(File.separatorChar, '/');
         String url = relativePathToURI(relPath, useFileScheme);
         return new FilePath(file, url, url, relPath);
     }
@@ -86,7 +86,7 @@ public class PathFactory {
     private static FilePath resolvePath(File rootDir, String rootDirName, File file) {
         String relPath = getRelativePath(rootDir, rootDirName, file);
         String url = relativePathToURI(relPath);
-        String canonicalUrl = relativePathToURI(file.getAbsolutePath().replace(File.separator, "/"));
+        String canonicalUrl = relativePathToURI(file.getAbsolutePath().replace(File.separatorChar, '/'));
         return new FilePath(file, url, canonicalUrl, relPath);
     }
 
@@ -121,12 +121,12 @@ public class PathFactory {
     }
 
     private static String toUrl(String scheme, File file) {
-        return scheme + "://" + file.getAbsolutePath().replace(File.separator, "/");
+        return scheme + "://" + file.getAbsolutePath().replace(File.separatorChar, '/');
     }
 
     private static String getRelativePath(File rootDir, String rootDirString, File file) {
         String relpath = matchPathLists(getPathList(rootDir), getPathList(file));
-        return relpath != null ? rootDirString + "/" + relpath : file.getAbsolutePath().replace(File.separator, "/");
+        return relpath != null ? rootDirString + "/" + relpath : file.getAbsolutePath().replace(File.separatorChar, '/');
     }
 
     private static String relativePathToURI(String relpath) {
