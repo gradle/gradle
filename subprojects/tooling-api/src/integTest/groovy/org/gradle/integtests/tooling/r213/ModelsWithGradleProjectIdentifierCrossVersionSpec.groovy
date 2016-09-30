@@ -17,17 +17,17 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
+@ToolingApiVersion(">=2.13")
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=2.13")
     def "ProjectConnection provides identified models for single project build"() {
         setup:
         singleProjectBuildInRootFolder("A")
@@ -44,7 +44,6 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
     }
 
     @Ignore("Test fails sporadically")
-    @TargetGradleVersion(">=2.13")
     def "ProjectConnection with custom action provides identified models for multi-project build"() {
         setup:
         multiProjectBuildInRootFolder("B", ['x', 'y'])
