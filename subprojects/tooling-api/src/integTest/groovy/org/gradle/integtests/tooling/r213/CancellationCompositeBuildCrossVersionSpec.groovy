@@ -26,7 +26,6 @@ import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
-import spock.lang.Ignore
 
 /**
  * Tests cancellation of model requests in a composite build.

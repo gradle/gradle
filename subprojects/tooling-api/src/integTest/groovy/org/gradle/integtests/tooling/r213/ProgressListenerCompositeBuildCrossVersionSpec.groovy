@@ -19,18 +19,8 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ModelBuilder
-import org.gradle.tooling.ProgressEvent
-import org.gradle.tooling.ProgressListener
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
-import spock.lang.Ignore
 
 /**
  * Tooling client provides progress listener for a composite build

@@ -17,10 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.CollectionUtils
-import spock.lang.Ignore
 
 class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     def "forTasks() is not allowed in multi-model requests"() {
