@@ -24,19 +24,27 @@ import java.io.OutputStream;
  * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
  */
 public class LineBufferingOutputStream extends OutputStream {
+    private final static int LINE_MAX_LENGTH = 1024 * 1024; // Split line if a single line goes over 1 MB
     private boolean hasBeenClosed;
     private final TextStream handler;
     private StreamByteBuffer buffer;
     private final OutputStream output;
     private final byte lastLineSeparatorByte;
+    private final int lineMaxLength;
+    private int counter;
 
     public LineBufferingOutputStream(TextStream handler) {
         this(handler, 2048);
     }
 
     public LineBufferingOutputStream(TextStream handler, int bufferLength) {
+        this(handler, bufferLength, LINE_MAX_LENGTH);
+    }
+
+    public LineBufferingOutputStream(TextStream handler, int bufferLength, int lineMaxLength) {
         this.handler = handler;
         buffer = new StreamByteBuffer(bufferLength);
+        this.lineMaxLength = lineMaxLength;
         output = buffer.getOutputStream();
         byte[] lineSeparator = SystemProperties.getInstance().getLineSeparator().getBytes();
         lastLineSeparatorByte = lineSeparator[lineSeparator.length - 1];
@@ -67,7 +75,8 @@ public class LineBufferingOutputStream extends OutputStream {
             throw new IOException("The stream has been closed.");
         }
         output.write(b);
-        if (endsWithLineSeparator(b)) {
+        counter++;
+        if (endsWithLineSeparator(b) || counter >= lineMaxLength) {
             flush();
         }
     }
@@ -85,5 +94,6 @@ public class LineBufferingOutputStream extends OutputStream {
         if (text.length() > 0) {
             handler.text(text);
         }
+        counter = 0;
     }
 }

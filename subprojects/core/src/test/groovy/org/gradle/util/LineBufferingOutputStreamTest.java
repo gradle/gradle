@@ -187,4 +187,17 @@ public class LineBufferingOutputStreamTest {
         outputStream.close();
         outputStream.write("ignore me".getBytes());
     }
+
+    @Test
+    public void splitsLongLines() throws IOException {
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8, 13);
+        context.checking(new Expectations() {{
+            one(action).text("1234567890123");
+            one(action).text("4567890123456");
+            one(action).text("789");
+            one(action).endOfStream(null);
+        }});
+        outputStream.write("12345678901234567890123456789".getBytes());
+        outputStream.close();
+    }
 }
