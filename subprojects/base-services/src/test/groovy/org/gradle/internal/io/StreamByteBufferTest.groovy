@@ -323,4 +323,35 @@ class StreamByteBufferTest extends Specification {
         then:
         buffer.chunkSize == StreamByteBuffer.DEFAULT_CHUNK_SIZE
     }
+
+    def "reads available unicode characters in buffer and pushes in-progress ones back"() {
+        given:
+        def byteBuffer = new StreamByteBuffer(chunkSize)
+        def out = byteBuffer.getOutputStream()
+        def stringBuilder = new StringBuilder()
+
+        when:
+        out.write("HELLO".bytes)
+        then:
+        byteBuffer.readAsString() == "HELLO"
+        byteBuffer.readAsString() == ""
+        byteBuffer.readAsString() == ""
+
+        when:
+        for (int i = 0; i < TEST_STRING_BYTES.length; i++) {
+            out.write(TEST_STRING_BYTES[i])
+            stringBuilder.append(byteBuffer.readAsString('UTF-8'))
+            if (readTwice) {
+                // make sure 2nd readAsString handles properly multi-byte boundary
+                stringBuilder.append(byteBuffer.readAsString('UTF-8'))
+            }
+        }
+
+        then:
+        stringBuilder.toString() == TEST_STRING
+
+        where:
+        // make sure that multi-byte unicode characters get split in different chunks
+        [chunkSize, readTwice] << [(1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000], [false, true]].combinations()
+    }
 }

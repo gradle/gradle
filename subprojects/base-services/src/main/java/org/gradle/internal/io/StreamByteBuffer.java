@@ -165,6 +165,7 @@ public class StreamByteBuffer {
         ByteBuffer buf = null;
         boolean wasUnderflow = false;
         ByteBuffer nextBuf = null;
+        boolean needsFlush = false;
         while (hasRemaining(nextBuf) || hasRemaining(buf) || prepareRead() != -1) {
             if (hasRemaining(buf)) {
                 // handle decoding underflow, multi-byte unicode character at buffer chunk boundary
@@ -190,20 +191,34 @@ public class StreamByteBuffer {
                 nextBuf = null;
             }
             boolean endOfInput = !hasRemaining(nextBuf) && prepareRead() == -1;
-            CoderResult result = decoder.decode(buf, charbuffer, endOfInput);
+            int bufRemainingBefore = buf.remaining();
+            CoderResult result = decoder.decode(buf, charbuffer, false);
+            if (bufRemainingBefore > buf.remaining()) {
+                needsFlush = true;
+            }
             if (endOfInput) {
+                result = decoder.decode(ByteBuffer.allocate(0), charbuffer, true);
                 if (!result.isUnderflow()) {
                     result.throwException();
                 }
+                break;
             }
             wasUnderflow = result.isUnderflow();
         }
-        CoderResult result = decoder.flush(charbuffer);
-        if (buf.hasRemaining()) {
-            throw new IllegalStateException("Unexpected state. Buffer has remaining bytes after decoding.");
+        if (needsFlush) {
+            CoderResult result = decoder.flush(charbuffer);
+            if (!result.isUnderflow()) {
+                result.throwException();
+            }
         }
-        if (!result.isUnderflow()) {
-            result.throwException();
+        // push back remaining bytes of multi-byte unicode character
+        while (hasRemaining(buf)) {
+            byte b = buf.get();
+            try {
+                getOutputStream().write(b);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
         charbuffer.flip();
         return charbuffer;
