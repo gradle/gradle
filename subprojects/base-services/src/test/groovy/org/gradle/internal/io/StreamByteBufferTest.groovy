@@ -106,16 +106,24 @@ class StreamByteBufferTest extends Specification {
     def "converts to String"() {
         given:
         def byteBuffer = new StreamByteBuffer(chunkSize)
+        def out = byteBuffer.getOutputStream()
 
         when:
-        byteBuffer.getOutputStream().write(TEST_STRING_BYTES)
+        if (preUseBuffer) {
+            // check the case that buffer has been used before
+            out.write('HELLO'.getBytes("UTF-8"))
+            byteBuffer.readAsString("UTF-8") == 'HELLO'
+            byteBuffer.readAsString() == ''
+            byteBuffer.readAsString() == ''
+        }
+        out.write(TEST_STRING_BYTES)
 
         then:
         byteBuffer.readAsString("UTF-8") == TEST_STRING
 
         where:
         // make sure that multi-byte unicode characters get split in different chunks
-        chunkSize << (1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000]
+        [chunkSize, preUseBuffer] << [(1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000], [false, true]].combinations()
     }
 
     def "empty buffer to String returns empty String"() {

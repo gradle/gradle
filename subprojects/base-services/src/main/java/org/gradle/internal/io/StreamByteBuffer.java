@@ -181,8 +181,11 @@ public class StreamByteBuffer {
             } else {
                 if (hasRemaining(nextBuf)) {
                     buf = nextBuf;
-                } else {
+                } else if (prepareRead() != -1) {
                     buf = currentReadChunk.readToNioBuffer();
+                    if (!hasRemaining(buf)) {
+                        throw new IllegalStateException("Unexpected state. Buffer is empty.");
+                    }
                 }
                 nextBuf = null;
             }
