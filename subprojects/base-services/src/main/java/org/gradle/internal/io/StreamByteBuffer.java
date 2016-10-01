@@ -152,32 +152,62 @@ public class StreamByteBuffer {
     private String doReadAsString(Charset charset) throws CharacterCodingException {
         int unreadSize = totalBytesUnread();
         if (unreadSize > 0) {
-            CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
-                    CodingErrorAction.REPLACE).onUnmappableCharacter(
-                    CodingErrorAction.REPLACE);
-            CharBuffer charbuffer = CharBuffer.allocate(unreadSize);
-            ByteBuffer buf = null;
-            while (prepareRead() != -1) {
-                buf = currentReadChunk.readToNioBuffer(buf);
-                boolean endOfInput = prepareRead() == -1;
-                CoderResult result = decoder.decode(buf, charbuffer, endOfInput);
-                if (endOfInput) {
-                    if (!result.isUnderflow()) {
-                        result.throwException();
-                    }
-                }
-            }
-            CoderResult result = decoder.flush(charbuffer);
-            if (buf.hasRemaining()) {
-                throw new IllegalStateException("There's a bug here, buffer wasn't read fully.");
-            }
-            if (!result.isUnderflow()) {
-                result.throwException();
-            }
-            charbuffer.flip();
-            return charbuffer.toString();
+            return readAsCharBuffer(charset).toString();
         }
         return "";
+    }
+
+    private CharBuffer readAsCharBuffer(Charset charset) throws CharacterCodingException {
+        CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
+                CodingErrorAction.REPLACE).onUnmappableCharacter(
+                CodingErrorAction.REPLACE);
+        CharBuffer charbuffer = CharBuffer.allocate(totalBytesUnread());
+        ByteBuffer buf = null;
+        boolean wasUnderflow = false;
+        ByteBuffer nextBuf = null;
+        while (hasRemaining(nextBuf) || hasRemaining(buf) || prepareRead() != -1) {
+            if (hasRemaining(buf)) {
+                // handle decoding underflow, multi-byte unicode character at buffer chunk boundary
+                if (!wasUnderflow) {
+                    throw new IllegalStateException("Unexpected state. Buffer has remaining bytes without underflow in decoding.");
+                }
+                if (!hasRemaining(nextBuf) && prepareRead() != -1) {
+                    nextBuf = currentReadChunk.readToNioBuffer();
+                }
+                // copy one by one until the underflow has been resolved
+                buf = ByteBuffer.allocate(buf.remaining() + 1).put(buf);
+                buf.put(nextBuf.get());
+                buf.flip();
+            } else {
+                if (hasRemaining(nextBuf)) {
+                    buf = nextBuf;
+                } else {
+                    buf = currentReadChunk.readToNioBuffer();
+                }
+                nextBuf = null;
+            }
+            boolean endOfInput = !hasRemaining(nextBuf) && prepareRead() == -1;
+            CoderResult result = decoder.decode(buf, charbuffer, endOfInput);
+            if (endOfInput) {
+                if (!result.isUnderflow()) {
+                    result.throwException();
+                }
+            }
+            wasUnderflow = result.isUnderflow();
+        }
+        CoderResult result = decoder.flush(charbuffer);
+        if (buf.hasRemaining()) {
+            throw new IllegalStateException("Unexpected state. Buffer has remaining bytes after decoding.");
+        }
+        if (!result.isUnderflow()) {
+            result.throwException();
+        }
+        charbuffer.flip();
+        return charbuffer;
+    }
+
+    private boolean hasRemaining(ByteBuffer nextBuf) {
+        return nextBuf != null && nextBuf.hasRemaining();
     }
 
     public int totalBytesUnread() {
@@ -233,19 +263,13 @@ public class StreamByteBuffer {
             buffer = new byte[size];
         }
 
-        public ByteBuffer readToNioBuffer(ByteBuffer previousBufferToMergeWith) {
+        public ByteBuffer readToNioBuffer() {
             if (pointer < used) {
                 ByteBuffer result;
-                if (previousBufferToMergeWith != null && previousBufferToMergeWith.hasRemaining()) {
-                    // merge previous buffer if it has remaining bytes
-                    result = ByteBuffer.allocate(previousBufferToMergeWith.remaining() + bytesUnread()).put(previousBufferToMergeWith).put(buffer, pointer, used - pointer);
-                    result.flip();
+                if (pointer > 0 || used < size) {
+                    result = ByteBuffer.wrap(buffer, pointer, used - pointer);
                 } else {
-                    if (pointer > 0 || used < size) {
-                        result = ByteBuffer.wrap(buffer, pointer, used - pointer);
-                    } else {
-                        result = ByteBuffer.wrap(buffer);
-                    }
+                    result = ByteBuffer.wrap(buffer);
                 }
                 pointer = used;
                 return result;
