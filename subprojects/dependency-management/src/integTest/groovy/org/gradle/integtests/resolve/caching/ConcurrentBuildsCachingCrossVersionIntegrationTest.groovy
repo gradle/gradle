@@ -43,30 +43,39 @@ dependencies {
     a "group1:module1:1.0"
     b "group1:module2:0.99"
 }
+
 task a {
     doLast {
         configurations.a.files
     }
 }
-task b {
-    doLast {
-        configurations.b.files
-    }
-}
+
 task block1 {
+    dependsOn tasks.a
+    onlyIf { project.hasProperty("enable-block1") }
     doLast {
         new URL("$server1.uri").text
     }
 }
-block1.mustRunAfter a
-b.mustRunAfter block1
+
+task b {
+    dependsOn tasks.block1
+    doLast {
+        configurations.b.files
+    }
+}
 
 task block2 {
+    dependsOn tasks.b
+    onlyIf { project.hasProperty("enable-block2") }
     doLast {
         new URL("$server2.uri").text
     }
 }
-block2.mustRunAfter b
+
+task c {
+    dependsOn tasks.block2
+}
 """
         expect:
         // Build 1 should download module 1 and check whether it can reuse module 2 files
@@ -87,13 +96,15 @@ block2.mustRunAfter b
 
         // Start build 1 then wait until it has run task 'a'.
         def previousExecuter = version(previous)
-        previousExecuter.withTasks("a", "block1", "b")
+        previousExecuter.withArgument("-Penable-block1")
+        previousExecuter.withTasks("c")
         def build1 = previousExecuter.start()
         server1.waitFor()
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         def currentExecuter = version(current)
-        currentExecuter.withTasks("a", "b", "block2")
+        currentExecuter.withArgument("-Penable-block2")
+        currentExecuter.withTasks("c")
         def build2 = currentExecuter.start()
         server2.waitFor()
 
