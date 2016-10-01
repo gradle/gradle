@@ -19,7 +19,7 @@ package org.gradle.internal.classpath;
 import java.io.File;
 
 /**
- * Represents a store of cached jars.
+ * Represents a store of cached and immutable jar files. Once added to a file store, a jar file should not be mutated in place.
  */
 public interface CachedJarFileStore {
     /**

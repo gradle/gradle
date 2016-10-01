@@ -66,9 +66,11 @@ task block2 {
 block2.mustRunAfter b
 """
         expect:
-        // Should resolve each once
+        // Build 1 should download module 1 and reuse cached module 2 state
         mod1.pom.expectGet()
         mod1.artifact.expectGet()
+
+        // Build 2 should download module 2 and reuse cached module 1 state
         mod2.pom.expectGet()
         mod2.artifact.expectGet()
 
