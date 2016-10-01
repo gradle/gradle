@@ -259,16 +259,10 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildScript multiProjectBuild()
 
         when: 'two reports in parallel'
-        succeeds('--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
+        succeeds('-q', '--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
 
-        then: 'reports are not mixed, minor the executed task names'
-        def cleanOutput = ''
-        output.eachLine { line ->
-            if (!line.startsWith(':')) {
-                cleanOutput += line + '\n'
-            }
-        }
-        cleanOutput.contains '''
+        then: 'reports are not mixed'
+        output.contains '''
             ------------------------------------------------------------
             Project :libraries
             ------------------------------------------------------------
@@ -289,7 +283,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    \\--- :extensions:bazar:staticLibrary
             \\--- :libraries:foo:staticLibrary
         '''.stripIndent()
-        cleanOutput.contains '''
+        output.contains '''
             ------------------------------------------------------------
             Project :extensions
             ------------------------------------------------------------
