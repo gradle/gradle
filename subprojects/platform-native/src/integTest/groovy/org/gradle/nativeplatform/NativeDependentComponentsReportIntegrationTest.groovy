@@ -170,8 +170,8 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         where:
-        option             | _
-        '--all'            | _
+        option            | _
+        '--all'           | _
         '--non-buildable' | _
     }
 
@@ -263,8 +263,8 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         then: 'reports are not mixed, minor the executed task names'
         def cleanOutput = ''
-        output.eachLine {line ->
-            if(!line.startsWith(':')) {
+        output.eachLine { line ->
+            if (!line.startsWith(':')) {
                 cleanOutput += line + '\n'
             }
         }
@@ -543,10 +543,10 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains emptyDependents()
 
         where:
-        option             | _
-        "--test-suites"    | _
+        option            | _
+        "--test-suites"   | _
         "--non-buildable" | _
-        "--all"            | _
+        "--all"           | _
     }
 
     private static String emptyNativeBuild() {
