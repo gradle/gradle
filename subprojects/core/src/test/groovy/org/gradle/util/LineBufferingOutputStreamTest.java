@@ -103,15 +103,16 @@ public class LineBufferingOutputStreamTest {
 
     @Test
     public void handlesMultiCharacterLineSeparator() throws IOException {
-        System.setProperty("line.separator", "----");
+        final String separator = new String(new byte[]{'\r', '\n'});
+        System.setProperty("line.separator", separator);
         LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8);
 
         context.checking(new Expectations() {{
-            one(action).text("line 1----");
-            one(action).text("line 2----");
+            one(action).text("line 1" + separator);
+            one(action).text("line 2" + separator);
         }});
 
-        outputStream.write(String.format("line 1----line 2----").getBytes());
+        outputStream.write(("line 1" + separator + "line 2" + separator).getBytes());
     }
 
     @Test
