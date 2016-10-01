@@ -261,8 +261,14 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         when: 'two reports in parallel'
         succeeds('--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
 
-        then: 'reports are not mixed'
-        output.contains '''
+        then: 'reports are not mixed, minor the executed task names'
+        def cleanOutput = ''
+        output.eachLine {line ->
+            if(!line.startsWith(':')) {
+                cleanOutput += line + '\n'
+            }
+        }
+        cleanOutput.contains '''
             ------------------------------------------------------------
             Project :libraries
             ------------------------------------------------------------
@@ -283,7 +289,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    \\--- :extensions:bazar:staticLibrary
             \\--- :libraries:foo:staticLibrary
         '''.stripIndent()
-        output.contains '''
+        cleanOutput.contains '''
             ------------------------------------------------------------
             Project :extensions
             ------------------------------------------------------------
