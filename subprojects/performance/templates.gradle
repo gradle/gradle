@@ -608,6 +608,18 @@ task largeEnterpriseBuildPostProcess(type: GradleBuild) {
     }
 }
 
+task largeNativeBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-native-large'
+    branch = 'master'
+    finalizedBy 'largeNativeBuildPrebuilt'
+}
+
+task largeNativeBuildPrebuilt(type: GradleBuild) {
+    buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
+    dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
+    tasks = ['build']
+}
+
 // The Android Studio performance tests use custom model classes which need to be found in
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
