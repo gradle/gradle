@@ -354,4 +354,45 @@ class StreamByteBufferTest extends Specification {
         // make sure that multi-byte unicode characters get split in different chunks
         [chunkSize, readTwice] << [(1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000], [false, true]].combinations()
     }
+
+    def "calculates available characters when reading and writing"() {
+        given:
+        def byteBuffer = new StreamByteBuffer(8)
+        def out = byteBuffer.outputStream
+
+        when:
+        out.write("1234567890123".bytes)
+        then:
+        byteBuffer.totalBytesUnread() == 13
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+
+        when:
+        out.write("4567890123456".bytes)
+        then:
+        byteBuffer.totalBytesUnread() == 13
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+
+        when:
+        out.write("789".bytes)
+        then:
+        byteBuffer.totalBytesUnread() == 3
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+    }
 }

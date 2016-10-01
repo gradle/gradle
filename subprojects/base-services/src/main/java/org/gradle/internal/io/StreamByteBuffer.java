@@ -211,6 +211,7 @@ public class StreamByteBuffer {
                 result.throwException();
             }
         }
+        clear();
         // push back remaining bytes of multi-byte unicode character
         while (hasRemaining(buf)) {
             byte b = buf.get();
@@ -353,6 +354,10 @@ public class StreamByteBuffer {
             }
             return readBytes;
         }
+
+        public void clear() {
+            used = pointer = 0;
+        }
     }
 
     class StreamByteBufferOutputStream extends OutputStream {
@@ -463,7 +468,6 @@ public class StreamByteBuffer {
         chunks.clear();
         currentReadChunk = null;
         totalBytesUnreadInList = 0;
-        nextChunkSize = chunkSize;
-        currentWriteChunk = new StreamByteBufferChunk(nextChunkSize);
+        currentWriteChunk.clear();
     }
 }
