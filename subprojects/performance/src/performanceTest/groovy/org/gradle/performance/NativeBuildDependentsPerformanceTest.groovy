@@ -30,7 +30,8 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native build dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:$taskName" ]
-        runner.targetVersions = ['nightly']
+        // TODO Change this to 'last' once 3.2 is released
+        runner.targetVersions = ['3.2-20161002101251+0000']
         runner.useDaemon = true
 
         runner.args += ["--parallel", "--max-workers=4"]
@@ -44,7 +45,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         where:
         testProject            | subprojectPath  | taskName
         'nativeDependents'     | ':libA0'        | 'buildDependentsLibA0'
-        // TODO Enable once nightly supports native dependent components
+        // TODO Enable once runnable on CI (google test & target platform)
         // 'largeNativeBuild'     | ':project432'   | 'buildDependentsExternalComponent111'
         // TODO Re-evaluate this scenario: memory consumption stress case, gradleOpts = ['-Xms4g', '-Xmx4g']
         // The generated dependency graph is rather complex and deep, unrealistic?
@@ -57,7 +58,8 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native report dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:dependentComponents" ]
-        runner.targetVersions = ['nightly']
+        // TODO Change this to 'last' once 3.2 is released
+        runner.targetVersions = ['3.2-20161002101251+0000']
         runner.useDaemon = true
 
         runner.args += ["--parallel", "--max-workers=4"]
@@ -71,7 +73,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         where:
         testProject            | subprojectPath
         'nativeDependents'     | ':libA0'
-        // TODO Enable once nightly supports native dependent components
+        // TODO Enable once runnable on CI (google test & target platform)
         // 'largeNativeBuild'     | ':project432'
         // TODO Re-evaluate this scenario: memory consumption stress case, gradleOpts = ['-Xms4g', '-Xmx4g']
         // The generated dependency graph is rather complex and deep, unrealistic?

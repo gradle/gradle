@@ -46,19 +46,3 @@ components.each { component ->
         }
     }
 }
-
-// TODO: Remove this hack once a nightly supports build dependents.
-boolean supportsBuildDependents = true
-try {
-    this.getClass().getClassLoader().loadClass("org.gradle.api.reporting.dependents.DependentComponentsReport")
-} catch (Exception e) {
-    supportsBuildDependents = false
-}
-if (!supportsBuildDependents) {
-<%
-    components.each { component ->
-        out.println("    tasks.create('buildDependents${component.name.capitalize()}')")
-    }
-%>
-    tasks.create("dependentComponents")
-}
