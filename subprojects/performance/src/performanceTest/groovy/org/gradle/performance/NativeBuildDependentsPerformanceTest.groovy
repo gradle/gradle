@@ -24,10 +24,10 @@ import spock.lang.Unroll
 @Ignore
 @Category(NativePerformanceTest)
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' measuring build dependents speed for #subprojectPath")
-    def "build dependents of native project"() {
+    @Unroll("Native build dependents - #testProject")
+    def "native build dependents"() {
         given:
-        runner.testId = "build dependents of native project $testProject"
+        runner.testId = "native build dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:$taskName" ]
         runner.targetVersions = ['nightly']
@@ -42,19 +42,19 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject        | subprojectPath | taskName
-        "nativeDependents" | ':libA0'       | 'buildDependentsLibA00'
-        "nativeDependents" | ':libA6'       | 'buildDependentsLibA60'
-        "nativeDependents" | ':exeA0'       | 'buildDependentsExeA00'
-        // TODO: Re-enable these once our memory troubles are over.
-        // "nativeDependentsDeep" | ':libA0' | 'buildDependentsLibA00'
-        // "nativeDependentsDeep" | ':exeA0' | 'buildDependentsExeA00'
+        testProject            | subprojectPath  | taskName
+        'nativeDependents'     | ':libA0'        | 'buildDependentsLibA0'
+        // TODO Enable once nightly supports native dependent components
+        // 'largeNativeBuild'     | ':project432'   | 'buildDependentsExternalComponent111'
+        // TODO Re-evaluate this scenario: memory consumption stress case, gradleOpts = ['-Xms4g', '-Xmx4g']
+        // The generated dependency graph is rather complex and deep, unrealistic?
+        // 'nativeDependentsDeep' | ':libA0'       | 'buildDependentsLibA0'
     }
 
-    @Unroll("Project '#testProject' measuring build dependents report speed for #subprojectPath")
-    def "build dependents report for native project"() {
+    @Unroll("Native report dependents - #testProject")
+    def "native report dependents"() {
         given:
-        runner.testId = "build dependents of native project $testProject"
+        runner.testId = "native report dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:dependentComponents" ]
         runner.targetVersions = ['nightly']
@@ -69,12 +69,12 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject        | subprojectPath
-        "nativeDependents" | ':libA0'
-        "nativeDependents" | ':libA6'
-        "nativeDependents" | ':exeA0'
-        // TODO: Re-enable these once our memory troubles are over.
-        // "nativeDependentsDeep" | ':libA0'
-        // "nativeDependentsDeep" | ':exeA0'
+        testProject            | subprojectPath
+        'nativeDependents'     | ':libA0'
+        // TODO Enable once nightly supports native dependent components
+        // 'largeNativeBuild'     | ':project432'
+        // TODO Re-evaluate this scenario: memory consumption stress case, gradleOpts = ['-Xms4g', '-Xmx4g']
+        // The generated dependency graph is rather complex and deep, unrealistic?
+        // 'nativeDependentsDeep' | 'libA0'
     }
 }

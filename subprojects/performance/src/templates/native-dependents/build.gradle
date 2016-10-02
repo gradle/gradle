@@ -55,6 +55,10 @@ try {
     supportsBuildDependents = false
 }
 if (!supportsBuildDependents) {
-    tasks.create("buildDependents" + project.name + "0")
+<%
+    components.each { component ->
+        out.println("    tasks.create('buildDependents${component.name.capitalize()}')")
+    }
+%>
     tasks.create("dependentComponents")
 }
