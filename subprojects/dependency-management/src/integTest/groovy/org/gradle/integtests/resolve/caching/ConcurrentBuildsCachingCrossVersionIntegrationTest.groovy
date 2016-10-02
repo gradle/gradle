@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.resolve.artifactreuse.AbstractCacheReuseCrossVersionIntegrationTest
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 @IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultCacheLockingManager.CACHE_LAYOUT_VERSION })
@@ -81,10 +82,15 @@ task c {
         // Build 1 should download module 1 and check whether it can reuse module 2 files
         mod1.pom.expectGet()
         mod1.artifact.expectGet()
-        mod2.pom.expectHead()
-        mod2.pom.sha1.expectGet()
-        mod2.artifact.expectHead()
-        mod2.artifact.sha1.expectGet()
+        if (previous.version <= GradleVersion.version("1.8")) {
+            mod2.pom.expectGet()
+            mod2.artifact.expectGet()
+        } else {
+            mod2.pom.expectHead()
+            mod2.pom.sha1.expectGet()
+            mod2.artifact.expectHead()
+            mod2.artifact.sha1.expectGet()
+        }
 
         // Build 2 should check whether it can reuse module 1 files and download module 2 files
         mod1.pom.expectHead()
