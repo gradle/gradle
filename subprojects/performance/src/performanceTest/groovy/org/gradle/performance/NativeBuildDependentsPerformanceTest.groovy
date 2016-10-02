@@ -18,10 +18,8 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.NativePerformanceTest
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore
 @Category(NativePerformanceTest)
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Native build dependents - #testProject")
