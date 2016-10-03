@@ -19,6 +19,7 @@ package org.gradle.script.lang.kotlin.provider
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
 import org.gradle.script.lang.kotlin.support.compileKotlinScript
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -28,8 +29,6 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
-import org.gradle.internal.classloader.VisitableURLClassLoader
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
 
@@ -130,14 +129,26 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun scriptBodyClassLoaderFor(parentClassLoader: ClassLoader): ClassLoader =
-        if (scriptClassPath.hasKotlinJar() || buildSrc.hasKotlinJar())
+        if (scriptClassPath.hasConflictingKotlinRuntime() || buildSrc.hasConflictingKotlinRuntime())
             isolatedKotlinClassLoaderFor(parentClassLoader)
         else
             defaultClassLoaderFor(targetScope.apply { export(scriptClassPath) })
 
-    private fun ClassPath.hasKotlinJar() =
-        asFiles.any { isKotlinJar(it.name) }
+    private fun ClassPath.hasConflictingKotlinRuntime() =
+        asFiles
+            .asSequence()
+            .map { kotlinRuntimeVersionFor(it) }
+            .filterNotNull()
+            .any { it != embeddedKotlinVersion }
 
+    companion object {
+        val kotlinRuntimePattern = "kotlin-runtime-(\\d\\.\\d.+?)\\.jar$".toPattern()
+
+        fun kotlinRuntimeVersionFor(jar: File): String? =
+            kotlinRuntimePattern.matcher(jar.name).run {
+                if (find()) group(1) else null
+            }
+    }
     /**
      * Creates a [ChildFirstClassLoader] that reloads gradle-script-kotlin.jar in the context of
      * the buildscript classpath so to share the correct version of the Kotlin
