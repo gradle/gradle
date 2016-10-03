@@ -78,6 +78,12 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.log.contains(DaemonMessages.CANCELED_BUILD)
     }
 
+    /**
+     * When the daemon is started on *nix, we need to detach it from the terminal session of the parent process,
+     * otherwise if a ctrl-c is entered on the terminal, it will kill all processes in the session.  This test compiles
+     * a native executable that can retrieve the session id of a process so that we can verify that the session id
+     * of the daemon is different than the session id of the client.
+     */
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "session id of daemon is different from daemon client"() {
         given:
@@ -105,6 +111,15 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         server.release()
     }
 
+    /**
+     * When the daemon is started on Windows, we need to detach from the console that started the process, otherwise if
+     * a ctrl-c is entered in that console, it will send a kill signal to all processes attached to the console.  This
+     * test compiles a native executable that attempts to connect to the console of a given pid.  We use this to verify
+     * that the daemon is not attached to any console.  Note that this is the only way to validate this in Windows since
+     * there is no way to determine which console (if any) a process is attached to.  We really only have a system call
+     * that allows us to attach to the same console some other process is attached to.  If that process is not attached
+     * to any console, we get a specific error that we check for.
+     */
     @Requires(TestPrecondition.WINDOWS)
     def "daemon is not attached to a console"() {
         given:
@@ -124,7 +139,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.assertBusy()
 
         then:
-        attachConsole(daemons.daemon.context.pid) == "none"
+        getConsole(daemons.daemon.context.pid) == "none"
 
         cleanup:
         server.release()
@@ -172,7 +187,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         return file("getSid/build/install/getSid/lib/getSid").exec(pid as String).out.trim()
     }
 
-    String attachConsole(Long pid) {
+    String getConsole(Long pid) {
         return file("attachConsole/build/install/attachConsole/attachConsole.bat").exec(pid as String).out.trim()
     }
 
@@ -182,6 +197,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
             #include <stdlib.h>
             #include <windows.h>
 
+            // Convenience method for getting a human readable form of the last error.
             void ErrorExit(const char *func){
                 DWORD errCode = GetLastError();
                 char *err;
@@ -235,7 +251,9 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
                     }
                 }
 
-                // Otherwise we return the pid to signify that we were able to attach to its console
+                // Otherwise we return the pid to signify that we were able to attach to its console.
+                // In the context of the test, this would be considered a "failure" as we expect to find
+                // the daemon not to have a console that we can attach to.
                 printf("%d\\n", pid);
                 exit(0);
             }
