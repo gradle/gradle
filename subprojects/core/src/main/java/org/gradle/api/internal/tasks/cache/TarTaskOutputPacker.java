@@ -61,6 +61,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
         final TarOutputStream outputStream = new TarOutputStream(output);
+        try {
+            pack(taskOutputs, outputStream);
+        } finally {
+            outputStream.close();
+        }
+    }
+
+    private void pack(TaskOutputsInternal taskOutputs, TarOutputStream outputStream) {
         for (TaskOutputFilePropertySpec spec : taskOutputs.getFileProperties()) {
             try {
                 packProperty((CacheableTaskOutputFilePropertySpec) spec, outputStream);
@@ -68,8 +76,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 throw new GradleException(String.format("Could not pack property '%s'", spec.getPropertyName()), ex);
             }
         }
-        outputStream.finish();
-        outputStream.flush();
     }
 
     private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final TarOutputStream outputStream) throws IOException {
@@ -129,13 +135,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+        TarInputStream tarInput = new TarInputStream(input);
+        try {
+            unpack(taskOutputs, tarInput);
+        } finally {
+            tarInput.close();
+        }
+    }
+
+    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
-        TarInputStream tarInput = new TarInputStream(input);
         TarEntry entry;
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
