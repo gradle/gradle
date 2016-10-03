@@ -54,6 +54,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
+import org.gradle.plugins.ide.idea.model.PathInterner;
 import org.gradle.plugins.ide.idea.model.PathFactory;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
@@ -77,6 +78,7 @@ public class IdeaPlugin extends IdePlugin {
 
     private final Instantiator instantiator;
     private IdeaModel ideaModel;
+    private PathInterner pathInterner;
 
     @Inject
     public IdeaPlugin(Instantiator instantiator) {
@@ -98,6 +100,7 @@ public class IdeaPlugin extends IdePlugin {
         getCleanTask().setDescription("Cleans IDEA project files (IML, IPR)");
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
+        pathInterner = new PathInterner();
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -223,7 +226,7 @@ public class IdeaPlugin extends IdePlugin {
             conventionMapping.map("pathFactory", new Callable<PathFactory>() {
                 @Override
                 public PathFactory call() throws Exception {
-                    return new PathFactory().addPathVariable("PROJECT_DIR", task.getOutputFile().getParentFile());
+                    return new PathFactory(pathInterner).addPathVariable("PROJECT_DIR", task.getOutputFile().getParentFile());
                 }
             });
 
@@ -297,7 +300,7 @@ public class IdeaPlugin extends IdePlugin {
         conventionMapping.map("pathFactory", new Callable<PathFactory>() {
             @Override
             public PathFactory call() throws Exception {
-                final PathFactory factory = new PathFactory();
+                final PathFactory factory = new PathFactory(pathInterner);
                 factory.addPathVariable("MODULE_DIR", task.getOutputFile().getParentFile());
                 for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());

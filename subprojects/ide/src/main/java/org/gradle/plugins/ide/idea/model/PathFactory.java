@@ -29,9 +29,17 @@ import java.util.Map;
  * Path Factory.
  */
 public class PathFactory {
-
     private final List<Variable> variables = Lists.newArrayList();
     private final Map<String, File> varsByName = Maps.newHashMap();
+    private final PathInterner pathInterner;
+
+    public PathFactory() {
+        this(new PathInterner());
+    }
+
+    public PathFactory(PathInterner pathInterner) {
+        this.pathInterner = pathInterner;
+    }
 
     public PathFactory addPathVariable(String name, File dir) {
         variables.add(new Variable('$' + name + '$', dir.getAbsolutePath() + File.separator, dir));
@@ -73,7 +81,7 @@ public class PathFactory {
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
         String relPath = file.getAbsolutePath().replace(File.separatorChar, '/');
         String url = relativePathToURI(relPath, useFileScheme);
-        return new FilePath(file, url, url, relPath);
+        return pathInterner.createFilePath(file, url, url, relPath);
     }
 
     /**
@@ -83,11 +91,11 @@ public class PathFactory {
         return resolvePath(varsByName.get(pathVar), "$" + pathVar + "$", file);
     }
 
-    private static FilePath resolvePath(File rootDir, String rootDirName, File file) {
+    private FilePath resolvePath(File rootDir, String rootDirName, File file) {
         String relPath = getRelativePath(rootDir, rootDirName, file);
         String url = relativePathToURI(relPath);
         String canonicalUrl = relativePathToURI(file.getAbsolutePath().replace(File.separatorChar, '/'));
-        return new FilePath(file, url, canonicalUrl, relPath);
+        return pathInterner.createFilePath(file, url, canonicalUrl, relPath);
     }
 
     /**
@@ -114,7 +122,7 @@ public class PathFactory {
                     expandedUrl = toUrl("jar", new File(parts[0]).getCanonicalFile()) + "!" + parts[1];
                 }
             }
-            return new Path(url, expandedUrl, relPath);
+            return pathInterner.createPath(url, expandedUrl, relPath);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
