@@ -18,12 +18,10 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.NativePerformanceTest
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Category(NativePerformanceTest)
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Ignore('GoogleTest tests do not link on CI - architecture mismatch')
     @Unroll("Native build dependents - #testProject")
     def "native build dependents"() {
         given:
