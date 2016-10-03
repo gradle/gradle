@@ -22,53 +22,73 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
+import org.apache.tools.tar.TarOutputStream;
+import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.specs.Specs;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
-public class ZipTaskOutputPacker implements TaskOutputPacker {
+public class TarTaskOutputPacker implements TaskOutputPacker {
+    private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
+    private final FileSystem fileSystem;
+
+    public TarTaskOutputPacker(FileSystem fileSystem) {
+        this.directoryWalkerFactory = new DefaultDirectoryWalkerFactory(JavaVersion.current(), fileSystem);
+        this.fileSystem = fileSystem;
+    }
+
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
-        final ZipOutputStream zipOutput = new ZipOutputStream(output);
+        final TarOutputStream outputStream = new TarOutputStream(output);
         for (TaskOutputFilePropertySpec spec : taskOutputs.getFileProperties()) {
             try {
-                packProperty((CacheableTaskOutputFilePropertySpec) spec, zipOutput);
+                packProperty((CacheableTaskOutputFilePropertySpec) spec, outputStream);
             } catch (Exception ex) {
                 throw new GradleException(String.format("Could not pack property '%s'", spec.getPropertyName()), ex);
             }
         }
-        zipOutput.finish();
+        outputStream.finish();
+        outputStream.flush();
     }
 
-    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final ZipOutputStream zipOutput) throws IOException {
+    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final TarOutputStream outputStream) throws IOException {
         final String propertyName = propertySpec.getPropertyName();
+        File outputFile = propertySpec.getOutputFile();
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
                 final String propertyRoot = "property-" + propertyName + "/";
-                zipOutput.putNextEntry(new ZipEntry(propertyRoot));
-                new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
+                outputStream.putNextEntry(new TarEntry(propertyRoot));
+                FileVisitor visitor = new FileVisitor() {
                     @Override
                     public void visitDir(FileVisitDetails dirDetails) {
                         String path = dirDetails.getRelativePath().getPathString();
                         try {
-                            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
+                            TarEntry entry = new TarEntry(propertyRoot + path + "/");
+                            entry.setModTime(dirDetails.getLastModified());
+                            entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+                            outputStream.putNextEntry(entry);
+                            outputStream.closeEntry();
                         } catch (IOException e) {
                             throw Throwables.propagate(e);
                         }
@@ -77,21 +97,31 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
                     @Override
                     public void visitFile(FileVisitDetails fileDetails) {
                         String path = fileDetails.getRelativePath().getPathString();
-                        try {
-                            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
-                            fileDetails.copyTo(zipOutput);
-                        } catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
+                        storeFileEntry(fileDetails.getFile(), propertyRoot + path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
                     }
-                });
+                };
+                directoryWalkerFactory.create().walkDir(outputFile, RelativePath.EMPTY_PARENT_DIRECTORY, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
                 break;
             case FILE:
-                zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
-                Files.copy(propertySpec.getOutputFile(), zipOutput);
+                String path = "property-" + propertyName;
+                storeFileEntry(outputFile, path, outputFile.lastModified(), outputFile.length(), fileSystem.getUnixMode(outputFile), outputStream);
                 break;
             default:
                 throw new AssertionError();
+        }
+    }
+
+    private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) {
+        try {
+            TarEntry entry = new TarEntry(path);
+            entry.setModTime(lastModified);
+            entry.setSize(size);
+            entry.setMode(UnixStat.FILE_FLAG | mode);
+            outputStream.putNextEntry(entry);
+            Files.copy(file, outputStream);
+            outputStream.closeEntry();
+        } catch (IOException e) {
+            throw Throwables.propagate(e);
         }
     }
 
@@ -105,9 +135,9 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
                 return propertySpec.getPropertyName();
             }
         });
-        ZipInputStream zipInput = new ZipInputStream(input);
-        ZipEntry entry;
-        while ((entry = zipInput.getNextEntry()) != null) {
+        TarInputStream tarInput = new TarInputStream(input);
+        TarEntry entry;
+        while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
             Matcher matcher = PROPERTY_PATH.matcher(name);
             if (!matcher.matches()) {
@@ -135,8 +165,10 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
             } else {
                 // TODO:LPTR Can we save on doing this?
                 Files.createParentDirs(outputFile);
-                Files.asByteSink(outputFile).writeFrom(zipInput);
+                Files.asByteSink(outputFile).writeFrom(tarInput);
             }
+            fileSystem.chmod(outputFile, entry.getMode() & 0777);
+            outputFile.setLastModified(entry.getModTime().getTime());
         }
     }
 }

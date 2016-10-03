@@ -27,15 +27,17 @@ import java.nio.charset.Charset;
 
 public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     private final JavaVersion javaVersion;
+    private final FileSystem fileSystem;
     private DirectoryWalker instance;
 
-    DefaultDirectoryWalkerFactory(JavaVersion javaVersion) {
+    public DefaultDirectoryWalkerFactory(JavaVersion javaVersion, FileSystem fileSystem) {
         this.javaVersion = javaVersion;
+        this.fileSystem = fileSystem;
         reset();
     }
 
     DefaultDirectoryWalkerFactory() {
-        this(JavaVersion.current());
+        this(JavaVersion.current(), FileSystems.getDefault());
     }
 
     public DirectoryWalker create() {
@@ -47,7 +49,6 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        FileSystem fileSystem = FileSystems.getDefault();
         if (javaVersion.isJava8Compatible() || (javaVersion.isJava7Compatible() && defaultEncodingContainsPlatformEncoding())) {
             return new Jdk7DirectoryWalker(fileSystem);
         } else {

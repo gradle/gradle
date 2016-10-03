@@ -28,7 +28,11 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileSystemLoopException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Deque;
 import java.util.EnumSet;
@@ -42,12 +46,12 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
         this.fileSystem = fileSystem;
     }
 
-    static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {
+    static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
         return spec.isSatisfiedBy(element);
     }
 
     @Override
-    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
+    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<? super FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
         final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
 
         try {
