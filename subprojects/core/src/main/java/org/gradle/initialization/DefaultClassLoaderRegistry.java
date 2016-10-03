@@ -45,6 +45,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         rootSpec.allowPackage("org.apache.commons.logging");
         rootSpec.allowPackage("org.apache.log4j");
         rootSpec.allowPackage("javax.inject");
+        rootSpec.allowPackage("kotlin");
         ClassLoader rootClassLoader = new FilteringClassLoader(parent, rootSpec);
         return new CachingClassLoader(rootClassLoader);
     }
