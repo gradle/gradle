@@ -74,6 +74,10 @@ public class JUnitOptions extends TestFrameworkOptions {
         return requestClass;
     }
 
+    /**
+     * Custom JUnit Request class implementation to use to request a test class.
+     * @see org.junit.runner.Request
+     */
     @Incubating
     public void setRequestClass(String requestClass) {
         this.requestClass = requestClass;
