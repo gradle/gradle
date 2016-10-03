@@ -42,6 +42,11 @@ public interface CopySpecInternal extends CopySpec {
     void visit(CopySpecAddress parentPath, CopySpecVisitor visitor);
 
     /**
+     * Returns whether the spec, or any of its children have custom copy actions.
+     */
+    boolean hasCopyActions();
+
+    /**
      * Listener triggered when a spec is added to the hierarchy.
      */
     interface CopySpecListener {
