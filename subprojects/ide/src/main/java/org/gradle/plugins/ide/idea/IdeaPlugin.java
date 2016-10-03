@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalCo
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -54,8 +55,8 @@ import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
-import org.gradle.plugins.ide.idea.model.PathInterner;
 import org.gradle.plugins.ide.idea.model.PathFactory;
+import org.gradle.plugins.ide.idea.model.PathInterner;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
@@ -75,7 +76,7 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
  * configuration.
  */
 public class IdeaPlugin extends IdePlugin {
-
+    private static final String EXT_KEY_IDEA_PATH_INTERNER = "ideaPathInterner";
     private final Instantiator instantiator;
     private IdeaModel ideaModel;
     private PathInterner pathInterner;
@@ -100,7 +101,8 @@ public class IdeaPlugin extends IdePlugin {
         getCleanTask().setDescription("Cleans IDEA project files (IML, IPR)");
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
-        pathInterner = new PathInterner();
+
+        pathInterner = lookupOrCreateSharedPathInterner(project);
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -113,6 +115,20 @@ public class IdeaPlugin extends IdePlugin {
                 performPostEvaluationActions();
             }
         });
+    }
+
+    // lookup the shared PathInterner instance from the root project
+    private static PathInterner lookupOrCreateSharedPathInterner(Project project) {
+        PathInterner pathInterner;
+        Project rootProject = project.getRootProject();
+        ExtraPropertiesExtension rootExtraProperties = rootProject.getExtensions().getByType(ExtraPropertiesExtension.class);
+        if (rootExtraProperties.has(EXT_KEY_IDEA_PATH_INTERNER)) {
+            pathInterner = PathInterner.class.cast(rootExtraProperties.get(EXT_KEY_IDEA_PATH_INTERNER));
+        } else {
+            pathInterner = new PathInterner();
+            rootExtraProperties.set(EXT_KEY_IDEA_PATH_INTERNER, pathInterner);
+        }
+        return pathInterner;
     }
 
     public void performPostEvaluationActions() {
