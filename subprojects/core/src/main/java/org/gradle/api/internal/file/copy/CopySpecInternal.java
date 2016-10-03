@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCopyDetails;
 
 public interface CopySpecInternal extends CopySpec {
 
@@ -40,6 +41,13 @@ public interface CopySpecInternal extends CopySpec {
     void addChildSpecListener(CopySpecListener listener);
 
     void visit(CopySpecAddress parentPath, CopySpecVisitor visitor);
+
+    /**
+     * Returns whether the spec, or any of its children have custom copy actions.
+     */
+    boolean hasCustomActions();
+
+    void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action);
 
     /**
      * Listener triggered when a spec is added to the hierarchy.

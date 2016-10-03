@@ -62,6 +62,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<CopySpecInternal> childSpecsInAdditionOrder;
     protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new ArrayList<Action<? super FileCopyDetails>>();
+    private boolean hasCustomActions;
     private Integer dirMode;
     private Integer fileMode;
     private Boolean caseSensitive;
@@ -78,6 +79,19 @@ public class DefaultCopySpec implements CopySpecInternal {
         childSpecsInAdditionOrder = new ArrayList<CopySpecInternal>();
         patternSet = resolver.getPatternSetFactory().create();
         duplicatesStrategy = null;
+    }
+
+    @Override
+    public boolean hasCustomActions() {
+        if (hasCustomActions) {
+            return true;
+        }
+        for (CopySpecInternal childSpec : childSpecs) {
+            if (childSpec.hasCustomActions()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected List<Action<? super FileCopyDetails>> getCopyActions() {
@@ -338,17 +352,17 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {
-        copyActions.add(new RenamingCopyAction(new RegExpNameMapper(sourceRegEx, replaceWith)));
+        appendCopyAction(new RenamingCopyAction(new RegExpNameMapper(sourceRegEx, replaceWith)));
         return this;
     }
 
     public CopySpec rename(Pattern sourceRegEx, String replaceWith) {
-        copyActions.add(new RenamingCopyAction(new RegExpNameMapper(sourceRegEx, replaceWith)));
+        appendCopyAction(new RenamingCopyAction(new RegExpNameMapper(sourceRegEx, replaceWith)));
         return this;
     }
 
     public CopySpec filter(final Class<? extends FilterReader> filterType) {
-        copyActions.add(new Action<FileCopyDetails>() {
+        appendCopyAction(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(filterType);
             }
@@ -361,7 +375,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filter(final Transformer<String, String> transformer) {
-        copyActions.add(new Action<FileCopyDetails>() {
+        appendCopyAction(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(transformer);
             }
@@ -370,7 +384,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filter(final Map<String, ?> properties, final Class<? extends FilterReader> filterType) {
-        copyActions.add(new Action<FileCopyDetails>() {
+        appendCopyAction(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(properties, filterType);
             }
@@ -379,7 +393,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec expand(final Map<String, ?> properties) {
-        copyActions.add(new Action<FileCopyDetails>() {
+        appendCopyAction(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.expand(properties);
             }
@@ -394,7 +408,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec rename(Transformer<String, String> renamer) {
         ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
         transformer.add(renamer);
-        copyActions.add(new RenamingCopyAction(transformer));
+        appendCopyAction(new RenamingCopyAction(transformer));
         return this;
     }
 
@@ -417,12 +431,22 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec eachFile(Action<? super FileCopyDetails> action) {
-        copyActions.add(action);
+        appendCopyAction(action);
         return this;
     }
 
+    private void appendCopyAction(Action<? super FileCopyDetails> action) {
+        hasCustomActions = true;
+        copyActions.add(action);
+    }
+
+    @Override
+    public void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action) {
+        copyActions.add(action);
+    }
+
     public CopySpec eachFile(Closure closure) {
-        copyActions.add(ConfigureUtil.configureUsing(closure));
+        appendCopyAction(ConfigureUtil.configureUsing(closure));
         return this;
     }
 

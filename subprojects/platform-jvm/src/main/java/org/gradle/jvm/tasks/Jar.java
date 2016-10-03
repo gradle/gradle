@@ -83,7 +83,7 @@ public class Jar extends Zip {
                 return new FileTreeAdapter(manifestSource);
             }
         });
-        getMainSpec().eachFile(new Action<FileCopyDetails>() {
+        getMainSpec().appendCachingSafeCopyAction(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails details) {
                 if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
                     details.exclude();
