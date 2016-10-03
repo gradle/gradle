@@ -162,14 +162,10 @@ class KotlinBuildScriptCompiler(
 
     private fun defaultClassLoaderFor(scope: ClassLoaderScope) =
         scope.run {
-            export(extensionsClassLoader)
+            export(gradleApiExtensions)
             lock()
             localClassLoader
         }
-
-    val extensionsClassLoader by lazy {
-        VisitableURLClassLoader(KotlinBuildScript::class.java.classLoader, gradleApiExtensions)
-    }
 
     private fun compileBuildscriptSection(buildscriptRange: IntRange, classLoader: ClassLoader) =
         compileKotlinScript(
