@@ -62,7 +62,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri) >> null
+        1 * progressLoggingRepo.getResource(uri, false) >> null
         0 * _._
     }
 
@@ -80,7 +80,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         and:
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> false
-        1 * repository.getResourceMetaData(uri) >> null
+        1 * repository.getResourceMetaData(uri, true) >> null
         0 * _._
     }
 
@@ -103,7 +103,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri) >> remoteResource
+        1 * progressLoggingRepo.getResource(uri, false) >> remoteResource
         _ * remoteResource.name >> "remoteResource"
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), metaData)
@@ -167,7 +167,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         timeProvider.currentTime >> 24000L
         cached.cachedAt >> 23999L
         cached.externalResourceMetaData >> cachedMetaData
-        1 * repository.getResourceMetaData(uri) >> remoteMetaData
+        1 * repository.getResourceMetaData(uri, true) >> remoteMetaData
         localCandidates.none >> false
         remoteMetaData.sha1 >> sha1
         remoteMetaData.etag >> null
@@ -210,14 +210,14 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
 
         and:
         1 * index.lookup("scheme:thing") >> null
-        1 * repository.getResourceMetaData(uri) >> remoteMetaData
+        1 * repository.getResourceMetaData(uri, true) >> remoteMetaData
         localCandidates.none >> false
         remoteMetaData.sha1 >> null
         remoteMetaData.etag >> null
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        1 * repository.getResource(new URI("scheme:thing.sha1")) >> remoteSha1
+        1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContent(_) >> { Transformer t ->
             t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes))
         }
@@ -254,16 +254,16 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
 
         and:
         1 * index.lookup("scheme:thing") >> null
-        1 * repository.getResourceMetaData(uri) >> remoteMetaData
+        1 * repository.getResourceMetaData(uri, true) >> remoteMetaData
         localCandidates.none >> false
         remoteMetaData.sha1 >> null
         remoteMetaData.etag >> null
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        1 * repository.getResource(new URI("scheme:thing.sha1")) >> null
+        1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> null
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri) >> remoteResource
+        1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
@@ -306,7 +306,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         timeProvider.currentTime >> 24000L
         cached.cachedAt >> 23999L
         cached.externalResourceMetaData >> cachedMetaData
-        1 * repository.getResourceMetaData(uri) >> remoteMetaData
+        1 * repository.getResourceMetaData(uri, true) >> remoteMetaData
         localCandidates.none >> false
         remoteMetaData.sha1 >> sha1
         remoteMetaData.etag >> null
@@ -317,7 +317,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri) >> remoteResource
+        1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }

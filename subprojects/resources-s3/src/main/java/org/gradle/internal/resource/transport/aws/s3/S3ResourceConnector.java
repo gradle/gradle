@@ -45,7 +45,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         return s3Client.listDirectChildren(parent);
     }
 
-    public ExternalResourceReadResponse openResource(URI location) {
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
         S3Object s3Object = s3Client.getResource(location);
         if (s3Object == null) {
@@ -54,7 +54,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         return new S3Resource(s3Object, location);
     }
 
-    public ExternalResourceMetaData getMetaData(URI location) {
+    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         S3Object s3Object = s3Client.getMetaData(location);
         if (s3Object == null) {

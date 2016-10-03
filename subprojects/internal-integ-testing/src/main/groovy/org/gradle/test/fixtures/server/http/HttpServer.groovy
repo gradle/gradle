@@ -223,6 +223,13 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
+     * Adds a given file at the given URL. The source file can be either a file or a directory.
+     */
+    void allowGetOrHeadWithRevalidate(String path, File srcFile) {
+        allow(path, true, ['GET', 'HEAD'], revalidateFileHandler(path, srcFile))
+    }
+
+    /**
      * Adds a given file at the given URL with the given credentials. The source file can be either a file or a directory.
      */
     void allowGetOrHead(String path, String username, String password, File srcFile) {
@@ -237,17 +244,23 @@ class HttpServer extends ServerWithExpectations {
     }
 
     private Action fileHandler(String path, File srcFile) {
-        return new SendFileAction(path, srcFile)
+        return new SendFileAction(path, srcFile, false)
+    }
+
+    private Action revalidateFileHandler(String path, File srcFile) {
+        return new SendFileAction(path, srcFile, true)
     }
 
     class SendFileAction extends ActionSupport {
         private final String path
         private final File srcFile
+        private final boolean revalidate
 
-        SendFileAction(String path, File srcFile) {
+        SendFileAction(String path, File srcFile, boolean revalidate) {
             super("return contents of $srcFile.name")
             this.srcFile = srcFile
             this.path = path
+            this.revalidate = revalidate
         }
 
         void handle(HttpServletRequest request, HttpServletResponse response) {
@@ -256,6 +269,13 @@ class HttpServer extends ServerWithExpectations {
                 if (!expectedUserAgent.matches(receivedUserAgent)) {
                     response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent));
                     return;
+                }
+            }
+            if (revalidate) {
+                String cacheControl = request.getHeader("Cache-Control")
+                if (!cacheControl.equals("max-age=0")) {
+                    response.sendError(412, String.format("Precondition Failed: Expected Cache-Control:max-age=0 but was '%s'", cacheControl));
+                    return
                 }
             }
             def file
@@ -338,6 +358,13 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
+     * Expects one HEAD request for the given URL, asserting that the request is revalidated.
+     */
+    void expectHeadRevalidate(String path, File srcFile) {
+        expect(path, false, ['HEAD'], revalidateFileHandler(path, srcFile))
+    }
+
+    /**
      * Allows one HEAD request for the given URL with http authentication.
      */
     void expectHead(String path, String username, String password, File srcFile, Long lastModified = null, Long contentLength = null) {
@@ -349,6 +376,13 @@ class HttpServer extends ServerWithExpectations {
      */
     HttpResourceInteraction expectGet(String path, File srcFile) {
         return expect(path, false, ['GET'], fileHandler(path, srcFile))
+    }
+
+    /**
+     * Allows one GET request for the given URL, asserting that the request revalidates. Reads the request content from the given file.
+     */
+    HttpResourceInteraction expectGetRevalidate(String path, File srcFile) {
+        return expect(path, false, ['GET'], revalidateFileHandler(path, srcFile))
     }
 
     /**

@@ -83,7 +83,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
         final URI requestUri = toUri(requestUrl, "plugin request");
 
         try {
-            HttpResponseResource response = getResourceAccessor().getRawResource(requestUri);
+            HttpResponseResource response = getResourceAccessor().getRawResource(requestUri, false);
             try {
                 final int statusCode = response.getStatusCode();
                 String contentType = response.getContentType();

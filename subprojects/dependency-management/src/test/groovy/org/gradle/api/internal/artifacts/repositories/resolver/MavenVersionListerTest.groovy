@@ -57,7 +57,7 @@ class MavenVersionListerTest extends Specification {
         result.attempted == [metaDataResource.toString()]
 
         and:
-        1 * repository.getResource(metaDataResource) >> resource
+        1 * repository.getResource(metaDataResource, true) >> resource
         1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -92,7 +92,7 @@ class MavenVersionListerTest extends Specification {
         result.attempted == [location1.toString(), location2.toString()]
 
         and:
-        1 * repository.getResource(location1) >> resource1
+        1 * repository.getResource(location1, true) >> resource1
         1 * resource1.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -103,7 +103,7 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes))
         }
-        1 * repository.getResource(location2) >> resource2
+        1 * repository.getResource(location2, true) >> resource2
         1 * resource2.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -130,7 +130,7 @@ class MavenVersionListerTest extends Specification {
         result.attempted == [metaDataResource.toString()]
 
         and:
-        1 * repository.getResource(metaDataResource) >> resource
+        1 * repository.getResource(metaDataResource, true) >> resource
         1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -159,7 +159,7 @@ class MavenVersionListerTest extends Specification {
         result.attempted == [metaDataResource.toString()]
 
         and:
-        1 * repository.getResource(metaDataResource) >> null
+        1 * repository.getResource(metaDataResource, true) >> null
         0 * repository._
     }
 
@@ -181,7 +181,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * resource.close()
-        1 * repository.getResource(metaDataResource) >> resource;
+        1 * repository.getResource(metaDataResource, true) >> resource;
         1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("yo".bytes)) }
         0 * repository._
     }
@@ -202,7 +202,7 @@ class MavenVersionListerTest extends Specification {
         result.attempted == [metaDataResource.toString()]
 
         and:
-        1 * repository.getResource(metaDataResource) >> { throw failure }
+        1 * repository.getResource(metaDataResource, true) >> { throw failure }
         0 * repository._
     }
 

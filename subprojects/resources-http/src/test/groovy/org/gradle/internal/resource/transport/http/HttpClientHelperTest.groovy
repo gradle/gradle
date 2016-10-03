@@ -36,7 +36,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         }
 
         when:
-        client.performRequest(new HttpGet("http://gradle.org"))
+        client.performRequest(new HttpGet("http://gradle.org"), false)
 
         then:
         HttpRequestException e = thrown()
@@ -57,6 +57,22 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
             1 * httpClient.execute(_, _) >> mockedHttpResponse.response
             assertIsClosedCorrectly(mockedHttpResponse)
         }
+    }
+
+    def "request with revalidate adds Cache-Control header"() {
+        def client = new HttpClientHelper(httpSettings) {
+            @Override
+            protected CloseableHttpResponse executeGetOrHead(HttpRequestBase method) {
+                return null
+            }
+        }
+
+        when:
+        def request = new HttpGet("http://gradle.org")
+        client.performRequest(request, true)
+
+        then:
+        request.getHeaders("Cache-Control")[0].value == "max-age=0"
     }
 
     private HttpSettings getHttpSettings() {

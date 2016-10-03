@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -46,25 +47,27 @@ public class HttpClientHelper implements Closeable {
         this.settings = settings;
     }
 
-    public CloseableHttpResponse performRawHead(String source) {
-        return performRequest(new HttpHead(source));
+    public CloseableHttpResponse performRawHead(String source, boolean revalidate) {
+        return performRequest(new HttpHead(source), revalidate);
     }
 
-    public CloseableHttpResponse performHead(String source) {
-        return processResponse(source, "HEAD", performRawHead(source));
+    public CloseableHttpResponse performHead(String source, boolean revalidate) {
+        return processResponse(source, "HEAD", performRawHead(source, revalidate));
     }
 
-    public CloseableHttpResponse performRawGet(String source) {
-        return performRequest(new HttpGet(source));
+    public CloseableHttpResponse performRawGet(String source, boolean revalidate) {
+        return performRequest(new HttpGet(source), revalidate);
     }
 
-    public CloseableHttpResponse performGet(String source) {
-        return processResponse(source, "GET", performRawGet(source));
+    public CloseableHttpResponse performGet(String source, boolean revalidate) {
+        return processResponse(source, "GET", performRawGet(source, revalidate));
     }
 
-    public CloseableHttpResponse performRequest(HttpRequestBase request) {
+    public CloseableHttpResponse performRequest(HttpRequestBase request, boolean revalidate) {
         String method = request.getMethod();
-
+        if (revalidate) {
+            request.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
+        }
         CloseableHttpResponse response;
         try {
             response = executeGetOrHead(request);

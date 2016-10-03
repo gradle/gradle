@@ -17,8 +17,6 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
@@ -43,12 +41,12 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     }
 
     @Nullable
-    public HttpResponseResource openResource(final URI uri) {
+    public HttpResponseResource openResource(final URI uri, boolean revalidate) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        CloseableHttpResponse response = http.performGet(location);
+        CloseableHttpResponse response = http.performGet(location, revalidate);
         if (response != null) {
             HttpResponseResource resource = wrapResponse(uri, response);
             return recordOpenGetResource(resource);
@@ -61,28 +59,20 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
      * Same as #getResource except that it always gives access to the response body,
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
-    public HttpResponseResource getRawResource(final URI uri) {
+    public HttpResponseResource getRawResource(final URI uri, boolean revalidate) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
-
-        HttpRequestBase request = new HttpGet(uri);
-        CloseableHttpResponse response;
-        try {
-            response = http.performHttpRequest(request);
-        } catch (IOException e) {
-            throw new HttpRequestException(String.format("Could not %s '%s'.", request.getMethod(), request.getURI()), e);
-        }
-
+        CloseableHttpResponse response = http.performGet(location, revalidate);
         HttpResponseResource resource = wrapResponse(uri, response);
         return recordOpenGetResource(resource);
     }
 
-    public ExternalResourceMetaData getMetaData(URI uri) {
+    public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
-        CloseableHttpResponse response = http.performHead(location);
+        CloseableHttpResponse response = http.performHead(location, revalidate);
         return response == null ? null : new HttpResponseResource("HEAD", uri, response).getMetaData();
     }
 

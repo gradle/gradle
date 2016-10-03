@@ -39,7 +39,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         delegate.getRemoteFile(null, resourceName)
 
         then:
-        1 * repositoryTransport.getRepository().getResource({ it.toString() == expected })
+        1 * repositoryTransport.getRepository().getResource({ it.toString() == expected }, false)
         where:
         repoUrl                          | resourceName    | expected
         S3_URI                           | 'a/b/some.jar'  | 's3://somewhere/maven/a/b/some.jar'
@@ -52,7 +52,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
         repositoryTransport.getRepository() >> externalResourceRepo
-        externalResourceRepo.getResource(_) >> Mock(ExternalResource)
+        externalResourceRepo.getResource(_, false) >> Mock(ExternalResource)
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
 
@@ -65,7 +65,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
         repositoryTransport.getRepository() >> externalResourceRepo
-        externalResourceRepo.getResource(_) >> null
+        externalResourceRepo.getResource(_, false) >> null
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
 
