@@ -140,7 +140,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 Module module = configuration.getModule();
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
-                    ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
+                    ModuleVersionIdentifier publicationId = DefaultModuleVersionIdentifier.of(
                             pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
                             pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
                             pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()

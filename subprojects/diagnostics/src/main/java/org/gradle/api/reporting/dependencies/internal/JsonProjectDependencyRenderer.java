@@ -192,7 +192,7 @@ public class JsonProjectDependencyRenderer {
     private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
         if (renderableDependency.getId() instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) renderableDependency.getId();
-            return new DefaultModuleIdentifier(id.getGroup(), id.getModule());
+            return DefaultModuleIdentifier.of(id.getGroup(), id.getModule());
         }
         return null;
     }

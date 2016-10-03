@@ -135,7 +135,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
+        IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 

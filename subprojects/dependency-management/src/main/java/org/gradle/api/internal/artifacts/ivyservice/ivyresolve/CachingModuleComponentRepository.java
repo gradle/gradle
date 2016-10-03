@@ -109,7 +109,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private DefaultModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
-        return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
+        return DefaultModuleIdentifier.of(requested.getGroup(), requested.getName());
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -137,7 +137,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 Set<String> versionList = cachedModuleVersionList.getModuleVersions();
                 Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList, new Transformer<ModuleVersionIdentifier, String>() {
                     public ModuleVersionIdentifier transform(String original) {
-                        return new DefaultModuleVersionIdentifier(moduleId, original);
+                        return DefaultModuleVersionIdentifier.of(moduleId, original);
                     }
                 });
                 if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {

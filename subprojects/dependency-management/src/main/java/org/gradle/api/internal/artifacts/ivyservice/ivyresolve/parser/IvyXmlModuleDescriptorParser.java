@@ -550,7 +550,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private void maybeAddDefaultArtifact() {
             if (!artifactsDeclared) {
-                IvyArtifactName implicitArtifact = new DefaultIvyArtifactName(getMd().getModuleRevisionId().getName(), "jar", "jar");
+                IvyArtifactName implicitArtifact = DefaultIvyArtifactName.of(getMd().getModuleRevisionId().getName(), "jar", "jar");
                 Set<String> configurationNames = Sets.newHashSet(getMd().getConfigurationsNames());
                 metaData.addArtifact(implicitArtifact, configurationNames);
             }

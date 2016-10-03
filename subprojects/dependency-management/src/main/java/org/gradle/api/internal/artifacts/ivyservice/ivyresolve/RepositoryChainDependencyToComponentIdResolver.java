@@ -44,8 +44,8 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, result);
         } else {
-            DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-            DefaultModuleVersionIdentifier mvId = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
+            DefaultModuleComponentIdentifier id = DefaultModuleComponentIdentifier.of(requested.getGroup(), requested.getName(), requested.getVersion());
+            DefaultModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.of(requested.getGroup(), requested.getName(), requested.getVersion());
             result.resolved(id, mvId);
         }
     }

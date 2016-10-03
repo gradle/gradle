@@ -100,7 +100,7 @@ public class IdeDependenciesExtractor {
     }
 
     private ModuleComponentIdentifier toComponentIdentifier(ModuleVersionIdentifier id) {
-        return new DefaultModuleComponentIdentifier(id.getGroup(), id.getName(), id.getVersion());
+        return DefaultModuleComponentIdentifier.of(id.getGroup(), id.getName(), id.getVersion());
     }
 
     private static void downloadAuxiliaryArtifacts(DependencyHandler dependencyHandler, Multimap<ComponentIdentifier, IdeExtendedRepoFileDependency> dependencies, List<Class<? extends Artifact>> artifactTypes) {

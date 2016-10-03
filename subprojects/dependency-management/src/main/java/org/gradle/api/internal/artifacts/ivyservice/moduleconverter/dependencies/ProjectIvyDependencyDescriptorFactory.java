@@ -45,7 +45,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
             ((ConfigurationInternal)configuration).triggerWhenEmptyActionsIfNecessary();
         }
         Module module = getProjectModule(dependency);
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.of(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

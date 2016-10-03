@@ -33,10 +33,10 @@ import spock.lang.Specification
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
     def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "testproject", "1.0")
-    def module = new DefaultModuleIdentifier("org.acme", "testproject")
+    def module = DefaultModuleIdentifier.of("org.acme", "testproject")
     def result = new DefaultResourceAwareResolveResult()
-    def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
-    def artifact = new DefaultIvyArtifactName("testproject", "jar", "jar")
+    def moduleVersion = DefaultModuleVersionIdentifier.of(module, "1.0")
+    def artifact = DefaultIvyArtifactName.of("testproject", "jar", "jar")
 
     def repository = Mock(ExternalResourceRepository)
     def pattern = pattern("testRepo/" + MavenPattern.M2_PATTERN)

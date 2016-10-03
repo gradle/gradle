@@ -157,7 +157,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     @Override
     protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
-        return new DefaultIvyArtifactName(moduleName, "pom", "pom");
+        return DefaultIvyArtifactName.of(moduleName, "pom", "pom");
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {

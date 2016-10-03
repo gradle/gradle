@@ -49,6 +49,6 @@ public class ComponentArtifactMetadataSerializer implements Serializer<Component
         String type = decoder.readString();
         String extension = decoder.readNullableString();
         String classifier = decoder.readNullableString();
-        return new DefaultModuleComponentArtifactMetadata(componentIdentifier, new DefaultIvyArtifactName(artifactName, type, extension, classifier));
+        return new DefaultModuleComponentArtifactMetadata(componentIdentifier, DefaultIvyArtifactName.of(artifactName, type, extension, classifier));
     }
 }

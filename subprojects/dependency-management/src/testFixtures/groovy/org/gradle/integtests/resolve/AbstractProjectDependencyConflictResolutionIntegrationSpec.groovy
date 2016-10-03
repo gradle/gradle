@@ -183,7 +183,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         def projectId(String projectName) {
             def buildId = $buildId
             def projectPath = $projectPath
-            return new org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier(buildId, projectPath)
+            return org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.of(buildId, projectPath)
         }
 """
     }

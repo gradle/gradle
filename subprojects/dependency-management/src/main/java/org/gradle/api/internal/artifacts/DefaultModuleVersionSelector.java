@@ -16,37 +16,36 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
+    private static final Interner<DefaultModuleVersionSelector> INSTANCES_INTERNER = Interners.newStrongInterner();
+    private final DefaultModuleIdentifier id;
+    private final String version;
+    private final int hashCode;
+    private String displayName;
 
-    private String group;
-    private String name;
-    private String version;
-
-    public DefaultModuleVersionSelector(String group, String name, String version) {
-        this.group = group;
-        this.name = name;
+    private DefaultModuleVersionSelector(String group, String name, String version) {
+        this.id = DefaultModuleIdentifier.of(group, name);
         this.version = version;
+        this.hashCode = calculateHashCode();
+    }
+
+    public static DefaultModuleVersionSelector of(String group, String name, String version) {
+        DefaultModuleVersionSelector instance = new DefaultModuleVersionSelector(group, name, version);
+        return INSTANCES_INTERNER.intern(instance);
     }
 
     public String getGroup() {
-        return group;
-    }
-
-    public DefaultModuleVersionSelector setGroup(String group) {
-        this.group = group;
-        return this;
+        return id.getGroup();
     }
 
     public String getName() {
-        return name;
-    }
-
-    public DefaultModuleVersionSelector setName(String name) {
-        this.name = name;
-        return this;
+        return id.getName();
     }
 
     public String getVersion() {
@@ -57,14 +56,16 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
-    public DefaultModuleVersionSelector setVersion(String version) {
-        this.version = version;
-        return this;
-    }
-
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", group, name, version);
+        if (displayName == null) {
+            displayName = createDisplayName();
+        }
+        return displayName;
+    }
+
+    private String createDisplayName() {
+        return String.format("%s:%s:%s", id.getGroup(), id.getName(), version);
     }
 
     @Override
@@ -72,34 +73,24 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DefaultModuleVersionSelector)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         DefaultModuleVersionSelector that = (DefaultModuleVersionSelector) o;
-
-        if (group != null ? !group.equals(that.group) : that.group != null) {
-            return false;
-        }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (version != null ? !version.equals(that.version) : that.version != null) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(id, that.id)
+                && Objects.equal(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        int result = group != null ? group.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (version != null ? version.hashCode() : 0);
-        return result;
+        return hashCode;
+    }
+
+    private int calculateHashCode() {
+        return Objects.hashCode(id, version);
     }
 
     public static ModuleVersionSelector newSelector(String group, String name, String version) {
-        return new DefaultModuleVersionSelector(group, name, version);
+        return of(group, name, version);
     }
 }

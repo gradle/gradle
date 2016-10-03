@@ -27,11 +27,11 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     private final IvyArtifactName name;
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
-        this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension));
+        this(componentIdentifier, DefaultIvyArtifactName.of(name, type, extension));
     }
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, @Nullable String classifier) {
-        this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, classifier));
+        this(componentIdentifier, DefaultIvyArtifactName.of(name, type, extension, classifier));
     }
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {

@@ -54,7 +54,7 @@ class MissingLocalArtifactMetadataTest extends Specification {
         def differentAttributes = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier-2')
         def emptyParts = localArtifactIdentifier(componentId, "comp", "name", "type", null)
         def emptyPartsSame = localArtifactIdentifier(componentId, "comp", "name", "type", null)
-        def differentFile = new MissingLocalArtifactMetadata(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", 'classifier-2'))
+        def differentFile = new MissingLocalArtifactMetadata(componentId, "comp", DefaultIvyArtifactName.of("name", "type", "ext", 'classifier-2'))
 
         expect:
         withClassifier Matchers.strictlyEqual(same)
@@ -70,6 +70,6 @@ class MissingLocalArtifactMetadataTest extends Specification {
     }
 
     def localArtifactIdentifier(def componentId, def displayName, def name, def type, def extension, String classifier = null) {
-        return new MissingLocalArtifactMetadata(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, classifier))
+        return new MissingLocalArtifactMetadata(componentId, displayName, DefaultIvyArtifactName.of(name, type, extension, classifier))
     }
 }

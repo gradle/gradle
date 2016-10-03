@@ -46,7 +46,7 @@ class DefaultResolvedArtifactTest extends Specification {
 
     def dep(String group, String moduleName, String version) {
         ResolvedModuleVersion module = Mock()
-        _ * module.id >> new DefaultModuleVersionIdentifier(group, moduleName, version)
+        _ * module.id >> DefaultModuleVersionIdentifier.of(group, moduleName, version)
         module
     }
 }

@@ -37,10 +37,10 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
         String projectPath = module.getProjectPath();
 
         if(projectPath != null) {
-            return new DefaultProjectComponentIdentifier(buildIdentity.getCurrentBuild(), projectPath);
+            return DefaultProjectComponentIdentifier.of(buildIdentity.getCurrentBuild(), projectPath);
         }
 
-        return new DefaultModuleComponentIdentifier(module.getGroup(), module.getName(), module.getVersion());
+        return DefaultModuleComponentIdentifier.of(module.getGroup(), module.getName(), module.getVersion());
     }
 
     @Override
@@ -52,8 +52,8 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
     public ProjectComponentIdentifier createProjectComponentIdentifier(ProjectComponentSelector selector) {
         BuildIdentifier currentBuild = buildIdentity.getCurrentBuild();
         if (selector.getBuildName().equals(currentBuild.getName())) {
-            return new DefaultProjectComponentIdentifier(currentBuild, selector.getProjectPath());
+            return DefaultProjectComponentIdentifier.of(currentBuild, selector.getProjectPath());
         }
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(selector.getBuildName()), selector.getProjectPath());
+        return DefaultProjectComponentIdentifier.of(DefaultBuildIdentifier.of(selector.getBuildName()), selector.getProjectPath());
     }
 }

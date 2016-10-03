@@ -18,29 +18,52 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 
 public class DefaultLibraryComponentSelector implements LibraryComponentSelector {
+    private static final Interner<DefaultLibraryComponentSelector> INSTANCES_INTERNER = Interners.newWeakInterner();
     private final String projectPath;
     private final String libraryName;
     private final String variant;
+    private String displayName;
+    private final int hashCode;
 
-    public DefaultLibraryComponentSelector(String projectPath, String libraryName) {
+    private DefaultLibraryComponentSelector(String projectPath, String libraryName) {
         this(projectPath, libraryName, null);
     }
 
-    public DefaultLibraryComponentSelector(String projectPath, String libraryName, String variant) {
+    private DefaultLibraryComponentSelector(String projectPath, String libraryName, String variant) {
         assert !Strings.isNullOrEmpty(projectPath) : "project path cannot be null or empty";
         this.projectPath = projectPath;
         this.libraryName = Strings.emptyToNull(libraryName);
         this.variant = variant;
+        this.hashCode = calculateHashCode();
+    }
+
+    public static DefaultLibraryComponentSelector of(String projectPath, String libraryName, String variant) {
+        DefaultLibraryComponentSelector instance = new DefaultLibraryComponentSelector(projectPath, libraryName, variant);
+        return INSTANCES_INTERNER.intern(instance);
+    }
+
+    public static DefaultLibraryComponentSelector of(String projectPath, String libraryName) {
+        DefaultLibraryComponentSelector instance = new DefaultLibraryComponentSelector(projectPath, libraryName);
+        return INSTANCES_INTERNER.intern(instance);
     }
 
     @Override
     public String getDisplayName() {
+        if (displayName == null) {
+            displayName = createDisplayName();
+        }
+        return displayName;
+    }
+
+    private String createDisplayName() {
         String txt;
         if (Strings.isNullOrEmpty(libraryName)) {
             txt = "project '" + projectPath + "'";
@@ -90,6 +113,10 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
             return false;
         }
         DefaultLibraryComponentSelector that = (DefaultLibraryComponentSelector) o;
+        if (hashCode() != that.hashCode()) {
+            return false;
+        }
+
         return Objects.equal(projectPath, that.projectPath)
             && Objects.equal(libraryName, that.libraryName)
             && Objects.equal(variant, that.variant);
@@ -97,6 +124,10 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
 
     @Override
     public int hashCode() {
+        return hashCode;
+    }
+
+    private int calculateHashCode() {
         return Objects.hashCode(projectPath, libraryName, variant);
     }
 

@@ -38,7 +38,7 @@ public class ProjectDependencyPublicationResolver {
 
         if (publishing == null || publishing.getPublications().withType(PublicationInternal.class).isEmpty()) {
             // Project does not apply publishing (or has no publications): simply use the project name in place of the dependency name
-            return new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
+            return DefaultModuleVersionIdentifier.of(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
         }
 
         // See if all publications have the same identifier

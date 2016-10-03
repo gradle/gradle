@@ -50,7 +50,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
-        new DefaultModuleVersionIdentifier(moduleRevId.organisation, moduleRevId.name, moduleRevId.revision)
+        DefaultModuleVersionIdentifier.of(moduleRevId.organisation, moduleRevId.name, moduleRevId.revision)
     }
 
     def setup() {

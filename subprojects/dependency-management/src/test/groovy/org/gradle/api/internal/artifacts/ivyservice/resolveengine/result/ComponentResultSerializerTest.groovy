@@ -26,7 +26,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
     def serializer = new ComponentResultSerializer()
 
     def "serializes"() {
-        def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'module', 'version')
+        def componentIdentifier = DefaultModuleComponentIdentifier.of('group', 'module', 'version')
         def selection = new DefaultComponentResult(12L, newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED, componentIdentifier)
 
         when:

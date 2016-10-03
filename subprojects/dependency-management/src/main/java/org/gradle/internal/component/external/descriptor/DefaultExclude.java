@@ -34,21 +34,21 @@ public class DefaultExclude implements Exclude {
 
     public DefaultExclude(String group, String module, String artifact, String type, String extension, String[] configurations, String patternMatcher) {
         this.moduleId = DefaultModuleIdentifier.newId(group, module);
-        this.artifact = new DefaultIvyArtifactName(artifact, type, extension);
+        this.artifact = DefaultIvyArtifactName.of(artifact, type, extension);
         this.configurations = ImmutableSet.copyOf(configurations);
         this.patternMatcher = patternMatcher;
     }
 
     public DefaultExclude(String group, String module, String[] configurations, String patternMatcher) {
         this.moduleId = DefaultModuleIdentifier.newId(group, module);
-        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+        this.artifact = DefaultIvyArtifactName.of(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
         this.configurations = ImmutableSet.copyOf(configurations);
         this.patternMatcher = patternMatcher;
     }
 
     public DefaultExclude(String group, String module) {
         this.moduleId = DefaultModuleIdentifier.newId(group, module);
-        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+        this.artifact = DefaultIvyArtifactName.of(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
         this.configurations = ImmutableSet.of();
         this.patternMatcher = PatternMatchers.EXACT;
     }

@@ -68,7 +68,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
     }
 
     private static newProjectId(String path, boolean current = true) {
-        new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("TEST", current), path)
+        DefaultProjectComponentIdentifier.of(DefaultBuildIdentifier.of("TEST", current), path)
     }
 
 }

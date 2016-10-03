@@ -146,7 +146,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        ModuleIdentifier module = DefaultModuleIdentifier.of(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
@@ -223,7 +223,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         artifactSet.addAll(artifacts);
 
         if (artifactSet.isEmpty()) {
-            artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar"));
+            artifactSet.add(DefaultIvyArtifactName.of(moduleName, "jar", "jar"));
         }
 
         return artifactSet;

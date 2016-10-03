@@ -109,7 +109,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
             String resolverId = decoder.readString();
             String group = decoder.readString();
             String module = decoder.readString();
-            return new ModuleKey(resolverId, new DefaultModuleIdentifier(group, module));
+            return new ModuleKey(resolverId, DefaultModuleIdentifier.of(group, module));
         }
     }
 

@@ -77,7 +77,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
     def "can specify target project"() {
         def project = Mock(ProjectInternal)
         def services = new DefaultServiceRegistry()
-        services.add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("TEST")))
+        services.add(BuildIdentity, new DefaultBuildIdentity(DefaultBuildIdentifier.of("TEST")))
 
         when:
         details.useTarget(project)

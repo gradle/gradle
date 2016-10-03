@@ -85,7 +85,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         def query = createArtifactResolutionQuery(givenComponentTypeRegistry)
 
         when:
-        ModuleComponentIdentifier componentIdentifier = new DefaultModuleComponentIdentifier('mygroup', 'mymodule', '1.0')
+        ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.of('mygroup', 'mymodule', '1.0')
         ArtifactResolutionResult result = query.forComponents(componentIdentifier).withArtifacts(selectedComponentType, selectedArtifactType).execute()
 
         then:

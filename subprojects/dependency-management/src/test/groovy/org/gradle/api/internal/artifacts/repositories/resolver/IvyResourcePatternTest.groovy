@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
 class IvyResourcePatternTest extends Specification {
@@ -70,8 +70,8 @@ class IvyResourcePatternTest extends Specification {
 
     def "substitutes attributes into pattern to determine version list pattern"() {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def ivyName = new DefaultIvyArtifactName("ivy", "ivy", "xml")
-        def moduleId = new DefaultModuleIdentifier(group, module)
+        def ivyName = DefaultIvyArtifactName.of("ivy", "ivy", "xml")
+        def moduleId = DefaultModuleIdentifier.of(group, module)
 
         expect:
         pattern.toVersionListPattern(moduleId, ivyName).path == expectedPath

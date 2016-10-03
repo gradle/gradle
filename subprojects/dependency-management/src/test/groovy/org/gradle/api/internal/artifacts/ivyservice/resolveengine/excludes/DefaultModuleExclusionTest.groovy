@@ -769,7 +769,7 @@ class DefaultModuleExclusionTest extends Specification {
     }
 
     def artifactName(String name, String type, String ext) {
-        return new DefaultIvyArtifactName(name, type, ext)
+        return DefaultIvyArtifactName.of(name, type, ext)
     }
 
     def excludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {

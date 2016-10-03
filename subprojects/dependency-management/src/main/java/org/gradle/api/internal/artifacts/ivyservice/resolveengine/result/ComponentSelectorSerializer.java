@@ -34,11 +34,11 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         byte id = decoder.readByte();
 
         if (Implementation.BUILD.getId() == id) {
-            return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
+            return DefaultProjectComponentSelector.of(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
+            return DefaultModuleComponentSelector.of(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
+            return DefaultLibraryComponentSelector.of(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);

@@ -38,7 +38,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.of(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
