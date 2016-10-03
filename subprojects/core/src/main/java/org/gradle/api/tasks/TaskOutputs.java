@@ -61,8 +61,6 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
      *
      * @param spec specifies if the results of the task should be cached.
-     *
-     * @since 3.0
      */
     @Incubating
     void cacheIf(Spec<? super Task> spec);

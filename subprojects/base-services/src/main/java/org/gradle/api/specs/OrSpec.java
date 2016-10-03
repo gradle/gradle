@@ -15,8 +15,6 @@
  */
 package org.gradle.api.specs;
 
-import com.google.common.collect.ObjectArrays;
-
 /**
  * A {@link CompositeSpec} which requires any one of its specs to be true in order to evaluate to
  * true. Uses lazy evaluation.
@@ -24,8 +22,6 @@ import com.google.common.collect.ObjectArrays;
  * @param <T> The target type for this Spec
  */
 public class OrSpec<T> extends CompositeSpec<T> {
-    public static final OrSpec<?> EMPTY = new OrSpec<Object>();
-
     public OrSpec() {
         super();
     }
@@ -49,25 +45,6 @@ public class OrSpec<T> extends CompositeSpec<T> {
             }
         }
         return false;
-    }
-
-    public OrSpec<T> or(Spec<? super T>... specs) {
-        if (specs.length == 0) {
-            return this;
-        }
-        Spec<? super T>[] thisSpecs = getSpecsArray();
-        int thisLength = thisSpecs.length;
-        if (thisLength == 0) {
-            return new OrSpec<T>(specs);
-        }
-        Spec<? super T>[] combinedSpecs = uncheckedCast(ObjectArrays.newArray(Spec.class, thisLength + specs.length));
-        System.arraycopy(thisSpecs, 0, combinedSpecs, 0, thisLength);
-        System.arraycopy(specs, 0, combinedSpecs, thisLength, specs.length);
-        return new OrSpec<T>(combinedSpecs);
-    }
-
-    public static <T> OrSpec<T> empty() {
-        return uncheckedCast(EMPTY);
     }
 
     @Override

@@ -17,7 +17,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -117,12 +116,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                         return spec.getFilteringCharset();
                     }
                 });
-            }
-        });
-        this.getOutputs().doNotCacheIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                return rootSpec.hasCopyActions();
             }
         });
         this.mainSpec = rootSpec.addChild();

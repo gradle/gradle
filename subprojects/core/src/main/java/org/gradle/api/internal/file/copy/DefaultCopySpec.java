@@ -80,19 +80,6 @@ public class DefaultCopySpec implements CopySpecInternal {
         duplicatesStrategy = null;
     }
 
-    @Override
-    public boolean hasCopyActions() {
-        if (!copyActions.isEmpty()) {
-            return true;
-        }
-        for (CopySpecInternal childSpec : childSpecs) {
-            if (childSpec.hasCopyActions()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     protected List<Action<? super FileCopyDetails>> getCopyActions() {
         return copyActions;
     }

@@ -216,56 +216,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.upToDateSpec.isSatisfiedBy(task)
     }
 
-    def "can turn caching on via cacheIf()"() {
-        expect:
-        !outputs.cacheEnabled
-
-        when:
-        outputs.cacheIf { true}
-        then:
-        outputs.cacheEnabled
-    }
-
-    def "can turn caching off via cacheIf()"() {
-        expect:
-        !outputs.cacheEnabled
-
-        when:
-        outputs.cacheIf { true }
-        then:
-        outputs.cacheEnabled
-
-        when:
-        outputs.cacheIf { false }
-        then:
-        !outputs.cacheEnabled
-
-        when:
-        outputs.cacheIf { true }
-        then:
-        !outputs.cacheEnabled
-    }
-
-    def "can turn caching off via doNotCacheIf()"() {
-        expect:
-        !outputs.cacheEnabled
-
-        when:
-        outputs.doNotCacheIf { false }
-        then:
-        !outputs.cacheEnabled
-
-        when:
-        outputs.cacheIf { true }
-        then:
-        outputs.cacheEnabled
-
-        when:
-        outputs.doNotCacheIf { true }
-        then:
-        !outputs.cacheEnabled
-    }
-
     public void getPreviousFilesDelegatesToTaskHistory() {
         TaskExecutionHistory history = Mock()
         FileCollection outputFiles = Mock()
