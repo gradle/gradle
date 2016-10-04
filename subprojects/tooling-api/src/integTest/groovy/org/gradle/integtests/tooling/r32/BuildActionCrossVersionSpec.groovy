@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.r32
 
+import org.gradle.integtests.tooling.fixture.ClassLoaderFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.test.fixtures.file.TestFile
 
 @TargetGradleVersion('>=1.8')
@@ -87,16 +87,10 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     void copyClassTo(Class<?> cl, TestFile rootDir) {
-        def fileName = cl.name.replace('.', '/') + ".class"
-        def file = rootDir.file(fileName)
-        file.parentFile.createDir()
-        file.bytes = getClass().classLoader.getResource(fileName).bytes
+        ClassLoaderFixture.copyClassTo(cl, rootDir)
     }
 
     ClassLoader actionClassLoader(TestFile... cp) {
-        def spec = new FilteringClassLoader.Spec()
-        spec.allowPackage("org.gradle.tooling")
-        def parentCl = new FilteringClassLoader(getClass().classLoader, spec)
-        return new URLClassLoader(cp.collect { it.toURI().toURL() } as URL[], parentCl)
+        return ClassLoaderFixture.actionClassLoader(getClass().classLoader, cp)
     }
 }

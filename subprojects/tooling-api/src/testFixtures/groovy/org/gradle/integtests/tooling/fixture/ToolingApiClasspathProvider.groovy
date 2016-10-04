@@ -70,6 +70,7 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowClass(ToolingApiVersion)
         sharedSpec.allowClass(TeeOutputStream)
         sharedSpec.allowClass(RetryRule)
+        sharedSpec.allowClass(ClassLoaderFixture)
         classpathConfigurer.execute(sharedSpec)
         def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader, sharedSpec)
 
