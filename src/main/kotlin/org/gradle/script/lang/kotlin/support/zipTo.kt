@@ -16,6 +16,8 @@
 
 package org.gradle.script.lang.kotlin.support
 
+import org.gradle.util.TextUtil.normaliseFileSeparators
+
 import java.io.File
 import java.io.OutputStream
 
@@ -31,7 +33,7 @@ fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
     val entries = files.map { file ->
         val path = file.relativeTo(baseDir).path
         val bytes = file.readBytes()
-        path to bytes
+        normaliseFileSeparators(path) to bytes
     }
     zipTo(zipFile, entries)
 }
