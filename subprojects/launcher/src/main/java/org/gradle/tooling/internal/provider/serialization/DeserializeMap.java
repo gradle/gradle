@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.serialization;
 
-import net.jcip.annotations.ThreadSafe;
-
-/**
- * <p>Implementations must allow concurrent sessions.
- */
-@ThreadSafe
-public interface PayloadClassLoaderRegistry {
+public interface DeserializeMap {
     /**
-     * Starts serializing an object graph.
-     * The returned value is not required to be thread-safe.
+     * Loads a serialized Class.
      */
-    SerializeMap newSerializeSession();
-
-    /**
-     * Starts deserializing an object graph.
-     * The returned value is not required to be thread-safe.
-     */
-    DeserializeMap newDeserializeSession();
+    Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException;
 }

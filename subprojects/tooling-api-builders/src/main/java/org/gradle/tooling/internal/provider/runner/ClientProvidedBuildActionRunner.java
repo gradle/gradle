@@ -28,7 +28,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
-import org.gradle.tooling.internal.provider.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class ClientProvidedBuildActionRunner implements BuildActionRunner {
     @Override

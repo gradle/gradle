@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.serialization
 
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.internal.provider.AbstractClassGraphSpec
+import org.gradle.tooling.internal.provider.CustomAction
+import org.gradle.tooling.internal.provider.CustomModel
 import org.gradle.util.TestClassLoader
 import spock.lang.Issue
 

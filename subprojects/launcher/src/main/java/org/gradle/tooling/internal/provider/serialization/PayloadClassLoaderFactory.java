@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.serialization;
 
-import java.io.Serializable;
+import org.gradle.internal.classloader.ClassLoaderSpec;
 
-public class SerializedPayload implements Serializable {
-    private final byte[] serializedModel;
-    private final Object header;
+import java.util.List;
 
-    public SerializedPayload(Object header, byte[] serializedModel) {
-        this.header = header;
-        this.serializedModel = serializedModel;
-    }
-
-    public Object getHeader() {
-        return header;
-    }
-
-    public byte[] getSerializedModel() {
-        return serializedModel;
-    }
+/**
+ * Used to create ClassLoaders used to serialize objects between the tooling api provider and daemon.
+ *
+ * <p>Implementations are not required to be thread-safe.</p>
+ */
+public interface PayloadClassLoaderFactory {
+    ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
 }
