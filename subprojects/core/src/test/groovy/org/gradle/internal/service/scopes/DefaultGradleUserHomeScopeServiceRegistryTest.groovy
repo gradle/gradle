@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes
 
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
@@ -29,6 +30,7 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         expect:
         def services = homeDirServices.getServicesFor(dir)
         services.get(SomeGlobalService) != null
+        services.get(GradleUserHomeDirProvider).gradleUserHomeDirectory == dir
         services.get(SomeHomeDirService).homeDir == dir
     }
 
@@ -38,12 +40,14 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         given:
         def servicesBefore = homeDirServices.getServicesFor(dir)
         def globalService = servicesBefore.get(SomeGlobalService)
+        def userHomeDirProvider = servicesBefore.get(GradleUserHomeDirProvider)
         def homeDirService = servicesBefore.get(SomeHomeDirService)
         homeDirServices.release(servicesBefore)
 
         expect:
         def services = homeDirServices.getServicesFor(dir)
         services.get(SomeGlobalService).is(globalService)
+        services.get(GradleUserHomeDirProvider).is(userHomeDirProvider)
         services.get(SomeHomeDirService).is(homeDirService)
         services.get(SomeHomeDirService).homeDir == dir
         !services.get(SomeHomeDirService).closed
@@ -68,12 +72,15 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         given:
         def servicesBefore = homeDirServices.getServicesFor(dir1)
         def globalService = servicesBefore.get(SomeGlobalService)
+        def userHomeDirProvider = servicesBefore.get(GradleUserHomeDirProvider)
         def homeDirService = servicesBefore.get(SomeHomeDirService)
         homeDirServices.release(servicesBefore)
 
         expect:
         def services = homeDirServices.getServicesFor(dir2)
         services.get(SomeGlobalService).is(globalService)
+        !services.get(GradleUserHomeDirProvider).is(userHomeDirProvider)
+        services.get(GradleUserHomeDirProvider).gradleUserHomeDirectory == dir2
         !services.get(SomeHomeDirService).is(homeDirService)
         services.get(SomeHomeDirService).homeDir == dir2
         homeDirService.closed
@@ -161,8 +168,8 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
     }
 
     class HomeDirServiceProvider {
-        SomeHomeDirService createService(File homeDir) {
-            return new SomeHomeDirService(homeDir)
+        SomeHomeDirService createService(GradleUserHomeDirProvider homeDirProvider) {
+            return new SomeHomeDirService(homeDirProvider.gradleUserHomeDirectory)
         }
     }
 }

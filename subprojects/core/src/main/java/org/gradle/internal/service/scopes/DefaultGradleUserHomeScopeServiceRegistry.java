@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -24,7 +25,7 @@ import java.io.Closeable;
 import java.io.File;
 
 /**
- * Reuses the services for the most recent Gradle user home dir. Could instead cache several and clean these up on memory pressure, however in practise there is only a single user home dir associated with a given build process.
+ * Reuses the services for the most recent Gradle user home dir. Could instead cache several most recent and clean these up on memory pressure, however in practise there is only a single user home dir associated with a given build process.
  */
 public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHomeScopeServiceRegistry, Closeable {
     private final ServiceRegistry sharedServices;
@@ -57,8 +58,13 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                 .parent(sharedServices)
                 .displayName("shared services for Gradle user home dir " + gradleUserHomeDir)
                 .provider(new Object() {
-                    File createGradleUserHomeDir() {
-                        return gradleUserHomeDir;
+                    GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
+                        return new GradleUserHomeDirProvider() {
+                            @Override
+                            public File getGradleUserHomeDirectory() {
+                                return gradleUserHomeDir;
+                            }
+                        };
                     }
                 })
                 .provider(provider)
