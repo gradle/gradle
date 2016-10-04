@@ -27,7 +27,7 @@ import org.gradle.internal.service.ServiceRegistry;
 public interface GradleLauncherFactory {
     /**
      * Creates a new {@link GradleLauncher} instance for a new build request.
-     * Fails if a current build is in progress.
+     * Fails if a build is in progress.
      *
      * @param startParameter The settings for the build.
      * @param requestContext The context in which the build is running.
