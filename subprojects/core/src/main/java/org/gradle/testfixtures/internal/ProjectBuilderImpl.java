@@ -107,7 +107,7 @@ public class ProjectBuilderImpl {
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
             // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
             // in ApplicationClassesInSystemClassLoaderWorkerFactory, BootstrapSecurityManager and GradleWorkerMain.)
-            // Thus, we inject the missing interfaces directly into the system cl   ass loader used to load all classes in the test.
+            // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
             LegacyTypesUtil.injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
         }
         return globalServices;
