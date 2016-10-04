@@ -48,7 +48,7 @@ abstract class AbstractHttpClientTest extends Specification {
         def content = mockedHttpResponse.content
         _ * response.getStatusLine() >> new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 400, "I'm broken")
         1 * response.close()
-        1 * response.getEntity() >> entity
+        _ * response.getEntity() >> entity
         1 * entity.isStreaming() >> true
         1 * entity.content >> content
         1 * content.close()

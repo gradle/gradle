@@ -63,7 +63,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
-        CloseableHttpResponse response = http.performGet(location, revalidate);
+        CloseableHttpResponse response = http.performRawGet(location, revalidate);
         HttpResponseResource resource = wrapResponse(uri, response);
         return recordOpenGetResource(resource);
     }

@@ -50,7 +50,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
 
         when:
-        client.performRequest(new HttpGet("http://gradle.org"))
+        client.performRequest(new HttpGet("http://gradle.org"), false)
 
         then:
         interaction {
