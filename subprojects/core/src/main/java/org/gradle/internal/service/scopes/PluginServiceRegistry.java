@@ -22,34 +22,44 @@ import org.gradle.internal.service.ServiceRegistration;
  * Can be implemented by plugins to provide services in various scopes.
  *
  * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
+ *
+ * <p>May also implement {@link GradleUserHomeScopePluginServices}.</p>
  */
 public interface PluginServiceRegistry {
     /**
      * Called once per process, to register any globally scoped services. These services are reused across builds in the same process.
+     * The services are closed when the process finishes.
+     *
+     * <p>Global services are visible to all other services.</p>
      */
     void registerGlobalServices(ServiceRegistration registration);
 
     /**
      * Called once per build session to register any build session scoped services.  These services are reused across builds when in
-     * continuous mode.  They are discarded at the end of the build session.
+     * continuous mode. They are closed at the end of the build session.
+     *
+     * <p>Global and shared services are visible to build session scope services, but not vice versa</p>
      */
     void registerBuildSessionServices(ServiceRegistration registration);
 
     /**
-     * Called once per build, to registry any build scoped services. These services are discarded at the end of the current build.
-     * All global scoped services are visible to the build scope services, but not vice versa.
+     * Called once per build, to register any build scoped services. These services are closed at the end of the build.
+     *
+     * <p>Global, shared and build session scoped services are visible to the build scope services, but not vice versa.</p>
      */
     void registerBuildServices(ServiceRegistration registration);
 
     /**
-     * Called once per build, to registry any gradle scoped services. These services are discarded at the end of the current build.
-     * All build scoped services are visible to the gradle scope services, but not vice versa.
+     * Called once per build, to register any gradle scoped services. These services are closed at the end of the build.
+     *
+     * <p>Global, shared, build session and build scoped services are visible to the gradle scope services, but not vice versa.</p>
      */
     void registerGradleServices(ServiceRegistration registration);
 
     /**
-     * Called once per project per build, to registry any project scoped services. These services are discarded at the end of the current build.
-     * All global and build scoped services are visible to the project scope services, but not vice versa.
+     * Called once per project per build, to register any project scoped services. These services are closed at the end of the build.
+     *
+     * <p>Global, shared, build session, build and gradle scoped services are visible to the project scope services, but not vice versa.</p>
      */
     void registerProjectServices(ServiceRegistration registration);
 }

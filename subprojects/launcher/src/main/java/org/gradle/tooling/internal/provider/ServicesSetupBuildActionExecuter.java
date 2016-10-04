@@ -39,7 +39,7 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(action.getStartParameter().getGradleUserHomeDir());
         try {
-            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(contextServices, action.getStartParameter(), actionParameters.getInjectedPluginClasspath());
+            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, action.getStartParameter(), actionParameters.getInjectedPluginClasspath());
             try {
                 return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
             } finally {
