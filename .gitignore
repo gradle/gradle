@@ -15,4 +15,5 @@ wiki
 
 # generated code
 /src/generated
+.teamcity
 
