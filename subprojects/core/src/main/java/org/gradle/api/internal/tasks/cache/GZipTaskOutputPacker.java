@@ -24,6 +24,9 @@ import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+/**
+ * Adds compression and CRC32 checks to the packed task output.
+ */
 public class GZipTaskOutputPacker implements TaskOutputPacker {
     private final TarTaskOutputPacker delegate;
 

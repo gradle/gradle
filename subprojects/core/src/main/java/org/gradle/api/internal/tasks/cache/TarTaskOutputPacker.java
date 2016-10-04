@@ -49,7 +49,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Packages task output to a POSIX TAR file.
+ */
+@SuppressWarnings("OctalInteger")
 public class TarTaskOutputPacker implements TaskOutputPacker {
+    private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
+
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
 
@@ -60,7 +66,10 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
-        final TarOutputStream outputStream = new TarOutputStream(output);
+        TarOutputStream outputStream = new TarOutputStream(output, "utf-8");
+        outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
+        outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
+        outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
             pack(taskOutputs, outputStream);
         } finally {
@@ -130,8 +139,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             throw Throwables.propagate(e);
         }
     }
-
-    private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
 
     @Override
     public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {

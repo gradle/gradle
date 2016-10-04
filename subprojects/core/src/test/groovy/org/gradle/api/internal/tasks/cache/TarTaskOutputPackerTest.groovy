@@ -118,6 +118,37 @@ class TarTaskOutputPackerTest extends Specification {
         0 * _
     }
 
+    def "can pack single task output file with long name"() {
+        def propertyName = "prop-" + ("x" * 100)
+        def sourceOutputFile = tempDir.file("source-.txt")
+        sourceOutputFile << "output"
+        def targetOutputFile = tempDir.file("target.txt")
+        def output = new ByteArrayOutputStream()
+
+        when:
+        packer.pack(taskOutputs, output)
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: propertyName, outputFile: sourceOutputFile)
+        ] as SortedSet)
+        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        packer.unpack(taskOutputs, input)
+
+        then:
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: propertyName, outputFile: targetOutputFile)
+        ] as SortedSet)
+        1 * fileSystem.chmod(targetOutputFile, 0644)
+        then:
+        targetOutputFile.text == "output"
+        0 * _
+    }
+
     @ToString
     @EqualsAndHashCode
     private static class TestProperty implements CacheableTaskOutputFilePropertySpec {
