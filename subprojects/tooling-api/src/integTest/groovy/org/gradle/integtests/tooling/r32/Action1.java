@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
+package org.gradle.integtests.tooling.r32;
 
-public class SystemClassLoaderSpec extends ClassLoaderSpec {
-    public static final ClassLoaderSpec INSTANCE = new SystemClassLoaderSpec();
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 
-    private SystemClassLoaderSpec() {
-    }
+import java.util.Collections;
+import java.util.List;
 
+public class Action1 implements BuildAction<List<String>> {
     @Override
-    public boolean equals(Object obj) {
-        return obj != null && obj.getClass().equals(getClass());
-    }
-
-    @Override
-    public String toString() {
-        return "{system-class-loader}";
-    }
-
-    @Override
-    public int hashCode() {
-        return 121;
+    public List<String> execute(BuildController controller) {
+        return Collections.singletonList(controller.getBuildModel().getRootProject().getName() + " " + (++SharedActionStaticState.counter));
     }
 }

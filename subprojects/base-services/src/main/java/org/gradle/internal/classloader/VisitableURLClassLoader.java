@@ -34,9 +34,9 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     }
 
     public void visit(ClassLoaderVisitor visitor) {
-        URL[] urLs = getURLs();
-        visitor.visitSpec(new Spec(Arrays.asList(urLs)));
-        visitor.visitClassPath(urLs);
+        URL[] urls = getURLs();
+        visitor.visitSpec(new Spec(Arrays.asList(urls)));
+        visitor.visitClassPath(urls);
         visitor.visitParent(getParent());
     }
 
@@ -53,7 +53,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         @Override
         public String toString() {
-            return "[" + getClass().getSimpleName() + " classpath:"+ classpath+"]";
+            return "{url-class-loader " + " classpath:" + classpath + "}";
         }
 
         @Override

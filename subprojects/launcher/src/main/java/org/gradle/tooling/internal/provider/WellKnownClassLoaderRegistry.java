@@ -99,5 +99,28 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
         KnownClassLoaderSpec(short id) {
             this.id = id;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+
+            KnownClassLoaderSpec other = (KnownClassLoaderSpec) obj;
+            return id == other.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return id;
+        }
+
+        @Override
+        public String toString() {
+            return "{known-class-loader id: " + id + "}";
+        }
     }
 }

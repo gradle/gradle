@@ -38,7 +38,7 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
-        if (spec.equals(SystemClassLoaderSpec.INSTANCE)) {
+        if (spec instanceof SystemClassLoaderSpec) {
             return rootClassLoader;
         }
         if (spec instanceof MultiParentClassLoader.Spec) {

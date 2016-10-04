@@ -16,21 +16,26 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -89,7 +94,18 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private ClassLoader getClassLoader(ClassLoaderDetails details) {
-        return cache.getClassLoader(details, detailsToClassLoader);
+        ClassLoader classLoader = cache.getClassLoader(details, detailsToClassLoader);
+        if (details.spec instanceof ClientOwnedClassLoaderSpec) {
+            ClientOwnedClassLoaderSpec spec = (ClientOwnedClassLoaderSpec) details.spec;
+            VisitableURLClassLoader urlClassLoader = (VisitableURLClassLoader) classLoader;
+            Set<URL> currentClassPath = ImmutableSet.copyOf(urlClassLoader.getURLs());
+            for (URL url : spec.getClasspath()) {
+                if (!currentClassPath.contains(url)) {
+                    JavaReflectionUtil.method(URLClassLoader.class, Void.class, "addURL", URL.class).invoke(urlClassLoader, url);
+                }
+            }
+        }
+        return classLoader;
     }
 
     private ClassLoaderDetails getDetails(ClassLoader classLoader) {
@@ -133,7 +149,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(getClassLoader(parentDetails));
             }
             if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, null));
+                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.<ClassLoader>of()));
             }
 
             LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
