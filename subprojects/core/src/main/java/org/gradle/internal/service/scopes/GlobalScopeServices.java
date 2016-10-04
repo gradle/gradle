@@ -371,4 +371,8 @@ public class GlobalScopeServices {
     DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
         return new DependencyInjectingInstantiator.ConstructorCache();
     }
+
+    GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
+        return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new Object());
+    }
 }
