@@ -29,7 +29,12 @@ class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceT
         runner.testId = "local cache $testProject ${tasks.join(' ')} (daemon)"
         runner.testGroup = "task output cache"
         runner.buildSpec {
-            projectName(testProject).displayName("cached").invocation {
+            projectName(testProject).displayName("always-miss pull-only cache").invocation {
+                tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+            }
+        }
+        runner.buildSpec {
+            projectName(testProject).displayName("fully cached").invocation {
                 tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
             }
         }

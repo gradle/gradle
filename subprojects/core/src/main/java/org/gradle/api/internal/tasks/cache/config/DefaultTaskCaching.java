@@ -60,4 +60,14 @@ public class DefaultTaskCaching implements TaskCachingInternal {
     public TaskOutputCacheFactory getCacheFactory() {
         return factory;
     }
+
+    @Override
+    public boolean isPullAllowed() {
+        return "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
+    }
+
+    @Override
+    public boolean isPushAllowed() {
+        return "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
+    }
 }

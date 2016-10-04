@@ -103,6 +103,36 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.containsAll ":compileJava", ":jar"
     }
 
+    def "task results don't get stored when pushing is disabled"() {
+        when:
+        succeedsWithCache "jar", "-Dorg.gradle.cache.tasks.push=false"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+
+        when:
+        succeedsWithCache "jar"
+        then:
+        nonSkippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def "task results don't get loaded when pulling is disabled"() {
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+
+        when:
+        succeedsWithCache "jar", "-Dorg.gradle.cache.tasks.pull=false"
+        then:
+        nonSkippedTasks.containsAll ":compileJava", ":jar"
+    }
+
     def "buildSrc is loaded from cache"() {
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
