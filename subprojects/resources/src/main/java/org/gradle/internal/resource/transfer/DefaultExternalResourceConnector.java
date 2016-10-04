@@ -51,16 +51,16 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(URI location) {
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         STATS.resource(location);
-        return accessor.openResource(location);
+        return accessor.openResource(location, revalidate);
     }
 
     @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(URI location) {
+    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         STATS.metadata(location);
-        return accessor.getMetaData(location);
+        return accessor.getMetaData(location, revalidate);
     }
 
     @Nullable

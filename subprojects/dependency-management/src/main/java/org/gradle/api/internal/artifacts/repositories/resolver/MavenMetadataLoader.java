@@ -54,7 +54,7 @@ class MavenMetadataLoader {
     }
 
     private void parseMavenMetadataInfo(final URI metadataLocation, final MavenMetadata metadata) {
-        ExternalResource resource = repository.getResource(metadataLocation);
+        ExternalResource resource = repository.getResource(metadataLocation, true);
         if (resource == null) {
             throw new MissingResourceException(metadataLocation, String.format("Maven meta-data not available: %s", metadataLocation));
         }

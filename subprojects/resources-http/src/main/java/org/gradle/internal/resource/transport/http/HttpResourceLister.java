@@ -34,7 +34,7 @@ public class HttpResourceLister implements ExternalResourceLister {
     }
 
     public List<String> list(final URI directory) {
-        final ExternalResourceReadResponse response = accessor.openResource(directory);
+        final ExternalResourceReadResponse response = accessor.openResource(directory, true);
         if (response == null) {
             return null;
         }
