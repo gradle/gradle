@@ -38,7 +38,7 @@ class ModelsWithGradleProjectViaCrossVersionSpec extends ToolingApiSpecification
         def gradleBuild = loadToolingModel(GradleBuild)
 
         then:
-        gradleBuild.buildIdentifier == new DefaultBuildIdentifier(projectDir)
+        gradleBuild.buildIdentifier.rootDir == projectDir
     }
 
     def "Provides all GradleProjects for root of single project build"() {
