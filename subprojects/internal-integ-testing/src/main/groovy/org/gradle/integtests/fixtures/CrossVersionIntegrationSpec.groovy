@@ -28,10 +28,15 @@ import spock.lang.Specification
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    private final List<GradleExecuter> executers = []
     final GradleDistribution current = new UnderDevelopmentGradleDistribution()
     static GradleDistribution previous
     private MavenFileRepository mavenRepo
     private TestFile gradleUserHomeDir
+
+    def cleanup() {
+        executers.each { it.cleanup() }
+    }
 
     void requireOwnGradleUserHomeDir() {
         gradleUserHomeDir = file("user-home-dir")
@@ -71,5 +76,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         }
         executer.expectDeprecationWarning()
         executer.inDirectory(testDirectory)
+        executers << executer
+        return executer
     }
 }
