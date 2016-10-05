@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.util.logging.LogManager
 
@@ -75,6 +76,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    @Ignore
     def "tooling api does not reset the java logging"() {
         //(SF) checking if the logger level was not overridden.
         //this gives some confidence that the LogManager was not reset
