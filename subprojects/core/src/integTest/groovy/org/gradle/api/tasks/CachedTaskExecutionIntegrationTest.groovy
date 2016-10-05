@@ -519,8 +519,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains """
-            3 tasks in build, out of which 2 (67%) were cacheable
-            3 (100%) executed
+            3 tasks in build, out of which 3 (100%) were executed
+            2  (67%) cache miss
+            1  (33%) not cacheable
         """ .stripIndent()
 
         when:
@@ -529,10 +530,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains """
-            3 tasks in build, out of which 1 (33%) were cacheable
+            3 tasks in build, out of which 1 (33%) were executed
             1  (33%) up-to-date
             1  (33%) loaded from cache
-            1  (33%) executed
+            1  (33%) not cacheable
         """.stripIndent()
     }
 

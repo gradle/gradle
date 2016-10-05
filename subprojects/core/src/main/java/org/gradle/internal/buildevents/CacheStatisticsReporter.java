@@ -36,16 +36,20 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
     @Override
     public void buildFinished(TaskExecutionStatistics statistics) {
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
-        int cacheableTasks = statistics.getCacheableTasksCount();
         textOutput.println();
         int allTasks = statistics.getAllTasksCount();
-        int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
+        int allExecutedTasks = statistics.getTasksCount(TaskExecutionOutcome.EXECUTED);
+        int skippedTasks = statistics.getTasksCount(TaskExecutionOutcome.SKIPPED);
         int upToDateTasks = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE);
-        textOutput.formatln("%d tasks in build, out of which %d (%s) were cacheable", allTasks, cacheableTasks, roundedPercentOf(cacheableTasks, allTasks));
+        int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
+        int cacheableExecutedTasks = statistics.getCacheMissCount();
+        int nonCacheableExecutedTasks = allExecutedTasks - cacheableExecutedTasks;
+        textOutput.formatln("%d tasks in build, out of which %d (%s) were executed", allTasks, allExecutedTasks, roundedPercentOf(allExecutedTasks, allTasks));
+        statisticsLine(textOutput, skippedTasks, allTasks, "skipped");
         statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
         statisticsLine(textOutput, fromCacheTasks, allTasks, "loaded from cache");
-        statisticsLine(textOutput, statistics.getTasksCount(TaskExecutionOutcome.SKIPPED), allTasks, "skipped");
-        statisticsLine(textOutput, statistics.getTasksCount(TaskExecutionOutcome.EXECUTED), allTasks, "executed");
+        statisticsLine(textOutput, cacheableExecutedTasks, allTasks, "cache miss");
+        statisticsLine(textOutput, nonCacheableExecutedTasks, allTasks, "not cacheable");
     }
 
     private void statisticsLine(StyledTextOutput textOutput, int fraction, int total, String description) {
@@ -56,9 +60,8 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         }
     }
 
-    private static String roundedPercentOf(float fraction, int total) {
-        float out = (total == 0) ? 0 : fraction / total;
-        // This uses RoundingMode.HALF_UP by default
+    private static String roundedPercentOf(int fraction, int total) {
+        double out = total == 0 ? 0 : Math.round(100d * fraction / total) / 100d;
         return NumberFormat.getPercentInstance(Locale.US).format(out);
     }
 }
