@@ -27,10 +27,10 @@ public class DependencyServices implements PluginServiceRegistry, GradleUserHome
 
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyManagementGradleUserHomeScopeServices());
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementGradleUserHomeScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
