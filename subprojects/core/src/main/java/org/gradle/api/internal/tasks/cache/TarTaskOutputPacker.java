@@ -52,7 +52,6 @@ import java.util.regex.Pattern;
 /**
  * Packages task output to a POSIX TAR file.
  */
-@SuppressWarnings("OctalInteger")
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
 
@@ -188,8 +187,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 Files.createParentDirs(outputFile);
                 Files.asByteSink(outputFile).writeFrom(tarInput);
             }
+            //noinspection OctalInteger
             fileSystem.chmod(outputFile, entry.getMode() & 0777);
-            outputFile.setLastModified(entry.getModTime().getTime());
+            if (!outputFile.setLastModified(entry.getModTime().getTime())) {
+                throw new IOException(String.format("Could not set modification time for '%s'", outputFile));
+            }
         }
     }
 }
