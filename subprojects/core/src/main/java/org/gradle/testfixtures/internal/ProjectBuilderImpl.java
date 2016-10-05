@@ -37,6 +37,7 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 
@@ -75,7 +76,7 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter, homeDir);
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getUserHomeServices(userHomeDir), startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -88,6 +89,12 @@ public class ProjectBuilderImpl {
         gradle.setDefaultProject(project);
 
         return project;
+    }
+
+    private ServiceRegistry getUserHomeServices(File userHomeDir) {
+        ServiceRegistry globalServices = getGlobalServices();
+        GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry.class);
+        return userHomeScopeServiceRegistry.getServicesFor(userHomeDir);
     }
 
     private ServiceRegistry getGlobalServices() {
@@ -107,7 +114,7 @@ public class ProjectBuilderImpl {
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
             // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
             // in ApplicationClassesInSystemClassLoaderWorkerFactory, BootstrapSecurityManager and GradleWorkerMain.)
-            // Thus, we inject the missing interfaces directly into the system cl   ass loader used to load all classes in the test.
+            // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
             LegacyTypesUtil.injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
         }
         return globalServices;

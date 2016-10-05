@@ -63,6 +63,8 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     @Override
     protected void moveFilesAround() {
         buildFile.text = buildFileWithClassesDir("build/other-classes")
+        assert file("build/classes").directory
+        file("build/classes").deleteDir()
     }
 
     @Override

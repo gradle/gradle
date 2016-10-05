@@ -32,6 +32,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.internal.Factory
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationExecutor
@@ -67,6 +68,7 @@ public class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
+    private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     final RuntimeException failure = new RuntimeException("main");
@@ -110,7 +112,7 @@ public class DefaultGradleLauncherSpec extends Specification {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices);
+            buildServices, [otherService]);
     }
 
     public void testRun() {
@@ -245,6 +247,7 @@ public class DefaultGradleLauncherSpec extends Specification {
         then:
         1 * loggingManagerMock.stop()
         1 * buildServices.close()
+        1 * otherService.stop()
         1 * buildCompletionListener.completed()
     }
 

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.serialization;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 
@@ -54,6 +55,7 @@ public class ClassLoaderCache {
         }
     }
 
+    @Nullable
     public ClassLoaderDetails maybeGetDetails(ClassLoader classLoader) {
         lock.lock();
         try {

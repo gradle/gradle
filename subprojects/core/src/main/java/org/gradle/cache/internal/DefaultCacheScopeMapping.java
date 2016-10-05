@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
@@ -28,7 +29,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
     private final File buildCacheDir;
     private final GradleVersion version;
 
-    public DefaultCacheScopeMapping(File userHomeDir, File buildCacheDir, GradleVersion version) {
+    public DefaultCacheScopeMapping(File userHomeDir, @Nullable File buildCacheDir, GradleVersion version) {
         this.version = version;
         this.globalCacheDir = new File(userHomeDir, "caches");
         this.buildCacheDir = buildCacheDir;

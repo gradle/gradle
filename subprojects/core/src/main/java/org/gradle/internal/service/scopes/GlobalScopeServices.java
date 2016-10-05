@@ -95,6 +95,7 @@ import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -150,12 +151,15 @@ public class GlobalScopeServices {
         final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
+            if (pluginServiceRegistry instanceof GradleUserHomeScopePluginServices) {
+                registration.add(GradleUserHomeScopePluginServices.class, (GradleUserHomeScopePluginServices) pluginServiceRegistry);
+            }
             pluginServiceRegistry.registerGlobalServices(registration);
         }
     }
 
-    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
-        return new DefaultGradleLauncherFactory(services);
+    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
+        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {
@@ -370,5 +374,9 @@ public class GlobalScopeServices {
 
     DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
         return new DependencyInjectingInstantiator.ConstructorCache();
+    }
+
+    GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
+        return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 }

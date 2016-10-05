@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
@@ -27,16 +26,13 @@ import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.util.Clock
@@ -51,9 +47,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     RedirectStdIn redirectStdIn = new RedirectStdIn()
 
     def delegate = Mock(BuildActionExecuter)
-    def action = Mock(BuildAction) {
-        1 * getStartParameter() >> Stub(StartParameter)
-    }
+    def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
@@ -66,20 +60,12 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def executorFactory = new DefaultExecutorFactory()
     def globalServices = Stub(ServiceRegistry)
     def executer = executer()
-    def sessionService = Mock(Stoppable)
     def taskInternal = Stub(TaskInternal)
 
     private File file = new File('file')
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
-        globalServices.getAll(PluginServiceRegistry) >> [
-                Stub(PluginServiceRegistry) {
-                    registerBuildSessionServices(_) >> { ServiceRegistration registration ->
-                        registration.add(Stoppable, sessionService)
-                    }
-                }
-        ]
         waiterFactory.createChangeWaiter(_) >> waiter
         waiter.isWatching() >> true
         def project = Stub(Project)
@@ -120,7 +106,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_,_) >> {
+        1 * waiter.wait(_, _) >> {
             cancellationToken.cancel()
         }
     }
@@ -133,7 +119,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
 
         then:
         waiter.isWatching() >> false
-        0 * waiter.wait(_,_)
+        0 * waiter.wait(_, _)
     }
 
     def "throws exception if last build fails in continous mode"() {
@@ -146,7 +132,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_,_) >> {
+        1 * waiter.wait(_, _) >> {
             cancellationToken.cancel()
         }
         thrown(ReportedException)
@@ -163,7 +149,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_,_)
+        1 * waiter.wait(_, _)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -172,7 +158,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_,_)
+        1 * waiter.wait(_, _)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -180,30 +166,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_,_) >> {
+        1 * waiter.wait(_, _) >> {
             cancellationToken.cancel()
         }
-    }
-
-    def "closes build session after single build"() {
-        when:
-        singleBuild()
-        executeBuild()
-
-        then:
-        1 * sessionService.stop()
-    }
-
-    def "closes build session after continuous build"() {
-        when:
-        continuousBuild()
-        executeBuild()
-
-        then:
-        waiter.wait(_,_) >> {
-            cancellationToken.cancel()
-        }
-        1 * sessionService.stop()
     }
 
     private void singleBuild() {
