@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.protocol;
 
 import com.google.common.collect.Lists;
+import org.gradle.tooling.model.ModelResults;
 
 import java.io.File;
 import java.io.Serializable;
@@ -24,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The internal protocol for transferring {@link org.gradle.tooling.connection.ModelResults}
+ * The internal protocol for transferring {@link ModelResults}
  */
 public class InternalModelResults<T> implements Iterable<InternalModelResult<T>>, Serializable {
     private final List<InternalModelResult<T>> results = Lists.newArrayList();

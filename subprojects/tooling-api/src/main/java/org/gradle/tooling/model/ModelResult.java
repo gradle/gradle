@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.connection;
+package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnknownModelException;
-import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.model.BuildIdentifier;
-import org.gradle.tooling.model.ProjectIdentifier;
 
 /**
  * The result of a model request.

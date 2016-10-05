@@ -21,7 +21,7 @@ import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.model.internal.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMixin;

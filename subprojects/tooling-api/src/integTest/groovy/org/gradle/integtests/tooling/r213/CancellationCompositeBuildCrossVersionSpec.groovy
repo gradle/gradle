@@ -23,7 +23,7 @@ import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.connection.ModelResults
+import org.gradle.tooling.model.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
 

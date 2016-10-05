@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.connection;
+package org.gradle.tooling.model.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.connection.ModelResult;
+import org.gradle.tooling.model.ModelResult;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 

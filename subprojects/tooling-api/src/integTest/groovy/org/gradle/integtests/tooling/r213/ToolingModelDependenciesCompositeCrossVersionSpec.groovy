@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
@@ -133,7 +132,10 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
 """
 
         def ideaModules = loadIdeaModuleModels()
-        def ideaModuleB2 = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildB, ":b2") }
+        def ideaModuleB2 = ideaModules.find {
+            def projectIdentifier = it.gradleProject.projectIdentifier
+            projectIdentifier.projectPath == ":b2" && projectIdentifier.buildIdentifier.rootDir == buildB
+        }
 
         then:
         ideaModuleA.dependencies.size() == 2
@@ -159,8 +161,14 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends MultiModelToolin
         def ideaProjects = getUnwrappedModels(IdeaProject)
         def ideaModules = ideaProjects*.modules.flatten() as List<IdeaModule>
         assert ideaModules.size() == 5
-        ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildA, ":") }
-        ideaModuleB1 = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildB, ":b1") }
+        ideaModuleA = ideaModules.find {
+            def projectIdentifier = it.gradleProject.projectIdentifier
+            projectIdentifier.projectPath == ":" && projectIdentifier.buildIdentifier.rootDir == buildA
+        }
+        ideaModuleB1 = ideaModules.find {
+            def projectIdentifier = it.gradleProject.projectIdentifier
+            projectIdentifier.projectPath == ":b1" && projectIdentifier.buildIdentifier.rootDir == buildB
+        }
         assert ideaModuleA != null
         assert ideaModuleB1 != null
         ideaModules

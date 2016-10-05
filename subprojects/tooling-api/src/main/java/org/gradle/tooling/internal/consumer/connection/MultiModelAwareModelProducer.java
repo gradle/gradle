@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.Cast;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.model.internal.DefaultBuildIdentifier;
+import org.gradle.tooling.model.internal.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;

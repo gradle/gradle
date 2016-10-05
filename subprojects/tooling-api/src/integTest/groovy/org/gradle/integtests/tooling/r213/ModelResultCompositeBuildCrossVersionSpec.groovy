@@ -18,15 +18,14 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.tooling.connection.ModelResults
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.ModelResults
 import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.tooling.model.internal.DefaultBuildIdentifier
 import org.gradle.util.CollectionUtils
 
 @TargetGradleVersion(">=3.2")
@@ -252,8 +251,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
     }
 
     private findModelsByProjectIdentifier(File rootDir, String projectPath) {
-        def projectIdentifier = new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), projectPath)
-        def results = modelResults.findAll { it.failure == null && projectIdentifier.equals(it.model.gradleProject.projectIdentifier) }
+        def results = modelResults.findAll { it.failure == null && it.projectIdentifier.projectPath == projectPath && it.projectIdentifier.buildIdentifier.rootDir == rootDir }
         return results*.model
     }
 

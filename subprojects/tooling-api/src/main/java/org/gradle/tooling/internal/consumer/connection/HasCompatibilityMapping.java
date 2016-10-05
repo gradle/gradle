@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.model.internal.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMixin;

@@ -23,7 +23,7 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
-import org.gradle.tooling.connection.ModelResults;
+import org.gradle.tooling.model.ModelResults;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
 class DefaultProjectConnection implements ProjectConnection {

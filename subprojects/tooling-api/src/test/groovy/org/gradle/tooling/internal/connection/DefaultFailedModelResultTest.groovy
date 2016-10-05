@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.connection
 
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.BuildIdentifier
+import org.gradle.tooling.model.internal.DefaultFailedModelResult
 import spock.lang.Specification
 
 class DefaultFailedModelResultTest extends Specification {

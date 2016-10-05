@@ -16,11 +16,13 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.tooling.model.ModelResult;
+
 import java.io.File;
 import java.io.Serializable;
 
 /**
- * The internal protocol for transferring {@link org.gradle.tooling.connection.ModelResult}s
+ * The internal protocol for transferring {@link ModelResult}s
  */
 public class InternalModelResult<T> implements Serializable {
     private File rootDir;

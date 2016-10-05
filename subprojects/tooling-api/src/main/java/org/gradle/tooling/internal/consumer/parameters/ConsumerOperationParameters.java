@@ -22,7 +22,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
+import org.gradle.tooling.model.internal.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;

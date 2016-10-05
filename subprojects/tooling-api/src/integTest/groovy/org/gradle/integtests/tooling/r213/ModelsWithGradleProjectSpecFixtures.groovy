@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.internal.gradle.BasicGradleProject
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
@@ -64,7 +62,8 @@ trait ModelsWithGradleProjectSpecFixtures {
         }
         // Order of children is not guaranteed for Gradle < 2.0
         assert project.children*.path as Set == childPaths as Set
-        assert project.projectIdentifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
+        assert project.projectIdentifier.projectPath == path
+        assert project.projectIdentifier.buildIdentifier.rootDir == rootDir
     }
 
     static GradleProject toGradleProject(def model) {

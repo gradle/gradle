@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.connection.ModelResults
+import org.gradle.tooling.model.ModelResult
+import org.gradle.tooling.model.ModelResults
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
 @TargetGradleVersion(">=1.2")
