@@ -3,6 +3,8 @@ package org.gradle.script.lang.kotlin.codegen
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginContainer
 
+import org.gradle.util.TextUtil.normaliseLineSeparators
+
 import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -27,7 +29,7 @@ class ActionExtensionWriterTest {
 
         assertThat(
             extensionsFor(
-                classNodeOf<Project>()),
+                classNodeOf<Project>()).let(::normaliseLineSeparators),
             endsWith("""
 package org.gradle.script.lang.kotlin
 

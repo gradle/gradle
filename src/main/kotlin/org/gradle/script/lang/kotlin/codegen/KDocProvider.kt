@@ -34,7 +34,8 @@ data class KDoc(val text: String) {
             var noticeToInsert = notice
             text.lineSequence().forEach {
                 if (noticeToInsert != null && it.startsWith('@')) {
-                    appendln(" * $noticeToInsert\n *")
+                    appendln(" * $noticeToInsert")
+                    appendln(" *")
                     noticeToInsert = null
                 }
                 appendln(" * $it".trimEnd())

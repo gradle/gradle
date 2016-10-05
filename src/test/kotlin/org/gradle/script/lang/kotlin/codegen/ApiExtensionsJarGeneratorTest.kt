@@ -33,7 +33,7 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
     private fun firstLinesOf(text: String) =
         // using only the first 4 lines for comparison to avoid
         // the additional notice automatically added to each method
-        text.lineSequence().take(4).joinToString(separator = "\n")
+        text.lineSequence().take(4).joinToString(separator = System.lineSeparator())
 
     object NullCompiler : KotlinFileCompiler {
         override fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>) = Unit

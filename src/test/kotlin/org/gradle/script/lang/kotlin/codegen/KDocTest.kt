@@ -1,5 +1,7 @@
 package org.gradle.script.lang.kotlin.codegen
 
+import org.gradle.util.TextUtil.normaliseLineSeparators
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -10,7 +12,9 @@ class KDocTest {
     @Test
     fun `inserts notice before first @param tag`() {
         assertThat(
-            KDoc("Lorem ipsum.\n@param foo").format("A notice."),
+            KDoc("Lorem ipsum.\n@param foo")
+                .format("A notice.")
+                .let(::normaliseLineSeparators),
             equalTo("""
                 /**
                  * Lorem ipsum.

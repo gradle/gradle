@@ -118,7 +118,7 @@ class GradleScriptKotlinIntegrationTest {
         withBuildScript("""
             buildscript {
                 repositories {
-                    ivy { setUrl("$fixturesRepository") }
+                    ivy { setUrl("${fixturesRepository.toURI()}") }
                     jcenter()
                 }
                 dependencies {
