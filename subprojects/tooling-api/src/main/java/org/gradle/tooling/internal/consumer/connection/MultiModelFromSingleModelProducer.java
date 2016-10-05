@@ -35,7 +35,9 @@ abstract class MultiModelFromSingleModelProducer extends HasCompatibilityMapping
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(elementType)) {
-            throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
+            InternalModelResults<T> results = new InternalModelResults<T>();
+            results.addBuildFailure(operationParameters. getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
+            return results;
         }
         InternalModelResults<T> results = new InternalModelResults<T>();
         if (HierarchicalElement.class.isAssignableFrom(elementType) && HasGradleProject.class.isAssignableFrom(elementType)) {

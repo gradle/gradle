@@ -56,7 +56,9 @@ public class ModelBuilderAndActionRunnerBackedModelProducer extends HasCompatibi
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(elementType)) {
-            throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
+            InternalModelResults<T> results = new InternalModelResults<T>();
+            results.addBuildFailure(operationParameters. getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
+            return results;
         }
         if (elementType == BuildEnvironment.class) {
             return Cast.uncheckedCast(getBuildEnvironment(operationParameters));

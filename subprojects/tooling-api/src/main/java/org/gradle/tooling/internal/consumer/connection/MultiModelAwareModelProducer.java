@@ -55,6 +55,11 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
     @Override
     public <T> InternalModelResults<T> produceModels(final Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> buildResult = buildModels(elementType, operationParameters);
+        if (!versionDetails.maySupportModel(elementType)) {
+            InternalModelResults<T> results = new InternalModelResults<T>();
+            results.addBuildFailure(operationParameters. getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
+            return results;
+        }
         Object results = buildResult.getModel();
         if (results instanceof InternalModelResults) {
             for (InternalModelResult<Object> result : Cast.<InternalModelResults<Object>>uncheckedCast(results)) {
@@ -77,9 +82,6 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
     }
 
     private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (!versionDetails.maySupportModel(type)) {
-            throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
-        }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         return connection.getModels(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
     }
