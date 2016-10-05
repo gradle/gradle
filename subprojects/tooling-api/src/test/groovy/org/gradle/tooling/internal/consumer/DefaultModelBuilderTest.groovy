@@ -30,7 +30,7 @@ import org.gradle.tooling.model.internal.Exceptions
 class DefaultModelBuilderTest extends ConcurrentSpec {
     final AsyncConsumerActionExecutor asyncConnection = Mock()
     final ConsumerConnection connection = Mock()
-    final ProjectConnectionParameters parameters = Stub() {
+    final ConnectionParameters parameters = Stub() {
         getProjectDir() >> new File('foo')
     }
     final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, asyncConnection, parameters)
