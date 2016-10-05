@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
@@ -43,6 +44,7 @@ class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends Mu
         modelType << modelsHavingGradleProjectIdentifier
     }
 
+    @TargetGradleVersion(ToolingApiVersions.SUPPORTS_BUILD_ACTIONS)
     def "Provides identified models for multi-project build"() {
         setup:
         multiProjectBuildInRootFolder("B", ['x', 'y'])
@@ -127,7 +129,6 @@ class ModelsWithGradleProjectIdentifierCompositeBuildCrossVersionSpec extends Mu
 
     private static getModelsHavingGradleProjectIdentifier() {
         List<Class<?>> models = [BuildInvocations]
-        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
         if (targetVersion >= GradleVersion.version("1.12")) {
             models += ProjectPublications
         }

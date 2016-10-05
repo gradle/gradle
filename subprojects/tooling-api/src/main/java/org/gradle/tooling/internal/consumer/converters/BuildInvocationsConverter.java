@@ -39,7 +39,7 @@ public class BuildInvocationsConverter {
 
     public ConsumerProvidedBuildInvocations convertSingleProject(GradleProject rootProject) {
         List<ConsumerProvidedTaskSelector> selectors = buildRecursively(rootProject);
-        return new ConsumerProvidedBuildInvocations(selectors, convertTasks(rootProject.getTasks()));
+        return new ConsumerProvidedBuildInvocations(rootProject.getProjectIdentifier(), selectors, convertTasks(rootProject.getTasks()));
     }
 
     private List<ConsumerProvidedTaskSelector> buildRecursively(GradleProject project) {

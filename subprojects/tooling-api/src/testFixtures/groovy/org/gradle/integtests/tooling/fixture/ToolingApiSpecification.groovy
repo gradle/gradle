@@ -177,7 +177,7 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for a non-root project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (GradleVersion.version(targetDist.version.version) > GradleVersion.version("3.1")) {
+        if (targetVersion > GradleVersion.version("3.1")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model']
         } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.10")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
@@ -197,7 +197,7 @@ abstract class ToolingApiSpecification extends Specification {
      * to {@link #getImplicitTasks()}.
      */
     Set<String> getImplicitSelectors() {
-        if (GradleVersion.version(targetDist.version.baseVersion.version) <= GradleVersion.version("2.0")) {
+        if (targetVersion <= GradleVersion.version("2.0")) {
             // Implicit tasks were ignored
             return []
         }
@@ -208,7 +208,6 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitTasks() {
-        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
         if (targetVersion == GradleVersion.version("1.6")) {
             return implicitTasks + ['setupBuild']
         }
@@ -222,7 +221,6 @@ abstract class ToolingApiSpecification extends Specification {
      * to {@link #getRootProjectImplicitTasks()}.
      */
     Set<String> getRootProjectImplicitSelectors() {
-        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
         if (targetVersion == GradleVersion.version("1.6")) {
             // Implicit tasks were ignored, and setupBuild was added as a regular task
             return ['setupBuild']
@@ -241,7 +239,6 @@ abstract class ToolingApiSpecification extends Specification {
      * to {@link #getRootProjectImplicitTasks()}.
      */
     Set<String> getRootProjectImplicitTasksForGradleProjectModel() {
-        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
         if (targetVersion == GradleVersion.version("1.6")) {
             // Implicit tasks were ignored, and setupBuild was added as a regular task
             return ['setupBuild']
@@ -252,5 +249,10 @@ abstract class ToolingApiSpecification extends Specification {
 
     public <T> T loadToolingModel(Class<T> modelClass) {
         withConnection { connection -> connection.getModel(modelClass) }
+    }
+
+
+    protected static GradleVersion getTargetVersion() {
+        GradleVersion.version(targetDist.version.baseVersion.version)
     }
 }
