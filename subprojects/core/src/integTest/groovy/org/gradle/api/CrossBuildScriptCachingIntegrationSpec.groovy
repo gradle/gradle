@@ -93,8 +93,8 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         when:
-        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
         executer.withGradleUserHomeDir(homeDirectory)
+        executer.requireDaemon()
         executer.requireIsolatedDaemons()
         run 'help'
         run 'help'
@@ -110,9 +110,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         coreHash == module1Hash
         hasCachedScripts(settingsHash, coreHash)
         getCompileClasspath(coreHash, 'proj').length == 1
-
-        cleanup:
-        daemons.killAll()
     }
 
     def "can have two build files with same contents and file name"() {
@@ -611,7 +608,6 @@ task fastTask { }
                 }
             ''')
         }
-        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
         executer.withGradleUserHomeDir(homeDirectory)
@@ -624,10 +620,6 @@ task fastTask { }
         then:
         String hash = uniqueRemapped('main')
         getCompileClasspath(hash, 'dsl').length == 1
-
-        cleanup:
-        daemons.killAll()
-
     }
 
     DaemonsFixture getDaemons() {
