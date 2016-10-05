@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import spock.lang.Ignore
 
 @Ignore
 class LoggingIntegrationTest extends AbstractIntegrationTest {
