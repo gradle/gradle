@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
 import org.gradle.cache.CacheRepository;
 
-public class DependencyManagementBuildSessionScopeServices {
+public class DependencyManagementGradleUserHomeScopeServices {
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {
         return new DefaultCacheLockingManager(cacheRepository);
     }

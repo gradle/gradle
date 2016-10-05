@@ -17,15 +17,20 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
-public class DependencyServices implements PluginServiceRegistry {
+public class DependencyServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementGlobalScopeServices());
     }
 
+    @Override
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementGradleUserHomeScopeServices());
+    }
+
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyManagementBuildSessionScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
