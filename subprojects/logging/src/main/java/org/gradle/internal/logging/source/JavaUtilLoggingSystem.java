@@ -40,7 +40,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     // SLF4JBridgeHandler which is installed by this logging system.
     static {
         LOG_LEVEL_MAPPING.put(LogLevel.DEBUG, Level.FINE);
-        LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.INFO);
+        LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.CONFIG);
         LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.WARNING);
         LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.WARNING);
         LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.SEVERE);
