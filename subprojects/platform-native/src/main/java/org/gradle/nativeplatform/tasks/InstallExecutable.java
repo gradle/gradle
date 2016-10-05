@@ -191,8 +191,16 @@ public class InstallExecutable extends DefaultTask {
         String runScriptText =
               "#!/bin/sh"
             + "\nAPP_BASE_NAME=`dirname \"$0\"`"
-            + "\nexport DYLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
-            + "\nexport LD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
+            + "\nif [ -z \"$DYLD_LIBRARY_PATH\" ]; then"
+            + "\n\texport DYLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
+            + "\nelse"
+            + "\n\texport DYLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib:$DYLD_LIBRARY_PATH\""
+            + "\nfi"
+            + "\nif [ -z \"$LD_LIBRARY_PATH\" ]; then"
+            + "\n\texport LD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
+            + "\nelse"
+            + "\n\texport LD_LIBRARY_PATH=\"$APP_BASE_NAME/lib:$LD_LIBRARY_PATH\""
+            + "\nfi"
             + "\nexec \"$APP_BASE_NAME/lib/" + executable.getName() + "\" \"$@\""
             + "\n";
         GFileUtils.writeFile(runScriptText, getRunScript());
