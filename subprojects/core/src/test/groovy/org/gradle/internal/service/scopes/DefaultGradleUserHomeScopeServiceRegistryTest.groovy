@@ -53,6 +53,24 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         !services.get(SomeHomeDirService).closed
     }
 
+    def "reuses service registry when services for home dir already in use"() {
+        def dir = new File("home-dir")
+
+        given:
+        def servicesBefore = homeDirServices.getServicesFor(dir)
+        def globalService = servicesBefore.get(SomeGlobalService)
+        def userHomeDirProvider = servicesBefore.get(GradleUserHomeDirProvider)
+        def homeDirService = servicesBefore.get(SomeHomeDirService)
+
+        expect:
+        def services = homeDirServices.getServicesFor(dir)
+        services.get(SomeGlobalService).is(globalService)
+        services.get(GradleUserHomeDirProvider).is(userHomeDirProvider)
+        services.get(SomeHomeDirService).is(homeDirService)
+        services.get(SomeHomeDirService).homeDir == dir
+        !services.get(SomeHomeDirService).closed
+    }
+
     def "does not close services when registry is released"() {
         def dir = new File("home-dir")
 
@@ -86,6 +104,54 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         homeDirService.closed
     }
 
+    def "creates new services when home dir is different to home dir currently in use"() {
+        def dir1 = new File("home-dir-1")
+        def dir2 = new File("home-dir-2")
+
+        given:
+        def servicesBefore = homeDirServices.getServicesFor(dir1)
+        def globalService = servicesBefore.get(SomeGlobalService)
+        def userHomeDirProvider = servicesBefore.get(GradleUserHomeDirProvider)
+        def homeDirService = servicesBefore.get(SomeHomeDirService)
+
+        expect:
+        def services = homeDirServices.getServicesFor(dir2)
+        services.get(SomeGlobalService).is(globalService)
+        !services.get(GradleUserHomeDirProvider).is(userHomeDirProvider)
+        services.get(GradleUserHomeDirProvider).gradleUserHomeDirectory == dir2
+        !services.get(SomeHomeDirService).is(homeDirService)
+        services.get(SomeHomeDirService).homeDir == dir2
+
+        and:
+        !homeDirService.closed
+    }
+
+    def "closes services for home dir when another home dir is in use"() {
+        def dir1 = new File("home-dir-1")
+        def dir2 = new File("home-dir-2")
+
+        given:
+        def servicesHomeDir1 = homeDirServices.getServicesFor(dir1)
+        def homeDir1Service = servicesHomeDir1.get(SomeHomeDirService)
+
+        when:
+        def services1 = homeDirServices.getServicesFor(dir2)
+        def services2 = homeDirServices.getServicesFor(dir2)
+        def homeDir2Service = services2.get(SomeHomeDirService)
+        homeDirServices.release(services1)
+
+        then:
+        !homeDir2Service.closed
+        !homeDir1Service.closed
+
+        when:
+        homeDirServices.release(services2)
+
+        then:
+        homeDir2Service.closed
+        !homeDir1Service.closed
+    }
+
     def "closes services when registry closed"() {
         def dir = new File("home-dir")
 
@@ -99,20 +165,6 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
 
         then:
         homeDirService.closed
-    }
-
-    def "fails when previous services not released"() {
-        def dir = new File("home-dir")
-
-        given:
-        homeDirServices.getServicesFor(dir)
-
-        when:
-        homeDirServices.getServicesFor(dir)
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'Gradle user home directory scoped services have not been released.'
     }
 
     def "fails when services already released"() {
@@ -141,7 +193,7 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Gradle user home directory scoped services have not been released.'
+        e.message == "Services for Gradle user home directory 'home-dir' have not been released."
     }
 
     class SomeGlobalService {

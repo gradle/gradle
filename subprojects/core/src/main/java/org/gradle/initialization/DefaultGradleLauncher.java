@@ -31,7 +31,9 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
-public class DefaultGradleLauncher extends GradleLauncher {
+import java.util.List;
+
+public class DefaultGradleLauncher implements GradleLauncher {
 
     private enum Stage {
         Load, Configure, Build
@@ -49,6 +51,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
+    private final List<?> servicesToStopAtEndOfBuild;
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
@@ -61,7 +64,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
+                                 BuildScopeServices buildServices, List<?> servicesToStopAtEndOfBuild) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -75,6 +79,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
+        this.servicesToStopAtEndOfBuild = servicesToStopAtEndOfBuild;
         loggingManager.start();
     }
 
@@ -228,7 +233,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public void stop() {
         try {
             loggingManager.stop();
-            CompositeStoppable.stoppable(buildServices).stop();
+            CompositeStoppable.stoppable(buildServices).add(servicesToStopAtEndOfBuild).stop();
         } finally {
             buildCompletionListener.completed();
         }

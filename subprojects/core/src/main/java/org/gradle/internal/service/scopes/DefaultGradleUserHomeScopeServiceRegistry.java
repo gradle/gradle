@@ -23,6 +23,10 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Reuses the services for the most recent Gradle user home dir. Could instead cache several most recent and clean these up on memory pressure, however in practise there is only a single user home dir associated with a given build process.
@@ -30,9 +34,8 @@ import java.io.File;
 public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHomeScopeServiceRegistry, Closeable {
     private final ServiceRegistry sharedServices;
     private final Object provider;
-    private File previousUserHomeDir;
-    private ServiceRegistry userHomeServices;
-    private boolean inUse;
+    private final Lock lock = new ReentrantLock();
+    private final Map<File, Services> servicesForHomeDir = new HashMap<File, Services>();
 
     public DefaultGradleUserHomeScopeServiceRegistry(ServiceRegistry sharedServices, Object provider) {
         this.sharedServices = sharedServices;
@@ -41,55 +44,93 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
 
     @Override
     public void close() {
-        assertNotInUse();
-        if (userHomeServices != null) {
-            closePreviousServices();
+        CompositeStoppable stoppable = new CompositeStoppable();
+        lock.lock();
+        try {
+            for (Map.Entry<File, Services> entry : servicesForHomeDir.entrySet()) {
+                Services services = entry.getValue();
+                if (services.count != 0) {
+                    throw new IllegalStateException("Services for Gradle user home directory '" + entry.getKey() + "' have not been released.");
+                }
+                stoppable.add(services.registry);
+            }
+            servicesForHomeDir.clear();
+        } finally {
+            lock.unlock();
         }
+        stoppable.stop();
     }
 
     @Override
     public ServiceRegistry getServicesFor(final File gradleUserHomeDir) {
-        assertNotInUse();
-        if (!gradleUserHomeDir.equals(previousUserHomeDir)) {
-            if (previousUserHomeDir != null) {
-                closePreviousServices();
-            }
-            userHomeServices = ServiceRegistryBuilder.builder()
-                .parent(sharedServices)
-                .displayName("shared services for Gradle user home dir " + gradleUserHomeDir)
-                .provider(new Object() {
-                    GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
-                        return new GradleUserHomeDirProvider() {
-                            @Override
-                            public File getGradleUserHomeDirectory() {
-                                return gradleUserHomeDir;
-                            }
-                        };
+        lock.lock();
+        try {
+            Services services = servicesForHomeDir.get(gradleUserHomeDir);
+            if (services == null) {
+                if (servicesForHomeDir.size() == 1) {
+                    Services otherServices = servicesForHomeDir.values().iterator().next();
+                    if (otherServices.count == 0) {
+                        // Other home dir cached and not in use, clean it up
+                        CompositeStoppable.stoppable(otherServices.registry).stop();
+                        servicesForHomeDir.clear();
                     }
-                })
-                .provider(provider)
-                .build();
-            previousUserHomeDir = gradleUserHomeDir;
+                }
+                ServiceRegistry userHomeServices = ServiceRegistryBuilder.builder()
+                    .parent(sharedServices)
+                    .displayName("services for Gradle user home dir " + gradleUserHomeDir)
+                    .provider(new Object() {
+                        GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
+                            return new GradleUserHomeDirProvider() {
+                                @Override
+                                public File getGradleUserHomeDirectory() {
+                                    return gradleUserHomeDir;
+                                }
+                            };
+                        }
+                    })
+                    .provider(provider)
+                    .build();
+                services = new Services(userHomeServices);
+                servicesForHomeDir.put(gradleUserHomeDir, services);
+            }
+            services.count++;
+            return services.registry;
+        } finally {
+            lock.lock();
         }
-        inUse = true;
-        return userHomeServices;
     }
 
     @Override
-    public void release(ServiceRegistry services) {
-        if (!inUse) {
-            throw new IllegalStateException("Gradle user home directory scoped services have already been released.");
+    public void release(ServiceRegistry registry) {
+        lock.lock();
+        try {
+            for (Map.Entry<File, Services> entry : servicesForHomeDir.entrySet()) {
+                Services services = entry.getValue();
+                if (services.registry == registry) {
+                    if (services.count <= 0) {
+                        break;
+                    }
+                    services.count--;
+                    if (services.count == 0 && servicesForHomeDir.size() > 1) {
+                        // Other home dir in use, close these. Otherwise, keep the services for next time
+                        CompositeStoppable.stoppable(services.registry).stop();
+                        servicesForHomeDir.remove(entry.getKey());
+                    }
+                    return;
+                }
+            }
+        } finally {
+            lock.unlock();
         }
-        inUse = false;
+        throw new IllegalStateException("Gradle user home directory scoped services have already been released.");
     }
 
-    private void assertNotInUse() {
-        if (inUse) {
-            throw new IllegalStateException("Gradle user home directory scoped services have not been released.");
-        }
-    }
+    private static class Services {
+        private final ServiceRegistry registry;
+        private int count;
 
-    private void closePreviousServices() {
-        CompositeStoppable.stoppable(userHomeServices).stop();
+        public Services(ServiceRegistry registry) {
+            this.registry = registry;
+        }
     }
 }

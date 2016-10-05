@@ -95,6 +95,7 @@ import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -157,8 +158,8 @@ public class GlobalScopeServices {
         }
     }
 
-    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
-        return new DefaultGradleLauncherFactory(services);
+    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
+        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {

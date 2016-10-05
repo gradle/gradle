@@ -16,13 +16,17 @@
 
 package org.gradle.internal.service.scopes;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 
 /**
- * Manages the shared services that are scoped to a particular Gradle user home dir and which can be shared across build invocations. These shared services also include the global services.
+ * Manages the shared services that are scoped to a particular Gradle user home dir and which can be shared by multiple build invocations. These shared services also include the global services.
+ *
+ * <p>A plugin can contribute shared services to this scope by providing an implementation of {@link GradleUserHomeScopePluginServices}.
  */
+@ThreadSafe
 public interface GradleUserHomeScopeServiceRegistry {
     /**
      * Locates the shared services to use for the given Gradle user home dir. The returned registry also includes global services.
