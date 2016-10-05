@@ -16,37 +16,45 @@
 
 package org.gradle.api.internal.tasks.cache.statistics;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 
-import java.util.Arrays;
-import java.util.EnumMap;
+import java.util.Map;
 
 public class TaskExecutionStatistics {
-    private final EnumMap<TaskExecutionOutcome, Integer> taskCounts = new EnumMap<TaskExecutionOutcome, Integer>(
-        Maps.toMap(Arrays.asList(TaskExecutionOutcome.values()), Functions.constant(0))
-    );
-    private int allTasksCount;
-    private int cacheableTasksCount;
+    private final Map<TaskExecutionOutcome, Integer> taskCounts;
+    private final int allTasksCount;
+    private final int cacheMissCount;
 
-    public void taskStatus(TaskExecutionOutcome outcome, boolean cacheable) {
-        allTasksCount++;
-        taskCounts.put(outcome, taskCounts.get(outcome) + 1);
-        if (cacheable) {
-            cacheableTasksCount++;
+    public TaskExecutionStatistics(Map<TaskExecutionOutcome, Integer> taskCounts, int cacheMissCount) {
+        this.taskCounts = ImmutableMap.copyOf(taskCounts);
+        int allTasksCount = 0;
+        for (Integer taskCount : taskCounts.values()) {
+            allTasksCount += taskCount;
         }
+        this.allTasksCount = allTasksCount;
+        this.cacheMissCount = cacheMissCount;
     }
 
+    /**
+     * Returns the number of all tasks in the build.
+     */
     public int getAllTasksCount() {
         return allTasksCount;
     }
 
+    /**
+     * Returns the number of tasks with the given outcome.
+     */
     public int getTasksCount(TaskExecutionOutcome outcome) {
         return taskCounts.get(outcome);
     }
 
-    public int getCacheableTasksCount() {
-        return cacheableTasksCount;
+    /**
+     * Returns the number of tasks that were cacheable and whose outcome was {@link TaskExecutionOutcome#EXECUTED}.
+     * These are the tasks that could potentially have been loaded from cache, if we had a cached result for them, but we didn't.
+     */
+    public int getCacheMissCount() {
+        return cacheMissCount;
     }
 }

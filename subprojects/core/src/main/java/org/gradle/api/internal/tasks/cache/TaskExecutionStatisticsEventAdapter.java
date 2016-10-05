@@ -16,26 +16,34 @@
 
 package org.gradle.api.internal.tasks.cache;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.Maps;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 
+import java.util.Arrays;
+import java.util.Map;
+
 public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListener, TaskExecutionListener {
-    private final TaskExecutionStatistics statistics;
     private final TaskExecutionStatisticsListener listener;
+    private final Map<TaskExecutionOutcome, Integer> taskCounts = Maps.newEnumMap(
+        Maps.toMap(Arrays.asList(TaskExecutionOutcome.values()), Functions.constant(0))
+    );
+    private int cacheMissCount;
 
     public TaskExecutionStatisticsEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
-        this.statistics = new TaskExecutionStatistics();
     }
 
     @Override
     public void completed() {
-        listener.buildFinished(statistics);
+        listener.buildFinished(new TaskExecutionStatistics(taskCounts, cacheMissCount));
     }
 
     @Override
@@ -46,6 +54,10 @@ public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListe
     @Override
     public void afterExecute(Task task, TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
-        statistics.taskStatus(stateInternal.getOutcome(), stateInternal.isCacheable());
+        TaskExecutionOutcome outcome = stateInternal.getOutcome();
+        taskCounts.put(outcome, taskCounts.get(outcome) + 1);
+        if (stateInternal.isCacheable() && outcome == TaskExecutionOutcome.EXECUTED) {
+            cacheMissCount++;
+        }
     }
 }
