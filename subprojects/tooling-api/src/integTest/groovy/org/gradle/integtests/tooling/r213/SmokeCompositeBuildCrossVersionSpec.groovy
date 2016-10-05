@@ -73,10 +73,11 @@ class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecificat
         includeBuilds(singleBuild)
 
         when:
-        getUnwrappedModels(EclipseProject)
+        def models = getModels(EclipseProject)
 
         then:
-        def e = thrown(GradleConnectionException)
+        models.size() == 1
+        def e = models[0].failure
         assertFailure(e, "Could not fetch models of type 'EclipseProject'")
     }
 
