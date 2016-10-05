@@ -143,22 +143,23 @@ Behavior appears identical to the user with a task path and with an unqualified 
 ### Multi-project build (no change in behavior)
 
 A user may want to (from the root directory):
+
 1. Run a task in a project.
     - _Use case_: Build my single project in a huge multi-project build.
-    When defined in the root and subproject: 
-    - `gradle :<task path>`
-    - `gradle -p projectDir <unqualified task name>` 
-    - `gradle -p projectDir :<task path>`
-    When defined _only_ in the project:
-    - All of the above 
-    - `gradle <unqualified task name>`
+    - When defined in the root and subproject: 
+        - `gradle :<task path>`
+        - `gradle -p projectDir <unqualified task name>` 
+        - `gradle -p projectDir :<task path>`
+    - When defined _only_ in the project:
+        - All of the above 
+        - `gradle <unqualified task name>`
 2. Run a task in the root project.
     - _Use case_: Generate something that's build-specific.
-    When defined in the root and subproject: 
-    - `gradle :<task path>` 
-    When defined _only_ in the root: 
-    - All of the above 
-    - `gradle <unqualified task name>` 
+    - When defined in the root and subproject: 
+        - `gradle :<task path>` 
+    - When defined _only_ in the root: 
+        - All of the above 
+        - `gradle <unqualified task name>` 
 3. Run a task with an unqualified name in all projects (does not include `buildSrc`).
     - _Use case_: Build everything and let Gradle handle the dependencies/parallelization.
     - `gradle <unqualified task name>`
@@ -169,6 +170,7 @@ A user may want to (from the root directory):
 ### Single-project build with `buildSrc` (no change in behavior)
 
 A user would want to:
+
 1. Run a task in a project. 
     - _Use case_: Build my project.
     - `gradle <unqualified task name>`
@@ -184,6 +186,7 @@ A user would want to:
 ### Multi-project build with `buildSrc` (no change in behavior)
 
 A user would want to:
+
 1. Run a task in a project. (same as above)
 2. Run a task in the root project. (same as above)
 3. Run a task with an unqualified name in all projects (does not include `buildSrc`). (same as above)
@@ -221,6 +224,7 @@ build.dependsOn setupWorkspace, gradle.includedBuild("A").task(":build")
 ```
 
 A user would want to:
+
 1. Run a task in the root composite build.
     - _Use case_: Setup my workspace for building.
     - `gradle setupWorkspace` or `gradle :setupWorkspace` (current behavior)
@@ -240,6 +244,7 @@ The composite build defines tasks too for convenience as described above.
 See example above, but make `A/` a multi-project build.
 
 A user would want to:
+
 1. Run a task in the composite build.
     - _Use case_: Setup my workspace for building.
     - As above.
