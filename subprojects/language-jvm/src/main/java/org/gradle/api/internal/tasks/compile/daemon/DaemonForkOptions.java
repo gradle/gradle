@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
-
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 
@@ -35,7 +34,7 @@ public class DaemonForkOptions {
     public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs) {
         this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList(), Collections.<String>emptyList());
     }
-    
+
     public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath,
                              Iterable<String> sharedPackages) {
         this.minHeapSize = minHeapSize;
@@ -104,12 +103,12 @@ public class DaemonForkOptions {
         }
         throw new InvalidUserDataException("Cannot parse heap size: " + heapSize);
     }
-    
+
     private String mergeHeapSize(String heapSize1, String heapSize2) {
         int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
         return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
     }
-    
+
     private Set<String> getNormalizedJvmArgs(Iterable<String> jvmArgs) {
         Set<String> normalized = Sets.newLinkedHashSet();
         for (String jvmArg : jvmArgs) {
@@ -117,16 +116,16 @@ public class DaemonForkOptions {
         }
         return normalized;
     }
-    
+
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {
         return Sets.newLinkedHashSet(classpath);
     }
-    
+
     private Set<String> getNormalizedSharedPackages(Iterable<String> allowedPackages) {
         return Sets.newLinkedHashSet(allowedPackages);
     }
-    
+
     public String toString() {
-        return Objects.toStringHelper(this).add("minHeapSize", minHeapSize).add("maxHeapSize", maxHeapSize).add("jvmArgs", jvmArgs).add("classpath", classpath).toString();
+        return MoreObjects.toStringHelper(this).add("minHeapSize", minHeapSize).add("maxHeapSize", maxHeapSize).add("jvmArgs", jvmArgs).add("classpath", classpath).toString();
     }
 }

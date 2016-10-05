@@ -28,7 +28,7 @@ repositories {
 dependencies {
     compile 'org.ow2.asm:asm-all:5.0.3'
     compile gradleApi()
-    compile 'com.google.guava:guava-jdk5:14.0.1@jar'
+    compile 'com.google.guava:guava:19.0@jar'
     compile 'commons-lang:commons-lang:2.6@jar'
     compile localGroovy()
     compile('org.codehaus.groovy.modules.http-builder:http-builder:0.7.2') {

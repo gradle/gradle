@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
@@ -39,12 +39,12 @@ public class FindBugsSpec implements Serializable {
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
-    
+
     public boolean isDebugEnabled() {
         return debugEnabled;
     }
-    
+
     public String toString() {
-        return Objects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).toString();
+        return MoreObjects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).toString();
     }
 }
