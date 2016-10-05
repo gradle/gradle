@@ -34,6 +34,11 @@ public interface VisualCppPlatformToolChain extends NativePlatformToolChain {
     CommandLineToolConfiguration getCppCompiler();
 
     /**
+     * Returns the settings to use for the Windows messages compiler.
+     */
+    CommandLineToolConfiguration getMcCompiler();
+
+    /**
      * Returns the settings to use for the Windows resources compiler.
      */
     CommandLineToolConfiguration getRcCompiler();

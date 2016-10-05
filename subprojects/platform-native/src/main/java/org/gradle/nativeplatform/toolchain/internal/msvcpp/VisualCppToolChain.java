@@ -46,22 +46,26 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
+    private final UcrtLocator ucrtLocator;
     private final Instantiator instantiator;
     private File installDir;
+    private File ucrtDir;
     private File windowsSdkDir;
+    private Ucrt ucrt;
     private VisualCppInstall visualCpp;
     private WindowsSdk windowsSdk;
     private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
-        super(name, buildOperationProcessor, operatingSystem, fileResolver);
+            VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator) {
+                 super(name, buildOperationProcessor, operatingSystem, fileResolver);
 
         this.name = name;
         this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
+        this.ucrtLocator = ucrtLocator;
         this.instantiator = instantiator;
     }
 
@@ -90,6 +94,14 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
+    public File getUcrtDir() {
+        return ucrtDir;
+    }
+
+    public void setUcrtDir(Object ucrtDirPath) {
+        this.ucrtDir = resolve(ucrtDirPath);
+    }
+    
     @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
@@ -104,7 +116,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory);
+        return new VisualCppPlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -130,7 +142,11 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         if (windowsSdkSearchResult.isAvailable()) {
             windowsSdk = windowsSdkSearchResult.getSdk();
         }
-    }
+        UcrtLocator.SearchResult ucrtSearchResult = ucrtLocator.locateUcrts(ucrtDir);
+        if (ucrtSearchResult.isAvailable()) {
+            ucrt = ucrtSearchResult.getUcrt();
+        }
+}
 
     @Override
     public String getName() {

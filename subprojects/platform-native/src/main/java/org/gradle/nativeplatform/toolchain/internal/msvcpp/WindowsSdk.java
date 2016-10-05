@@ -76,6 +76,10 @@ public class WindowsSdk implements Named {
         return version;
     }
 
+    public File getMessageCompiler(NativePlatformInternal platform) {
+        return new File(getBinDir(platform), "mc.exe");
+    }
+
     public File getResourceCompiler(NativePlatformInternal platform) {
         return new File(getBinDir(platform), "rc.exe");
     }

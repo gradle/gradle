@@ -22,8 +22,8 @@ import org.gradle.internal.hash.HashUtil;
 import java.io.File;
 
 public class CompilerOutputFileNamingScheme {
-    private String objectFileNameSuffix;
-    private File outputBaseFolder;
+    protected String objectFileNameSuffix;
+    protected File outputBaseFolder;
 
     public CompilerOutputFileNamingScheme withOutputBaseFolder(File outputBaseFolder) {
         this.outputBaseFolder = outputBaseFolder;

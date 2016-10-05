@@ -140,6 +140,13 @@ public interface NativeBinarySpec extends BinarySpec {
     PreprocessingTool getObjcppCompiler();
 
     /**
+     * The configuration of the Message compiler used when compiling messages for this binary.
+     *
+     * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
+     * {@link NativeExecutableBinarySpec} when the 'windows-messages' plugin is applied.
+     */
+    PreprocessingTool getMcCompiler();
+    /**
      * The configuration of the Resource compiler used when compiling resources for this binary.
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
