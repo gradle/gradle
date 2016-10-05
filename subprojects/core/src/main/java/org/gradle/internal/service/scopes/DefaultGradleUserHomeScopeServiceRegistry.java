@@ -96,7 +96,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
             services.count++;
             return services.registry;
         } finally {
-            lock.lock();
+            lock.unlock();
         }
     }
 
