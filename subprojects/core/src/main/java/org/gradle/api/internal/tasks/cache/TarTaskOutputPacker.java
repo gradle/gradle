@@ -91,38 +91,46 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         File outputFile = propertySpec.getOutputFile();
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                final String propertyRoot = "property-" + propertyName + "/";
-                outputStream.putNextEntry(new TarEntry(propertyRoot));
-                FileVisitor visitor = new FileVisitor() {
-                    @Override
-                    public void visitDir(FileVisitDetails dirDetails) {
-                        String path = dirDetails.getRelativePath().getPathString();
-                        try {
-                            TarEntry entry = new TarEntry(propertyRoot + path + "/");
-                            entry.setModTime(dirDetails.getLastModified());
-                            entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
-                            outputStream.putNextEntry(entry);
-                            outputStream.closeEntry();
-                        } catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
-                    }
-
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        String path = fileDetails.getRelativePath().getPathString();
-                        storeFileEntry(fileDetails.getFile(), propertyRoot + path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
-                    }
-                };
-                directoryWalkerFactory.create().walkDir(outputFile, RelativePath.EMPTY_PARENT_DIRECTORY, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
+                storeDirectoryProperty(propertyName, outputFile, outputStream);
                 break;
             case FILE:
-                String path = "property-" + propertyName;
-                storeFileEntry(outputFile, path, outputFile.lastModified(), outputFile.length(), fileSystem.getUnixMode(outputFile), outputStream);
+                storeFileProperty(propertyName, outputFile, outputStream);
                 break;
             default:
                 throw new AssertionError();
         }
+    }
+
+    private void storeDirectoryProperty(String propertyName, File directory, final TarOutputStream outputStream) throws IOException {
+        final String propertyRoot = "property-" + propertyName + "/";
+        outputStream.putNextEntry(new TarEntry(propertyRoot));
+        FileVisitor visitor = new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                String path = dirDetails.getRelativePath().getPathString();
+                try {
+                    TarEntry entry = new TarEntry(propertyRoot + path + "/");
+                    entry.setModTime(dirDetails.getLastModified());
+                    entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+                    outputStream.putNextEntry(entry);
+                    outputStream.closeEntry();
+                } catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                String path = fileDetails.getRelativePath().getPathString();
+                storeFileEntry(fileDetails.getFile(), propertyRoot + path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
+            }
+        };
+        directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_PARENT_DIRECTORY, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
+    }
+
+    private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) {
+        String path = "property-" + propertyName;
+        storeFileEntry(file, path, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
     }
 
     private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) {
