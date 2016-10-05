@@ -58,7 +58,7 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(elementType)) {
             InternalModelResults<T> results = new InternalModelResults<T>();
-            results.addBuildFailure(operationParameters. getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
+            results.addBuildFailure(operationParameters.getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
             return results;
         }
         if (elementType == BuildEnvironment.class) {

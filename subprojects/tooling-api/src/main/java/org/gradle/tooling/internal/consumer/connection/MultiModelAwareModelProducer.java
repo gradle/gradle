@@ -57,7 +57,7 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
         BuildResult<?> buildResult = buildModels(elementType, operationParameters);
         if (!versionDetails.maySupportModel(elementType)) {
             InternalModelResults<T> results = new InternalModelResults<T>();
-            results.addBuildFailure(operationParameters. getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
+            results.addBuildFailure(operationParameters.getProjectDir(), Exceptions.unsupportedModel(elementType, versionDetails.getVersion()));
             return results;
         }
         Object results = buildResult.getModel();
