@@ -61,6 +61,10 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
         stoppable.stop();
     }
 
+    public void releaseAll() {
+        close();
+    }
+
     @Override
     public ServiceRegistry getServicesFor(final File gradleUserHomeDir) {
         lock.lock();

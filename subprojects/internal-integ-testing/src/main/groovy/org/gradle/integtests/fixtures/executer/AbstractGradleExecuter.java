@@ -37,6 +37,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
@@ -91,6 +92,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
+    private boolean hasUsedCustomGradleUserHomeDir;
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
@@ -324,6 +326,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withGradleUserHomeDir(File userHomeDir) {
+        hasUsedCustomGradleUserHomeDir = true;
         this.gradleUserHomeDir = userHomeDir == null ? null : new TestFile(userHomeDir);
         return this;
     }
@@ -600,6 +603,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             return true;
         }
         return requireDaemon;
+    }
+
+    /**
+     * Performs cleanup at completion of the test.
+     */
+    public void cleanup() {
+        if (hasUsedCustomGradleUserHomeDir) {
+            GLOBAL_SERVICES.get(GradleUserHomeScopeServiceRegistry.class).releaseAll();
+        }
     }
 
     // gets called by reflection from AbstractTestDirectoryProvider#closeCachedClassLoaders method

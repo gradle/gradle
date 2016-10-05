@@ -62,6 +62,10 @@ class AbstractIntegrationSpec extends Specification {
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
 
+    def cleanup() {
+        executer.cleanup()
+    }
+
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')
     }
@@ -82,6 +86,7 @@ class AbstractIntegrationSpec extends Specification {
     def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         buildTestFixture.multiProjectBuild(projectName, subprojects, cl)
     }
+
     protected TestNameTestDirectoryProvider getTestDirectoryProvider() {
         temporaryFolder
     }
