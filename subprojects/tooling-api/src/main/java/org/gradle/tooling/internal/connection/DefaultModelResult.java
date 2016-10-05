@@ -16,14 +16,27 @@
 
 package org.gradle.tooling.internal.connection;
 
+import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.ModelResult;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 public class DefaultModelResult<T> implements ModelResult<T> {
     private final T model;
+    private final BuildIdentifier buildIdentifier;
+    private final ProjectIdentifier projectIdentifier;
 
-    public DefaultModelResult(T model) {
+    public DefaultModelResult(T model, BuildIdentifier buildIdentifier) {
         this.model = model;
+        this.buildIdentifier = buildIdentifier;
+        this.projectIdentifier = null;
+    }
+
+    public DefaultModelResult(T model, ProjectIdentifier projectIdentifier) {
+        this.model = model;
+        this.buildIdentifier = projectIdentifier.getBuildIdentifier();
+        this.projectIdentifier = projectIdentifier;
     }
 
     @Override
@@ -34,6 +47,17 @@ public class DefaultModelResult<T> implements ModelResult<T> {
     @Override
     public GradleConnectionException getFailure() {
         return null;
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Nullable
+    @Override
+    public ProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
     }
 
     @Override

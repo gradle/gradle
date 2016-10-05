@@ -132,7 +132,11 @@ class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<DefaultMu
                         projectIdentifier = new DefaultProjectIdentifier(buildIdentifier, next.getProjectPath());
                     }
                     if (failure == null) {
-                        return new DefaultModelResult<T>(model);
+                        if (projectIdentifier == null) {
+                            return new DefaultModelResult<T>(model, buildIdentifier);
+                        } else {
+                            return new DefaultModelResult<T>(model, projectIdentifier);
+                        }
                     } else {
                         GradleConnectionException transformedFailure = transformer.transform(failure);
                         //TODO should we actually be doing this? It seems we should only do it for the blocking case.

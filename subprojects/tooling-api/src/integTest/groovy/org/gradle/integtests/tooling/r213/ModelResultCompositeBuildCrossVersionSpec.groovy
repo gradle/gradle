@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
@@ -266,7 +265,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpec
 
     private findFailureByBuildIdentifier(File rootDir) {
         BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
-        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentifier.equals(it.buildIdentifier) }
+        def failures = modelResults.findAll { buildIdentifier.equals(it.buildIdentifier) }
         return CollectionUtils.single(failures)
     }
 

@@ -18,7 +18,12 @@ package org.gradle.tooling.connection;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 /**
  * The result of a model request.
@@ -32,16 +37,31 @@ public interface ModelResult<T> {
      * Returns the model produced.
      *
      * @return the model, never null.
-     * @throws GradleConnectionException if the model could not be retrieved.
+     * @throws UnknownModelException When the target Gradle version or build does not support the requested model.
+     * @throws BuildException On some failure executing the Gradle build, in order to build the model.
      */
     T getModel() throws GradleConnectionException;
 
     /**
      * The failure retrieving the model.
-     * If this value is not null, further details can be obtained by casting to {@link FailedModelResult}.
      *
      * @return the failure, or null if the result was successful.
      */
     @Nullable
     GradleConnectionException getFailure();
+
+    /**
+     * Identifier of the build that originated this result.
+     *
+     * @return the build identifier, never null.
+     */
+    BuildIdentifier getBuildIdentifier();
+
+    /**
+     * Identifier of the project that originated this result, if any.
+     *
+     * @return the project identifier, or null if this result did not originate from a particular project.
+     */
+    @Nullable
+    ProjectIdentifier getProjectIdentifier();
 }

@@ -59,7 +59,7 @@ public interface ProjectConnection {
      * @param modelType The model type.
      * @param <T> The model type.
      * @return The model.
-     * @throws UnsupportedVersionException When the target Gradle version does not support the given model.
+     * @throws UnsupportedVersionException When the target Gradle version does not support this method.
      * @throws UnknownModelException When the target Gradle version or build does not support the requested model.
      * @throws BuildException On some failure executing the Gradle build, in order to build the model.
      * @throws GradleConnectionException On some other failure using the connection.
@@ -115,12 +115,13 @@ public interface ProjectConnection {
     <T> ModelBuilder<T> model(Class<T> modelType);
 
     /**
-     * Fetches a Set of snapshots of the model of the given type for this build. This method blocks until the model is available.
+     * Fetches snapshots of all the models of the given type for this build. This method blocks until the models are available.
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get()}</p>
      *
      * @param modelType The model type.
      * @param <T> The model type.
+     * @throws UnsupportedVersionException When the target Gradle version does not support this method.
      * @throws GradleConnectionException On failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
      * @since 3.2
@@ -128,8 +129,8 @@ public interface ProjectConnection {
     <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
-     * Starts fetching a Set of snapshots of the model of the given type for this build, passing the result to the given handler when complete. This method returns immediately, and the result is later
-     * passed to the given handler's {@link ResultHandler#onComplete(Object)} method after fetching all of the composite's models.
+     * Starts fetching a snapshots of all the models of the given type for this build, passing the result to the given handler when complete. This method returns immediately, and the result is later
+     * passed to the given handler's {@link ResultHandler#onComplete(Object)} method after fetching all of the build's models.
      *
      * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
      * See {@link #getModels(Class)} for a description of the various exceptions that the operation may fail with.</p>
@@ -145,10 +146,10 @@ public interface ProjectConnection {
     <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
 
     /**
-     * Creates a builder which can be used to query the model of the given type for all projects in a build.
+     * Creates a builder which can be used to query all models of the given type for this build.
      *
      * <p>The set of projects is "live", so that models from projects added to the build after the builder
-     * was been created will appear in the results without recreating the builder.</p>
+     * was created will appear in the results without recreating the builder.</p>
      *
      * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
      * build:

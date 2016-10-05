@@ -18,11 +18,11 @@ package org.gradle.tooling.internal.connection;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.connection.FailedModelResult;
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 
-public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
+public class DefaultFailedModelResult<T> implements ModelResult<T> {
     private final GradleConnectionException failure;
     private final BuildIdentifier buildIdentifier;
     private final ProjectIdentifier projectIdentifier;
