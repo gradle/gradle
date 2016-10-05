@@ -18,7 +18,6 @@
 package org.gradle.integtests.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 /**
  * Test that log levels are propagated to java.util.logging
@@ -26,7 +25,6 @@ import spock.lang.Ignore
  * Mapping of log levels is configured in
  * {@link org.gradle.internal.logging.source.JavaUtilLoggingSystem#LOG_LEVEL_MAPPING}.
  */
-@Ignore
 class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -72,7 +70,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
                     assert logger.isLoggable(Level.SEVERE)
                     assert logger.isLoggable(Level.WARNING)
                     assert logger.isLoggable(Level.INFO)
-                    assert !logger.isLoggable(Level.CONFIG)
+                    assert logger.isLoggable(Level.CONFIG)
                     assert !logger.isLoggable(Level.FINE)
                     assert !logger.isLoggable(Level.FINER)
                     assert !logger.isLoggable(Level.FINEST)

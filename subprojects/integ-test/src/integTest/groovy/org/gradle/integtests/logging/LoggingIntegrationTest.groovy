@@ -24,9 +24,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Ignore
 
-@Ignore
 class LoggingIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
