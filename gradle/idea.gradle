@@ -183,6 +183,7 @@ idea {
                 '''))
 
                 node.append(new NodeBuilder().component(name: 'FrameworkDetectionExcludesConfiguration') {
+                  type(id: 'android')
                   type(id: 'web')
                 })
             }
