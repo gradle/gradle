@@ -398,7 +398,6 @@ class LoggingServiceRegistryTest extends Specification {
         def logger = Logger.getLogger("category")
         def loggingManager = registry.newInstance(LoggingManagerInternal)
         loggingManager.addStandardOutputListener(listener)
-        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
 
         when:
@@ -408,7 +407,7 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
 
         when:
-        loggingManager.captureSystemSources()
+        loggingManager.levelInternal = LogLevel.WARN
         logger.info("ignored")
         logger.warning("warning")
 

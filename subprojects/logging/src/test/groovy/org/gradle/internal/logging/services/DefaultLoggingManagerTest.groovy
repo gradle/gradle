@@ -94,13 +94,11 @@ public class DefaultLoggingManagerTest extends Specification {
 
         final LoggingSystem.Snapshot stdOutSnapshot = Mock(LoggingSystem.Snapshot.class)
         final LoggingSystem.Snapshot stdErrSnapshot = Mock(LoggingSystem.Snapshot.class)
-        final LoggingSystem.Snapshot javaUtilSnapshot = Mock(LoggingSystem.Snapshot.class)
 
         when:
         loggingManager.start()
 
         then:
-        1 * javaUtilLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> javaUtilSnapshot
         1 * stdOutLoggingSystem.on(LogLevel.QUIET, LogLevel.QUIET) >> stdOutSnapshot
         1 * stdErrLoggingSystem.on(LogLevel.ERROR, LogLevel.ERROR) >> stdErrSnapshot
 
@@ -108,7 +106,6 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
-        1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * stdOutLoggingSystem.restore(stdOutSnapshot)
         1 * stdErrLoggingSystem.restore(stdErrSnapshot)
     }
@@ -118,25 +115,30 @@ public class DefaultLoggingManagerTest extends Specification {
 
         final def routerSnapshot = Mock(LoggingSystem.Snapshot)
         final def slf4jSnapshot = Mock(LoggingSystem.Snapshot)
+        final def javaUtilSnapshot = Mock(LoggingSystem.Snapshot)
 
         when:
         loggingManager.start()
 
         then:
         1 * slf4jLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> slf4jSnapshot
+        1 * javaUtilLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> javaUtilSnapshot
         1 * loggingRouter.snapshot() >> routerSnapshot
         1 * loggingRouter.configure(LogLevel.DEBUG)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * loggingRouter.restore(routerSnapshot)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
     }
 
     public void "can start and stop with log level not set"() {

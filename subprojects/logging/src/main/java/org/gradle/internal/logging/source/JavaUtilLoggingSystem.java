@@ -20,6 +20,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -27,6 +30,23 @@ import java.util.logging.Logger;
  * A {@link LoggingSourceSystem} which configures JUL to route logging events to SLF4J.
  */
 public class JavaUtilLoggingSystem implements LoggingSourceSystem {
+
+    private static final Map<LogLevel, Level> LOG_LEVEL_MAPPING = new HashMap<LogLevel, Level>();
+
+    // Gradle's log levels correspond to slf4j log levels
+    // as implemented in OutputEventListenerBackedLogger.
+    // These levels are mapped to java.util.logging.Levels
+    // corresponding to the mapping implemented in the
+    // SLF4JBridgeHandler which is installed by this logging system.
+    static {
+        LOG_LEVEL_MAPPING.put(LogLevel.DEBUG, Level.FINE);
+        LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.INFO);
+        LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.WARNING);
+        LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.WARNING);
+        LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.SEVERE);
+        LOG_LEVEL_MAPPING.put(LogLevel.ERROR, Level.SEVERE);
+    }
+
     private final Logger logger;
     private boolean installed;
 
@@ -37,7 +57,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     @Override
     public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
         SnapshotImpl snapshot = new SnapshotImpl(installed, logger.getLevel());
-        install();
+        install(LOG_LEVEL_MAPPING.get(minimumLevel));
         return snapshot;
     }
 
@@ -45,7 +65,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
         if (snapshot.installed) {
-            install();
+            install(snapshot.level);
         } else {
             uninstall(snapshot.level);
         }
@@ -56,7 +76,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
         return new SnapshotImpl(installed, logger.getLevel());
     }
 
-    private void uninstall(java.util.logging.Level level) {
+    private void uninstall(Level level) {
         if (!installed) {
             return;
         }
@@ -66,13 +86,14 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
         installed = false;
     }
 
-    private void install() {
+    private void install(Level level) {
         if (installed) {
             return;
         }
 
         LogManager.getLogManager().reset();
         SLF4JBridgeHandler.install();
+        logger.setLevel(level);
         installed = true;
     }
 

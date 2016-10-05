@@ -35,7 +35,7 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
     LoggingManagerInternal stop();
 
     /**
-     * Consumes logging from System.out, System.err and Java util logging.
+     * Consumes logging from System.out and System.err.
      */
     LoggingManagerInternal captureSystemSources();
 

@@ -87,6 +87,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'An info log message logged using JCL',
                 'An info log message logged using Log4j',
                 'An info log message logged using JUL',
+                'A config log message logged using JUL',
                 'infoProject2Out',
                 'infoProject2ScriptClassPathOut',
                 'settings info out',
@@ -110,7 +111,8 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         )
         debug(
                 'A debug log message.',
-                '[ant:echo] A debug message logged from Ant'
+                '[ant:echo] A debug message logged from Ant',
+                'A fine log message logged using JUL'
         )
         trace(
                 'A trace log message.'
@@ -426,7 +428,7 @@ class OutputOccurrence {
         } else {
             startLine += 1
         }
-        
+
         String actualPrefix = actual.substring(startLine, index)
         assert actualPrefix.matches(pattern): "Unexpected prefix '$actualPrefix' found for line containing content '$expected' in output $actual"
     }

@@ -102,6 +102,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     @Override
     public DefaultLoggingManager setLevelInternal(LogLevel logLevel) {
         slf4jLoggingSystem.setLevel(logLevel);
+        javaUtilLoggingSystem.setLevel(logLevel);
         loggingRouter.setLevel(logLevel);
         return this;
     }
@@ -114,7 +115,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     public DefaultLoggingManager captureSystemSources() {
         stdOutLoggingSystem.setLevel(LogLevel.QUIET);
         stdErrLoggingSystem.setLevel(LogLevel.ERROR);
-        javaUtilLoggingSystem.setLevel(LogLevel.DEBUG);
         return this;
     }
 
