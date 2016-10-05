@@ -23,34 +23,56 @@ import spock.lang.Unroll
 @Category(BasicPerformanceTest)
 class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
+    @Unroll("Test '#testProject' calling #tasks (daemon) with local cache (parallel: #parallel)")
     def "test"() {
         when:
         runner.testId = "local cache $testProject ${tasks.join(' ')} (daemon)"
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject).displayName("always-miss pull-only cache").invocation {
-                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+                tasksToRun("clean", *tasks).args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+                if (parallel) {
+                    args("--parallel")
+                }
+                useDaemon()
             }
         }
         runner.buildSpec {
             projectName(testProject).displayName("push-only cache").invocation {
-                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.pull=false")
+                tasksToRun("clean", *tasks)
+                args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.pull=false")
+                if (parallel) {
+                    args("--parallel")
+                }
+                useDaemon()
             }
         }
         runner.buildSpec {
             projectName(testProject).displayName("fully cached").invocation {
-                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
+                tasksToRun("clean", *tasks)
+                args("-Dorg.gradle.cache.tasks=true")
+                if (parallel) {
+                    args("--parallel")
+                }
+                useDaemon()
             }
         }
         runner.baseline {
             projectName(testProject).displayName("fully up-to-date").invocation {
-                tasksToRun(tasks).useDaemon()
+                tasksToRun(tasks)
+                if (parallel) {
+                    args("--parallel")
+                }
+                useDaemon()
             }
         }
         runner.baseline {
             projectName(testProject).displayName("non-cached").invocation {
-                tasksToRun("clean", *tasks).useDaemon()
+                tasksToRun("clean", *tasks)
+                if (parallel) {
+                    args("--parallel")
+                }
+                useDaemon()
             }
         }
 
@@ -58,9 +80,10 @@ class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceT
         runner.run()
 
         where:
-        testProject            | tasks
-        "multi"                | ["build"]
-        "largeEnterpriseBuild" | ["assemble"]
+        testProject            | tasks        | parallel
+//        "multi"                | ["build"]    | false
+        "largeEnterpriseBuild" | ["assemble"] | false
+        "largeEnterpriseBuild" | ["assemble"] | true
     }
 
 }
