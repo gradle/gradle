@@ -61,7 +61,7 @@ If you move your whole project on the local disk, tasks like Java compilation, c
 
 #### Java compilation tracks Java version used
 
-If you change the Java version used to execute compile your sources, the compile task will now become out-of-date, and the sources will be recompiled.
+If you change the Java version used to compile your sources, the compile task will now become out-of-date, and the sources will be recompiled.
 
 #### Better change tracking in copy and archive tasks
 
