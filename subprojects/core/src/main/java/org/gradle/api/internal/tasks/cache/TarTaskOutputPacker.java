@@ -169,8 +169,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             String name = entry.getName();
             Matcher matcher = PROPERTY_PATH.matcher(name);
             if (!matcher.matches()) {
-                // TODO:LPTR What to do here?
-                continue;
+                throw new IllegalStateException("Cached result format error, invalid contents: " + name);
             }
             String propertyName = matcher.group(1);
             CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
