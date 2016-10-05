@@ -115,7 +115,7 @@ public interface ProjectConnection {
     <T> ModelBuilder<T> model(Class<T> modelType);
 
     /**
-     * Fetches a Set of snapshots of the model of the given type for this composite. This method blocks until the model is available.
+     * Fetches a Set of snapshots of the model of the given type for this build. This method blocks until the model is available.
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get()}</p>
      *
@@ -128,14 +128,11 @@ public interface ProjectConnection {
     <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
-     * Starts fetching a Set of snapshots of the model of the given type for this composite, passing the result to the given handler when complete. This method returns immediately, and the result is later
+     * Starts fetching a Set of snapshots of the model of the given type for this build, passing the result to the given handler when complete. This method returns immediately, and the result is later
      * passed to the given handler's {@link ResultHandler#onComplete(Object)} method after fetching all of the composite's models.
      *
      * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
      * See {@link #getModels(Class)} for a description of the various exceptions that the operation may fail with.</p>
-     *
-     * <p>An operation will fail if there is a problem fetching the model from any of the composite's builds.
-     * The handler's {@code onFailure} method will only be called one time with the first failure.</p>
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get(handler)}</p>
      *
@@ -148,9 +145,9 @@ public interface ProjectConnection {
     <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
 
     /**
-     * Creates a builder which can be used to query the model of the given type for all projects in the composite.
+     * Creates a builder which can be used to query the model of the given type for all projects in a build.
      *
-     * <p>The set of projects is "live", so that models from projects added to the overall composite after the builder
+     * <p>The set of projects is "live", so that models from projects added to the build after the builder
      * was been created will appear in the results without recreating the builder.</p>
      *
      * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
