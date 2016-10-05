@@ -38,7 +38,7 @@ class SmokeCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecificat
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later."
+        e.message == "The version of Gradle you are using ($targetVersion) does not support the MultiModelBuilder API. Support for this is available in Gradle 3.1 and all later versions."
     }
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {
