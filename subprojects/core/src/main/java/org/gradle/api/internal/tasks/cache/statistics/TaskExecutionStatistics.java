@@ -47,7 +47,8 @@ public class TaskExecutionStatistics {
      * Returns the number of tasks with the given outcome.
      */
     public int getTasksCount(TaskExecutionOutcome outcome) {
-        return taskCounts.get(outcome);
+        Integer count = taskCounts.get(outcome);
+        return count == null ? 0 : count;
     }
 
     /**

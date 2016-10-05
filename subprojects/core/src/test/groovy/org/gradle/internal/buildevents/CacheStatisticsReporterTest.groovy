@@ -26,11 +26,10 @@ import spock.lang.Specification
 class CacheStatisticsReporterTest extends Specification {
     private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     private CacheStatisticsReporter statisticsReporter = new CacheStatisticsReporter(textOutputFactory)
-    private TaskExecutionStatistics statistics = Mock(TaskExecutionStatistics)
 
     def 'all statistics are reported'() {
         given:
-        new TaskExecutionStatistics(
+        def statistics = new TaskExecutionStatistics(
             (TaskExecutionOutcome.FROM_CACHE): 3,
             (TaskExecutionOutcome.UP_TO_DATE): 2,
             (TaskExecutionOutcome.SKIPPED): 1,
@@ -54,7 +53,7 @@ class CacheStatisticsReporterTest extends Specification {
 
     def 'zero counts are not reported'() {
         given:
-        new TaskExecutionStatistics(
+        def statistics = new TaskExecutionStatistics(
             (TaskExecutionOutcome.FROM_CACHE): 3,
             (TaskExecutionOutcome.EXECUTED): 7,
             2
@@ -74,7 +73,7 @@ class CacheStatisticsReporterTest extends Specification {
 
     def 'percentages are rounded'() {
         given:
-        new TaskExecutionStatistics(
+        def statistics = new TaskExecutionStatistics(
             (TaskExecutionOutcome.UP_TO_DATE): 315,
             (TaskExecutionOutcome.FROM_CACHE): 206,
             (TaskExecutionOutcome.SKIPPED): 75,
