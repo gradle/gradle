@@ -29,7 +29,7 @@ class ActionExtensionWriterTest {
 
         assertThat(
             extensionsFor(
-                classNodeOf<Project>()).let(::normaliseLineSeparators),
+                classNodeOf<Project>()),
             endsWith("""
 package org.gradle.script.lang.kotlin
 
@@ -127,7 +127,7 @@ Lorem ipsum.
         assertThat(
             extensionsFor(
                 classNodeOf<PluginContainer>(),
-                kDocProvider),
+                kDocProvider).let(::normaliseLineSeparators),
             endsWith("""
 /**
  * Lorem ipsum.
