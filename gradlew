@@ -156,7 +156,7 @@ fi
 
 # Escape application args
 for s in "${@}" ; do
-    s="\""$s"\""
+    s=\""$s"\"
     APP_ARGS=$APP_ARGS" "$s
 done
 
@@ -168,4 +168,4 @@ if [ "$(uname)" = "Darwin" ] && [ "$HOME" = "$PWD" ]; then
   cd "$(dirname "$0")"
 fi
 
-eval "\"\$JAVACMD\"" "$JVM_OPTS" "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
+eval \""$JAVACMD"\" "$JVM_OPTS" \""-Dorg.gradle.appname=$APP_BASE_NAME"\" -classpath \""$CLASSPATH"\" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
