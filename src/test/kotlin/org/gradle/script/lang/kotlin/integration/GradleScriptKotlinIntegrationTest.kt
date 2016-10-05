@@ -337,7 +337,7 @@ class GradleScriptKotlinIntegrationTest {
 fun gradleRunnerFor(projectDir: File): GradleRunner =
     GradleRunner
         .create()
-        .withDebug(true)
+        .withDebug(false)
         .withGradleInstallation(customInstallation())
         .withProjectDir(projectDir)
 
