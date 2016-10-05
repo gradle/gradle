@@ -34,7 +34,7 @@ dependencies {
 }
 
 useTestFixtures(sourceSet: 'main')
-useClassycle()
+//useClassycle()
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")
