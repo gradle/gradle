@@ -106,16 +106,24 @@ class StreamByteBufferTest extends Specification {
     def "converts to String"() {
         given:
         def byteBuffer = new StreamByteBuffer(chunkSize)
+        def out = byteBuffer.getOutputStream()
 
         when:
-        byteBuffer.getOutputStream().write(TEST_STRING_BYTES)
+        if (preUseBuffer) {
+            // check the case that buffer has been used before
+            out.write('HELLO'.getBytes("UTF-8"))
+            byteBuffer.readAsString("UTF-8") == 'HELLO'
+            byteBuffer.readAsString() == ''
+            byteBuffer.readAsString() == ''
+        }
+        out.write(TEST_STRING_BYTES)
 
         then:
         byteBuffer.readAsString("UTF-8") == TEST_STRING
 
         where:
         // make sure that multi-byte unicode characters get split in different chunks
-        chunkSize << (1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000]
+        [chunkSize, preUseBuffer] << [(1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000], [false, true]].combinations()
     }
 
     def "empty buffer to String returns empty String"() {
@@ -314,5 +322,77 @@ class StreamByteBufferTest extends Specification {
         def buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(1)
         then:
         buffer.chunkSize == StreamByteBuffer.DEFAULT_CHUNK_SIZE
+    }
+
+    def "reads available unicode characters in buffer and pushes in-progress ones back"() {
+        given:
+        def byteBuffer = new StreamByteBuffer(chunkSize)
+        def out = byteBuffer.getOutputStream()
+        def stringBuilder = new StringBuilder()
+
+        when:
+        out.write("HELLO".bytes)
+        then:
+        byteBuffer.readAsString() == "HELLO"
+        byteBuffer.readAsString() == ""
+        byteBuffer.readAsString() == ""
+
+        when:
+        for (int i = 0; i < TEST_STRING_BYTES.length; i++) {
+            out.write(TEST_STRING_BYTES[i])
+            stringBuilder.append(byteBuffer.readAsString('UTF-8'))
+            if (readTwice) {
+                // make sure 2nd readAsString handles properly multi-byte boundary
+                stringBuilder.append(byteBuffer.readAsString('UTF-8'))
+            }
+        }
+
+        then:
+        stringBuilder.toString() == TEST_STRING
+
+        where:
+        // make sure that multi-byte unicode characters get split in different chunks
+        [chunkSize, readTwice] << [(1..(TEST_STRING_BYTES.length * 3)).toList() + [100, 1000], [false, true]].combinations()
+    }
+
+    def "calculates available characters when reading and writing"() {
+        given:
+        def byteBuffer = new StreamByteBuffer(8)
+        def out = byteBuffer.outputStream
+
+        when:
+        out.write("1234567890123".bytes)
+        then:
+        byteBuffer.totalBytesUnread() == 13
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+
+        when:
+        out.write("4567890123456".bytes)
+        then:
+        byteBuffer.totalBytesUnread() == 13
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+
+        when:
+        out.write("789".bytes)
+        then:
+        byteBuffer.totalBytesUnread() == 3
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
+
+        when:
+        byteBuffer.readAsString()
+        then:
+        byteBuffer.totalBytesUnread() == 0
     }
 }

@@ -32,7 +32,13 @@ public class BasePluginConvention {
 
     private String libsDirName;
 
+    // cached resolved values
+    private File buildDir;
+    private File libsDir;
+    private File distsDir;
+
     private String archivesBaseName;
+
     public BasePluginConvention(Project project) {
         this.project = (ProjectInternal) project;
         archivesBaseName = project.getName();
@@ -46,7 +52,14 @@ public class BasePluginConvention {
      * @return The directory. Never returns null.
      */
     public File getDistsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(distsDirName);
+        File curProjectBuildDir = project.getBuildDir();
+        if (distsDir != null && curProjectBuildDir.equals(buildDir)) {
+            return distsDir;
+        }
+        buildDir = curProjectBuildDir;
+        File dir = project.getServices().get(FileLookup.class).getFileResolver(curProjectBuildDir).resolve(distsDirName);
+        distsDir = dir;
+        return dir;
     }
 
     /**
@@ -55,7 +68,14 @@ public class BasePluginConvention {
      * @return The directory. Never returns null.
      */
     public File getLibsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(libsDirName);
+        File curProjectBuildDir = project.getBuildDir();
+        if (libsDir != null && curProjectBuildDir.equals(buildDir)) {
+            return libsDir;
+        }
+        buildDir = curProjectBuildDir;
+        File dir = project.getServices().get(FileLookup.class).getFileResolver(curProjectBuildDir).resolve(libsDirName);
+        libsDir = dir;
+        return dir;
     }
 
     public ProjectInternal getProject() {
@@ -75,6 +95,7 @@ public class BasePluginConvention {
 
     public void setDistsDirName(String distsDirName) {
         this.distsDirName = distsDirName;
+        this.distsDir = null;
     }
 
     /**
@@ -86,6 +107,7 @@ public class BasePluginConvention {
 
     public void setLibsDirName(String libsDirName) {
         this.libsDirName = libsDirName;
+        this.libsDir = null;
     }
 
     /**

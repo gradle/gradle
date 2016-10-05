@@ -27,8 +27,8 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import spock.lang.Specification
 
 class DependencySubstitutionResolverSpec extends Specification {
-    def requested = new DefaultModuleVersionSelector("group", "module", "version")
-    def selector = new DefaultModuleComponentSelector("group", "module", "version")
+    def requested = DefaultModuleVersionSelector.of("group", "module", "version")
+    def selector = DefaultModuleComponentSelector.of("group", "module", "version")
     def dependency = Mock(DependencyMetadata) {
         getRequested() >> requested
         getSelector() >> selector

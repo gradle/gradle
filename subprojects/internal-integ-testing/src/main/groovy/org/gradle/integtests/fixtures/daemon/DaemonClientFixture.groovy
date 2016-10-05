@@ -27,11 +27,11 @@ class DaemonClientFixture {
 
     DaemonClientFixture(GradleHandle gradleHandle) {
         this.gradleHandle = gradleHandle
-        def processFromPid
+        Long pid
         ConcurrentTestUtil.poll {
-            processFromPid = new ProcessFixture(getPidFromOutput(gradleHandle) as Long)
+            pid = getPidFromOutput(gradleHandle) as Long
         }
-        this.process = processFromPid
+        this.process = new ProcessFixture(pid)
     }
 
     DaemonClientFixture kill() {

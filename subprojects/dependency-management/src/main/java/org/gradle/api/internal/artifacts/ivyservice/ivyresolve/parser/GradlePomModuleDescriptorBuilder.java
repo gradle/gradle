@@ -157,7 +157,7 @@ public class GradlePomModuleDescriptorBuilder {
             // compared to how m2 behave with classifiers
             String optionalizedScope = optional ? "optional" : scope.toString().toLowerCase();
 
-            IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
+            IvyArtifactName artifactName = DefaultIvyArtifactName.of(selector.getName(), type, ext, classifier);
             artifacts.add(new Artifact(artifactName, Collections.singleton(optionalizedScope)));
         }
 

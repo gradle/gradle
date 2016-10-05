@@ -120,17 +120,17 @@ class HttpPluginResolutionServiceClientTest extends Specification {
         client.queryPluginMetadata(PLUGIN_PORTAL_URL, true, customRequest)
 
         then:
-        1 * resourceAccessor.getRawResource(new URI("$PLUGIN_PORTAL_URL/${GradleVersion.current().getVersion()}/plugin/use/foo%2Fbar/1%2F0")) >> Stub(HttpResponseResource) {
+        1 * resourceAccessor.getRawResource(new URI("$PLUGIN_PORTAL_URL/${GradleVersion.current().getVersion()}/plugin/use/foo%2Fbar/1%2F0"), false) >> Stub(HttpResponseResource) {
             getStatusCode() >> 500
             getContentType() >> "application/json"
             openStream() >> new ByteArrayInputStream("{errorCode: 'FOO', message: 'BAR'}".getBytes("utf8"))
         }
-        0 * resourceAccessor.getRawResource(_)
+        0 * resourceAccessor.getRawResource(_, false)
     }
 
     private void stubResponse(int statusCode, String jsonResponse = null) {
         interaction {
-            resourceAccessor.getRawResource(_) >> Stub(HttpResponseResource) {
+            resourceAccessor.getRawResource(_, false) >> Stub(HttpResponseResource) {
                 getStatusCode() >> statusCode
                 if (jsonResponse != null) {
                     getContentType() >> "application/json"

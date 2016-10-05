@@ -61,7 +61,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
         BuildableIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish);
         if (descriptor != null) {
-            IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
+            IvyArtifactName artifact = DefaultIvyArtifactName.of("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, descriptor);
         }
 

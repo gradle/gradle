@@ -59,6 +59,11 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
+    public Task getCheck() {
+        return delegate.getCheck();
+    }
+
+    @Override
     public <T extends Task> void create(String name, Class<T> type, Action<? super T> config) {
         delegate.create(name, type, config);
     }

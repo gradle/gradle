@@ -49,7 +49,7 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
     def "delegates with timestamped artifact"() {
         given:
         def originalComponentId = DefaultModuleComponentIdentifier.newId("group", "name", "1.0-SNAPSHOT")
-        def originalIvyName = new DefaultIvyArtifactName("name", "type", "extension")
+        def originalIvyName = DefaultIvyArtifactName.of("name", "type", "extension")
         def originalArtifact = new DefaultModuleComponentArtifactMetadata(originalComponentId, originalIvyName)
         def artifact = resolver.timestamp(originalArtifact)
         def result = Mock(ResourceAwareResolveResult)

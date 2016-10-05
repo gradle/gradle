@@ -60,6 +60,7 @@ public class DefaultCacheRepository implements CacheRepository {
         LockOptions lockOptions = mode(LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
+        LockTarget lockTarget = LockTarget.DefaultTarget;
 
         PersistentCacheBuilder(Object scope, String key) {
             this.scope = scope;
@@ -78,8 +79,10 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public CacheBuilder withCrossVersionCache() {
+        @Override
+        public CacheBuilder withCrossVersionCache(LockTarget lockTarget) {
             this.versionStrategy = VersionStrategy.SharedCache;
+            this.lockTarget = lockTarget;
             return this;
         }
 
@@ -110,7 +113,7 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
             }
-            return factory.open(cacheBaseDir, displayName, validator, properties, lockOptions, initializer);
+            return factory.open(cacheBaseDir, displayName, validator, properties, lockTarget, lockOptions, initializer);
         }
     }
 }

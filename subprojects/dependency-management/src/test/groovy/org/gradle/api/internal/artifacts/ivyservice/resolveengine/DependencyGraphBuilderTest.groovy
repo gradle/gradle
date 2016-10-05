@@ -109,7 +109,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve a, c
         traverses b, d
 
-        moduleReplacements.getReplacementFor(new DefaultModuleIdentifier("group", "a")) >> new DefaultModuleIdentifier("group", "b")
+        moduleReplacements.getReplacementFor(DefaultModuleIdentifier.of("group", "a")) >> DefaultModuleIdentifier.of("group", "b")
         1 * conflictResolver.select(!null) >> {
             Collection<ComponentResolutionState> candidates = it[0]
             def sel = candidates.find { it.id.name == 'b' }

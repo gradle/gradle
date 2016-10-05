@@ -114,7 +114,7 @@ public class DaemonMain extends EntryPoint {
 
         // Detach the process from the parent terminal/console
         ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
-        processEnvironment.maybeDetach();
+        processEnvironment.maybeDetachProcess();
 
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 

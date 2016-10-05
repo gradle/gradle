@@ -25,5 +25,5 @@ import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface DirectoryWalker {
-    void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix);
+    void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix);
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
@@ -26,7 +27,7 @@ import java.io.File;
  * Provides synchronized access to the artifact cache.
  */
 @ThreadSafe
-public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess {
+public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess, CachedJarFileStore {
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *

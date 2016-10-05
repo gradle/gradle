@@ -21,4 +21,6 @@ import org.gradle.api.tasks.TaskCaching;
 
 public interface TaskCachingInternal extends TaskCaching {
     TaskOutputCacheFactory getCacheFactory();
+    boolean isPullAllowed();
+    boolean isPushAllowed();
 }

@@ -17,6 +17,7 @@
 
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
@@ -257,6 +258,9 @@ class PerformanceReport extends JavaExec {
 
 tasks.withType(ProjectGeneratorTask) {
     sharedTemplateDirectory = project.findProject(':internalPerformanceTesting').file('src/templates')
+}
+
+tasks.withType(AbstractProjectGeneratorTask) {
     dependsOn ':internalPerformanceTesting:measurementPluginJar'
     doFirst {
         templateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath

@@ -52,4 +52,18 @@ class BasePluginConventionTest {
         convention.libsDirName = 'mylibs'
         assertEquals(project.file('mybuild/mylibs'), convention.libsDir)
     }
+
+    @Test public void dirsAreCachedProperly() {
+        project.buildDir = project.file('mybuild')
+        convention.distsDirName = 'mydists'
+        assertEquals(project.file('mybuild/mydists'), convention.distsDir)
+        convention.libsDirName = 'mylibs'
+        assertEquals(project.file('mybuild/mylibs'), convention.libsDir)
+        convention.distsDirName = 'mydists2'
+        assertEquals(project.file('mybuild/mydists2'), convention.distsDir)
+        convention.libsDirName = 'mylibs2'
+        assertEquals(project.file('mybuild/mylibs2'), convention.libsDir)
+        project.buildDir = project.file('mybuild2')
+        assertEquals(project.file('mybuild2/mylibs2'), convention.libsDir)
+    }
 }

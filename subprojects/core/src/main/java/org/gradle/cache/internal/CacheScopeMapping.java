@@ -17,10 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Nullable;
-import org.gradle.cache.CacheBuilder;
 
 import java.io.File;
 
 public interface CacheScopeMapping {
-    File getBaseDirectory(@Nullable Object scope, String key, CacheBuilder.VersionStrategy versionStrategy);
+    File getBaseDirectory(@Nullable Object scope, String key, VersionStrategy versionStrategy);
 }

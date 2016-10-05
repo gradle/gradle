@@ -870,7 +870,7 @@ public class DependencyGraphBuilder {
             this.dependencyMetadata = dependencyMetadata;
             this.resolver = resolver;
             this.resolveState = resolveState;
-            targetModule = resolveState.getModule(new DefaultModuleIdentifier(dependencyMetadata.getRequested().getGroup(), dependencyMetadata.getRequested().getName()));
+            targetModule = resolveState.getModule(DefaultModuleIdentifier.of(dependencyMetadata.getRequested().getGroup(), dependencyMetadata.getRequested().getName()));
         }
 
         @Override

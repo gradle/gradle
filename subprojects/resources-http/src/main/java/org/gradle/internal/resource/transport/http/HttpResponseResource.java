@@ -113,7 +113,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     }
 
     public InputStream openStream() throws IOException {
-        if(wasOpened){
+        if (wasOpened) {
             throw new IOException("Unable to open Stream as it was opened before.");
         }
         LOGGER.debug("Attempting to download resource {}.", source);

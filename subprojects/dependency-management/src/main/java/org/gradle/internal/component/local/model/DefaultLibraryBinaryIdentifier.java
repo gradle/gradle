@@ -16,27 +16,42 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 
 public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
-
+    private static final Interner<DefaultLibraryBinaryIdentifier> INSTANCES_INTERNER = Interners.newWeakInterner();
     private final String projectPath;
     private final String libraryName;
-    private final String displayName;
     private final String variant;
+    private final int hashCode;
+    private String displayName;
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public DefaultLibraryBinaryIdentifier(String projectPath, String libraryName, String variant) {
+    private DefaultLibraryBinaryIdentifier(String projectPath, String libraryName, String variant) {
         assert projectPath != null : "project path cannot be null";
         assert libraryName != null : "library name cannot be null";
         assert variant != null : "variant cannot be null";
         this.projectPath = projectPath;
         this.libraryName = libraryName;
         this.variant = variant;
-        this.displayName = "project '" + projectPath + "' library '" + libraryName + "' variant '" + variant + "'";
+        this.hashCode = calculateHashCode();
+    }
+
+    public static DefaultLibraryBinaryIdentifier of(String projectPath, String libraryName, String variant) {
+        DefaultLibraryBinaryIdentifier instance = new DefaultLibraryBinaryIdentifier(projectPath, libraryName, variant);
+        return INSTANCES_INTERNER.intern(instance);
+    }
+
+    public String getDisplayName() {
+        if (displayName == null) {
+            displayName = createDisplayName();
+        }
+        return displayName;
+    }
+
+    private String createDisplayName() {
+        return "project '" + projectPath + "' library '" + libraryName + "' variant '" + variant + "'";
     }
 
     @Override
@@ -63,6 +78,9 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
             return false;
         }
         DefaultLibraryBinaryIdentifier that = (DefaultLibraryBinaryIdentifier) o;
+        if (hashCode() != that.hashCode()) {
+            return false;
+        }
         return Objects.equal(projectPath, that.projectPath)
             && Objects.equal(libraryName, that.libraryName)
             && Objects.equal(variant, that.variant);
@@ -70,6 +88,10 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
 
     @Override
     public int hashCode() {
+        return hashCode;
+    }
+
+    private int calculateHashCode() {
         return Objects.hashCode(projectPath, libraryName, variant);
     }
 

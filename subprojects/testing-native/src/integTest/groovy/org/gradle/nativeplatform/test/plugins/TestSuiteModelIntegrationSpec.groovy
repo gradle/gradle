@@ -85,6 +85,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class DefaultCustomTestBinary extends BaseBinarySpec implements CustomTestBinary {
                 TestSuiteSpec testSuite
+                BinarySpec testedBinary
                 String data = "foo"
             }
 

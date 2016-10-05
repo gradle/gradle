@@ -114,7 +114,7 @@ public class DefaultResolvedDependencyTest {
             allowing(resolvedDependency).getModule();
             will(returnValue(version));
             allowing(version).getId();
-            will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
+            will(returnValue(DefaultModuleVersionIdentifier.of("group", name, "1.2")));
         }});
         return new DefaultResolvedArtifact(resolvedDependency.getModule(), artifactStub, context.mock(ComponentArtifactIdentifier.class), artifactSource);
     }

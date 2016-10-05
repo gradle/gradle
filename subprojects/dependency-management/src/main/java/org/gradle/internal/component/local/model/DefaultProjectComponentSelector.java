@@ -16,6 +16,8 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -26,19 +28,26 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
+    private static final Interner<DefaultProjectComponentSelector> INSTANCES_INTERNER = Interners.newStrongInterner();
     private final String buildName;
     private final String projectPath;
-    private final String displayName;
+    private String displayName;
+    private final int hashCode;
 
-    public DefaultProjectComponentSelector(String buildName, String projectPath) {
+    private DefaultProjectComponentSelector(String buildName, String projectPath) {
         assert buildName != null : "build cannot be null";
         assert projectPath != null : "project path cannot be null";
         this.buildName = buildName;
         this.projectPath = projectPath;
-        this.displayName = createDisplayName(buildName, projectPath);
+        this.hashCode = calculateHashCode();
     }
 
-    private static String createDisplayName(String buildName, String projectPath) {
+    public static DefaultProjectComponentSelector of(String buildName, String projectPath) {
+        DefaultProjectComponentSelector instance = new DefaultProjectComponentSelector(buildName, projectPath);
+        return INSTANCES_INTERNER.intern(instance);
+    }
+
+    private String createDisplayName() {
         if (":".equals(buildName)) {
             return "project " + projectPath;
         }
@@ -46,6 +55,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     public String getDisplayName() {
+        if (displayName == null) {
+            displayName = createDisplayName();
+        }
         return displayName;
     }
 
@@ -79,12 +91,19 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             return false;
         }
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
+        if (hashCode() != that.hashCode()) {
+            return false;
+        }
         return Objects.equal(buildName, that.buildName)
             && Objects.equal(projectPath, that.projectPath);
     }
 
     @Override
     public int hashCode() {
+        return hashCode;
+    }
+
+    private int calculateHashCode() {
         return Objects.hashCode(buildName, projectPath);
     }
 
@@ -95,15 +114,15 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     public static ProjectComponentSelector newSelector(Project project) {
         BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
-        return new DefaultProjectComponentSelector(buildId.getName(), project.getPath());
+        return of(buildId.getName(), project.getPath());
     }
 
     public static ProjectComponentSelector newSelector(IncludedBuild build, String projectPath) {
-        return new DefaultProjectComponentSelector(build.getName(), projectPath);
+        return of(build.getName(), projectPath);
     }
 
     public static ProjectComponentSelector newSelector(BuildIdentifier build, String projectPath) {
-        return new DefaultProjectComponentSelector(build.getName(), projectPath);
+        return of(build.getName(), projectPath);
     }
 
     public static ProjectComponentSelector newSelector(IncludedBuild build, ProjectComponentSelector selector) {
@@ -111,7 +130,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     public static ProjectComponentSelector newSelector(ProjectComponentIdentifier projectId) {
-        return new DefaultProjectComponentSelector(projectId.getBuild().getName(), projectId.getProjectPath());
+        return of(projectId.getBuild().getName(), projectId.getProjectPath());
     }
 
 }

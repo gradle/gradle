@@ -95,7 +95,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses newest matching version without requiring metadata"() {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "1.+")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "1.+")
         def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
@@ -121,7 +121,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses newest matching version requiring metadata"() {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "latest.milestone")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "latest.milestone")
         def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
@@ -150,7 +150,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "rejects dynamic version by rule without metadata" () {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "1.+")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "1.+")
         def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
@@ -180,7 +180,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "rejects dynamic version by rule with metadata" () {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "latest.release")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "latest.release")
         def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
@@ -214,7 +214,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "returns no match when no versions match without metadata"() {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "1.1")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "1.1")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
@@ -238,7 +238,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "returns no match when no versions are chosen with metadata"() {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "latest.release")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "latest.release")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
@@ -265,7 +265,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "returns no match when all matching versions match are rejected by rule"() {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "+")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "+")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
@@ -294,7 +294,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "stops when candidate cannot be resolved"() {
         given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "latest.release")
+        def selector = DefaultModuleVersionSelector.of("group", "name", "latest.release")
         def dependency = Mock(DependencyMetadata)
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)

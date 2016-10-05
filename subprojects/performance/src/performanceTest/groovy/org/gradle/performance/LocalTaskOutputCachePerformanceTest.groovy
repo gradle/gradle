@@ -18,27 +18,39 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
 import org.junit.experimental.categories.Category
+import spock.lang.Unroll
 
 @Category(BasicPerformanceTest)
 class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
+    @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
     def "test"() {
         when:
-        runner.testId = "local cache multi clean build"
+        runner.testId = "local cache $testProject ${tasks.join(' ')} (daemon)"
         runner.testGroup = "task output cache"
         runner.buildSpec {
-            projectName("multi").displayName("cached").invocation {
-                tasksToRun("clean", "build").args("-Dorg.gradle.cache.tasks=true")
+            projectName(testProject).displayName("always-miss pull-only cache").invocation {
+                tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+            }
+        }
+        runner.buildSpec {
+            projectName(testProject).displayName("fully cached").invocation {
+                tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
             }
         }
         runner.baseline {
-            projectName("multi").displayName("non-cached").invocation {
-                tasksToRun("clean", "build")
+            projectName(testProject).displayName("non-cached").invocation {
+                tasksToRun(tasks).useDaemon()
             }
         }
 
         then:
         runner.run()
+
+        where:
+        testProject            | tasks
+        "multi"                | ["clean", "build"]
+        "largeEnterpriseBuild" | ["clean", "assemble"]
     }
 
 }

@@ -182,6 +182,41 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
 
     }
 
+    def "junit test run task is properly wired to binaries check tasks and lifecycle check task"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibrary()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+        buildFile << '''
+            task customGreeterCheck()
+            model {
+                components {
+                    greeter {
+                        binaries.all {
+                            checkedBy($.tasks.customGreeterCheck)
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'check'
+        then:
+        executed ':customGreeterCheck', ':checkGreeterJar', ':checkMyTestGreeterJarBinary', ':myTestGreeterJarBinaryTest'
+
+        when:
+        run 'checkMyTestGreeterJarBinary'
+        then:
+        executed ':myTestGreeterJarBinaryTest'
+
+        when:
+        run 'checkGreeterJar'
+        then:
+        executed ':customGreeterCheck', ':myTestGreeterJarBinaryTest'
+    }
+
     private void greeterLibrary() {
         buildFile << '''
             model {

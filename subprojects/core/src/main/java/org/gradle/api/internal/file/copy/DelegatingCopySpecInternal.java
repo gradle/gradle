@@ -261,4 +261,14 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     public void visit(CopySpecAddress parentPath, CopySpecVisitor visitor) {
         getDelegateCopySpec().visit(parentPath, visitor);
     }
+
+    @Override
+    public boolean hasCustomActions() {
+        return getDelegateCopySpec().hasCustomActions();
+    }
+
+    @Override
+    public void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action) {
+        getDelegateCopySpec().appendCachingSafeCopyAction(action);
+    }
 }

@@ -146,6 +146,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def artifact(String name, String... confs) {
-        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
+        moduleDescriptor.addArtifact(DefaultIvyArtifactName.of(name, "type", "ext", "classifier"), confs as Set<String>)
     }
 }

@@ -32,6 +32,7 @@ task hello {
 }
 defaultTasks 'hello'
         """
+        file('settings.gradle') << ''
         prepareWrapper()
         def gradlewPath = new File(wrapperExecuter.workingDir as File, 'gradlew').absolutePath
 

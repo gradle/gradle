@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
@@ -27,5 +28,27 @@ public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
 
     public ModuleVersionIdentifier getId() {
         return identifier;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultResolvedModuleVersion that = (DefaultResolvedModuleVersion) o;
+        return Objects.equal(identifier, that.identifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(identifier);
+    }
+
+    @Override
+    public String toString() {
+        return identifier.toString();
     }
 }

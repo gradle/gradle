@@ -48,7 +48,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         addConfiguration(metadata, "runtime", ["compile"])
         addDependencyDescriptor(metadata, "Dep1")
         addDependencyDescriptor(metadata, "Dep2")
-        metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
+        metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, DefaultIvyArtifactName.of("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
 
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
         ivyXmlModuleDescriptorWriter.write(metadata, ivyFile);

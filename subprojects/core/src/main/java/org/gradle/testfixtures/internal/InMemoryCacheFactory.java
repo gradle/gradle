@@ -17,6 +17,9 @@ package org.gradle.testfixtures.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -31,7 +34,8 @@ import java.io.File;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public PersistentCache open(File cacheDir, String displayName, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) {
+    @Override
+    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {

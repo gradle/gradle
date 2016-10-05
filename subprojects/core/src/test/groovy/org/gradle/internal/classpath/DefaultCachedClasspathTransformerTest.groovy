@@ -19,7 +19,6 @@ package org.gradle.internal.classpath
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.internal.file.JarCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,40 +26,39 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-
 class DefaultCachedClasspathTransformerTest extends Specification {
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     TestFile testDir = testDirectoryProvider.testDirectory
 
     PersistentCache cache = Stub(PersistentCache) {
+        getBaseDir() >> testDir.file("cached")
         useCache(_, _) >> { args -> args[1].create() }
     }
     CacheBuilder cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }
-        withCrossVersionCache() >> { cacheBuilder }
+        withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
     }
     CacheRepository cacheRepository = Stub(CacheRepository) {
         cache(_) >> cacheBuilder
     }
+    CachedJarFileStore jarFileStore = Stub(CachedJarFileStore) {
+        getJarFileStoreDirectory() >> testDir.file("other-store")
+    }
     JarCache jarCache = Mock(JarCache)
-    File dummyCacheDir = Stub(File) {
-        getParent() >> testDir.file("cached").path
-    }
-    CacheScopeMapping cacheScopeMapping = Stub(CacheScopeMapping) {
-        getBaseDirectory(_, _, _) >> dummyCacheDir
-    }
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, cacheScopeMapping)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, [jarFileStore])
 
     def "can convert a classpath to cached jars"() {
         given:
         File externalFile = testDir.file("external/file1").createFile()
         File cachedFile = testDir.file("cached/file1").createFile()
         File alreadyCachedFile = testDir.file("cached/file2").createFile()
-        ClassPath classPath = DefaultClassPath.of([externalFile, alreadyCachedFile])
+        File cachedInOtherStore = testDir.file("other-store/file3").createFile()
+        File externalDir = testDir.file("external/dir1").createDir()
+        ClassPath classPath = DefaultClassPath.of([externalFile, alreadyCachedFile, cachedInOtherStore, externalDir])
 
         when:
         ClassPath cachedClassPath = transformer.transform(classPath)
@@ -69,22 +67,24 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         1 * jarCache.getCachedJar(externalFile, _) >> cachedFile
 
         and:
-        cachedClassPath.asFiles == [ cachedFile, alreadyCachedFile ]
+        cachedClassPath.asFiles == [ cachedFile, alreadyCachedFile, cachedInOtherStore, externalDir ]
     }
 
     def "can convert a url collection to cached jars"() {
         given:
         File externalFile = testDir.file("external/file1").createFile()
         File cachedFile = testDir.file("cached/file1").createFile()
+        URL alreadyCachedFile = testDir.file("cached/file2").createFile().toURI().toURL()
+        URL externalDir = testDir.file("external/dir").createDir().toURI().toURL()
         URL httpURL = new URL("http://some.where.com")
 
         when:
-        Collection<URL> cachedUrls = transformer.transform([externalFile.toURI().toURL(), httpURL])
+        Collection<URL> cachedUrls = transformer.transform([externalFile.toURI().toURL(), httpURL, alreadyCachedFile, externalDir])
 
         then:
         1 * jarCache.getCachedJar(externalFile, _) >> cachedFile
 
         and:
-        cachedUrls == [ cachedFile.toURI().toURL(), httpURL ]
+        cachedUrls == [ cachedFile.toURI().toURL(), httpURL, alreadyCachedFile, externalDir ]
     }
 }

@@ -27,6 +27,8 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.provider.*
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class ClientProvidedBuildActionRunnerTest extends Specification {

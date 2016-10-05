@@ -439,6 +439,7 @@ public interface Configuration extends FileCollection {
      * @param value the value of the attribute
      * @return this configuration
      */
+    @Incubating
     Configuration attribute(String key, String value);
 
     /**
@@ -446,9 +447,12 @@ public interface Configuration extends FileCollection {
      * @param attributes the attributes to be copied to this configuration
      * @return this configuration
      */
+    @Incubating
     Configuration attributes(Map<String, String> attributes);
 
+    @Incubating
     Map<String, String> getAttributes();
 
+    @Incubating
     boolean hasAttributes();
 }

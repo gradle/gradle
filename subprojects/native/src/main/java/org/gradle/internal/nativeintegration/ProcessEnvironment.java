@@ -102,7 +102,16 @@ public interface ProcessEnvironment {
     Long maybeGetPid();
 
     /**
-     * Detaches the current process from its terminal/console to properly put it in the background.
+     * Detaches the current process from its terminal/console to properly put it in the background, if possible.
+     *
+     * @return true if the process was successfully detached.
      */
-    void maybeDetach();
+    boolean maybeDetachProcess();
+
+    /**
+     * Detaches the current process from its terminal/console to properly put it in the background.
+     *
+     * @throws NativeIntegrationException If the process could not be detached.
+     */
+    void detachProcess();
 }

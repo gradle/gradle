@@ -152,32 +152,81 @@ public class StreamByteBuffer {
     private String doReadAsString(Charset charset) throws CharacterCodingException {
         int unreadSize = totalBytesUnread();
         if (unreadSize > 0) {
-            CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
-                    CodingErrorAction.REPLACE).onUnmappableCharacter(
-                    CodingErrorAction.REPLACE);
-            CharBuffer charbuffer = CharBuffer.allocate(unreadSize);
-            ByteBuffer buf = null;
-            while (prepareRead() != -1) {
-                buf = currentReadChunk.readToNioBuffer(buf);
-                boolean endOfInput = prepareRead() == -1;
-                CoderResult result = decoder.decode(buf, charbuffer, endOfInput);
-                if (endOfInput) {
-                    if (!result.isUnderflow()) {
-                        result.throwException();
+            return readAsCharBuffer(charset).toString();
+        }
+        return "";
+    }
+
+    private CharBuffer readAsCharBuffer(Charset charset) throws CharacterCodingException {
+        CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
+                CodingErrorAction.REPLACE).onUnmappableCharacter(
+                CodingErrorAction.REPLACE);
+        CharBuffer charbuffer = CharBuffer.allocate(totalBytesUnread());
+        ByteBuffer buf = null;
+        boolean wasUnderflow = false;
+        ByteBuffer nextBuf = null;
+        boolean needsFlush = false;
+        while (hasRemaining(nextBuf) || hasRemaining(buf) || prepareRead() != -1) {
+            if (hasRemaining(buf)) {
+                // handle decoding underflow, multi-byte unicode character at buffer chunk boundary
+                if (!wasUnderflow) {
+                    throw new IllegalStateException("Unexpected state. Buffer has remaining bytes without underflow in decoding.");
+                }
+                if (!hasRemaining(nextBuf) && prepareRead() != -1) {
+                    nextBuf = currentReadChunk.readToNioBuffer();
+                }
+                // copy one by one until the underflow has been resolved
+                buf = ByteBuffer.allocate(buf.remaining() + 1).put(buf);
+                buf.put(nextBuf.get());
+                buf.flip();
+            } else {
+                if (hasRemaining(nextBuf)) {
+                    buf = nextBuf;
+                } else if (prepareRead() != -1) {
+                    buf = currentReadChunk.readToNioBuffer();
+                    if (!hasRemaining(buf)) {
+                        throw new IllegalStateException("Unexpected state. Buffer is empty.");
                     }
                 }
+                nextBuf = null;
             }
+            boolean endOfInput = !hasRemaining(nextBuf) && prepareRead() == -1;
+            int bufRemainingBefore = buf.remaining();
+            CoderResult result = decoder.decode(buf, charbuffer, false);
+            if (bufRemainingBefore > buf.remaining()) {
+                needsFlush = true;
+            }
+            if (endOfInput) {
+                result = decoder.decode(ByteBuffer.allocate(0), charbuffer, true);
+                if (!result.isUnderflow()) {
+                    result.throwException();
+                }
+                break;
+            }
+            wasUnderflow = result.isUnderflow();
+        }
+        if (needsFlush) {
             CoderResult result = decoder.flush(charbuffer);
-            if (buf.hasRemaining()) {
-                throw new IllegalStateException("There's a bug here, buffer wasn't read fully.");
-            }
             if (!result.isUnderflow()) {
                 result.throwException();
             }
-            charbuffer.flip();
-            return charbuffer.toString();
         }
-        return "";
+        clear();
+        // push back remaining bytes of multi-byte unicode character
+        while (hasRemaining(buf)) {
+            byte b = buf.get();
+            try {
+                getOutputStream().write(b);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        charbuffer.flip();
+        return charbuffer;
+    }
+
+    private boolean hasRemaining(ByteBuffer nextBuf) {
+        return nextBuf != null && nextBuf.hasRemaining();
     }
 
     public int totalBytesUnread() {
@@ -233,19 +282,13 @@ public class StreamByteBuffer {
             buffer = new byte[size];
         }
 
-        public ByteBuffer readToNioBuffer(ByteBuffer previousBufferToMergeWith) {
+        public ByteBuffer readToNioBuffer() {
             if (pointer < used) {
                 ByteBuffer result;
-                if (previousBufferToMergeWith != null && previousBufferToMergeWith.hasRemaining()) {
-                    // merge previous buffer if it has remaining bytes
-                    result = ByteBuffer.allocate(previousBufferToMergeWith.remaining() + bytesUnread()).put(previousBufferToMergeWith).put(buffer, pointer, used - pointer);
-                    result.flip();
+                if (pointer > 0 || used < size) {
+                    result = ByteBuffer.wrap(buffer, pointer, used - pointer);
                 } else {
-                    if (pointer > 0 || used < size) {
-                        result = ByteBuffer.wrap(buffer, pointer, used - pointer);
-                    } else {
-                        result = ByteBuffer.wrap(buffer);
-                    }
+                    result = ByteBuffer.wrap(buffer);
                 }
                 pointer = used;
                 return result;
@@ -310,6 +353,10 @@ public class StreamByteBuffer {
                 used += readBytes;
             }
             return readBytes;
+        }
+
+        public void clear() {
+            used = pointer = 0;
         }
     }
 
@@ -421,7 +468,6 @@ public class StreamByteBuffer {
         chunks.clear();
         currentReadChunk = null;
         totalBytesUnreadInList = 0;
-        nextChunkSize = chunkSize;
-        currentWriteChunk = new StreamByteBufferChunk(nextChunkSize);
+        currentWriteChunk.clear();
     }
 }

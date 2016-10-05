@@ -17,6 +17,7 @@ import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
@@ -554,6 +555,17 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
+task nativeDependents(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+}
+
+task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+    generateDeepHierarchy = true
+}
+
 tasks.withType(JvmProjectGeneratorTask) {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
@@ -587,6 +599,8 @@ task largeEnterpriseBuildPostProcess(type: GradleBuild) {
     buildFile = file("$largeEnterpriseBuild.outputDirectory/generator/build.gradle")
     dir = file("$largeEnterpriseBuild.outputDirectory/generator")
     tasks = ['run']
+    // pass size scaling parameter to generator
+    startParameter.projectProperties = [appArgs: '0.17']
     doFirst {
         ext.origBuild = file("$largeEnterpriseBuild.outputDirectory/build.gradle").text
     }
@@ -594,6 +608,18 @@ task largeEnterpriseBuildPostProcess(type: GradleBuild) {
         def buildFile = file("$largeEnterpriseBuild.outputDirectory/build.gradle")
         buildFile.text = "${origBuild}\n${buildFile.text}"
     }
+}
+
+task largeNativeBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-native-large'
+    branch = 'master'
+    finalizedBy 'largeNativeBuildPrebuilt'
+}
+
+task largeNativeBuildPrebuilt(type: GradleBuild) {
+    buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
+    dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
+    tasks = ['build']
 }
 
 // The Android Studio performance tests use custom model classes which need to be found in

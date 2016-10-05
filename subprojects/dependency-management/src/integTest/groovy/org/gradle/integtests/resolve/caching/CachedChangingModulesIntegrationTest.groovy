@@ -62,9 +62,9 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
 
         when:
         server.resetExpectations()
-        module.metaData.expectGet()
-        sourceArtifact.expectHead()
-        module.pom.expectHead()
+        module.metaData.expectGetRevalidate()
+        sourceArtifact.expectHeadRevalidate()
+        module.pom.expectHeadRevalidate()
         then:
         run 'retrieve'
 
@@ -72,13 +72,13 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         module.publishWithChangedContent()
         server.resetExpectations()
 
-        module.metaData.expectGet()
-        module.pom.sha1.expectGet()
-        module.pom.expectHead()
-        module.pom.expectGet()
-        sourceArtifact.expectHead()
-        sourceArtifact.expectGet()
-        sourceArtifact.sha1.expectGet()
+        module.metaData.expectGetRevalidate()
+        module.pom.sha1.expectGetRevalidate()
+        module.pom.expectHeadRevalidate()
+        module.pom.expectGetRevalidate()
+        sourceArtifact.expectHeadRevalidate()
+        sourceArtifact.expectGetRevalidate()
+        sourceArtifact.sha1.expectGetRevalidate()
         then:
         run 'retrieve'
 
@@ -133,8 +133,8 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         when:
         server.resetExpectations()
         module.metaData.expectGetMissing()
-        sourceArtifact.expectHead()
-        module.pom.expectHead()
+        sourceArtifact.expectHeadRevalidate()
+        module.pom.expectHeadRevalidate()
         then:
         run 'retrieve'
 
@@ -143,12 +143,12 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         server.resetExpectations()
 
         module.metaData.expectGetMissing()
-        module.pom.sha1.expectGet()
-        module.pom.expectHead()
-        module.pom.expectGet()
-        sourceArtifact.expectHead()
-        sourceArtifact.expectGet()
-        sourceArtifact.sha1.expectGet()
+        module.pom.sha1.expectGetRevalidate()
+        module.pom.expectHeadRevalidate()
+        module.pom.expectGetRevalidate()
+        sourceArtifact.expectHeadRevalidate()
+        sourceArtifact.expectGetRevalidate()
+        sourceArtifact.sha1.expectGetRevalidate()
         then:
         run 'retrieve'
 
@@ -200,7 +200,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
 
         when:
         server.resetExpectations()
-        module.ivy.expectHead()
+        module.ivy.expectHeadRevalidate()
         module.getArtifact(classifier: 'source').expectHead()
         then:
         run 'retrieve'
@@ -208,13 +208,13 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         when:
         module.publishWithChangedContent()
         server.resetExpectations()
-        module.ivy.expectHead()
+        module.ivy.expectHeadRevalidate()
         module.getArtifact(classifier: 'source').expectHead()
 
-        module.ivy.sha1.expectGet()
-        module.ivy.expectGet()
-        module.getArtifact(classifier: 'source').expectGet()
-        module.getArtifact(classifier: 'source').sha1.expectGet()
+        module.ivy.sha1.expectGetRevalidate()
+        module.ivy.expectGetRevalidate()
+        module.getArtifact(classifier: 'source').expectGetRevalidate()
+        module.getArtifact(classifier: 'source').sha1.expectGetRevalidate()
 
         then:
         run 'retrieve'

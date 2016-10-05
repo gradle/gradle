@@ -129,7 +129,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     public void visit(FileVisitor visitor) {
-        visitFrom(visitor, dir, new RelativePath(false));
+        visitFrom(visitor, dir, RelativePath.EMPTY_PARENT_DIRECTORY);
     }
 
     /**
@@ -163,7 +163,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         directoryWalkerFactory.create().walkDir(file, path, visitor, spec, stopFlag, postfix);
     }
 
-    static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {
+    static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
         return spec.isSatisfiedBy(element);
     }
 

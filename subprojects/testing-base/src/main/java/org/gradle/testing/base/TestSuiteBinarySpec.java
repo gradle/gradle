@@ -30,4 +30,9 @@ public interface TestSuiteBinarySpec extends BinarySpec {
      */
     TestSuiteSpec getTestSuite();
 
+    /**
+     * Returns the binary tested by this test suite.
+     */
+    BinarySpec getTestedBinary();
+
 }

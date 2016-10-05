@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -28,17 +29,21 @@ import java.io.File;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private final File dir;
+    private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
+    protected final File propertiesFile;
     private CacheCoordinator cacheAccess;
 
-    public DefaultPersistentDirectoryStore(File dir, String displayName, LockOptions lockOptions, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         this.dir = dir;
+        this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
+        this.propertiesFile = new File(dir, "cache.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
@@ -58,8 +63,16 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return new DefaultCacheAccess(displayName, getLockTarget(), dir, lockManager, getInitAction(), executorFactory);
     }
 
-    protected File getLockTarget() {
-        return dir;
+    private File getLockTarget() {
+        switch (lockTarget) {
+            case CacheDirectory:
+            case DefaultTarget:
+                return dir;
+            case CachePropertiesFile:
+                return propertiesFile;
+            default:
+                throw new IllegalArgumentException("Unsupported lock target: " + lockTarget);
+        }
     }
 
     protected CacheInitializationAction getInitAction() {

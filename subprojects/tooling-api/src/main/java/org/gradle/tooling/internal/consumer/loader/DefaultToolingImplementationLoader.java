@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.loader;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -117,13 +116,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, File userHomeDir, BuildCancellationToken cancellationToken) {
         ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
-        // On IBM JVM 5, ClassLoader.getResources() uses a combination of findResources() and getParent() and traverses the hierarchy rather than just calling getResources()
-        // Wrap our real classloader in one that hides the parent.
-        // TODO - move this into FilteringClassLoader
-        MultiParentClassLoader parentObfuscatingClassLoader = new MultiParentClassLoader(classLoader);
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
-        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader, filterSpec);
+        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader, filterSpec);
         return new VisitableURLClassLoader(filteringClassLoader, implementationClasspath);
     }
 }

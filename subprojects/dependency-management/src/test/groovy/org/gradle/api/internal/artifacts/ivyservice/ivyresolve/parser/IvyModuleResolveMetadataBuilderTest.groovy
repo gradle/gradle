@@ -46,7 +46,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
     }
 
     private static IvyArtifactName ivyArtifact(String name, String type, String ext, String classifier = null) {
-        return new DefaultIvyArtifactName(name, type, ext, classifier)
+        return DefaultIvyArtifactName.of(name, type, ext, classifier)
     }
 
     def "prevents adding artifact without configurations"() {

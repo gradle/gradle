@@ -39,7 +39,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentIdentifier"() {
         given:
-        ModuleComponentIdentifier identifier = new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        ModuleComponentIdentifier identifier = DefaultModuleComponentIdentifier.of('group-one', 'name-one', 'version-one')
 
         when:
         ModuleComponentIdentifier result = serialize(identifier, serializer)
@@ -52,7 +52,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes LibraryIdentifier"() {
         given:
-        LibraryBinaryIdentifier identifier = new DefaultLibraryBinaryIdentifier(':project', 'lib', 'variant')
+        LibraryBinaryIdentifier identifier = DefaultLibraryBinaryIdentifier.of(':project', 'lib', 'variant')
 
         when:
         LibraryBinaryIdentifier result = serialize(identifier, serializer)

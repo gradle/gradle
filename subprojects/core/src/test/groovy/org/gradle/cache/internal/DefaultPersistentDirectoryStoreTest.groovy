@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.cache.CacheBuilder
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -30,8 +31,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     final FileLockManager lockManager = Mock()
     final FileLock lock = Mock()
     final cacheDir = tmpDir.file("dir")
-    final cacheFile = cacheDir.file("some-content.bin")
-    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager, Mock(ExecutorFactory))
+    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(None), lockManager, Mock(ExecutorFactory))
 
     def "has useful toString() implementation"() {
         expect:
@@ -61,7 +61,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open locks cache directory with requested mode"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), lockManager, Mock(ExecutorFactory))
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(Shared), lockManager, Mock(ExecutorFactory))
 
         when:
         store.open()
@@ -78,8 +78,32 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         0 * _._
     }
 
+    def "locks requested target"() {
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", target, mode(Shared), lockManager, Mock(ExecutorFactory))
+
+        when:
+        store.open()
+
+        then:
+        1 * lockManager.lock(cacheDir.file(lockFile), mode(Shared), "<display> ($cacheDir)") >> lock
+
+        when:
+        store.close()
+
+        then:
+        _ * lock.state
+        1 * lock.close()
+        0 * _._
+
+        where:
+        target                                      | lockFile
+        CacheBuilder.LockTarget.CachePropertiesFile | "cache.properties"
+        CacheBuilder.LockTarget.CacheDirectory      | "."
+        CacheBuilder.LockTarget.DefaultTarget       | "."
+    }
+
     def "open does not lock cache directory when None mode requested"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager, Mock(ExecutorFactory))
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(None), lockManager, Mock(ExecutorFactory))
 
         when:
         store.open()

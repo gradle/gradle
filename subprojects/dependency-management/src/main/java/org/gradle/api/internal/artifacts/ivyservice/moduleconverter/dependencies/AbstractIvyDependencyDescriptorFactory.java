@@ -51,7 +51,7 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         return CollectionUtils.collect(dependencyArtifacts, new Transformer<IvyArtifactName, DependencyArtifact>() {
             @Override
             public IvyArtifactName transform(DependencyArtifact dependencyArtifact) {
-                return new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
+                return DefaultIvyArtifactName.of(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
             }
         });
     }

@@ -16,12 +16,11 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([JavaPerformanceTest, Experiment])
+@Category([JavaPerformanceTest])
 class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest {
 
     @Unroll("Builds '#testProject' calling #tasks (daemon)")
@@ -66,6 +65,28 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         where:
         testProject            | tasks
         'largeEnterpriseBuild' | ['cleanIdea', 'idea']
+        'largeEnterpriseBuild' | ['clean', 'assemble']
+    }
+
+    @Unroll("Builds '#testProject' calling #tasks (daemon) with local cache")
+    def "build with cache"() {
+        given:
+        runner.testId = "Enterprise Java $testProject ${tasks.join(' ')} (daemon, cached)"
+        runner.testProject = testProject
+        runner.tasksToRun = tasks
+        runner.useDaemon = true
+        runner.targetVersions = ['last']
+        runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
+        runner.args = ['-Dorg.gradle.cache.tasks=true']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject            | tasks
         'largeEnterpriseBuild' | ['clean', 'assemble']
     }
 }

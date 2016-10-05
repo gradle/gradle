@@ -29,7 +29,7 @@ public class SystemClassLoaderSpec extends ClassLoaderSpec {
 
     @Override
     public String toString() {
-        return "system";
+        return "{system-class-loader}";
     }
 
     @Override
