@@ -600,7 +600,7 @@ task largeEnterpriseBuildPostProcess(type: GradleBuild) {
     dir = file("$largeEnterpriseBuild.outputDirectory/generator")
     tasks = ['run']
     // pass size scaling parameter to generator
-    startParameter.projectProperties = [appArgs: '0.17']
+    startParameter.projectProperties = [appArgs: '0.05']
     doFirst {
         ext.origBuild = file("$largeEnterpriseBuild.outputDirectory/build.gradle").text
     }
