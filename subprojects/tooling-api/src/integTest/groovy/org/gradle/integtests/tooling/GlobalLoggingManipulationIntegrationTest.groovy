@@ -17,17 +17,23 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.BlockingResultHandler
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.logging.LogManager
+
+import static java.util.logging.Level.OFF
 
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     RedirectStdIn stdIn
+    @Rule
+    CyclicBarrierHttpServer sync = new CyclicBarrierHttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
@@ -35,16 +41,52 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         ConnectorServices.reset()
     }
 
-    def "tooling api does not replace standard streams"() {
+    def "tooling api restores standard streams at end of the build"() {
         given:
         def outInstance = System.out
         def errInstance = System.err
         def inInstance = System.in
 
-        buildFile << "task hey"
+        buildFile << """
+            task hey
+        """
 
         when:
-        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
+        GradleProject model = toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
+
+        then:
+        model.tasks.find { it.name == 'hey' }
+        System.out.is(outInstance)
+        System.err.is(errInstance)
+        System.in.is(inInstance)
+    }
+
+    def "tooling api does not replace standard streams while build is running in daemon"() {
+        given:
+        toolingApi.requireDaemons()
+        def outInstance = System.out
+        def errInstance = System.err
+        def inInstance = System.in
+
+        buildFile << """
+            new URL("${sync.uri}").text
+            task hey
+        """
+
+        when:
+        GradleProject model = toolingApi.withConnection { ProjectConnection connection ->
+            def handler = new BlockingResultHandler<GradleProject>(GradleProject)
+            def builder = connection.model(GradleProject)
+            builder.standardOutput = outInstance
+            builder.standardError = errInstance
+            builder.get(handler)
+            sync.waitFor()
+            assert System.out.is(outInstance)
+            assert System.err.is(errInstance)
+            assert System.in.is(inInstance)
+            sync.release()
+            handler.result
+        }
 
         then:
         model.tasks.find { it.name == 'hey' }
@@ -76,20 +118,53 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Ignore
-    def "tooling api does not reset the java logging"() {
+    def "tooling api restores java logging at end of build"() {
         //(SF) checking if the logger level was not overridden.
         //this gives some confidence that the LogManager was not reset
         given:
-        LogManager.getLogManager().getLogger("").setLevel(java.util.logging.Level.OFF);
+        LogManager.getLogManager().getLogger("").setLevel(OFF);
         buildFile << "task hey"
 
         when:
-        assert java.util.logging.Level.OFF == LogManager.getLogManager().getLogger("").level
-        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
+        assertJavaUtilLoggingNotModified()
+        GradleProject model = toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }
-        java.util.logging.Level.OFF == LogManager.getLogManager().getLogger("").level
+        assertJavaUtilLoggingNotModified()
+    }
+
+    def "tooling api does not configure java logging while build is running in daemon"() {
+        //(SF) checking if the logger level was not overridden.
+        //this gives some confidence that the LogManager was not reset
+        given:
+        toolingApi.requireDaemons()
+        LogManager.getLogManager().getLogger("").setLevel(OFF);
+        buildFile << """
+            new URL("${sync.uri}").text
+            task hey
+        """
+
+        when:
+        assertJavaUtilLoggingNotModified()
+        GradleProject model = toolingApi.withConnection { ProjectConnection connection ->
+            def handler = new BlockingResultHandler<GradleProject>(GradleProject)
+            def builder = connection.model(GradleProject)
+            builder.standardOutput = System.out
+            builder.standardError = System.err
+            builder.get(handler)
+            sync.waitFor()
+            assertJavaUtilLoggingNotModified()
+            sync.release()
+            handler.result
+        }
+
+        then:
+        model.tasks.find { it.name == 'hey' }
+        assertJavaUtilLoggingNotModified()
+    }
+
+    void assertJavaUtilLoggingNotModified() {
+        assert OFF == LogManager.getLogManager().getLogger("").level
     }
 }

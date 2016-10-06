@@ -20,9 +20,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
-import spock.lang.Ignore
 
-@Ignore
 class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def "receives standard streams while the build is executing"() {

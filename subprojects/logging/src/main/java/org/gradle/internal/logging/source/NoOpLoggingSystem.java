@@ -20,19 +20,22 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 
 public class NoOpLoggingSystem implements StdOutLoggingSystem, StdErrLoggingSystem, LoggingSourceSystem {
+    @Override
     public Snapshot snapshot() {
         return dummy();
     }
 
     @Override
-    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
+    public Snapshot setLevel(LogLevel logLevel) {
         return dummy();
     }
 
-    public Snapshot off() {
+    @Override
+    public Snapshot startCapture() {
         return dummy();
     }
 
+    @Override
     public void restore(Snapshot state) {}
 
     private Snapshot dummy() {

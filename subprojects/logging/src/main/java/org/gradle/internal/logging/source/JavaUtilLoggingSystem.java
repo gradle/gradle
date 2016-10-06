@@ -48,6 +48,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     private final Logger logger;
+    private LogLevel requestedLevel;
     private boolean installed;
 
     public JavaUtilLoggingSystem() {
@@ -55,25 +56,40 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     @Override
-    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
-        SnapshotImpl snapshot = new SnapshotImpl(installed, logger.getLevel());
-        install(LOG_LEVEL_MAPPING.get(minimumLevel));
+    public Snapshot setLevel(LogLevel logLevel) {
+        Snapshot snapshot = snapshot();
+        if (logLevel != requestedLevel) {
+            requestedLevel = logLevel;
+            if (installed) {
+                logger.setLevel(LOG_LEVEL_MAPPING.get(logLevel));
+            }
+        }
+        return snapshot;
+    }
+
+    @Override
+    public Snapshot startCapture() {
+        Snapshot snapshot = snapshot();
+        if (!installed) {
+            install(LOG_LEVEL_MAPPING.get(requestedLevel));
+        }
         return snapshot;
     }
 
     @Override
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
+        requestedLevel = snapshot.requestedLevel;
         if (snapshot.installed) {
-            install(snapshot.level);
+            install(snapshot.javaUtilLevel);
         } else {
-            uninstall(snapshot.level);
+            uninstall(snapshot.javaUtilLevel);
         }
     }
 
     @Override
     public Snapshot snapshot() {
-        return new SnapshotImpl(installed, logger.getLevel());
+        return new SnapshotImpl(installed, logger.getLevel(), requestedLevel);
     }
 
     private void uninstall(Level level) {
@@ -99,11 +115,13 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
 
     private static class SnapshotImpl implements Snapshot {
         private final boolean installed;
-        private final java.util.logging.Level level;
+        private final java.util.logging.Level javaUtilLevel;
+        private final LogLevel requestedLevel;
 
-        public SnapshotImpl(boolean installed, java.util.logging.Level level) {
+        SnapshotImpl(boolean installed, Level javaUtilLevel, LogLevel requestedLevel) {
             this.installed = installed;
-            this.level = level;
+            this.javaUtilLevel = javaUtilLevel;
+            this.requestedLevel = requestedLevel;
         }
     }
 }
