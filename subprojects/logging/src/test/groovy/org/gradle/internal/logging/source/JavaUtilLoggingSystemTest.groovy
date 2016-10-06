@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.source
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
@@ -31,6 +32,18 @@ class JavaUtilLoggingSystemTest extends Specification {
     private final JavaUtilLoggingSystem configurer = new JavaUtilLoggingSystem()
 
     def routesJulToListener() {
+        when:
+        configurer.setLevel(LogLevel.INFO)
+        configurer.startCapture()
+        Logger.getLogger('test').info('info message')
+        Logger.getLogger('test').severe('error message')
+
+        then:
+        outputEventListener.toString() == '[INFO info message][ERROR error message]'
+    }
+
+    @NotYetImplemented
+    def routesJulToListenerWithCorrectLevel() {
         when:
         configurer.setLevel(LogLevel.INFO)
         configurer.startCapture()
