@@ -186,7 +186,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
 
         then:
-        rootLogger.level == Level.WARNING
+        rootLogger.level != Level.OFF
         logger.level == null
 
         when:
@@ -537,7 +537,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
 
         then:
-        rootLogger.level == Level.WARNING
+        rootLogger.level != Level.OFF
         logger.level == null
 
         when:
