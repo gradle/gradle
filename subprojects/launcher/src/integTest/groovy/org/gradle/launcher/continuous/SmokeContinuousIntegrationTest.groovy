@@ -384,6 +384,30 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         noBuildTriggered()
     }
 
+    def "custom project-cache-dir gets ignored"() {
+        given:
+        def projectCacheDir = file('.custom-project-cache-dir')
+        executer.withArgument("--project-cache-dir=${projectCacheDir.absolutePath}")
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+        projectCacheDir.exists()
+
+        when: "file in .custom-project-cache-dir directory is changed"
+        projectCacheDir.file('some_file.txt').text = 'content'
+
+        then:
+        noBuildTriggered()
+    }
+
     def "build directory gets ignored"() {
         given:
         def aFile = file("A")

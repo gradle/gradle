@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
@@ -162,7 +163,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        TaskInputsListener listener = new ContinuousBuildTaskInputsListener(waiter);
+        TaskInputsListener listener = new ContinuousBuildTaskInputsListener(waiter, buildSessionScopeServices.get(CacheScopeMapping.class));
         listenerManager.addListener(listener);
         try {
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
@@ -173,12 +174,14 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
 
     private static class ContinuousBuildTaskInputsListener implements TaskInputsListener {
         private final FileSystemChangeWaiter waiter;
+        private final CacheScopeMapping cacheScopeMapping;
         private final AtomicBoolean cacheDirectoryIgnored = new AtomicBoolean(false);
         private final ReentrantLock lock = new ReentrantLock();
         private final Set<File> ignoredBuildDirectories = new HashSet<File>();
 
-        public ContinuousBuildTaskInputsListener(FileSystemChangeWaiter waiter) {
+        public ContinuousBuildTaskInputsListener(FileSystemChangeWaiter waiter, CacheScopeMapping cacheScopeMapping) {
             this.waiter = waiter;
+            this.cacheScopeMapping = cacheScopeMapping;
         }
 
         @Override
@@ -202,9 +205,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
 
         private void ignoreGradleCacheDirectory(TaskInternal taskInternal) {
             if (!cacheDirectoryIgnored.get()) {
-                File rootProjectDir = taskInternal.getProject().getRootProject().getRootDir();
-                // cache dir defined in org.gradle.cache.internal.DefaultCacheScopeMapping
-                waiter.ignoreDirectory(new File(rootProjectDir, ".gradle"));
+                waiter.ignoreDirectory(cacheScopeMapping.getRootDirectory(taskInternal));
                 cacheDirectoryIgnored.set(true);
             }
         }
