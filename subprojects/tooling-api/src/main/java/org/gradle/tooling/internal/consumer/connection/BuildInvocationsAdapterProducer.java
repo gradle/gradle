@@ -51,7 +51,7 @@ public class BuildInvocationsAdapterProducer implements ModelProducer {
                 BuildInvocationsConverter converter = new BuildInvocationsConverter();
                 for (InternalModelResult<GradleProject> gradleProject : gradleProjects) {
                     if (gradleProject.getFailure() == null) {
-                        T buildInvocation = adapter.adapt(elementType, converter.convert(gradleProject.getModel()));
+                        T buildInvocation = adapter.adapt(elementType, converter.convertSingleProject(gradleProject.getModel()));
                         buildInvocations.addProjectModel(gradleProject.getRootDir(), gradleProject.getProjectPath(), buildInvocation);
                     } else {
                         buildInvocations.addProjectFailure(gradleProject.getRootDir(), gradleProject.getProjectPath(), gradleProject.getFailure());
