@@ -27,7 +27,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=2.13")
-class ModelsWithGradleProjectViaCrossVersionSpec extends ToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
+class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
     def "Provides identified GradleBuild"() {
         setup:

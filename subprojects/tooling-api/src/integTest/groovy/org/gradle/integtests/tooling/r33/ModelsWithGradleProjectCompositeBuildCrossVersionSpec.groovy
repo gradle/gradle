@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r213
+package org.gradle.integtests.tooling.r33
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import org.gradle.integtests.tooling.r213.ModelsWithGradleProjectSpecFixtures
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.internal.DefaultBuildIdentifier
 import org.gradle.tooling.model.gradle.GradleBuild
 
@@ -91,5 +93,72 @@ class ModelsWithGradleProjectCompositeBuildCrossVersionSpec extends MultiModelTo
 
         where:
         modelType << projectScopedModels
+    }
+
+    static class ModelsWithGradleBuildIdentifierCrossVersionSpec extends MultiModelToolingApiSpecification {
+
+        def "provides identified model for single project build"() {
+            setup:
+            singleProjectBuildInRootFolder("A")
+
+            when:
+            def gradleBuilds = getUnwrappedModels(GradleBuild)
+            def models = getUnwrappedModels(modelType)
+
+            then:
+            gradleBuilds.size() == 1
+            models.size() == 1
+            assertSameIdentifiers(gradleBuilds[0], models[0])
+
+            where:
+            modelType << modelsHavingGradleBuildIdentifier
+        }
+
+        def "provides identified model for multi-project build"() {
+            setup:
+            multiProjectBuildInRootFolder("B", ['x', 'y'])
+
+            when:
+            def gradleBuilds = getUnwrappedModels(GradleBuild)
+            def models = getUnwrappedModels(modelType)
+
+            then:
+            gradleBuilds.size() == 1
+            models.size() == 1
+            assertSameIdentifiers(gradleBuilds[0], models[0])
+
+            where:
+            modelType << modelsHavingGradleBuildIdentifier
+        }
+
+        @TargetGradleVersion(">=3.1")
+        def "provides identified model for composite build"() {
+            when:
+            includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
+            def gradleBuilds = getUnwrappedModels(GradleBuild)
+            def models = getUnwrappedModels(modelType)
+
+            then:
+            gradleBuilds.size() == models.size()
+            assertSameIdentifiers(gradleBuilds, models)
+
+            where:
+            modelType << modelsHavingGradleBuildIdentifier
+        }
+
+        private static void assertSameIdentifiers(def gradleBuild, def model) {
+            assert gradleBuild.buildIdentifier == model.buildIdentifier
+        }
+
+        private static void assertSameIdentifiers(List gradleBuilds, List models) {
+            def gradleBuildIdentifiers = gradleBuilds.collect { it.buildIdentifier } as Set
+            def modelBuildIdentifiers = models.collect { it.buildIdentifier } as Set
+            assert gradleBuildIdentifiers == modelBuildIdentifiers
+        }
+
+        private static getModelsHavingGradleBuildIdentifier() {
+            List<Class<?>> models = [BuildEnvironment]
+            return models
+        }
     }
 }
