@@ -118,7 +118,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 storeFileEntry(fileDetails.getFile(), path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
             }
         };
-        directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_PARENT_DIRECTORY, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
+        directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_ROOT, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
     }
 
     private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) {
