@@ -16,6 +16,8 @@ allprojects {
                 }
             }
             jdt {
+                sourceCompatibility = '1.7'
+                targetCompatibility = '1.7'
                 javaRuntimeName = 'JavaSE-1.7'
                 file.withProperties { properties ->
                     // Eclipse's view of projects treat circular dependencies as errors by default
