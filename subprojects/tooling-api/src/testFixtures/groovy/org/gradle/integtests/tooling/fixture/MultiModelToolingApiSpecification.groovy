@@ -46,17 +46,6 @@ class MultiModelToolingApiSpecification extends ToolingApiSpecification {
         }
     }
 
-    protected assertFailureHasCause(Throwable failure, Class<Throwable> expectedType) {
-        assert failure != null
-        Throwable throwable = failure
-        List causes = []
-        while (throwable != null) {
-            causes << throwable.getClass().getCanonicalName()
-            throwable = throwable.cause
-        }
-        assert causes.contains(expectedType.getCanonicalName())
-    }
-
     private static String getCauses(Throwable throwable) {
         def causes = '';
         while (throwable != null) {

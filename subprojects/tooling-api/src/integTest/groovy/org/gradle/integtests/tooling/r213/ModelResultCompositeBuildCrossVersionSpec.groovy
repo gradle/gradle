@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.ModelResults
@@ -28,7 +29,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.DefaultBuildIdentifier
 import org.gradle.util.CollectionUtils
 
-@TargetGradleVersion(">=3.2")
+@TargetGradleVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
 class ModelResultCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
     private ModelResults<EclipseProject> modelResults
 

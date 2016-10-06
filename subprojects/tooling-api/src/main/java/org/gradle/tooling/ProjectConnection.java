@@ -124,8 +124,9 @@ public interface ProjectConnection {
      * @throws UnsupportedVersionException When the target Gradle version does not support this method.
      * @throws GradleConnectionException On failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
-     * @since 3.2
+     * @since 3.3
      */
+    @Incubating
     <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
@@ -141,8 +142,9 @@ public interface ProjectConnection {
      * @param handler The handler that will be notified of results.
      * @param <T> The model type.
      * @throws IllegalStateException When this connection has been closed or is closing.
-     * @since 3.2
+     * @since 3.3
      */
+    @Incubating
     <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
 
     /**
@@ -170,8 +172,9 @@ public interface ProjectConnection {
      *
      * @param modelType The model type.
      * @param <T> The model type.
-     * @since 3.2
+     * @since 3.3
      */
+    @Incubating
     <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
 
     /**

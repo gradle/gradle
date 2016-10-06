@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 /**
  * A set of model results for multiple projects.
  * @param <T> the type of model requested
+ *
+ * @since 3.3
  */
 @Incubating
 public interface ModelResults<T> extends Iterable<ModelResult<T>> {

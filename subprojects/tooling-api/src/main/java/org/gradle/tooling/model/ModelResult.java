@@ -26,7 +26,7 @@ import org.gradle.tooling.UnknownModelException;
  * The result of a model request.
  *
  * @param <T> Type of model in the result
- * @since 2.13
+ * @since 3.3
  */
 @Incubating
 public interface ModelResult<T> {

@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.MultiModelToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -26,7 +27,7 @@ import org.gradle.tooling.model.gradle.BuildInvocations
  * Tooling client provides progress listener for a composite build
  */
 //TODO add more coverage once composite builds report events from included builds
-@TargetGradleVersion(">=3.2")
+@TargetGradleVersion(ToolingApiVersions.SUPPORTS_MULTI_MODEL)
 class ProgressListenerCompositeBuildCrossVersionSpec extends MultiModelToolingApiSpecification {
 
     def "receive build progress events when requesting models"() {
