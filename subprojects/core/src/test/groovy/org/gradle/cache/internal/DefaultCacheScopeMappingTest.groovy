@@ -138,4 +138,52 @@ class DefaultCacheScopeMappingTest extends Specification {
         where:
         key << ["abc", "a/b/c", "module-1.2"]
     }
+
+    def "can locate cache root dir when custom project-cache-dir is used "() {
+        def projectCacheDir = tmpDir.createDir("other")
+        def rootDir = tmpDir.createDir("root")
+        def rootProject = Stub(Project) {
+            getProjectDir() >> rootDir
+        }
+        def gradle = Stub(Gradle) {
+            getRootProject() >> rootProject
+        }
+        def childProject = Stub(Project) {
+            getRootProject() >> rootProject
+        }
+        def task = Stub(Task) {
+            getProject() >> childProject
+        }
+        def mapping = new DefaultCacheScopeMapping(userHome, projectCacheDir, gradleVersion)
+
+        expect:
+        mapping.getRootDirectory(null) == userHome.file("caches")
+        mapping.getRootDirectory(gradle) == projectCacheDir
+        mapping.getRootDirectory(childProject) == projectCacheDir
+        mapping.getRootDirectory(task) == projectCacheDir
+    }
+
+    def "can locate cache root dir when default project-cache-dir is used "() {
+        def rootDir = tmpDir.createDir("root")
+        def defaultCacheDir = rootDir.createDir(".gradle")
+        def rootProject = Stub(Project) {
+            getProjectDir() >> rootDir
+        }
+        def gradle = Stub(Gradle) {
+            getRootProject() >> rootProject
+        }
+        def childProject = Stub(Project) {
+            getRootProject() >> rootProject
+        }
+        def task = Stub(Task) {
+            getProject() >> childProject
+        }
+        def mapping = new DefaultCacheScopeMapping(userHome, null, gradleVersion)
+
+        expect:
+        mapping.getRootDirectory(null) == userHome.file("caches")
+        mapping.getRootDirectory(gradle) == defaultCacheDir
+        mapping.getRootDirectory(childProject) == defaultCacheDir
+        mapping.getRootDirectory(task) == defaultCacheDir
+    }
 }
