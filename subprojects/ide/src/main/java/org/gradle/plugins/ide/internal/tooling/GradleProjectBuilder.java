@@ -54,13 +54,13 @@ public class GradleProjectBuilder implements ProjectToolingModelBuilder {
     @Override
     public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {
         DefaultGradleProject gradleProject = buildAll(project);
-        addModels(project, gradleProject, context);
+        addModelsRecursively(project, gradleProject, context);
     }
 
-    private void addModels(Project root, PartialGradleProject gradleProject, ToolingModelBuilderContext context) {
+    private void addModelsRecursively(Project root, PartialGradleProject gradleProject, ToolingModelBuilderContext context) {
         context.addModel(root.findProject(gradleProject.getPath()),  gradleProject);
         for (PartialGradleProject childProject : gradleProject.getChildren()) {
-            addModels(root, childProject, context);
+            addModelsRecursively(root, childProject, context);
         }
     }
 
