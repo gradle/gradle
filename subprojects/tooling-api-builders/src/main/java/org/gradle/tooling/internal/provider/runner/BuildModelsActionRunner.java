@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
@@ -52,15 +54,27 @@ public class BuildModelsActionRunner implements BuildActionRunner {
         }
 
         BuildModelsAction buildModelsAction = (BuildModelsAction) action;
-        GradleInternal gradle = buildController.getGradle();
+        final GradleInternal gradle = buildController.getGradle();
+        final String modelName = buildModelsAction.getModelName();
+        final InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
 
-        String modelName = buildModelsAction.getModelName();
-        InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
+        gradle.addBuildListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                if (result.getFailure() == null) {
+                    try {
+                        forceFullConfiguration(gradle);
+                        collectModelsFromThisBuild(gradle, modelName, compositeResults);
+                        collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
+                    } catch (RuntimeException e) {
+                        compositeResults.addBuildFailure(getRootDir(gradle), transformFailure(e));
+                    }
+                }
+            }
+        });
+
         try {
             buildController.configure();
-            forceFullConfiguration(gradle);
-            collectModelsFromThisBuild(gradle, modelName, compositeResults);
-            collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
         } catch (RuntimeException e) {
             compositeResults.addBuildFailure(getRootDir(gradle), transformFailure(e));
         }
