@@ -29,12 +29,6 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
     }
 
-    protected void cleanup() {
-        // Need to kill daemons before test files are cleaned up, as the log files and registry are used to locate the daemons and these live under
-        // the test file directory.
-        daemons.killAll()
-    }
-
     void stopDaemonsNow() {
         result = executer.withArguments("--stop", "--info").run()
     }

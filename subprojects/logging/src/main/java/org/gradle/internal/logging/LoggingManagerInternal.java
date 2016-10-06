@@ -35,12 +35,18 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
     LoggingManagerInternal stop();
 
     /**
-     * Consumes logging from System.out, System.err and Java util logging.
+     * Consumes logging from System.out and System.err and Java util logging.
      */
     LoggingManagerInternal captureSystemSources();
 
+    /**
+     * Sets the log level to capture stdout at. Does not enable capture.
+     */
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
+    /**
+     * Sets the log level to capture stderr at. Does not enable capture.
+     */
     LoggingManagerInternal captureStandardError(LogLevel level);
 
     LoggingManagerInternal setLevelInternal(LogLevel logLevel);

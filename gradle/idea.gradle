@@ -93,8 +93,7 @@ idea {
                 gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
 
                 // set compiler heap space
-                def javacSettings = node.appendNode('component', [name: 'JavacSettings'])
-                javacSettings.appendNode('option', [name: 'MAXIMUM_HEAP_SIZE', value: "256"])
+                compilerConfig.appendNode('option', [name: 'BUILD_PROCESS_HEAP_SIZE', value: '2048'])
 
                 // Nullability annotations
                 def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
@@ -183,6 +182,7 @@ idea {
                 '''))
 
                 node.append(new NodeBuilder().component(name: 'FrameworkDetectionExcludesConfiguration') {
+                  type(id: 'android')
                   type(id: 'web')
                 })
             }

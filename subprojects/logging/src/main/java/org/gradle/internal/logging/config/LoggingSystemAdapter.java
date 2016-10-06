@@ -23,6 +23,7 @@ import org.gradle.api.logging.LogLevel;
  */
 public class LoggingSystemAdapter implements LoggingSourceSystem {
     private final LoggingConfigurer configurer;
+    private boolean enabled;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public LoggingSystemAdapter(LoggingConfigurer configurer) {
@@ -30,33 +31,44 @@ public class LoggingSystemAdapter implements LoggingSourceSystem {
     }
 
     public Snapshot snapshot() {
-        return new SnapshotImpl(logLevel);
+        return new SnapshotImpl(enabled, logLevel);
     }
 
     @Override
-    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
-        SnapshotImpl snapshot = new SnapshotImpl(this.logLevel);
-        setLevel(defaultLevel);
+    public Snapshot setLevel(LogLevel logLevel) {
+        Snapshot snapshot = snapshot();
+        if (this.logLevel != logLevel) {
+            this.logLevel = logLevel;
+            if (enabled) {
+                configurer.configure(logLevel);
+            }
+        }
+        return snapshot;
+    }
+
+    @Override
+    public Snapshot startCapture() {
+        Snapshot snapshot = snapshot();
+        if (!enabled) {
+            enabled = true;
+            configurer.configure(logLevel);
+        }
         return snapshot;
     }
 
     public void restore(Snapshot state) {
-        LogLevel oldLevel = ((SnapshotImpl) state).level;
-        this.logLevel = oldLevel;
-        if (oldLevel != null) {
-            configurer.configure(oldLevel);
-        }
-    }
-
-    private void setLevel(LogLevel level) {
-        configurer.configure(level);
-        this.logLevel = level;
+        SnapshotImpl snapshot = (SnapshotImpl) state;
+        logLevel = snapshot.level;
+        enabled = snapshot.enabled;
+        configurer.configure(logLevel);
     }
 
     private class SnapshotImpl implements Snapshot {
+        private final boolean enabled;
         private final LogLevel level;
 
-        public SnapshotImpl(LogLevel level) {
+        SnapshotImpl(boolean enabled, LogLevel level) {
+            this.enabled = enabled;
             this.level = level;
         }
     }

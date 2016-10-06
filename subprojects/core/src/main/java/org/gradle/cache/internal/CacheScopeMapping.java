@@ -22,4 +22,6 @@ import java.io.File;
 
 public interface CacheScopeMapping {
     File getBaseDirectory(@Nullable Object scope, String key, VersionStrategy versionStrategy);
+
+    File getRootDirectory(@Nullable Object scope);
 }

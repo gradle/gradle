@@ -17,10 +17,11 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(BasicPerformanceTest)
+@Category([Experiment, BasicPerformanceTest])
 class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
@@ -30,17 +31,27 @@ class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceT
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject).displayName("always-miss pull-only cache").invocation {
-                tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+            }
+        }
+        runner.buildSpec {
+            projectName(testProject).displayName("push-only cache").invocation {
+                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.pull=false")
             }
         }
         runner.buildSpec {
             projectName(testProject).displayName("fully cached").invocation {
-                tasksToRun(tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
+                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
+            }
+        }
+        runner.baseline {
+            projectName(testProject).displayName("fully up-to-date").invocation {
+                tasksToRun(tasks).useDaemon()
             }
         }
         runner.baseline {
             projectName(testProject).displayName("non-cached").invocation {
-                tasksToRun(tasks).useDaemon()
+                tasksToRun("clean", *tasks).useDaemon()
             }
         }
 
@@ -49,8 +60,8 @@ class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceT
 
         where:
         testProject            | tasks
-        "multi"                | ["clean", "build"]
-        "largeEnterpriseBuild" | ["clean", "assemble"]
+        "multi"                | ["build"]
+        "largeEnterpriseBuild" | ["assemble"]
     }
 
 }

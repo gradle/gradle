@@ -81,7 +81,6 @@ class TarTaskOutputPackerTest extends Specification {
         "0755" | _
     }
 
-    @Unroll
     def "can pack task output directory"() {
         def sourceOutputDir = tempDir.file("source").createDir()
         def sourceSubDir = sourceOutputDir.file("subdir").createDir()

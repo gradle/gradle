@@ -26,16 +26,15 @@ import spock.lang.Specification
 class CacheStatisticsReporterTest extends Specification {
     private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     private CacheStatisticsReporter statisticsReporter = new CacheStatisticsReporter(textOutputFactory)
-    private TaskExecutionStatistics statistics = Mock(TaskExecutionStatistics)
 
     def 'all statistics are reported'() {
         given:
-        recordedTaskStatistics(
+        def statistics = new TaskExecutionStatistics(
             (TaskExecutionOutcome.FROM_CACHE): 3,
             (TaskExecutionOutcome.UP_TO_DATE): 2,
             (TaskExecutionOutcome.SKIPPED): 1,
             (TaskExecutionOutcome.EXECUTED): 4,
-            10, 5
+            3
         )
         when:
         statisticsReporter.buildFinished(statistics)
@@ -43,20 +42,21 @@ class CacheStatisticsReporterTest extends Specification {
         then:
         TextUtil.normaliseLineSeparators(textOutputFactory as String) ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
-              |10 tasks in build, out of which 5 (50%) were cacheable
+              |10 tasks in build, out of which 4 (40%) were executed
+              | 1  (10%) skipped
               | 2  (20%) up-to-date
               | 3  (30%) loaded from cache
-              | 1  (10%) skipped
-              | 4  (40%) executed
+              | 3  (30%) cache miss
+              | 1  (10%) not cacheable
               |""".stripMargin()
     }
 
     def 'zero counts are not reported'() {
         given:
-        recordedTaskStatistics(
+        def statistics = new TaskExecutionStatistics(
             (TaskExecutionOutcome.FROM_CACHE): 3,
             (TaskExecutionOutcome.EXECUTED): 7,
-            10, 0
+            2
         )
         when:
         statisticsReporter.buildFinished(statistics)
@@ -64,20 +64,21 @@ class CacheStatisticsReporterTest extends Specification {
         then:
         TextUtil.normaliseLineSeparators(textOutputFactory as String) ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
-              |10 tasks in build, out of which 0 (0%) were cacheable
+              |10 tasks in build, out of which 7 (70%) were executed
               | 3  (30%) loaded from cache
-              | 7  (70%) executed
+              | 2  (20%) cache miss
+              | 5  (50%) not cacheable
               |""".stripMargin()
     }
 
     def 'percentages are rounded'() {
         given:
-        recordedTaskStatistics(
-            (TaskExecutionOutcome.UP_TO_DATE): 305,
+        def statistics = new TaskExecutionStatistics(
+            (TaskExecutionOutcome.UP_TO_DATE): 315,
             (TaskExecutionOutcome.FROM_CACHE): 206,
             (TaskExecutionOutcome.SKIPPED): 75,
             (TaskExecutionOutcome.EXECUTED): 404,
-            1000, 206
+            125
         )
         when:
         statisticsReporter.buildFinished(statistics)
@@ -85,26 +86,12 @@ class CacheStatisticsReporterTest extends Specification {
         then:
         TextUtil.normaliseLineSeparators(textOutputFactory as String) ==
             """{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}
-              |1000 tasks in build, out of which 206 (21%) were cacheable
-              | 305  (31%) up-to-date
-              | 206  (21%) loaded from cache
+              |1000 tasks in build, out of which 404 (40%) were executed
               |  75   (8%) skipped
-              | 404  (40%) executed
+              | 315  (32%) up-to-date
+              | 206  (21%) loaded from cache
+              | 125  (13%) cache miss
+              | 279  (28%) not cacheable
               |""".stripMargin()
-    }
-
-    private void recordedTaskStatistics(Map<TaskExecutionOutcome, Integer> counts, Integer allTasksCount, Integer cacheableTasksCount) {
-        interaction {
-            statistics.cacheableTasksCount >> cacheableTasksCount
-            statistics.allTasksCount >> allTasksCount
-            ([
-                (TaskExecutionOutcome.FROM_CACHE): 0,
-                (TaskExecutionOutcome.UP_TO_DATE): 0,
-                (TaskExecutionOutcome.SKIPPED): 0,
-                (TaskExecutionOutcome.EXECUTED): 0,
-            ] + counts).each { outcome, count ->
-                statistics.getTasksCount(outcome) >> count
-            }
-        }
     }
 }

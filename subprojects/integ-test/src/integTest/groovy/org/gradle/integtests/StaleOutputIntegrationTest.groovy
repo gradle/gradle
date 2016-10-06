@@ -22,7 +22,7 @@ import spock.lang.Issue
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
     def 'stale classes are removed after Java sources are removed'() {
-        setup: 'a minimal java build'
+        setup:
         buildScript("apply plugin: 'java'")
         def fooJavaFile = file('src/main/java/Foo.java') << 'public class Foo {}'
         def fooClassFile = file('build/classes/main/Foo.class')
@@ -33,29 +33,29 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         '''
         def barClassFile = file('build/classes/main/com/example/Bar.class')
 
-        when: 'a build is executed'
+        when:
         succeeds('compileJava')
 
-        then: 'class file exists as expected'
+        then:
         fooClassFile.exists()
         nonSkippedTasks.contains(':compileJava')
 
-        when: 'Java source files are deleted, leaving empty input source directory'
+        when:
         fooJavaFile.delete()
         barJavaFile.delete()
 
-        and: 'another build is executed'
+        and:
         succeeds('compileJava')
 
-        then: 'source file was actually deleted'
+        then:
         !fooClassFile.exists()
         !barClassFile.exists()
         nonSkippedTasks.contains(':compileJava')
 
-        and: 'another build is executed'
+        and:
         succeeds('compileJava')
 
-        then: 'source file is still absent'
+        then:
         !fooClassFile.exists()
         !barClassFile.exists()
         skippedTasks.contains(':compileJava')
@@ -85,27 +85,27 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: 'a build is executed'
+        when:
         succeeds('test')
 
-        then: 'class file exists as expected'
+        then:
         outputFile.exists()
         nonSkippedTasks.contains(':test')
 
-        when: 'Java source files are deleted, leaving empty input source directory'
+        when:
         inputFile.parentFile.deleteDir()
 
-        and: 'another build is executed'
+        and:
         succeeds('test')
 
-        then: 'source file was actually deleted'
+        then:
         !outputFile.exists()
         nonSkippedTasks.contains(':test')
 
-        and: 'another build is executed'
+        and:
         succeeds('test')
 
-        then: 'source file is still absent'
+        then:
         !outputFile.exists()
         skippedTasks.contains(':test')
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
@@ -28,7 +29,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
     private final File buildCacheDir;
     private final GradleVersion version;
 
-    public DefaultCacheScopeMapping(File userHomeDir, File buildCacheDir, GradleVersion version) {
+    public DefaultCacheScopeMapping(File userHomeDir, @Nullable File buildCacheDir, GradleVersion version) {
         this.version = version;
         this.globalCacheDir = new File(userHomeDir, "caches");
         this.buildCacheDir = buildCacheDir;
@@ -38,20 +39,35 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         if (key.equalsIgnoreCase("projects") || key.equalsIgnoreCase("tasks") || !key.matches("\\p{Alpha}+[-//.\\w]*")) {
             throw new IllegalArgumentException(String.format("Unsupported cache key '%s'.", key));
         }
-        if (scope == null) {
-            return getCacheDir(globalCacheDir, versionStrategy, key);
-        }
-        if (scope instanceof Gradle) {
-            Gradle gradle = (Gradle) scope;
-            return getCacheDir(getBuildCacheDir(gradle.getRootProject()), versionStrategy, key);
-        }
+        File cacheRootDir = getRootDirectory(scope);
+        String subDir = key;
         if (scope instanceof Project) {
             Project project = (Project) scope;
-            return getCacheDir(getBuildCacheDir(project.getRootProject()), versionStrategy, "projects/" + project.getPath().replace(':', '_') + "/" + key);
+            subDir = "projects/" + project.getPath().replace(':', '_') + "/" + key;
         }
         if (scope instanceof Task) {
             Task task = (Task) scope;
-            return getCacheDir(getBuildCacheDir(task.getProject().getRootProject()), versionStrategy, "tasks/" + task.getPath().replace(':', '_') + "/" + key);
+            subDir = "tasks/" + task.getPath().replace(':', '_') + "/" + key;
+        }
+        return getCacheDir(cacheRootDir, versionStrategy, subDir);
+    }
+
+    @Override
+    public File getRootDirectory(@Nullable Object scope) {
+        if (scope == null) {
+            return globalCacheDir;
+        }
+        if (scope instanceof Gradle) {
+            Gradle gradle = (Gradle) scope;
+            return getBuildCacheDir(gradle.getRootProject());
+        }
+        if (scope instanceof Project) {
+            Project project = (Project) scope;
+            return getBuildCacheDir(project.getRootProject());
+        }
+        if (scope instanceof Task) {
+            Task task = (Task) scope;
+            return getBuildCacheDir(task.getProject().getRootProject());
         }
         throw new IllegalArgumentException(String.format("Don't know how to determine the cache directory for scope of type %s.", scope.getClass().getSimpleName()));
     }

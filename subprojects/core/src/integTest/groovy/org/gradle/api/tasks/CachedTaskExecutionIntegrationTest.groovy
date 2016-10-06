@@ -88,19 +88,31 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.containsAll ":compileJava", ":jar"
     }
 
-    def 'cached tasks are executed with --rerun-tasks'() {
+    def "cached tasks are executed with --rerun-tasks"() {
+        expect:
+        cacheDir.listFiles() as List == []
+
         when:
         succeedsWithCache "jar"
+        def originalCacheContents = (cacheDir.listFiles() as List).sort()
+        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
         skippedTasks.empty
+        originalCacheContents.size() > 0
 
         expect:
         succeedsWithCache "clean"
 
         when:
         succeedsWithCache "jar", "--rerun-tasks"
+        def updatedCacheContents = (cacheDir.listFiles() as List).sort()
+        def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
+        updatedCacheContents == originalCacheContents
+        originalModificationTimes.size().times { i ->
+            assert originalModificationTimes[i] < updatedModificationTimes[i]
+        }
     }
 
     def "task results don't get stored when pushing is disabled"() {
@@ -119,18 +131,30 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task results don't get loaded when pulling is disabled"() {
+        expect:
+        cacheDir.listFiles() as List == []
+
         when:
         succeedsWithCache "jar"
+        def originalCacheContents = (cacheDir.listFiles() as List).sort()
+        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
         skippedTasks.empty
+        originalCacheContents.size() > 0
 
         expect:
         succeedsWithCache "clean"
 
         when:
         succeedsWithCache "jar", "-Dorg.gradle.cache.tasks.pull=false"
+        def updatedCacheContents = (cacheDir.listFiles() as List).sort()
+        def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
+        updatedCacheContents == originalCacheContents
+        originalModificationTimes.size().times { i ->
+            assert originalModificationTimes[i] < updatedModificationTimes[i]
+        }
     }
 
     def "buildSrc is loaded from cache"() {
@@ -436,7 +460,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":customTask"
     }
 
-    def 'ad hoc tasks are not cacheable by default'() {
+    def "ad hoc tasks are not cacheable by default"() {
         given:
         file("input.txt") << "data"
         buildFile << adHocTaskWithInputs()
@@ -445,7 +469,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         taskIsNotCached ':adHocTask'
     }
 
-    def 'ad hoc tasks are cached when explicitly requested'() {
+    def "ad hoc tasks are cached when explicitly requested"() {
         given:
         file("input.txt") << "data"
         buildFile << adHocTaskWithInputs()
@@ -456,7 +480,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    def 'can load twice from the cache with no changes'() {
+    def "can load twice from the cache with no changes"() {
         given:
         buildFile << """
             apply plugin: "application"
@@ -482,7 +506,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ':compileJava'
     }
 
-    def 'task execution statistics are reported'() {
+    def "task execution statistics are reported"() {
         given:
         // Force a forking executer
         // This is necessary since for the embedded executer
@@ -507,8 +531,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains """
-            3 tasks in build, out of which 2 (67%) were cacheable
-            3 (100%) executed
+            3 tasks in build, out of which 3 (100%) were executed
+            2  (67%) cache miss
+            1  (33%) not cacheable
         """ .stripIndent()
 
         when:
@@ -517,10 +542,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains """
-            3 tasks in build, out of which 1 (33%) were cacheable
+            3 tasks in build, out of which 1 (33%) were executed
             1  (33%) up-to-date
             1  (33%) loaded from cache
-            1  (33%) executed
+            1  (33%) not cacheable
         """.stripIndent()
     }
 

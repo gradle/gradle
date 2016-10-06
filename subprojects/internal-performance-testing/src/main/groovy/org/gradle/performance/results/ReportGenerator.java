@@ -53,7 +53,7 @@ public class ReportGenerator {
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
-                PerformanceTestHistory testResults = store.getTestResults(testName, 100, 90, ResultsStoreHelper.determineChannel());
+                PerformanceTestHistory testResults = store.getTestResults(testName, 500, 90, ResultsStoreHelper.determineChannel());
                 fileRenderer.render(testResults, testHtmlRenderer, new File(testsDir, testResults.getId() + ".html"));
                 fileRenderer.render(testResults, testDataRenderer, new File(testsDir, testResults.getId() + ".json"));
             }

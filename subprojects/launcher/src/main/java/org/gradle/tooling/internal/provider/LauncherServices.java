@@ -25,9 +25,8 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
@@ -51,7 +50,6 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
-
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
@@ -61,10 +59,17 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory) {
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
             List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
-            BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
-            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory);
+            return new ServicesSetupBuildActionExecuter(
+                new ContinuousBuildActionExecuter(
+                    new InProcessBuildActionExecuter(gradleLauncherFactory,
+                        new ChainingBuildActionRunner(buildActionRunners)),
+                    fileWatcherFactory,
+                    listenerManager,
+                    styledTextOutputFactory,
+                    executorFactory),
+                userHomeServiceRegistry);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

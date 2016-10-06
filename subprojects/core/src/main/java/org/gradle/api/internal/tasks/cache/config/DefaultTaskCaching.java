@@ -34,7 +34,14 @@ public class DefaultTaskCaching implements TaskCachingInternal {
             return new LocalDirectoryTaskOutputCache(cacheDirectory);
         }
     };
+    private final boolean pullAllowed;
+    private final boolean pushAllowed;
     private TaskOutputCacheFactory factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
+
+    public DefaultTaskCaching() {
+        this.pullAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
+        this.pushAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
+    }
 
     @Override
     public void useLocalCache() {
@@ -63,11 +70,11 @@ public class DefaultTaskCaching implements TaskCachingInternal {
 
     @Override
     public boolean isPullAllowed() {
-        return "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
+        return pullAllowed;
     }
 
     @Override
     public boolean isPushAllowed() {
-        return "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
+        return pushAllowed;
     }
 }

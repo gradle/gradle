@@ -54,7 +54,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
-        return new ForkingGradleExecuter(this, testDirectoryProvider);
+        return new ForkingGradleExecuter(this, testDirectoryProvider, version);
     }
 
     public boolean worksWith(Jvm jvm) {

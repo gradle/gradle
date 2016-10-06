@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
-import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
@@ -59,7 +59,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     List<DaemonFixture> getDaemons() {
         if (!daemonLogsDir.exists() || !daemonLogsDir.isDirectory()) {
-            throw new IllegalStateException("Daemon logs directory $daemonLogsDir does not exist or is not a directory")
+            return []
         }
         return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
     }

@@ -22,13 +22,13 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.ChangeReporter;
@@ -41,10 +41,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
@@ -54,7 +52,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ContinuousBuildActionExecuter implements BuildExecuter {
+public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final OperatingSystem operatingSystem;
@@ -77,15 +75,10 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(contextServices, action.getStartParameter(), actionParameters.getInjectedPluginClasspath());
-        try {
-            if (actionParameters.isContinuous()) {
-                return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices);
-            } else {
-                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
-            }
-        } finally {
-            CompositeStoppable.stoppable(buildSessionScopeServices).stop();
+        if (actionParameters.isContinuous()) {
+            return executeMultipleBuilds(action, requestContext, actionParameters, contextServices);
+        } else {
+            return delegate.execute(action, requestContext, actionParameters, contextServices);
         }
     }
 
@@ -170,7 +163,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     }
 
     private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        TaskInputsListener listener = new ContinuousBuildTaskInputsListener(waiter);
+        TaskInputsListener listener = new ContinuousBuildTaskInputsListener(waiter, buildSessionScopeServices.get(CacheScopeMapping.class));
         listenerManager.addListener(listener);
         try {
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
@@ -181,12 +174,14 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
     private static class ContinuousBuildTaskInputsListener implements TaskInputsListener {
         private final FileSystemChangeWaiter waiter;
+        private final CacheScopeMapping cacheScopeMapping;
         private final AtomicBoolean cacheDirectoryIgnored = new AtomicBoolean(false);
         private final ReentrantLock lock = new ReentrantLock();
         private final Set<File> ignoredBuildDirectories = new HashSet<File>();
 
-        public ContinuousBuildTaskInputsListener(FileSystemChangeWaiter waiter) {
+        public ContinuousBuildTaskInputsListener(FileSystemChangeWaiter waiter, CacheScopeMapping cacheScopeMapping) {
             this.waiter = waiter;
+            this.cacheScopeMapping = cacheScopeMapping;
         }
 
         @Override
@@ -210,9 +205,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
         private void ignoreGradleCacheDirectory(TaskInternal taskInternal) {
             if (!cacheDirectoryIgnored.get()) {
-                File rootProjectDir = taskInternal.getProject().getRootProject().getRootDir();
-                // cache dir defined in org.gradle.cache.internal.DefaultCacheScopeMapping
-                waiter.ignoreDirectory(new File(rootProjectDir, ".gradle"));
+                waiter.ignoreDirectory(cacheScopeMapping.getRootDirectory(taskInternal));
                 cacheDirectoryIgnored.set(true);
             }
         }

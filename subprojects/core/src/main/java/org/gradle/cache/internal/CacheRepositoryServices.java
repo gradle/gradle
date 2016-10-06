@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.cache.CacheRepository;
 import org.gradle.util.GradleVersion;
 
@@ -25,7 +26,7 @@ public class CacheRepositoryServices {
     private final File gradleUserHomeDir;
     private final File projectCacheDir;
 
-    public CacheRepositoryServices(File gradleUserHomeDir, File projectCacheDir) {
+    public CacheRepositoryServices(File gradleUserHomeDir, @Nullable File projectCacheDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.projectCacheDir = projectCacheDir;
     }

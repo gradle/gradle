@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.daemon
+package org.gradle.initialization;
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.util.GradleVersion
+import java.io.File;
 
-class DaemonTestFixture {
-    static void killIsolatedDaemons(GradleExecuter executer, GradleVersion version = GradleVersion.current()) {
-        if (GradleContextualExecuter.daemon && !executer.usesSharedDaemons()) {
-            new DaemonLogsAnalyzer(executer.daemonBaseDir, version.version).killAll()
-        }
-    }
+public interface GradleUserHomeDirProvider {
+    /**
+     * Returns the user home directory for the current build.
+     */
+    File getGradleUserHomeDirectory();
 }

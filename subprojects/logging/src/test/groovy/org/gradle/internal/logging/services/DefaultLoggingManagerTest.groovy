@@ -78,8 +78,12 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * stdOutLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> stdOutSnapshot
-        1 * stdErrLoggingSystem.on(LogLevel.INFO, LogLevel.INFO) >> stdErrSnapshot
+        1 * stdOutLoggingSystem.snapshot() >> stdOutSnapshot
+        1 * stdErrLoggingSystem.snapshot() >> stdErrSnapshot
+        1 * stdOutLoggingSystem.setLevel(LogLevel.DEBUG)
+        1 * stdErrLoggingSystem.setLevel(LogLevel.INFO)
+        0 * stdOutLoggingSystem._
+        0 * stdErrLoggingSystem._
 
         when:
         loggingManager.stop()
@@ -94,21 +98,22 @@ public class DefaultLoggingManagerTest extends Specification {
 
         final LoggingSystem.Snapshot stdOutSnapshot = Mock(LoggingSystem.Snapshot.class)
         final LoggingSystem.Snapshot stdErrSnapshot = Mock(LoggingSystem.Snapshot.class)
-        final LoggingSystem.Snapshot javaUtilSnapshot = Mock(LoggingSystem.Snapshot.class)
 
         when:
         loggingManager.start()
 
         then:
-        1 * javaUtilLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> javaUtilSnapshot
-        1 * stdOutLoggingSystem.on(LogLevel.QUIET, LogLevel.QUIET) >> stdOutSnapshot
-        1 * stdErrLoggingSystem.on(LogLevel.ERROR, LogLevel.ERROR) >> stdErrSnapshot
+        1 * stdOutLoggingSystem.snapshot() >> stdOutSnapshot
+        1 * stdErrLoggingSystem.snapshot() >> stdErrSnapshot
+        1 * stdOutLoggingSystem.startCapture()
+        1 * stdErrLoggingSystem.startCapture()
+        0 * stdOutLoggingSystem._
+        0 * stdErrLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
-        1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * stdOutLoggingSystem.restore(stdOutSnapshot)
         1 * stdErrLoggingSystem.restore(stdErrSnapshot)
     }
@@ -118,30 +123,39 @@ public class DefaultLoggingManagerTest extends Specification {
 
         final def routerSnapshot = Mock(LoggingSystem.Snapshot)
         final def slf4jSnapshot = Mock(LoggingSystem.Snapshot)
+        final def javaUtilSnapshot = Mock(LoggingSystem.Snapshot)
 
         when:
         loggingManager.start()
 
         then:
-        1 * slf4jLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> slf4jSnapshot
+        1 * slf4jLoggingSystem.snapshot() >> slf4jSnapshot
+        1 * javaUtilLoggingSystem.snapshot() >> javaUtilSnapshot
+        1 * slf4jLoggingSystem.startCapture()
+        1 * slf4jLoggingSystem.setLevel(LogLevel.DEBUG)
+        1 * javaUtilLoggingSystem.setLevel(LogLevel.DEBUG)
         1 * loggingRouter.snapshot() >> routerSnapshot
         1 * loggingRouter.configure(LogLevel.DEBUG)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * loggingRouter.restore(routerSnapshot)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
     }
 
     public void "can start and stop with log level not set"() {
         final slf4jSnapshot = Mock(LoggingSystem.Snapshot.class);
         final routerSnapshot = Mock(LoggingSystem.Snapshot.class);
+        final javaUtilSnapshot = Mock(LoggingSystem.Snapshot.class);
 
         when:
         loggingManager.start()
@@ -149,8 +163,11 @@ public class DefaultLoggingManagerTest extends Specification {
         then:
         1 * loggingRouter.snapshot() >> routerSnapshot
         1 * slf4jLoggingSystem.snapshot() >> slf4jSnapshot
+        1 * javaUtilLoggingSystem.snapshot() >> javaUtilSnapshot
+        1 * slf4jLoggingSystem.startCapture()
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
 
         when:
         loggingManager.stop()
@@ -158,8 +175,10 @@ public class DefaultLoggingManagerTest extends Specification {
         then:
         1 * loggingRouter.restore(routerSnapshot)
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
     }
 
     public void "can change capture level while started"() {
@@ -173,14 +192,16 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * stdOutLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> stdOutSnapshot
-        1 * stdErrLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> stdErrSnapshot
+        1 * stdOutLoggingSystem.snapshot() >> stdOutSnapshot
+        1 * stdErrLoggingSystem.snapshot() >> stdErrSnapshot
+        1 * stdOutLoggingSystem.setLevel(LogLevel.DEBUG)
+        1 * stdErrLoggingSystem.setLevel(LogLevel.DEBUG)
 
         when:
         loggingManager.captureStandardOutput(LogLevel.WARN)
 
         then:
-        1 * stdOutLoggingSystem.on(LogLevel.WARN, LogLevel.WARN)
+        1 * stdOutLoggingSystem.setLevel(LogLevel.WARN)
 
         when:
         loggingManager.stop()
@@ -193,33 +214,41 @@ public class DefaultLoggingManagerTest extends Specification {
     public void "can change log level while started"() {
         final slf4jSnapshot = Mock(LoggingSystem.Snapshot.class)
         final routerSnapshot = Mock(LoggingSystem.Snapshot.class)
+        final javaUtilSnapshot = Mock(LoggingSystem.Snapshot.class);
 
         when:
         loggingManager.start()
 
         then:
-        1 * slf4jLoggingSystem.snapshot() >> slf4jSnapshot
         1 * loggingRouter.snapshot() >> routerSnapshot
+        1 * slf4jLoggingSystem.snapshot() >> slf4jSnapshot
+        1 * javaUtilLoggingSystem.snapshot() >> javaUtilSnapshot
+        1 * slf4jLoggingSystem.startCapture()
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
 
         when:
         loggingManager.setLevelInternal(LogLevel.LIFECYCLE)
 
         then:
-        1 * slf4jLoggingSystem.on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE) >> Mock(LoggingSystem.Snapshot.class)
+        1 * slf4jLoggingSystem.setLevel(LogLevel.LIFECYCLE)
+        1 * javaUtilLoggingSystem.setLevel(LogLevel.LIFECYCLE)
         1 * loggingRouter.configure(LogLevel.LIFECYCLE)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * loggingRouter.restore(routerSnapshot)
         0 * loggingRouter._
         0 * slf4jLoggingSystem._
+        0 * javaUtilLoggingSystem._
     }
 
     public void "adds standard out listener on start and removes on stop"() {
