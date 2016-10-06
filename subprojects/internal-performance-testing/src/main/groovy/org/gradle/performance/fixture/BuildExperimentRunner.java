@@ -76,6 +76,7 @@ public class BuildExperimentRunner {
         InvocationSpec invocationSpec = experiment.getInvocation();
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
+            honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
             File workingDirectory = invocation.getWorkingDirectory();
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
