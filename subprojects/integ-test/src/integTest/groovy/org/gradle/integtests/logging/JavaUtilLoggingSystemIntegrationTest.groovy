@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.logging
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
@@ -60,6 +61,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
+    @NotYetImplemented
     def 'JUL logger.isLoggable corresponds to gradle log level for --info'() {
         given:
         buildFile << """
@@ -85,6 +87,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
+    @NotYetImplemented
     def 'JUL logger.isLoggable corresponds to gradle log level for LIFECYCLE'() {
         given:
         buildFile << """
@@ -110,6 +113,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
+    @NotYetImplemented
     def 'JUL logger.isLoggable corresponds to gradle log level for --quiet'() {
         given:
         buildFile << """
