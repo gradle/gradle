@@ -97,6 +97,13 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+### Fixed a performance problem in the Tooling API
+
+The dependency resolution caches were not being filled when building Tooling API models. 
+As a result, IDE import was very slow when the caches were cold. This especially affected
+builds with many dynamic dependencies and low cache timeouts. One large enterprise project
+saw import times drop by a factor of 100.
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
@@ -146,9 +153,9 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Tooling API builders run before buildFinished listeners
+
+Tooling API model builders are now executed before any `buildFinished` listeners have been notified.
 
 ## External contributions
 
