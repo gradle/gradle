@@ -55,10 +55,6 @@ version of the same module cause the replacement of the subproject by the other 
 
 ### Incremental build improvements
 
-#### Relocatable Java tasks
-
-If you move your whole project on the local disk, tasks like Java compilation, code quality measurements, packaging JARs, WARs and EARs now stay up-to-date. This also allows for building your project halfway on CI, then making several copies of it, and then continuing to build it at the new locations.
-
 #### Java compilation tracks Java version used
 
 If you change the Java version used to compile your sources, the compile task will now become out-of-date, and the sources will be recompiled.
