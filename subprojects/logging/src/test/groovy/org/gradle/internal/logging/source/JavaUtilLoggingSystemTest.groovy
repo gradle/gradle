@@ -22,6 +22,7 @@ import org.gradle.internal.logging.TestOutputEventListener
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.logging.Level
 import java.util.logging.Logger
 
 class JavaUtilLoggingSystemTest extends Specification {
@@ -52,5 +53,59 @@ class JavaUtilLoggingSystemTest extends Specification {
 
         then:
         outputEventListener.toString() == '[INFO info message]'
+    }
+
+    def "Log level is not propagated if the logging system was not started"() {
+        when:
+        configurer.setLevel(LogLevel.DEBUG)
+
+        then:
+        Logger.getLogger("").getLevel() == Level.INFO
+    }
+
+    def "Starting without setting a log level does not crash, but no level is set"() {
+        when:
+        configurer.startCapture()
+
+        then:
+        Logger.getLogger("").getLevel() == null
+    }
+
+    def "Log level can be set before starting"() {
+        when:
+        configurer.setLevel(LogLevel.DEBUG)
+        configurer.startCapture()
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
+    }
+
+    def "Log level can be set after starting"() {
+        when:
+        configurer.startCapture()
+        configurer.setLevel(LogLevel.DEBUG)
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
+    }
+
+    def "Log level can be changed while running"() {
+        when:
+        configurer.startCapture()
+        configurer.setLevel(LogLevel.LIFECYCLE)
+        configurer.setLevel(LogLevel.DEBUG)
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
+    }
+
+    def "Log level can be changed before starting"() {
+        when:
+        configurer.setLevel(LogLevel.LIFECYCLE)
+        configurer.setLevel(LogLevel.DEBUG)
+        configurer.startCapture()
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
     }
 }

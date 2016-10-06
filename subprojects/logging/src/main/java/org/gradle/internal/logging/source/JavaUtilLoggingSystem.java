@@ -70,9 +70,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     @Override
     public Snapshot startCapture() {
         Snapshot snapshot = snapshot();
-        if (!installed) {
-            install(LOG_LEVEL_MAPPING.get(requestedLevel));
-        }
+        install(LOG_LEVEL_MAPPING.get(requestedLevel));
         return snapshot;
     }
 
