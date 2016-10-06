@@ -46,6 +46,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         }
     });
     private PrintStreamDestination original;
+    private boolean enabled;
     private LogLevel logLevel;
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
@@ -66,44 +67,62 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     protected abstract void set(PrintStream printStream);
 
     public Snapshot snapshot() {
-        return new SnapshotImpl(logLevel);
+        return new SnapshotImpl(enabled, logLevel);
     }
 
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
-        if (snapshot.logLevel == null) {
-            off();
+        enabled = snapshot.enabled;
+        logLevel = snapshot.logLevel;
+        if (enabled) {
+            install();
         } else {
-            on(snapshot.logLevel, snapshot.logLevel);
+            uninstall();
         }
     }
 
     @Override
-    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
+    public Snapshot setLevel(LogLevel logLevel) {
         Snapshot snapshot = snapshot();
+        if (logLevel != this.logLevel) {
+            this.logLevel = logLevel;
+            if (enabled) {
+                outstr.flush();
+                outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
+            }
+        }
+        return snapshot;
+    }
+
+    @Override
+    public Snapshot startCapture() {
+        Snapshot snapshot = snapshot();
+        if (!enabled) {
+            install();
+        }
+        return snapshot;
+    }
+
+    private void uninstall() {
+        if (original != null) {
+            outstr.flush();
+            destination.set(original);
+            set(original.originalStream);
+        }
+    }
+
+    private void install() {
         if (original == null) {
             PrintStream originalStream = get();
             original = new PrintStreamDestination(originalStream);
         }
+        enabled = true;
         outstr.flush();
+        outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
+        destination.set(listener);
         if (get() != outstr) {
             set(outstr);
         }
-        this.logLevel = defaultLevel;
-        outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
-        destination.set(listener);
-        return snapshot;
-    }
-
-    private Snapshot off() {
-        Snapshot snapshot = snapshot();
-        if (original != null && logLevel != null) {
-            outstr.flush();
-            destination.set(original);
-            set(original.originalStream);
-            logLevel = null;
-        }
-        return snapshot;
     }
 
     private static class PrintStreamDestination implements StandardOutputListener {
@@ -119,9 +138,11 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     }
 
     private static class SnapshotImpl implements Snapshot {
+        private final boolean enabled;
         private final LogLevel logLevel;
 
-        public SnapshotImpl(LogLevel logLevel) {
+        public SnapshotImpl(boolean enabled, LogLevel logLevel) {
+            this.enabled = enabled;
             this.logLevel = logLevel;
         }
     }

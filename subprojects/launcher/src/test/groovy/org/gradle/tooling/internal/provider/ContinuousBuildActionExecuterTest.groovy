@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
@@ -58,9 +59,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
-    def globalServices = Stub(ServiceRegistry)
     def executer = executer()
     def taskInternal = Stub(TaskInternal)
+    def buildSessionScopeServices = Stub(ServiceRegistry)
 
     private File file = new File('file')
 
@@ -72,7 +73,11 @@ class ContinuousBuildActionExecuterTest extends Specification {
         taskInternal.getProject() >> project
         def rootProject = Stub(Project)
         project.getRootProject() >> rootProject
-        rootProject.getRootDir() >> new File('rootDir')
+        def rootDir = new File('rootDir')
+        rootProject.getRootDir() >> rootDir
+        def cacheScopeMapping = Stub(CacheScopeMapping)
+        buildSessionScopeServices.get(CacheScopeMapping) >> cacheScopeMapping
+        cacheScopeMapping.getRootDirectory(_) >> { new File(rootDir, ".gradle") }
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -81,14 +86,14 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
         0 * waiterFactory._
     }
 
     def "allows exceptions to propagate for single builds"() {
         when:
         singleBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
             throw new RuntimeException("!")
         }
         executeBuild()
@@ -100,7 +105,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "waits for waiter"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
             declareInput(file)
         }
         executeBuild()
@@ -114,7 +119,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "exits if there are no file system inputs"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
         executeBuild()
 
         then:
@@ -125,7 +130,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "throws exception if last build fails in continous mode"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
         }
@@ -144,7 +149,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
             declareInput(file)
         }
 
@@ -152,7 +157,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _)
 
         and:
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
         }
@@ -161,7 +166,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _)
 
         and:
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
             declareInput(file)
         }
 
@@ -180,7 +185,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void executeBuild() {
-        executer.execute(action, requestContext, actionParameters, globalServices)
+        executer.execute(action, requestContext, actionParameters, buildSessionScopeServices)
     }
 
     private void declareInput(File file) {

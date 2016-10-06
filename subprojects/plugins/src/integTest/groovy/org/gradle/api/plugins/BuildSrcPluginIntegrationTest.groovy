@@ -19,8 +19,6 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
-
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2001")
@@ -91,9 +89,6 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains "hello again"
-
-        cleanup:
-        killIsolatedDaemons(executer)
     }
 
     def "build src plugin cannot access Gradle implementation dependencies"() {

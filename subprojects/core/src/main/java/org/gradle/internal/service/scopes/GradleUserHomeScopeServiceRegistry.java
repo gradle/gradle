@@ -39,6 +39,4 @@ public interface GradleUserHomeScopeServiceRegistry {
      * Releases a service registry created by {@link #getServicesFor(File)}.
      */
     void release(ServiceRegistry services);
-
-    void releaseAll();
 }

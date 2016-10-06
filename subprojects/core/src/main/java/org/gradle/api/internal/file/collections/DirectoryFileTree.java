@@ -129,7 +129,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     public void visit(FileVisitor visitor) {
-        visitFrom(visitor, dir, RelativePath.EMPTY_PARENT_DIRECTORY);
+        visitFrom(visitor, dir, RelativePath.EMPTY_ROOT);
     }
 
     /**

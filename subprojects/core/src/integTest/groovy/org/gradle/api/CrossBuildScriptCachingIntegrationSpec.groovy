@@ -19,7 +19,6 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -93,8 +92,8 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         when:
-        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
         executer.withGradleUserHomeDir(homeDirectory)
+        executer.requireDaemon()
         executer.requireIsolatedDaemons()
         run 'help'
         run 'help'
@@ -110,9 +109,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         coreHash == module1Hash
         hasCachedScripts(settingsHash, coreHash)
         getCompileClasspath(coreHash, 'proj').length == 1
-
-        cleanup:
-        daemons.killAll()
     }
 
     def "can have two build files with same contents and file name"() {
@@ -611,7 +607,6 @@ task fastTask { }
                 }
             ''')
         }
-        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
         executer.withGradleUserHomeDir(homeDirectory)
@@ -624,10 +619,6 @@ task fastTask { }
         then:
         String hash = uniqueRemapped('main')
         getCompileClasspath(hash, 'dsl').length == 1
-
-        cleanup:
-        daemons.killAll()
-
     }
 
     DaemonsFixture getDaemons() {

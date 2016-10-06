@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
 
-import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
 /**
  * Base class for test that test the behaviour of Gradle when running subsequent builds in the same build process.
  */
@@ -29,9 +28,5 @@ class PersistentBuildProcessIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireIsolatedDaemons()
-    }
-
-    def cleanup() {
-        killIsolatedDaemons(executer)
     }
 }

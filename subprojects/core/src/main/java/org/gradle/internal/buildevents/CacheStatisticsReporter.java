@@ -23,9 +23,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-import java.text.NumberFormat;
-import java.util.Locale;
-
 public class CacheStatisticsReporter implements TaskExecutionStatisticsListener {
     private final StyledTextOutputFactory textOutputFactory;
 
@@ -44,7 +41,7 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
         int cacheableExecutedTasks = statistics.getCacheMissCount();
         int nonCacheableExecutedTasks = allExecutedTasks - cacheableExecutedTasks;
-        textOutput.formatln("%d tasks in build, out of which %d (%s) were executed", allTasks, allExecutedTasks, roundedPercentOf(allExecutedTasks, allTasks));
+        textOutput.formatln("%d tasks in build, out of which %d (%d%%) were executed", allTasks, allExecutedTasks, roundedPercentOf(allExecutedTasks, allTasks));
         statisticsLine(textOutput, skippedTasks, allTasks, "skipped");
         statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
         statisticsLine(textOutput, fromCacheTasks, allTasks, "loaded from cache");
@@ -55,13 +52,14 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
     private void statisticsLine(StyledTextOutput textOutput, int fraction, int total, String description) {
         if (fraction > 0) {
             int numberLength = Integer.toString(total).length();
-            String percent = String.format("(%s)", roundedPercentOf(fraction, total));
+            String percent = String.format("(%d%%)", roundedPercentOf(fraction, total));
             textOutput.formatln("%" + numberLength + "d %6s %s", fraction, percent, description);
         }
     }
 
-    private static String roundedPercentOf(int fraction, int total) {
-        double out = total == 0 ? 0 : Math.round(100d * fraction / total) / 100d;
-        return NumberFormat.getPercentInstance(Locale.US).format(out);
+    private static int roundedPercentOf(int fraction, int total) {
+        return total == 0
+            ? 0
+            : (int) Math.round(100d * fraction / total);
     }
 }

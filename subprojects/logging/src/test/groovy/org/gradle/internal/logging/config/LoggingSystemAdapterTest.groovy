@@ -23,12 +23,46 @@ class LoggingSystemAdapterTest extends Specification {
     def loggingConfigurer = Mock(LoggingConfigurer)
     def LoggingSystemAdapter loggingSystem = new LoggingSystemAdapter(loggingConfigurer)
 
-    def onUsesLoggingConfigurerToSetLoggingLevel() {
+    def usesDefaultLogLevelWhenEnabledAndNoLevelHasBeenSet() {
         when:
-        loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
+        loggingSystem.startCapture()
+
+        then:
+        1 * loggingConfigurer.configure(LogLevel.LIFECYCLE)
+        0 * loggingConfigurer._
+    }
+
+    def canSetLogLevelBeforeAndAfterEnabled() {
+        when:
+        loggingSystem.setLevel(LogLevel.DEBUG)
+
+        then:
+        0 * loggingConfigurer._
+
+        when:
+        loggingSystem.startCapture()
 
         then:
         1 * loggingConfigurer.configure(LogLevel.DEBUG)
+        0 * loggingConfigurer._
+
+        when:
+        loggingSystem.setLevel(LogLevel.INFO)
+
+        then:
+        1 * loggingConfigurer.configure(LogLevel.INFO)
+        0 * loggingConfigurer._
+    }
+
+    def setLevelDoesNothingAfterRestoredToDisabledState() {
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.startCapture()
+        loggingSystem.restore(snapshot)
+
+        when:
+        loggingSystem.setLevel(LogLevel.DEBUG)
+
+        then:
         0 * loggingConfigurer._
     }
 
@@ -44,9 +78,9 @@ class LoggingSystemAdapterTest extends Specification {
 
     def restoreSetsLoggingLevel() {
         given:
-        def snapshot1 = loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
+        def snapshot1 = loggingSystem.setLevel(LogLevel.DEBUG)
         def snapshot2 = loggingSystem.snapshot()
-        def snapshot3 = loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+        def snapshot3 = loggingSystem.setLevel(LogLevel.INFO)
 
         when:
         loggingSystem.restore(snapshot3)

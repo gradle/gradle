@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner
 
+import org.gradle.BuildListener
+import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
@@ -32,20 +34,31 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class ClientProvidedBuildActionRunnerTest extends Specification {
+
     def startParameter = Mock(StartParameter)
     def action = Mock(SerializedPayload)
     def clientSubscriptions = Mock(BuildClientSubscriptions)
     def buildEventConsumer = Mock(BuildEventConsumer)
     def payloadSerializer = Mock(PayloadSerializer)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def buildController = Mock(BuildController) {
-        getGradle() >> Stub(GradleInternal) {
-            getServices() >> Stub(ServiceRegistry) {
-                get(PayloadSerializer) >> payloadSerializer
-                get(ProjectConfigurer) >> projectConfigurer
-                get(BuildEventConsumer) >> buildEventConsumer
-            }
+    def BuildListener listener
+    def gradle = Stub(GradleInternal) {
+        addBuildListener(_) >> { BuildListener listener ->
+            this.listener = listener
         }
+        getServices() >> Stub(ServiceRegistry) {
+            get(PayloadSerializer) >> payloadSerializer
+            get(ProjectConfigurer) >> projectConfigurer
+            get(BuildEventConsumer) >> buildEventConsumer
+        }
+    }
+    def buildController = Mock(BuildController) {
+        configure() >> {
+            listener.buildFinished(Stub(BuildResult) {
+                getFailure() >> null
+            })
+        }
+        getGradle() >> gradle
     }
     def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action, clientSubscriptions)
     def runner = new ClientProvidedBuildActionRunner()

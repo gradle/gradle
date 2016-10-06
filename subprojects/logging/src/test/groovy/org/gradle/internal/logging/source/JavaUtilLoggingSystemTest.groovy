@@ -22,6 +22,7 @@ import org.gradle.internal.logging.TestOutputEventListener
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.logging.Level
 import java.util.logging.Logger
 
 class JavaUtilLoggingSystemTest extends Specification {
@@ -29,12 +30,82 @@ class JavaUtilLoggingSystemTest extends Specification {
     @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     private final JavaUtilLoggingSystem configurer = new JavaUtilLoggingSystem()
 
-    def routesJulToSlf4j() {
+    def routesJulToListener() {
         when:
-        configurer.on(LogLevel.DEBUG, LogLevel.DEBUG)
+        configurer.setLevel(LogLevel.INFO)
+        configurer.startCapture()
         Logger.getLogger('test').info('info message')
+        Logger.getLogger('test').severe('error message')
+        Logger.getLogger('test').fine('debug message')
+
+        then:
+        outputEventListener.toString() == '[INFO info message][ERROR error message]'
+    }
+
+    def stopsRoutingWhenRestored() {
+        when:
+        def snapshot = configurer.snapshot()
+        configurer.setLevel(LogLevel.DEBUG)
+        configurer.startCapture()
+        Logger.getLogger('test').info('info message')
+        configurer.restore(snapshot)
+        Logger.getLogger('test').info('ignore me')
 
         then:
         outputEventListener.toString() == '[INFO info message]'
+    }
+
+    def "Log level is not propagated if the logging system was not started"() {
+        when:
+        configurer.setLevel(LogLevel.DEBUG)
+
+        then:
+        Logger.getLogger("").getLevel() == Level.INFO
+    }
+
+    def "Starting without setting a log level does not crash, but no level is set"() {
+        when:
+        configurer.startCapture()
+
+        then:
+        Logger.getLogger("").getLevel() == null
+    }
+
+    def "Log level can be set before starting"() {
+        when:
+        configurer.setLevel(LogLevel.DEBUG)
+        configurer.startCapture()
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
+    }
+
+    def "Log level can be set after starting"() {
+        when:
+        configurer.startCapture()
+        configurer.setLevel(LogLevel.DEBUG)
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
+    }
+
+    def "Log level can be changed while running"() {
+        when:
+        configurer.startCapture()
+        configurer.setLevel(LogLevel.LIFECYCLE)
+        configurer.setLevel(LogLevel.DEBUG)
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
+    }
+
+    def "Log level can be changed before starting"() {
+        when:
+        configurer.setLevel(LogLevel.LIFECYCLE)
+        configurer.setLevel(LogLevel.DEBUG)
+        configurer.startCapture()
+
+        then:
+        Logger.getLogger("").getLevel() == Level.FINE
     }
 }

@@ -23,12 +23,20 @@ import org.gradle.api.logging.LogLevel;
  */
 public interface LoggingSourceSystem extends LoggingSystem {
     /**
-     * Enables generation of logging events from this logging source.
+     * Sets the minimum log level for this logging system. This is advisory only, the logging system may generate events at lower priority, but these will be discarded.
+     * Logging systems that have no intrinsic levels should generate events at the specified logging level.
      *
-     * @param minimumLevel The minimum log level to produce events for, for those logging systems that have intrinsic levels. This is advisory only, the logging system may generate events at lower
-     * priority, but these will be discarded.
-     * @param defaultLevel The default log level to use, for those logging system that don't have intrinsic levels.
+     * <p>This method should not have any effect when capture is not enabled for this logging system using {@link #startCapture()}.</p>
+     *
+     * @param logLevel The minimum log level.
      * @return the state of this logging system immediately before the changes are applied.
      */
-    Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel);
+    Snapshot setLevel(LogLevel logLevel);
+
+    /**
+     * Enables generation of logging events from this logging system. This method is always called after {@link #setLevel(LogLevel)}.
+     *
+     * @return the state of this logging system immediately before the changes are applied.
+     */
+    Snapshot startCapture();
 }
