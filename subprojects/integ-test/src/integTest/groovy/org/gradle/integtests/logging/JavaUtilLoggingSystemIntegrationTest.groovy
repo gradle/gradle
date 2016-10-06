@@ -134,4 +134,29 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds('isLoggable')
     }
+
+    def 'JUL logger.isLoggable corresponds to gradle log level for --qdebug2'() {
+        given:
+        buildFile << """
+            task isLoggable() {
+                doLast {
+                    def logger = Logger.getLogger('some-logger')
+
+                    assert logger.isLoggable(Level.SEVERE)
+                    assert logger.isLoggable(Level.WARNING)
+                    assert logger.isLoggable(Level.INFO)
+                    assert logger.isLoggable(Level.CONFIG)
+                    assert logger.isLoggable(Level.FINE)
+                    assert !logger.isLoggable(Level.FINER)
+                    assert !logger.isLoggable(Level.FINEST)
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--debug")
+
+        then:
+        succeeds('isLoggable')
+    }
 }
