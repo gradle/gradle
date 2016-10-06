@@ -54,7 +54,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArgument("--debug").withDebug(true)
+        executer.withArgument("--debug")
 
         then:
         succeeds('isLoggable')
