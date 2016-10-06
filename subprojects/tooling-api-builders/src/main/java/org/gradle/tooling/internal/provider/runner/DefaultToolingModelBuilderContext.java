@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Project;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
+import org.gradle.tooling.provider.model.ToolingModelBuilderContext;
 
 public class DefaultToolingModelBuilderContext implements ToolingModelBuilderContext {
     private final InternalModelResults<Object> results;

@@ -38,8 +38,8 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
+import org.gradle.tooling.provider.model.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderContext;
 
 import java.io.File;
 

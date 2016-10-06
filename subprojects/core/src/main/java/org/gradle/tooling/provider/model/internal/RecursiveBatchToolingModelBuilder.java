@@ -17,13 +17,15 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Project;
+import org.gradle.tooling.provider.model.ProjectToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderContext;
 
 /**
  * A basic implementation for {@link ProjectToolingModelBuilder} that just walks the project
  * hierarchy and builds the requested model for each project.
  */
-public abstract class RecursiveProjectToolingModelBuilder implements ToolingModelBuilder, ProjectToolingModelBuilder {
+public abstract class RecursiveBatchToolingModelBuilder implements ToolingModelBuilder, ProjectToolingModelBuilder {
 
     @Override
     public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {

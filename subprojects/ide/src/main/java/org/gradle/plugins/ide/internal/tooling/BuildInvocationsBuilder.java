@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
-import org.gradle.tooling.provider.model.internal.RecursiveProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.RecursiveBatchToolingModelBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.Set;
 
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
-public class BuildInvocationsBuilder extends RecursiveProjectToolingModelBuilder {
+public class BuildInvocationsBuilder extends RecursiveBatchToolingModelBuilder {
 
     private final ProjectTaskLister taskLister;
     private final TaskNameComparator taskNameComparator;

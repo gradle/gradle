@@ -55,8 +55,8 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirec
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
+import org.gradle.tooling.provider.model.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderContext;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
