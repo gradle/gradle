@@ -32,6 +32,7 @@ gradle.addListener(new TaskExecutionListener() {
     void beforeExecute(Task task) {
         clocks.put(task.path, new Clock())
     }
+
     @Override
     void afterExecute(Task task, TaskState state) {
         def clock = clocks.remove(task.path)
@@ -61,13 +62,13 @@ gradle.addListener(new BuildAdapter() {
             ?: a.cacheable <=> b.cacheable
             ?: a.type.name <=> b.type.name
         }
-        def byOutcome = multiIndex(taskInfos) { taskInfo -> taskInfo.outcome }
+        def byOutcome = taskInfos.groupBy { taskInfo -> taskInfo.outcome }
         byOutcome.each { outcome, taskInfosWithOutcome ->
             println "    $outcome ${summary(taskInfosWithOutcome)}"
-            def byCacheability = multiIndex(taskInfosWithOutcome) { taskInfo -> taskInfo.cacheable }
+            def byCacheability = taskInfosWithOutcome.groupBy { taskInfo -> taskInfo.cacheable }
             byCacheability.each { cacheable, taskInfosWithCacheability ->
                 println "      ${cacheable ? "Cacheable" : "Not cacheable"} ${summary(taskInfosWithCacheability)}"
-                def byType = multiIndex(taskInfosWithCacheability) { taskInfo -> taskInfo.type }
+                def byType = taskInfosWithCacheability.groupBy { taskInfo -> taskInfo.type }
                 byType.each { type, taskInfosWithType ->
                     def sumTime = taskInfosWithType*.time.sum()
                     println "        $type.name ${summary(taskInfosWithType)}"
@@ -77,24 +78,10 @@ gradle.addListener(new BuildAdapter() {
     }
 })
 
-static <T> Map<Object, T> multiIndex(Iterable<T> items, Closure indexer) {
-    def results = [:]
-    for (T item : items) {
-        def index = indexer(item)
-        def itemsWithIndex = results[index]
-        if (itemsWithIndex == null) {
-            itemsWithIndex = []
-            results[index] = itemsWithIndex
-        }
-        itemsWithIndex.add item
-    }
-    return results
-}
-
 static String summary(Collection<?> tasks) {
     def count = tasks.size() == 1
-    ? "1 task"
-    : "${tasks.size()} tasks"
+        ? "1 task"
+        : "${tasks.size()} tasks"
     def times = tasks*.time
     long sumTime = times.sum() ?: 0
 
@@ -102,10 +89,10 @@ static String summary(Collection<?> tasks) {
     if (times.size() > 1) {
         double mean = sumTime / times.size()
         double stddev = Math.sqrt(times.collect { (it - mean) * (it + mean) }.sum() / times.size())
-        double min = times.min()
-        double max = times.max()
+        long min = times.min()
+        long max = times.max()
 
-        result += " (avg ${round(mean)} ms, stddev ${round(stddev)} ms, min ${round(min)} ms, max ${round(max)} ms)"
+        result += " (avg ${round(mean)} ms, stddev ${round(stddev)} ms, min ${min} ms, max ${max} ms)"
     }
     return result
 }
