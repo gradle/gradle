@@ -19,7 +19,6 @@ package org.gradle.script.lang.kotlin.provider
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
 import org.gradle.script.lang.kotlin.support.compileKotlinScript
-import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -53,7 +52,7 @@ class KotlinBuildScriptCompiler(
     val targetScope: ClassLoaderScope,
     gradleApi: ClassPath,
     val gradleApiExtensions: ClassPath,
-    val gradleScriptKotlinJars: ClassPath,
+    gradleScriptKotlinJars: ClassPath,
     val logger: Logger) {
 
     val scriptResource = scriptSource.resource!!
@@ -106,7 +105,7 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun onePassScript(): (Project) -> Unit {
-        val scriptClassLoader = scriptBodyClassLoaderFor(baseScope.exportClassLoader)
+        val scriptClassLoader = scriptBodyClassLoader()
         val scriptClass = compileScriptFile(scriptClassLoader)
         return { target ->
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
@@ -115,60 +114,22 @@ class KotlinBuildScriptCompiler(
 
     private fun twoPassScript(buildscriptRange: IntRange): (Project) -> Unit {
         return { target ->
-            val buildscriptClassLoader = executeBuildscriptSection(buildscriptRange, target)
+            executeBuildscriptSection(buildscriptRange, target)
 
-            val scriptClassLoader = scriptBodyClassLoaderFor(buildscriptClassLoader)
+            val scriptClassLoader = scriptBodyClassLoader()
             val scriptClass = compileScriptFile(scriptClassLoader)
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
     }
 
-    private fun executeBuildscriptSection(buildscriptRange: IntRange, target: Project): ClassLoader {
+    private fun executeBuildscriptSection(buildscriptRange: IntRange, target: Project) {
         val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
         val buildscriptClass = compileBuildscriptSection(buildscriptRange, buildscriptClassLoader)
         executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
-        return buildscriptClassLoader
     }
 
-    private fun scriptBodyClassLoaderFor(parentClassLoader: ClassLoader): ClassLoader =
-        if (scriptClassPath.hasConflictingKotlinRuntime() || buildSrc.hasConflictingKotlinRuntime())
-            isolatedKotlinClassLoaderFor(parentClassLoader)
-        else
-            defaultClassLoaderFor(targetScope.apply { export(scriptClassPath) })
-
-    private fun ClassPath.hasConflictingKotlinRuntime() =
-        asFiles
-            .asSequence()
-            .map { kotlinRuntimeVersionFor(it) }
-            .filterNotNull()
-            .any { it != embeddedKotlinVersion }
-
-    companion object {
-        val kotlinRuntimePattern = "kotlin-runtime-(\\d\\.\\d.+?)\\.jar$".toPattern()
-
-        fun kotlinRuntimeVersionFor(jar: File): String? =
-            kotlinRuntimePattern.matcher(jar.name).run {
-                if (find()) group(1) else null
-            }
-    }
-    /**
-     * Creates a [ChildFirstClassLoader] that reloads gradle-script-kotlin.jar in the context of
-     * the buildscript classpath so to share the correct version of the Kotlin
-     * standard library types.
-     */
-    private fun isolatedKotlinClassLoaderFor(parentClassLoader: ClassLoader): ChildFirstClassLoader {
-        val isolatedClassPath = scriptClassPath + gradleScriptKotlinJars + buildSrc + gradleApiExtensions
-        val isolatedClassLoader = ChildFirstClassLoader(parentClassLoader, isolatedClassPath)
-        exportTo(targetScope, isolatedClassLoader)
-        return isolatedClassLoader
-    }
-
-    private fun exportTo(targetScope: ClassLoaderScope, scriptClassLoader: ClassLoader) {
-        targetScope.apply {
-            export(scriptClassLoader)
-            lock()
-        }
-    }
+    private fun scriptBodyClassLoader(): ClassLoader =
+        defaultClassLoaderFor(targetScope.apply { export(scriptClassPath) })
 
     private fun buildscriptClassLoaderFrom(baseScope: ClassLoaderScope) =
         defaultClassLoaderFor(baseScope.createChild("buildscript"))

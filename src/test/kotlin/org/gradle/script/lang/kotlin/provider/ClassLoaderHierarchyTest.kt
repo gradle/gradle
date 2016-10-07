@@ -6,8 +6,6 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.script.lang.kotlin.TestWithTempFiles
