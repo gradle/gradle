@@ -55,14 +55,16 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             .getClasspath(project.buildscript.classLoader)
             .map { File(it.file) }
             .filter { it.isDirectory }
-
-    private fun gradleScriptKotlinApiOf(project: Project): List<File> =
-        kotlinScriptClassPathProviderOf(project).run {
-            gradleApi.asFiles + gradleScriptKotlinJars.asFiles
-        }
-
-    private fun kotlinScriptClassPathProviderOf(project: Project) =
-        (project as ProjectInternal).services[KotlinScriptClassPathProvider::class.java]
 }
 
 class StandardKotlinBuildScriptModel(override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
+
+internal
+fun gradleScriptKotlinApiOf(project: Project): List<File> =
+    kotlinScriptClassPathProviderOf(project).run {
+        gradleApi.asFiles + gradleScriptKotlinJars.asFiles
+    }
+
+internal
+fun kotlinScriptClassPathProviderOf(project: Project) =
+    (project as ProjectInternal).services[KotlinScriptClassPathProvider::class.java]!!

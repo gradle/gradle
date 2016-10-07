@@ -84,35 +84,59 @@ class GradleScriptKotlinIntegrationTest {
 
         withFile("buildSrc/src/main/kotlin/build/DeepThought.kt", """
             package build
+
             class DeepThought() {
                 fun compute(handler: (Int) -> Unit) { handler(42) }
             }
         """)
 
+        withFile("buildSrc/src/main/kotlin/build/DeepThoughtPlugin.kt", """
+            package build
+
+            import org.gradle.api.*
+            import org.gradle.script.lang.kotlin.*
+
+            open class DeepThoughtPlugin : Plugin<Project> {
+                override fun apply(project: Project) {
+                    with (project) {
+                        task("compute") {
+                            doLast {
+                                DeepThought().compute { answer ->
+                                    println("*" + answer + "*")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """)
+
         withBuildScriptIn("buildSrc", """
             buildscript {
-                repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlinModule("gradle-plugin")) }
+                configure(listOf(repositories, project.repositories)) {
+                    gradleScriptKotlin()
+                }
+                dependencies {
+                    classpath(kotlinModule("gradle-plugin"))
+                }
             }
-            apply { plugin("kotlin") }
-            dependencies { compile(kotlinModule("stdlib")) }
-            repositories { gradleScriptKotlin() }
+            apply {
+                plugin("kotlin")
+            }
+            dependencies {
+                compile(gradleScriptKotlinApi())
+            }
         """)
 
         withBuildScript("""
             buildscript {
+                // buildSrc types are available within buildscript
+                // and must always be fully qualified
                 build.DeepThought().compute { answer ->
                     println("buildscript: " + answer)
                 }
             }
-            task("compute") {
-                doLast {
-                    val computer = build.DeepThought()
-                    computer.compute { answer ->
-                        println("*" + answer + "*")
-                    }
-                }
-            }
+            apply<build.DeepThoughtPlugin>()
         """)
 
         val output = build("compute").output

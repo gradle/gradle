@@ -20,9 +20,22 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+
+import org.gradle.api.file.FileCollection
+
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionInternal
+
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginManager
+
+import org.gradle.script.lang.kotlin.support.gradleScriptKotlinApiOf
+
+import java.io.File
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -121,3 +134,19 @@ inline fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Uni
  */
 operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
     findProperty(property.name)
+
+/**
+ * Creates a dependency on the API of the current version of Gradle Script Kotlin.
+ *
+ * Includes the Kotlin and Gradle APIs.
+ *
+ * @return The dependency.
+ */
+fun Project.gradleScriptKotlinApi(): Dependency =
+    DefaultSelfResolvingDependency(
+        fileCollectionOf(
+            gradleScriptKotlinApiOf(project),
+            "gradleScriptKotlinApi") as FileCollectionInternal)
+
+private fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
+    DefaultFileCollectionFactory().fixed(name, files)
