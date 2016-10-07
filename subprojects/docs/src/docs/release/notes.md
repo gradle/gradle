@@ -16,6 +16,7 @@ For each deprecation warning Gradle now prints its location in the
 build file to the console. When passing the command line option `-s` or `-S`
 to Gradle then the whole stack trace is printed out.
 The improved log message should make it much easier to spot and fix those warnings.
+The following sample output demonstrates the improved logging capabilities:
 
     > gradle tasks
     The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.
