@@ -153,8 +153,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
+                    assert tapiClazz != ToolingApi
                     def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
-                    assert toolingApi != ToolingApi
+                    toolingApi.requireIsolatedDaemons()
                     warmup(toolingApi)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
                     sleep(experimentSpec.sleepAfterWarmUpMillis)
