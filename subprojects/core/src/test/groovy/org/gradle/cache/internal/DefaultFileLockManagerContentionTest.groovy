@@ -42,7 +42,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     List<Closeable> openedLocks = []
 
     def cleanup() {
-        CompositeStoppable.stoppable(openedLocks, contentionHandler, contentionHandler2).stop()
+        CompositeStoppable.stoppable(openedLocks).add(contentionHandler, contentionHandler2).stop()
     }
 
     @Unroll
@@ -58,6 +58,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         def lock2 = createLock(lockMode, file, manager2)
 
         then:
+        lock2
         1 * action.run() >> {
             lock.close()
         }
@@ -70,16 +71,13 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     def "cannot acquire lock with mode #lockMode while another lock manager in same process is holding shared lock"() {
         given:
         def file = tmpDir.file("lock-file.bin")
-        def action = Mock(Runnable)
-
-        def lock = createLock(Shared, file)
-        manager.allowContention(lock, action)
+        createLock(Shared, file)
 
         when:
         createLock(lockMode, file, manager2)
 
         then:
-        def e = thrown(LockTimeoutException)
+        thrown(LockTimeoutException)
 
         where:
         lockMode << [Exclusive, Shared]
