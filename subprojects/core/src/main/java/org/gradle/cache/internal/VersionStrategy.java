@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-enum VersionStrategy {
+public enum VersionStrategy {
     /**
      * A separate cache instance for each Gradle version. This is the default.
      */
