@@ -28,6 +28,8 @@ import java.lang.annotation.Target;
  * <p>Marks a property as specifying a JVM classpath for a task.</p>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ *
+ * @since 3.2
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
