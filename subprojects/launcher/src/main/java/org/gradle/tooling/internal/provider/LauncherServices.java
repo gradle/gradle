@@ -25,6 +25,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -40,21 +41,30 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
 
 import java.util.List;
 
-public class LauncherServices implements PluginServiceRegistry {
+public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
     }
 
-    public void registerBuildSessionServices(ServiceRegistration registration) {
+    @Override
+    public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingBuildSessionScopeServices());
     }
 
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
