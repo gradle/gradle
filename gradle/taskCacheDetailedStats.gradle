@@ -1,0 +1,115 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
+
+def taskInfos = []
+
+class TaskCacheInfo {
+    Class type
+    TaskExecutionOutcome outcome
+    boolean cacheable
+    long time
+}
+
+gradle.addListener(new TaskExecutionListener() {
+    def clocks = [:]
+
+    @Override
+    void beforeExecute(Task task) {
+        clocks.put(task.path, new Clock())
+    }
+    @Override
+    void afterExecute(Task task, TaskState state) {
+        def clock = clocks.remove(task.path)
+        def type = task.getClass()
+        if (type.name.endsWith("_Decorated")) {
+            type = type.superclass
+        }
+        def info = new TaskCacheInfo(
+            type: type,
+            outcome: state.outcome,
+            cacheable: state.cacheable,
+            time: clock.timeInMs
+        )
+        println " >> $info.type.name took $info.time ms"
+        taskInfos.add info
+    }
+})
+gradle.addListener(new BuildAdapter() {
+    @Override
+    void buildFinished(BuildResult result) {
+        println ""
+        println "Detailed cache statistics"
+        println ""
+        println "  All tasks ${summary(taskInfos)}"
+        taskInfos.sort { a, b ->
+            a.outcome <=> b.outcome
+            ?: a.cacheable <=> b.cacheable
+            ?: a.type.name <=> b.type.name
+        }
+        def byOutcome = multiIndex(taskInfos) { taskInfo -> taskInfo.outcome }
+        byOutcome.each { outcome, taskInfosWithOutcome ->
+            println "    $outcome ${summary(taskInfosWithOutcome)}"
+            def byCacheability = multiIndex(taskInfosWithOutcome) { taskInfo -> taskInfo.cacheable }
+            byCacheability.each { cacheable, taskInfosWithCacheability ->
+                println "      ${cacheable ? "Cacheable" : "Not cacheable"} ${summary(taskInfosWithCacheability)}"
+                def byType = multiIndex(taskInfosWithCacheability) { taskInfo -> taskInfo.type }
+                byType.each { type, taskInfosWithType ->
+                    def sumTime = taskInfosWithType*.time.sum()
+                    println "        $type.name ${summary(taskInfosWithType)}"
+                }
+            }
+        }
+    }
+})
+
+static <T> Map<Object, T> multiIndex(Iterable<T> items, Closure indexer) {
+    def results = [:]
+    for (T item : items) {
+        def index = indexer(item)
+        def itemsWithIndex = results[index]
+        if (itemsWithIndex == null) {
+            itemsWithIndex = []
+            results[index] = itemsWithIndex
+        }
+        itemsWithIndex.add item
+    }
+    return results
+}
+
+static String summary(Collection<?> tasks) {
+    def count = tasks.size() == 1
+    ? "1 task"
+    : "${tasks.size()} tasks"
+    def times = tasks*.time
+    long sumTime = times.sum() ?: 0
+
+    def result = "- $count took $sumTime ms"
+    if (times.size() > 1) {
+        double mean = sumTime / times.size()
+        double stddev = Math.sqrt(times.collect { (it - mean) * (it + mean) }.sum() / times.size())
+        double min = times.min()
+        double max = times.max()
+
+        result += " (avg ${round(mean)} ms, stddev ${round(stddev)} ms, min ${round(min)} ms, max ${round(max)} ms)"
+    }
+    return result
+}
+
+static String round(double value) {
+    return String.format("%.2f", value)
+}
