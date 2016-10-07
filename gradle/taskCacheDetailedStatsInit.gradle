@@ -45,7 +45,7 @@ gradle.addListener(new TaskExecutionListener() {
             cacheable: state.cacheable,
             time: clock.timeInMs
         )
-        println " >> $info.type.name took $info.time ms"
+        // println " >> $info.type.name took $info.time ms"
         taskInfos.add info
     }
 })
