@@ -20,8 +20,14 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.io.RandomAccessFileOutputStream;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 
 public class LockInfoAccess {
     public static final int INFORMATION_REGION_SIZE = 2052;
@@ -65,7 +71,12 @@ public class LockInfoAccess {
 
     @Nullable
     public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock(infoRegionPos, INFORMATION_REGION_SIZE - infoRegionPos, shared);
+        try {
+            return lockFileAccess.getChannel().tryLock(infoRegionPos, INFORMATION_REGION_SIZE - infoRegionPos, shared);
+        } catch (OverlappingFileLockException e) {
+            // Locked by the same process, treat as if locked by another process
+            return null;
+        }
     }
 
 }
