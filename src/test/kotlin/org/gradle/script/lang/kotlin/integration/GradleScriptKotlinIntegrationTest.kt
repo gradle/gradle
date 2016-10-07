@@ -20,6 +20,8 @@ import org.junit.rules.TemporaryFolder
 
 import java.io.File
 
+import java.lang.IllegalStateException
+
 import kotlin.test.assertNotEquals
 
 class GradleScriptKotlinIntegrationTest {

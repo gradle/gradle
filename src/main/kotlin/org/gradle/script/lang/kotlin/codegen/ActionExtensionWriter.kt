@@ -21,6 +21,10 @@ import org.objectweb.asm.tree.MethodNode
 
 import java.io.Writer
 
+import java.lang.Exception
+import java.lang.IllegalArgumentException
+import java.lang.IllegalStateException
+
 class ActionExtensionWriter(val writer: Writer, val kDocProvider: KDocProvider? = null) {
 
     companion object {

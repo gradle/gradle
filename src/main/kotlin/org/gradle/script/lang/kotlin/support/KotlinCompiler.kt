@@ -50,6 +50,8 @@ import org.slf4j.Logger
 
 import java.io.File
 
+import java.lang.IllegalStateException
+
 internal
 fun compileKotlinScript(scriptFile: File,
                         scriptDef: KotlinScriptDefinition,

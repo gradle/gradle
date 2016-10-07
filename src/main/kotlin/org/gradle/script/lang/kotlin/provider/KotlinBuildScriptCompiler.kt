@@ -36,6 +36,8 @@ import org.slf4j.Logger
 
 import java.io.File
 
+import java.lang.Error
+import java.lang.Exception
 import java.lang.reflect.InvocationTargetException
 
 import java.net.URLClassLoader

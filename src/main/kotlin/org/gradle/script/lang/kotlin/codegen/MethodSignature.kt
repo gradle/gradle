@@ -20,6 +20,8 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.signature.SignatureVisitor
 
+import java.lang.IllegalStateException
+
 data class MethodSignature(
     val parameters: List<JvmType>,
     val returnType: JvmType,
