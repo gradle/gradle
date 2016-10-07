@@ -270,6 +270,22 @@ class GradleScriptKotlinIntegrationTest {
             build("build").output.contains("*Build*"))
     }
 
+    @Test
+    fun `can use generated API extensions`() {
+        withBuildScript("""
+            repositories {
+                // maven(setup: MavenArtifactRepository.() -> Unit) is a generated extension
+                maven { setUrl("https://foo.bar/qux") }
+            }
+            repositories
+                .filterIsInstance<org.gradle.api.artifacts.repositories.MavenArtifactRepository>()
+                .forEach { println("url: " + it.url) }
+        """)
+        assertThat(
+            build().output,
+            containsString("url: https://foo.bar/qux"))
+    }
+
     private fun withBuildSrc() {
         withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
             package build
