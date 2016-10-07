@@ -37,7 +37,7 @@ interface KotlinBuildScriptModel {
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == KotlinBuildScriptModel::class.qualifiedName
+        modelName == "org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, project: Project): Any =
         StandardKotlinBuildScriptModel(scriptCompilationClassPathOf(project))
