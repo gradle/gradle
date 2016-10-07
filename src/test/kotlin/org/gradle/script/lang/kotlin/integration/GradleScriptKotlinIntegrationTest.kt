@@ -98,6 +98,11 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         withBuildScript("""
+            buildscript {
+                build.DeepThought().compute { answer ->
+                    println("buildscript: " + answer)
+                }
+            }
             task("compute") {
                 doLast {
                     val computer = build.DeepThought()
@@ -108,8 +113,9 @@ class GradleScriptKotlinIntegrationTest {
             }
         """)
 
-        assert(
-            build("compute").output.contains("*42*"))
+        val output = build("compute").output
+        assert(output.contains("buildscript: 42"))
+        assert(output.contains("*42*"))
     }
 
     @Test
