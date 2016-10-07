@@ -47,6 +47,7 @@ task copyCurrentDistro(type: Copy) {
 
     from gradle.gradleHomeDir
     into customInstallationDir
+    exclude "**/*kotlin*"
 
     // preserve last modified date on each file to make it easier
     // to check which files were patched by next step
@@ -69,12 +70,6 @@ task customInstallation(type: Copy, dependsOn: copyCurrentDistro) {
     from configurations.compile
     from tasks.jar
     into "$customInstallationDir/lib"
-
-    doFirst {
-        destinationDir.eachFileMatch(~/kotlin/) {
-            it.delete()
-        }
-    }
 }
 
 test.dependsOn customInstallation
