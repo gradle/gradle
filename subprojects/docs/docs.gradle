@@ -326,8 +326,9 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     classpath = configurations.userGuideTask
 }
 
-def javaApiUrl = "https://docs.oracle.com/javase/6/docs/api"
+def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
+def mavenApiUrl = "http://maven.apache.org/ref/${versions.maven}/maven-model/apidocs"
 
 task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
@@ -369,8 +370,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/testkit/**'
     include 'org/gradle/testing/**'
     exclude '**/internal/**'
-    options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
-        "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
+    options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
     doFirst {
         title = "Gradle API $version"
     }
