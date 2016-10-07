@@ -70,7 +70,6 @@ gradle.addListener(new BuildAdapter() {
                 println "      ${cacheable ? "Cacheable" : "Not cacheable"} ${summary(taskInfosWithCacheability)}"
                 def byType = taskInfosWithCacheability.groupBy { it.type }
                 byType.each { type, taskInfosWithType ->
-                    def sumTime = taskInfosWithType*.time.sum()
                     println "        $type.name ${summary(taskInfosWithType)}"
                 }
             }
