@@ -27,8 +27,12 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
 import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
@@ -143,9 +147,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
-                    if ('current' != version) {
-                        def baselineVersion = results.baseline(version)
-                    }
                     def toolingApiDistribution = resolver.resolve(dist.version.version)
                     def testClassPath = [*experimentSpec.extraTestClassPath]
                     // add TAPI test fixtures to classpath
@@ -156,10 +157,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     assert tapiClazz != ToolingApi
                     def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
                     toolingApi.requireIsolatedDaemons()
-                    warmup(toolingApi)
+                    warmup(toolingApi, workingDirProvider.testDirectory)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
                     sleep(experimentSpec.sleepAfterWarmUpMillis)
-                    measure(results, toolingApi, version)
+                    measure(results, toolingApi, version, workingDirProvider.testDirectory)
                 }
             } finally {
                 resolver.stop()
@@ -195,15 +196,21 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             }
         }
 
-        private void measure(CrossVersionPerformanceResults results, toolingApi, String version) {
+        private void measure(CrossVersionPerformanceResults results, toolingApi, String version, File workingDir) {
             OperationTimer timer = new OperationTimer()
             MeasuredOperationList versionResults = 'current' == version ? results.current : results.version(version).results
             experimentSpec.with {
-                iterationCount("runs", invocationCount).times { n ->
+                def count = iterationCount("runs", invocationCount)
+                count.times { n ->
+                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir , BuildExperimentRunner.Phase.MEASUREMENT, n+1, count)
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.beforeInvocation(info)
+                    }
                     println "Run #${n + 1}"
                     def measuredOperation = timer.measure {
                         toolingApi.withConnection(action)
                     }
+
                     measuredOperation.configurationTime = Duration.millis(0)
                     measuredOperation.executionTime = Duration.millis(0)
                     // TODO: cc find a way to collect memory stats
@@ -212,17 +219,37 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     measuredOperation.maxUncollectedHeap = DataAmount.mbytes(0)
                     measuredOperation.totalHeapUsage = DataAmount.mbytes(0)
                     measuredOperation.totalMemoryUsed = DataAmount.mbytes(0)
-                    versionResults.add(measuredOperation)
+                    boolean omit = false
+                    BuildExperimentListener.MeasurementCallback cb = new BuildExperimentListener.MeasurementCallback() {
+                        @Override
+                        void omitMeasurement() {
+                            omit = true
+                        }
+                    }
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.afterInvocation(info, measuredOperation, cb)
+                    }
+                    if (!omit) {
+                        versionResults.add(measuredOperation)
+                    }
                     sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
 
-        private void warmup(toolingApi) {
+        private void warmup(toolingApi, File workingDir) {
             experimentSpec.with {
-                iterationCount("warmups", warmUpCount).times { n ->
+                def count = iterationCount("warmups", warmUpCount)
+                count.times { n ->
+                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir , BuildExperimentRunner.Phase.WARMUP, n+1, count)
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.beforeInvocation(info)
+                    }
                     println "Warm-up #${n + 1}"
                     toolingApi.withConnection(action)
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.afterInvocation(info, null, null)
+                    }
                     sleep(sleepAfterTestRoundMillis)
                 }
             }
