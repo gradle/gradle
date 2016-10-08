@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.concurrent.locks.Lock;
 
-class DefaultCrossProcessCacheAccess implements CrossProcessCacheAccess {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCrossProcessCacheAccess.class);
+class LockOnDemandCrossProcessCacheAccess implements CrossProcessCacheAccess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
     private final String cacheDisplayName;
     private final File lockTarget;
     private final LockOptions lockOptions;
@@ -44,7 +44,7 @@ class DefaultCrossProcessCacheAccess implements CrossProcessCacheAccess {
      * @param onOpen Action to run when the lock is opened. Action is called while holding state lock
      * @param onClose Action to run when the lock is closed. Action is called while holding state lock
      */
-    public DefaultCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, Action<FileLock> onOpen, Action<FileLock> onClose) {
+    public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, Action<FileLock> onOpen, Action<FileLock> onClose) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;

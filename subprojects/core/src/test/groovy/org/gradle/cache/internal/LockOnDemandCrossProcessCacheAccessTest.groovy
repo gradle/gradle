@@ -24,10 +24,10 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.locks.ReentrantLock
 
-class DefaultCrossProcessCacheAccessTest extends ConcurrentSpec {
+class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def file = new TestFile("some-file.lock")
     def lockManager = Mock(FileLockManager)
-    def cacheAccess = new DefaultCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(Action), Stub(Action))
+    def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(Action), Stub(Action))
 
     def "acquires lock then runs action and releases on completion"() {
         def action = Mock(Factory)
@@ -258,7 +258,7 @@ class DefaultCrossProcessCacheAccessTest extends ConcurrentSpec {
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
-        def cacheAccess = new DefaultCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)

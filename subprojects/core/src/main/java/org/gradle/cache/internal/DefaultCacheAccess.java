@@ -86,8 +86,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess();
                 break;
             case None:
-                // NOTE: temporarily use a _different_ lock file
-                crossProcessCacheAccess = new DefaultCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, lock, new Action<FileLock>() {
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, lock, new Action<FileLock>() {
                     @Override
                     public void execute(FileLock fileLock) {
                         onLockAcquire(fileLock);
