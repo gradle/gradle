@@ -323,12 +323,93 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         expect: false
     }
 
-    def "close fails when action is currently running"() {
+    def "can acquire lock after previous acquire fails"() {
         expect: false
     }
 
-    def "close fails when lock is currently held"() {
-        expect: false
+    def "cannot close while holding the lock"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * action.create() >> {
+            cacheAccess.close()
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot close cache access while the cache is in use.'
+        1 * lock.close()
+        0 * _
+    }
+
+    def "close fails when action is currently running in another thread"() {
+        def lock = Mock(FileLock)
+
+        when:
+        async {
+            start {
+                cacheAccess.withFileLock {
+                    instant.acquired
+                    thread.blockUntil.closed
+                    release.run()
+                }
+            }
+            start {
+                thread.blockUntil.acquired
+                try {
+                    cacheAccess.close()
+                } finally {
+                    instant.closed
+                }
+            }
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot close cache access while the cache is in use.'
+
+        and:
+        1 * lockManager.lock(file, _, _) >> lock
+        1 * lock.close()
+        0 * _
+    }
+
+    def "close fails when lock is currently held by another thread"() {
+        def lock = Mock(FileLock)
+
+        when:
+        async {
+            start {
+                def release = cacheAccess.acquireFileLock()
+                instant.acquired
+                thread.blockUntil.closed
+                release.run()
+            }
+            start {
+                thread.blockUntil.acquired
+                try {
+                    cacheAccess.close()
+                } finally {
+                    instant.closed
+                }
+            }
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot close cache access while the cache is in use.'
+
+        and:
+        1 * lockManager.lock(file, _, _) >> lock
+        1 * lock.close()
+        0 * _
     }
 
     def "cannot run action when close has started"() {

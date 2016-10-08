@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.concurrent.locks.Lock;
 
-class LockOnDemandCrossProcessCacheAccess implements CrossProcessCacheAccess {
+class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
     private final String cacheDisplayName;
     private final File lockTarget;
@@ -55,16 +55,39 @@ class LockOnDemandCrossProcessCacheAccess implements CrossProcessCacheAccess {
     }
 
     @Override
-    public <T> T withFileLock(Factory<T> factory) {
-        lock();
+    public void open(CacheInitializationAction initializationAction) {
+        // Don't do anything
+    }
+
+    @Override
+    public FileLock getLock() throws IllegalStateException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
+        // Don't do anything
+        stateLock.lock();
         try {
-            return factory.create();
+            if (lockCount != 0) {
+                throw new IllegalStateException("Cannot close cache access while the cache is in use.");
+            }
         } finally {
-            unlock();
+            stateLock.unlock();
         }
     }
 
-    protected void lock() {
+    @Override
+    public <T> T withFileLock(Factory<T> factory) {
+        incrementLockCount();
+        try {
+            return factory.create();
+        } finally {
+            decrementLockCount();
+        }
+    }
+
+    private void incrementLockCount() {
         stateLock.lock();
         try {
             if (lockCount == 0) {
@@ -78,7 +101,7 @@ class LockOnDemandCrossProcessCacheAccess implements CrossProcessCacheAccess {
         }
     }
 
-    protected void unlock() {
+    private void decrementLockCount() {
         stateLock.lock();
         try {
             lockCount--;
@@ -95,22 +118,22 @@ class LockOnDemandCrossProcessCacheAccess implements CrossProcessCacheAccess {
 
     @Override
     public Runnable acquireFileLock() {
-        lock();
+        incrementLockCount();
         return new Runnable() {
             @Override
             public void run() {
-                unlock();
+                decrementLockCount();
             }
         };
     }
 
     @Override
     public Runnable acquireFileLock(final Runnable completion) {
-        lock();
+        incrementLockCount();
         return new Runnable() {
             @Override
             public void run() {
-                unlock();
+                decrementLockCount();
                 completion.run();
             }
         };

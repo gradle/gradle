@@ -16,13 +16,78 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+
+import java.io.File;
+
+import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 
 /**
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with a shared lock that is held until the cache is closed. The contract for {@link CrossProcessCacheAccess} requires an
  * exclusive lock be held, so this implementation simply throws 'not supported' exceptions.
  */
-public class FixedSharedModeCrossProcessCacheAccess implements CrossProcessCacheAccess {
+public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
+    private final String cacheDisplayName;
+    private final File lockTarget;
+    private final LockOptions lockOptions;
+    private final FileLockManager lockManager;
+    private FileLock fileLock;
+
+    public FixedSharedModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager) {
+        this.cacheDisplayName = cacheDisplayName;
+        this.lockTarget = lockTarget;
+        this.lockOptions = lockOptions;
+        this.lockManager = lockManager;
+    }
+
+    @Override
+    public void open(final CacheInitializationAction initializationAction) {
+        if (fileLock != null) {
+            throw new IllegalStateException("File lock " + lockTarget + " is already open.");
+        }
+        fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+
+        boolean rebuild = initializationAction.requiresInitialization(fileLock);
+        if (rebuild) {
+            for (int tries = 0; rebuild && tries < 3; tries++) {
+                fileLock.close();
+                fileLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, "Initialize cache");
+                rebuild = initializationAction.requiresInitialization(fileLock);
+                if (rebuild) {
+                    fileLock.writeFile(new Runnable() {
+                        public void run() {
+                            initializationAction.initialize(fileLock);
+                        }
+                    });
+                }
+                fileLock.close();
+                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+                rebuild = initializationAction.requiresInitialization(fileLock);
+            }
+            if (rebuild) {
+                throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
+            }
+        }
+    }
+
+    @Override
+    public FileLock getLock() throws IllegalStateException {
+        return fileLock;
+    }
+
+    @Override
+    public void close() {
+        if (fileLock != null) {
+            try {
+                fileLock.close();
+            } finally {
+                fileLock = null;
+            }
+        }
+    }
+
     @Override
     public Runnable acquireFileLock() {
         throw failure();

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
@@ -45,7 +44,6 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
-
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
     private final String cacheDisplayName;
@@ -58,7 +56,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final CrossProcessCacheAccess crossProcessCacheAccess;
+    private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final LockOptions lockOptions;
     private Thread owner;
     private FileLock fileLock;
@@ -80,10 +78,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.operations = new CacheAccessOperationsStack();
         switch (lockOptions.getMode()) {
             case Shared:
-                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess();
+                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager);
                 break;
             case Exclusive:
-                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess();
+                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager);
                 break;
             case None:
                 crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, lock, new Action<FileLock>() {
@@ -103,12 +101,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    private void onLockAcquire(FileLock fileLock) {
-    }
-
-    private void onLockRelease(FileLock fileLock) {
-    }
-
     private synchronized CacheAccessWorker getCacheAccessWorker() {
         if (_cacheAccessWorker == null) {
             HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
@@ -123,51 +115,15 @@ public class DefaultCacheAccess implements CacheCoordinator {
     public void open() {
         lock.lock();
         try {
+            crossProcessCacheAccess.open(initializationAction);
             if (lockOptions.getMode() == FileLockManager.LockMode.None) {
                 return;
             }
-            if (fileLock != null) {
-                throw new IllegalStateException("File lock " + lockTarget + " is already open.");
-            }
-            fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-
-            boolean rebuild = initializationAction.requiresInitialization(fileLock);
-            if (rebuild) {
-                if (lockOptions.getMode() == Exclusive) {
-                    fileLock.writeFile(new Runnable() {
-                        public void run() {
-                            initializationAction.initialize(fileLock);
-                        }
-                    });
-                } else {
-                    for (int tries = 0; rebuild && tries < 3; tries++) {
-                        fileLock.close();
-                        fileLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, "Initialize cache");
-                        rebuild = initializationAction.requiresInitialization(fileLock);
-                        if (rebuild) {
-                            fileLock.writeFile(new Runnable() {
-                                public void run() {
-                                    initializationAction.initialize(fileLock);
-                                }
-                            });
-                        }
-                        fileLock.close();
-                        fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-                        rebuild = initializationAction.requiresInitialization(fileLock);
-                    }
-                    if (rebuild) {
-                        throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
-                    }
-                }
-            }
-
+            fileLock = crossProcessCacheAccess.getLock();
             stateAtOpen = fileLock.getState();
             takeOwnership(String.format("Access %s", cacheDisplayName));
         } catch (Throwable throwable) {
-            if (fileLock != null) {
-                fileLock.close();
-                fileLock = null;
-            }
+            crossProcessCacheAccess.close();
             throw UncheckedException.throwAsUncheckedException(throwable);
         } finally {
             lock.unlock();
@@ -216,6 +172,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             if (fileLock != null) {
                 closeFileLock();
             }
+            crossProcessCacheAccess.close();
             if (cacheClosedCount != 1) {
                 LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
             }
@@ -411,6 +368,12 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
+    }
+
+    private void onLockAcquire(FileLock fileLock) {
+    }
+
+    private void onLockRelease(FileLock fileLock) {
     }
 
     private boolean onStartWork() {

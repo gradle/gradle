@@ -17,12 +17,65 @@
 package org.gradle.cache.internal;
 
 import com.google.common.util.concurrent.Runnables;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
+
+import java.io.File;
+
+import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 
 /**
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op.
  */
-public class FixedExclusiveModeCrossProcessCacheAccess implements CrossProcessCacheAccess {
+public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
+    private final String cacheDisplayName;
+    private final File lockTarget;
+    private final LockOptions lockOptions;
+    private final FileLockManager lockManager;
+    private FileLock fileLock;
+
+    public FixedExclusiveModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager) {
+        assert lockOptions.getMode() == Exclusive;
+        this.cacheDisplayName = cacheDisplayName;
+        this.lockTarget = lockTarget;
+        this.lockOptions = lockOptions;
+        this.lockManager = lockManager;
+    }
+
+    @Override
+    public void open(final CacheInitializationAction initializationAction) {
+        if (fileLock != null) {
+            throw new IllegalStateException("File lock " + lockTarget + " is already open.");
+        }
+        fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+
+        boolean rebuild = initializationAction.requiresInitialization(fileLock);
+        if (rebuild) {
+            fileLock.writeFile(new Runnable() {
+                public void run() {
+                    initializationAction.initialize(fileLock);
+                }
+            });
+        }
+    }
+
+    @Override
+    public FileLock getLock() throws IllegalStateException {
+        return fileLock;
+    }
+
+    @Override
+    public void close() {
+        if (fileLock != null) {
+            try {
+                fileLock.close();
+            } finally {
+                fileLock = null;
+            }
+        }
+    }
+
     @Override
     public Runnable acquireFileLock() {
         return Runnables.doNothing();
