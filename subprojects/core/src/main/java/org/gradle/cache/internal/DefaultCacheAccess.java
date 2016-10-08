@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -57,9 +58,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final DefaultCrossProcessCacheAccess crossProcessCacheAccess = new DefaultCrossProcessCacheAccess();
+    private final CrossProcessCacheAccess crossProcessCacheAccess;
+    private final LockOptions lockOptions;
     private Thread owner;
-    private LockOptions lockOptions;
     private FileLock fileLock;
     private FileLock.State stateAtOpen;
     private boolean contended;
@@ -68,14 +69,45 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private StoppableExecutor cacheUpdateExecutor;
     private CacheAccessWorker _cacheAccessWorker;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
+    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
+        this.lockOptions = lockOptions;
         this.baseDir = baseDir;
         this.lockManager = lockManager;
         this.initializationAction = initializationAction;
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
+        switch (lockOptions.getMode()) {
+            case Shared:
+                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess();
+                break;
+            case Exclusive:
+                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess();
+                break;
+            case None:
+                // NOTE: temporarily use a _different_ lock file
+                crossProcessCacheAccess = new DefaultCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, lock, new Action<FileLock>() {
+                    @Override
+                    public void execute(FileLock fileLock) {
+                        onLockAcquire(fileLock);
+                    }
+                }, new Action<FileLock>() {
+                    @Override
+                    public void execute(FileLock fileLock) {
+                        onLockRelease(fileLock);
+                    }
+                });
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    private void onLockAcquire(FileLock fileLock) {
+    }
+
+    private void onLockRelease(FileLock fileLock) {
     }
 
     private synchronized CacheAccessWorker getCacheAccessWorker() {
@@ -89,13 +121,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return _cacheAccessWorker;
     }
 
-    public void open(LockOptions lockOptions) {
+    public void open() {
         lock.lock();
         try {
-            if (this.lockOptions != null) {
-                throw new IllegalStateException(String.format("Cannot open the %s, as it has already been opened.", cacheDisplayName));
-            }
-            this.lockOptions = lockOptions;
             if (lockOptions.getMode() == FileLockManager.LockMode.None) {
                 return;
             }
@@ -193,7 +221,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
             }
         } finally {
-            lockOptions = null;
             owner = null;
             lock.unlock();
         }

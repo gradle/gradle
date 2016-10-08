@@ -19,12 +19,11 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.filelock.LockOptions;
 
 import java.io.Closeable;
 
 public interface CacheCoordinator extends CacheAccess, Closeable {
-    void open(LockOptions lockOptions);
+    void open();
 
     /**
      * Closes the cache, blocking until all operations have completed.

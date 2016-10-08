@@ -16,6 +16,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentIndexedCacheParameters
+import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.serialize.Serializer
@@ -35,10 +36,9 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     final File cacheDir = tmpDir.file('caches')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
-    DefaultCacheAccess access = newAccess()
 
-    private DefaultCacheAccess newAccess() {
-        new DefaultCacheAccess("<display-name>", lockFile, cacheDir, lockManager, initializationAction, executorFactory) {
+    private DefaultCacheAccess newAccess(LockMode lockMode) {
+        new DefaultCacheAccess("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, executorFactory) {
             @Override
             def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -47,8 +47,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "acquires lock on open and releases on close when lock mode is shared"() {
+        def access = newAccess(Shared)
+
         when:
-        access.open(mode(Shared))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
@@ -72,8 +74,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "acquires lock on open and releases on close when lock mode is exclusive"() {
+        def access = newAccess(Exclusive)
+
         when:
-        access.open(mode(Exclusive))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -99,9 +103,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     def "initializes cache on open when lock mode is shared by upgrading lock"() {
         def exclusiveLock = Mock(FileLock)
         def sharedLock = Mock(FileLock)
+        def access = newAccess(Shared)
 
         when:
-        access.open(mode(Shared))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
@@ -126,8 +131,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "initializes cache on open when lock mode is exclusive"() {
+        def access = newAccess(Exclusive)
+
         when:
-        access.open(mode(Exclusive))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -143,9 +150,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "cleans up when cache validation fails"() {
         def failure = new RuntimeException()
+        def access = newAccess(Exclusive)
 
         when:
-        access.open(mode(Exclusive))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -161,9 +169,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     def "cleans up when initialization fails"() {
         def failure = new RuntimeException()
         def exclusiveLock = Mock(FileLock)
+        def access = newAccess(Shared)
 
         when:
-        access.open(mode(Shared))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
@@ -185,10 +194,12 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "initializes cache on open when lock mode is none"() {
         def action = Mock(Runnable)
+        def access = newAccess(None)
+
         def contentionAction
 
         when:
-        access.open(mode(None))
+        access.open()
 
         then:
         0 * _._
@@ -229,8 +240,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "does not acquire lock on open when initial lock mode is none"() {
+        def access = newAccess(None)
+
         when:
-        access.open(mode(None))
+        access.open()
 
         then:
         0 * _._
@@ -248,23 +261,25 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     @Unroll
     def "cannot be opened more than once for mode #lockMode"() {
         lockManager.lock(lockFile, lockMode, "<display-name>") >> lock
+        def access = newAccess(lockMode)
 
         when:
-        access.open(lockMode)
-        access.open(lockMode)
+        access.open()
+        access.open()
 
         then:
         thrown(IllegalStateException)
 
         where:
-        lockMode << [mode(Shared), mode(Exclusive), mode(None)]
+        lockMode << [Shared, Exclusive, None]
     }
 
     def "using cache pushes an operation and acquires lock but does not release it at the end of the operation"() {
         Factory<String> action = Mock()
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.useCache("some operation", action)
 
         then:
@@ -288,9 +303,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "nested use cache operation does not release the lock"() {
         Factory<String> action = Mock()
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.useCache("some operation", action)
 
         then:
@@ -307,9 +323,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "use cache operation reuses existing file lock"() {
         Factory<String> action = Mock()
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.useCache("some operation", action)
 
         then:
@@ -329,9 +346,11 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "use cache operation does not allow shared locks"() {
+        def access = newAccess(Shared)
+
         given:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
-        access.open(mode(Shared))
+        access.open()
 
         when:
         access.useCache("some operation", Mock(Factory))
@@ -342,9 +361,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "long running operation pushes an operation and releases ownership but not lock"() {
         Factory<String> action = Mock()
+        def access = newAccess(Exclusive)
 
         when:
-        access.open(mode(Exclusive))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -371,9 +391,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "long running operation closes the lock if contended during action"() {
         Factory<String> action = Mock()
+        def access = newAccess(Exclusive)
 
         when:
-        access.open(mode(Exclusive))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -391,9 +412,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "long running operation closes the lock if contended before action"() {
         Factory<String> action = Mock()
+        def access = newAccess(Exclusive)
 
         when:
-        access.open(mode(Exclusive))
+        access.open()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -410,9 +432,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "top-level long running operation does not lock file"() {
         Factory<String> action = Mock()
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.longRunningOperation("some operation", action)
 
         then:
@@ -427,9 +450,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "re-entrant long running operation does not lock file"() {
         Factory<String> action = Mock()
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.longRunningOperation("some operation", action)
 
         then:
@@ -445,6 +469,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "can create new cache"() {
+        def access = newAccess(None)
+
         when:
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
 
@@ -454,6 +480,9 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "contended action does nothing when no lock"() {
+        def access = newAccess(None)
+        access.open()
+
         when:
         access.whenContended().run()
 
@@ -463,9 +492,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "contended action safely closes the lock when cache is not busy"() {
         Factory<String> action = Mock()
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.useCache("some operation", action)
 
         then:
@@ -480,9 +510,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "file access requires acquired lock"() {
         def runnable = Mock(Runnable)
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.fileAccess.updateFile(runnable)
 
         then:
@@ -491,9 +522,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "file access is available when lock is acquired"() {
         def runnable = Mock(Runnable)
+        def access = newAccess(Exclusive)
 
         when:
-        access.open(mode(Exclusive))
+        access.open()
         access.fileAccess.updateFile(runnable)
 
         then:
@@ -503,9 +535,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "file access is available when there is an owner"() {
         def runnable = Mock(Runnable)
+        def access = newAccess(None)
 
         when:
-        access.open(mode(None))
+        access.open()
         access.useCache("use cache", { access.fileAccess.updateFile(runnable)})
 
         then:
@@ -515,10 +548,11 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "file access can not be accessed when there is no owner"() {
         def runnable = Mock(Runnable)
+        def access = newAccess(None)
 
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
-        access.open(mode(None))
+        access.open()
         access.useCache("use cache", runnable)
 
         when:
@@ -529,8 +563,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "can close cache when the cache has not been used"() {
+        def access = newAccess(None)
+
         when:
-        access.open(mode(None))
+        access.open()
         access.close()
 
         then:
@@ -538,10 +574,12 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "can close cache when there is no owner"() {
+        def access = newAccess(None)
+
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
-        access.open(mode(None))
+        access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
         access.useCache("use cache", { cache.get("key") })
 
