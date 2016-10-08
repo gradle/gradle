@@ -48,6 +48,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
         delegate.close();
     }
 
+    @Override
     public V get(final K key) {
         assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
         Object value;
@@ -69,16 +70,31 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
         }
     }
 
-    public void put(final K key, final V value) {
+    @Override
+    public void put(K key, V value) {
         inMemoryCache.put(key, value);
         delegate.put(key, value);
     }
 
+    @Override
+    public void putLater(K key, V value, Runnable completion) {
+        inMemoryCache.put(key, value);
+        delegate.putLater(key, value, completion);
+    }
+
+    @Override
     public void remove(final K key) {
         inMemoryCache.put(key, NULL);
         delegate.remove(key);
     }
 
+    @Override
+    public void removeLater(K key, Runnable completion) {
+        inMemoryCache.put(key, NULL);
+        delegate.removeLater(key, completion);
+    }
+
+    @Override
     public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
         boolean outOfDate = false;
         FileLock.State previousState = fileLockStateReference.get();
@@ -94,6 +110,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
         delegate.onStartWork(operationDisplayName, currentCacheState);
     }
 
+    @Override
     public void onEndWork(FileLock.State currentCacheState) {
         fileLockStateReference.set(currentCacheState);
         delegate.onEndWork(currentCacheState);

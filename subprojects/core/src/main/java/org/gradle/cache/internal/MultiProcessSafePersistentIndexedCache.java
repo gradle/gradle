@@ -22,7 +22,17 @@ import java.io.Closeable;
 public interface MultiProcessSafePersistentIndexedCache<K, V> extends
         PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
     /**
+     * Submits an update to be applied later. This method does not block, but invokes the given completion action when the operation is complete.
+     */
+    void putLater(K key, V value, Runnable completion);
+
+    /**
+     * Submits a removal to be applied later. This method does not block, but invokes the given completion action when the operation is complete.
+     */
+    void removeLater(K key, Runnable completion);
+
+    /**
      * Note: this method is called before {@link UnitOfWorkParticipant#onEndWork(org.gradle.cache.internal.FileLock.State)}.
      */
-    void close(); //so that we don't have to handle IOException (do we need this?)
+    void close();
 }

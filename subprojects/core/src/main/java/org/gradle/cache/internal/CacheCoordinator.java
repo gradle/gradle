@@ -33,5 +33,8 @@ public interface CacheCoordinator extends CacheAccess, Closeable {
 
     <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
 
+    /**
+     * Blocks until all pending operations have completed.
+     */
     void flush();
 }

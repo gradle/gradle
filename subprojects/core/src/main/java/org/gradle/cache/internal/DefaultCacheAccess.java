@@ -57,6 +57,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final DefaultCrossProcessCacheAccess crossProcessCacheAccess = new DefaultCrossProcessCacheAccess();
     private Thread owner;
     private LockOptions lockOptions;
     private FileLock fileLock;
@@ -351,7 +352,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
         CacheDecorator decorator = parameters.getCacheDecorator();
         if (decorator != null) {
-            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, getCacheAccessWorker());
+            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
             if (fileLock == null) {
                 useCache("Initial operation", new Runnable() {
                     @Override
