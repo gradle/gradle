@@ -18,16 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.serialize.Serializer;
-
-import java.io.File;
 
 /**
  * Provides synchronized access to the artifact cache.
  */
 @ThreadSafe
-public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess, CachedJarFileStore {
+public interface CacheLockingManager extends CacheAccess {
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *
@@ -37,18 +34,4 @@ public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess,
      * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
-
-    /**
-     * Returns the root directory for the file store.
-     *
-     * @return File store location
-     */
-    File getFileStoreDirectory();
-
-    /**
-     * Returns the root directory for the meta-data file store.
-     *
-     * @return Metadata store location
-     */
-    File getMetaDataStoreDirectory();
 }

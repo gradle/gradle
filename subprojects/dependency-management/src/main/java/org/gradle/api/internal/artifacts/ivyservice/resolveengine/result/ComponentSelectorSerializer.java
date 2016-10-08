@@ -49,26 +49,54 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
             throw new IllegalArgumentException("Provided component selector may not be null");
         }
 
-        if (value instanceof DefaultModuleComponentSelector) {
+        Implementation implementation = resolveImplementation(value);
+
+        encoder.writeByte(implementation.getId());
+
+        if (implementation == Implementation.MODULE) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) value;
-            encoder.writeByte(Implementation.MODULE.getId());
             encoder.writeString(moduleComponentSelector.getGroup());
             encoder.writeString(moduleComponentSelector.getModule());
             encoder.writeString(moduleComponentSelector.getVersion());
-        } else if (value instanceof DefaultProjectComponentSelector) {
+        } else if (implementation == Implementation.BUILD) {
             ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector) value;
-            encoder.writeByte(Implementation.BUILD.getId());
             encoder.writeString(projectComponentSelector.getBuildName());
             encoder.writeString(projectComponentSelector.getProjectPath());
-        } else if (value instanceof DefaultLibraryComponentSelector) {
+        } else if (implementation == Implementation.LIBRARY) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) value;
-            encoder.writeByte(Implementation.LIBRARY.getId());
             encoder.writeString(libraryComponentSelector.getProjectPath());
             encoder.writeNullableString(libraryComponentSelector.getLibraryName());
             encoder.writeNullableString(libraryComponentSelector.getVariant());
         } else {
             throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
         }
+    }
+
+    private ComponentSelectorSerializer.Implementation resolveImplementation(ComponentSelector value) {
+        Implementation implementation;
+
+        Class<? extends ComponentSelector> valueClass = value.getClass();
+
+        // check for equality of class as first pass because of performance reasons
+        if (valueClass == DefaultModuleComponentSelector.class) {
+            implementation = Implementation.MODULE;
+        } else if (valueClass == DefaultProjectComponentSelector.class) {
+            implementation = Implementation.BUILD;
+        } else if (valueClass == DefaultLibraryComponentSelector.class) {
+            implementation = Implementation.LIBRARY;
+        } else {
+            // make instanceof checks in the 2nd pass, should usually never happen
+            if (ModuleComponentSelector.class.isInstance(value)) {
+                implementation = Implementation.MODULE;
+            } else if (ProjectComponentSelector.class.isInstance(value)) {
+                implementation = Implementation.BUILD;
+            } else if (LibraryComponentSelector.class.isInstance(value)) {
+                implementation = Implementation.LIBRARY;
+            } else {
+                throw new IllegalArgumentException("Unsupported component selector class: " + valueClass);
+            }
+        }
+        return implementation;
     }
 
     private enum Implementation {

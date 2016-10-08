@@ -15,8 +15,15 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 
 public class LockStateAccess {
     private final LockStateSerializer protocol;
@@ -80,7 +87,11 @@ public class LockStateAccess {
     }
 
     public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock(REGION_START, stateRegionSize, shared);
+        try {
+            return lockFileAccess.getChannel().tryLock(REGION_START, stateRegionSize, shared);
+        } catch (OverlappingFileLockException e) {
+            return null;
+        }
     }
 
     public int getRegionEnd() {

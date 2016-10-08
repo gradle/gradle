@@ -89,7 +89,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         Configuration selectedConfiguration = null;
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
-        if (declaredConfiguration == null && !clientAttributes.isEmpty()) {
+        if (declaredConfiguration == null && clientAttributes != null && !clientAttributes.isEmpty()) {
             List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {

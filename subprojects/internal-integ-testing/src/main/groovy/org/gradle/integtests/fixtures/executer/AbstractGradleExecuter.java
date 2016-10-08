@@ -304,7 +304,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.requireDaemon();
         }
 
-        executer.withDebug(debug);
+        executer.startBuildProcessInDebugger(debug);
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
         return executer;
@@ -948,7 +948,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withDebug(boolean flag) {
+    public GradleExecuter startBuildProcessInDebugger(boolean flag) {
         debug = flag;
         return this;
     }

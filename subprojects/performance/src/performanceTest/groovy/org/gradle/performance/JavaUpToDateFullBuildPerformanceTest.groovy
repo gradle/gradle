@@ -44,9 +44,9 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         // execution and non-up-to-date cases work much better. That is
         // currently a more important use case, so we are accepting the
         // performance regression in these fully up-to-date cases.
-        "small"           | ['3.2-20160922000020+0000']
-        "multi"           | ['3.2-20160922000020+0000']
-        "lotDependencies" | ['3.2-20160922000020+0000']
+        "small"           | ['3.2-20161004202618+0000']
+        "multi"           | ['3.2-20161004202618+0000']
+        "lotDependencies" | ['3.2-20161004202618+0000']
     }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")

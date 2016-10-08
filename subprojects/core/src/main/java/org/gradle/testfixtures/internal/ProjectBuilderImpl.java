@@ -31,7 +31,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.LegacyTypesUtil;
+import org.gradle.internal.initialization.LegacyTypesUtil;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;

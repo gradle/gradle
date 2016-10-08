@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.initialization.LegacyTypesUtil;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
@@ -43,8 +44,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.initialization.LegacyTypesUtil.CLASSES_TO_MIX_IN_GROOVY_OBJECT;
-import static org.gradle.initialization.LegacyTypesUtil.SYNTHETIC_CLASSES;
+import static org.gradle.internal.initialization.LegacyTypesUtil.CLASSES_TO_MIX_IN_GROOVY_OBJECT;
+import static org.gradle.internal.initialization.LegacyTypesUtil.SYNTHETIC_CLASSES;
 
 /**
  * A ClassLoader that takes care of mixing-in some methods and types into various classes, for binary compatibility with older Gradle versions.

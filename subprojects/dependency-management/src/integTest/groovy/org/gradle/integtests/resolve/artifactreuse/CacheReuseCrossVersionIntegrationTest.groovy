@@ -15,11 +15,11 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetaData
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
-@IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultCacheLockingManager.CACHE_LAYOUT_VERSION })
+@IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultArtifactCacheMetaData.CACHE_LAYOUT_VERSION })
 @LeaksFileHandles
 class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
     def "uses cached artifacts from previous Gradle version when no sha1 header"() {

@@ -344,7 +344,7 @@ public interface GradleExecuter {
     /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
-    GradleExecuter withDebug(boolean flag);
+    GradleExecuter startBuildProcessInDebugger(boolean flag);
 
     GradleExecuter withProfiler(String profilerArg);
 

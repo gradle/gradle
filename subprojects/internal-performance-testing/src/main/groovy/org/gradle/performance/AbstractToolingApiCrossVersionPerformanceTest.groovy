@@ -153,8 +153,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
+                    assert tapiClazz != ToolingApi
                     def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
-                    assert toolingApi != ToolingApi
+                    toolingApi.requireIsolatedDaemons()
                     warmup(toolingApi)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
                     sleep(experimentSpec.sleepAfterWarmUpMillis)
@@ -198,7 +199,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             OperationTimer timer = new OperationTimer()
             MeasuredOperationList versionResults = 'current' == version ? results.current : results.version(version).results
             experimentSpec.with {
-                invocationCount.times { n ->
+                iterationCount("runs", invocationCount).times { n ->
                     println "Run #${n + 1}"
                     def measuredOperation = timer.measure {
                         toolingApi.withConnection(action)
@@ -219,12 +220,20 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private void warmup(toolingApi) {
             experimentSpec.with {
-                warmUpCount.times { n ->
+                iterationCount("warmups", warmUpCount).times { n ->
                     println "Warm-up #${n + 1}"
                     toolingApi.withConnection(action)
                     sleep(sleepAfterTestRoundMillis)
                 }
             }
+        }
+
+        private static int iterationCount(String key, int defaultValue) {
+            String value = System.getProperty("org.gradle.performance.execution.$key")
+            if (value != null && !"defaults".equals(value)) {
+                return Integer.valueOf(value)
+            }
+            return defaultValue
         }
     }
 }
