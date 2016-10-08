@@ -35,6 +35,7 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +90,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         Configuration selectedConfiguration = null;
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
-        if (declaredConfiguration == null && clientAttributes != null && !clientAttributes.isEmpty()) {
+        if (declaredConfiguration == null && !clientAttributes.isEmpty()) {
             List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {
@@ -123,7 +124,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public Set<File> resolve(boolean transitive) {
-        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, null);
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, Collections.<String, String>emptyMap());
         context.add(this);
         return context.resolve().getFiles();
     }
@@ -143,7 +144,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public TaskDependencyInternal getBuildDependencies() {
-        return new TaskDependencyImpl(null);
+        return new TaskDependencyImpl(Collections.<String, String>emptyMap());
     }
 
     @Override
