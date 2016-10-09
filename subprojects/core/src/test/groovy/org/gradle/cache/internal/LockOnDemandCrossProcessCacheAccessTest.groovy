@@ -412,6 +412,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         expect: false
     }
 
+    @NotYetImplemented
     def "cannot close while holding the lock"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
@@ -434,6 +435,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
+    @NotYetImplemented
     def "close fails when action is currently running in another thread"() {
         def lock = Mock(FileLock)
 
@@ -443,7 +445,6 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
                 cacheAccess.withFileLock {
                     instant.acquired
                     thread.blockUntil.closed
-                    release.run()
                 }
             }
             start {
@@ -466,6 +467,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
+    @NotYetImplemented
     def "close fails when lock is currently held by another thread"() {
         def lock = Mock(FileLock)
 
