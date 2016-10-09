@@ -25,6 +25,8 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
         buildScan.tag "LOCAL"
     }
 
+
+
     if (gradle.startParameter.taskOutputCacheEnabled) {
         buildScan.tag 'CACHED'
 
@@ -37,13 +39,41 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
             @Override
             void afterExecute(Task task, TaskState state) {
                 if (task.getPath() == ':baseServices:classpathManifest') {
+                    task.project.buildScan.value(task.getPath(), state.getOutcome().name())
                     def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
-                    def taskClassloaderHash = hasher.getStrictHash(task.getClass().getClassLoader())
-                    task.project.buildScan.value(
-                        'classpathManifest Classloader hash',
-                        new ByteArrayToStringer(taskClassloaderHash.asBytes()).toString())
+                    new Visitor(task.project.buildScan, hasher).visit(task.getClass().getClassLoader())
                 }
             }
         })
+    }
+}
+
+class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
+    final buildScan
+    final ClassLoaderHierarchyHasher hasher
+    final Set<String> seenHashes
+    int counter
+
+    Visitor(buildScan, ClassLoaderHierarchyHasher hasher) {
+        this.buildScan = buildScan
+        this.hasher = hasher
+    }
+
+    private String classloaderHash(ClassLoader loader) {
+        def hash = hasher.getStrictHash(loader)
+        if (hash != null) {
+            new ByteArrayToStringer(hash.asBytes()).toString()
+        } else {
+            null
+        }
+    }
+
+    @Override
+    public void visit(ClassLoader classLoader) {
+        def hash = classloaderHash(classLoader)
+        if (hash) {
+            buildScan.value("ClasspathManifest-${counter++}-${classLoader.getClass().getSimpleName()}-hash", hash)
+        }
+        super.visit(classLoader)
     }
 }
