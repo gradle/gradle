@@ -66,7 +66,10 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        executer.withArgument("-i")
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
