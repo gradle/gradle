@@ -62,7 +62,9 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile.text = declareSimpleCopyTask(true)
 
+        executer.withArgument("-i")
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
