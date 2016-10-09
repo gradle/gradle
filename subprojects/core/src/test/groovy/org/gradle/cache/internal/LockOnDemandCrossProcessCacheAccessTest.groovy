@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.Factory
@@ -224,6 +225,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock)
 
         then:
@@ -241,6 +243,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock)
         0 * _
 
@@ -277,6 +280,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock) >> { throw failure }
 
         then:
@@ -383,26 +387,27 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
+    @NotYetImplemented
     def "open handler can acquire and release lock"() {
         expect: false
     }
 
+    @NotYetImplemented
     def "close handler can acquire and release lock"() {
         expect: false
     }
 
+    @NotYetImplemented
     def "releases lock when open handler fails"() {
         expect: false
     }
 
+    @NotYetImplemented
     def "releases lock when close handler fails"() {
         expect: false
     }
 
-    def "notifies handler when lock is contended"() {
-        expect: false
-    }
-
+    @NotYetImplemented
     def "can acquire lock after previous acquire fails"() {
         expect: false
     }
@@ -492,10 +497,12 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
+    @NotYetImplemented
     def "cannot run action when close has started"() {
         expect: false
     }
 
+    @NotYetImplemented
     def "cannot acquire lock when close has started"() {
         expect: false
     }

@@ -119,7 +119,44 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
     }
 
     def "releases lock when handler fails"() {
-        expect: false
+        def initialLock = Mock(FileLock)
+        def exclusiveLock = Mock(FileLock)
+        def sharedLock = Mock(FileLock)
+        def failure = new RuntimeException()
+
+        when:
+        cacheAccess.open()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * lockManager.lock(file, lockOptions, "<cache>") >> initialLock
+        1 * initAction.requiresInitialization(initialLock) >> true
+        1 * initialLock.close()
+
+        then:
+        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive}, "<cache>") >> exclusiveLock
+        1 * initAction.requiresInitialization(exclusiveLock) >> true
+        1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initAction.initialize(exclusiveLock)
+        1 * exclusiveLock.close()
+
+        then:
+        1 * lockManager.lock(file, lockOptions, "<cache>") >> sharedLock
+        1 * initAction.requiresInitialization(sharedLock) >> false
+
+        then:
+        1 * onOpenAction.execute(sharedLock) >> { throw failure }
+        1 * sharedLock.close()
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
     }
 
     def "runs handler action then releases lock on close"() {
@@ -141,6 +178,10 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
     }
 
     def "does not run handler on close when not open"() {
-        expect: false
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
     }
 }

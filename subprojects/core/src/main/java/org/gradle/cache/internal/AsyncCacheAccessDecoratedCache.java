@@ -94,8 +94,8 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-        persistentCache.onStartWork(operationDisplayName, currentCacheState);
+    public void onStartWork(FileLock.State currentCacheState) {
+        persistentCache.onStartWork(currentCacheState);
     }
 
     @Override

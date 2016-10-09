@@ -29,7 +29,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
     def onCloseAction = Mock(Action)
     def cacheAccess = new FixedExclusiveModeCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, initAction, onOpenAction, onCloseAction)
 
-    def "acquires lock then initializes cache and runs handler action on open"() {
+    def "acquires lock then validates cache and runs handler action on open"() {
         def lock = Mock(FileLock)
 
         when:
@@ -43,6 +43,55 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
 
         then:
         1 * onOpenAction.execute(lock)
+        0 * _
+    }
+
+    def "acquires lock then initializes cache and runs handler action on open"() {
+        def lock = Mock(FileLock)
+
+        when:
+        cacheAccess.open()
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * initAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initAction.initialize(lock)
+
+        then:
+        1 * onOpenAction.execute(lock)
+        0 * _
+    }
+
+    def "releases lock when initialization fails"() {
+        def lock = Mock(FileLock)
+        def failure = new RuntimeException()
+
+        when:
+        cacheAccess.open()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * initAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initAction.initialize(lock) >> { throw failure }
+
+        then:
+        1 * lock.close()
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
         0 * _
     }
 
@@ -65,6 +114,10 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
     }
 
     def "does not run handler on close when not open"() {
-        expect: false
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
     }
 }

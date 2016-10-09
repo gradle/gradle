@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
@@ -57,32 +58,39 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
         FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-
-        boolean rebuild = initializationAction.requiresInitialization(fileLock);
-        if (rebuild) {
-            for (int tries = 0; rebuild && tries < 3; tries++) {
-                fileLock.close();
-                final FileLock exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName);
-                try {
-                    rebuild = initializationAction.requiresInitialization(exclusiveLock);
-                    if (rebuild) {
-                        exclusiveLock.writeFile(new Runnable() {
-                            public void run() {
-                                initializationAction.initialize(exclusiveLock);
-                            }
-                        });
-                    }
-                } finally {
-                    exclusiveLock.close();
-                }
-                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-                rebuild = initializationAction.requiresInitialization(fileLock);
-            }
+        try {
+            boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
-                throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
+                for (int tries = 0; rebuild && tries < 3; tries++) {
+                    fileLock.close();
+                    fileLock = null;
+                    final FileLock exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName);
+                    try {
+                        rebuild = initializationAction.requiresInitialization(exclusiveLock);
+                        if (rebuild) {
+                            exclusiveLock.writeFile(new Runnable() {
+                                public void run() {
+                                    initializationAction.initialize(exclusiveLock);
+                                }
+                            });
+                        }
+                    } finally {
+                        exclusiveLock.close();
+                    }
+                    fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+                    rebuild = initializationAction.requiresInitialization(fileLock);
+                }
+                if (rebuild) {
+                    throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
+                }
             }
+            onOpenAction.execute(fileLock);
+        } catch (Exception e) {
+            if (fileLock != null) {
+                fileLock.close();
+            }
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        onOpenAction.execute(fileLock);
         this.fileLock = fileLock;
     }
 

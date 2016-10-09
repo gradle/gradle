@@ -59,6 +59,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     private final Lock lock = new ReentrantLock(); // protects the following state
     private final Condition condition = lock.newCondition();
+    private boolean open;
     private Thread owner;
     private FileLock fileLock;
     private FileLock.State stateAtOpen;
@@ -117,7 +118,11 @@ public class DefaultCacheAccess implements CacheCoordinator {
     public void open() {
         lock.lock();
         try {
+            if (open) {
+                throw new IllegalStateException("Cache is already open.");
+            }
             crossProcessCacheAccess.open();
+            open = true;
             if (lockOptions.getMode() == FileLockManager.LockMode.None) {
                 return;
             }
@@ -330,8 +335,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                String description = operations.isInCacheAction() ? operations.getDescription() : "cache creation";
-                indexedCache.onStartWork(description, stateAtOpen);
+                indexedCache.onStartWork(stateAtOpen);
             }
         } finally {
             lock.unlock();
@@ -358,7 +362,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
         for (UnitOfWorkParticipant cache : caches) {
-            cache.onStartWork(operations.getDescription(), stateAtOpen);
+            cache.onStartWork(stateAtOpen);
         }
         if (lockOptions.getMode() == None) {
             lockManager.allowContention(fileLock, whenContended());

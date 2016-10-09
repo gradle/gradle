@@ -95,7 +95,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
+    public void onStartWork(FileLock.State currentCacheState) {
         boolean outOfDate = false;
         FileLock.State previousState = fileLockStateReference.get();
         if (previousState == null) {
@@ -107,7 +107,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
         if (outOfDate) {
             inMemoryCache.invalidateAll();
         }
-        delegate.onStartWork(operationDisplayName, currentCacheState);
+        delegate.onStartWork(currentCacheState);
     }
 
     @Override

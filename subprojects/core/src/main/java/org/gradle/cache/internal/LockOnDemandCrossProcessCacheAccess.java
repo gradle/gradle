@@ -19,6 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,15 +98,21 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
                     LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
                 }
                 fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-                if (initAction.requiresInitialization(fileLock)) {
-                    fileLock.writeFile(new Runnable() {
-                        @Override
-                        public void run() {
-                            initAction.initialize(fileLock);
-                        }
-                    });
+                try {
+                    if (initAction.requiresInitialization(fileLock)) {
+                        fileLock.writeFile(new Runnable() {
+                            @Override
+                            public void run() {
+                                initAction.initialize(fileLock);
+                            }
+                        });
+                    }
+                    onOpen.execute(fileLock);
+                } catch (Exception e) {
+                    fileLock.close();
+                    fileLock = null;
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
-                onOpen.execute(fileLock);
             }
             lockCount++;
         } finally {

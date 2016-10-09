@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Action;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
@@ -55,17 +56,22 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-
-        boolean rebuild = initializationAction.requiresInitialization(fileLock);
-        if (rebuild) {
-            fileLock.writeFile(new Runnable() {
-                public void run() {
-                    initializationAction.initialize(fileLock);
-                }
-            });
+        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+        try {
+            boolean rebuild = initializationAction.requiresInitialization(fileLock);
+            if (rebuild) {
+                fileLock.writeFile(new Runnable() {
+                    public void run() {
+                        initializationAction.initialize(fileLock);
+                    }
+                });
+            }
+            onOpenAction.execute(fileLock);
+        } catch (Exception e) {
+            fileLock.close();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        onOpenAction.execute(fileLock);
+        this.fileLock = fileLock;
     }
 
     @Override
@@ -75,9 +81,9 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
 
     @Override
     public void close() {
-        onCloseAction.execute(fileLock);
         if (fileLock != null) {
             try {
+                onCloseAction.execute(fileLock);
                 fileLock.close();
             } finally {
                 fileLock = null;

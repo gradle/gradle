@@ -86,7 +86,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
+    public void onStartWork(FileLock.State currentCacheState) {
     }
 
     @Override

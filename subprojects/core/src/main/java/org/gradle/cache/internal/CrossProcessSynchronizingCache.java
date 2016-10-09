@@ -69,8 +69,8 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-        target.onStartWork(operationDisplayName, currentCacheState);
+    public void onStartWork(FileLock.State currentCacheState) {
+        target.onStartWork(currentCacheState);
     }
 
     @Override

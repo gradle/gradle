@@ -114,7 +114,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> exclusiveLock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock)
@@ -180,7 +180,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> exclusiveLock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock) >> { throw failure }
@@ -260,7 +260,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     @Unroll
     def "cannot be opened more than once for mode #lockMode"() {
-        lockManager.lock(lockFile, lockMode, "<display-name>") >> lock
+        lockManager.lock(lockFile, _, "<display-name>") >> lock
         def access = newAccess(lockMode)
 
         when:
