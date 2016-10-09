@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     private static interface ReporterAndStore extends DataReporter, ResultsStore {}
@@ -130,6 +131,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
+    @Ignore
     def "can use 'none' in target versions to leave the baseline unspecified"() {
         given:
         def runner = runner()
@@ -149,6 +151,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         0 * _._
     }
 
+    @Ignore
     def "can override baselines with no baselines by using 'none' in the system property"() {
         given:
         def runner = runner()
