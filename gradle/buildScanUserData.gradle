@@ -26,6 +26,8 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
     }
 
     if (gradle.startParameter.taskOutputCacheEnabled) {
+        buildScan.tag 'CACHED'
+
         gradle.addListener(new TaskExecutionListener() {
 
             @Override
