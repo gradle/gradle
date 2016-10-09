@@ -69,11 +69,10 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
 
     @Override
     public void close() {
-        // Don't do anything
         stateLock.lock();
         try {
             if (lockCount != 0) {
-                throw new IllegalStateException("Cannot close cache access while the cache is in use.");
+                throw new IllegalStateException(String.format("Cannot close cache access for %s as it is currently in use by %s threads.", cacheDisplayName, lockCount));
             }
         } finally {
             stateLock.unlock();

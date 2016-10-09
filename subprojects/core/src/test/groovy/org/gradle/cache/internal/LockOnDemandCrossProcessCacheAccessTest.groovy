@@ -429,7 +429,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot close cache access while the cache is in use.'
+        e.message == 'Cannot close cache access for <cache> as it is currently in use by 1 threads.'
         1 * lock.close()
         0 * _
     }
@@ -458,7 +458,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot close cache access while the cache is in use.'
+        e.message == 'Cannot close cache access for <cache> as it is currently in use by 1 threads.'
 
         and:
         1 * lockManager.lock(file, _, _) >> lock
@@ -489,7 +489,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot close cache access while the cache is in use.'
+        e.message == 'Cannot close cache access for <cache> as it is currently in use by 1 threads.'
 
         and:
         1 * lockManager.lock(file, _, _) >> lock
