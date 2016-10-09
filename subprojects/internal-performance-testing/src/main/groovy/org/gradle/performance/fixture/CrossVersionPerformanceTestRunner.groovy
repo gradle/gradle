@@ -184,7 +184,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         }
 
-        if (addMostRecentFinalRelease) {
+        if (baselineVersions.empty || addMostRecentFinalRelease) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
             baselineVersions.add(mostRecentFinalRelease)
         }
