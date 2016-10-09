@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock
 class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def file = new TestFile("some-file.lock")
     def lockManager = Mock(FileLockManager)
-    def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(Action), Stub(Action))
+    def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), Stub(Action), Stub(Action))
 
     def "acquires lock then runs action and releases on completion"() {
         def action = Mock(Factory)
@@ -204,6 +204,86 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
+    def "initializes cache after lock is acquired"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+        def initAction = Mock(CacheInitializationAction)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
+
+        when:
+        cacheAccess.open()
+
+        then:
+        0 *_
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * initAction.requiresInitialization(lock) >> true
+        1 * initAction.initialize(lock)
+
+        then:
+        1 * action.create() >> "result"
+
+        then:
+        1 * lock.close()
+        0 * _
+
+        when:
+        def release = cacheAccess.acquireFileLock()
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * initAction.requiresInitialization(lock) >> true
+        1 * initAction.initialize(lock)
+        0 * _
+
+        when:
+        release.run()
+
+        then:
+        1 * lock.close()
+        0 * _
+    }
+
+    def "releases file lock when init action fails"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+        def failure = new RuntimeException()
+        def initAction = Mock(CacheInitializationAction)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
+
+        when:
+        cacheAccess.open()
+
+        then:
+        0 *_
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * initAction.requiresInitialization(lock) >> true
+        1 * initAction.initialize(lock) >> { throw failure }
+
+        then:
+        1 * lock.close()
+        0 * _
+    }
+
     def "can provide an action to run after the lock is released"() {
         def lock = Mock(FileLock)
         def completion = Mock(Runnable)
@@ -258,7 +338,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)
@@ -311,11 +391,11 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         expect: false
     }
 
-    def "closes lock when open handler fails"() {
+    def "releases lock when open handler fails"() {
         expect: false
     }
 
-    def "closes lock when close handler fails"() {
+    def "releases lock when close handler fails"() {
         expect: false
     }
 

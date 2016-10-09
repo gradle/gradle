@@ -17,25 +17,32 @@
 package org.gradle.cache.internal;
 
 import com.google.common.util.concurrent.Runnables;
+import org.gradle.api.Action;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.File;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 
 /**
- * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op.
+ * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op for these methods.
  */
 public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private final String cacheDisplayName;
     private final File lockTarget;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
+    private final CacheInitializationAction initializationAction;
+    private final Action<FileLock> onOpenAction;
+    private final Action<FileLock> onCloseAction;
     private FileLock fileLock;
 
-    public FixedExclusiveModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager) {
+    public FixedExclusiveModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Action<FileLock> onOpenAction, Action<FileLock> onCloseAction) {
+        assert lockOptions.getMode() == Exclusive;
+        this.initializationAction = initializationAction;
+        this.onOpenAction = onOpenAction;
+        this.onCloseAction = onCloseAction;
         assert lockOptions.getMode() == Exclusive;
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
@@ -44,7 +51,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     }
 
     @Override
-    public void open(final CacheInitializationAction initializationAction) {
+    public void open() {
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
@@ -58,6 +65,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
                 }
             });
         }
+        onOpenAction.execute(fileLock);
     }
 
     @Override
@@ -67,6 +75,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
 
     @Override
     public void close() {
+        onCloseAction.execute(fileLock);
         if (fileLock != null) {
             try {
                 fileLock.close();

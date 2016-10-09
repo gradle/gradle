@@ -208,7 +208,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("some action", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some action") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * lockManager.allowContention(lock, _ as Runnable) >> { FileLock l, Runnable r -> contentionAction = r }
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
@@ -228,7 +228,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("some action", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some action") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * lockManager.allowContention(lock, _ as Runnable) >> { FileLock l, Runnable r -> contentionAction = r }
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
@@ -283,7 +283,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some operation") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         1 * lockManager.allowContention(lock, _ as Runnable)
@@ -294,7 +294,6 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         }
 
         then:
-        1 * lock.getMode() >> Exclusive
         0 * _._
 
         and:
@@ -310,7 +309,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * action.create() >> {
             access.useCache("nested operation") {
                 assert access.owner == Thread.currentThread()
@@ -330,7 +329,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some operation") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * action.create() >> { assert access.owner == Thread.currentThread() }
 
         when:
@@ -360,74 +359,82 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     }
 
     def "long running operation pushes an operation and releases ownership but not lock"() {
-        Factory<String> action = Mock()
-        def access = newAccess(Exclusive)
+        Factory<String> innerAction = Mock()
+        Factory<String> outerAction = Mock()
+        def access = newAccess(None)
+
+        access.open()
 
         when:
-        access.open()
+        access.useCache("outer", outerAction)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        access.owner == Thread.currentThread()
+        1 * lock.state
+
+        and:
+        outerAction.create() >> {
+            assert access.owner == Thread.currentThread()
+            access.longRunningOperation("some operation", innerAction)
+            assert access.owner == Thread.currentThread()
+            "result"
+        }
+        innerAction.create() >> {
+            assert !access.owner
+            "result"
+        }
+
+        and:
+        0 * lock._
+    }
+
+    def "long running operation closes the lock if contended during action and reacquires on completion of action"() {
+        Factory<String> action = Mock()
+        def access = newAccess(None)
+
+        access.open()
 
         when:
-        access.longRunningOperation("some operation", action)
-
-        then:
-        _ * lock.mode >> Exclusive
-        0 * lock._
-
-        then:
-        1 * action.create() >> {
-            assert !access.owner
+        access.useCache("outer") {
+            access.longRunningOperation("some operation", action)
         }
 
         then:
-        0 * _._
-
-        then:
-        access.owner == Thread.currentThread()
-    }
-
-    def "long running operation closes the lock if contended during action"() {
-        Factory<String> action = Mock()
-        def access = newAccess(Exclusive)
-
-        when:
-        access.open()
-
-        then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-
-        when:
-        access.longRunningOperation("some operation", action)
 
         then:
         1 * action.create() >> {
             access.whenContended().run()
         }
         1 * lock.close()
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
     }
 
-    def "long running operation closes the lock if contended before action"() {
+    def "long running operation closes the lock if contended before action and reacquires on completion of action"() {
         Factory<String> action = Mock()
-        def access = newAccess(Exclusive)
+        def access = newAccess(None)
+
+        access.open()
 
         when:
-        access.open()
+        access.useCache("outer") {
+            access.whenContended().run()
+            access.longRunningOperation("some operation", action)
+        }
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
 
-        when:
-        access.whenContended().run()
-        access.longRunningOperation("some operation", action)
+        then:
+        1 * lock.close()
 
         then:
         1 * action.create()
-        1 * lock.close()
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
     }
 
     def "top-level long running operation does not lock file"() {
@@ -499,7 +506,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
 
         when:
         access.whenContended().run()
@@ -542,7 +549,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache("use cache", { access.fileAccess.updateFile(runnable)})
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * lock.updateFile(runnable)
     }
 
@@ -551,7 +558,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         access.open()
         access.useCache("use cache", runnable)
 
@@ -577,7 +584,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))

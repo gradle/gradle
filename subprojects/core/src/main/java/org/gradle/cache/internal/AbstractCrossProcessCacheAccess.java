@@ -20,9 +20,9 @@ import java.io.Closeable;
 
 public abstract class AbstractCrossProcessCacheAccess implements CrossProcessCacheAccess, Closeable {
     /**
-     * Opens this cache access when the cache is opened. State lock is held while this method is called.
+     * Opens this cache access instance when the cache is opened. State lock is held while this method is called.
      */
-    public abstract void open(CacheInitializationAction initializationAction);
+    public abstract void open();
 
     /**
      * Returns the file lock. Fails when no lock is available. State lock is held while this method is called.
@@ -30,7 +30,7 @@ public abstract class AbstractCrossProcessCacheAccess implements CrossProcessCac
     public abstract FileLock getLock() throws IllegalStateException;
 
     /**
-     * Closes this cache access when the cache is opened. State lock is held while this method is called.
+     * Closes this cache access instance when the cache is opened. State lock is held while this method is called.
      */
     @Override
     public abstract void close();

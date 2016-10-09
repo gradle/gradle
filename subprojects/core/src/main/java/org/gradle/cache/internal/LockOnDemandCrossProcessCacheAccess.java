@@ -36,6 +36,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     private final Action<FileLock> onClose;
     private int lockCount;
     private FileLock fileLock;
+    private CacheInitializationAction initAction;
 
     /**
      * Actions are notified when lock is opened or closed. Actions are called while holding state lock, so that no other threads are working with cache while these are running.
@@ -44,19 +45,20 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
      * @param onOpen Action to run when the lock is opened. Action is called while holding state lock
      * @param onClose Action to run when the lock is closed. Action is called while holding state lock
      */
-    public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, Action<FileLock> onOpen, Action<FileLock> onClose) {
+    public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, CacheInitializationAction initAction, Action<FileLock> onOpen, Action<FileLock> onClose) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
         this.lockManager = lockManager;
         this.stateLock = stateLock;
+        this.initAction = initAction;
         this.onOpen = onOpen;
         this.onClose = onClose;
     }
 
     @Override
-    public void open(CacheInitializationAction initializationAction) {
-        // Don't do anything
+    public void open() {
+        // Don't need to do anything
     }
 
     @Override
@@ -91,11 +93,21 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         stateLock.lock();
         try {
             if (lockCount == 0) {
-//                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
+                }
+                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+                if (initAction.requiresInitialization(fileLock)) {
+                    fileLock.writeFile(new Runnable() {
+                        @Override
+                        public void run() {
+                            initAction.initialize(fileLock);
+                        }
+                    });
+                }
                 onOpen.execute(fileLock);
             }
             lockCount++;
-            LOGGER.info("LOCK #" + lockCount);
         } finally {
             stateLock.unlock();
         }
@@ -106,11 +118,13 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         try {
             lockCount--;
             if (lockCount == 0) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Releasing file lock for {}", cacheDisplayName);
+                }
                 onClose.execute(fileLock);
-//                fileLock.close();
+                fileLock.close();
                 fileLock = null;
             }
-            LOGGER.info("UNLOCK #" + lockCount);
         } finally {
             stateLock.unlock();
         }
