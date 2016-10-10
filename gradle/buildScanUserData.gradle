@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder.ByteArrayT
 import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.classloader.VisitableURLClassLoader
 
 if (plugins.hasPlugin("com.gradle.build-scan")) {
     if (System.getenv("CI")) {
@@ -123,6 +124,9 @@ class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
         def hash = classloaderHash(classLoader)
         if (hash) {
             buildScan.value("ClasspathManifest-${counter++}-${classLoader.getClass().getSimpleName()}-hash", hash)
+            if ((counter <= 2) && (classLoader instanceof VisitableURLClassLoader)) {
+                buildScan.value("ClasspathManifest-${counter - 1}-classpath", classLoader.getURLs().join(':'))
+            }
         }
         super.visit(classLoader)
     }
