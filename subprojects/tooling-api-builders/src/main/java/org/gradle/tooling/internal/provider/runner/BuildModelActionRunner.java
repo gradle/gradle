@@ -46,14 +46,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         final BuildModelAction buildModelAction = (BuildModelAction) action;
         final GradleInternal gradle = buildController.getGradle();
-        gradle.addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                if (result.getFailure() == null) {
-                    buildController.setResult(buildResult(buildModelAction, buildController));
-                }
-            }
-        });
+        gradle.addBuildListener(new BuildResultAdapter(gradle, buildController, buildModelAction));
 
         if (buildModelAction.isRunTasks()) {
             buildController.run();
@@ -62,55 +55,89 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    private BuildActionResult buildResult(BuildModelAction buildModelAction, BuildController buildController) {
-        PayloadSerializer serializer = buildController.getGradle().getServices().get(PayloadSerializer.class);
-        try {
-            Object model = buildModel(buildModelAction, buildController);
-            return new BuildActionResult(serializer.serialize(model), null);
-        } catch (RuntimeException e) {
-            return new BuildActionResult(null, serializer.serialize(e));
-        }
-    }
+    private static class BuildResultAdapter extends BuildAdapter {
+        private final GradleInternal gradle;
+        private final BuildController buildController;
+        private final BuildModelAction buildModelAction;
 
-    private Object buildModel(BuildModelAction buildModelAction, BuildController buildController) {
-        GradleInternal gradle = buildController.getGradle();
-
-        if (!buildModelAction.isRunTasks()) {
-            forceFullConfiguration(gradle);
+        private BuildResultAdapter(GradleInternal gradle, BuildController buildController, BuildModelAction buildModelAction) {
+            this.buildController = buildController;
+            this.gradle = gradle;
+            this.buildModelAction = buildModelAction;
         }
 
-        String modelName = buildModelAction.getModelName();
-        ToolingModelBuilder builder = getModelBuilder(modelName, gradle);
-
-        if (builder instanceof ProjectSensitiveToolingModelBuilder) {
-            return ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
-        } else {
-            return builder.buildAll(modelName, gradle.getDefaultProject());
-        }
-    }
-
-    private void forceFullConfiguration(GradleInternal gradle) {
-        try {
-            gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                ProjectInternal projectInternal = (ProjectInternal) project;
-                projectInternal.getTasks().discoverTasks();
-                projectInternal.bindAllModelRules();
+        @Override
+        public void buildFinished(BuildResult result) {
+            if (result.getFailure() == null) {
+                buildController.setResult(buildResult(gradle, buildModelAction));
             }
-        } catch (BuildCancelledException e) {
-            throw new InternalBuildCancelledException(e);
-        } catch (RuntimeException e) {
-            throw new BuildExceptionVersion1(e);
         }
-    }
 
-    private ToolingModelBuilder getModelBuilder(String modelName, GradleInternal gradle) {
-        ToolingModelBuilderRegistry builderRegistry = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
-        try {
-            return builderRegistry.getBuilder(modelName);
-        } catch (UnknownModelException e) {
-            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+        private static BuildActionResult buildResult(GradleInternal gradle, BuildModelAction buildModelAction) {
+            PayloadSerializer serializer = gradle.getServices().get(PayloadSerializer.class);
+            try {
+                Object model = buildModel(gradle, buildModelAction);
+                return new BuildActionResult(serializer.serialize(model), null);
+            } catch (RuntimeException e) {
+                return new BuildActionResult(null, serializer.serialize(e));
+            }
         }
-    }
 
+        private static Object buildModel(GradleInternal gradle, BuildModelAction buildModelAction) {
+
+            if (!buildModelAction.isRunTasks()) {
+                forceFullConfiguration(gradle);
+            }
+
+            String modelName = buildModelAction.getModelName();
+            ToolingModelBuilder builder = getModelBuilder(gradle, modelName);
+
+            if (builder instanceof ProjectSensitiveToolingModelBuilder) {
+                return ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
+            } else {
+                return builder.buildAll(modelName, gradle.getDefaultProject());
+            }
+        }
+
+        private static void forceFullConfiguration(GradleInternal gradle) {
+            try {
+                ProjectInternal rootProject = gradle.getRootProject();
+                fullyConfigure(gradle, rootProject);
+            } catch (BuildCancelledException e) {
+                throw new InternalBuildCancelledException(e);
+            } catch (RuntimeException e) {
+                throw new BuildExceptionVersion1(e);
+            }
+        }
+
+        private static void fullyConfigure(GradleInternal gradle, ProjectInternal rootProject) {
+            getProjectConfigurer(gradle).configureHierarchy(rootProject);
+            for (Project project : rootProject.getAllprojects()) {
+                fullyConfigure((ProjectInternal) project);
+            }
+        }
+
+        private static ProjectConfigurer getProjectConfigurer(GradleInternal gradle) {
+            return gradle.getServices().get(ProjectConfigurer.class);
+        }
+
+        private static void fullyConfigure(ProjectInternal projectInternal) {
+            projectInternal.getTasks().discoverTasks();
+            projectInternal.bindAllModelRules();
+        }
+
+        private static ToolingModelBuilder getModelBuilder(GradleInternal gradle, String modelName) {
+            ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
+            try {
+                return builderRegistry.getBuilder(modelName);
+            } catch (UnknownModelException e) {
+                throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+            }
+        }
+
+        private static ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
+            return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
+        }
+
+    }
 }

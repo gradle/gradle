@@ -22,10 +22,9 @@ public interface UnitOfWorkParticipant {
     /**
      * Called just after the cache is locked. Called before any work has been performed.
      *
-     * @param operationDisplayName operation
      * @param currentCacheState the current cache state.
      */
-    void onStartWork(String operationDisplayName, FileLock.State currentCacheState);
+    void onStartWork(FileLock.State currentCacheState);
 
     /**
      * Called just before the cache is to be unlocked. Called after all work has been completed.

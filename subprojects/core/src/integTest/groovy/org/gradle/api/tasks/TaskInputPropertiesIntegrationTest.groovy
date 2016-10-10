@@ -100,9 +100,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
 
         // Keep the same files, but move one of them to the other property
-        buildFile.delete()
         buildFile << """
-            task test(type: TaskWithTwoFileCollectionInputs) {
+            test {
                 inputs1 = files("input1.txt")
                 inputs2 = files("input2.txt", "input3.txt")
             }
@@ -117,6 +116,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains "Input property 'inputs2' file ${file("input2.txt")} has been added."
 
         when:
+        executer.withArgument("-i")
         succeeds "test"
 
         then:

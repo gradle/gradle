@@ -24,11 +24,14 @@ import com.google.common.hash.Hashing;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 
 class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskTypeTaskStateChanges.class);
     private static final HashCode NO_ACTION_LOADERS = Hashing.md5().hashString("no-action-loaders", Charsets.UTF_8);
     private final String taskPath;
     private final String taskClass;
@@ -43,6 +46,10 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         currentExecution.setTaskClassLoaderHash(taskClassLoaderHash);
         HashCode taskActionsClassLoaderHash = calculateActionClassLoaderHash(taskActionClassLoaders, classLoaderHierarchyHasher);
         currentExecution.setTaskActionsClassLoaderHash(taskActionsClassLoaderHash);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Task {} class loader hash: {}", taskPath, taskClassLoaderHash);
+            LOGGER.info("Task {} actions class loader hash: {}", taskPath, taskActionsClassLoaderHash);
+        }
         this.taskPath = taskPath;
         this.taskClass = taskClassName;
         this.taskClassLoaderHash = taskClassLoaderHash;
@@ -72,12 +79,12 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
                     taskPath, previousExecution.getTaskClass(), taskClass));
             return;
         }
-        if (!Objects.equal(this.taskClassLoaderHash, previousExecution.getTaskClassLoaderHash())) {
-            changes.add(new DescriptiveChange("Task '%s' class path has changed.", taskPath));
+        if (!Objects.equal(taskClassLoaderHash, previousExecution.getTaskClassLoaderHash())) {
+            changes.add(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", taskPath, previousExecution.getTaskClassLoaderHash(), taskClassLoaderHash));
             return;
         }
-        if (!Objects.equal(this.taskActionsClassLoaderHash, previousExecution.getTaskActionsClassLoaderHash())) {
-            changes.add(new DescriptiveChange("Task '%s' additional action class path has changed.", taskPath));
+        if (!Objects.equal(taskActionsClassLoaderHash, previousExecution.getTaskActionsClassLoaderHash())) {
+            changes.add(new DescriptiveChange("Task '%s' additional action class path has changed from %s to %s.", taskPath, previousExecution.getTaskActionsClassLoaderHash(), taskActionsClassLoaderHash));
         }
     }
 }

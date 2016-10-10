@@ -19,9 +19,18 @@ package org.gradle.cache.internal;
 import java.util.concurrent.Callable;
 
 public interface AsyncCacheAccess {
+    /**
+     * Runs the given action later.
+     */
     void enqueue(Runnable task);
 
+    /**
+     * Runs the given action, blocking until the result is available.
+     */
     <T> T read(Callable<T> task);
 
+    /**
+     * Blocks until all submitted actions have completed.
+     */
     void flush();
 }

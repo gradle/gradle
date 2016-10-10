@@ -66,11 +66,16 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile.text = declareSimpleCopyTask(true)
 
+        executer.withArgument("-i")
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        executer.withArgument("-i")
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
@@ -131,11 +136,16 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
+        executer.withArgument("-i")
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        executer.withArgument("-i")
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
@@ -166,11 +176,16 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
+        executer.withArgument("-i")
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        executer.withArgument("-i")
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 

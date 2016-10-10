@@ -164,9 +164,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 continue
             }
             if (version == 'none') {
-                // when 'none' is the only target version, no baselines will be used
-                addMostRecentFinalRelease = false
-                continue
+                return Collections.emptyList()
             }
             if (version == 'defaults') {
                 throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
@@ -184,7 +182,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         }
 
-        if (addMostRecentFinalRelease) {
+        if (baselineVersions.empty || addMostRecentFinalRelease) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
             baselineVersions.add(mostRecentFinalRelease)
         }

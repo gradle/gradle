@@ -51,7 +51,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         GFileUtils.mkdirs(dir);
         cacheAccess = createCacheAccess();
         try {
-            cacheAccess.open(lockOptions);
+            cacheAccess.open();
         } catch (Throwable e) {
             throw new CacheOpenException(String.format("Could not open %s.", this), e);
         }
@@ -60,7 +60,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), dir, lockManager, getInitAction(), executorFactory);
+        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), executorFactory);
     }
 
     private File getLockTarget() {

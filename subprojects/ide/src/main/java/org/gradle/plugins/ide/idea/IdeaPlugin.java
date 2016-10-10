@@ -77,9 +77,28 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
  */
 public class IdeaPlugin extends IdePlugin {
     private static final String EXT_KEY_IDEA_PATH_INTERNER = "ideaPathInterner";
+    private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
+        @Override
+        public boolean apply(Project project) {
+            return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
+        }
+    };
+    public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
+        @Override
+        public JavaVersion apply(Project p) {
+            return p.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
+        }
+    };
+    public static final Function<Project, JavaVersion> TARGET_COMPATIBILITY = new Function<Project, JavaVersion>() {
+        @Override
+        public JavaVersion apply(Project p) {
+            return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+        }
+    };
     private final Instantiator instantiator;
     private IdeaModel ideaModel;
     private PathInterner pathInterner;
+    private List<Project> allJavaProjects;
 
     @Inject
     public IdeaPlugin(Instantiator instantiator) {
@@ -197,12 +216,7 @@ public class IdeaPlugin extends IdePlugin {
             conventionMapping.map("languageLevel", new Callable<IdeaLanguageLevel>() {
                 @Override
                 public IdeaLanguageLevel call() throws Exception {
-                    JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor(new Function<Project, JavaVersion>() {
-                        @Override
-                        public JavaVersion apply(Project p) {
-                            return p.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
-                        }
-                    });
+                    JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor(SOURCE_COMPATIBILITY);
                     return new IdeaLanguageLevel(maxSourceCompatibility);
                 }
 
@@ -210,12 +224,7 @@ public class IdeaPlugin extends IdePlugin {
             conventionMapping.map("targetBytecodeVersion", new Callable<JavaVersion>() {
                 @Override
                 public JavaVersion call() throws Exception {
-                    return getMaxJavaModuleCompatibilityVersionFor(new Function<Project, JavaVersion>() {
-                        @Override
-                        public JavaVersion apply(Project p) {
-                            return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
-                        }
-                    });
+                    return getMaxJavaModuleCompatibilityVersionFor(TARGET_COMPATIBILITY);
                 }
 
             });
@@ -256,21 +265,21 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Function<Project, JavaVersion> toJavaVersion) {
-        List<JavaVersion> allProjectJavaVersions = Lists.newArrayList(Iterables.transform(
-            Sets.filter(project.getRootProject().getAllprojects(), new Predicate<Project>() {
-                @Override
-                public boolean apply(Project project) {
-                    return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
-                }
-            }),
-            toJavaVersion
-        ));
-
-        if (allProjectJavaVersions.isEmpty()) {
+        List<Project> allJavaProjects = getAllJavaProjects();
+        if (allJavaProjects.isEmpty()) {
             return JavaVersion.VERSION_1_6;
         } else {
-            return Collections.max(Sets.newHashSet(allProjectJavaVersions));
+            return Collections.max(Lists.transform(allJavaProjects, toJavaVersion));
         }
+    }
+
+    private List<Project> getAllJavaProjects() {
+        if (allJavaProjects != null) {
+            // cache result because it is pretty expensive to compute
+            return allJavaProjects;
+        }
+        allJavaProjects = Lists.newArrayList(Iterables.filter(project.getRootProject().getAllprojects(), HAS_IDEA_AND_JAVA_PLUGINS));
+        return allJavaProjects;
     }
 
     private void configureIdeaModule(final Project project) {

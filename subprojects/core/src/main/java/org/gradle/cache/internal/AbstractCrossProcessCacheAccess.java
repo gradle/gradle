@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,22 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.CacheAccess;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-
 import java.io.Closeable;
 
-public interface CacheCoordinator extends CacheAccess, Closeable {
-    void open();
+public abstract class AbstractCrossProcessCacheAccess implements CrossProcessCacheAccess, Closeable {
+    /**
+     * Opens this cache access instance when the cache is opened. State lock is held while this method is called.
+     */
+    public abstract void open();
 
     /**
-     * Closes the cache, blocking until all operations have completed.
+     * Returns the file lock. Fails when no lock is available. State lock is held while this method is called.
      */
-    void close();
-
-    <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
+    public abstract FileLock getLock() throws IllegalStateException;
 
     /**
-     * Blocks until all pending operations have completed.
+     * Closes this cache access instance when the cache is opened. State lock is held while this method is called.
      */
-    void flush();
+    @Override
+    public abstract void close();
 }

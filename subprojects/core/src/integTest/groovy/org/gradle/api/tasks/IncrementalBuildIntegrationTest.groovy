@@ -137,6 +137,7 @@ task b(type: TransformerTask, dependsOn: a) {
 
         // No changes
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -170,6 +171,7 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileB.text == '[[new content]]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -200,6 +202,7 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileB.text == '[[new content]]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -239,6 +242,7 @@ a.inputFile = file('new-a-input.txt')
         outputFileA.text == '[new content]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -259,6 +263,7 @@ b.outputFile = file('new-output.txt')
         outputFileB.text == '[[new content]]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -278,6 +283,7 @@ b.inputFile = a.outputFile
         outputFileA.text == '[new content]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -310,6 +316,7 @@ a.format = '- %s -'
         succeeds "b"
 
         then:
+        executer.withArgument("-i")
         skippedTasks.sort() == [":a", ":b"]
 
         // Run with --rerun-tasks command-line options
@@ -339,6 +346,7 @@ a.format = '- %s -'
         skippedTasks.sort() ==  [":a"]
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -379,6 +387,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
 
         // No changes
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -400,6 +409,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         outputBFile.text == '[[new content]]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -417,6 +427,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         file('build/b/file2.txt').text == '[[content2]]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -432,6 +443,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         skippedTasks.sort() ==  [":b"]
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -448,6 +460,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         outputAFile.text == '[new content]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -464,6 +477,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         outputAFile.text == '[new content]'
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:
@@ -489,6 +503,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         skippedTasks.sort() ==  [":a"]
 
         when:
+        executer.withArgument("-i")
         succeeds "b"
 
         then:

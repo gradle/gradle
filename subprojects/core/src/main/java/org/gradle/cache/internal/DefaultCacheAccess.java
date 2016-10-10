@@ -16,10 +16,10 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
@@ -39,42 +39,69 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
+import static org.gradle.cache.internal.FileLockManager.LockMode.*;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
-
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
     private final String cacheDisplayName;
-    private final File lockTarget;
     private final File baseDir;
     private final FileLockManager lockManager;
-    private final CacheInitializationAction initializationAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
     private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private Thread owner;
-    private LockOptions lockOptions;
-    private FileLock fileLock;
-    private FileLock.State stateAtOpen;
-    private boolean contended;
-    private final CacheAccessOperationsStack operations;
-    private int cacheClosedCount;
+    private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
+    private final LockOptions lockOptions;
+
     private StoppableExecutor cacheUpdateExecutor;
     private CacheAccessWorker _cacheAccessWorker;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
+    private final Lock lock = new ReentrantLock(); // protects the following state
+    private final Condition condition = lock.newCondition();
+    private boolean open;
+    private Thread owner;
+    private FileLock fileLock;
+    private FileLock.State stateAtOpen;
+    private Runnable fileLockHeldByOwner;
+    private boolean contended;
+    private final CacheAccessOperationsStack operations;
+    private int cacheClosedCount;
+
+    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
-        this.lockTarget = lockTarget;
+        this.lockOptions = lockOptions;
         this.baseDir = baseDir;
         this.lockManager = lockManager;
-        this.initializationAction = initializationAction;
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
+
+        Action<FileLock> onFileLockAcquireAction = new Action<FileLock>() {
+            @Override
+            public void execute(FileLock fileLock) {
+                afterLockAcquire(fileLock);
+            }
+        };
+        Action<FileLock> onFileLockReleaseAction = new Action<FileLock>() {
+            @Override
+            public void execute(FileLock fileLock) {
+                beforeLockRelease(fileLock);
+            }
+        };
+
+        switch (lockOptions.getMode()) {
+            case Shared:
+                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                break;
+            case Exclusive:
+                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                break;
+            case None:
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, lock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     private synchronized CacheAccessWorker getCacheAccessWorker() {
@@ -88,81 +115,23 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return _cacheAccessWorker;
     }
 
-    public void open(LockOptions lockOptions) {
+    public void open() {
         lock.lock();
         try {
-            if (this.lockOptions != null) {
-                throw new IllegalStateException(String.format("Cannot open the %s, as it has already been opened.", cacheDisplayName));
+            if (open) {
+                throw new IllegalStateException("Cache is already open.");
             }
-            this.lockOptions = lockOptions;
+            crossProcessCacheAccess.open();
+            open = true;
             if (lockOptions.getMode() == FileLockManager.LockMode.None) {
                 return;
             }
-            if (fileLock != null) {
-                throw new IllegalStateException("File lock " + lockTarget + " is already open.");
-            }
-            fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-
-            boolean rebuild = initializationAction.requiresInitialization(fileLock);
-            if (rebuild) {
-                if (lockOptions.getMode() == Exclusive) {
-                    fileLock.writeFile(new Runnable() {
-                        public void run() {
-                            initializationAction.initialize(fileLock);
-                        }
-                    });
-                } else {
-                    for (int tries = 0; rebuild && tries < 3; tries++) {
-                        fileLock.close();
-                        fileLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, "Initialize cache");
-                        rebuild = initializationAction.requiresInitialization(fileLock);
-                        if (rebuild) {
-                            fileLock.writeFile(new Runnable() {
-                                public void run() {
-                                    initializationAction.initialize(fileLock);
-                                }
-                            });
-                        }
-                        fileLock.close();
-                        fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
-                        rebuild = initializationAction.requiresInitialization(fileLock);
-                    }
-                    if (rebuild) {
-                        throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
-                    }
-                }
-            }
-
-            stateAtOpen = fileLock.getState();
             takeOwnership(String.format("Access %s", cacheDisplayName));
         } catch (Throwable throwable) {
-            if (fileLock != null) {
-                fileLock.close();
-                fileLock = null;
-            }
+            crossProcessCacheAccess.close();
             throw UncheckedException.throwAsUncheckedException(throwable);
         } finally {
             lock.unlock();
-        }
-    }
-
-    private void closeFileLock() {
-        try {
-            cacheClosedCount++;
-            try {
-                // Close the caches and then notify them of the final state, in case the caches do work on close
-                new CompositeStoppable().add(caches).stop();
-                FileLock.State state = fileLock.getState();
-                for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                    cache.onEndWork(state);
-                }
-            } finally {
-                fileLock.close();
-            }
-        } finally {
-            fileLock = null;
-            stateAtOpen = null;
-            contended = false;
         }
     }
 
@@ -185,14 +154,14 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 // TODO:ADAM - The check for shared mode is a work around. Owner should release the lock
                 throw new IllegalStateException(String.format("Cannot close %s as it is currently being used by another thread.", cacheDisplayName));
             }
-            if (fileLock != null) {
-                closeFileLock();
+            if (fileLockHeldByOwner != null) {
+                fileLockHeldByOwner.run();
             }
+            crossProcessCacheAccess.close();
             if (cacheClosedCount != 1) {
                 LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
             }
         } finally {
-            lockOptions = null;
             owner = null;
             lock.unlock();
         }
@@ -276,8 +245,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
         boolean wasEnded;
         lock.lock();
         try {
-            if (lockOptions == null || lockOptions.getMode() == Shared) {
-                throw new UnsupportedOperationException("Not supported for this lock mode.");
+            if (lockOptions.getMode() != None) {
+                throw new UnsupportedOperationException("Long running operation not supported for this lock mode.");
             }
             if (operations.isInCacheAction()) {
                 checkThreadIsOwner();
@@ -351,7 +320,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
         CacheDecorator decorator = parameters.getCacheDecorator();
         if (decorator != null) {
-            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, getCacheAccessWorker());
+            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
             if (fileLock == null) {
                 useCache("Initial operation", new Runnable() {
                     @Override
@@ -366,8 +335,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                String description = operations.isInCacheAction() ? operations.getDescription() : "cache creation";
-                indexedCache.onStartWork(description, stateAtOpen);
+                indexedCache.onStartWork(stateAtOpen);
             }
         } finally {
             lock.unlock();
@@ -386,34 +354,59 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
     }
 
+    /**
+     * Called just after the file lock has been acquire.
+     */
+    private void afterLockAcquire(FileLock fileLock) {
+        assert this.fileLock == null;
+        this.fileLock = fileLock;
+        this.stateAtOpen = fileLock.getState();
+        for (UnitOfWorkParticipant cache : caches) {
+            cache.onStartWork(stateAtOpen);
+        }
+        if (lockOptions.getMode() == None) {
+            lockManager.allowContention(fileLock, whenContended());
+        }
+    }
+
+    /**
+     * Called just before the file lock is about to be released.
+     */
+    private void beforeLockRelease(FileLock fileLock) {
+        assert this.fileLock == fileLock;
+        try {
+            // Close the caches and then notify them of the final state, in case the caches do work on close
+            cacheClosedCount++;
+            new CompositeStoppable().add(caches).stop();
+            FileLock.State state = fileLock.getState();
+            for (MultiProcessSafePersistentIndexedCache cache : caches) {
+                cache.onEndWork(state);
+            }
+        } finally {
+            this.fileLock = null;
+            this.stateAtOpen = null;
+            contended = false;
+        }
+    }
+
     private boolean onStartWork() {
-        if (fileLock != null) {
+        if (fileLockHeldByOwner != null) {
             return false;
         }
-        fileLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, operations.getDescription());
-        if (initializationAction.requiresInitialization(fileLock)) {
-            fileLock.writeFile(new Runnable() {
-                public void run() {
-                    initializationAction.initialize(fileLock);
-                }
-            });
-        }
-        stateAtOpen = fileLock.getState();
-        for (UnitOfWorkParticipant cache : caches) {
-            cache.onStartWork(operations.getDescription(), stateAtOpen);
-        }
-
-        lockManager.allowContention(fileLock, whenContended());
-
+        fileLockHeldByOwner = crossProcessCacheAccess.acquireFileLock();
         return true;
     }
 
     private boolean onEndWork() {
-        if (fileLock == null) {
+        if (fileLockHeldByOwner == null) {
             return false;
         }
-        if (contended || fileLock.getMode() == Shared) {
-            closeFileLock();
+        if (contended) {
+            try {
+                fileLockHeldByOwner.run();
+            } finally {
+                fileLockHeldByOwner = null;
+            }
         }
         return true;
     }
@@ -466,7 +459,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
                     takeOwnership("Other process requested access to " + cacheDisplayName);
                     try {
-                        closeFileLock();
+                        if (fileLockHeldByOwner != null) {
+                            try {
+                                fileLockHeldByOwner.run();
+                            } finally {
+                                fileLockHeldByOwner = null;
+                            }
+                        }
                     } finally {
                         releaseOwnership();
                     }

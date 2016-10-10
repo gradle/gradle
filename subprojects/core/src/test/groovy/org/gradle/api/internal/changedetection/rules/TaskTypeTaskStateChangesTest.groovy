@@ -61,9 +61,10 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     def "not up-to-date when class-loader has changed"() {
+        def previousHash = HashCode.fromLong(987)
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
-            getTaskClassLoaderHash() >> HashCode.fromLong(987)
+            getTaskClassLoaderHash() >> previousHash
             getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
         }
         def current = Mock(TaskExecution)
@@ -71,21 +72,22 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
 
         expect:
-        changes == ["Task ':test' class path has changed."]
+        changes == ["Task ':test' class path has changed from ${previousHash} to ${taskLoaderHash}."]
     }
 
     def "not up-to-date when action class-loader has changed"() {
+        def previousHash = HashCode.fromLong(987)
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> HashCode.fromLong(987)
+            getTaskActionsClassLoaderHash() >> previousHash
         }
         def current = Mock(TaskExecution)
 
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
 
         expect:
-        changes == ["Task ':test' additional action class path has changed."]
+        changes == ["Task ':test' additional action class path has changed from ${previousHash} to ${taskActionsLoaderHash}."]
     }
 
     List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {

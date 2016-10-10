@@ -56,6 +56,20 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
+    public void putLater(final K key, final V value, final Runnable completion) {
+        asyncCacheAccess.enqueue(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    persistentCache.put(key, value);
+                } finally {
+                    completion.run();
+                }
+            }
+        });
+    }
+
+    @Override
     public void remove(final K key) {
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
@@ -66,8 +80,22 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-        persistentCache.onStartWork(operationDisplayName, currentCacheState);
+    public void removeLater(final K key, final Runnable completion) {
+        asyncCacheAccess.enqueue(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    persistentCache.remove(key);
+                } finally {
+                    completion.run();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onStartWork(FileLock.State currentCacheState) {
+        persistentCache.onStartWork(currentCacheState);
     }
 
     @Override
