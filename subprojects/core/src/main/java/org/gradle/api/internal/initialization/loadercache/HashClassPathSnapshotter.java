@@ -28,6 +28,7 @@ import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +58,9 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
                 if (visitedDirs.add(file)) {
                     //in theory, awkward symbolic links can lead to recursion problems.
                     //TODO - figure out a way to test it. I only tested it 'manually' and the feature is needed.
-                    hash(combinedHash, visitedFilePaths, visitedDirs, Iterators.forArray(file.listFiles()));
+                    File[] sortedFiles = file.listFiles();
+                    Arrays.sort(sortedFiles);
+                    hash(combinedHash, visitedFilePaths, visitedDirs, Iterators.forArray(sortedFiles));
                 }
             } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
