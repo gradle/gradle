@@ -33,6 +33,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         experiment(template, "get $template EclipseProject model") {
             warmUpCount = 20
             invocationCount = 30
+            // rebaselined because of https://github.com/gradle/performance/issues/99
+            targetVersions = ['3.2-20161010071950+0000']
             action {
                 def model = getModel(tapiClass(EclipseProject))
                 // we must actually do something to highlight some performance issues
@@ -135,11 +137,12 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
+        // rebaselined because of https://github.com/gra
         template          | targetGradleVersions
-        "smallOldJava"    | ['last']
-        "mediumOldJava"   | ['last']
-        "bigOldJava"      | ['last']
-        "lotDependencies" | ['last']
+        "smallOldJava"    | ['3.2-20161010071950+0000']
+        "mediumOldJava"   | ['3.2-20161010071950+0000']
+        "bigOldJava"      | ['3.2-20161010071950+0000']
+        "lotDependencies" | ['3.2-20161010071950+0000']
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
