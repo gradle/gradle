@@ -30,6 +30,8 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.tasksToRun = ['resolveDependencies']
         runner.targetVersions = targetVersions
         runner.useDaemon = true
+        runner.warmUpRuns = 3
+        runner.runs = 3
 
         when:
         def result = runner.run()
@@ -42,7 +44,7 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         // TODO(pepper): Revert this to 'last' when 3.2 is released
         // The regression was determined acceptable in this discussion:
         // https://issues.gradle.org/browse/GRADLE-1346
-        "lotDependencies"        | 'local'  | ['3.2-20160915000027+0000']
+//        "lotDependencies"        | 'local'  | ['3.2-20160915000027+0000']
         "lotProjectDependencies" | 'local'  | ['3.2-20160915000027+0000']
     }
 }
