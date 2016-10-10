@@ -63,22 +63,11 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     }
 
     @Override
-    public FileLock getLock() throws IllegalStateException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void close() {
         stateLock.lock();
         try {
             if (lockCount != 0) {
-                LOGGER.debug("Cache is still in use by {} threads.", lockCount);
-                try {
-                    fileLock.close();
-                } finally {
-                    fileLock = null;
-                    lockCount = 0;
-                }
+                throw new IllegalStateException(String.format("Cannot close cache access for %s as it is currently in use for %s operations.", cacheDisplayName, lockCount));
             }
         } finally {
             stateLock.unlock();
