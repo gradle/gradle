@@ -161,6 +161,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
                     sleep(experimentSpec.sleepAfterWarmUpMillis)
                     measure(results, toolingApi, version, workingDirProvider.testDirectory)
+                    toolingApi.daemons.killAll()
                 }
             } finally {
                 resolver.stop()
