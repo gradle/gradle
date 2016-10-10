@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.logging
+package org.gradle.internal.logging
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
