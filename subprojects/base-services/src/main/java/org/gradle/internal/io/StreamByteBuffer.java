@@ -28,7 +28,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -130,6 +132,17 @@ public class StreamByteBuffer {
         byte[] buf = new byte[totalBytesUnread()];
         input.readImpl(buf, 0, buf.length);
         return buf;
+    }
+
+    public List<byte[]> readAsListOfByteArrays() {
+        List<byte[]> listOfByteArrays = new ArrayList<byte[]>(chunks.size() + 1);
+        byte[] buf;
+        while ((buf = input.readNextBuffer()) != null) {
+            if (buf.length > 0) {
+                listOfByteArrays.add(buf);
+            }
+        }
+        return listOfByteArrays;
     }
 
     public String readAsString(String encoding) {
@@ -243,8 +256,7 @@ public class StreamByteBuffer {
     protected int allocateSpace() {
         int spaceLeft = currentWriteChunk.spaceLeft();
         if (spaceLeft == 0) {
-            chunks.add(currentWriteChunk);
-            totalBytesUnreadInList += currentWriteChunk.bytesUnread();
+            addChunk(currentWriteChunk);
             currentWriteChunk = new StreamByteBufferChunk(nextChunkSize);
             if (nextChunkSize < maxChunkSize) {
                 nextChunkSize = Math.min(nextChunkSize * 2, maxChunkSize);
@@ -271,6 +283,23 @@ public class StreamByteBuffer {
         return bytesUnread;
     }
 
+    public static StreamByteBuffer of(List<byte[]> listOfByteArrays) {
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        buffer.addChunks(listOfByteArrays);
+        return buffer;
+    }
+
+    private void addChunks(List<byte[]> listOfByteArrays) {
+        for (byte[] buf : listOfByteArrays) {
+            addChunk(new StreamByteBufferChunk(buf));
+        }
+    }
+
+    private void addChunk(StreamByteBufferChunk chunk) {
+        chunks.add(chunk);
+        totalBytesUnreadInList += chunk.bytesUnread();
+    }
+
     class StreamByteBufferChunk {
         private int pointer;
         private byte[] buffer;
@@ -280,6 +309,12 @@ public class StreamByteBuffer {
         public StreamByteBufferChunk(int size) {
             this.size = size;
             buffer = new byte[size];
+        }
+
+        public StreamByteBufferChunk(byte[] buf) {
+            this.size = buf.length;
+            this.buffer = buf;
+            this.used = buf.length;
         }
 
         public ByteBuffer readToNioBuffer() {
@@ -357,6 +392,19 @@ public class StreamByteBuffer {
 
         public void clear() {
             used = pointer = 0;
+        }
+
+        public byte[] readBuffer() {
+            if (used == buffer.length && pointer == 0) {
+                pointer = used;
+                return buffer;
+            } else if (pointer < used) {
+                byte[] buf = new byte[used - pointer];
+                read(buf, 0, used - pointer);
+                return buf;
+            } else {
+                return new byte[0];
+            }
         }
     }
 
@@ -461,6 +509,13 @@ public class StreamByteBuffer {
 
         public StreamByteBuffer getBuffer() {
             return StreamByteBuffer.this;
+        }
+
+        public byte[] readNextBuffer() {
+            if (prepareRead() != -1) {
+                return currentReadChunk.readBuffer();
+            }
+            return null;
         }
     }
 
