@@ -67,10 +67,10 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                                 def cacheable = statistics.cacheMissCount
                                 def allTasks = statistics.allTasksCount
                                 addCacheLine(buildScan, 'Tasks in build', allTasks, null, index++)
-                                addCacheLine(buildScan, 'SKIPPED', skipped, allTasks, index++)
-                                addCacheLine(buildScan, 'UP-TO-DATE', upToDate, allTasks, index++)
-                                addCacheLine(buildScan, 'FROM-CACHE', fromCache, allTasks, index++)
-                                addCacheLine(buildScan, 'EXECUTED', executed, allTasks, index++)
+                                addCacheLine(buildScan, 'Skipped', skipped, allTasks, index++)
+                                addCacheLine(buildScan, 'Up to date', upToDate, allTasks, index++)
+                                addCacheLine(buildScan, 'From cache', fromCache, allTasks, index++)
+                                addCacheLine(buildScan, 'Executed', executed, allTasks, index++)
                                 addCacheLine(buildScan, ' - Cache miss', cacheable, allTasks, index++)
                                 addCacheLine(buildScan, ' - Not cacheable', (executed - cacheable), allTasks, index++)
                             } catch (Exception e) {
