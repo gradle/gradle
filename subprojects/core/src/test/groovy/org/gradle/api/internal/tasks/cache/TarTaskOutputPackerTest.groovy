@@ -16,34 +16,12 @@
 
 package org.gradle.api.internal.tasks.cache
 
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.ToString
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
-import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
-
-@CleanupTestDirectory(fieldName = "tempDir")
-class TarTaskOutputPackerTest extends Specification {
+class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
-    def taskOutputs = Mock(TaskOutputsInternal)
     def packer = new TarTaskOutputPacker(fileSystem)
-
-    @Rule
-    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
@@ -146,37 +124,5 @@ class TarTaskOutputPackerTest extends Specification {
         then:
         targetOutputFile.text == "output"
         0 * _
-    }
-
-    @ToString
-    @EqualsAndHashCode
-    private static class TestProperty implements CacheableTaskOutputFilePropertySpec {
-        String propertyName
-        File outputFile
-
-        @Override
-        FileCollection getPropertyFiles() {
-            new SimpleFileCollection(outputFile)
-        }
-
-        @Override
-        CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
-            return outputFile.directory ? DIRECTORY : FILE
-        }
-
-        @Override
-        TaskFilePropertyCompareStrategy getCompareStrategy() {
-            TaskFilePropertyCompareStrategy.OUTPUT
-        }
-
-        @Override
-        SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-            TaskFilePropertySnapshotNormalizationStrategy.RELATIVE
-        }
-
-        @Override
-        int compareTo(TaskPropertySpec o) {
-            propertyName <=> o.propertyName
-        }
     }
 }

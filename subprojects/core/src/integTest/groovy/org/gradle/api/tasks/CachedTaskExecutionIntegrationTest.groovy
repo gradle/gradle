@@ -549,7 +549,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    String adHocTaskWithInputs() {
+    private static String adHocTaskWithInputs() {
         """
         task adHocTask {
             def outputFile = file("\$buildDir/output.txt")
@@ -561,6 +561,27 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         """.stripIndent()
+    }
+
+    def "previous outputs are cleared before task is loaded from cache"() {
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        when:
+        assert file("build/classes/main/Hello.class").delete()
+        assert file("build/classes/main/Hi.class") << "A fake class that somehow got in the way"
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.contains ":compileJava"
+        file("build/classes/main/Hello.class").exists()
+        !file("build/classes/main/Hi.class").exists()
+
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
     }
 
     void taskIsNotCached(String task) {
