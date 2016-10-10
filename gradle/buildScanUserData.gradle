@@ -41,15 +41,12 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
             @Override
             void graphPopulated(TaskExecutionGraph graph) {
                 def remainingTasks = graph.allTasks*.path as Set
-                gradle.addListener(new TaskExecutionListener() {
-                    @Override
-                    void beforeExecute(Task task) {
-                    }
+                gradle.addListener(new TaskExecutionAdapter() {
 
-                    private static addCacheLine(buildScan, name, part, total, index) {
+                    private static addCacheLine(buildScan, name, part, total) {
                         def percentage = total ? (int) Math.round(100d * part / total) : null
                         if (part > 0) {
-                            buildScan.value("TC${index} ${name}", "${part}${percentage ? " (${percentage} %)" : ''}")
+                            buildScan.value(name, "${part}${percentage ? " (${percentage} %)" : ''}")
                         }
                     }
 
@@ -61,20 +58,19 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                                 def eventAdapter = gradle.services.get(TaskExecutionStatisticsEventAdapter)
                                 def statistics = new TaskExecutionStatistics(eventAdapter.taskCounts, eventAdapter.cacheMissCount)
                                 def buildScan = task.project.buildScan
-                                def index = 0
                                 def skipped = statistics.getTasksCount(TaskExecutionOutcome.SKIPPED)
                                 def upToDate = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE)
                                 def fromCache = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE)
                                 def executed = statistics.getTasksCount(TaskExecutionOutcome.EXECUTED)
                                 def cacheable = statistics.cacheMissCount
                                 def allTasks = statistics.allTasksCount
-                                addCacheLine(buildScan, 'Tasks in build', allTasks, null, index++)
-                                addCacheLine(buildScan, 'Skipped', skipped, allTasks, index++)
-                                addCacheLine(buildScan, 'Up to date', upToDate, allTasks, index++)
-                                addCacheLine(buildScan, 'From cache', fromCache, allTasks, index++)
-                                addCacheLine(buildScan, 'Executed', executed, allTasks, index++)
-                                addCacheLine(buildScan, ' - Cache miss', cacheable, allTasks, index++)
-                                addCacheLine(buildScan, ' - Not cacheable', (executed - cacheable), allTasks, index++)
+                                addCacheLine(buildScan, 'TC0 Tasks in build', allTasks, null)
+                                addCacheLine(buildScan, 'TC1 Skipped', skipped, allTasks)
+                                addCacheLine(buildScan, 'TC2 Up to date', upToDate, allTasks)
+                                addCacheLine(buildScan, 'TC3 From cache', fromCache, allTasks)
+                                addCacheLine(buildScan, 'TC4 Executed', executed, allTasks)
+                                addCacheLine(buildScan, 'TC5 - Cache miss', cacheable, allTasks)
+                                addCacheLine(buildScan, 'TC6 - Not cacheable', (executed - cacheable), allTasks)
                             } catch (Exception e) {
                                 e.printStackTrace()
                             }
@@ -84,11 +80,7 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
             }
         })
 
-        gradle.addListener(new TaskExecutionListener() {
-
-            @Override
-            void beforeExecute(Task task) {
-            }
+        gradle.addListener(new TaskExecutionAdapter() {
 
             @Override
             void afterExecute(Task task, TaskState state) {
