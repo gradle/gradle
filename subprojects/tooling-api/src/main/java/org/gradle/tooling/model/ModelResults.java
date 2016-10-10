@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.tooling.model;
 
-import java.lang.annotation.*;
+import org.gradle.api.Incubating;
 
 /**
- * Specifies that a test must be executed with an integrated composite
+ * A set of model results for multiple projects.
+ * @param <T> the type of model requested
+ *
+ * @since 3.3
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Inherited
-public @interface RequiresIntegratedComposite {
+@Incubating
+public interface ModelResults<T> extends Iterable<ModelResult<T>> {
 }

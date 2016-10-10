@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
 
@@ -34,11 +35,20 @@ public class PluginClasspathInjectionSupportedCheckModelProducer implements Mode
 
     @Override
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+        checkInjectionSupported(operationParameters);
+        return delegate.produceModel(type, operationParameters);
+    }
+
+    @Override
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        checkInjectionSupported(operationParameters);
+        return delegate.produceModels(elementType, operationParameters);
+    }
+
+    private void checkInjectionSupported(ConsumerOperationParameters operationParameters) {
         if (!operationParameters.getInjectedPluginClasspath().isEmpty() && !isSupported()) {
             throw Exceptions.unsupportedFeature("plugin classpath injection feature", providerVersion, "2.8");
         }
-
-        return delegate.produceModel(type, operationParameters);
     }
 
     private boolean isSupported() {

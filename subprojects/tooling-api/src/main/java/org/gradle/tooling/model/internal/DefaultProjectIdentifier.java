@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.connection;
+package org.gradle.tooling.model.internal;
 
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;

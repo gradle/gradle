@@ -21,12 +21,11 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
+public class ModelBuilderBackedModelProducer extends MultiModelFromSingleModelProducer implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
@@ -45,12 +44,7 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
-        BuildResult<?> result;
-        try {
-            result = builder.getModel(modelIdentifier, operationParameters);
-        } catch (InternalUnsupportedModelException e) {
-            throw Exceptions.unknownModel(type, e);
-        }
-        return applyCompatibilityMapping(adapter.builder(type), operationParameters).build(result.getModel());
+        BuildResult<?> result = builder.getModel(modelIdentifier, operationParameters);
+        return applyCompatibilityMapping(adapter.builder(type), operationParameters.getBuildIdentifier()).build(result.getModel());
     }
 }

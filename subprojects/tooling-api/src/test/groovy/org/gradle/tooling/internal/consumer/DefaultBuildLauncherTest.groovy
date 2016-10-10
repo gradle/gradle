@@ -21,12 +21,12 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
+import org.gradle.tooling.model.internal.DefaultBuildIdentifier
+import org.gradle.tooling.model.internal.DefaultProjectIdentifier
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
-import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
+import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable
@@ -328,11 +328,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         def task = new Object() {
             String getPath() { return path }
         }
-        return new FixedBuildIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(Task)).build(task)
+        return new FixedProjectIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(Task)).build(task)
     }
 
     def selector(def object) {
-        return new FixedBuildIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(TaskSelector)).build(object)
+        return new FixedProjectIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(TaskSelector)).build(object)
     }
 
     def id() {

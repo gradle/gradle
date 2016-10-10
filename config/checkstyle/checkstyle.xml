@@ -77,7 +77,9 @@
 
         <!-- Imports -->
         <module name="RedundantImport"/>
-        <module name="UnusedImports"/>
+        <module name="UnusedImports">
+            <property name="processJavadoc" value="true"/>
+        </module>
 
         <!-- Naming -->
         <module name="ConstantName"/>

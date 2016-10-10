@@ -89,9 +89,6 @@
         <para>
             The main entry point to the Tooling API is the <apilink class="org.gradle.tooling.GradleConnector"/>. You can navigate from there to find code samples and
             explore the available Tooling API models.
-
-            You can use <apilink class="org.gradle.tooling.GradleConnector" method="connect()"/> to create a <apilink class="org.gradle.tooling.ProjectConnection"/>.
-            A <literal>ProjectConnection</literal> connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
         </para>
     </section>
 

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;

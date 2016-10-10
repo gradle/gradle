@@ -18,10 +18,12 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
+import org.gradle.tooling.model.ModelResults;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
 class DefaultProjectConnection implements ProjectConnection {
@@ -45,6 +47,22 @@ class DefaultProjectConnection implements ProjectConnection {
         model(modelType).get(handler);
     }
 
+    @Override
+    public <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException {
+        return models(modelType).get();
+    }
+
+    @Override
+    public <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException {
+        models(modelType).get(handler);
+    }
+
+    @Override
+    public <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType) {
+        checkSupportedModelType(modelType);
+        return new DefaultMultiModelBuilder<T>(modelType, connection, parameters);
+    }
+
     public BuildLauncher newBuild() {
         return new ProjectConnectionBuildLauncher(connection, parameters);
     }
@@ -55,10 +73,14 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T> ModelBuilder<T> model(Class<T> modelType) {
+        checkSupportedModelType(modelType);
+        return new DefaultModelBuilder<T>(modelType, connection, parameters);
+    }
+
+    private <T> void checkSupportedModelType(Class<T> modelType) {
         if (!modelType.isInterface()) {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
         }
-        return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
 
     public <T> BuildActionExecuter<T> action(final BuildAction<T> buildAction) {

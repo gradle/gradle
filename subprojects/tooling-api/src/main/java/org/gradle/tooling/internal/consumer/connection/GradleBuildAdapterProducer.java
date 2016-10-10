@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.internal.Cast;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -38,8 +40,27 @@ public class GradleBuildAdapterProducer implements ModelProducer {
         if (type.equals(GradleBuild.class)) {
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
             final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject);
-            return mappingProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters).build(convert);
+            return mappingProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters.getBuildIdentifier()).build(convert);
         }
         return delegate.produceModel(type, operationParameters);
+    }
+
+    /*
+     * Since this compatibility adapter is only used for older Gradle versions that don't support composite builds,
+     * it is enough to fetch the GradleBuild model for the single build.
+     */
+    @Override
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        if (elementType.equals(GradleBuild.class)) {
+            InternalModelResults<T> results = new InternalModelResults<T>();
+            try {
+                GradleBuild gradleBuild = produceModel(GradleBuild.class, operationParameters);
+                results.addBuildModel(operationParameters.getProjectDir(), Cast.<T>uncheckedCast(gradleBuild));
+            } catch (RuntimeException e) {
+                results.addBuildFailure(operationParameters.getProjectDir(), e);
+            }
+            return results;
+        }
+        return delegate.produceModels(elementType, operationParameters);
     }
 }

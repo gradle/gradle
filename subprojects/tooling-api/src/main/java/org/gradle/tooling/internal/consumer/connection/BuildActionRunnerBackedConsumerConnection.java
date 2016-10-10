@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
@@ -28,7 +27,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 /**
@@ -42,9 +40,9 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
 
     public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R12VersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer consumerConnectionBackedModelProducer = new BuildActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping,  (BuildActionRunner) delegate, this);
+        ModelProducer consumerConnectionBackedModelProducer = new BuildActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping,  (BuildActionRunner) delegate);
         ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer, this);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, producerWithGradleBuild);
         actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
 
@@ -76,31 +74,4 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
     }
 
-    private static class BuildActionRunnerBackedModelProducer implements ModelProducer {
-        private final ProtocolToModelAdapter adapter;
-        private final VersionDetails versionDetails;
-        private final ModelMapping modelMapping;
-        private final BuildActionRunner buildActionRunner;
-        private final HasCompatibilityMapping mapperProvider;
-
-        public BuildActionRunnerBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, BuildActionRunner buildActionRunner, HasCompatibilityMapping mapperProvider) {
-            this.adapter = adapter;
-            this.versionDetails = versionDetails;
-            this.modelMapping = modelMapping;
-            this.buildActionRunner = buildActionRunner;
-            this.mapperProvider = mapperProvider;
-        }
-
-        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-            if (!versionDetails.maySupportModel(type)) {
-                //don't bother asking the provider for this model
-                throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
-
-            }
-            Class<?> protocolType = modelMapping.getProtocolType(type);
-            Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
-
-            return mapperProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters).build(model);
-        }
-    }
 }

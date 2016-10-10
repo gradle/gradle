@@ -28,7 +28,7 @@ public class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
     private final ResultHandler<? super T> handler;
     private final Transformer<GradleConnectionException, Throwable> exceptionTransformer;
 
-    protected ResultHandlerAdapter(ResultHandler<? super T> handler, Transformer<GradleConnectionException, Throwable> exceptionTransformer) {
+    public ResultHandlerAdapter(ResultHandler<? super T> handler, Transformer<GradleConnectionException, Throwable> exceptionTransformer) {
         this.handler = handler;
         this.exceptionTransformer = exceptionTransformer;
     }

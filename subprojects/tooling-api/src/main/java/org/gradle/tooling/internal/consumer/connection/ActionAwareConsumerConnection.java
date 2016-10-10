@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -25,7 +24,6 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.gradle.ProjectPublications;
@@ -44,13 +42,12 @@ public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnect
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, getVersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer modelProducer =  new ModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, (ModelBuilder) delegate);
+        this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate);
+        ModelProducer modelProducer =  new ModelBuilderAndActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping, (ModelBuilder) delegate, actionRunner);
         if (!getVersionDetails().maySupportModel(BuildInvocations.class)) {
-            modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
-
+            modelProducer = new BuildInvocationsAdapterProducer(adapter, modelProducer);
         }
         this.modelProducer = modelProducer;
-        this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate);
     }
 
     @Override
@@ -110,11 +107,7 @@ public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnect
             BuildResult<T> result;
 
             File rootDir = operationParameters.getProjectDir();
-            try {
-                result = executor.run(new InternalBuildActionAdapter<T>(action, rootDir), operationParameters);
-            } catch (InternalBuildActionFailureException e) {
-                throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
-            }
+            result = executor.run(new InternalBuildActionAdapter<T>(action, rootDir), operationParameters);
             return result.getModel();
         }
     }

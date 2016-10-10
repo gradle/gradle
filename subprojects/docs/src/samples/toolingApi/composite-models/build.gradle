@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+}
+
+dependencies {
+    compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+    runtime 'org.slf4j:slf4j-simple:1.7.10'
+}
+
+mainClassName = 'org.gradle.sample.Main'
+
+run {
+   args file('composite')
+}

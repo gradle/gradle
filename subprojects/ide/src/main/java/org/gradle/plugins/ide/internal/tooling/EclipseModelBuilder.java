@@ -55,7 +55,8 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirec
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderContext;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -66,7 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EclipseModelBuilder implements ToolingModelBuilder {
+public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
     private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
@@ -86,6 +87,19 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
             || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+    }
+
+    @Override
+    public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {
+        DefaultEclipseProject eclipseProject = buildAll(modelName, project);
+        addModels(project, eclipseProject, context);
+    }
+
+    private void addModels(Project root, DefaultEclipseProject eclipseProject, ToolingModelBuilderContext context) {
+        context.addModel(root.findProject(eclipseProject.getPath()), eclipseProject);
+        for (DefaultEclipseProject childProject : eclipseProject.getChildren()) {
+            addModels(root, childProject, context);
+        }
     }
 
     @Override

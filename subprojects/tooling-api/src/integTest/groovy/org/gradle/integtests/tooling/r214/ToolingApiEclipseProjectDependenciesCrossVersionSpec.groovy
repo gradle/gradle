@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.tooling.r214
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject

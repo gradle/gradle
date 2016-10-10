@@ -20,6 +20,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 
 /**
  * Implementations must be thread-safe.
@@ -40,4 +41,6 @@ public interface ConsumerConnection extends Stoppable {
 
     void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 
+    <T> InternalModelResults<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters)
+        throws UnsupportedOperationException, IllegalStateException;
 }

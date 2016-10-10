@@ -90,4 +90,10 @@ class BuildTestFixture {
         }
         return rootMulti
     }
+
+    void includeBuilds(List<File> includedBuilds) {
+        def path = rootDir.toPath()
+        new File(rootDir, 'settings.gradle') << "\n" + includedBuilds.collect { "includeBuild '${path.relativize(it.toPath()).toFile()}'" }.join("\n")
+    }
+
 }

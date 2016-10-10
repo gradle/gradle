@@ -22,7 +22,9 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.internal.gradle.PartialGradleProject;
+import org.gradle.tooling.provider.model.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,7 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
  */
-public class GradleProjectBuilder implements ToolingModelBuilder {
+public class GradleProjectBuilder implements ProjectToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
@@ -47,6 +49,19 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     public DefaultGradleProject buildAll(Project project) {
         return buildHierarchy(project.getRootProject());
+    }
+
+    @Override
+    public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {
+        DefaultGradleProject gradleProject = buildAll(project);
+        addModelsRecursively(project, gradleProject, context);
+    }
+
+    private void addModelsRecursively(Project root, PartialGradleProject gradleProject, ToolingModelBuilderContext context) {
+        context.addModel(root.findProject(gradleProject.getPath()),  gradleProject);
+        for (PartialGradleProject childProject : gradleProject.getChildren()) {
+            addModelsRecursively(root, childProject, context);
+        }
     }
 
     private DefaultGradleProject<LaunchableGradleTask> buildHierarchy(Project project) {

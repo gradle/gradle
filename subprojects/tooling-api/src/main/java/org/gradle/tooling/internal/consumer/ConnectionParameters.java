@@ -26,6 +26,7 @@ public interface ConnectionParameters extends org.gradle.tooling.internal.protoc
      * Specifies whether to search for root project, or null to use default.
      */
     Boolean isSearchUpwards();
+
     /**
      * Returns the Gradle user home directory, or null to use default.
      */

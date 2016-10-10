@@ -90,7 +90,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         BuildActionFailureException e = thrown()
-        e.message == /The supplied build action failed with an exception./
+        e.message.startsWith("Could not run build action using") || e.message == "The supplied build action failed with an exception."
         e.cause instanceof BrokenAction.CustomException
     }
 

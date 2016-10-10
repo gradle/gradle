@@ -31,6 +31,7 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
             BuildActionRunner createBuildActionRunner() {
                 return new SubscribableBuildActionRunner(new ChainingBuildActionRunner(Arrays.asList(
                                                                 new BuildModelActionRunner(),
+                                                                new BuildModelsActionRunner(),
                                                                 new TestExecutionRequestActionRunner(),
                                                                 new ClientProvidedBuildActionRunner())));
             }
@@ -51,4 +52,5 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
+
 }

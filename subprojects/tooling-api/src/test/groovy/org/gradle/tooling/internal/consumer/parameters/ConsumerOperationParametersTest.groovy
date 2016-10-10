@@ -19,9 +19,9 @@ package org.gradle.tooling.internal.consumer.parameters
 import com.google.common.collect.Sets
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
-import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
+import org.gradle.tooling.model.internal.DefaultBuildIdentifier
+import org.gradle.tooling.model.internal.DefaultProjectIdentifier
+import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.model.TaskSelector
@@ -79,7 +79,7 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def adapt(def object) {
-        return new FixedBuildIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(TaskSelector)).build(object)
+        return new FixedProjectIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(TaskSelector)).build(object)
     }
 
     def id() {

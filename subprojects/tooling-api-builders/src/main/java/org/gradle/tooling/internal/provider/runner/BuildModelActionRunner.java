@@ -35,7 +35,6 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
@@ -82,11 +81,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         String modelName = buildModelAction.getModelName();
         ToolingModelBuilder builder = getModelBuilder(modelName, gradle);
 
-        if (builder instanceof ProjectSensitiveToolingModelBuilder) {
-            return ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
-        } else {
-            return builder.buildAll(modelName, gradle.getDefaultProject());
-        }
+        return builder.buildAll(modelName, gradle.getDefaultProject());
     }
 
     private void forceFullConfiguration(GradleInternal gradle) {

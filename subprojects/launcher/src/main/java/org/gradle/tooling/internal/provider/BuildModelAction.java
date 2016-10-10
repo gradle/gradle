@@ -41,5 +41,4 @@ public class BuildModelAction extends SubscribableBuildAction {
     public boolean isRunTasks() {
         return runTasks;
     }
-
 }

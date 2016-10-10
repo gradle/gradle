@@ -16,15 +16,20 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.api.BuildCancelledException
-import org.gradle.api.GradleException
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.*
+import org.gradle.tooling.internal.protocol.BuildResult
+import org.gradle.tooling.internal.protocol.ConfigurableConnection
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
+import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import org.gradle.tooling.internal.protocol.InternalBuildAction
+import org.gradle.tooling.internal.protocol.InternalBuildController
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection
+import org.gradle.tooling.internal.protocol.InternalCancellationToken
+import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -89,39 +94,6 @@ class CancellableConsumerConnectionTest extends Specification {
         1 * action.execute({ it instanceof BuildControllerAdapter }) >> 'result'
     }
 
-    def "adapts build action failure"() {
-        def action = Mock(BuildAction)
-        def parameters = Stub(ConsumerOperationParameters)
-        def failure = new RuntimeException()
-
-        when:
-        connection.run(action, parameters)
-
-        then:
-        BuildActionFailureException e = thrown()
-        e.message == /The supplied build action failed with an exception./
-        e.cause == failure
-
-        and:
-        1 * target.run(_, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
-    }
-
-    def "adapts implementation-specific cancellation failure when running build action"() {
-        def action = Mock(BuildAction)
-        def parameters = Stub(ConsumerOperationParameters)
-        def failure = new GradleException("broken", new BuildCancelledException("cancelled."))
-
-        when:
-        connection.run(action, parameters)
-
-        then:
-        InternalBuildCancelledException e = thrown()
-        e.cause == failure
-
-        and:
-        1 * target.run(_, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
-    }
-
     def "runs build using connection's getModel() method"() {
         def parameters = Stub(ConsumerOperationParameters)
         def modelIdentifier = Stub(ModelIdentifier)
@@ -142,21 +114,6 @@ class CancellableConsumerConnectionTest extends Specification {
         }
         1 * adapter.builder(Void) >> builder
         1 * builder.build('result') >> 'the result'
-    }
-
-    def "adapts implementation-specific cancellation failure when fetching model"() {
-        def parameters = Stub(ConsumerOperationParameters)
-        def failure = new GradleException("broken", new BuildCancelledException("cancelled."))
-
-        when:
-        connection.run(Void.class, parameters)
-
-        then:
-        InternalBuildCancelledException e = thrown()
-        e.cause == failure
-
-        and:
-        1 * target.getModel(_, _, _) >> { throw new BuildExceptionVersion1(failure) }
     }
 
     interface TestModelBuilder extends ConnectionVersion4, ConfigurableConnection, InternalCancellableConnection {

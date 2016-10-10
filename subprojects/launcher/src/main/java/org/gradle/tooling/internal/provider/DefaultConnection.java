@@ -43,6 +43,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -64,7 +65,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
-    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
+    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection, InternalMultiModelAwareConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
     private ProtocolToModelAdapter adapter;
@@ -186,6 +187,16 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
+        return new ProviderBuildResult<Object>(result);
+    }
+
+    /**
+     * This is used by consumers 2.13-rc-1 and later
+     */
+    public BuildResult<?> getModels(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
+        Object result = connection.buildModels(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
 

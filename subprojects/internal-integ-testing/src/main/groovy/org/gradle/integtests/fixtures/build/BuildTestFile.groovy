@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.build
 import org.gradle.test.fixtures.file.TestFile
 
 class BuildTestFile extends TestFile {
+
     private final String projectName
 
     BuildTestFile(TestFile rootDir, String projectName) {

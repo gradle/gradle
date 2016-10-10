@@ -115,6 +115,21 @@ public class ProviderConnection {
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
+    public Object buildModels(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+        if (providerParameters.getTasks() != null) {
+            throw new IllegalArgumentException("Running tasks in a multi-model request is not supported");
+        }
+        if (modelName.equals(ModelIdentifier.NULL_MODEL)) {
+            throw new IllegalArgumentException("No model type specified.");
+        }
+        Parameters params = initParams(providerParameters);
+
+        StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        BuildAction action = new BuildModelsAction(startParameter, modelName, listenerConfig.clientSubscriptions);
+        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+    }
+
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);

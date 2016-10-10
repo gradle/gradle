@@ -35,6 +35,7 @@ public class ConnectorServices {
         checkJavaVersion();
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
     }
+
     public static CancellationTokenSource createCancellationTokenSource() {
         checkJavaVersion();
         return new DefaultCancellationTokenSource();

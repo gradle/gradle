@@ -22,6 +22,7 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
@@ -35,7 +36,9 @@ public class ExceptionTransformer implements Transformer<GradleConnectionExcepti
 
     @Override
     public GradleConnectionException transform(Throwable failure) {
-        if (failure instanceof InternalUnsupportedBuildArgumentException) {
+        if (wasCancelled(failure)) {
+            return new BuildCancelledException(failure.getMessage(), failure.getCause());
+        } else if (failure instanceof InternalUnsupportedBuildArgumentException) {
             return new UnsupportedBuildArgumentException(connectionFailureMessage(failure)
                 + "\n" + failure.getMessage(), failure);
         } else if (failure instanceof UnsupportedOperationConfigurationException) {
@@ -43,17 +46,28 @@ public class ExceptionTransformer implements Transformer<GradleConnectionExcepti
                 + "\n" + failure.getMessage(), failure.getCause());
         } else if (failure instanceof GradleConnectionException) {
             return (GradleConnectionException) failure;
-        } else if (failure instanceof InternalBuildCancelledException) {
-            return new BuildCancelledException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof InternalTestExecutionException) {
             return new TestExecutionException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof BuildExceptionVersion1) {
             return new BuildException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof ListenerNotificationException) {
             return new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses());
+        } else if (failure instanceof InternalBuildActionFailureException) {
+            return new BuildActionFailureException(connectionFailureMessage(failure), failure.getCause());
         } else {
             return new GradleConnectionException(connectionFailureMessage(failure), failure);
         }
+    }
+
+    private boolean wasCancelled(Throwable failure) {
+        for (Throwable t = failure; t != null; t = t.getCause()) {
+            if (t instanceof  InternalBuildCancelledException
+                || "org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
+                || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String connectionFailureMessage(Throwable failure) {

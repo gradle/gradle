@@ -46,7 +46,7 @@ class GradleBuildAdapterProducerTest extends Specification {
         adapter.builder(GradleProject) >> viewBuilder1
         viewBuilder1.build(gradleProject) >> gradleProject
         adapter.builder(GradleBuild) >> viewBuilder2
-        mappingProvider.applyCompatibilityMapping(viewBuilder2, operationParameters) >> viewBuilder2
+        mappingProvider.applyCompatibilityMapping(viewBuilder2, operationParameters.buildIdentifier) >> viewBuilder2
         viewBuilder2.build(_) >> gradleBuild
 
         when:

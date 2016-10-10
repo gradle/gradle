@@ -65,7 +65,7 @@ project (':a') { description = 'A rocks!' }
         a.children.size() == 2
         a.children.find { it.name == 'b' && it.path == ':a:b' }
         a.children.find { it.name == 'c' && it.path == ':a:c' }
-        
+
         a.children.find { it.name == 'c'}.children[0].name == 'd'
     }
 

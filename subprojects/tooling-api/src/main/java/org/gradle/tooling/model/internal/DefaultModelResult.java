@@ -14,23 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.converters;
+package org.gradle.tooling.model.internal;
 
-import org.gradle.tooling.internal.adapter.ViewBuilder;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.model.ModelResult;
 import org.gradle.tooling.model.BuildIdentifier;
-import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.ProjectIdentifier;
-import org.gradle.tooling.model.ProjectModel;
 
-import java.io.Serializable;
-
-public class FixedBuildIdentifierProvider implements Serializable, BuildModel, ProjectModel {
+public class DefaultModelResult<T> implements ModelResult<T> {
+    private final T model;
     private final BuildIdentifier buildIdentifier;
     private final ProjectIdentifier projectIdentifier;
 
-    public FixedBuildIdentifierProvider(ProjectIdentifier projectIdentifier) {
+    public DefaultModelResult(T model, BuildIdentifier buildIdentifier) {
+        this.model = model;
+        this.buildIdentifier = buildIdentifier;
+        this.projectIdentifier = null;
+    }
+
+    public DefaultModelResult(T model, ProjectIdentifier projectIdentifier) {
+        this.model = model;
         this.buildIdentifier = projectIdentifier.getBuildIdentifier();
         this.projectIdentifier = projectIdentifier;
+    }
+
+    @Override
+    public T getModel() {
+        return model;
+    }
+
+    @Override
+    public GradleConnectionException getFailure() {
+        return null;
     }
 
     @Override
@@ -38,14 +54,14 @@ public class FixedBuildIdentifierProvider implements Serializable, BuildModel, P
         return buildIdentifier;
     }
 
+    @Nullable
     @Override
     public ProjectIdentifier getProjectIdentifier() {
         return projectIdentifier;
     }
 
-    public <T> ViewBuilder<T> applyTo(ViewBuilder<T> builder) {
-        builder.mixInTo(BuildModel.class, this);
-        builder.mixInTo(ProjectModel.class, this);
-        return builder;
+    @Override
+    public String toString() {
+        return String.format("result={ model=%s }", model.getClass().getCanonicalName());
     }
 }

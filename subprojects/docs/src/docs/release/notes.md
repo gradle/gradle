@@ -36,9 +36,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### BuildInvocations model is always returned for the connected project
+
+In previous Gradle versions, when connected to a sub-project and asking for the `BuildInvocations` model using a `ProjectConnection`,
+the `BuildInvocations` model for the root project was returned instead. This violates the contract of `ProjectConnection`. Gradle will now
+return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
 
 ## External contributions
 

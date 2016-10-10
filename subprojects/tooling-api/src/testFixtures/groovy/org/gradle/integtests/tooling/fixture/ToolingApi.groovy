@@ -117,7 +117,7 @@ class ToolingApi implements TestRule {
         }
 
         // Verify that the exception carries the calling thread's stack information
-        def currentThreadStack = Thread.currentThread().stackTrace as List
+        List<StackTraceElement> currentThreadStack = Thread.currentThread().stackTrace as List
         while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw')) {
             currentThreadStack.remove(0)
         }
@@ -143,7 +143,7 @@ class ToolingApi implements TestRule {
     }
 
     GradleConnector connector() {
-        DefaultGradleConnector connector = GradleConnector.newConnector()
+        DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
         connector.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         if (useSeparateDaemonBaseDir) {
             connector.daemonBaseDir(new File(daemonBaseDir.path))
