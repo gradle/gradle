@@ -16,13 +16,11 @@
 
 package org.gradle.groovy.compile
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrationSpec {
 
-    @NotYetImplemented
     @Issue("https://issues.apache.org/jira/browse/GROOVY-7966")
     def "compiling Groovy has the same results with reversed file order"() {
         file("src/main/groovy/JavaThing.java") << "public class JavaThing {}"
