@@ -21,7 +21,6 @@ package org.gradle.tooling.internal.protocol;
  * <p>The following constraints apply to implementations:
  * <ul>
  * <li>Implementations must be thread-safe.
- * <li>Implementations should implement {@link InternalCompositeAwareConnection}. This is used by all consumer versions from 2.13-rc-1.
  * <li>Implementations should implement {@link org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection}. This is used by all consumer versions from 2.6-rc-1.
  * <li>Implementations should implement {@link InternalCancellableConnection}. This is used by all consumer versions from 2.1-rc-1.
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.
