@@ -186,7 +186,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
     /**
      * This test demonstrates a workaround for the problem in Gradle 3.0 or 3.1 by adding the functionality that has now
-     * moved to {@link org.gradle.initialization.LegacyTypesUtil} directly to the test.
+     * moved to {@link org.gradle.initialization.DefaultLegacyTypesSupport} directly to the test.
      */
     def "can apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.0 or 3.1 using added LegacyTypesUtil methods"() {
         when:
