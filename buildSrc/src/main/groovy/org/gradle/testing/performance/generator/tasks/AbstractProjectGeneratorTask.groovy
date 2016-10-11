@@ -210,7 +210,14 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         templateFiles.subList(0, templateFiles.size() - 1).each {
             def writer = new StringWriter()
             getTemplate(it).make(templateArgs).writeTo(writer)
-            templateArgs.original = writer.toString()
+            def originalContents = writer.toString()
+            int idx = originalContents.indexOf('plugins {')
+            if (idx>0) { idx = originalContents.indexOf('}', idx) }
+            def beforePlugins = idx>0?originalContents.substring(0, idx+1):''
+            def afterPlugins = idx>0?originalContents.substring(idx+1):originalContents
+            templateArgs.original = originalContents
+            templateArgs.beforePlugins = beforePlugins
+            templateArgs.afterPlugins = afterPlugins
         }
 
         destFile.parentFile.mkdirs()
