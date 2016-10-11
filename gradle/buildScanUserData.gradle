@@ -15,7 +15,12 @@
  */
 
 
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
+import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder
 import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder.ByteArrayToStringer
 import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
@@ -123,11 +128,47 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
 
             @Override
             void afterExecute(Task task, TaskState state) {
+                if (task.getPath() == ':core:compileTestFixturesGroovy') {
+                    def buildScan = task.project.buildScan
+                    def snapshotter = gradle.services.get(org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter)
+                    addTaskState(task, state)
+                    def fileProperties = task.inputs.fileProperties
+                    fileProperties.each { inputProperty ->
+                        def name = inputProperty.propertyName
+                        def snapshot = snapshotter.snapshot(inputProperty)
+                        def prefix = "${task.path}-input-${name}"
+                        buildScan.value "${prefix}-hash", hashKey(snapshot)
+                        def propertyFiles = inputProperty.propertyFiles
+                        propertyFiles.visitRootElements(new FileCollectionVisitor() {
+                            void visitCollection(FileCollectionInternal fileCollection) {
+                                buildScan.value "${prefix}-fileCollection", fileCollection.toString()
+                            }
+
+                            void visitTree(FileTreeInternal fileTree) {
+                                buildScan.value "${prefix}-fileTree", fileTree.toString()
+                            }
+
+                            void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                                buildScan.value "${prefix}-dirTree", directoryTree.toString()
+                            }
+                        })
+                    }
+                }
                 if (task.getPath() == ':baseServices:classpathManifest') {
-                    task.project.buildScan.value(task.getPath(), state.getOutcome().name())
+                    addTaskState(task, state)
                     def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                     new Visitor(task.project.buildScan, hasher).visit(task.getClass().getClassLoader())
                 }
+            }
+
+            private static addTaskState(Task task, TaskState state) {
+                task.project.buildScan.value(task.getPath(), state.getOutcome().name())
+            }
+
+            private static String hashKey(some) {
+                def builder = new DefaultTaskCacheKeyBuilder()
+                some.appendToCacheKey(builder)
+                builder.build().getHashCode()
             }
         })
     }
