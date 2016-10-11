@@ -39,6 +39,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     final DependencyGraph dependencyGraph = new DependencyGraph()
     int numberOfExternalDependencies = 0
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
+    String buildSrcTemplate
 
     AbstractProjectGeneratorTask() {
         super()
@@ -142,6 +143,12 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         project.copy {
             from resolveTemplate("init.gradle")
             into(getDestDir())
+        }
+        if (buildSrcTemplate) {
+            project.copy {
+                from resolveTemplate(buildSrcTemplate)
+                into(getDestDir())
+            }
         }
     }
 
