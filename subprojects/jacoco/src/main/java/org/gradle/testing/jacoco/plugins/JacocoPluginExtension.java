@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.TaskCollection;
@@ -97,7 +98,19 @@ public class JacocoPluginExtension {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
         });
-        task.doFirst(new Action<Task>() {
+        task.getInputs().property("jacoco.enabled", new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return extension.isEnabled();
+            }
+        });
+        task.getInputs().property("jacoco.jvmArgs", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return extension.getAsJvmArg();
+            }
+        });
+        ((TaskInternal) task).prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {
                 if (extension.isEnabled()) {
