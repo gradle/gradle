@@ -16,15 +16,9 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 
-class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
-    File cacheDir
-
-    def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
-    }
+class CachedRelocationIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
 
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
@@ -109,11 +103,5 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec {
                 outputFile = file "build/output.txt"
             }
         """
-    }
-
-    void succeedsWithCache(String... tasks) {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
-        succeeds tasks
     }
 }

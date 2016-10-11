@@ -16,16 +16,11 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec {
-    File cacheDir
-
+abstract class AbstractCachedCompileIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
     def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
         setupProjectInDirectory()
     }
 
@@ -85,15 +80,5 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         compileIsNotCached()
         // Remove the project completely
         remoteProjectDir.deleteDir()
-    }
-
-    def succeedsWithCache(String... tasks) {
-        enableCache()
-        succeeds tasks
-    }
-
-    private GradleExecuter enableCache() {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
     }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 
-class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
     public static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
                 public static void main(String... args) {
@@ -38,12 +37,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-    File cacheDir
-
     def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
-
         setupProjectInDirectory(testDirectory)
     }
 
@@ -600,20 +594,5 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         runWithCache task
         assert skippedTasks.contains(task)
-    }
-
-    def runWithCache(String... tasks) {
-        enableCache()
-        run tasks
-    }
-
-    def succeedsWithCache(String... tasks) {
-        enableCache()
-        succeeds tasks
-    }
-
-    private GradleExecuter enableCache() {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
     }
 }
