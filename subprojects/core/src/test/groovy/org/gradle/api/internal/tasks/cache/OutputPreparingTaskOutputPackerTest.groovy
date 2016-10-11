@@ -16,9 +16,15 @@
 
 package org.gradle.api.internal.tasks.cache
 
-class OutputClearingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
+import spock.lang.Subject
+
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+
+@Subject(OutputPreparingTaskOutputPacker)
+class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def delegate = Mock(TarTaskOutputPacker)
-    def packer = new OutputClearingTaskOutputPacker(delegate)
+    def packer = new OutputPreparingTaskOutputPacker(delegate)
     def input = Mock(InputStream)
 
     def "cleans up leftover files"() {
@@ -41,6 +47,29 @@ class OutputClearingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         !targetOutputFile.exists()
         targetOutputDir.exists()
         targetOutputDir.assertIsEmptyDir()
+
+        then:
+        0 * _
+    }
+
+    def "creates necessary directories"() {
+        def targetOutputFile = tempDir.file("output.txt")
+        def targetOutputDir = tempDir.file("output")
+
+        when:
+        packer.unpack(taskOutputs, input)
+
+        then:
+        1 * taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
+            new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        1 * delegate.unpack(taskOutputs, input)
+
+        then:
+        !targetOutputFile.exists()
+        targetOutputFile.parentFile.directory
+        targetOutputDir.directory
 
         then:
         0 * _

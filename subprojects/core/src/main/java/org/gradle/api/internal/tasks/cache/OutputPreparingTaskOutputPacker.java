@@ -27,12 +27,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Makes sure no files are left over among the outputs of the task before actually loading a cached result.
+ * Prepares a task's outputs to be loaded from cache: removes any previous output and makes sure the output directories exist.
  */
-public class OutputClearingTaskOutputPacker implements TaskOutputPacker {
+public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
     private final TaskOutputPacker delegate;
 
-    public OutputClearingTaskOutputPacker(TaskOutputPacker delegate) {
+    public OutputPreparingTaskOutputPacker(TaskOutputPacker delegate) {
         this.delegate = delegate;
     }
 
@@ -52,6 +52,7 @@ public class OutputClearingTaskOutputPacker implements TaskOutputPacker {
                     FileUtils.cleanDirectory(output);
                     break;
                 case FILE:
+                    FileUtils.forceMkdir(output.getParentFile());
                     if (output.exists()) {
                         FileUtils.forceDelete(output);
                     }

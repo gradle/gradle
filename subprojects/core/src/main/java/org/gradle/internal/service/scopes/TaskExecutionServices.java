@@ -40,7 +40,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.cache.GZipTaskOutputPacker;
-import org.gradle.api.internal.tasks.cache.OutputClearingTaskOutputPacker;
+import org.gradle.api.internal.tasks.cache.OutputPreparingTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TarTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
@@ -178,7 +178,7 @@ public class TaskExecutionServices {
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
-        return new OutputClearingTaskOutputPacker(
+        return new OutputPreparingTaskOutputPacker(
             new GZipTaskOutputPacker(
                 new TarTaskOutputPacker(fileSystem)
             )

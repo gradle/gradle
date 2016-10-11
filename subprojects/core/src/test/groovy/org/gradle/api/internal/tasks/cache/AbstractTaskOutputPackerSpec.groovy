@@ -46,6 +46,7 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
     protected static class TestProperty implements CacheableTaskOutputFilePropertySpec {
         String propertyName
         File outputFile
+        CacheableTaskOutputFilePropertySpec.OutputType outputType
 
         @Override
         FileCollection getPropertyFiles() {
@@ -54,7 +55,7 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
 
         @Override
         CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
-            return outputFile.directory ? DIRECTORY : FILE
+            return outputType ?: outputFile.directory ? DIRECTORY : FILE
         }
 
         @Override

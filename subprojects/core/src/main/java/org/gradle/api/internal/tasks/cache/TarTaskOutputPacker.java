@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.tar.TarEntry;
@@ -46,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -171,7 +169,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             }
         });
         TarEntry entry;
-        Set<CacheableTaskOutputFilePropertySpec> seenProperties = Sets.newHashSet();
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
             Matcher matcher = PROPERTY_PATH.matcher(name);
@@ -185,11 +182,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             }
 
             File specRoot = propertySpec.getOutputFile();
-            // Create parent directories when we first see a property
-            if (seenProperties.add(propertySpec)) {
-                FileUtils.forceMkdir(specRoot.getParentFile());
-            }
-
             String path = matcher.group(2);
             File outputFile;
             if (Strings.isNullOrEmpty(path)) {
