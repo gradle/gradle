@@ -25,9 +25,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
-        def sourceOutputFile = tempDir.file("source.txt")
+        def sourceOutputFile = Spy(File, constructorArgs: [tempDir.file("source.txt").absolutePath])
         sourceOutputFile << "output"
-        def targetOutputFile = tempDir.file("target.txt")
+        def targetOutputFile = Spy(File, constructorArgs: [tempDir.file("target.txt").absolutePath])
         def output = new ByteArrayOutputStream()
         def unixMode = Integer.parseInt(mode, 8)
 
@@ -38,6 +38,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             new TestProperty(propertyName: "test", outputFile: sourceOutputFile)
         ] as SortedSet)
         1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
+        _ * sourceOutputFile.lastModified() >> fileDate
+        _ * sourceOutputFile._
         0 * _
 
         when:
@@ -49,14 +51,19 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             new TestProperty(propertyName: "test", outputFile: targetOutputFile)
         ] as SortedSet)
         1 * fileSystem.chmod(targetOutputFile, unixMode)
+        1 * targetOutputFile.setLastModified(_) >> { long time ->
+            assert time == fileDate
+            return true
+        }
+        _ * targetOutputFile._
         then:
         targetOutputFile.text == "output"
         0 * _
 
         where:
-        mode   | _
-        "0644" | _
-        "0755" | _
+        mode   | fileDate
+        "0644" | 123456789000L
+        "0755" | 123456789012L
     }
 
     def "can pack task output directory"() {
