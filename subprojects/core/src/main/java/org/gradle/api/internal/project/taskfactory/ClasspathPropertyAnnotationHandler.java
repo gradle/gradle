@@ -45,6 +45,11 @@ public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHan
             }
             return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
         }
+
+        @Override
+        public String toString() {
+            return "CLASSPATH";
+        }
     };
 
     @Override

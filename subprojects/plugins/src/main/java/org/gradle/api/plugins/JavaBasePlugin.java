@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -352,7 +353,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             //configure inputs so that the test task is skipped when there are no source files.
             //unfortunately, this only applies when 'test.single' is *not* applied
             //We should fix this distinction, the behavior with 'test.single' or without it should be the same
-            test.getInputs().files(test.getCandidateClassFiles()).withPropertyName("test.candidateClassFiles").skipWhenEmpty();
+            test.getInputs().files(test.getCandidateClassFiles())
+                .withPropertyName("nonEmptyCandidateClassFiles")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+                .skipWhenEmpty();
             return;
         }
         test.prependParallelSafeAction(new Action<Task>() {
