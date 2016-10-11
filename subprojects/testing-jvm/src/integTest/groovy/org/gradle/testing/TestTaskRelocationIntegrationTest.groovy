@@ -61,6 +61,7 @@ class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
         buildFile << """
             sourceSets.test.output.classesDir = file("build/test-classes")
         """
+        file("build/classes/test").assertIsDir().deleteDir()
     }
 
     @Override
