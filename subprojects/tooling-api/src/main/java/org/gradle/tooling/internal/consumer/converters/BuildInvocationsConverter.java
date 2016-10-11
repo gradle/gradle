@@ -31,7 +31,7 @@ import java.util.SortedSet;
 public class BuildInvocationsConverter {
     public ConsumerProvidedBuildInvocations convert(GradleProject project) {
         List<ConsumerProvidedTaskSelector> selectors = buildRecursively(project);
-        return new ConsumerProvidedBuildInvocations(selectors, convertTasks(project.getTasks()));
+        return new ConsumerProvidedBuildInvocations(project.getProjectIdentifier(), selectors, convertTasks(project.getTasks()));
     }
 
     private List<ConsumerProvidedTaskSelector> buildRecursively(GradleProject project) {

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.gradle.ConsumerProvidedTask;
 import org.gradle.tooling.internal.gradle.ConsumerProvidedTaskSelector;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 import java.util.List;
 
@@ -25,12 +26,18 @@ import java.util.List;
  * A consumer-side implementation of {@link org.gradle.tooling.model.gradle.BuildInvocations}
  */
 public class ConsumerProvidedBuildInvocations {
+    private final ProjectIdentifier projectIdentifier;
     private final List<? extends ConsumerProvidedTaskSelector> selectors;
     private final List<? extends ConsumerProvidedTask> tasks;
 
-    public ConsumerProvidedBuildInvocations(List<? extends ConsumerProvidedTaskSelector> selectors, List<? extends ConsumerProvidedTask> tasks) {
+    public ConsumerProvidedBuildInvocations(ProjectIdentifier projectIdentifier, List<? extends ConsumerProvidedTaskSelector> selectors, List<? extends ConsumerProvidedTask> tasks) {
+        this.projectIdentifier = projectIdentifier;
         this.selectors = selectors;
         this.tasks = tasks;
+    }
+
+    public ProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
     }
 
     public List<? extends ConsumerProvidedTaskSelector> getTaskSelectors() {
