@@ -20,7 +20,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -71,7 +70,7 @@ public class PayloadSerializer {
 
             Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
             map.collectClassLoaderDefinitions(classLoaders);
-            return new SerializedPayload(classLoaders, buffer.readAsByteArray());
+            return new SerializedPayload(classLoaders, buffer.readAsListOfByteArrays());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -81,8 +80,8 @@ public class PayloadSerializer {
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
-
-            final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {
+            StreamByteBuffer buffer = StreamByteBuffer.of(payload.getSerializedModel());
+            final ObjectInputStream objectStream = new ObjectInputStream(buffer.getInputStream()) {
                 @Override
                 protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
                     Class<?> aClass = readClass();

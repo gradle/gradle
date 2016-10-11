@@ -17,12 +17,13 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class SerializedPayload implements Serializable {
-    private final byte[] serializedModel;
+    private final List<byte[]> serializedModel;
     private final Object header;
 
-    public SerializedPayload(Object header, byte[] serializedModel) {
+    public SerializedPayload(Object header, List<byte[]> serializedModel) {
         this.header = header;
         this.serializedModel = serializedModel;
     }
@@ -31,7 +32,7 @@ public class SerializedPayload implements Serializable {
         return header;
     }
 
-    public byte[] getSerializedModel() {
+    public List<byte[]> getSerializedModel() {
         return serializedModel;
     }
 }

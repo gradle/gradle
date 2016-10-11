@@ -22,8 +22,6 @@ import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
-import java.util.concurrent.Callable
-
 class InMemoryTaskArtifactCacheTest extends Specification {
     def cacheFactory = new InMemoryTaskArtifactCache()
     def target = Mock(MultiProcessSafePersistentIndexedCache)
@@ -42,7 +40,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory f -> f.create() }
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory f -> f.create() }
         1 * target.get("key") >> "result"
         0 * _
 
@@ -69,7 +67,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory f -> f.create() }
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory f -> f.create() }
         1 * target.get("key") >> null
         0 * _
 
@@ -97,7 +95,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory f -> f.create() }
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory f -> f.create() }
         1 * target.get("key") >> "result"
         0 * _
 
@@ -135,7 +133,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory f -> f.create() }
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory f -> f.create() }
         1 * target.get("key") >> "result"
         0 * _
 

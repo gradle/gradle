@@ -17,8 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Nullable;
-
-import java.util.concurrent.Callable;
+import org.gradle.internal.Factory;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
@@ -37,9 +36,9 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
     @Nullable
     @Override
     public V get(final K key) {
-        return asyncCacheAccess.read(new Callable<V>() {
+        return asyncCacheAccess.read(new Factory<V>() {
             @Override
-            public V call() throws Exception {
+            public V create() {
                 return persistentCache.get(key);
             }
         });

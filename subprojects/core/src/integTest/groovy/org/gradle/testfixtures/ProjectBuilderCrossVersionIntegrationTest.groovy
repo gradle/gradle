@@ -137,7 +137,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
 
     /**
      * This test demonstrates a workaround for the problem in Gradle 3.0 or 3.1 by adding the functionality that has now
-     * moved to {@link org.gradle.internal.initialization.LegacyTypesUtil} directly to the test.
+     * moved to {@link org.gradle.initialization.LegacyTypesUtil} directly to the test.
      */
     def "can use plugin built with 2.x to execute a test on top of ProjectBuilder run with Gradle 3.0 using added LegacyTypesUtil methods"() {
         given:
