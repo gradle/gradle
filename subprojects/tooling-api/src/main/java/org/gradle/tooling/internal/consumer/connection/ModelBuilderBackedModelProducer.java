@@ -33,7 +33,6 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
     private final ModelBuilder builder;
 
     public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
-        super(versionDetails);
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;

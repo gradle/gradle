@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.Element
@@ -38,7 +39,7 @@ class BuildControllerAdapterTest extends Specification {
             }
         }
     }
-    def controller = new BuildControllerAdapter(adapter, internalController, mapping, null)
+    def controller = new BuildControllerAdapter(adapter, internalController, mapping, new File("root"))
 
     def "unpacks unsupported model exception"() {
         def failure = new RuntimeException()
@@ -75,7 +76,9 @@ class BuildControllerAdapterTest extends Specification {
                 getModel() >> model
             }
         }
-        1 * graphAdapter.adapt(GradleBuild, model) >> modelView
+        1 * graphAdapter.builder(GradleBuild) >> Stub(ViewBuilder) {
+            build(model) >> modelView
+        }
     }
 
     def "fetches missing model for target object"() {
@@ -110,7 +113,9 @@ class BuildControllerAdapterTest extends Specification {
                 getModel() >> model
             }
         }
-        1 * graphAdapter.adapt(GradleBuild, model) >> modelView
+        1 * graphAdapter.builder(GradleBuild) >> Stub(ViewBuilder) {
+            build(model) >> modelView
+        }
     }
 
     def "fetches missing model"() {

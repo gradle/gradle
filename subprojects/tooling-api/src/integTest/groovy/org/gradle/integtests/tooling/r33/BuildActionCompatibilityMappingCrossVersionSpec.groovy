@@ -19,15 +19,12 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion('>=1.8')
+@ToolingApiVersion('>=3.3')
 @TargetGradleVersion('>=1.8')
 class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecification {
 
-    def "Applies idea module name compatiblity mapping"() {
+    def "Applies idea module name compatibility mapping"() {
         given:
         settingsFile << """
             include 'a'
@@ -54,11 +51,27 @@ class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecific
         moduleA.dependencies[0].targetModuleName == 'b'
     }
 
-    private static class FetchIdeaProject implements BuildAction<IdeaProject> {
+    def "Applies gradle project identifier mapping"() {
+        given:
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
 
-        @Override
-        IdeaProject execute(BuildController controller) {
-            controller.getModel(IdeaProject)
+        when:
+        def gradleBuild = withConnection {
+            action(new FetchGradleBuild()).run()
         }
+        then:
+        gradleBuild.projects*.projectIdentifier.toSet().size() == 3
+    }
+
+    def "Applies BuildInvocations compatibility mapping"() {
+        when:
+        def buildInvocations = withConnection {
+            action(new FetchBuildInvocations()).run()
+        }
+        then:
+        buildInvocations
     }
 }

@@ -20,12 +20,13 @@ import org.gradle.tooling.internal.gradle.ConsumerProvidedTask;
 import org.gradle.tooling.internal.gradle.ConsumerProvidedTaskSelector;
 import org.gradle.tooling.model.ProjectIdentifier;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * A consumer-side implementation of {@link org.gradle.tooling.model.gradle.BuildInvocations}
  */
-public class ConsumerProvidedBuildInvocations {
+public class ConsumerProvidedBuildInvocations implements Serializable {
     private final ProjectIdentifier projectIdentifier;
     private final List<? extends ConsumerProvidedTaskSelector> selectors;
     private final List<? extends ConsumerProvidedTask> tasks;

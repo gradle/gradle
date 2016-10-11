@@ -21,7 +21,9 @@ import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.ProjectIdentifier;
 
-public class GradleProjectIdentifierMixin {
+import java.io.Serializable;
+
+public class GradleProjectIdentifierMixin implements Serializable {
     private final BuildIdentifier buildIdentifier;
 
     public GradleProjectIdentifierMixin(BuildIdentifier buildIdentifier) {
