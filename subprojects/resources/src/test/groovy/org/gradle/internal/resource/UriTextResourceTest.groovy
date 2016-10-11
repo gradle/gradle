@@ -16,11 +16,11 @@
 
 
 package org.gradle.internal.resource
+
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -36,6 +36,9 @@ class UriTextResourceTest extends Specification {
     private URI fileUri;
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+
+    @Rule
+    final HttpServer server = new HttpServer()
 
     def setup() {
         testDir = tmpDir.createDir('dir');
@@ -237,20 +240,27 @@ class UriTextResourceTest extends Specification {
         e.message == "Could not read <display-name> '$jarUri' as it does not exist." as String
     }
 
-    @Requires(TestPrecondition.ONLINE)
     def hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
+        given:
+        server.start()
+        String unknownPath = '/unknown.txt'
+        String fullURI = "${server.uri}${unknownPath}"
+        UriTextResource resource = new UriTextResource('<display-name>', new URI(fullURI))
+
         when:
-        UriTextResource resource = new UriTextResource('<display-name>', new URI("https://gradle.org/unknown.txt"));
+        server.expectGetMissing(unknownPath)
+        boolean exists = resource.exists
 
         then:
-        !resource.exists
+        !exists
 
         when:
+        server.expectGetMissing(unknownPath)
         resource.text
 
         then:
         def e = thrown(MissingResourceException)
-        e.message == "Could not read <display-name> 'https://gradle.org/unknown.txt' as it does not exist." as String
+        e.message == "Could not read <display-name> '$fullURI' as it does not exist." as String
     }
 
     def usesFilePathToBuildDisplayNameWhenUsingFile() {
