@@ -23,12 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradlePublication;
 import org.gradle.tooling.internal.gradle.DefaultProjectPublications;
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.List;
 import java.util.Set;
 
-class PublicationsBuilder extends ProjectSensitiveToolingModelBuilder {
+class PublicationsBuilder implements ToolingModelBuilder {
     private final ProjectPublicationRegistry publicationRegistry;
 
     PublicationsBuilder(ProjectPublicationRegistry publicationRegistry) {
