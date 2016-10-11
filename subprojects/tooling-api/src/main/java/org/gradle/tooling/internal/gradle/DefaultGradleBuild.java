@@ -23,6 +23,7 @@ import java.util.Set;
 public class DefaultGradleBuild implements Serializable {
     private PartialBasicGradleProject rootProject;
     private Set<PartialBasicGradleProject> projects = new LinkedHashSet<PartialBasicGradleProject>();
+    private Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<DefaultGradleBuild>();
 
     public PartialBasicGradleProject getRootProject() {
         return rootProject;
@@ -39,5 +40,13 @@ public class DefaultGradleBuild implements Serializable {
 
     public void addProject(PartialBasicGradleProject project) {
         projects.add(project);
+    }
+
+    public Set<DefaultGradleBuild> getIncludedBuilds() {
+        return includedBuilds;
+    }
+
+    public void addIncludedBuild(DefaultGradleBuild includedBuild) {
+        includedBuilds.add(includedBuild);
     }
 }

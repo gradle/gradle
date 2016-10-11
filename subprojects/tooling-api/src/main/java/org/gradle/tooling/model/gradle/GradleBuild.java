@@ -50,4 +50,12 @@ public interface GradleBuild extends Model, BuildModel {
      * @return The set of all projects.
      */
     DomainObjectSet<? extends BasicGradleProject> getProjects();
+
+    /**
+     * Returns the builds that were included into this one.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    DomainObjectSet<? extends GradleBuild> getIncludedBuilds();
 }

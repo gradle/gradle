@@ -17,6 +17,9 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
+import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -33,11 +36,26 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
 
     @Override
     public DefaultGradleBuild buildAll(String modelName, Project target) {
+        Gradle gradle = target.getGradle();
+        return convert(gradle);
+    }
+
+    private DefaultGradleBuild convert(Gradle gradle) {
+        DefaultGradleBuild model = new DefaultGradleBuild();
         Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
-        BasicGradleProject rootProject = convert(target.getRootProject(), convertedProjects);
-        DefaultGradleBuild model = new DefaultGradleBuild().setRootProject(rootProject);
-        for (Project project : target.getRootProject().getAllprojects()) {
+
+        Project rootProject = gradle.getRootProject();
+        BasicGradleProject convertedRootProject = convert(rootProject, convertedProjects);
+        model.setRootProject(convertedRootProject);
+
+        for (Project project : rootProject.getAllprojects()) {
             model.addProject(convertedProjects.get(project));
+        }
+
+        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+            Gradle includedGradle = ((IncludedBuildInternal) includedBuild).getConfiguredBuild();
+            DefaultGradleBuild convertedIncludedBuild = convert(includedGradle);
+            model.addIncludedBuild(convertedIncludedBuild);
         }
         return model;
     }
