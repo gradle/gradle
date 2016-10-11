@@ -42,7 +42,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Java `Test` task doesn't track working directory as input
 
-Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic, too, since the default working directory is the project directory. All-in-all trackign the working directory path wasn't adding much functionality as most tests don't rely on the working directory at all, and those that do depend on its contents as well.
+Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic, too, since the default working directory is the project directory. All-in-all tracking the working directory path wasn't adding much functionality as most tests don't rely on the working directory at all, and those that do depend on its contents as well.
 
 From Gradle 3.3 the working directory is not tracked at all. Due to this changing the path of the working directory between builds won't make the task out-of-date.
 
