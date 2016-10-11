@@ -48,13 +48,14 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
             File output = property.getOutputFile();
             switch (property.getOutputType()) {
                 case DIRECTORY:
-                    FileUtils.forceMkdir(output);
+                    makeDirectory(output);
                     FileUtils.cleanDirectory(output);
                     break;
                 case FILE:
-                    FileUtils.forceMkdir(output.getParentFile());
-                    if (output.exists()) {
-                        FileUtils.forceDelete(output);
+                    if (!makeDirectory(output.getParentFile())) {
+                        if (output.exists()) {
+                            FileUtils.forceDelete(output);
+                        }
                     }
                     break;
                 default:
@@ -62,5 +63,15 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
             }
         }
         delegate.unpack(taskOutputs, input);
+    }
+
+    private static boolean makeDirectory(File output) throws IOException {
+        if (output.isDirectory()) {
+            return false;
+        } else if (output.isFile()) {
+            FileUtils.forceDelete(output);
+        }
+        FileUtils.forceMkdir(output);
+        return true;
     }
 }

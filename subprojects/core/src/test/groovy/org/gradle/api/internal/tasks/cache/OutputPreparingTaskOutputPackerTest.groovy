@@ -53,8 +53,31 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     }
 
     def "creates necessary directories"() {
-        def targetOutputFile = tempDir.file("output.txt")
+        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
         def targetOutputDir = tempDir.file("output")
+
+        when:
+        packer.unpack(taskOutputs, input)
+
+        then:
+        1 * taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
+            new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        1 * delegate.unpack(taskOutputs, input)
+
+        then:
+        !targetOutputFile.exists()
+        targetOutputFile.parentFile.directory
+        targetOutputDir.directory
+
+        then:
+        0 * _
+    }
+
+    def "creates directories even if there is a pre-existing file in its place"() {
+        def targetOutputFile = tempDir.file("build/some-dir/output.txt").createDir()
+        def targetOutputDir = tempDir.file("output") << "This should become a directory"
 
         when:
         packer.unpack(taskOutputs, input)
