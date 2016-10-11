@@ -110,10 +110,13 @@ public class ProjectBuilderImpl {
             // Without this, ProjectBuilder will fail to resolve dependencies with a strange "Logging operation was not started" error
             globalServices.get(GradleLauncherFactory.class);
             // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
-            // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
-            // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
-            // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
-            // in ApplicationClassesInSystemClassLoaderWorkerFactory, BootstrapSecurityManager and GradleWorkerMain.)
+            // A normal gradle build does this by adding the {@link org.gradle.initialization.MixInLegacyTypesClassLoader}
+            // to the class loader hierarchy.
+            // In a test run, which is essentially a plain Java application, the classpath is flattened and injected into the
+            // system class loader and there exists no Gradle class loader hierarchy in the running test. See Implementation in:
+            // - {@link org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory}
+            // - {@link org.gradle.process.internal.worker.child.BootstrapSecurityManager}
+            // - {@link org.gradle.process.internal.worker.GradleWorkerMain}
             // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
             LegacyTypesUtil.injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
         }

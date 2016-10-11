@@ -38,6 +38,10 @@ import java.io.File;
  * </ol>
  *
  * <p>You can reuse a builder to create multiple {@code Project} instances.</p>
+ *
+ * <p>The ProjectBuilder versions of Gradle 3.0 and 3.1 suffers from a <b>binary compatibility issue</b>
+ * with plugins compiled for Gradle 2.7 and earlier. Applying those pre-compiled plugins in a
+ * ProjectBuilder context can cause a {@link ClassNotFoundException}.</p>
  */
 public class ProjectBuilder {
 
