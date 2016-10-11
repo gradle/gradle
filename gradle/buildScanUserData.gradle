@@ -23,15 +23,54 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.VisitableURLClassLoader
 
 if (plugins.hasPlugin("com.gradle.build-scan")) {
+    String commitId
     if (System.getenv("CI")) {
         buildScan.tag "CI"
         buildScan.link "TeamCity Build", System.getenv("BUILD_URL")
         buildScan.value "Build ID", System.getenv("BUILD_ID")
-        def commitId = System.getenv("BUILD_VCS_NUMBER")
-        buildScan.value "Git Commit ID", commitId
-        buildScan.link "Source", "https://github.com/gradle/gradle/tree/" + commitId
+        commitId = System.getenv("BUILD_VCS_NUMBER")
     } else {
         buildScan.tag "LOCAL"
+
+        try {
+            commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
+        } catch (ignore) {
+            // ignore
+        }
+
+        try {
+            def status = 'git status --porcelain'.execute().text
+            if (status) {
+                buildScan.tag "dirty"
+                buildScan.value "Git Status", status
+            }
+        } catch (ignore) {
+            // ignore
+        }
+    }
+
+    if (commitId) {
+        buildScan.value "Git Commit ID", commitId
+        buildScan.link "Source", "https://github.com/gradle/gradle/tree/" + commitId
+    }
+
+    // Capture reports from Reporting tasks
+    if (System.getenv("CI")) {
+        def capturedReportingTypes = ['html'] // can add xml, text, junitXml if wanted
+        def basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
+
+        gradle.taskGraph.afterTask { Task task, TaskState state ->
+            if (task instanceof Reporting && state.failure) {
+                (task.reports as ReportContainer<Report>)
+                    .findAll { it.name in capturedReportingTypes && it.enabled && it.destination.exists() }
+                    .each {
+                        def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
+                        def reportPath = task.project.rootProject.relativePath(it.destination)
+                        def reportLink = "$basePath/$reportPath"
+                        task.project.buildScan.link linkName, reportLink
+                    }
+            }
+        }
     }
 
     if (gradle.startParameter.taskOutputCacheEnabled) {
