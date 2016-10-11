@@ -68,7 +68,7 @@ class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     protected extractResults() {
         def contents = normaliseLineSeparators(file("build/reports/tests/test/index.html").text)
         contents = contents.replaceAll(/(<a href=".*">Gradle .*?<\/a>) at [^<]+/, '$1 at [DATE]' )
-        contents = contents.replaceAll(/\b\d+\.\d+s\b/, "[SECONDS]")
+        contents = contents.replaceAll(/\b\d+(\.\d+)?s\b/, "[TIME]")
         return contents
     }
 }
