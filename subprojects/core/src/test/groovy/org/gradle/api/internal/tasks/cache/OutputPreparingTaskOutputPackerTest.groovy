@@ -26,10 +26,15 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def delegate = Mock(TarTaskOutputPacker)
     def packer = new OutputPreparingTaskOutputPacker(delegate)
     def input = Mock(InputStream)
+    def targetOutputFile
+    def targetOutputDir
+
+    def setup() {
+        targetOutputFile = tempDir.file("build/some-dir/output.txt")
+        targetOutputDir = tempDir.file("build/output")
+    }
 
     def "cleans up leftover files"() {
-        def targetOutputFile = tempDir.file("output.txt")
-        def targetOutputDir = tempDir.file("output").createDir()
         targetOutputFile << "Some data"
         targetOutputDir.file("sub-dir/data.txt") << "Some data"
 
@@ -42,20 +47,34 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             new TestProperty(propertyName: "testDir", outputFile: targetOutputDir)
         ] as SortedSet)
         1 * delegate.unpack(taskOutputs, input)
-
-        then:
-        !targetOutputFile.exists()
-        targetOutputDir.exists()
-        targetOutputDir.assertIsEmptyDir()
-
-        then:
         0 * _
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "leaves outputs clean when there's nothing to do"() {
+        targetOutputFile.parentFile.mkdirs()
+        targetOutputDir.mkdirs()
+
+        when:
+        packer.unpack(taskOutputs, input)
+
+        then:
+        1 * taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
+            new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        1 * delegate.unpack(taskOutputs, input)
+        0 * _
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
+        targetOutputDir.assertIsEmptyDir()
     }
 
     def "creates necessary directories"() {
-        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
-        def targetOutputDir = tempDir.file("output")
-
         when:
         packer.unpack(taskOutputs, input)
 
@@ -65,19 +84,32 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
         ] as SortedSet)
         1 * delegate.unpack(taskOutputs, input)
-
-        then:
-        !targetOutputFile.exists()
-        targetOutputFile.parentFile.directory
-        targetOutputDir.directory
-
-        then:
         0 * _
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
+        targetOutputDir.assertIsEmptyDir()
     }
 
     def "creates directories even if there is a pre-existing file in its place"() {
-        def targetOutputFile = tempDir.file("build/some-dir/output.txt").createDir()
-        def targetOutputDir = tempDir.file("output") << "This should become a directory"
+        targetOutputDir << "This should become a directory"
+
+        when:
+        packer.unpack(taskOutputs, input)
+
+        then:
+        1 * taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        1 * delegate.unpack(taskOutputs, input)
+        0 * _
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "creates parent directories for output file even if there is a pre-existing directory in its place"() {
+        targetOutputFile.createDir()
 
         when:
         packer.unpack(taskOutputs, input)
@@ -85,16 +117,11 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         then:
         1 * taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
-            new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
         ] as SortedSet)
         1 * delegate.unpack(taskOutputs, input)
-
-        then:
-        !targetOutputFile.exists()
-        targetOutputFile.parentFile.directory
-        targetOutputDir.directory
-
-        then:
         0 * _
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
     }
 }
