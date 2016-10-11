@@ -39,7 +39,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
-    public static final int DEFAULT_LOCK_TIMEOUT = 60000;
+    public static final int DEFAULT_LOCK_TIMEOUT = 600000;
 
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
