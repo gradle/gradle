@@ -562,29 +562,27 @@ public class GradlePluginLord {
             formatter.format("Use the stack trace options to get more details.");
         }
 
-        if (failure != null) {
-            formatter.format("%n");
+        formatter.format("%n");
 
-            if (failure instanceof LocationAwareException) {
-                LocationAwareException scriptException = (LocationAwareException) failure;
-                formatter.format("%s%n%n", scriptException.getLocation());
-                formatter.format("%s", scriptException.getCause().getMessage());
+        if (failure instanceof LocationAwareException) {
+            LocationAwareException scriptException = (LocationAwareException) failure;
+            formatter.format("%s%n%n", scriptException.getLocation());
+            formatter.format("%s", scriptException.getCause().getMessage());
 
-                for (Throwable cause : scriptException.getReportableCauses()) {
-                    formatter.format("%nCause: %s", getMessage(cause));
-                }
-            } else {
-                formatter.format("%s", getMessage(failure));
+            for (Throwable cause : scriptException.getReportableCauses()) {
+                formatter.format("%nCause: %s", getMessage(cause));
+            }
+        } else {
+            formatter.format("%s", getMessage(failure));
+        }
+
+        if (stackTraceLevel != ShowStacktrace.INTERNAL_EXCEPTIONS) {
+            formatter.format("%n%nException is:\n");
+            if (stackTraceLevel == ShowStacktrace.ALWAYS_FULL) {
+                return formatter.toString() + getStackTraceAsText(failure);
             }
 
-            if (stackTraceLevel != ShowStacktrace.INTERNAL_EXCEPTIONS) {
-                formatter.format("%n%nException is:\n");
-                if (stackTraceLevel == ShowStacktrace.ALWAYS_FULL) {
-                    return formatter.toString() + getStackTraceAsText(failure);
-                }
-
-                return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
-            }
+            return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
         }
 
         return formatter.toString();
