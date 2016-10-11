@@ -48,7 +48,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,7 +102,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
                 .setJdk(DefaultInstalledJdk.current()));
 
-        Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
+        Map<String, DefaultIdeaModule> modules = new LinkedHashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
             appendModule(modules, module, out, rootGradleProject);
         }
