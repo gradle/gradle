@@ -20,7 +20,6 @@ package org.gradle.internal.resource
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -36,9 +35,6 @@ class UriTextResourceTest extends Specification {
     private URI fileUri;
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-
-    @Rule
-    final HttpServer server = new HttpServer()
 
     def setup() {
         testDir = tmpDir.createDir('dir');
@@ -238,29 +234,6 @@ class UriTextResourceTest extends Specification {
         then:
         e = thrown(MissingResourceException)
         e.message == "Could not read <display-name> '$jarUri' as it does not exist." as String
-    }
-
-    def hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
-        given:
-        server.start()
-        String unknownPath = '/unknown.txt'
-        String fullURI = "${server.uri}${unknownPath}"
-        UriTextResource resource = new UriTextResource('<display-name>', new URI(fullURI))
-
-        when:
-        server.expectGetMissing(unknownPath)
-        boolean exists = resource.exists
-
-        then:
-        !exists
-
-        when:
-        server.expectGetMissing(unknownPath)
-        resource.text
-
-        then:
-        def e = thrown(MissingResourceException)
-        e.message == "Could not read <display-name> '$fullURI' as it does not exist." as String
     }
 
     def usesFilePathToBuildDisplayNameWhenUsingFile() {
