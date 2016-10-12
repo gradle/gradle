@@ -70,4 +70,21 @@ class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputSt
         }
         return Proxy.getProxyClass(actualInterfaces[0].getClassLoader(), actualInterfaces);
     }
+
+    @Override
+    protected Class<?> lookupClass(String type) throws ClassNotFoundException {
+        try {
+            return super.lookupClass(type);
+        } catch (ClassNotFoundException e) {
+            // lookup class in all classloaders
+            for (ClassLoaderDetails details : classLoaderDetails.values()) {
+                try {
+                    return map.resolveClass(details, type);
+                } catch (ClassNotFoundException ignored) {
+                    // ignore
+                }
+            }
+            throw e;
+        }
+    }
 }

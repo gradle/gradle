@@ -64,9 +64,26 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
 
     protected Object doResolveObject(Object obj) throws IOException {
         if (obj instanceof TopLevelExceptionPlaceholder) {
-            return ((ExceptionPlaceholder) obj).read(getClassLoader(), getObjectInputStreamCreator());
+            return ((ExceptionPlaceholder) obj).read(getClassNameTransformer(), getObjectInputStreamCreator());
         }
         return obj;
+    }
+
+    protected final Transformer<Class<?>, String> getClassNameTransformer() {
+        return new Transformer<Class<?>, String>() {
+            @Override
+            public Class<?> transform(String type) {
+                try {
+                    return lookupClass(type);
+                } catch (ClassNotFoundException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        };
+    }
+
+    protected Class<?> lookupClass(String type) throws ClassNotFoundException {
+        return getClassLoader().loadClass(type);
     }
 
     public Transformer<Object, Object> getObjectTransformer() {

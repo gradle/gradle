@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,8 +106,8 @@ class ExceptionPlaceholder implements Serializable {
         }
     }
 
-    public Throwable read(ClassLoader classLoader, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        final Throwable causeThrowable = getCause(classLoader, objectInputStreamCreator);
+    public Throwable read(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        final Throwable causeThrowable = getCause(classNameTransformer, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
@@ -132,12 +133,15 @@ class ExceptionPlaceholder implements Serializable {
 
         try {
             // try to reconstruct the exception
-            Constructor<?> constructor = classLoader.loadClass(type).getConstructor(String.class);
-            Throwable reconstructed = (Throwable) constructor.newInstance(message);
-            reconstructed.initCause(causeThrowable);
-            reconstructed.setStackTrace(stackTrace);
-            return reconstructed;
-        } catch (ClassNotFoundException ignored) {
+            Class<?> clazz = classNameTransformer.transform(type);
+            if (clazz != null) {
+                Constructor<?> constructor = clazz.getConstructor(String.class);
+                Throwable reconstructed = (Throwable) constructor.newInstance(message);
+                reconstructed.initCause(causeThrowable);
+                reconstructed.setStackTrace(stackTrace);
+                return reconstructed;
+            }
+        } catch (UncheckedException ignore) {
             // Don't log
         } catch (NoSuchMethodException ignored) {
             // Don't log
@@ -150,7 +154,7 @@ class ExceptionPlaceholder implements Serializable {
         return placeholder;
     }
 
-    private Throwable getCause(ClassLoader classLoader, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        return cause != null ? cause.read(classLoader, objectInputStreamCreator) : null;
+    private Throwable getCause(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        return cause != null ? cause.read(classNameTransformer, objectInputStreamCreator) : null;
     }
 }
