@@ -20,15 +20,19 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
 import java.util.Map;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, OutputFilesCollectionSnapshotter snapshotter) {
+    private final OutputFilesSnapshotter outputSnapshotter;
+
+    public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter, OutputFilesSnapshotter outputSnapshotter) {
         super(task.getName(), previous, current, snapshotter, "Output", task.getOutputs().getFileProperties());
+        this.outputSnapshotter = outputSnapshotter;
     }
 
     @Override
@@ -47,7 +51,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
             FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            FileCollectionSnapshot outputSnapshot = getSnapshotter().createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution, roots);
+            FileCollectionSnapshot outputSnapshot = outputSnapshotter.createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution, roots);
             builder.put(propertyName, outputSnapshot);
         }
 
@@ -65,10 +69,5 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             }
         }
         return FileCollectionSnapshot.EMPTY;
-    }
-
-    @Override
-    protected OutputFilesCollectionSnapshotter getSnapshotter() {
-        return (OutputFilesCollectionSnapshotter) super.getSnapshotter();
     }
 }

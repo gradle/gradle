@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -27,21 +27,21 @@ import spock.lang.Subject
 @Subject(TaskUpToDateState)
 class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
     private TaskHistoryRepository.History stubHistory
-    private OutputFilesCollectionSnapshotter stubOutputFileSnapshotter
+    private OutputFilesSnapshotter stubOutputFileSnapshotter
     private FileCollectionSnapshotter stubInputFileSnapshotter
     private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
     private classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
 
     def setup() {
         this.stubHistory = Stub(TaskHistoryRepository.History)
-        this.stubOutputFileSnapshotter = Stub(OutputFilesCollectionSnapshotter)
+        this.stubOutputFileSnapshotter = Stub(OutputFilesSnapshotter)
         this.stubInputFileSnapshotter = Stub(FileCollectionSnapshotter)
     }
 
     def "constructor invokes snapshots" () {
         setup:
         FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot)
-        OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
+        OutputFilesSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
 
         when:
@@ -52,7 +52,6 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * mockOutputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
-        1 * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
+        2 * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
     }
 }

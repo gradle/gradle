@@ -17,7 +17,8 @@
 package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.UncheckedIOException
-import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
 import spock.lang.Issue
 import spock.lang.Subject
@@ -29,13 +30,14 @@ class OutputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        def stubOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
+        def stubInputFileSnapshotter = Mock(FileCollectionSnapshotter)
+        def stubOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
 
         when:
-        new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, stubOutputFileSnapshotter)
+        new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, stubInputFileSnapshotter, stubOutputFileSnapshotter)
         then:
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * stubOutputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
+        1 * stubInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

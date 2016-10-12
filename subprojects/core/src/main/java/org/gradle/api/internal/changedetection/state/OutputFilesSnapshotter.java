@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,18 +25,13 @@ import java.util.Map;
 /**
  * Takes a snapshot of the output files of a task.
  */
-public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshotter {
+public class OutputFilesSnapshotter {
     private final FileCollectionSnapshotter snapshotter;
 
-    public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter) {
+    public OutputFilesSnapshotter(FileCollectionSnapshotter snapshotter) {
         this.snapshotter = snapshotter;
     }
 
-    public void registerSerializers(SerializerRegistry registry) {
-        snapshotter.registerSerializers(registry);
-    }
-
-    @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         return snapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy);
     }

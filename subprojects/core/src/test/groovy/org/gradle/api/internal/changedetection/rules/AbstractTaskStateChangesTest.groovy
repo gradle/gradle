@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
 import spock.lang.Specification
 
-public class AbstractTaskStateChangesTest extends Specification {
+abstract public class AbstractTaskStateChangesTest extends Specification {
     protected mockInputs = Mock(TaskInputsInternal)
     protected mockOutputs = Mock(TaskOutputsInternal)
     protected TaskInternal stubTask
