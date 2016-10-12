@@ -295,8 +295,6 @@ public class TestUtility {
         }
     }
 
-    //wrapper around File.createTempFile just so we don't have to deal with the exception for tests.
-
     /**
      * This refreshes the projects but blocks until it is complete (its being executed in a separate process).
      *
