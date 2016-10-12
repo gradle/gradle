@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -80,11 +79,10 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
         fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
-        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileCollectionSnapshotter)
+        OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         fileCollectionSnapshotter.registerSerializers(serializerRegistry);
-        outputFilesSnapshotter.registerSerializers(serializerRegistry);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, fileCollectionSnapshotter, TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher)
     }

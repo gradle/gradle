@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.file.FileCollection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,24 +25,13 @@ import java.util.Map;
  * Takes a snapshot of the output files of a task.
  */
 public class OutputFilesSnapshotter {
-    private final FileCollectionSnapshotter snapshotter;
-
-    public OutputFilesSnapshotter(FileCollectionSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
-    }
-
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return snapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy);
-    }
-
     /**
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */
     public FileCollectionSnapshot createOutputSnapshot(
         FileCollectionSnapshot afterPreviousExecution,
         FileCollectionSnapshot beforeExecution,
-        FileCollectionSnapshot afterExecution,
-        FileCollection roots
+        FileCollectionSnapshot afterExecution
     ) {
         FileCollectionSnapshot filesSnapshot;
         Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();

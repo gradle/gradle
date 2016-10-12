@@ -138,7 +138,7 @@ public class TaskExecutionServices {
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileCollectionSnapshotter);
+        OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         fileCollectionSnapshotter.registerSerializers(serializerRegistry);
