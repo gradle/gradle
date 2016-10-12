@@ -18,8 +18,12 @@ package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Assume
 
+// Issue on Windows deleting isolated user home dir (set by toolingApi.requireIsolatedDaemons())
+// Unable to delete file: user-home-dir\native\21\windows-amd64\native-platform.dll
+@LeaksFileHandles
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def setup() {
