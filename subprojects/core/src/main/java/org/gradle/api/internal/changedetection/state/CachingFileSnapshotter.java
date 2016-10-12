@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
@@ -81,7 +82,8 @@ public class CachingFileSnapshotter implements FileHasher {
         return info;
     }
 
-    public static class FileInfo implements FileSnapshot {
+    @VisibleForTesting
+    static class FileInfo {
         private final HashCode hash;
         private final long timestamp;
         private final long length;
