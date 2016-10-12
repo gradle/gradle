@@ -20,8 +20,8 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -48,15 +48,15 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final Compiler<T> delegateCompiler;
     private final boolean importsAreIncludes;
     private final TaskInternal task;
-    private final FileSnapshotter fileSnapshotter;
+    private final FileHasher hasher;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
 
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, FileSnapshotter fileSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.task = task;
-        this.fileSnapshotter = fileSnapshotter;
+        this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -161,6 +161,6 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
-        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, fileSnapshotter);
+        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, hasher);
     }
 }

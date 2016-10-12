@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.slf4j.Logger;
@@ -38,13 +38,13 @@ public class IncrementalCompileProcessor {
     private final PersistentStateCache<CompilationState> previousCompileStateCache;
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
-    private final FileSnapshotter snapshotter;
+    private final FileHasher hasher;
 
-    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser, FileSnapshotter snapshotter) {
+    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser, FileHasher hasher) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.sourceIncludesResolver = sourceIncludesResolver;
         this.sourceIncludesParser = sourceIncludesParser;
-        this.snapshotter = snapshotter;
+        this.hasher = hasher;
     }
 
     public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
@@ -93,7 +93,7 @@ public class IncrementalCompileProcessor {
             processed.put(file, false);
 
             CompilationFileState previousState = previous.getState(file);
-            HashCode newHash = snapshotter.snapshot(file).getHash();
+            HashCode newHash = hasher.hash(file);
 
             IncludeDirectives includeDirectives;
             if (!sameHash(previousState, newHash)) {

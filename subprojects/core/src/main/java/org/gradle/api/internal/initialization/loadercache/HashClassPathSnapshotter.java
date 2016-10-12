@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classloader.ClassPathSnapshot;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
@@ -35,9 +35,9 @@ import java.util.Set;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
-    private final Hasher hasher;
+    private final FileHasher hasher;
 
-    public HashClassPathSnapshotter(Hasher hasher) {
+    public HashClassPathSnapshotter(FileHasher hasher) {
         this.hasher = hasher;
     }
 

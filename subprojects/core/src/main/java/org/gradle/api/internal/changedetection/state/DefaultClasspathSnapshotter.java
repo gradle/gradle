@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.util.Collections;
@@ -35,8 +36,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         }
     };
 
-    public DefaultClasspathSnapshotter(FileSnapshotter snapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(snapshotter, stringInterner, fileSystem, directoryFileTreeFactory);
+    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
     }
 
     @Override

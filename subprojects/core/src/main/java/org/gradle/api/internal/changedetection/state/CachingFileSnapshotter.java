@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.internal.resource.TextResource;
@@ -31,30 +29,24 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
-public class CachingFileSnapshotter implements FileSnapshotter {
+public class CachingFileSnapshotter implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
-    private final Hasher hasher;
+    private final FileHasher delegate;
     private final StringInterner stringInterner;
 
-    public CachingFileSnapshotter(Hasher hasher, PersistentStore store, StringInterner stringInterner) {
-        this.hasher = hasher;
+    public CachingFileSnapshotter(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+        this.delegate = delegate;
         this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
     }
 
     @Override
-    public FileSnapshot snapshot(TextResource resource) {
+    public HashCode hash(TextResource resource) {
         File file = resource.getFile();
         if (file != null) {
-            return snapshot(file);
+            return hash(file);
         }
-        final HashCode md5 = Hashing.md5().hashString(resource.getText(), Charsets.UTF_8);
-        return new FileSnapshot() {
-            @Override
-            public HashCode getHash() {
-                return md5;
-            }
-        };
+        return delegate.hash(resource);
     }
 
     @Override
@@ -62,11 +54,16 @@ public class CachingFileSnapshotter implements FileSnapshotter {
         return snapshot(file).getHash();
     }
 
-    public FileInfo snapshot(File file) {
+    @Override
+    public HashCode hash(FileTreeElement fileDetails) {
+        return snapshot(fileDetails).getHash();
+    }
+
+    private FileInfo snapshot(File file) {
         return snapshot(file, file.length(), file.lastModified());
     }
 
-    public FileInfo snapshot(FileTreeElement file) {
+    private FileInfo snapshot(FileTreeElement file) {
         return snapshot(file.getFile(), file.getSize(), file.getLastModified());
     }
 
@@ -78,7 +75,7 @@ public class CachingFileSnapshotter implements FileSnapshotter {
             return info;
         }
 
-        HashCode hash = hasher.hash(file);
+        HashCode hash = delegate.hash(file);
         info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;

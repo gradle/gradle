@@ -34,7 +34,6 @@ import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
@@ -42,7 +41,8 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.hash.DefaultFileHasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.cache.GZipTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.OutputPreparingTaskOutputPacker;
@@ -136,17 +136,17 @@ public class TaskExecutionServices {
     }
 
     CachingFileSnapshotter createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
-        return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
+        return new CachingFileSnapshotter(new DefaultFileHasher(), cacheAccess, stringInterner);
     }
 
-    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
-        DefaultGenericFileCollectionSnapshotter snapshotter = new DefaultGenericFileCollectionSnapshotter(fileSnapshotter, stringInterner, fileSystem, directoryFileTreeFactory);
+    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultGenericFileCollectionSnapshotter snapshotter = new DefaultGenericFileCollectionSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
         listenerManager.addListener(snapshotter);
         return snapshotter;
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(FileSnapshotter fileSnapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
-        DefaultClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(fileSnapshotter, stringInterner, fileSystem, directoryFileTreeFactory);
+    ClasspathSnapshotter createClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
         listenerManager.addListener(snapshotter);
         return snapshotter;
     }

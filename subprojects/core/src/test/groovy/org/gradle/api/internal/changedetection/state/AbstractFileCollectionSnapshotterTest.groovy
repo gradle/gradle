@@ -16,15 +16,13 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Iterators
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
@@ -35,9 +33,8 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 
 public class AbstractFileCollectionSnapshotterTest extends Specification {
-    def fileSnapshotter = Stub(FileSnapshotter)
     def stringInterner = new StringInterner()
-    def snapshotter = new AbstractFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory()) {
+    def snapshotter = new AbstractFileCollectionSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory()) {
         @Override
         Class<? extends FileCollectionSnapshotter> getRegisteredType() {
             FileCollectionSnapshotter
@@ -46,19 +43,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-
-    def setup() {
-        fileSnapshotter.snapshot(_) >> { FileTreeElement fileTreeElement ->
-            return Stub(FileSnapshot) {
-                getHash() >> Files.asByteSource(fileTreeElement.file).hash(Hashing.md5())
-            }
-        }
-        fileSnapshotter.snapshot(_) >> { File file ->
-            return Stub(FileSnapshot) {
-                getHash() >> Files.asByteSource(file).hash(Hashing.md5())
-            }
-        }
-    }
 
     def getFilesReturnsOnlyTheFilesWhichExisted() {
         given:

@@ -17,10 +17,9 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.hash.DefaultFileHasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
@@ -42,11 +41,11 @@ public class IncrementalCompilerFactory {
     private final IncrementalCompilerDecorator incrementalSupport;
     private final IncrementalTaskInputs inputs;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, FileSnapshotter snapshotter, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
+    public IncrementalCompilerFactory(FileOperations fileOperations, FileHasher snapshotter, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
                                       List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs) {
         this.inputs = inputs;
         //bunch of services that enable incremental java compilation.
-        Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
+        FileHasher hasher = new DefaultFileHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(snapshotter, analyzer, compileCaches.getJarSnapshotCache());
 

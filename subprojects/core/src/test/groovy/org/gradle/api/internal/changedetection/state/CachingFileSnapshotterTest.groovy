@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.hash.Hasher
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +29,7 @@ import spock.lang.Specification
 class CachingFileSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def target = Mock(Hasher)
+    def target = Mock(FileHasher)
     def cache = Mock(PersistentIndexedCache)
     def cacheAccess = Mock(TaskHistoryStore)
     def hash = Hashing.md5().hashString("hello", Charsets.UTF_8)
@@ -44,10 +44,10 @@ class CachingFileSnapshotterTest extends Specification {
 
     def hashesFileWhenHashNotCached() {
         when:
-        def result = hasher.snapshot(file)
+        def result = hasher.hash(file)
 
         then:
-        result.hash == hash
+        result == hash
 
         and:
         1 * cache.get(file.getAbsolutePath()) >> null
@@ -62,10 +62,10 @@ class CachingFileSnapshotterTest extends Specification {
 
     def hashesFileWhenLengthHasChanged() {
         when:
-        def result = hasher.snapshot(file)
+        def result = hasher.hash(file)
 
         then:
-        result.hash == hash
+        result == hash
 
         and:
         1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
@@ -80,10 +80,10 @@ class CachingFileSnapshotterTest extends Specification {
 
     def hashesFileWhenTimestampHasChanged() {
         when:
-        def result = hasher.snapshot(file)
+        def result = hasher.hash(file)
 
         then:
-        result.hash == hash
+        result == hash
 
         and:
         1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
@@ -98,10 +98,10 @@ class CachingFileSnapshotterTest extends Specification {
 
     def doesNotHashFileWhenTimestampAndLengthHaveNotChanged() {
         when:
-        def result = hasher.snapshot(file)
+        def result = hasher.hash(file)
 
         then:
-        result.hash == hash
+        result == hash
 
         and:
         1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
@@ -112,10 +112,10 @@ class CachingFileSnapshotterTest extends Specification {
         def resource = Mock(TextResource)
 
         when:
-        def result = hasher.snapshot(resource)
+        def result = hasher.hash(resource)
 
         then:
-        result.hash == hash
+        result == hash
 
         and:
         1 * resource.file >> file
@@ -127,14 +127,14 @@ class CachingFileSnapshotterTest extends Specification {
         def resource = Mock(TextResource)
 
         when:
-        def result = hasher.snapshot(resource)
+        def result = hasher.hash(resource)
 
         then:
-        result.hash == hash
+        result == hash
 
         and:
         1 * resource.file >> null
-        1 * resource.text >> "hello"
+        1 * target.hash(resource) >> hash
         0 * _._
     }
 }

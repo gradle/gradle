@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -45,15 +46,15 @@ import static org.gradle.api.internal.changedetection.state.FileDetails.FileType
  * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #beforeTaskOutputsGenerated()}.</p>
  */
 public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskOutputsGenerationListener {
-    private final FileSnapshotter snapshotter;
+    private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     // Map from interned absolute path for a file to known details for the file. Currently used only for root files, not those nested in a directory
     private final Map<String, DefaultFileDetails> rootFiles = new ConcurrentHashMap<String, DefaultFileDetails>();
 
-    public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this.snapshotter = snapshotter;
+    public AbstractFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -93,7 +94,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                         snapshot = DirSnapshot.getInstance();
                         break;
                     case RegularFile:
-                        snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(), fileDetails.details.getLastModified());
+                        snapshot = new FileHashSnapshot(hasher.hash(fileDetails.details), fileDetails.details.getLastModified());
                         break;
                     default:
                         throw new AssertionError();
