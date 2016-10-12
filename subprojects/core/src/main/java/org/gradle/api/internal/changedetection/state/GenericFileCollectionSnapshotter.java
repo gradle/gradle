@@ -16,5 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+/**
+ * Responsible for calculating a {@link FileCollectionSnapshot} for a generic {@link FileCollection}.
+ */
 public interface GenericFileCollectionSnapshotter extends FileCollectionSnapshotter {
 }
