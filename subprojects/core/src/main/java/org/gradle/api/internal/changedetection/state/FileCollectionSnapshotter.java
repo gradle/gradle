@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 public interface FileCollectionSnapshotter {
@@ -34,9 +33,4 @@ public interface FileCollectionSnapshotter {
      * @return The snapshot.
      */
     FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy);
-
-    /**
-     * Creates a snapshot of the contents of the given property.
-     */
-    FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec);
 }

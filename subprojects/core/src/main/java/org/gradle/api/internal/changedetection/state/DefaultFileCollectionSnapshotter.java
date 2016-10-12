@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -106,11 +105,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             }
         }
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
-    }
-
-    @Override
-    public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
-        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy());
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor, FileVisitor {

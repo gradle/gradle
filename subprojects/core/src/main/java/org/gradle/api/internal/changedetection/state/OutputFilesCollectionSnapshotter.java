@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.util.HashMap;
@@ -41,11 +40,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         return snapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy);
-    }
-
-    @Override
-    public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
-        return snapshotter.snapshot(propertySpec);
     }
 
     /**
