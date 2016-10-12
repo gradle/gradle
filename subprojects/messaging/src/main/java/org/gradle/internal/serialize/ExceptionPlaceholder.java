@@ -16,13 +16,15 @@
 
 package org.gradle.internal.serialize;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
@@ -37,7 +39,7 @@ class ExceptionPlaceholder implements Serializable {
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(final Throwable throwable) throws IOException {
+    public ExceptionPlaceholder(final Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) throws IOException {
         type = throwable.getClass().getName();
 
         try {
@@ -71,11 +73,12 @@ class ExceptionPlaceholder implements Serializable {
         final Throwable causeFinal = causeTmp;
 
         StreamByteBuffer buffer = new StreamByteBuffer();
-        ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(buffer.getOutputStream()) {
+        ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.transform(buffer.getOutputStream());
+        oos.setObjectTransformer(new Transformer<Object, Object>() {
             boolean seenFirst;
 
             @Override
-            protected Object replaceObject(Object obj) throws IOException {
+            public Object transform(Object obj) {
                 if (!seenFirst) {
                     seenFirst = true;
                     return obj;
@@ -84,9 +87,9 @@ class ExceptionPlaceholder implements Serializable {
                 if (obj == causeFinal) {
                     return new CausePlaceholder();
                 }
-                return super.replaceObject(obj);
+                return obj;
             }
-        };
+        });
 
         try {
             oos.writeObject(throwable);
@@ -98,24 +101,26 @@ class ExceptionPlaceholder implements Serializable {
         }
 
         if (causeFinal != null) {
-            cause = new ExceptionPlaceholder(causeFinal);
+            cause = new ExceptionPlaceholder(causeFinal, objectOutputStreamCreator);
         }
     }
 
-    public Throwable read(ClassLoader classLoader) throws IOException {
-        final Throwable causeThrowable = getCause(classLoader);
+    public Throwable read(ClassLoader classLoader, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        final Throwable causeThrowable = getCause(classLoader, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
-            final ExceptionReplacingObjectInputStream ois = new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(serializedException), classLoader) {
+            final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.transform(new ByteArrayInputStream(serializedException));
+            ois.setObjectTransformer(new Transformer<Object, Object>() {
                 @Override
-                protected Object resolveObject(Object obj) throws IOException {
+                public Object transform(Object obj) {
                     if (obj instanceof CausePlaceholder) {
                         return causeThrowable;
                     }
-                    return super.resolveObject(obj);
+                    return obj;
                 }
-            };
+            });
+
             try {
                 return (Throwable) ois.readObject();
             } catch (ClassNotFoundException ignored) {
@@ -145,7 +150,7 @@ class ExceptionPlaceholder implements Serializable {
         return placeholder;
     }
 
-    private Throwable getCause(ClassLoader classLoader) throws IOException {
-        return cause != null ? cause.read(classLoader) : null;
+    private Throwable getCause(ClassLoader classLoader, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        return cause != null ? cause.read(classLoader, objectInputStreamCreator) : null;
     }
 }

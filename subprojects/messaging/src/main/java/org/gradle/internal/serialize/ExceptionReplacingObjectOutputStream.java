@@ -16,21 +16,64 @@
 
 package org.gradle.internal.serialize;
 
+import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
+
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
+    private Transformer<Object, Object> objectTransformer = new Transformer<Object, Object>() {
+        @Override
+        public Object transform(Object obj) {
+            try {
+                return doReplaceObject(obj);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    };
+
     public ExceptionReplacingObjectOutputStream(OutputStream outputSteam) throws IOException {
         super(outputSteam);
         enableReplaceObject(true);
     }
 
+    public final Transformer<ExceptionReplacingObjectOutputStream, OutputStream> getObjectOutputStreamCreator() {
+        return new Transformer<ExceptionReplacingObjectOutputStream, OutputStream>() {
+            @Override
+            public ExceptionReplacingObjectOutputStream transform(OutputStream outputStream) {
+                try {
+                    return createNewInstance(outputStream);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        };
+    }
+
+    protected ExceptionReplacingObjectOutputStream createNewInstance(OutputStream outputStream) throws IOException {
+        return new ExceptionReplacingObjectOutputStream(outputStream);
+    }
+
     @Override
-    protected Object replaceObject(Object obj) throws IOException {
+    protected final Object replaceObject(Object obj) throws IOException {
+        return getObjectTransformer().transform(obj);
+    }
+
+    protected Object doReplaceObject(Object obj) throws IOException {
         if (obj instanceof Throwable) {
-            return new TopLevelExceptionPlaceholder((Throwable) obj);
+            return new TopLevelExceptionPlaceholder((Throwable) obj, getObjectOutputStreamCreator());
         }
         return obj;
+    }
+
+    public Transformer<Object, Object> getObjectTransformer() {
+        return objectTransformer;
+    }
+
+    public void setObjectTransformer(Transformer<Object, Object> objectTransformer) {
+        this.objectTransformer = objectTransformer;
     }
 }

@@ -16,10 +16,13 @@
 
 package org.gradle.internal.serialize;
 
+import org.gradle.api.Transformer;
+
 import java.io.IOException;
+import java.io.OutputStream;
 
 class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {
-    TopLevelExceptionPlaceholder(Throwable throwable) throws IOException {
-        super(throwable);
+    public TopLevelExceptionPlaceholder(Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) throws IOException {
+        super(throwable, objectOutputStreamCreator);
     }
 }

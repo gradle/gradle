@@ -16,22 +16,64 @@
 
 package org.gradle.internal.serialize;
 
+import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputStream {
+    private Transformer<Object, Object> objectTransformer = new Transformer<Object, Object>() {
+        @Override
+        public Object transform(Object o) {
+            try {
+                return doResolveObject(o);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    };
+
     public ExceptionReplacingObjectInputStream(InputStream inputSteam, ClassLoader classLoader) throws IOException {
         super(inputSteam, classLoader);
         enableResolveObject(true);
     }
 
+    public final Transformer<ExceptionReplacingObjectInputStream, InputStream> getObjectInputStreamCreator() {
+        return new Transformer<ExceptionReplacingObjectInputStream, InputStream>() {
+            @Override
+            public ExceptionReplacingObjectInputStream transform(InputStream inputStream) {
+                try {
+                    return createNewInstance(inputStream);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        };
+    }
+
+    protected ExceptionReplacingObjectInputStream createNewInstance(InputStream inputStream) throws IOException {
+        return new ExceptionReplacingObjectInputStream(inputStream, getClassLoader());
+    }
+
     @Override
-    protected Object resolveObject(Object obj) throws IOException {
+    protected final Object resolveObject(Object obj) throws IOException {
+        return getObjectTransformer().transform(obj);
+    }
+
+    protected Object doResolveObject(Object obj) throws IOException {
         if (obj instanceof TopLevelExceptionPlaceholder) {
-            return ((ExceptionPlaceholder) obj).read(getClassLoader());
+            return ((ExceptionPlaceholder) obj).read(getClassLoader(), getObjectInputStreamCreator());
         }
         return obj;
+    }
+
+    public Transformer<Object, Object> getObjectTransformer() {
+        return objectTransformer;
+    }
+
+    public void setObjectTransformer(Transformer<Object, Object> objectTransformer) {
+        this.objectTransformer = objectTransformer;
     }
 }
