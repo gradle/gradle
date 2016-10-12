@@ -38,10 +38,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         snapshotter.registerSerializers(registry);
     }
 
-    public FileCollectionSnapshot emptySnapshot() {
-        return snapshotter.emptySnapshot();
-    }
-
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         return snapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy);

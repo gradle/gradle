@@ -26,13 +26,6 @@ public interface FileCollectionSnapshotter {
     void registerSerializers(SerializerRegistry registry);
 
     /**
-     * Creates an empty snapshot, which changes can be later merged into.
-     *
-     * @return The snapshot.
-     */
-    FileCollectionSnapshot emptySnapshot();
-
-    /**
      * Creates a snapshot of the contents of the given collection.
      *
      * @param files The files to snapshot.

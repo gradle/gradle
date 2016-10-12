@@ -296,7 +296,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.emptySnapshot()
+        FileCollectionSnapshot snapshot = FileCollectionSnapshot.EMPTY
         FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
         changes(newSnapshot, snapshot, listener)
 

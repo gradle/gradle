@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
@@ -40,7 +39,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.api.internal.changedetection.state.FileDetails.FileType.*;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -48,7 +46,6 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
  * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #beforeTaskOutputsGenerated()}.</p>
  */
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskOutputsGenerationListener {
-    private static final DefaultFileCollectionSnapshot EMPTY_SNAPSHOT = new DefaultFileCollectionSnapshot(ImmutableMap.<String, NormalizedFileSnapshot>of(), UNORDERED, true);
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -69,11 +66,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         rootFiles.clear();
     }
 
-    @Override
-    public FileCollectionSnapshot emptySnapshot() {
-        return EMPTY_SNAPSHOT;
-    }
-
     public void registerSerializers(SerializerRegistry registry) {
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
@@ -86,7 +78,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         fileCollection.visitRootElements(visitor);
 
         if (fileTreeElements.isEmpty()) {
-            return emptySnapshot();
+            return FileCollectionSnapshot.EMPTY;
         }
 
         Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();

@@ -64,7 +64,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
                 }
             }
         }
-        return getSnapshotter().emptySnapshot();
+        return FileCollectionSnapshot.EMPTY;
     }
 
     @Override
