@@ -107,7 +107,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
     }
 
-    private class FileCollectionVisitorImpl implements FileCollectionVisitor, FileVisitor {
+    private class FileCollectionVisitorImpl implements FileCollectionVisitor {
         private final List<DefaultFileDetails> fileTreeElements;
 
         FileCollectionVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
@@ -149,18 +149,34 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
             }
         }
 
-        private String getPath(File file) {
-            return stringInterner.intern(file.getAbsolutePath());
-        }
-
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            fileTree.visitTreeOrBackingFile(this);
+            AbstractFileCollectionSnapshotter.this.visitTreeOrBackingFile(fileTree, fileTreeElements);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            directoryTree.visit(this);
+            AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, fileTreeElements);
+        }
+    }
+
+    private String getPath(File file) {
+        return stringInterner.intern(file.getAbsolutePath());
+    }
+
+    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<DefaultFileDetails> fileTreeElements) {
+        fileTree.visitTreeOrBackingFile(new FileVisitorImpl(fileTreeElements));
+    }
+
+    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<DefaultFileDetails> fileTreeElements) {
+        directoryTree.visit(new FileVisitorImpl(fileTreeElements));
+    }
+
+    private class FileVisitorImpl implements FileVisitor {
+        private final List<DefaultFileDetails> fileTreeElements;
+
+        public FileVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
+            this.fileTreeElements = fileTreeElements;
         }
 
         @Override
