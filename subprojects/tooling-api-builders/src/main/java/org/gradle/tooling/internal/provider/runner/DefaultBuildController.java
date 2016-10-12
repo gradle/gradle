@@ -53,7 +53,7 @@ class DefaultBuildController implements InternalBuildController {
             project = gradle.getDefaultProject();
         } else if (target instanceof GradleProjectIdentity) {
             GradleProjectIdentity gradleProject = (GradleProjectIdentity) target;
-            project = gradle.getRootProject().project(gradleProject.getPath());
+            project = gradle.getRootProject().project(gradleProject.getProjectPath());
         } else {
             throw new IllegalArgumentException("Don't know how to build models for " + target);
         }

@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ViewBuilder;
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMixin;
@@ -25,9 +24,9 @@ import org.gradle.tooling.internal.consumer.converters.IdeaModuleDependencyTarge
 import org.gradle.tooling.internal.consumer.converters.IdeaProjectJavaLanguageSettingsMixin;
 import org.gradle.tooling.internal.consumer.converters.TaskDisplayNameMixin;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -37,11 +36,11 @@ import java.io.Serializable;
 public class HasCompatibilityMapping implements Serializable {
 
     public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, ConsumerOperationParameters parameters) {
-        ProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(parameters.getBuildIdentifier(), ":");
+        DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(parameters.getProjectDir(), ":");
         return applyCompatibilityMapping(viewBuilder, projectIdentifier);
     }
 
-    public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, ProjectIdentifier projectIdentifier) {
+    public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, DefaultProjectIdentifier projectIdentifier) {
         viewBuilder.mixInTo(GradleProject.class, new GradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
         viewBuilder.mixInTo(BasicGradleProject.class, new BasicGradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
         FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(projectIdentifier);

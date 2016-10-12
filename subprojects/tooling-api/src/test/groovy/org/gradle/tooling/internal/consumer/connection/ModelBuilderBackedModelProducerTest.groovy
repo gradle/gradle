@@ -59,7 +59,7 @@ class ModelBuilderBackedModelProducerTest extends Specification {
         ModelIdentifier someModelIdentifier = Mock(ModelIdentifier)
         1 * mapping.getModelIdentifierFromModelType(SomeModel.class) >> someModelIdentifier
         BuildResult buildResult = Mock(BuildResult)
-        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
+        ConsumerOperationParameters operationParameters = Stub(ConsumerOperationParameters)
         ViewBuilder<SomeModel> viewBuilder = Mock(ViewBuilder)
 
         when:

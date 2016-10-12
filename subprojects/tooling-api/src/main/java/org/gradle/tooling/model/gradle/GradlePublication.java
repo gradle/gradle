@@ -18,6 +18,8 @@ package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.GradleModuleVersion;
+import org.gradle.tooling.model.ProjectIdentifier;
+import org.gradle.tooling.model.ProjectModel;
 
 /**
  * Represents some publication produced by a Gradle project, typically to a Maven or Ivy repository.
@@ -25,7 +27,16 @@ import org.gradle.tooling.model.GradleModuleVersion;
  * @since 1.12
  */
 @Incubating
-public interface GradlePublication {
+public interface GradlePublication extends ProjectModel {
+
+    /**
+     * Returns the identifier for the Gradle project that this publication originates from.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    ProjectIdentifier getProjectIdentifier();
+
     /**
      * Returns the unique identifier of the publication.
      *

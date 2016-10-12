@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.converters
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.ProjectIdentifier
 import spock.lang.Specification
 
 class GradleBuildConverterTest extends Specification {
@@ -82,7 +83,9 @@ class GradleBuildConverterTest extends Specification {
 
     GradleProject gradleProject(projectName = "rootProject", path = ":") {
         GradleProject gradleProject = Mock(GradleProject)
-        _ * gradleProject.path >> path
+        _ * gradleProject.projectIdentifier >> Stub(ProjectIdentifier) {
+            getProjectPath() >> path
+        }
         _ * gradleProject.name >> projectName
         gradleProject
     }

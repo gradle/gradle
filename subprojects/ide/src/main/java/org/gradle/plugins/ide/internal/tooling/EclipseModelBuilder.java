@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
@@ -68,18 +67,16 @@ import java.util.Set;
 
 public class EclipseModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
-    private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
-    private final List<DefaultEclipseProject> eclipseProjects = Lists.newArrayList();
+    private List<DefaultEclipseProject> eclipseProjects;
     private TasksFactory tasksFactory;
     private DefaultGradleProject<?> rootGradleProject;
     private Project currentProject;
 
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
         this.gradleProjectBuilder = gradleProjectBuilder;
-        compositeProjectMapper = new CompositeBuildIdeProjectResolver(services);
     }
 
     @Override
@@ -94,6 +91,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         tasksFactory = new TasksFactory(includeTasks);
         projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
         currentProject = project;
+        eclipseProjects = Lists.newArrayList();
         Project root = project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
@@ -247,7 +245,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
             @Override
             public boolean isSatisfiedBy(DefaultEclipseProject element) {
-                return element.getPath().equals(project.getPath());
+                return element.getGradleProject().getPath().equals(project.getPath());
             }
         });
     }

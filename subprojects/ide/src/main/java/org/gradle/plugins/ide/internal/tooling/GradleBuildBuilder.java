@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -61,7 +62,8 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
     }
 
     private BasicGradleProject convert(Project project, Map<Project, BasicGradleProject> convertedProjects) {
-        BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setPath(project.getPath());
+        DefaultProjectIdentifier id = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
+        BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setProjectIdentifier(id);
         converted.setProjectDirectory(project.getProjectDir());
         if (project.getParent() != null) {
             converted.setParent(convertedProjects.get(project.getParent()));

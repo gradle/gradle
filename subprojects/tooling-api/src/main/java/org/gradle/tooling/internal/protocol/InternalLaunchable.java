@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
+
 /**
  * A marker interface for launchables.
  *
@@ -25,5 +27,5 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 1.12
  */
-public interface InternalLaunchable extends InternalProtocolInterface {
+public interface InternalLaunchable extends InternalProtocolInterface, GradleProjectIdentity {
 }

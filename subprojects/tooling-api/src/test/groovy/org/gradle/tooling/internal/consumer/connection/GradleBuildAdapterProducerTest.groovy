@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
@@ -73,7 +74,7 @@ class GradleBuildAdapterProducerTest extends Specification {
         GradleProject gradleProject = Mock(GradleProject)
         1 * gradleProject.children >> ([] as DomainObjectSet<GradleProject>)
         1 * gradleProject.name >> "SomeProject"
-        1 * gradleProject.path >> ":"
+        1 * gradleProject.getProjectIdentifier() >> Stub(ProjectIdentifier)
         gradleProject
     }
 

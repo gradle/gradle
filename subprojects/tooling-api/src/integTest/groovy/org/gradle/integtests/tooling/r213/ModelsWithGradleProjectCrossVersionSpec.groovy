@@ -18,12 +18,11 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
@@ -33,7 +32,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion('>=2.13')
+@ToolingApiVersion('>=3.3')
 class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
     static buildScopedModels = [GradleBuild, IdeaProject, BasicIdeaProject]
@@ -50,7 +49,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         def gradleBuild = getModelWithProjectConnection(rootMulti, GradleBuild)
 
         then:
-        gradleBuild.buildIdentifier == new DefaultBuildIdentifier(rootMulti)
+        gradleBuild.buildIdentifier.rootDir == rootMulti
     }
 
     def "ProjectConnection provides all GradleProjects for root of single project build"() {
@@ -79,6 +78,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         modelType << buildScopedModels
     }
 
+    @TargetGradleVersion(">=3.3")
     def "ProjectConnection provides all GradleProjects for subproject of multi-project build"() {
         when:
         def rootDir = rootMulti.file("x")
@@ -86,9 +86,9 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         gradleProjects.size() == 3
-        hasParentProject(gradleProjects, rootDir, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, rootDir, ':x', 'x', ':')
-        hasChildProject(gradleProjects, rootDir, ':y', 'y', ':')
+        hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')
+        hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
         modelType << buildScopedModels
@@ -116,6 +116,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         modelType << projectScopedModels
     }
 
+    @TargetGradleVersion(">=3.3")
     def "ProjectConnection provides GradleProject for subproject of multi-project build"() {
         given:
         def rootDir = rootMulti.file("x")
@@ -124,13 +125,13 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         GradleProject project = getGradleProjectWithProjectConnection(rootDir, GradleProject)
 
         then: "Get the GradleProject model for the root project"
-        assertProject(project, rootDir, ':', 'B', null, [':x', ':y'])
+        assertProject(project, rootMulti, ':', 'B', null, [':x', ':y'])
 
         when: "EclipseProject is requested"
         GradleProject projectFromEclipseProject = getGradleProjectWithProjectConnection(rootDir, EclipseProject)
 
         then: "Has a GradleProject model for the subproject"
-        assertProject(projectFromEclipseProject, rootDir, ':x', 'x', ':', [])
+        assertProject(projectFromEclipseProject, rootMulti, ':x', 'x', ':', [])
     }
 
     def "ProjectConnection provides GradleProject for subproject of multi-project build with --no-search-upwards"() {
@@ -173,7 +174,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         }
         // Order of children is not guaranteed for Gradle < 2.0
         assert project.children*.path as Set == childPaths as Set
-        assert project.projectIdentifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
+        assert project.projectIdentifier.projectPath == path
+        assert project.projectIdentifier.buildIdentifier.rootDir == rootDir
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {

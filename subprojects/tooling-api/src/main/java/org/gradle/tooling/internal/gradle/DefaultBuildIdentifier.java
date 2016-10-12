@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.connection;
-
-import org.gradle.tooling.model.BuildIdentifier;
+package org.gradle.tooling.internal.gradle;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultBuildIdentifier implements BuildIdentifier, Serializable {
+public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity {
     private final File rootDir;
 
     public DefaultBuildIdentifier(File rootDir) {
@@ -37,23 +35,4 @@ public class DefaultBuildIdentifier implements BuildIdentifier, Serializable {
         return "build=" + rootDir.getPath();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultBuildIdentifier that = (DefaultBuildIdentifier) o;
-
-        return rootDir.equals(that.rootDir);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return rootDir.hashCode();
-    }
 }

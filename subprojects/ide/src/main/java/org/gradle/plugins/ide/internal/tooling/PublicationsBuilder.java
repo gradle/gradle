@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradlePublication;
 import org.gradle.tooling.internal.gradle.DefaultProjectPublications;
@@ -42,16 +43,19 @@ class PublicationsBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return new DefaultProjectPublications().setPublications(publications(project.getPath()));
+        DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
+        return new DefaultProjectPublications().setPublications(publications(projectIdentifier)).setProjectIdentifier(projectIdentifier);
     }
 
-    private List<DefaultGradlePublication> publications(String projectPath) {
+    private List<DefaultGradlePublication> publications(DefaultProjectIdentifier projectIdentifier) {
         List<DefaultGradlePublication> gradlePublications = Lists.newArrayList();
 
-        Set<ProjectPublication> projectPublications = publicationRegistry.getPublications(projectPath);
+        Set<ProjectPublication> projectPublications = publicationRegistry.getPublications(projectIdentifier.getProjectPath());
         for (ProjectPublication projectPublication : projectPublications) {
             gradlePublications.add(new DefaultGradlePublication()
-                    .setId(new DefaultGradleModuleVersion(projectPublication.getId())));
+                    .setId(new DefaultGradleModuleVersion(projectPublication.getId()))
+                    .setProjectIdentifier(projectIdentifier)
+            );
         }
 
         return gradlePublications;
