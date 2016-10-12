@@ -81,6 +81,14 @@ Second, the *build and assemble dependents* tasks allow you to assemble or build
 
 See the User guide section on “[Assembling or building dependents](userguide/native_binaries.html#sec:dependents)“ in the “[Building native software](userguide/native_binaries.html)“ chapter for more information.
 
+### Multi-project builds with Kotlin scripting
+
+This release ships with Gradle Script Kotlin v0.3.3.
+
+v0.3.3 improves support for multi-project builds of Kotlin based projects and fixes Kotlin build script compilation on Windows.
+
+See the [Gradle Script Kotlin v0.3.3 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.3) for the details.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
