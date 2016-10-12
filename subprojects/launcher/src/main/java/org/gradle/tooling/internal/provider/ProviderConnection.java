@@ -25,7 +25,6 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -139,7 +138,7 @@ public class ProviderConnection {
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()), cancellationToken, progressListenerConfiguration.buildEventConsumer);
             BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters, sharedServices);
             if (result.failure != null) {
-                throw UncheckedException.throwAsUncheckedException((Throwable) payloadSerializer.deserialize(result.failure));
+                throw (RuntimeException) payloadSerializer.deserialize(result.failure);
             }
             return payloadSerializer.deserialize(result.result);
         } finally {

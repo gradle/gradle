@@ -63,15 +63,6 @@ test {
 }
 ```
 
-### Increased timeout for cache locking
-
-Gradle implements cache locking to ensure that multiple, concurrently executed processes do not corrupt
-files within the cache when writing to it. In previous versions of Gradle, the timeout for cache locking
- was set to 60 seconds. Especially in environments with high load e.g. on CI servers, a Gradle process
- can exceed the timeout and fail the build. With this version of Gradle, the timeout has been increased
- to 10 minutes. Please report an issue on the Gradle forum in case your build should ever exceed the
- changed timeout threshold!
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

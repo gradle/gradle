@@ -178,6 +178,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             unit.compile();
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
             System.err.println(e.getMessage());
+            // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
+            System.err.flush();
             throw new CompilationFailedException();
         } finally {
             // Remove compile and AST types from the Groovy loader
