@@ -31,6 +31,10 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
+    def setup() {
+        toolingApi.requireIsolatedDaemons()
+    }
+
     def cleanup() {
         reset()
     }
@@ -47,9 +51,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.2")
     def "cleans up idle daemons when tooling API session is shutdown"() {
-        given:
-        toolingApi.requireIsolatedDaemons()
-
         withConnection { connection ->
             connection.getModel(GradleBuild)
         }
@@ -68,8 +69,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
 task slow { doLast { new URL("${server.uri}").text } }
 """
-
-        toolingApi.requireIsolatedDaemons()
         withConnection { connection ->
             connection.getModel(GradleBuild)
         }
@@ -96,8 +95,6 @@ task slow { doLast { new URL("${server.uri}").text } }
     @TargetGradleVersion(">=2.2")
     def "shutdown ignores daemons that are no longer running"() {
         given:
-        toolingApi.requireIsolatedDaemons()
-
         withConnection { connection ->
             connection.getModel(GradleBuild)
         }
@@ -114,7 +111,6 @@ task slow { doLast { new URL("${server.uri}").text } }
     @TargetGradleVersion(">=2.2")
     def "shutdown ignores daemons that were not started by client"() {
         given:
-        toolingApi.requireIsolatedDaemons()
         daemonExecutor().run()
         toolingApi.daemons.daemon.assertIdle()
 

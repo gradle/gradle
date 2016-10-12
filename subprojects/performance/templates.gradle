@@ -156,6 +156,10 @@ task bigNewJava(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
+[smallNewJava, mediumNewJava, bigNewJava].each { task ->
+    task.buildSrcTemplate = 'new-java-buildsrc'
+}
+
 task smallVariantsNewModel(type: JvmProjectGeneratorTask) {
     projects = 1
     subProjectTemplates = ['variants-new-model']
@@ -364,6 +368,10 @@ task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
     linesOfCodePerSourceFile = 20
     subProjectTemplates = ['java-source', 'old-java-plugin']
     testDependencies = files()
+}
+
+[smallOldJava, mediumOldJava, bigOldJava, bigOldJavaMoreSource].each { task ->
+    task.buildSrcTemplate = 'old-java-buildsrc'
 }
 
 task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {

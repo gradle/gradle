@@ -43,9 +43,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.initialization.LegacyTypesUtil.CLASSES_TO_MIX_IN_GROOVY_OBJECT;
-import static org.gradle.initialization.LegacyTypesUtil.SYNTHETIC_CLASSES;
-
 /**
  * A ClassLoader that takes care of mixing-in some methods and types into various classes, for binary compatibility with older Gradle versions.
  *
@@ -74,22 +71,25 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     private static final String META_CLASS_FIELD = "__meta_class__";
 
-    public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath) {
+    private LegacyTypesSupport legacyTypesSupport;
+
+    public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
         super(parent, classPath);
+        this.legacyTypesSupport = legacyTypesSupport;
     }
 
     @Nullable
     @Override
     protected byte[] generateMissingClass(String name) {
-        if (!SYNTHETIC_CLASSES.contains(name)) {
+        if (!legacyTypesSupport.getSyntheticClasses().contains(name)) {
             return null;
         }
-        return LegacyTypesUtil.generateEmptyClass(name);
+        return legacyTypesSupport.generateSyntheticClass(name);
     }
 
     @Override
     protected boolean shouldTransform(String className) {
-        return CLASSES_TO_MIX_IN_GROOVY_OBJECT.contains(className) || SYNTHETIC_CLASSES.contains(className);
+        return legacyTypesSupport.getClassesToMixInGroovyObject().contains(className) || legacyTypesSupport.getSyntheticClasses().contains(className);
     }
 
     @Override

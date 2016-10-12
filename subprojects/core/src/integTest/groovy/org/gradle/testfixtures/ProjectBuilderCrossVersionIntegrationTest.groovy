@@ -16,33 +16,35 @@
 
 package org.gradle.testfixtures
 
-import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER;
+import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
 @Issue("GRADLE-3558")
-@Requires(JDK8_OR_EARLIER)
-class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+@TargetVersions(['2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7'])
+@Requires(JDK8_OR_EARLIER) //Versions <2.10 fail to compile the plugin with Java 9 (Could not determine java version from '9-ea')
+class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    public static final String HELLO_WORLD_PLUGIN_GRADLE_VERSION       = '2.7'
-    public static final String PROJECT_BUILDER_GRADLE_VERSION          = '3.2+' /* 3.0 and 3.1 will fail as they are affected by the issue tested */
-    public static final String PROJECT_BUILDER_GRADLE_VERSION_AFFECTED = '3.0'
 
-    def "can use plugin built with 2.x to execute a test on top of ProjectBuilder run with Gradle 3.2+ in a test"() {
-        given:
-        def repoDir = publishHelloWorldPluginWithOldGradleVersion()
-        TestFile applyPluginWithProjectBuilderDir = temporaryFolder.createDir('apply-plugin-with-project-builder')
+    public static final def PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED = ['3.0', '3.1']
 
+    private repoDir;
+
+    def setup() {
+        repoDir = new TestFile(testDirectory, 'repo')
+        publishHelloWorldPluginWithOldGradleVersion()
+    }
+
+    def "can apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.2+"() {
         when:
-        applyPluginWithProjectBuilderDir.file('src/test/java/org/gradle/consumer/PluginTest.java') << """
+        file('src/test/java/org/gradle/consumer/PluginTest.java') << """
             package org.gradle.consumer;
 
             import org.gradle.api.Project;
@@ -67,7 +69,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
             }
         """
 
-        applyPluginWithProjectBuilderDir.file('build.gradle') << """
+        buildFile << """
             apply plugin: 'groovy'
 
             group = 'org.gradle'
@@ -86,16 +88,12 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
         """
 
         then:
-        createGradleExecutor(PROJECT_BUILDER_GRADLE_VERSION, applyPluginWithProjectBuilderDir, 'test').run()
+        run('test')
     }
 
-    def "can use plugin built with 2.x to execute a test on top of ProjectBuilder run with Gradle 3.2+ in a Java application"() {
-        given:
-        def repoDir = publishHelloWorldPluginWithOldGradleVersion()
-        TestFile applyPluginWithProjectBuilderDir = temporaryFolder.createDir('apply-plugin-with-project-builder')
-
+    def "can apply 2.x plugin using ProjectBuilder in a Java application running with Gradle 3.2+"() {
         when:
-        applyPluginWithProjectBuilderDir.file('src/main/java/org/gradle/consumer/App.java') << """
+        file('src/main/java/org/gradle/consumer/App.java') << """
             package org.gradle.consumer;
 
             import org.gradle.api.Project;
@@ -110,7 +108,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
             }
         """
 
-        applyPluginWithProjectBuilderDir.file('build.gradle') << """
+        buildFile << """
             apply plugin: 'groovy'
 
             group = 'org.gradle'
@@ -132,20 +130,12 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
         """
 
         then:
-        createGradleExecutor(PROJECT_BUILDER_GRADLE_VERSION, applyPluginWithProjectBuilderDir, 'runApp').run()
+        run('runApp')
     }
 
-    /**
-     * This test demonstrates a workaround for the problem in Gradle 3.0 or 3.1 by adding the functionality that has now
-     * moved to {@link org.gradle.initialization.LegacyTypesUtil} directly to the test.
-     */
-    def "can use plugin built with 2.x to execute a test on top of ProjectBuilder run with Gradle 3.0 using added LegacyTypesUtil methods"() {
-        given:
-        def repoDir = publishHelloWorldPluginWithOldGradleVersion()
-        TestFile applyPluginWithProjectBuilderDir = temporaryFolder.createDir('apply-plugin-with-project-builder')
-
+    def "can not apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.0 or 3.1"() {
         when:
-        applyPluginWithProjectBuilderDir.file('src/test/java/org/gradle/consumer/PluginTest.java') << """
+        file('src/test/java/org/gradle/consumer/PluginTest.java') << """
             package org.gradle.consumer;
 
             import org.gradle.api.Project;
@@ -153,26 +143,13 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
             import org.gradle.testfixtures.ProjectBuilder;
             import org.junit.Before;
             import org.junit.Test;
-
             import org.gradle.hello.HelloWorldPlugin;
-
-            import org.gradle.api.GradleException;
-            import org.gradle.initialization.MixInLegacyTypesClassLoader;
-            import org.gradle.internal.classpath.ClassPath;
-
-            import java.io.BufferedReader;
-            import java.io.IOException;
-            import java.io.InputStreamReader;
-            import java.net.URL;
-            import java.util.HashSet;
-            import java.util.Set;
 
             public class PluginTest {
                 private Project project;
 
                 @Before
                 public void setup() {
-                    legacyClassPathFix();
                     project = ProjectBuilder.builder().build();
                 }
 
@@ -180,39 +157,10 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
                 public void canApplyPlugin() {
                     project.getPlugins().apply(HelloWorldPlugin.class);
                 }
-
-                private void legacyClassPathFix() {
-                    ClassLoader systemClassLoader = getClass().getClassLoader();
-                    MixInLegacyTypesClassLoader legacyClassLoader = new MixInLegacyTypesClassLoader(null, ClassPath.EMPTY);
-                    try {
-                        java.lang.reflect.Method defineClassMethod =
-                            ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-                        defineClassMethod.setAccessible(true);
-
-                        java.lang.reflect.Method generateMissingClassMethod =
-                            MixInLegacyTypesClassLoader.class.getDeclaredMethod("generateMissingClass", String.class);
-                        generateMissingClassMethod.setAccessible(true);
-
-                        java.lang.reflect.Field syntheticClassesField =
-                            MixInLegacyTypesClassLoader.class.getDeclaredField("syntheticClasses");
-                        syntheticClassesField.setAccessible(true);
-
-                        for (String name : (Set<String>) syntheticClassesField.get(legacyClassLoader)) {
-                            byte[] bytes = (byte[]) generateMissingClassMethod.invoke(legacyClassLoader, name);
-                            defineClassMethod.invoke(systemClassLoader, name, bytes, 0, bytes.length);
-                        }
-
-                        defineClassMethod.setAccessible(false);
-                        generateMissingClassMethod.setAccessible(false);
-                        syntheticClassesField.setAccessible(false);
-                    } catch (Exception e) {
-                        throw new GradleException("Error in legacy class path fix", e);
-                    }
-                }
             }
         """
 
-        applyPluginWithProjectBuilderDir.file('build.gradle') << """
+        file('build.gradle') << """
             apply plugin: 'groovy'
 
             group = 'org.gradle'
@@ -231,12 +179,106 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
         """
 
         then:
-        createGradleExecutor(PROJECT_BUILDER_GRADLE_VERSION_AFFECTED, applyPluginWithProjectBuilderDir, 'test').run()
+        PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED.each {
+            createGradleExecutor(it, file('.'), 'test').runWithFailure()
+        }
     }
 
-    private TestFile publishHelloWorldPluginWithOldGradleVersion() {
+    /**
+     * This test demonstrates a workaround for the problem in Gradle 3.0 or 3.1 by adding the functionality that has now
+     * moved to {@link org.gradle.initialization.DefaultLegacyTypesSupport} directly to the test.
+     */
+    def "can apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.0 or 3.1 using added LegacyTypesUtil methods"() {
+        when:
+        file('src/test/java/org/gradle/consumer/PluginTest.java') << """
+            package org.gradle.consumer;
+
+            import org.gradle.api.Project;
+            import org.gradle.api.Plugin;
+            import org.gradle.testfixtures.ProjectBuilder;
+            import org.junit.Before;
+            import org.junit.Test;
+
+            import org.gradle.hello.HelloWorldPlugin;
+
+            import org.gradle.initialization.MixInLegacyTypesClassLoader;
+            import org.gradle.internal.classpath.ClassPath;
+
+            import java.io.BufferedReader;
+            import java.io.IOException;
+            import java.io.InputStreamReader;
+            import java.net.URL;
+            import java.util.HashSet;
+            import java.util.Set;
+
+            public class PluginTest {
+                private Project project;
+
+                @Before
+                public void setup() throws Exception {
+                    legacyClassPathFix();
+                    project = ProjectBuilder.builder().build();
+                }
+
+                @Test
+                public void canApplyPlugin() {
+                    project.getPlugins().apply(HelloWorldPlugin.class);
+                }
+
+                private void legacyClassPathFix() throws Exception {
+                    ClassLoader systemClassLoader = getClass().getClassLoader();
+                    MixInLegacyTypesClassLoader legacyClassLoader = new MixInLegacyTypesClassLoader(null, ClassPath.EMPTY);
+
+                    java.lang.reflect.Method defineClassMethod =
+                        ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
+                    defineClassMethod.setAccessible(true);
+
+                    java.lang.reflect.Method generateMissingClassMethod =
+                        MixInLegacyTypesClassLoader.class.getDeclaredMethod("generateMissingClass", String.class);
+                    generateMissingClassMethod.setAccessible(true);
+
+                    java.lang.reflect.Field syntheticClassesField =
+                        MixInLegacyTypesClassLoader.class.getDeclaredField("syntheticClasses");
+                    syntheticClassesField.setAccessible(true);
+
+                    for (String name : (Set<String>) syntheticClassesField.get(legacyClassLoader)) {
+                        byte[] bytes = (byte[]) generateMissingClassMethod.invoke(legacyClassLoader, name);
+                        defineClassMethod.invoke(systemClassLoader, name, bytes, 0, bytes.length);
+                    }
+
+                    defineClassMethod.setAccessible(false);
+                    generateMissingClassMethod.setAccessible(false);
+                    syntheticClassesField.setAccessible(false);
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'groovy'
+
+            group = 'org.gradle'
+            version = '1.0'
+
+            dependencies {
+                compile gradleApi()
+                compile 'org.gradle:hello:1.0'
+                testCompile 'junit:junit:4.12'
+            }
+
+            repositories {
+                maven { url '${repoDir.toURI().toURL()}' }
+                mavenCentral()
+            }
+        """
+
+        then:
+        PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED.each {
+            createGradleExecutor(it, file('.'), 'test').run()
+        }
+    }
+
+    private void publishHelloWorldPluginWithOldGradleVersion() {
         TestFile helloWorldPluginDir = temporaryFolder.createDir('hello')
-        TestFile repoDir = new TestFile(testDirectory, 'repo')
 
         helloWorldPluginDir.file('src/main/groovy/org/gradle/hello/HelloWorldPlugin.groovy') << """
             package org.gradle.hello
@@ -290,16 +332,20 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
             }
         """
 
-        createGradleExecutor(HELLO_WORLD_PLUGIN_GRADLE_VERSION, helloWorldPluginDir, 'publish').run()
+        createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
+    }
 
-        return repoDir
+    private final List<GradleExecuter> executers = []
+
+    def cleanup() {
+        executers.each { it.cleanup() }
     }
 
     private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir, String... tasks) {
-        if (gradleVersion == '3.2+') {
-            new GradleContextualExecuter(new UnderDevelopmentGradleDistribution(), temporaryFolder)
-        } else {
-            version(buildContext.distribution(gradleVersion)).inDirectory(projectDir).withTasks(tasks)
-        }
+        def executer = buildContext.distribution(gradleVersion).executer(temporaryFolder)
+        executer.expectDeprecationWarning()
+        executer.inDirectory(testDirectory)
+        executers << executer
+        return executer.inDirectory(projectDir).withTasks(tasks)
     }
 }

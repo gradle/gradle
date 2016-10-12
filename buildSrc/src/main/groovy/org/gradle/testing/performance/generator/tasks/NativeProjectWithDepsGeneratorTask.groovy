@@ -137,7 +137,9 @@ class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
         // build file.
         generateBuildFile("", measurementPluginTemplate, [
                 measurementPluginJarFile: measurementPlugin.archivePath,
-                original: ""])
+                original: "",
+                beforePlugins: '',
+                afterPlugins: ''])
         generateSettings()
     }
 
