@@ -17,7 +17,6 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
-import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentStateCache
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
@@ -48,10 +47,8 @@ class IncrementalCompileProcessorTest extends Specification {
     List<TestFile> modified = []
 
     def setup() {
-        hasher.snapshot(_) >> { File file ->
-            return Stub(FileSnapshot) {
-                getHash() >> Files.asByteSource(file).hash(Hashing.sha1())
-            }
+        hasher.hash(_) >> { File file ->
+            Files.asByteSource(file).hash(Hashing.sha1())
         }
 
         // S1 - D1 \
