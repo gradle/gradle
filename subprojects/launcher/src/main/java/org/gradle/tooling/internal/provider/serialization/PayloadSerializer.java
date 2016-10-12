@@ -23,8 +23,6 @@ import org.gradle.internal.io.StreamByteBuffer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,30 +38,7 @@ public class PayloadSerializer {
         final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
             StreamByteBuffer buffer = new StreamByteBuffer();
-            final ObjectOutputStream objectStream = new ObjectOutputStream(buffer.getOutputStream()) {
-                @Override
-                protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
-                    Class<?> targetClass = desc.forClass();
-                    writeClass(targetClass);
-                }
-
-                @Override
-                protected void annotateProxyClass(Class<?> cl) throws IOException {
-                    writeInt(cl.getInterfaces().length);
-                    for (Class<?> type : cl.getInterfaces()) {
-                        writeClass(type);
-                    }
-                }
-
-                private void writeClass(Class<?> targetClass) throws IOException {
-                    writeClassLoader(targetClass);
-                    writeUTF(targetClass.getName());
-                }
-
-                private void writeClassLoader(Class<?> targetClass) throws IOException {
-                    writeShort(map.visitClass(targetClass));
-                }
-            };
+            final ObjectOutputStream objectStream = new PayloadSerializerObjectOutputStream(buffer.getOutputStream(), map);
 
             objectStream.writeObject(payload);
             objectStream.close();
@@ -81,42 +56,11 @@ public class PayloadSerializer {
         try {
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
             StreamByteBuffer buffer = StreamByteBuffer.of(payload.getSerializedModel());
-            final ObjectInputStream objectStream = new ObjectInputStream(buffer.getInputStream()) {
-                @Override
-                protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
-                    Class<?> aClass = readClass();
-                    ObjectStreamClass descriptor = ObjectStreamClass.lookupAny(aClass);
-                    if (descriptor == null) {
-                        throw new ClassNotFoundException(aClass.getName());
-                    }
-                    return descriptor;
-                }
-
-                @Override
-                protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-                    return desc.forClass();
-                }
-
-                private Class<?> readClass() throws IOException, ClassNotFoundException {
-                    short id = readShort();
-                    String className = readUTF();
-                    ClassLoaderDetails classLoader = classLoaderDetails.get(id);
-                    return map.resolveClass(classLoader, className);
-                }
-
-                @Override
-                protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
-                    int count = readInt();
-                    Class<?>[] actualInterfaces = new Class<?>[count];
-                    for (int i = 0; i < count; i++) {
-                        actualInterfaces[i] = readClass();
-                    }
-                    return Proxy.getProxyClass(actualInterfaces[0].getClassLoader(), actualInterfaces);
-                }
-            };
+            final ObjectInputStream objectStream = new PayloadSerializerObjectInputStream(buffer.getInputStream(), getClass().getClassLoader(), classLoaderDetails, map);
             return objectStream.readObject();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
 }

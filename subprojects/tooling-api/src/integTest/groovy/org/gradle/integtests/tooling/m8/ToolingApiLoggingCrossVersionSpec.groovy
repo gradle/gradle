@@ -23,6 +23,7 @@ import org.junit.Assume
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def setup() {
+        toolingApi.requireIsolatedDaemons()
         reset()
     }
 

@@ -37,6 +37,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
+        toolingApi.requireIsolatedDaemons()
         // Reset so that logging services are recreated and state set back to defaults
         ConnectorServices.reset()
     }
