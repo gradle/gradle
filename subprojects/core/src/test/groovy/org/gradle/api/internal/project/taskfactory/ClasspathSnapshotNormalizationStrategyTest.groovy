@@ -17,11 +17,12 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.internal.changedetection.state.AbstractSnapshotNormalizationStrategyTest
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizationStrategy
 
-class ClasspathPropertyAnnotationHandlerTest extends AbstractSnapshotNormalizationStrategyTest {
+class ClasspathSnapshotNormalizationStrategyTest extends AbstractSnapshotNormalizationStrategyTest {
 
     def "sensitivity CLASSPATH"() {
-        def snapshots = normalizeWith ClasspathPropertyAnnotationHandler.STRATEGY
+        def snapshots = normalizeWith ClasspathSnapshotNormalizationStrategy.INSTANCE
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
         snapshots[file("dir/libs/library-b.jar")]      == "IGNORED"
