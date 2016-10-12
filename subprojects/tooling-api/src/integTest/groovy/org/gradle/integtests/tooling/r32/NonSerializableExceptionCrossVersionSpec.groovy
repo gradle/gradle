@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r32
 
-import com.google.common.base.Throwables
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -75,11 +74,17 @@ class CustomPlugin implements Plugin<Project> {
 
         then:
         def e = thrown(GradleConnectionException)
-        def exceptionString = Throwables.getStackTraceAsString(e)
+        def exceptionString = getStackTraceAsString(e)
         !exceptionString.contains("java.io.NotSerializableException")
         exceptionString.contains('Caused by: CustomException: Something went wrong in building the model')
 
         where:
         exceptionNestingLevel << (0..2).toList()
+    }
+
+    private static String getStackTraceAsString(Throwable throwable) {
+        StringWriter stringWriter = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(stringWriter));
+        return stringWriter.toString();
     }
 }
