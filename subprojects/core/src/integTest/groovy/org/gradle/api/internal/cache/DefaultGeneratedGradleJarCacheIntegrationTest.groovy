@@ -26,7 +26,6 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GFileUtils
@@ -39,7 +38,6 @@ import spock.lang.Specification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
-@CleanupTestDirectory
 @UsesNativeServices
 class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     private final static String CACHE_IDENTIFIER = 'test'
