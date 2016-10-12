@@ -31,14 +31,12 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
-@UsesNativeServices
 class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     private final static String CACHE_IDENTIFIER = 'test'
     private final static long JAR_GENERATION_TIME_MS = 2000L
@@ -62,6 +60,10 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     def CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, currentGradleVersion)
     def CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
     def defaultGeneratedGradleJarCache = new DefaultGeneratedGradleJarCache(cacheRepository, currentGradleVersion.getVersion())
+
+    def cleanup() {
+        defaultGeneratedGradleJarCache.close()
+    }
 
     def "locks cache upon JAR creation"() {
         given:
