@@ -109,8 +109,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         snapshot.elements == [file, dir, dir2, file2, noExist]
     }
 
-    // Documenting existing behaviour
-    def "retains order of elements in the snapshot with missing files at the end"() {
+    def "retains order of elements in the snapshot"() {
         given:
         TestFile file = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.file('file2')
@@ -121,7 +120,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, file2, file3, file4), ORDERED, ABSOLUTE)
 
         then:
-        snapshot.elements == [file, file4, file2, file3]
+        snapshot.elements == [file, file2, file3, file4]
     }
 
     def generatesEventWhenFileAdded() {

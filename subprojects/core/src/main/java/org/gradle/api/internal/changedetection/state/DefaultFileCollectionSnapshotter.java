@@ -81,35 +81,36 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         final List<DefaultFileDetails> fileTreeElements = Lists.newLinkedList();
-        final List<DefaultFileDetails> missingFiles = Lists.newArrayList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements, missingFiles);
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
 
-        if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
+        if (fileTreeElements.isEmpty()) {
             return emptySnapshot();
         }
 
-        final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
+        Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
         for (DefaultFileDetails fileDetails : fileTreeElements) {
             String absolutePath = fileDetails.path;
             if (!snapshots.containsKey(absolutePath)) {
                 IncrementalFileSnapshot snapshot;
-                if (fileDetails.type == Directory) {
-                    snapshot = DirSnapshot.getInstance();
-                } else {
-                    snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(), fileDetails.details.getLastModified());
+                switch (fileDetails.getType()) {
+                    case Missing:
+                        snapshot = MissingFileSnapshot.getInstance();
+                        break;
+                    case Directory:
+                        snapshot = DirSnapshot.getInstance();
+                        break;
+                    case RegularFile:
+                        snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(), fileDetails.details.getLastModified());
+                        break;
+                    default:
+                        throw new AssertionError();
                 }
                 NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
                 if (normalizedSnapshot != null) {
                     snapshots.put(absolutePath, normalizedSnapshot);
                 }
-            }
-        }
-        for (DefaultFileDetails missingFileDetails : missingFiles) {
-            String absolutePath = missingFileDetails.path;
-            if (!snapshots.containsKey(absolutePath)) {
-                snapshots.put(absolutePath, snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails, MissingFileSnapshot.getInstance(), stringInterner));
             }
         }
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
@@ -122,11 +123,9 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor, FileVisitor {
         private final List<DefaultFileDetails> fileTreeElements;
-        private final List<DefaultFileDetails> missingFiles;
 
-        FileCollectionVisitorImpl(List<DefaultFileDetails> fileTreeElements, List<DefaultFileDetails> missingFiles) {
+        FileCollectionVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
-            this.missingFiles = missingFiles;
         }
 
         @Override
@@ -138,6 +137,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     rootFiles.put(details.path, details);
                 }
                 switch (details.type) {
+                    case Missing:
                     case RegularFile:
                         fileTreeElements.add(details);
                         break;
@@ -146,11 +146,8 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                         fileTreeElements.add(details);
                         visitDirectoryTree(directoryFileTreeFactory.create(file));
                         break;
-                    case Missing:
-                        missingFiles.add(details);
-                        break;
                     default:
-                        throw new IllegalArgumentException();
+                        throw new AssertionError();
                 }
             }
         }
