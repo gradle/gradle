@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -67,6 +68,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(StringInterner) >> new StringInterner()
         _ * parent.get(DirectoryFileTreeFactory) >> Mock(DirectoryFileTreeFactory)
         _ * parent.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
+        _ * parent.getAll(FileCollectionSnapshotter) >> []
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder

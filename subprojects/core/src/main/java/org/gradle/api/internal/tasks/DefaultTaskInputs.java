@@ -21,6 +21,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
@@ -230,6 +232,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private boolean optional;
         private TaskFilePropertyCompareStrategy compareStrategy = UNORDERED;
         private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
+        private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
             this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -307,6 +310,17 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         public TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
             this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
             return this;
+        }
+
+        @Override
+        public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter) {
+            this.snapshotter = snapshotter;
+            return this;
+        }
+
+        @Override
+        public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+            return snapshotter;
         }
 
         @Override

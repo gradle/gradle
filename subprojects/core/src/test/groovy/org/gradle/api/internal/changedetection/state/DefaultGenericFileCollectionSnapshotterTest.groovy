@@ -31,13 +31,13 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 
-public class DefaultFileCollectionSnapshotterTest extends Specification {
+public class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+    def snapshotter = new DefaultGenericFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

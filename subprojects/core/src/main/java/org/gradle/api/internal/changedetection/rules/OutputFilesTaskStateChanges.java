@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
@@ -29,8 +29,8 @@ import java.util.Map;
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     private final OutputFilesSnapshotter outputSnapshotter;
 
-    public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter, OutputFilesSnapshotter outputSnapshotter) {
-        super(task.getName(), previous, current, snapshotter, "Output", task.getOutputs().getFileProperties());
+    public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
+        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
         this.outputSnapshotter = outputSnapshotter;
     }
 
@@ -41,7 +41,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
 
     @Override
     public void saveCurrent() {
-        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties());
+        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
 
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {

@@ -44,7 +44,7 @@ import static org.gradle.api.internal.changedetection.state.FileDetails.FileType
  *
  * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #beforeTaskOutputsGenerated()}.</p>
  */
-public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskOutputsGenerationListener {
+public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskOutputsGenerationListener {
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -52,7 +52,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     // Map from interned absolute path for a file to known details for the file. Currently used only for root files, not those nested in a directory
     private final Map<String, DefaultFileDetails> rootFiles = new ConcurrentHashMap<String, DefaultFileDetails>();
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.snapshotter = snapshotter;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;

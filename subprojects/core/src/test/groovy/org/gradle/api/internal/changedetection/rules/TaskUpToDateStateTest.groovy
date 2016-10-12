@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -40,18 +42,20 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
 
     def "constructor invokes snapshots" () {
         setup:
-        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot)
-        OutputFilesSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
-        FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
+        def stubSnapshot = Stub(FileCollectionSnapshot)
+        def mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
+        def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
+        def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
+        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         noExceptionThrown()
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        2 * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
+        (1.._) * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
+        (1.._) * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
     }
 }
