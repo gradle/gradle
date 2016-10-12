@@ -24,6 +24,8 @@ import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
+import static org.gradle.tooling.internal.provider.serialization.PayloadSerializerObjectOutputStream.SAME_CLASSLOADER_TOKEN;
+
 class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputStream {
     private final Map<Short, ClassLoaderDetails> classLoaderDetails;
     private final DeserializeMap map;
@@ -57,6 +59,9 @@ class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputSt
     private Class<?> readClass() throws IOException, ClassNotFoundException {
         short id = readShort();
         String className = readUTF();
+        if (id == SAME_CLASSLOADER_TOKEN) {
+            return super.lookupClass(className);
+        }
         ClassLoaderDetails classLoader = classLoaderDetails.get(id);
         return map.resolveClass(classLoader, className);
     }

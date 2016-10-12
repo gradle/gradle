@@ -17,12 +17,14 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
+import org.gradle.internal.serialize.TopLevelExceptionPlaceholder;
 
 import java.io.IOException;
 import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 
 class PayloadSerializerObjectOutputStream extends ExceptionReplacingObjectOutputStream {
+    static final int SAME_CLASSLOADER_TOKEN = 0;
     private final SerializeMap map;
 
     public PayloadSerializerObjectOutputStream(OutputStream outputStream, SerializeMap map) throws IOException {
@@ -55,6 +57,10 @@ class PayloadSerializerObjectOutputStream extends ExceptionReplacingObjectOutput
     }
 
     private void writeClassLoader(Class<?> targetClass) throws IOException {
-        writeShort(map.visitClass(targetClass));
+        if (TopLevelExceptionPlaceholder.class.getPackage().equals(targetClass.getPackage())) {
+            writeShort(SAME_CLASSLOADER_TOKEN);
+        } else {
+            writeShort(map.visitClass(targetClass));
+        }
     }
 }

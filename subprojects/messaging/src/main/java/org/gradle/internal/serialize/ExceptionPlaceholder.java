@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
 class ExceptionPlaceholder implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionPlaceholder.class);
     private final String type;
     private byte[] serializedException;

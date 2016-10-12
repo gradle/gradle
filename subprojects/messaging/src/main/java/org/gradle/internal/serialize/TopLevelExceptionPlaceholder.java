@@ -21,7 +21,8 @@ import org.gradle.api.Transformer;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {
+public class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {
+    private static final long serialVersionUID = 1L;
     public TopLevelExceptionPlaceholder(Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) throws IOException {
         super(throwable, objectOutputStreamCreator);
     }
