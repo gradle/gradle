@@ -34,10 +34,15 @@ import spock.lang.Specification
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 
-public class DefaultGenericFileCollectionSnapshotterTest extends Specification {
+public class AbstractFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultGenericFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+    def snapshotter = new AbstractFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory()) {
+        @Override
+        Class<? extends FileCollectionSnapshotter> getRegisteredType() {
+            FileCollectionSnapshotter
+        }
+    }
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
