@@ -84,7 +84,7 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
         assert movedAsHex == originalAsHex
     }
 
-    private static String toHexStrings(byte[] bytes) {
+    private static def toHexStrings(byte[] bytes) {
         def sw = new StringWriter()
         bytes.encodeHex().writeTo(sw)
         return Splitter.fixedLength(32).split(sw.toString()).collect { line ->
