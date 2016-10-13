@@ -55,11 +55,36 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 
     @Override
     protected extractResults() {
-        byte[] bytes = file("build/jacoco/test.exec").bytes
+        file("build/jacoco/test.exec").bytes
+    }
 
-        // Discard first and last few bytes as they contain things like the hostname and timestamps
-        bytes = bytes[512..-512]
+    @Override
+    protected void assertResultsEqual(def originalResult, def movedResult) {
+        byte[] originalBytes = originalResult
+        byte[] movedBytes = movedResult
 
+        def length = originalBytes.length
+        if (movedBytes.length == length) {
+            int diffCount = 0
+            for (int i = 0; i < length; i++) {
+                if (originalBytes[i] != movedBytes[i]) {
+                    diffCount++
+                }
+            }
+            // We accept less than 0.5% difference because timestamps and whatnot
+            println String.format("%d of %d bytes were different (%.2f%%)", diffCount, length, 100d * diffCount / length)
+            if (diffCount < length * 0.005) {
+                return
+            }
+        }
+
+        // If we had too big a difference we fall back to Groovy reporting it
+        def originalAsHex = toHexStrings(originalBytes)
+        def movedAsHex = toHexStrings(movedBytes)
+        assert movedAsHex == originalAsHex
+    }
+
+    private static String toHexStrings(byte[] bytes) {
         def sw = new StringWriter()
         bytes.encodeHex().writeTo(sw)
         return Splitter.fixedLength(32).split(sw.toString()).collect { line ->
