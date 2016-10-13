@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder.ByteArrayT
 import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.classloader.VisitableURLClassLoader
 
 if (plugins.hasPlugin("com.gradle.build-scan")) {
     String commitId
@@ -114,7 +113,8 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
 
             @Override
             void afterExecute(Task task, TaskState state) {
-                if (task.getPath() == ':core:compileTestFixturesGroovy') {
+                def tasksToInvestigate = [':core:compileTestFixturesGroovy', ':diagnostics:compileTestGroovy', ':internalAndroidPerformanceTesting:compileJava']
+                if (task.getPath() in tasksToInvestigate) {
                     def buildScan = task.project.buildScan
                     addTaskState(task, state)
                     def fileProperties = task.inputs.fileProperties
@@ -140,10 +140,10 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                         })
                     }
                 }
-                if (task.getPath() == ':baseServices:classpathManifest') {
+                if (task.getPath() in (tasksToInvestigate + [':baseServices:classpathManifest'])) {
                     addTaskState(task, state)
                     def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
-                    new Visitor(task.project.buildScan, hasher).visit(task.getClass().getClassLoader())
+                    new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
                 }
             }
 
@@ -163,11 +163,13 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
 class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     final buildScan
     final ClassLoaderHierarchyHasher hasher
+    final String prefix
     int counter
 
-    Visitor(buildScan, ClassLoaderHierarchyHasher hasher) {
+    Visitor(buildScan, ClassLoaderHierarchyHasher hasher, Task task) {
         this.buildScan = buildScan
         this.hasher = hasher
+        this.prefix = "${task.path}-classloader"
     }
 
     private String classloaderHash(ClassLoader loader) {
@@ -183,9 +185,9 @@ class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     public void visit(ClassLoader classLoader) {
         def hash = classloaderHash(classLoader)
         if (hash) {
-            buildScan.value("ClasspathManifest-${counter++}-${classLoader.getClass().getSimpleName()}-hash", hash)
-            if ((counter <= 2) && (classLoader instanceof VisitableURLClassLoader)) {
-                buildScan.value("ClasspathManifest-${counter - 1}-classpath", classLoader.getURLs().join(':'))
+            buildScan.value("${prefix}-${counter++}-${classLoader.getClass().getSimpleName()}-hash", hash)
+            if ((counter <= 2) && (classLoader instanceof URLClassLoader)) {
+                buildScan.value("${prefix}-${counter - 1}-classpath", classLoader.getURLs().join(':'))
             }
         }
         super.visit(classLoader)
