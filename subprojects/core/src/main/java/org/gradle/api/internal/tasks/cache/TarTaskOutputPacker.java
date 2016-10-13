@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -212,14 +213,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         // This will be divided by 1000 internally
         entry.setModTime(lastModified);
         // Store excess nanoseconds in group ID
-        long excessNanos = (lastModified % 1000) * 1000 * 1000;
+        long excessNanos = TimeUnit.MILLISECONDS.toNanos(lastModified % 1000);
         entry.setGroupId(excessNanos);
     }
 
     private static long getModificationTime(TarEntry entry) {
         long lastModified = entry.getModTime().getTime();
         long excessNanos = entry.getLongGroupId();
-        lastModified += excessNanos / 1000 / 1000;
+        lastModified += TimeUnit.NANOSECONDS.toMillis(excessNanos) % 1000;
         return lastModified;
     }
 }
