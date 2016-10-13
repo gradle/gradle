@@ -73,7 +73,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             encoder.writeString(libraryIdentifier.getLibraryName());
             encoder.writeString(libraryIdentifier.getVariant());
         } else {
-            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
+            throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
     }
 

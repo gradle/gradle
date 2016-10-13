@@ -68,7 +68,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
             encoder.writeNullableString(libraryComponentSelector.getLibraryName());
             encoder.writeNullableString(libraryComponentSelector.getVariant());
         } else {
-            throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
+            throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
     }
 
