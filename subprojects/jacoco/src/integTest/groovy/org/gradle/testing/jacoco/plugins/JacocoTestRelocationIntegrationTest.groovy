@@ -55,12 +55,16 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 
     @Override
     protected extractResults() {
+        byte[] bytes = file("build/jacoco/test.exec").bytes
+
+        // Discard first few bytes as they contain the headers with
+        // the hostname and timestamps and whatnot
+        bytes = bytes[256..-1]
+
         def sw = new StringWriter()
-        file("build/jacoco/test.exec").bytes.encodeHex().writeTo(sw)
-        def lines = Splitter.fixedLength(32).split(sw.toString()).collect { line ->
+        bytes.encodeHex().writeTo(sw)
+        return Splitter.fixedLength(32).split(sw.toString()).collect { line ->
             Splitter.fixedLength(2).split(line).join(" ")
         }
-        // Discard first three lines as they contain the headers with the timestamps and whatnot
-        return lines.drop(3)
     }
 }
