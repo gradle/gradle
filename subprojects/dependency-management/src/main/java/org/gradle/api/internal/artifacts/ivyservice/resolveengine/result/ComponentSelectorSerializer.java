@@ -75,27 +75,16 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
     private ComponentSelectorSerializer.Implementation resolveImplementation(ComponentSelector value) {
         Implementation implementation;
 
-        Class<? extends ComponentSelector> valueClass = value.getClass();
-
-        // check for equality of class as first pass because of performance reasons
-        if (valueClass == DefaultModuleComponentSelector.class) {
+        if (value instanceof ModuleComponentSelector) {
             implementation = Implementation.MODULE;
-        } else if (valueClass == DefaultProjectComponentSelector.class) {
+        } else if (value instanceof ProjectComponentSelector) {
             implementation = Implementation.BUILD;
-        } else if (valueClass == DefaultLibraryComponentSelector.class) {
+        } else if (value instanceof LibraryComponentSelector) {
             implementation = Implementation.LIBRARY;
         } else {
-            // make instanceof checks in the 2nd pass, should usually never happen
-            if (ModuleComponentSelector.class.isInstance(value)) {
-                implementation = Implementation.MODULE;
-            } else if (ProjectComponentSelector.class.isInstance(value)) {
-                implementation = Implementation.BUILD;
-            } else if (LibraryComponentSelector.class.isInstance(value)) {
-                implementation = Implementation.LIBRARY;
-            } else {
-                throw new IllegalArgumentException("Unsupported component selector class: " + valueClass);
-            }
+            throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
         }
+
         return implementation;
     }
 
