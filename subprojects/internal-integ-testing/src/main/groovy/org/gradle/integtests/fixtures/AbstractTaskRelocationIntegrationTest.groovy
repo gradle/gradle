@@ -42,9 +42,7 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
         moveFilesAround()
         succeeds taskName
         then:
-        if (expectTaskToBeUpToDateAfterMoving()) {
-            assert skippedTasks.contains(taskName)
-        }
+        skippedTasks.contains(taskName)
 
         when:
         removeResults()
@@ -56,10 +54,6 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
     }
 
     abstract protected String getTaskName()
-
-    protected boolean expectTaskToBeUpToDateAfterMoving() {
-        true
-    }
 
     abstract protected void setupProjectInOriginalLocation();
 
