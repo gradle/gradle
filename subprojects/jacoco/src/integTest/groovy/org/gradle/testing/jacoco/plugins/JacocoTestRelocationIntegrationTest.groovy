@@ -57,9 +57,8 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     protected extractResults() {
         byte[] bytes = file("build/jacoco/test.exec").bytes
 
-        // Discard first few bytes as they contain the headers with
-        // the hostname and timestamps and whatnot
-        bytes = bytes[256..-1]
+        // Discard first and last few bytes as they contain things like the hostname and timestamps
+        bytes = bytes[512..-512]
 
         def sw = new StringWriter()
         bytes.encodeHex().writeTo(sw)
