@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalCo
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -96,13 +95,14 @@ public class IdeaPlugin extends IdePlugin {
         }
     };
     private final Instantiator instantiator;
+    private final PathInterner pathInterner;
     private IdeaModel ideaModel;
-    private PathInterner pathInterner;
     private List<Project> allJavaProjects;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator) {
+    public IdeaPlugin(Instantiator instantiator, PathInterner pathInterner) {
         this.instantiator = instantiator;
+        this.pathInterner = pathInterner;
     }
 
     public IdeaModel getModel() {
@@ -121,8 +121,6 @@ public class IdeaPlugin extends IdePlugin {
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
-        pathInterner = lookupOrCreateSharedPathInterner(project);
-
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
         configureIdeaModule(project);
@@ -134,20 +132,6 @@ public class IdeaPlugin extends IdePlugin {
                 performPostEvaluationActions();
             }
         });
-    }
-
-    // lookup the shared PathInterner instance from the root project
-    private static PathInterner lookupOrCreateSharedPathInterner(Project project) {
-        PathInterner pathInterner;
-        Project rootProject = project.getRootProject();
-        ExtraPropertiesExtension rootExtraProperties = rootProject.getExtensions().getByType(ExtraPropertiesExtension.class);
-        if (rootExtraProperties.has(EXT_KEY_IDEA_PATH_INTERNER)) {
-            pathInterner = PathInterner.class.cast(rootExtraProperties.get(EXT_KEY_IDEA_PATH_INTERNER));
-        } else {
-            pathInterner = new PathInterner();
-            rootExtraProperties.set(EXT_KEY_IDEA_PATH_INTERNER, pathInterner);
-        }
-        return pathInterner;
     }
 
     public void performPostEvaluationActions() {
