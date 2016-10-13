@@ -21,10 +21,13 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 
-@TargetGradleVersion(">=3.3")
 @ToolingApiVersion(">=3.3")
+@TargetGradleVersion(">=1.8")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
-    def setup() {
+
+    @TargetGradleVersion(">=3.3")
+    def "Included builds are present in the model"() {
+        given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 rootProject.name = 'root'
@@ -32,14 +35,38 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
             """
         }
         multiProjectBuildInSubFolder("includedBuild", ["a", "b", "c"])
-    }
 
-    def "Included builds are present in the model"() {
         when:
         GradleBuild model = loadToolingModel(GradleBuild)
 
         then:
         model.includedBuilds.size() == 1
         model.includedBuilds[0].projects.size() == 4
+    }
+
+    @TargetGradleVersion(">=3.1 <3.3")
+    def "No included builds for old Gradle versions"() {
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                rootProject.name = 'root'
+                includeBuild 'includedBuild'
+            """
+        }
+        multiProjectBuildInSubFolder("includedBuild", ["a", "b", "c"])
+        when:
+        GradleBuild model = loadToolingModel(GradleBuild)
+
+        then:
+        model.includedBuilds.size() == 0
+    }
+
+
+    def "No included builds for single root project"() {
+        singleProjectBuildInRootFolder("root")
+        when:
+        GradleBuild model = loadToolingModel(GradleBuild)
+
+        then:
+        model.includedBuilds.size() == 0
     }
 }
