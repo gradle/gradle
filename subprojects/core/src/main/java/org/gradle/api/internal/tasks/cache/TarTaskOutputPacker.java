@@ -57,6 +57,7 @@ import java.util.regex.Pattern;
  */
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
+    private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
@@ -214,13 +215,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         entry.setModTime(lastModified);
         // Store excess nanoseconds in group ID
         long excessNanos = TimeUnit.MILLISECONDS.toNanos(lastModified % 1000);
-        entry.setGroupId(excessNanos);
+        // Store excess nanos as negative number to distinguish real group IDs
+        entry.setGroupId(-excessNanos);
     }
 
     private static long getModificationTime(TarEntry entry) {
         long lastModified = entry.getModTime().getTime();
-        long excessNanos = entry.getLongGroupId();
-        lastModified += TimeUnit.NANOSECONDS.toMillis(excessNanos) % 1000;
+        long excessNanos = -entry.getLongGroupId();
+        if (excessNanos < 0 || excessNanos >= NANOS_PER_SECOND) {
+            throw new IllegalStateException("Invalid excess nanos: " + excessNanos);
+        }
+        lastModified += TimeUnit.NANOSECONDS.toMillis(excessNanos);
         return lastModified;
     }
 }
