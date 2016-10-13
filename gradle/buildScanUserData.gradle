@@ -116,12 +116,12 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
             void afterExecute(Task task, TaskState state) {
                 if (task.getPath() == ':core:compileTestFixturesGroovy') {
                     def buildScan = task.project.buildScan
-                    def snapshotter = gradle.services.get(org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter)
                     addTaskState(task, state)
                     def fileProperties = task.inputs.fileProperties
                     fileProperties.each { inputProperty ->
                         def name = inputProperty.propertyName
-                        def snapshot = snapshotter.snapshot(inputProperty)
+                        def snapshotter = gradle.services.get(inputProperty.snapshotter)
+                        def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy())
                         def prefix = "${task.path}-input-${name}"
                         buildScan.value "${prefix}-hash", hashKey(snapshot)
                         def propertyFiles = inputProperty.propertyFiles
