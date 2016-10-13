@@ -21,16 +21,14 @@ import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.Model;
-import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.internal.Exceptions;
 
 import java.io.File;
@@ -68,15 +66,10 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
     }
 
     private String getProjectPath(Model target) {
-        if (target instanceof GradleProject) {
-            return ((GradleProject) target).getPath();
+        if (target instanceof ProjectModel) {
+            return ((ProjectModel) target).getProjectIdentifier().getProjectPath();
+        } else {
+            return ":";
         }
-        if (target instanceof BasicGradleProject) {
-            return ((BasicGradleProject) target).getPath();
-        }
-        if (target instanceof HasGradleProject) {
-            return ((HasGradleProject) target).getGradleProject().getPath();
-        }
-        return ":";
     }
 }

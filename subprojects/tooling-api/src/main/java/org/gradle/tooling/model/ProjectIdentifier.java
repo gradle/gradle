@@ -28,7 +28,7 @@ import org.gradle.api.Incubating;
  * @since 2.13
  */
 @Incubating
-public interface ProjectIdentifier {
+public interface ProjectIdentifier extends Model {
 
     /**
      * The path of the project, relative to its build.

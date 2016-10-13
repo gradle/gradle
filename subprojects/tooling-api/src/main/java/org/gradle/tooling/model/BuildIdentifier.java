@@ -29,7 +29,7 @@ import java.io.File;
  * @since 2.13
  */
 @Incubating
-public interface BuildIdentifier {
+public interface BuildIdentifier extends Model {
     /**
      * The root directory of this build
      *

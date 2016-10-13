@@ -64,14 +64,17 @@ class DefaultBuildControllerTest extends Specification {
     }
 
     def "uses builder for specified project"() {
+        def rootDir = new File("dummy")
         def target = Stub(GradleProjectIdentity)
         def rootProject = Stub(ProjectInternal)
         def model = new Object()
 
         given:
-        _ * target.path >> ":some:path"
+        _ * target.projectPath >> ":some:path"
+        _ * target.rootDir >> rootDir
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
+        _ * rootProject.getProjectDir() >> rootDir
         _ * registry.getBuilder("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
