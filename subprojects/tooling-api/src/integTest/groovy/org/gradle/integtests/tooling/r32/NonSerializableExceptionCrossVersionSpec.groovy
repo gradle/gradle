@@ -23,8 +23,9 @@ import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
+@ToolingApiVersion(">=3.2")
 class NonSerializableExceptionCrossVersionSpec extends ToolingApiSpecification {
-    def createBuildFile(int exceptionNestingLevel) {
+    def createToolingModelBuilderBuildFile(int exceptionNestingLevel) {
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -63,11 +64,10 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @ToolingApiVersion(">=3.2")
-    @TargetGradleVersion(">=2.4")
-    def "returns proper error message when non-serializable exception is thrown"() {
+    @TargetGradleVersion(">=1.6")
+    def "returns proper error message when non-serializable exception is thrown while building a custom build model"() {
         when:
-        createBuildFile(exceptionNestingLevel)
+        createToolingModelBuilderBuildFile(exceptionNestingLevel)
         withConnection { connection ->
             connection.model(CustomModel).get()
         }
@@ -81,6 +81,73 @@ class CustomPlugin implements Plugin<Project> {
         where:
         exceptionNestingLevel << (0..2).toList()
     }
+
+    def createBuildFileForConfigurationPhaseCheck(int exceptionNestingLevel) {
+        file('build.gradle') << """
+class CustomException extends Exception {
+    Thread thread = Thread.currentThread() // non-serializable field
+    CustomException(String msg) {
+        super(msg)
+    }
+}
+
+throw ${'new RuntimeException(' * exceptionNestingLevel}new CustomException("Something went wrong in configuring the build")${')' * exceptionNestingLevel}
+"""
+    }
+
+    @TargetGradleVersion(">=1.6")
+    def "returns proper error message when non-serializable exception is thrown in configuration phase"() {
+        when:
+        createBuildFileForConfigurationPhaseCheck(exceptionNestingLevel)
+        withConnection { connection ->
+            connection.newBuild().forTasks("assemble").run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        def exceptionString = getStackTraceAsString(e)
+        !exceptionString.contains("java.io.NotSerializableException")
+        exceptionString.contains('Caused by: CustomException: Something went wrong in configuring the build')
+
+        where:
+        exceptionNestingLevel << (0..2).toList()
+    }
+
+    def createBuildFileForExecutionPhaseCheck(int exceptionNestingLevel) {
+        file('build.gradle') << """
+class CustomException extends Exception {
+    Thread thread = Thread.currentThread() // non-serializable field
+    CustomException(String msg) {
+        super(msg)
+    }
+}
+
+task run {
+    doLast {
+        throw ${'new RuntimeException(' * exceptionNestingLevel}new CustomException("Something went wrong in configuring the build")${')' * exceptionNestingLevel}
+    }
+}
+"""
+    }
+
+    @TargetGradleVersion(">=1.6")
+    def "returns proper error message when non-serializable exception is thrown in execution phase"() {
+        when:
+        createBuildFileForExecutionPhaseCheck(exceptionNestingLevel)
+        withConnection { connection ->
+            connection.newBuild().forTasks("run").run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        def exceptionString = getStackTraceAsString(e)
+        !exceptionString.contains("java.io.NotSerializableException")
+        exceptionString.contains('Caused by: CustomException: Something went wrong in configuring the build')
+
+        where:
+        exceptionNestingLevel << (0..2).toList()
+    }
+
 
     private static String getStackTraceAsString(Throwable throwable) {
         StringWriter stringWriter = new StringWriter();
