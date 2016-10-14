@@ -52,7 +52,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         this.cacheAccess = cacheAccess;
         this.batchWindow = batchWindow;
         this.maximumLockingTimeMillis = maximumLockingTimeMillis;
-        workQueue = new ArrayBlockingQueue<Runnable>(queueCapacity);
+        workQueue = new ArrayBlockingQueue<Runnable>(queueCapacity, true);
     }
 
     @Override
