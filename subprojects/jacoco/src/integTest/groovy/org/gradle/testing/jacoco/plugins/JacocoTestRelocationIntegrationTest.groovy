@@ -16,8 +16,10 @@
 
 package org.gradle.testing.jacoco.plugins
 
-import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+
+import static org.gradle.util.BinaryDiffUtils.levenshteinDistance
+import static org.gradle.util.BinaryDiffUtils.toHexStrings
 
 class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
     @Override
@@ -65,48 +67,18 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 
         def originalLength = originalBytes.length
         def movedLength = movedBytes.length
-
         def lengthDiff = Math.abs(originalLength - movedLength)
         def length = Math.min(originalLength, movedLength)
         println String.format("Original is %d bytes, moved is %d bytes (%.2f%%)", originalLength, movedLength, 100d * lengthDiff / length)
 
-        if (lengthDiff > 0) {
-            // We are okay with 0.5% length difference
-            if (lengthDiff > length * 0.005) {
-                failWithDiff(originalBytes, movedBytes)
-            }
-
-            // Trim them to the same length by removing the first few bytes
-            originalBytes = originalBytes[(originalLength - length)..-1]
-            movedBytes = movedBytes[(movedLength - length)..-1]
-        }
-
-        int diffCount = 0
-        for (int i = 0; i < length; i++) {
-            if (originalBytes[i] != movedBytes[i]) {
-                diffCount++
-            }
-        }
-
-        // We accept less than 0.5% difference because timestamps and whatnot
-        println String.format("%d of %d bytes were different (%.2f%%)", diffCount, length, 100d * diffCount / length)
-        if (diffCount > length * 0.005) {
-            failWithDiff(originalBytes, movedBytes)
-        }
-    }
-
-    private static void failWithDiff(byte[] originalBytes, byte[] movedBytes) {
-        // If we had too big a difference we fall back to Groovy reporting it
-        def originalAsHex = toHexStrings(originalBytes)
-        def movedAsHex = toHexStrings(movedBytes)
-        assert movedAsHex == originalAsHex
-    }
-
-    private static def toHexStrings(byte[] bytes) {
-        def sw = new StringWriter()
-        bytes.encodeHex().writeTo(sw)
-        return Splitter.fixedLength(32).split(sw.toString()).collect { line ->
-            Splitter.fixedLength(2).split(line).join(" ")
+        def distance = levenshteinDistance(originalBytes, movedBytes)
+        println String.format("Levenshtein distance if %s (%.2f%%)", distance, 100d * distance / length)
+        // We are okay with 0.5% distance
+        if (distance > length * 0.005) {
+            // If we had too big a difference we fall back to Groovy reporting it
+            def originalAsHex = toHexStrings(originalBytes)
+            def movedAsHex = toHexStrings(movedBytes)
+            assert movedAsHex == originalAsHex
         }
     }
 }
