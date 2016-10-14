@@ -176,6 +176,7 @@ We would like to thank the following community members for making contributions 
 - [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
 - [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
 - [Janito Vaqueiro Ferreira Filho](https://github.com/jvff) - Describe relationship between sources and binaries in native build documentation
+- [Daniel Thomas](https://github.com/DanielThomas) - Added ability to revalidate external resource requests
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
