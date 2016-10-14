@@ -26,6 +26,7 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
@@ -52,6 +53,7 @@ import java.lang.reflect.Proxy;
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+    private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
     private static final NativeServices INSTANCE = new NativeServices();
     private static boolean initialized;
     private static File nativeBaseDir;
@@ -80,17 +82,20 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     }
                 }
             }
-            initializeJansiNative(nativeBaseDir);
+            initializeJansi(nativeBaseDir);
             initialized = true;
 
             LOGGER.info("Initialized native services in: " + nativeBaseDir);
         }
     }
 
-    private static void initializeJansiNative(File nativeBaseDir) {
-        File jansiNativeLibraryPath = new File(nativeBaseDir, "jansi");
-        jansiNativeLibraryPath.mkdirs();
-        System.setProperty("library.jansi.path", jansiNativeLibraryPath.getAbsolutePath());
+    private static void initializeJansi(File nativeBaseDir) {
+        File jansiLibraryPath = new File(nativeBaseDir, "jansi");
+        if (jansiLibraryPath.isDirectory() || jansiLibraryPath.mkdirs()) {
+            System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, jansiLibraryPath.getAbsolutePath());
+        } else {
+            throw new NativeIntegrationException(String.format("Unable to create Jansi library path '%s'", jansiLibraryPath.getAbsolutePath()));
+        }
     }
 
     public static File getNativeServicesDir(File userHomeDir) {

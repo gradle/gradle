@@ -17,42 +17,77 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import spock.lang.Issue
+
+import static org.gradle.util.TestPrecondition.NOT_LINUX
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "native services libs are unpacked to gradle user home dir"() {
-        given:
-        def nativeDir = new File(executer.gradleUserHomeDir, "native")
+    final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
+    final File jansiDir = new File(nativeDir, 'jansi')
 
+    def setup() {
+        GFileUtils.deleteDirectory(nativeDir) // ensure that directory wasn't created by other tests
+        requireGradleDistribution()
+    }
+
+    def "native services libs are unpacked to gradle user home dir"() {
         when:
-        executer.withArguments("-q").run()
+        quietExecutor().run()
 
         then:
         nativeDir.directory
     }
 
-    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
-    def "gradle runs with a tmp dir mounted with noexec option"() {
+    def "throws exception if Jansi library directory cannot be created"() {
         given:
-        NativeServicesTestFixture.initialize()
-        executer.requireGradleDistribution().withNoExplicitTmpDir()
+        GFileUtils.touch(jansiDir)
+
         when:
-        executer.withBuildJvmOpts("-Djava.io.tmpdir=/tmp")
+        def failure = quietExecutor().runWithFailure()
 
         then:
-        executer.run()
+        failure.error.contains("Unable to create Jansi library path '$jansiDir.absolutePath'")
     }
 
-    public static boolean isMountedNoexec(String dir) {
-        if (TestPrecondition.NOT_LINUX) {
-            return false;
+    def "creates Jansi library directory and reuses for succeeding Gradle invocations"() {
+        when:
+        quietExecutor().run()
+
+        then:
+        jansiDir.directory
+
+        when:
+        quietExecutor().run()
+
+        then:
+        jansiDir.directory
+    }
+
+    @Issue("GRADLE-3573")
+    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
+    def "creates Jansi library directory even if tmp dir is mounted with noexec option"() {
+        when:
+        executer.withNoExplicitTmpDir().withBuildJvmOpts("-Djava.io.tmpdir=/tmp").run()
+
+        then:
+        jansiDir.directory
+    }
+
+    static boolean isMountedNoexec(String dir) {
+        if (NOT_LINUX) {
+            return false
         }
+
         def out = new StringBuffer()
-        'mount'.execute().waitForProcessOutput(out, System.err);
-        return out.readLines().find {it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec')}!= null;
+        'mount'.execute().waitForProcessOutput(out, System.err)
+        out.readLines().find { it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec') } != null
     }
 
+    private GradleExecuter quietExecutor() {
+        executer.withArguments('-q')
+    }
 }
