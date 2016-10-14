@@ -19,8 +19,6 @@ package org.gradle.initialization;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -50,8 +48,8 @@ public interface GradleApiSpecProvider {
 
     class SpecBuilder {
 
-        private final Set<String> exportedPackages = new LinkedHashSet<String>();
-        private final Set<String> exportedResourcePrefixes = new LinkedHashSet<String>();
+        private final ImmutableSet.Builder<String> exportedPackages = ImmutableSet.builder();
+        private final ImmutableSet.Builder<String> exportedResourcePrefixes = ImmutableSet.builder();
 
         /**
          * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
@@ -69,7 +67,7 @@ public interface GradleApiSpecProvider {
          * @param packageNames the set of package names
          */
         public SpecBuilder exportPackages(String... packageNames) {
-            exportedPackages.addAll(Arrays.asList(packageNames));
+            exportedPackages.add(packageNames);
             return this;
         }
 
@@ -100,7 +98,7 @@ public interface GradleApiSpecProvider {
          * @return the Spec
          */
         public Spec build() {
-            return new DefaultSpec(ImmutableSet.copyOf(exportedPackages), ImmutableSet.copyOf(exportedResourcePrefixes));
+            return new DefaultSpec(exportedPackages.build(), exportedResourcePrefixes.build());
         }
 
         static class DefaultSpec implements Spec {
@@ -109,8 +107,8 @@ public interface GradleApiSpecProvider {
             private final ImmutableSet<String> exportedResourcePrefixes;
 
             DefaultSpec(ImmutableSet<String> exportedPackages, ImmutableSet<String> exportedResourcePrefixes) {
-                this.exportedResourcePrefixes = exportedResourcePrefixes;
                 this.exportedPackages = exportedPackages;
+                this.exportedResourcePrefixes = exportedResourcePrefixes;
             }
 
             @Override
