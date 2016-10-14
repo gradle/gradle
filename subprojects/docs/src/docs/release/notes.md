@@ -67,6 +67,7 @@ test {
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+ - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
