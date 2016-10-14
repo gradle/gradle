@@ -33,13 +33,19 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    public static final def PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED = ['3.0', '3.1']
+    public static final List<String> PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED = ['3.0', '3.1']
 
-    private repoDir;
+    private repoDir
+
+    private final List<GradleExecuter> executers = []
 
     def setup() {
-        repoDir = new TestFile(testDirectory, 'repo')
+        repoDir = file('repo')
         publishHelloWorldPluginWithOldGradleVersion()
+    }
+
+    def cleanup() {
+        executers.each { it.cleanup() }
     }
 
     def "can apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.2+"() {
@@ -188,7 +194,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
      * This test demonstrates a workaround for the problem in Gradle 3.0 or 3.1 by adding the functionality that has now
      * moved to {@link org.gradle.initialization.DefaultLegacyTypesSupport} directly to the test.
      */
-    def "can apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.0 or 3.1 using added LegacyTypesUtil methods"() {
+    def "can apply 2.x plugin using ProjectBuilder in a test running with Gradle 3.0 or 3.1 using added DefaultLegacyTypesSupport functionality"() {
         when:
         file('src/test/java/org/gradle/consumer/PluginTest.java') << """
             package org.gradle.consumer;
@@ -335,15 +341,8 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
     }
 
-    private final List<GradleExecuter> executers = []
-
-    def cleanup() {
-        executers.each { it.cleanup() }
-    }
-
     private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir, String... tasks) {
         def executer = buildContext.distribution(gradleVersion).executer(temporaryFolder)
-        executer.expectDeprecationWarning()
         executer.inDirectory(testDirectory)
         executers << executer
         return executer.inDirectory(projectDir).withTasks(tasks)
