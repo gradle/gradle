@@ -63,21 +63,39 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
         byte[] originalBytes = originalResult
         byte[] movedBytes = movedResult
 
-        def length = originalBytes.length
-        if (movedBytes.length == length) {
-            int diffCount = 0
-            for (int i = 0; i < length; i++) {
-                if (originalBytes[i] != movedBytes[i]) {
-                    diffCount++
-                }
+        def originalLength = originalBytes.length
+        def movedLength = movedBytes.length
+
+        def lengthDiff = Math.abs(originalLength - movedLength)
+        def length = Math.min(originalLength, movedLength)
+        println String.format("Original is %d bytes, moved is %d bytes (%.2f%%)", originalLength, movedLength, 100d * lengthDiff / length)
+
+        if (lengthDiff > 0) {
+            // We are okay with 0.5% length difference
+            if (lengthDiff > length * 0.005) {
+                failWithDiff(originalBytes, movedBytes)
             }
-            // We accept less than 0.5% difference because timestamps and whatnot
-            println String.format("%d of %d bytes were different (%.2f%%)", diffCount, length, 100d * diffCount / length)
-            if (diffCount < length * 0.005) {
-                return
+
+            // Trim them to the same length by removing the first few bytes
+            originalBytes = originalBytes[(originalLength - length)..-1]
+            movedBytes = movedBytes[(movedLength - length)..-1]
+        }
+
+        int diffCount = 0
+        for (int i = 0; i < length; i++) {
+            if (originalBytes[i] != movedBytes[i]) {
+                diffCount++
             }
         }
 
+        // We accept less than 0.5% difference because timestamps and whatnot
+        println String.format("%d of %d bytes were different (%.2f%%)", diffCount, length, 100d * diffCount / length)
+        if (diffCount > length * 0.005) {
+            failWithDiff(originalBytes, movedBytes)
+        }
+    }
+
+    private static void failWithDiff(byte[] originalBytes, byte[] movedBytes) {
         // If we had too big a difference we fall back to Groovy reporting it
         def originalAsHex = toHexStrings(originalBytes)
         def movedAsHex = toHexStrings(movedBytes)
