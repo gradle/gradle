@@ -31,10 +31,14 @@ class GradleApiSpecAggregator {
 
     public GradleApiSpecProvider.Spec aggregate() {
         GradleApiSpecProvider.SpecBuilder builder = new GradleApiSpecProvider.SpecBuilder();
-        for (Class<? extends GradleApiSpecProvider> providerClass : providers()) {
-            builder.merge(instantiate(providerClass).get());
+        for (Class<? extends GradleApiSpecProvider> provider : providers()) {
+            builder.merge(specFrom(provider));
         }
         return builder.build();
+    }
+
+    private GradleApiSpecProvider.Spec specFrom(Class<? extends GradleApiSpecProvider> provider) {
+        return instantiate(provider).get();
     }
 
     private Collection<Class<? extends GradleApiSpecProvider>> providers() {

@@ -36,15 +36,15 @@ class GradleApiSpecAggregatorTest extends Specification {
         def aggregate = subject.aggregate()
 
         then:
-        aggregate.allowedResources == setOf("META-INF/gradle-plugins")
-        aggregate.allowedPackages == setOf("kotlin", "org.gradle", "groovy")
+        aggregate.exportedResourcePrefixes == setOf("META-INF/gradle-plugins")
+        aggregate.exportedPackages == setOf("kotlin", "org.gradle", "groovy")
     }
 
     static class SpecProvider1 implements GradleApiSpecProvider {
         @Override
         GradleApiSpecProvider.Spec get() {
             return new GradleApiSpecProvider.SpecBuilder()
-                .allowPackage("kotlin")
+                .exportPackage("kotlin")
                 .build()
         }
     }
@@ -53,8 +53,8 @@ class GradleApiSpecAggregatorTest extends Specification {
         @Override
         GradleApiSpecProvider.Spec get() {
             return new GradleApiSpecProvider.SpecBuilder()
-                .allowPackages("org.gradle", "groovy")
-                .allowResources("META-INF/gradle-plugins")
+                .exportPackages("org.gradle", "groovy")
+                .exportResourcePrefix("META-INF/gradle-plugins")
                 .build()
         }
     }

@@ -24,8 +24,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Extension point for Gradle modules to extend the set of available packages and
- * resources which should be visible from the Gradle API ClassLoader.
+ * Extension point for Gradle modules to extend the set of packages and
+ * resource prefixes exported by the Gradle API ClassLoader.
  *
  * A SPI suitable for use with Java's {@link java.util.ServiceLoader}.
  */
@@ -40,26 +40,26 @@ public interface GradleApiSpecProvider {
          *
          * Resources in those packages will also be visible.
          */
-        Set<String> getAllowedPackages();
+        Set<String> getExportedPackages();
 
         /**
          * Set of resource prefixes which should be visible from the Gradle API ClassLoader.
          */
-        Set<String> getAllowedResources();
+        Set<String> getExportedResourcePrefixes();
     }
 
     class SpecBuilder {
 
-        private final Set<String> allowedPackages = new LinkedHashSet<String>();
-        private final Set<String> allowedResources = new LinkedHashSet<String>();
+        private final Set<String> exportedPackages = new LinkedHashSet<String>();
+        private final Set<String> exportedResourcePrefixes = new LinkedHashSet<String>();
 
         /**
          * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
          *
          * @param packageName the package name
          */
-        public SpecBuilder allowPackage(String packageName) {
-            allowedPackages.add(packageName);
+        public SpecBuilder exportPackage(String packageName) {
+            exportedPackages.add(packageName);
             return this;
         }
 
@@ -68,8 +68,8 @@ public interface GradleApiSpecProvider {
          *
          * @param packageNames the set of package names
          */
-        public SpecBuilder allowPackages(String... packageNames) {
-            allowedPackages.addAll(Arrays.asList(packageNames));
+        public SpecBuilder exportPackages(String... packageNames) {
+            exportedPackages.addAll(Arrays.asList(packageNames));
             return this;
         }
 
@@ -78,8 +78,8 @@ public interface GradleApiSpecProvider {
          *
          * @param resourcePrefix the resource prefix
          */
-        public SpecBuilder allowResources(String resourcePrefix) {
-            allowedResources.add(resourcePrefix);
+        public SpecBuilder exportResourcePrefix(String resourcePrefix) {
+            exportedResourcePrefixes.add(resourcePrefix);
             return this;
         }
 
@@ -89,8 +89,8 @@ public interface GradleApiSpecProvider {
          * @param spec the spec to be merged
          */
         public SpecBuilder merge(Spec spec) {
-            allowedPackages.addAll(spec.getAllowedPackages());
-            allowedResources.addAll(spec.getAllowedResources());
+            exportedPackages.addAll(spec.getExportedPackages());
+            exportedResourcePrefixes.addAll(spec.getExportedResourcePrefixes());
             return this;
         }
 
@@ -100,27 +100,27 @@ public interface GradleApiSpecProvider {
          * @return the Spec
          */
         public Spec build() {
-            return new DefaultSpec(ImmutableSet.copyOf(allowedPackages), ImmutableSet.copyOf(allowedResources));
+            return new DefaultSpec(ImmutableSet.copyOf(exportedPackages), ImmutableSet.copyOf(exportedResourcePrefixes));
         }
 
         static class DefaultSpec implements Spec {
 
-            private final ImmutableSet<String> allowedPackages;
-            private final ImmutableSet<String> allowedResources;
+            private final ImmutableSet<String> exportedPackages;
+            private final ImmutableSet<String> exportedResourcePrefixes;
 
-            DefaultSpec(ImmutableSet<String> allowedPackages, ImmutableSet<String> allowedResources) {
-                this.allowedResources = allowedResources;
-                this.allowedPackages = allowedPackages;
+            DefaultSpec(ImmutableSet<String> exportedPackages, ImmutableSet<String> exportedResourcePrefixes) {
+                this.exportedResourcePrefixes = exportedResourcePrefixes;
+                this.exportedPackages = exportedPackages;
             }
 
             @Override
-            public Set<String> getAllowedPackages() {
-                return allowedPackages;
+            public Set<String> getExportedPackages() {
+                return exportedPackages;
             }
 
             @Override
-            public Set<String> getAllowedResources() {
-                return allowedResources;
+            public Set<String> getExportedResourcePrefixes() {
+                return exportedResourcePrefixes;
             }
         }
     }

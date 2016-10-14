@@ -43,10 +43,10 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private static FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {
         FilteringClassLoader.Spec apiSpec = new FilteringClassLoader.Spec();
         GradleApiSpecProvider.Spec apiAggregate = new GradleApiSpecAggregator(classLoader).aggregate();
-        for (String resources : apiAggregate.getAllowedResources()) {
-            apiSpec.allowResources(resources);
+        for (String resourcePrefix : apiAggregate.getExportedResourcePrefixes()) {
+            apiSpec.allowResources(resourcePrefix);
         }
-        for (String packageName : apiAggregate.getAllowedPackages()) {
+        for (String packageName : apiAggregate.getExportedPackages()) {
             apiSpec.allowPackage(packageName);
         }
         return apiSpec;
