@@ -18,7 +18,6 @@ package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
 import spock.lang.Issue
 
@@ -30,7 +29,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     final File jansiDir = new File(nativeDir, 'jansi')
 
     def setup() {
-        GFileUtils.deleteDirectory(nativeDir) // ensure that directory wasn't created by other tests
         requireGradleDistribution()
     }
 
@@ -40,17 +38,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         nativeDir.directory
-    }
-
-    def "throws exception if Jansi library directory cannot be created"() {
-        given:
-        GFileUtils.touch(jansiDir)
-
-        when:
-        def failure = quietExecutor().runWithFailure()
-
-        then:
-        failure.error.contains("Unable to create Jansi library path '$jansiDir.absolutePath'")
     }
 
     def "creates Jansi library directory and reuses for succeeding Gradle invocations"() {
