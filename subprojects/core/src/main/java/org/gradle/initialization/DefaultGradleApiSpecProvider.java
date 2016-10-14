@@ -21,8 +21,8 @@ public class DefaultGradleApiSpecProvider implements GradleApiSpecProvider {
     @Override
     public Spec get() {
         return new SpecBuilder()
-            .allowResources("META-INF/gradle-plugins")
-            .allowPackages(
+            .exportResourcePrefix("META-INF/gradle-plugins")
+            .exportPackages(
                 "org.gradle",
                 "org.apache.tools.ant",
                 "groovy",
