@@ -23,8 +23,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.AsyncCacheAccess;
 import org.gradle.cache.internal.AsyncCacheAccessDecoratedCache;
 import org.gradle.cache.internal.CacheDecorator;
-import org.gradle.cache.internal.CrossProcessCacheAccess;
-import org.gradle.cache.internal.CrossProcessSynchronizingCache;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
@@ -55,13 +53,11 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
     }
 
     @Override
-    public synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+    public synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, AsyncCacheAccess asyncCacheAccess) {
         Cache<Object, Object> inMemoryCache = createInMemoryCache(cacheId, cacheName);
         AtomicReference<FileLock.State> fileLockStateReference = getFileLockStateReference(cacheId);
-        return new CrossProcessSynchronizingCache<K, V>(
-            new InMemoryDecoratedCache<K, V>(
-                new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache), inMemoryCache, cacheId, fileLockStateReference),
-            crossProcessCacheAccess);
+        return new InMemoryDecoratedCache<K, V>(
+                new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache), inMemoryCache, cacheId, fileLockStateReference);
     }
 
     private AtomicReference<FileLock.State> getFileLockStateReference(String cacheId) {
