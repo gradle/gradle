@@ -32,25 +32,12 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         requireGradleDistribution()
     }
 
-    def "native services libs are unpacked to gradle user home dir"() {
+    def "native services libs are unpacked to gradle user home dir and Jansi library directory is created"() {
         when:
         quietExecutor().run()
 
         then:
         nativeDir.directory
-    }
-
-    def "creates Jansi library directory and reuses for succeeding Gradle invocations"() {
-        when:
-        quietExecutor().run()
-
-        then:
-        jansiDir.directory
-
-        when:
-        quietExecutor().run()
-
-        then:
         jansiDir.directory
     }
 
