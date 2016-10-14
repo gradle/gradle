@@ -31,13 +31,11 @@ import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 @Requires(JDK8_OR_EARLIER) //Versions <2.10 fail to compile the plugin with Java 9 (Could not determine java version from '9-ea')
 class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
-    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-
     public static final List<String> PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED = ['3.0', '3.1']
 
-    private repoDir
-
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private final List<GradleExecuter> executers = []
+    private File repoDir
 
     def setup() {
         repoDir = file('repo')
@@ -186,7 +184,9 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
         then:
         PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED.each {
-            createGradleExecutor(it, file('.'), 'test').runWithFailure()
+            def executionFailure = createGradleExecutor(it, 'test').runWithFailure()
+            executionFailure.assertTestsFailed()
+            executionFailure.assertOutputContains('Caused by: java.lang.ClassNotFoundException at PluginTest.java:21')
         }
     }
 
@@ -279,7 +279,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
         then:
         PROJECT_BUILDER_GRADLE_VERSIONS_AFFECTED.each {
-            createGradleExecutor(it, file('.'), 'test').run()
+            createGradleExecutor(it, 'test').run()
         }
     }
 
@@ -341,10 +341,11 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
     }
 
-    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir, String... tasks) {
+    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir = testDirectory, String... tasks) {
         def executer = buildContext.distribution(gradleVersion).executer(temporaryFolder)
-        executer.inDirectory(testDirectory)
+        executer.inDirectory(projectDir)
+        executer.withTasks(tasks)
         executers << executer
-        return executer.inDirectory(projectDir).withTasks(tasks)
+        executer
     }
 }
