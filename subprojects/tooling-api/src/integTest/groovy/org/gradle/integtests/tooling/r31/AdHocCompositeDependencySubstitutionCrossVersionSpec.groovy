@@ -28,7 +28,7 @@ import org.gradle.tooling.model.idea.IdeaProject
  * Dependency substitution is performed for models in a composite build
  */
 @TargetGradleVersion(">=3.1")
-class DependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
+class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB
@@ -41,9 +41,6 @@ class DependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
                 dependencies {
                     compile "org.test:b1:1.0"
                 }
-            """
-            settingsFile << """
-                includeBuild 'buildB'
             """
         }
 
@@ -58,7 +55,9 @@ class DependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
 
     def "EclipseProject model has dependencies substituted in composite"() {
         when:
-        def eclipseProject = loadToolingModel(EclipseProject)
+        def eclipseProject = withConnection {
+            model(EclipseProject).withArguments('--include-build', 'buildB').get()
+        }
 
         then:
         assert eclipseProject.classpath.empty
@@ -85,7 +84,9 @@ class DependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
             }
 """
 
-        def eclipseProject = loadToolingModel(EclipseProject)
+        def eclipseProject = withConnection {
+            model(EclipseProject).withArguments('--include-build', 'buildB').get()
+        }
 
         then:
         eclipseProject.projectDependencies.size() == 2
@@ -98,7 +99,9 @@ class DependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=3.2")
     def "Idea model has dependencies substituted in composite"() {
         when:
-        def ideaModule = loadToolingModel(IdeaProject).modules[0]
+        def ideaModule = withConnection {
+            model(IdeaProject).withArguments('--include-build', 'buildB').get()
+        }.modules[0]
 
         then:
         ideaModule.dependencies.size() == 1
@@ -126,7 +129,9 @@ class DependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
             }
 """
 
-        def ideaModule = loadToolingModel(IdeaProject).modules[0]
+        def ideaModule = withConnection {
+            model(IdeaProject).withArguments('--include-build', 'buildB').get()
+        }.modules[0]
 
         then:
         ideaModule.dependencies.size() == 2
