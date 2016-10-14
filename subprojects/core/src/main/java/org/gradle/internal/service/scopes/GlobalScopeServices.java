@@ -207,12 +207,12 @@ public class GlobalScopeServices {
         return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
-    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, HashingClassLoaderFactory classLoaderFactory, LegacyTypesSupport legacyTypesSupport) {
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
         if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
             return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }
 
-        return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory, legacyTypesSupport);
+        return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
