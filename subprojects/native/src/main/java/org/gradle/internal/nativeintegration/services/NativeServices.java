@@ -80,10 +80,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     }
                 }
             }
+            initializeJansiNative(nativeBaseDir);
             initialized = true;
 
             LOGGER.info("Initialized native services in: " + nativeBaseDir);
         }
+    }
+
+    private static void initializeJansiNative(File nativeBaseDir) {
+        File jansiNativeLibraryPath = new File(nativeBaseDir, "jansi");
+        jansiNativeLibraryPath.mkdirs();
+        System.setProperty("library.jansi.path", jansiNativeLibraryPath.getAbsolutePath());
     }
 
     public static File getNativeServicesDir(File userHomeDir) {

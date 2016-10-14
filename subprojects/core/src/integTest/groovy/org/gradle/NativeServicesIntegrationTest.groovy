@@ -17,6 +17,8 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Requires
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -29,6 +31,24 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         nativeDir.directory
+    }
+
+    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
+    def "gradle runs with a tmp dir mounted with noexec option"() {
+        given:
+        NativeServicesTestFixture.initialize()
+        executer.requireGradleDistribution().withNoExplicitTmpDir()
+        when:
+        executer.withBuildJvmOpts("-Djava.io.tmpdir=/tmp")
+
+        then:
+        executer.run()
+    }
+
+    public static boolean isMountedNoexec(String dir) {
+        def out = new StringBuffer()
+        'mount'.execute().waitForProcessOutput(out, System.err);
+        return out.readLines().find {it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec')}!= null;
     }
 
 }
