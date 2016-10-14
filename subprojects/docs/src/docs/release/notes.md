@@ -10,7 +10,7 @@ If you use an IDE and have a lot of dependencies in your build—particular dyna
 
 Our users trialling the **Kotlin build script support** will be glad to hear that progress continues apace with support for **multi-project builds**. And it's easier to try this feature on Windows now that a bug in compiling scripts on that platform has been fixed.
 
-The last change we want to bring to your attention has been a long time coming and will affect a large number of builds: the `<<` syntax for declaring tasks has **now been deprecated**. The eagle-eyed among you will notice that the user guide examples have been updated to use `doLast()` and we strongly recommend that you follow suit. This feature will be removed in Gradle 4.0! See the [Deprecations section](#deprecations) for more details.
+The last change we want to bring to your attention has been a long time coming and will affect a large number of builds: the shortcut syntax for declaring tasks (via `<<`) has **now been deprecated**. The eagle-eyed among you will notice that the user guide examples have been updated to use `doLast()` and we strongly recommend that you follow suit. This feature will be removed in Gradle 4.0! See the [Deprecations section](#deprecations) for more details.
 
 ## New and noteworthy
 
@@ -30,15 +30,19 @@ Gradle's incremental build support continues to see improvements, particularly i
 
 #### Java compilation tracks Java version used
 
-Changing the Java version used to compile your sources will now result in recompilation, because the  it is part of the up-to-date check.
+Gradle's Java plugin has taken account of the `sourceCompatibility` and `targetCompatibility` versions for a while now with respect to working out whether compiled class files are up to date or not. But the version of the Java compiler used was ignored.
+
+This release fixes that, which means changing the Java compiler version—say from Java 7 to Java 8—will now result in recompilation.
 
 #### Better change tracking in copy and archive tasks
 
-When changing the destination for a copy spec in a `Copy`, `Zip` or `Jar` etc. task, the task now becomes out-of-date. Previously Gradle only tracked changes to case-sensitivity, duplication strategy and file- and dir modes on the main spec; now it tracks it for child specs, too.
+A long-standing issue with copy-based tasks has now been fixed: the destination directory is finally taken into account for the tasks' up-to-date checks. So changing the `into` value will result in the task running again.
+
+In addition, Gradle now tracks changes to case-sensitivity, duplication strategy, file mode and dir mode on child specs, not just the main one.
 
 #### Classpath tracking
 
-Input properties that should be treated as Java classpaths can now be annotated with `@Classpath`. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the the property with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also ignore the names of JAR files directly added to the classpath.
+Input properties that should be treated as Java classpaths can now be annotated with `@Classpath`. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also ignore the names of JAR files directly added to the classpath.
 
 #### Removing all sources will delete outputs
 
@@ -75,7 +79,7 @@ The improved log message should make it much easier to spot and fix those warnin
             at build_dhrhtn4oo56t198zc6nkf59c4.run(/home/someuser/project-dir/build.gradle:3)
     ...
 
-This is particularly important now that the `<<` syntax for task definitions has been deprecated!
+This is particularly important now that the shortcut syntax for task definitions (`<<`) has been deprecated!
 
 ### HTTP Basic Authentication for wrapper distributions
 
@@ -87,7 +91,9 @@ As stated in the User guide, please note that this shouldn't be used over insecu
 
 ### Ctrl-C no longer stops the Daemon
 
-We made a number of improvements in Gradle 3.1 to allow the daemon to cancel a running build when a client disconnects unexpectedly, but there were situations where pressing Ctrl-C during a build could still cause the Daemon to exit. The Daemon will now attempt to cancel the running build.  As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
+We made a number of improvements in Gradle 3.1 that allow the Daemon to cancel a running build when a client disconnects unexpectedly. This included many scenarios in which the user pressed Ctrl-C, but not all. In other words, a Ctrl-C would still sometimes kill the Daemon. 
+
+This release resolves the remaining issues so that Ctrl-C will reliably _not_ kill the Daemon. As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
 
 ### Continuous build usability improvements
 
