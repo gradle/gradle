@@ -61,14 +61,8 @@ public class MeasurementPlugin implements Plugin<Project> {
             }
 
         };
-        BuildAdapter measuremeAsLateAsPossible = new BuildAdapter() {
-            @Override
-            public void buildStarted(Gradle gradle) {
-                gradle.addBuildListener(performMeasurements);
-            }
-        };
-        gradle.addBuildListener(measuremeAsLateAsPossible);
 
+        gradle.addBuildListener(performMeasurements);
         gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
             @Override
             public void graphPopulated(TaskExecutionGraph graph) {
