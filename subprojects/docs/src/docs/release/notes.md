@@ -1,3 +1,17 @@
+The Gradle team is pleased to announce Gradle 3.2.
+
+It's a relatively quiet release this time around, but there are still plenty of reasons to upgrade.
+
+Perhaps the most significant improvements are in the **incremental build support**, which now has **better up-to-date checking** for Java compilation, copying, and archiving. You can also have Gradle treat any task input as a classpath with the new `@Classpath` annotation.
+
+Users of Gradle's **native build support** gain an important tool in this release. Many of you will be familiar with the `buildDependents` task for classic multi-project builds. This is now available in native builds as well via new `assembleDependents` and `buildDependents` tasks. These are incredibly useful for determining whether your changes have adversely impacted anything that depends on them.
+
+If you use an IDE and have a lot of dependencies in your build—particular dynamic ones—you may have experienced long import times. The underlying issue has been fixed in this release, resulting in significantly improved import times. One example enterprise build showed **a 100-fold improvement**!
+
+Our users trialling the **Kotlin build script support** will be glad to hear that progress continues apace with support for **multi-project builds**. And it's easier to try this feature on Windows now that a bug in compiling scripts on that platform has been fixed.
+
+The last change we want to bring to your attention has been a long time coming and will affect a large number of builds: the `<<` syntax for declaring tasks has **now been deprecated**. The eagle-eyed among you will notice that the user guide examples have been updated to use `doLast()` and we strongly recommend that you follow suit. This feature will be removed in Gradle 4.0! See the [Deprecations section](#deprecations) for more details.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -10,41 +24,37 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Origin of deprecation warning within build script is rendered on command line
+### Incremental build improvements
 
-For each deprecation warning Gradle now prints its location in the
-build file to the console. When passing the command line option `-s` or `-S`
-to Gradle then the whole stack trace is printed out.
-The improved log message should make it much easier to spot and fix those warnings.
-The following sample output demonstrates the improved logging capabilities:
+Gradle's incremental build support continues to see improvements, particularly in the area of more accurate up-to-date checks.
 
-    > gradle tasks
-    The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.
-            at build_dhrhtn4oo56t198zc6nkf59c4.run(/home/someuser/project-dir/build.gradle:3)
+#### Java compilation tracks Java version used
 
-    ...
+Changing the Java version used to compile your sources will now result in recompilation, because the  it is part of the up-to-date check.
 
-### The Wrapper can now use HTTP Basic Authentication to download distributions
+#### Better change tracking in copy and archive tasks
 
-The Gradle Wrapper can now download Gradle distributions from a server requiring authentication.
-This allows you to host the Gradle distribution on a private server protected with HTTP Basic Authentication.
+When changing the destination for a copy spec in a `Copy`, `Zip` or `Jar` etc. task, the task now becomes out-of-date. Previously Gradle only tracked changes to case-sensitivity, duplication strategy and file- and dir modes on the main spec; now it tracks it for child specs, too.
 
-See the User guide section on “[authenticated distribution download](userguide/gradle_wrapper.html#sec:authenticated_download)“ for more information.
+#### Classpath tracking
 
-As stated in the User guide, please note that this shouldn't be used over insecure connections.
+Input properties that should be treated as Java classpaths can now be annotated with `@Classpath`. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the the property with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also ignore the names of JAR files directly added to the classpath.
 
-### Ctrl-c no longer stops the Daemon
+#### Removing all sources will delete outputs
 
-In Gradle 3.1 we made a number of improvements to allow the daemon to cancel a running build when a client disconnects unexpectedly, but there were situations where pressing ctrl-c during a build could still cause the Daemon to exit.  With this release, any time ctrl-c is sent, the Daemon will attempt to cancel the running build.  As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
+For a long time Gradle supported skipping the execution of a task entirely if it didn't have any _sources._ This feature can be enabled by annotating an input file or file collection property with `@SkipWhenEmpty`. In previous versions of Gradle, removing all of a task's input files would leave the previous build execution's outputs in place on subsequent runs. This is now fixed: stale outputs are properly removed.
 
-### Continuous build usability improvements
+### Build Dependents for Native Binaries
 
-Continuous build now ignores changes in the root project's `.gradle` directory and in all `build` directories. 
-This change is important for projects that have the project directory as an input in some task in the build. 
-Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
-Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
+Sometimes, you may need to *assemble* (compile and link) or *build* (compile, link and test) a component or binary and its *dependents* (things that depend upon the component or binary). The native software model now provides tasks that enable this capability.
 
-### New preferProjectModules() conflict resolution strategy for multi-project builds
+First, the `dependentComponents*` task generates a report that gives insight about the relationships between each component.
+
+Second, the `buildDependents*` and `assembleDependents*` tasks allow you to assemble or build a component and its dependents in one step.
+
+See the User guide section on “[Assembling or building dependents](userguide/native_binaries.html#sec:dependents)“ in the “[Building native software](userguide/native_binaries.html)“ chapter for more information.
+
+### New `preferProjectModules()` conflict resolution strategy for multi-project builds
 
 The `preferProjectModules()` configuration option can now be used in multi-project builds.
 
@@ -54,32 +64,37 @@ With this option it is possible to tell Gradle to always resolve a project depen
 if the corresponding subproject exists in the build. Without this option, other dependencies to a higher
 version of the same module cause the replacement of the subproject by the other version in the dependency tree.
 
-### Incremental build improvements
+### Improved deprecation warnings
 
-#### Java compilation tracks Java version used
+When a line in a build script triggers a deprecation warning, Gradle now prints its location to the console. You can also pass the command line option `-s` or `-S` to get the whole stack trace.
 
-If you change the Java version used to compile your sources, the compile task will now become out-of-date, and the sources will be recompiled.
+The improved log message should make it much easier to spot and fix those warnings, as demonstrated by this sample output:
 
-#### Better change tracking in copy and archive tasks
+    > gradle tasks
+    The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.
+            at build_dhrhtn4oo56t198zc6nkf59c4.run(/home/someuser/project-dir/build.gradle:3)
+    ...
 
-When changing the destination for a copy spec in a `Copy`, `Zip` or `Jar` etc. task, the task now becomes out-of-date. Previously Gradle only tracked changes to case-sensitivity, duplication strategy and file- and dir modes on the main spec; now it tracks it for child specs, too.
+This is particularly important now that the `<<` syntax for task definitions has been deprecated!
 
-#### Classpath tracking
+### HTTP Basic Authentication for wrapper distributions
 
-Input properties that should be treated as Java classpaths can now be annotated with `@Classpath`. This allows the task to ignore irrelevant changes to the property, such as changing the name of the files on the classpath. It is similar to annotating the the property with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also ignore the names of JAR files directly added to the classpath.
+The Gradle Wrapper can now download Gradle distributions from a server that requires authentication. This allows you to host the Gradle distribution on a private server protected with HTTP Basic Authentication.
 
-#### Removing all sources will delete outputs
+See the User guide section on “[authenticated distribution download](userguide/gradle_wrapper.html#sec:authenticated_download)“ for more information.
 
-For a long time Gradle supported skipping the execution of a task entirely if it didn't have any _sources._ This feature can be enabled by annotating an input file property with `@SkipWhenEmpty`. In previous versions of Gradle however, when all the sources of the task were removed since the last build, the previous outputs were left in place. This is now fixed, and in such cases the stale outputs are properly removed.
+As stated in the User guide, please note that this shouldn't be used over insecure connections.
 
-### Build Dependents for Native Binaries
+### Ctrl-C no longer stops the Daemon
 
-Sometimes, you may need to *assemble* (compile and link) or *build* (compile, link and test) a component or binary and its *dependents* (things that depend upon the component or binary). The native software model now provides tasks that enable this capability.
+We made a number of improvements in Gradle 3.1 to allow the daemon to cancel a running build when a client disconnects unexpectedly, but there were situations where pressing Ctrl-C during a build could still cause the Daemon to exit. The Daemon will now attempt to cancel the running build.  As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
 
-First, the *dependent components* report gives insight about the relationships between each component.
-Second, the *build and assemble dependents* tasks allow you to assemble or build a component and its dependents in one step.
+### Continuous build usability improvements
 
-See the User guide section on “[Assembling or building dependents](userguide/native_binaries.html#sec:dependents)“ in the “[Building native software](userguide/native_binaries.html)“ chapter for more information.
+Continuous build now ignores changes in the root project's `.gradle` directory and in all `build` directories. 
+This change is important for projects that have the project directory as an input in some task in the build. 
+Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
+Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
 
 ### Multi-project builds with Kotlin scripting
 
@@ -89,25 +104,11 @@ v0.3.3 improves support for multi-project builds of Kotlin based projects and fi
 
 See the [Gradle Script Kotlin v0.3.3 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.3) for the details.
 
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
-
 ## Fixed issues
 
 ### Fixed a performance problem in the Tooling API
 
-The dependency resolution caches were not being filled when building Tooling API models. 
-As a result, IDE import was very slow when the caches were cold. This especially affected
-builds with many dynamic dependencies and low cache timeouts. One large enterprise project
-saw import times drop by a factor of 100.
+The dependency resolution caches were not being filled when building Tooling API models. As a result, IDE import was very slow when the caches were cold. This especially affected builds with many dynamic dependencies and low cache timeouts. One large enterprise project saw import times drop by a factor of 100.
 
 ## Deprecations
 
@@ -118,40 +119,40 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### The left shift operator on the Task interface
 
-The left shift (`<<`) operator acts as alias for adding a `doLast` action for an existing task. For newcomers to Gradle, the meaning of the operator is not immediately apparent and
-leads to mixing configuration code with action code. Consequently, mis-configured task lead to unexpected runtime behavior. Let's consider the following two examples to illustrate common
-mistakes.
+The left shift (`<<`) operator acts as an alias for adding a `doLast` action to an existing task. For newcomers to Gradle, the meaning of the operator is not immediately apparent and
+leads to mixing configuration code with action code. Such misconfigured tasks lead to unexpected runtime behavior.
 
-_Definition of a default task that configures the `description` property and defines an action using the left shift operator:_ As a result, the task would not configure the task's description.
+Let's consider the following two examples to illustrate some common mistakes:
 
-    // WRONG: Description assigned in execution phase
-    task helloWorld << {
-        description = 'Prints out a message.'
-        println 'Hello world!'
-    }
+ - A build configures the `description` property and defines an action using the left shift operator. As a result, the task would not configure the task's description.
 
-    // CORRECT: Description assigned in configuration phase
-    task helloWorld {
-        description = 'Prints out a message.'
-        doLast {
+        // WRONG: Description assigned in execution phase
+        task helloWorld << {
+            description = 'Prints out a message.'
             println 'Hello world!'
         }
-    }
 
-_Definition of an enhanced task using the left shift operator:_ As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the `Copy` task are configured during the execution
-phase of the Gradle build lifecycle which is to late for Gradle to pick up the configuration.
+        // CORRECT: Description assigned in configuration phase
+        task helloWorld {
+            description = 'Prints out a message.'
+            doLast {
+                println 'Hello world!'
+            }
+        }
 
-    // WRONG: Configuring task in execution phase
-    task copy(type: Copy) << {
-        from 'source'
-        into "$buildDir/output"
-    }
+ - A build defines a typed task using the left shift operator. As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the task are configured during the execution phase.
 
-    // CORRECT: Configuring task in configuration phase
-    task copy(type: Copy) {
-        from 'source'
-        into "$buildDir/output"
-    }
+        // WRONG: Configuring task in execution phase
+        task copy(type: Copy) << {
+            from 'source'
+            into "$buildDir/output"
+        }
+
+        // CORRECT: Configuring task in configuration phase
+        task copy(type: Copy) {
+            from 'source'
+            into "$buildDir/output"
+        }
 
 With this version of Gradle, the left shift operator on the `Task` interface is deprecated and is scheduled to be removed with the next major release. There's no direct replacement
 for the left shift operation. Please use the existing methods `doFirst` and `doLast` to define task actions.
