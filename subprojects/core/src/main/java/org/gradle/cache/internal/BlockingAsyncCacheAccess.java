@@ -16,17 +16,27 @@
 
 package org.gradle.cache.internal;
 
-import java.io.Closeable;
+import org.gradle.cache.CacheAccess;
+import org.gradle.internal.Factory;
 
-public abstract class AbstractCrossProcessCacheAccess implements CrossProcessCacheAccess, Closeable {
-    /**
-     * Opens this cache access instance when the cache is opened. State lock is held while this method is called.
-     */
-    public abstract void open();
+public class BlockingAsyncCacheAccess implements AsyncCacheAccess {
+    private final CacheAccess cacheAccess;
 
-    /**
-     * Closes this cache access instance when the cache is opened. State lock is held while this method is called.
-     */
+    public BlockingAsyncCacheAccess(CacheAccess cacheAccess) {
+        this.cacheAccess = cacheAccess;
+    }
+
     @Override
-    public abstract void close();
+    public void enqueue(Runnable task) {
+        cacheAccess.useCache("update cache", task);
+    }
+
+    @Override
+    public <T> T read(Factory<T> task) {
+        return cacheAccess.useCache("read from cache", task);
+    }
+
+    @Override
+    public void flush() {
+    }
 }

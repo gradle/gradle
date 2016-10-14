@@ -18,9 +18,8 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.internal.AsyncCacheAccess
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache
+import org.gradle.internal.Factory
 import spock.lang.Specification
-
-import java.util.concurrent.Callable
 
 class InMemoryTaskArtifactCacheTest extends Specification {
     def cacheFactory = new InMemoryTaskArtifactCache()
@@ -38,7 +37,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> "result"
         0 * target._
 
@@ -63,7 +62,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == null
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> null
         0 * target._
 
@@ -88,7 +87,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> "result"
         0 * target._
 
@@ -122,7 +121,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> "result"
         0 * target._
 
