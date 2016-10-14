@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.cache.CacheAccess;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -71,13 +70,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         }
     }
 
-    public <T> T read(final Factory<T> task) {
-        FutureTask<T> futureTask = AsyncCacheAccessFutureTask.wrapWhenContextIsUsed(new Callable<T>() {
-            @Override
-            public T call() throws Exception {
-                return task.create();
-            }
-        });
+    public <T> T read(Callable<T> task) {
+        FutureTask<T> futureTask = AsyncCacheAccessFutureTask.wrapWhenContextIsUsed(task);
         addToQueue(futureTask);
         try {
             return futureTask.get();

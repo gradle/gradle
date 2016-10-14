@@ -62,7 +62,7 @@ public class TaskStateInternal implements TaskState {
      */
     public void setOutcome(Throwable failure) {
         assert this.failure == null;
-        this.outcome = TaskExecutionOutcome.EXECUTED;
+        setOutcome(TaskExecutionOutcome.EXECUTED);
         this.failure = failure;
     }
 
