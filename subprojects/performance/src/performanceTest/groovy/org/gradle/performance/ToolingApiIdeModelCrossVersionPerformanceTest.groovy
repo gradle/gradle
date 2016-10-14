@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.internal.jvm.Jvm
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -25,7 +26,7 @@ import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([ToolingApiPerformanceTest])
+@Category([ToolingApiPerformanceTest, Experiment])
 class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
