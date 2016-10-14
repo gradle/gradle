@@ -41,7 +41,7 @@ public class MeasurementPlugin implements Plugin<Project> {
         final PerformanceCounterMeasurement performanceCounterMeasurement = new PerformanceCounterMeasurement(project.getRootProject().getBuildDir());
         performanceCounterMeasurement.recordStart();
 
-        gradle.addBuildListener(new BuildAdapter() {
+        final BuildAdapter performMeasurements = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 BuildEventTimeStamps.buildFinished(result);
@@ -54,7 +54,14 @@ public class MeasurementPlugin implements Plugin<Project> {
                 ExternalResources.printAndResetStats();
             }
 
-        });
+        };
+        BuildAdapter measuremeAsLateAsPossible = new BuildAdapter() {
+            @Override
+            public void buildStarted(Gradle gradle) {
+                gradle.addBuildListener(performMeasurements);
+            }
+        };
+        gradle.addBuildListener(measuremeAsLateAsPossible);
 
         gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
             @Override
