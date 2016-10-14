@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,6 +47,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     public static boolean isMountedNoexec(String dir) {
+        if (TestPrecondition.NOT_LINUX) {
+            return false;
+        }
         def out = new StringBuffer()
         'mount'.execute().waitForProcessOutput(out, System.err);
         return out.readLines().find {it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec')}!= null;
