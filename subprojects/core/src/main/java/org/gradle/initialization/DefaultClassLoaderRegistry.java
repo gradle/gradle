@@ -32,21 +32,24 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         this.apiAndPluginsClassLoader = restrictToGradleApi(pluginsClassLoader);
     }
 
-    private static ClassLoader restrictToGradleApi(ClassLoader parent) {
-        FilteringClassLoader.Spec rootSpec = new FilteringClassLoader.Spec();
-        rootSpec.allowPackage("org.gradle");
-        rootSpec.allowResources("META-INF/gradle-plugins");
-        rootSpec.allowPackage("org.apache.tools.ant");
-        rootSpec.allowPackage("groovy");
-        rootSpec.allowPackage("org.codehaus.groovy");
-        rootSpec.allowPackage("groovyjarjarantlr");
-        rootSpec.allowPackage("org.slf4j");
-        rootSpec.allowPackage("org.apache.commons.logging");
-        rootSpec.allowPackage("org.apache.log4j");
-        rootSpec.allowPackage("javax.inject");
-        rootSpec.allowPackage("kotlin");
-        ClassLoader rootClassLoader = new FilteringClassLoader(parent, rootSpec);
-        return new CachingClassLoader(rootClassLoader);
+    private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
+        return restrictTo(apiSpecFor(classLoader), classLoader);
+    }
+
+    private static ClassLoader restrictTo(FilteringClassLoader.Spec spec, ClassLoader parent) {
+        return new CachingClassLoader(new FilteringClassLoader(parent, spec));
+    }
+
+    private static FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {
+        FilteringClassLoader.Spec apiSpec = new FilteringClassLoader.Spec();
+        GradleApiSpecProvider.Spec apiAggregate = new GradleApiSpecAggregator(classLoader).aggregate();
+        for (String resources : apiAggregate.getAllowedResources()) {
+            apiSpec.allowResources(resources);
+        }
+        for (String packageName : apiAggregate.getAllowedPackages()) {
+            apiSpec.allowPackage(packageName);
+        }
+        return apiSpec;
     }
 
     @Override
