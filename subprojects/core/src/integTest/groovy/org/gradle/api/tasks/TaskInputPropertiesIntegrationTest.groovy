@@ -38,8 +38,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasDescription("Could not add entry ':foo' to cache taskArtifacts.bin")
-        then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx' cannot be serialized.")
+        then: failure.assertHasCause("Could not add entry ':foo' to cache taskArtifacts.bin")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {

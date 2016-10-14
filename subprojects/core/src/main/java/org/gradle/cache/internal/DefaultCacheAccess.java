@@ -44,7 +44,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.*;
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
-    private final static boolean ASYNC_FILE_ACCESS = System.getProperty("org.gradle.internal.cache.async", "false").equalsIgnoreCase("true");
+
     private final String cacheDisplayName;
     private final File baseDir;
     private final FileLockManager lockManager;
@@ -69,11 +69,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private int cacheClosedCount;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
-        if (ASYNC_FILE_ACCESS) {
-            LOG.info("Using async file access for {}", cacheDisplayName);
-        } else {
-            LOG.info("Using sync file access for {}", cacheDisplayName);
-        }
         this.cacheDisplayName = cacheDisplayName;
         this.lockOptions = lockOptions;
         this.baseDir = baseDir;
@@ -109,10 +104,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    private synchronized AsyncCacheAccess getCacheAccessWorker() {
-        if (!ASYNC_FILE_ACCESS) {
-            return new BlockingAsyncCacheAccess(this);
-        }
+    private synchronized CacheAccessWorker getCacheAccessWorker() {
         if (_cacheAccessWorker == null) {
             HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
             int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));

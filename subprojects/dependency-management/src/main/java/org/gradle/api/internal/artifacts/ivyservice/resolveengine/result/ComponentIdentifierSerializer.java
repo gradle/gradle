@@ -73,34 +73,20 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             encoder.writeString(libraryIdentifier.getLibraryName());
             encoder.writeString(libraryIdentifier.getVariant());
         } else {
-            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
+            throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
     }
 
-
     private Implementation resolveImplementation(ComponentIdentifier value) {
         Implementation implementation;
-
-        Class<? extends ComponentIdentifier> valueClass = value.getClass();
-
-        // check for equality of class as first pass because of performance reasons
-        if (valueClass == DefaultModuleComponentIdentifier.class) {
+        if (value instanceof ModuleComponentIdentifier) {
             implementation = Implementation.MODULE;
-        } else if (valueClass == DefaultProjectComponentIdentifier.class) {
+        } else if (value instanceof ProjectComponentIdentifier) {
             implementation = Implementation.BUILD;
-        } else if (valueClass == DefaultLibraryBinaryIdentifier.class) {
+        } else if (value instanceof LibraryBinaryIdentifier) {
             implementation = Implementation.LIBRARY;
         } else {
-            // make instanceof checks in the 2nd pass, should usually never happen
-            if (ModuleComponentIdentifier.class.isInstance(value)) {
-                implementation = Implementation.MODULE;
-            } else if (ProjectComponentIdentifier.class.isInstance(value)) {
-                implementation = Implementation.BUILD;
-            } else if (LibraryBinaryIdentifier.class.isInstance(value)) {
-                implementation = Implementation.LIBRARY;
-            } else {
-                throw new IllegalArgumentException("Unsupported component identifier class: " + valueClass);
-            }
+            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
         }
         return implementation;
     }

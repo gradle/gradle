@@ -75,6 +75,11 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     }
 
     @Override
+    public FileLock getLock() throws IllegalStateException {
+        return fileLock;
+    }
+
+    @Override
     public void close() {
         if (fileLock != null) {
             try {
