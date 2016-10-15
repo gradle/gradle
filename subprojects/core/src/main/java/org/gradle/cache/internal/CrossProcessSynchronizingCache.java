@@ -28,11 +28,6 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
         this.cacheAccess = cacheAccess;
     }
 
-    @Override
-    public void close() {
-        target.close();
-    }
-
     @Nullable
     @Override
     public V get(final K key) {
@@ -69,12 +64,17 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void onStartWork(FileLock.State currentCacheState) {
-        target.onStartWork(currentCacheState);
+    public void afterLockAcquire(FileLock.State currentCacheState) {
+        target.afterLockAcquire(currentCacheState);
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
-        target.onEndWork(currentCacheState);
+    public void finishWork() {
+        target.finishWork();
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
+        target.beforeLockRelease(currentCacheState);
     }
 }

@@ -86,15 +86,11 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
-    public void onStartWork(FileLock.State currentCacheState) {
+    public void afterLockAcquire(FileLock.State currentCacheState) {
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
-    }
-
-    @Override
-    public void close() {
+    public void finishWork() {
         if (cache != null) {
             try {
                 fileAccess.writeFile(new Runnable() {
@@ -106,6 +102,10 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
                 cache = null;
             }
         }
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
     }
 
     private PersistentIndexedCache<K, V> getCache() {

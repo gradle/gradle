@@ -27,7 +27,6 @@ import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.serialize.Serializer;
@@ -343,7 +342,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                indexedCache.onStartWork(stateAtOpen);
+                indexedCache.afterLockAcquire(stateAtOpen);
             }
         } finally {
             lock.unlock();
@@ -370,7 +369,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
         for (UnitOfWorkParticipant cache : caches) {
-            cache.onStartWork(stateAtOpen);
+            cache.afterLockAcquire(stateAtOpen);
         }
         if (lockOptions.getMode() == None) {
             lockManager.allowContention(fileLock, whenContended());
@@ -383,12 +382,17 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private void beforeLockRelease(FileLock fileLock) {
         assert this.fileLock == fileLock;
         try {
-            // Close the caches and then notify them of the final state, in case the caches do work on close
             cacheClosedCount++;
-            new CompositeStoppable().add(caches).stop();
+
+            // Notify caches that lock is to be released. The caches may do work on the cache files during this
+            for (MultiProcessSafePersistentIndexedCache cache : caches) {
+                cache.finishWork();
+            }
+
+            // Snapshot the state and notify the caches
             FileLock.State state = fileLock.getState();
             for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                cache.onEndWork(state);
+                cache.beforeLockRelease(state);
             }
         } finally {
             this.fileLock = null;

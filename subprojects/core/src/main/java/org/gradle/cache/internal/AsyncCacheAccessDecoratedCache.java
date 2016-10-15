@@ -28,11 +28,6 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
         this.persistentCache = persistentCache;
     }
 
-    @Override
-    public void close() {
-        persistentCache.close();
-    }
-
     @Nullable
     @Override
     public V get(final K key) {
@@ -93,12 +88,17 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void onStartWork(FileLock.State currentCacheState) {
-        persistentCache.onStartWork(currentCacheState);
+    public void afterLockAcquire(FileLock.State currentCacheState) {
+        persistentCache.afterLockAcquire(currentCacheState);
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
-        persistentCache.onEndWork(currentCacheState);
+    public void finishWork() {
+        persistentCache.finishWork();
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
+        persistentCache.beforeLockRelease(currentCacheState);
     }
 }
