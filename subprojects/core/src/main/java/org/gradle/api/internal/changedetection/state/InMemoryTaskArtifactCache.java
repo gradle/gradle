@@ -56,12 +56,15 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
 
     @Override
     public synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+        MultiProcessSafePersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache);
+        MultiProcessSafePersistentIndexedCache<K, V> memCache = applyInMemoryCaching(cacheId, cacheName, asyncCache);
+        return new CrossProcessSynchronizingCache<K, V>(memCache, crossProcessCacheAccess);
+    }
+
+    protected <K, V> MultiProcessSafePersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> backingCache) {
         Cache<Object, Object> inMemoryCache = createInMemoryCache(cacheId, cacheName);
         AtomicReference<FileLock.State> fileLockStateReference = getFileLockStateReference(cacheId);
-        return new CrossProcessSynchronizingCache<K, V>(
-            new InMemoryDecoratedCache<K, V>(
-                new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache), inMemoryCache, cacheId, fileLockStateReference),
-            crossProcessCacheAccess);
+        return new InMemoryDecoratedCache<K, V>(backingCache, inMemoryCache, cacheId, fileLockStateReference);
     }
 
     private AtomicReference<FileLock.State> getFileLockStateReference(String cacheId) {

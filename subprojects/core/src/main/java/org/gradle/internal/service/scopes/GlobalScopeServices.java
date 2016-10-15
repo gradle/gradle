@@ -31,7 +31,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.SoftInMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.ShortLivedProcessInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -276,8 +276,7 @@ public class GlobalScopeServices {
         if(environment.isLongLivingProcess()) {
             return new InMemoryTaskArtifactCache();
         } else {
-            // drop caches on memory pressure
-            return new SoftInMemoryTaskArtifactCache();
+            return new ShortLivedProcessInMemoryTaskArtifactCache();
         }
     }
 
