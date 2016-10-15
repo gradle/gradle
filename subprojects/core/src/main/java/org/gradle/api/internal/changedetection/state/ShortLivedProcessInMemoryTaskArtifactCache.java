@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 
 /**
  * InMemoryTaskArtifactCache suitable for non-daemon processes.
@@ -25,7 +25,7 @@ import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
  */
 public class ShortLivedProcessInMemoryTaskArtifactCache extends InMemoryTaskArtifactCache {
     @Override
-    protected <K, V> MultiProcessSafePersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> backingCache) {
+    protected <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, String cacheName, MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache) {
         // Apply in-memory caching to file snapshots only. For all other caches, each entry is used at most once, so does not benefit from caching
         if ("fileHashes".equals(cacheName)) {
             return super.applyInMemoryCaching(cacheId, cacheName, backingCache);

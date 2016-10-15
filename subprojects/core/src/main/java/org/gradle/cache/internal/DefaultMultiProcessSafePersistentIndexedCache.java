@@ -56,15 +56,6 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
-    public void putLater(K key, V value, Runnable completion) {
-        try {
-            put(key, value);
-        } finally {
-            completion.run();
-        }
-    }
-
-    @Override
     public void remove(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
@@ -74,15 +65,6 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
                 cache.remove(key);
             }
         });
-    }
-
-    @Override
-    public void removeLater(K key, Runnable completion) {
-        try {
-            remove(key);
-        } finally {
-            completion.run();
-        }
     }
 
     @Override

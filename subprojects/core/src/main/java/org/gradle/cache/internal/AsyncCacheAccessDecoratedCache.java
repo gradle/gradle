@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 
-public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
+public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
     private final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
 
@@ -40,16 +40,6 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void put(final K key, final V value) {
-        asyncCacheAccess.enqueue(new Runnable() {
-            @Override
-            public void run() {
-                persistentCache.put(key, value);
-            }
-        });
-    }
-
-    @Override
     public void putLater(final K key, final V value, final Runnable completion) {
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
@@ -59,16 +49,6 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
                 } finally {
                     completion.run();
                 }
-            }
-        });
-    }
-
-    @Override
-    public void remove(final K key) {
-        asyncCacheAccess.enqueue(new Runnable() {
-            @Override
-            public void run() {
-                persistentCache.remove(key);
             }
         });
     }

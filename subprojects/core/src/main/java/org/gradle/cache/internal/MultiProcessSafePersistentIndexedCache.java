@@ -17,14 +17,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.PersistentIndexedCache;
 
+/**
+ * A {@link PersistentIndexedCache} implementation that is aware of file locking.
+ */
 public interface MultiProcessSafePersistentIndexedCache<K, V> extends PersistentIndexedCache<K, V>, UnitOfWorkParticipant {
-    /**
-     * Submits an update to be applied later. This method does not block, but invokes the given completion action when the operation is complete.
-     */
-    void putLater(K key, V value, Runnable completion);
-
-    /**
-     * Submits a removal to be applied later. This method does not block, but invokes the given completion action when the operation is complete.
-     */
-    void removeLater(K key, Runnable completion);
 }
