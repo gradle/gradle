@@ -52,7 +52,7 @@ For a long time Gradle supported skipping the execution of a task entirely if it
 
 Sometimes, you may need to *assemble* (compile and link) or *build* (compile, link and test) a component or binary and its *dependents* (things that depend upon the component or binary). The native software model now provides tasks that enable this capability.
 
-First, the `dependentComponents*` task generates a report that gives insight about the relationships between each component.
+First, the `dependentComponents` task generates a report that gives insight about the relationships between each component.
 
 Second, the `buildDependents*` and `assembleDependents*` tasks allow you to assemble or build a component and its dependents in one step.
 
