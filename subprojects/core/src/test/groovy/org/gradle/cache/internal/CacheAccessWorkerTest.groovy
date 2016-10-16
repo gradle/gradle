@@ -19,8 +19,6 @@ package org.gradle.cache.internal
 import org.gradle.cache.CacheAccess
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import java.util.concurrent.CountDownLatch
-
 class CacheAccessWorkerTest extends ConcurrentSpec {
     def cacheAccess
 
@@ -30,32 +28,63 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         }
     }
 
-    def "flushes existing operations when stop is called"() {
+    def "flushes queued actions when stop is called"() {
         given:
         def counter = 0
         def action = {
             Thread.sleep(200L)
             counter++
-        } as Runnable
-        def runningLatch = new CountDownLatch(1)
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L) {
-            @Override
-            protected Runnable takeFromQueue() throws InterruptedException {
-                runningLatch.countDown()
-                return super.takeFromQueue()
-            }
         }
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
-        start(cacheAccessWorker)
-        runningLatch.await()
 
         when:
+        start(cacheAccessWorker)
         cacheAccessWorker.stop()
 
         then:
-        noExceptionThrown()
         counter == 3
+    }
+
+    def "flushes queued actions when flush is called"() {
+        given:
+        def counter = 0
+        def action = {
+            Thread.sleep(200L)
+            counter++
+        }
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        cacheAccessWorker.enqueue(action)
+        cacheAccessWorker.enqueue(action)
+        cacheAccessWorker.enqueue(action)
+
+        when:
+        start(cacheAccessWorker)
+        cacheAccessWorker.flush()
+
+        then:
+        counter == 3
+
+        cleanup:
+        cacheAccessWorker?.stop()
+    }
+
+    def "flush rethrows action failure"() {
+        def failure = new RuntimeException()
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        cacheAccessWorker.enqueue { throw failure }
+
+        when:
+        start(cacheAccessWorker)
+        cacheAccessWorker.flush()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        cleanup:
+        cacheAccessWorker?.stop()
     }
 }

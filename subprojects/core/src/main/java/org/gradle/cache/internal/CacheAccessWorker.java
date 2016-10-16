@@ -42,7 +42,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final long batchWindow;
     private final long maximumLockingTimeMillis;
     private boolean closed;
-    private boolean running;
+    private boolean workerCompleted;
+    private boolean stopSeen;
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private AtomicReference<Throwable> failureHolder = new AtomicReference<Throwable>(null);
     private Set<Runnable> pendingFlushOperations = Collections.synchronizedSet(new LinkedHashSet<Runnable>());
@@ -92,7 +93,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     @Override
     public synchronized void flush() {
         rethrowFailure();
-        if (running && !closed) {
+        if (!workerCompleted && !closed) {
             FlushOperationsCommand flushOperationsCommand = new FlushOperationsCommand();
             try {
                 synchronized (failureLock) {
@@ -114,11 +115,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private void rethrowFailure() {
         Throwable failure = failureHolder.get();
         if (failure != null) {
-            if (failure instanceof GradleException) {
-                throw GradleException.class.cast(failure);
-            } else {
-                throw new GradleException("Cannot flush cache operations.", failure);
-            }
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
     }
 
@@ -141,14 +138,13 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
 
     @Override
     public void run() {
-        running = true;
         try {
-            while (!Thread.currentThread().isInterrupted() && !closed) {
+            while (!Thread.currentThread().isInterrupted() && !stopSeen) {
                 try {
-                    final Runnable runnable = takeFromQueue();
-                    final Class<? extends Runnable> runnableClass = runnable.getClass();
+                    Runnable runnable = takeFromQueue();
+                    Class<? extends Runnable> runnableClass = runnable.getClass();
                     if (runnableClass == ShutdownOperationsCommand.class) {
-                        break;
+                        stopSeen = true;
                     } else if (runnableClass == FlushOperationsCommand.class) {
                         // not holding the cache's lock, call operation twice to trigger latch
                         runnable.run();
@@ -173,14 +169,12 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                 }
             }
         } finally {
-            closed = true;
-            running = false;
+            workerCompleted = true;
             doneSignal.countDown();
         }
     }
 
-    // separate method for testing by subclassing
-    protected Runnable takeFromQueue() throws InterruptedException {
+    private Runnable takeFromQueue() throws InterruptedException {
         return workQueue.take();
     }
 
@@ -201,6 +195,9 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                             final Class<? extends Runnable> runnableClass = otherOperation.getClass();
                             if (runnableClass == FlushOperationsCommand.class) {
                                 flushOperations.add(otherOperation);
+                            }
+                            if (runnableClass == ShutdownOperationsCommand.class) {
+                                stopSeen = true;
                             }
                             if (runnableClass == ShutdownOperationsCommand.class
                                     || runnableClass == FlushOperationsCommand.class
@@ -223,7 +220,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     public synchronized void stop() {
-        if (!closed && running) {
+        if (!closed && !workerCompleted) {
             closed = true;
             try {
                 workQueue.put(new ShutdownOperationsCommand());
