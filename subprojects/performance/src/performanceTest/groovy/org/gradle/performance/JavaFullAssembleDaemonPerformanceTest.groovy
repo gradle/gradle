@@ -44,13 +44,13 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | targetVersions
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', 'last']
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', 'last']
-        "smallJavaSwModelProject"                    | ['2.9', 'last']
-        "largeJavaSwModelProject"                    | ['2.10', 'last']
-        "bigNewJava"                                 | ['2.11', 'last']
-        "mediumNewJava"                              | ['2.11', 'last']
-        "smallNewJava"                               | ['2.9', '2.10', 'last']
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-20161012120730+0000']
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-20161012120730+0000']
+        "smallJavaSwModelProject"                    | ['2.9', '3.2-20161012120730+0000']
+        "largeJavaSwModelProject"                    | ['2.10', '3.2-20161012120730+0000']
+        "bigNewJava"                                 | ['2.11', '3.2-20161012120730+0000']
+        "mediumNewJava"                              | ['2.11', '3.2-20161012120730+0000']
+        "smallNewJava"                               | ['2.9', '2.10', '3.2-20161012120730+0000']
     }
 
     @Unroll("full assemble Java build - #testProject")

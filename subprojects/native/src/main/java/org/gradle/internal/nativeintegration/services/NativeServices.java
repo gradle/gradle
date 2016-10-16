@@ -52,6 +52,7 @@ import java.lang.reflect.Proxy;
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+    private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
     private static final NativeServices INSTANCE = new NativeServices();
     private static boolean initialized;
     private static File nativeBaseDir;
@@ -80,10 +81,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     }
                 }
             }
+            initializeJansi(nativeBaseDir);
             initialized = true;
 
             LOGGER.info("Initialized native services in: " + nativeBaseDir);
         }
+    }
+
+    private static void initializeJansi(File nativeBaseDir) {
+        File jansiLibraryPath = new File(nativeBaseDir, "jansi");
+        jansiLibraryPath.mkdirs();
+        System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, jansiLibraryPath.getAbsolutePath());
     }
 
     public static File getNativeServicesDir(File userHomeDir) {

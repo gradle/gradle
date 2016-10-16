@@ -17,18 +17,51 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.util.Requires
+import spock.lang.Issue
+
+import static org.gradle.util.TestPrecondition.NOT_LINUX
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "native services libs are unpacked to gradle user home dir"() {
-        given:
-        def nativeDir = new File(executer.gradleUserHomeDir, "native")
+    final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
+    final File jansiDir = new File(nativeDir, 'jansi')
 
+    def setup() {
+        requireGradleDistribution()
+    }
+
+    def "native services libs are unpacked to gradle user home dir and Jansi library directory is created"() {
         when:
-        executer.withArguments("-q").run()
+        quietExecutor().run()
 
         then:
         nativeDir.directory
+        jansiDir.directory
     }
 
+    @Issue("GRADLE-3573")
+    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
+    def "creates Jansi library directory even if tmp dir is mounted with noexec option"() {
+        when:
+        executer.withNoExplicitTmpDir().withBuildJvmOpts("-Djava.io.tmpdir=/tmp").run()
+
+        then:
+        jansiDir.directory
+    }
+
+    static boolean isMountedNoexec(String dir) {
+        if (NOT_LINUX) {
+            return false
+        }
+
+        def out = new StringBuffer()
+        'mount'.execute().waitForProcessOutput(out, System.err)
+        out.readLines().find { it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec') } != null
+    }
+
+    private GradleExecuter quietExecutor() {
+        executer.withArguments('-q')
+    }
 }

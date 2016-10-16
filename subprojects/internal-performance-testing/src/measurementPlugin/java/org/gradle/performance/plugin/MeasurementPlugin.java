@@ -34,14 +34,20 @@ import java.util.Date;
  */
 public class MeasurementPlugin implements Plugin<Project> {
 
+    private final static boolean DISABLED = Boolean.getBoolean("org.gradle.performance.measurement.disabled");
+
     @Override
     public void apply(Project project) {
+        if (DISABLED) {
+            return;
+        }
+
         Gradle gradle = project.getGradle();
 
         final PerformanceCounterMeasurement performanceCounterMeasurement = new PerformanceCounterMeasurement(project.getRootProject().getBuildDir());
         performanceCounterMeasurement.recordStart();
 
-        gradle.addBuildListener(new BuildAdapter() {
+        final BuildAdapter performMeasurements = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 BuildEventTimeStamps.buildFinished(result);
@@ -54,8 +60,9 @@ public class MeasurementPlugin implements Plugin<Project> {
                 ExternalResources.printAndResetStats();
             }
 
-        });
+        };
 
+        gradle.addBuildListener(performMeasurements);
         gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
             @Override
             public void graphPopulated(TaskExecutionGraph graph) {

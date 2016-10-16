@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.internal.jvm.Jvm
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -25,7 +26,7 @@ import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([ToolingApiPerformanceTest])
+@Category([ToolingApiPerformanceTest, Experiment])
 class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
@@ -39,7 +40,11 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
             // rebaselined because of https://github.com/gradle/performance/issues/99
             targetVersions = ['3.2-20161010071950+0000']
             action {
-                def model = getModel(tapiClass(EclipseProject))
+                def model = model(tapiClass(EclipseProject))
+                    .setJvmArguments(
+                    '-Xms1g', '-Xmx1g',
+                    '-Dorg.gradle.performance.measurement.disabled=true'
+                ).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -136,16 +141,15 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
             sleepAfterTestRoundMillis = 25
             targetVersions = targetGradleVersions
             action {
-                def projectClazz = tapiClass(IdeaProject)
                 def version = tapiClass(GradleVersion).current().version
-                def model = model(projectClazz)
+                def model = model(tapiClass(IdeaProject))
                     .setJvmArguments(
                     //'-XX:+UnlockDiagnosticVMOptions', '-XX:+DebugNonSafepoints',
                     '-Xms1g', '-Xmx1g',
+                    '-Dorg.gradle.performance.measurement.disabled=true'
                     //"-agentpath:/home/cchampeau/TOOLS/yjp-2016.02/bin/linux-x86-64/libyjpagent.so=port=$port",
                     // "-agentpath:/home/cchampeau/TOOLS/honest-profiler/liblagent.so=interval=7,logPath=/tmp/fg/honestprofiler_${version}.hpl,port=${port},host=127.0.0.1,start=0",
-                )
-                    .get()
+                ).get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name

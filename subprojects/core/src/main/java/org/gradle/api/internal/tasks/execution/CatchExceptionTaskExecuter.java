@@ -20,12 +20,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 public class CatchExceptionTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(CatchExceptionTaskExecuter.class);
-
     private final TaskExecuter delegate;
 
     public CatchExceptionTaskExecuter(TaskExecuter delegate) {
