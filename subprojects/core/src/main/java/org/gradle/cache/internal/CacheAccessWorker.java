@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
