@@ -20,7 +20,6 @@ import org.gradle.util.Requires
 import spock.lang.Specification
 
 import static org.gradle.internal.nativeintegration.jansi.JansiLibraryResolver.*
-import static org.gradle.testfixtures.NativeTestPrecondition.isNotMacOsXOrLinuxOrWindows
 import static org.gradle.util.TestPrecondition.*
 
 class JansiLibraryResolverTest extends Specification {
@@ -60,7 +59,7 @@ class JansiLibraryResolverTest extends Specification {
         jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
     }
 
-    @Requires(adhoc = { isNotMacOsXOrLinuxOrWindows() })
+    @Requires(adhoc = { !MAC_OS_X.fulfilled && !LINUX.fulfilled && !WINDOWS.fulfilled })
     def "jansi library cannot be resolved for unsupported OS"() {
         when:
         JansiLibrary jansiLibrary = resolver.resolve()

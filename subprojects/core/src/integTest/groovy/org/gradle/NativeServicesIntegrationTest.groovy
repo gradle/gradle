@@ -22,7 +22,7 @@ import org.gradle.internal.nativeintegration.jansi.JansiLibraryResolver
 import org.gradle.util.Requires
 import spock.lang.Issue
 
-import static org.gradle.testfixtures.NativeTestPrecondition.*
+import static org.gradle.util.TestPrecondition.*
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +42,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.directory
     }
 
-    @Requires(adhoc = { isMacOsXOrLinuxOrWindows() })
+    @Requires(adhoc = { MAC_OS_X.fulfilled || LINUX.fulfilled || WINDOWS.fulfilled })
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         given:
         String libraryPath = resolver.resolve().path
@@ -63,7 +63,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         lastModified == library.lastModified()
     }
 
-    @Requires(adhoc = { isNotMacOsXOrLinuxOrWindows() })
+    @Requires(adhoc = { !MAC_OS_X.fulfilled && !LINUX.fulfilled && !WINDOWS.fulfilled })
     def "can initialize jansi for OS without supported library"() {
         when:
         quietExecutor().run()
@@ -84,5 +84,15 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     private GradleExecuter quietExecutor() {
         executer.withArguments('-q')
+    }
+
+    static boolean isMountedNoexec(String dir) {
+        if (NOT_LINUX) {
+            return false
+        }
+
+        def out = new StringBuffer()
+        'mount'.execute().waitForProcessOutput(out, System.err)
+        out.readLines().find { it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec') } != null
     }
 }
