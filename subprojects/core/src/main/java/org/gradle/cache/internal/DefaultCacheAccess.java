@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -104,9 +103,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
         if (cacheAccessWorker == null) {
-            HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
-            int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
-            cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this, queueCapacity, 5000L, 10000L);
+            cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this);
             cacheUpdateExecutor = executorFactory.create("Cache update executor");
             cacheUpdateExecutor.execute(cacheAccessWorker);
         }

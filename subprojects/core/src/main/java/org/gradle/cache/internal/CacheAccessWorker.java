@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -25,11 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -41,20 +40,21 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
     private final CacheAccess cacheAccess;
-    private final long batchWindow;
+    private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
     private boolean closed;
     private boolean workerCompleted;
     private boolean stopSeen;
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private final AtomicReference<Throwable> failureHolder = new AtomicReference<Throwable>(null);
-    private final Set<FlushOperationsCommand> pendingFlushOperations = new CopyOnWriteArraySet<FlushOperationsCommand>();
 
-    CacheAccessWorker(String displayName, CacheAccess cacheAccess, int queueCapacity, long batchWindow, long maximumLockingTimeMillis) {
+    CacheAccessWorker(String displayName, CacheAccess cacheAccess) {
         this.displayName = displayName;
         this.cacheAccess = cacheAccess;
-        this.batchWindow = batchWindow;
-        this.maximumLockingTimeMillis = maximumLockingTimeMillis;
+        this.batchWindowMillis = 200;
+        this.maximumLockingTimeMillis = 5000;
+        HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
+        int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
         workQueue = new ArrayBlockingQueue<Runnable>(queueCapacity, true);
     }
 
@@ -70,7 +70,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         try {
             workQueue.put(task);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -87,7 +87,6 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
@@ -96,13 +95,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     public synchronized void flush() {
         if (!workerCompleted && !closed) {
             FlushOperationsCommand flushOperationsCommand = new FlushOperationsCommand();
-            pendingFlushOperations.add(flushOperationsCommand);
-            try {
-                addToQueue(flushOperationsCommand);
-                flushOperationsCommand.await();
-            } finally {
-                pendingFlushOperations.remove(flushOperationsCommand);
-            }
+            addToQueue(flushOperationsCommand);
+            flushOperationsCommand.await();
         }
         rethrowFailure();
     }
@@ -125,7 +119,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             try {
                 latch.await();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -151,18 +145,23 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                         flushOperationsCommand.completed();
                     } else {
                         // need to run operation under cache lock
-                        flushOperations(runnable, batchWindow, maximumLockingTimeMillis);
+                        flushOperations(runnable);
                     }
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } catch (Throwable t) {
             onFailure(t);
         } finally {
             // Notify any waiting flush threads that the worker is done, possibly with a failure
-            for (FlushOperationsCommand runnable : pendingFlushOperations) {
-                runnable.completed();
+            List<Runnable> runnables = new ArrayList<Runnable>();
+            workQueue.drainTo(runnables);
+            for (Runnable runnable : runnables) {
+                if (runnable instanceof FlushOperationsCommand) {
+                    FlushOperationsCommand flushOperationsCommand = (FlushOperationsCommand) runnable;
+                    flushOperationsCommand.completed();
+                }
             }
             workerCompleted = true;
             doneSignal.countDown();
@@ -173,7 +172,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
         return workQueue.take();
     }
 
-    private void flushOperations(final Runnable updateOperation, final long timeoutMillis, final long maximumLockingTimeMillis) {
+    private void flushOperations(final Runnable updateOperation) {
         final List<FlushOperationsCommand> flushOperations = new ArrayList<FlushOperationsCommand>();
         try {
             cacheAccess.useCache("CacheAccessWorker flushing operations", new Runnable() {
@@ -190,10 +189,11 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                     }
                     Runnable otherOperation;
                     try {
-                        while ((otherOperation = workQueue.poll(timeoutMillis, TimeUnit.MILLISECONDS)) != null) {
+                        while ((otherOperation = workQueue.poll(batchWindowMillis, TimeUnit.MILLISECONDS)) != null) {
                             try {
                                 otherOperation.run();
                             } catch (Throwable e) {
+                                // Collect for later and continue
                                 onFailure(e);
                             }
                             final Class<? extends Runnable> runnableClass = otherOperation.getClass();
@@ -210,7 +210,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                             }
                         }
                     } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
             });

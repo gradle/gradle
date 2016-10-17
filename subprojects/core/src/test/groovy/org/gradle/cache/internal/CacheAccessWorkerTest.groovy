@@ -27,7 +27,7 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         cacheAccess = Stub(CacheAccess) {
             useCache(_, _) >> { String operationDisplayName, Runnable action -> action.run() }
         }
-        cacheAccessWorker = new CacheAccessWorker("<cache>", cacheAccess, 512, 200L, 10000L)
+        cacheAccessWorker = new CacheAccessWorker("<cache>", cacheAccess)
     }
 
     def "read runs after queued writes are processed"() {
