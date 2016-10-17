@@ -53,7 +53,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final LockOptions lockOptions;
 
     private StoppableExecutor cacheUpdateExecutor;
-    private CacheAccessWorker _cacheAccessWorker;
+    private CacheAccessWorker cacheAccessWorker;
 
     private final Lock lock = new ReentrantLock(); // protects the following state
     private final Condition condition = lock.newCondition();
@@ -103,14 +103,14 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
-        if (_cacheAccessWorker == null) {
+        if (cacheAccessWorker == null) {
             HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
             int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
-            _cacheAccessWorker = new CacheAccessWorker(this, queueCapacity, 5000L, 10000L);
+            cacheAccessWorker = new CacheAccessWorker(this, queueCapacity, 5000L, 10000L);
             cacheUpdateExecutor = executorFactory.create("Cache update executor");
-            cacheUpdateExecutor.execute(_cacheAccessWorker);
+            cacheUpdateExecutor.execute(cacheAccessWorker);
         }
-        return _cacheAccessWorker;
+        return cacheAccessWorker;
     }
 
     public void open() {
@@ -134,12 +134,11 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     public synchronized void close() {
-        if (_cacheAccessWorker != null) {
-            _cacheAccessWorker.stop();
-            _cacheAccessWorker = null;
+        if (cacheAccessWorker != null) {
+            cacheAccessWorker.stop();
+            cacheAccessWorker = null;
         }
         if (cacheUpdateExecutor != null) {
-            cacheUpdateExecutor.shutdownNow();
             cacheUpdateExecutor.stop();
             cacheUpdateExecutor = null;
         }
@@ -174,7 +173,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
 
-        boolean wasStarted = false;
+        boolean wasStarted;
         lock.lock();
         try {
             takeOwnership(operationDisplayName);
@@ -343,8 +342,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public synchronized void flush() {
-        if(_cacheAccessWorker != null) {
-            _cacheAccessWorker.flush();
+        if(cacheAccessWorker != null) {
+            cacheAccessWorker.flush();
         }
     }
 

@@ -28,7 +28,85 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         }
     }
 
-    def "flushes queued actions when stop is called"() {
+    def "read runs after queued writes are processed"() {
+        given:
+        def counter = 0
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        start(cacheAccessWorker)
+
+        when:
+        cacheAccessWorker.enqueue { ++counter }
+        cacheAccessWorker.enqueue { ++counter }
+        def result = cacheAccessWorker.read { counter }
+
+        then:
+        result == 2
+
+        cleanup:
+        cacheAccessWorker?.stop()
+    }
+
+    def "read propagates failure"() {
+        given:
+        def failure = new RuntimeException()
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        start(cacheAccessWorker)
+
+        when:
+        cacheAccessWorker.read { throw failure }
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        cleanup:
+        cacheAccessWorker?.stop()
+    }
+
+    def "read completes after failed write"() {
+        given:
+        def failure = new RuntimeException()
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        start(cacheAccessWorker)
+
+        when:
+        cacheAccessWorker.enqueue { throw failure }
+        def result = cacheAccessWorker.read { 2 }
+
+        then:
+        result == 2
+
+        when:
+        cacheAccessWorker.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+    }
+
+    def "continues on failed operations collecting only the last failure"() {
+        given:
+        def counter = 0
+        def failure = new RuntimeException()
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        start(cacheAccessWorker)
+
+        when:
+        cacheAccessWorker.enqueue { throw new RuntimeException() }
+        cacheAccessWorker.enqueue { throw failure }
+        cacheAccessWorker.enqueue { counter++ }
+        cacheAccessWorker.flush()
+
+        then:
+        counter == 1
+        def e = thrown(RuntimeException)
+        e == failure
+
+        cleanup:
+        cacheAccessWorker?.stop()
+    }
+
+    def "stop waits for queued actions to complete"() {
         given:
         def counter = 0
         def action = {
@@ -48,7 +126,7 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         counter == 3
     }
 
-    def "flushes queued actions when flush is called"() {
+    def "flush waits for queued actions to complete"() {
         given:
         def counter = 0
         def action = {
@@ -86,5 +164,45 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
 
         cleanup:
         cacheAccessWorker?.stop()
+    }
+
+    def "stop rethrows action failure that occurs while waiting"() {
+        def failure = new RuntimeException()
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        cacheAccessWorker.enqueue {
+            instant.waiting
+            thread.block()
+        }
+        cacheAccessWorker.enqueue {
+            throw failure
+        }
+
+        when:
+        start(cacheAccessWorker)
+        async {
+            thread.blockUntil.waiting
+            cacheAccessWorker.stop()
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        cleanup:
+        cacheAccessWorker?.stop()
+    }
+
+    def "stop rethrows action failure"() {
+        def failure = new RuntimeException()
+        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
+        cacheAccessWorker.enqueue { throw failure }
+
+        when:
+        start(cacheAccessWorker)
+        cacheAccessWorker.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
     }
 }
