@@ -12,7 +12,7 @@ task renameAndroidTools(type: Copy) {
 // workaround for idea not triggering the resolution of the `androidTools`
 tasks.ideaModule.dependsOn(renameAndroidTools)
 
-def renamedAndroidLibs = files({ -> files(renameAndroidTools).asFileTree.files.sort() })
+def renamedAndroidLibs = files({ -> fileTree(renameAndroidTools.destinationDir).files.sort() })
 renamedAndroidLibs.builtBy(renameAndroidTools)
 
 dependencies {
