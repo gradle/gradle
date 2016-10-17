@@ -276,6 +276,11 @@ public interface GradleExecuter {
     GradleExecuter expectDeprecationWarning();
 
     /**
+     * Disable deprecation warning checks.
+     */
+    GradleExecuter noDeprecationChecks();
+
+    /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
      */
     GradleExecuter withEagerClassLoaderCreationCheckDisabled();

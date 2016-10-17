@@ -143,6 +143,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean noExplicitTmpDir;
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
+    private boolean checkDeprecations = true;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -185,6 +186,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
+        checkDeprecations = true;
         return this;
     }
 
@@ -307,6 +309,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.startBuildProcessInDebugger(debug);
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
+
+        if (!checkDeprecations) {
+            executer.noDeprecationChecks();
+        }
+
         return executer;
     }
 
@@ -861,6 +868,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return new Action<ExecutionResult>() {
             int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
             boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
+            boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
 
             @Override
             public void execute(ExecutionResult executionResult) {
@@ -890,7 +898,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         // A javac warning, ignore
                         i++;
                     } else if (line.matches(".*\\s+deprecated.*")) {
-                        if (expectedDeprecationWarnings <= 0) {
+                        if (checkDeprecations && expectedDeprecationWarnings <= 0) {
                             throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
                         }
                         expectedDeprecationWarnings--;
@@ -912,6 +920,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter expectDeprecationWarning() {
         expectedDeprecationWarnings++;
+        return this;
+    }
+    public GradleExecuter noDeprecationChecks() {
+        checkDeprecations = false;
         return this;
     }
 
