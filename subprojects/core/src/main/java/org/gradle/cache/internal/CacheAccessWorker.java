@@ -20,6 +20,8 @@ import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CacheAccessWorker.class);
     private final BlockingQueue<Runnable> workQueue;
+    private final String displayName;
     private final CacheAccess cacheAccess;
     private final long batchWindow;
     private final long maximumLockingTimeMillis;
@@ -46,7 +50,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final AtomicReference<Throwable> failureHolder = new AtomicReference<Throwable>(null);
     private final Set<FlushOperationsCommand> pendingFlushOperations = new CopyOnWriteArraySet<FlushOperationsCommand>();
 
-    CacheAccessWorker(CacheAccess cacheAccess, int queueCapacity, long batchWindow, long maximumLockingTimeMillis) {
+    CacheAccessWorker(String displayName, CacheAccess cacheAccess, int queueCapacity, long batchWindow, long maximumLockingTimeMillis) {
+        this.displayName = displayName;
         this.cacheAccess = cacheAccess;
         this.batchWindow = batchWindow;
         this.maximumLockingTimeMillis = maximumLockingTimeMillis;
@@ -103,8 +108,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     private void rethrowFailure() {
-        Throwable failure = failureHolder.get();
-        failureHolder.set(null);
+        Throwable failure = failureHolder.getAndSet(null);
         if (failure != null) {
             throw UncheckedException.throwAsUncheckedException(failure);
         }
@@ -154,7 +158,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                 }
             }
         } catch (Throwable t) {
-            failureHolder.set(t);
+            onFailure(t);
         } finally {
             // Notify any waiting flush threads that the worker is done, possibly with a failure
             for (FlushOperationsCommand runnable : pendingFlushOperations) {
@@ -181,7 +185,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                             updateOperation.run();
                         } catch (Throwable e) {
                             // Collect for later and continue
-                            failureHolder.set(e);
+                            onFailure(e);
                         }
                     }
                     Runnable otherOperation;
@@ -190,7 +194,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                             try {
                                 otherOperation.run();
                             } catch (Throwable e) {
-                                failureHolder.set(e);
+                                onFailure(e);
                             }
                             final Class<? extends Runnable> runnableClass = otherOperation.getClass();
                             if (runnableClass == FlushOperationsCommand.class) {
@@ -214,6 +218,13 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             for (FlushOperationsCommand flushOperation : flushOperations) {
                 flushOperation.completed();
             }
+        }
+    }
+
+    protected void onFailure(Throwable e) {
+        if (!failureHolder.compareAndSet(null, e)) {
+            // Collect only a single exception, and log any others
+            LOGGER.error("Failed to apply operations to " + displayName + '.', e);
         }
     }
 
@@ -250,7 +261,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             this.context = context;
         }
 
-        public static <V> FutureTask<V> wrapWhenContextIsUsed(Callable<V> callable) {
+        static <V> FutureTask<V> wrapWhenContextIsUsed(Callable<V> callable) {
             AsyncCacheAccessContext context = AsyncCacheAccessContext.copyOfCurrent();
             if (context != null) {
                 return new AsyncCacheAccessFutureTask<V>(callable, context);
@@ -280,7 +291,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             this.context = context;
         }
 
-        public static Runnable wrapWhenContextIsUsed(Runnable delegate) {
+        static Runnable wrapWhenContextIsUsed(Runnable delegate) {
             AsyncCacheAccessContext context = AsyncCacheAccessContext.copyOfCurrent();
             if (context != null) {
                 return new AsyncCacheAccessRunnable(delegate, context);

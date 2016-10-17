@@ -106,7 +106,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         if (cacheAccessWorker == null) {
             HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
             int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
-            cacheAccessWorker = new CacheAccessWorker(this, queueCapacity, 5000L, 10000L);
+            cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this, queueCapacity, 5000L, 10000L);
             cacheUpdateExecutor = executorFactory.create("Cache update executor");
             cacheUpdateExecutor.execute(cacheAccessWorker);
         }

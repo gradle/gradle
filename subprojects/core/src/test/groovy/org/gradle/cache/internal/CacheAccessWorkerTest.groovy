@@ -20,18 +20,19 @@ import org.gradle.cache.CacheAccess
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class CacheAccessWorkerTest extends ConcurrentSpec {
-    def cacheAccess
+    CacheAccess cacheAccess
+    CacheAccessWorker cacheAccessWorker
 
     def setup() {
         cacheAccess = Stub(CacheAccess) {
             useCache(_, _) >> { String operationDisplayName, Runnable action -> action.run() }
         }
+        cacheAccessWorker = new CacheAccessWorker("<cache>", cacheAccess, 512, 200L, 10000L)
     }
 
     def "read runs after queued writes are processed"() {
         given:
         def counter = 0
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         start(cacheAccessWorker)
 
         when:
@@ -49,7 +50,6 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
     def "read propagates failure"() {
         given:
         def failure = new RuntimeException()
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         start(cacheAccessWorker)
 
         when:
@@ -63,10 +63,9 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         cacheAccessWorker?.stop()
     }
 
-    def "read completes after failed write"() {
+    def "read completes after failed update"() {
         given:
         def failure = new RuntimeException()
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         start(cacheAccessWorker)
 
         when:
@@ -84,16 +83,15 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         e == failure
     }
 
-    def "continues on failed operations collecting only the last failure"() {
+    def "continues on failed operations collecting only the first failure"() {
         given:
         def counter = 0
         def failure = new RuntimeException()
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         start(cacheAccessWorker)
 
         when:
-        cacheAccessWorker.enqueue { throw new RuntimeException() }
         cacheAccessWorker.enqueue { throw failure }
+        cacheAccessWorker.enqueue { throw new RuntimeException() }
         cacheAccessWorker.enqueue { counter++ }
         cacheAccessWorker.flush()
 
@@ -113,7 +111,6 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
             Thread.sleep(200L)
             counter++
         }
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
@@ -133,7 +130,6 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
             Thread.sleep(200L)
             counter++
         }
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
         cacheAccessWorker.enqueue(action)
@@ -151,7 +147,6 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
 
     def "flush rethrows action failure"() {
         def failure = new RuntimeException()
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         cacheAccessWorker.enqueue { throw failure }
 
         when:
@@ -168,7 +163,6 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
 
     def "stop rethrows action failure that occurs while waiting"() {
         def failure = new RuntimeException()
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         cacheAccessWorker.enqueue {
             instant.waiting
             thread.block()
@@ -194,7 +188,6 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
 
     def "stop rethrows action failure"() {
         def failure = new RuntimeException()
-        def cacheAccessWorker = new CacheAccessWorker(cacheAccess, 512, 200L, 10000L)
         cacheAccessWorker.enqueue { throw failure }
 
         when:
