@@ -20,7 +20,7 @@ import com.google.common.cache.Cache;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLock;
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -28,24 +28,19 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
+class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final static Logger LOG = Logging.getLogger(InMemoryDecoratedCache.class);
     private final static Object NULL = new Object();
-    private final MultiProcessSafePersistentIndexedCache<K, V> delegate;
+    private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
     private final Cache<Object, Object> inMemoryCache;
     private final String cacheId;
     private final AtomicReference<FileLock.State> fileLockStateReference;
 
-    public InMemoryDecoratedCache(MultiProcessSafePersistentIndexedCache<K, V> delegate, Cache<Object, Object> inMemoryCache, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
+    public InMemoryDecoratedCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate, Cache<Object, Object> inMemoryCache, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
         this.delegate = delegate;
         this.inMemoryCache = inMemoryCache;
         this.cacheId = cacheId;
         this.fileLockStateReference = fileLockStateReference;
-    }
-
-    @Override
-    public void close() {
-        delegate.close();
     }
 
     @Override
@@ -71,21 +66,9 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
     }
 
     @Override
-    public void put(K key, V value) {
-        inMemoryCache.put(key, value);
-        delegate.put(key, value);
-    }
-
-    @Override
     public void putLater(K key, V value, Runnable completion) {
         inMemoryCache.put(key, value);
         delegate.putLater(key, value, completion);
-    }
-
-    @Override
-    public void remove(final K key) {
-        inMemoryCache.put(key, NULL);
-        delegate.remove(key);
     }
 
     @Override
@@ -95,7 +78,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
     }
 
     @Override
-    public void onStartWork(FileLock.State currentCacheState) {
+    public void afterLockAcquire(FileLock.State currentCacheState) {
         boolean outOfDate = false;
         FileLock.State previousState = fileLockStateReference.get();
         if (previousState == null) {
@@ -107,12 +90,17 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedC
         if (outOfDate) {
             inMemoryCache.invalidateAll();
         }
-        delegate.onStartWork(currentCacheState);
+        delegate.afterLockAcquire(currentCacheState);
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
+    public void finishWork() {
+        delegate.finishWork();
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
         fileLockStateReference.set(currentCacheState);
-        delegate.onEndWork(currentCacheState);
+        delegate.beforeLockRelease(currentCacheState);
     }
 }

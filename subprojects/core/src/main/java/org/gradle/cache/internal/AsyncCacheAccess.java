@@ -34,7 +34,7 @@ public interface AsyncCacheAccess {
     <T> T read(Factory<T> task);
 
     /**
-     * Blocks until all submitted actions have completed.
+     * Blocks until all submitted actions have completed. Rethrows any update failure.
      */
     void flush();
 }

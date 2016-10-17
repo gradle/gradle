@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -27,7 +26,6 @@ import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.serialize.Serializer;
@@ -44,7 +42,6 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.*;
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
-    private final static boolean ASYNC_FILE_ACCESS = System.getProperty("org.gradle.internal.cache.async", "false").equalsIgnoreCase("true");
     private final String cacheDisplayName;
     private final File baseDir;
     private final FileLockManager lockManager;
@@ -55,7 +52,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final LockOptions lockOptions;
 
     private StoppableExecutor cacheUpdateExecutor;
-    private CacheAccessWorker _cacheAccessWorker;
+    private CacheAccessWorker cacheAccessWorker;
 
     private final Lock lock = new ReentrantLock(); // protects the following state
     private final Condition condition = lock.newCondition();
@@ -69,11 +66,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private int cacheClosedCount;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
-        if (ASYNC_FILE_ACCESS) {
-            LOG.info("Using async file access for {}", cacheDisplayName);
-        } else {
-            LOG.info("Using sync file access for {}", cacheDisplayName);
-        }
         this.cacheDisplayName = cacheDisplayName;
         this.lockOptions = lockOptions;
         this.baseDir = baseDir;
@@ -110,17 +102,12 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
-        if (!ASYNC_FILE_ACCESS) {
-            return new BlockingAsyncCacheAccess(this);
-        }
-        if (_cacheAccessWorker == null) {
-            HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
-            int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
-            _cacheAccessWorker = new CacheAccessWorker(this, queueCapacity, 5000L, 10000L);
+        if (cacheAccessWorker == null) {
+            cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this);
             cacheUpdateExecutor = executorFactory.create("Cache update executor");
-            cacheUpdateExecutor.execute(_cacheAccessWorker);
+            cacheUpdateExecutor.execute(cacheAccessWorker);
         }
-        return _cacheAccessWorker;
+        return cacheAccessWorker;
     }
 
     public void open() {
@@ -144,12 +131,11 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     public synchronized void close() {
-        if (_cacheAccessWorker != null) {
-            _cacheAccessWorker.stop();
-            _cacheAccessWorker = null;
+        if (cacheAccessWorker != null) {
+            cacheAccessWorker.stop();
+            cacheAccessWorker = null;
         }
         if (cacheUpdateExecutor != null) {
-            cacheUpdateExecutor.shutdownNow();
             cacheUpdateExecutor.stop();
             cacheUpdateExecutor = null;
         }
@@ -184,7 +170,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
 
-        boolean wasStarted = false;
+        boolean wasStarted;
         lock.lock();
         try {
             takeOwnership(operationDisplayName);
@@ -343,7 +329,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                indexedCache.onStartWork(stateAtOpen);
+                indexedCache.afterLockAcquire(stateAtOpen);
             }
         } finally {
             lock.unlock();
@@ -353,8 +339,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public synchronized void flush() {
-        if(_cacheAccessWorker != null) {
-            _cacheAccessWorker.flush();
+        if(cacheAccessWorker != null) {
+            cacheAccessWorker.flush();
         }
     }
 
@@ -370,7 +356,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
         for (UnitOfWorkParticipant cache : caches) {
-            cache.onStartWork(stateAtOpen);
+            cache.afterLockAcquire(stateAtOpen);
         }
         if (lockOptions.getMode() == None) {
             lockManager.allowContention(fileLock, whenContended());
@@ -383,12 +369,17 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private void beforeLockRelease(FileLock fileLock) {
         assert this.fileLock == fileLock;
         try {
-            // Close the caches and then notify them of the final state, in case the caches do work on close
             cacheClosedCount++;
-            new CompositeStoppable().add(caches).stop();
+
+            // Notify caches that lock is to be released. The caches may do work on the cache files during this
+            for (MultiProcessSafePersistentIndexedCache cache : caches) {
+                cache.finishWork();
+            }
+
+            // Snapshot the state and notify the caches
             FileLock.State state = fileLock.getState();
             for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                cache.onEndWork(state);
+                cache.beforeLockRelease(state);
             }
         } finally {
             this.fileLock = null;

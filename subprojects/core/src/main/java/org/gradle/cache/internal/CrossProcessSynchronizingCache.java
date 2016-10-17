@@ -21,16 +21,11 @@ import org.gradle.internal.Factory;
 
 public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final CrossProcessCacheAccess cacheAccess;
-    private final MultiProcessSafePersistentIndexedCache<K, V> target;
+    private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> target;
 
-    public CrossProcessSynchronizingCache(MultiProcessSafePersistentIndexedCache<K, V> target, CrossProcessCacheAccess cacheAccess) {
+    public CrossProcessSynchronizingCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> target, CrossProcessCacheAccess cacheAccess) {
         this.target = target;
         this.cacheAccess = cacheAccess;
-    }
-
-    @Override
-    public void close() {
-        target.close();
     }
 
     @Nullable
@@ -51,30 +46,23 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
-    public void putLater(K key, V value, Runnable completion) {
-        Runnable runnable = cacheAccess.acquireFileLock(completion);
-        target.putLater(key, value, runnable);
-    }
-
-    @Override
     public void remove(K key) {
         Runnable runnable = cacheAccess.acquireFileLock();
         target.removeLater(key, runnable);
     }
 
     @Override
-    public void removeLater(K key, Runnable completion) {
-        Runnable runnable = cacheAccess.acquireFileLock(completion);
-        target.removeLater(key, runnable);
+    public void afterLockAcquire(FileLock.State currentCacheState) {
+        target.afterLockAcquire(currentCacheState);
     }
 
     @Override
-    public void onStartWork(FileLock.State currentCacheState) {
-        target.onStartWork(currentCacheState);
+    public void finishWork() {
+        target.finishWork();
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
-        target.onEndWork(currentCacheState);
+    public void beforeLockRelease(FileLock.State currentCacheState) {
+        target.beforeLockRelease(currentCacheState);
     }
 }
