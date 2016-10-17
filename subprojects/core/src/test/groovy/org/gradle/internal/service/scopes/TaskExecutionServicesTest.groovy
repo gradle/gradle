@@ -50,6 +50,7 @@ class TaskExecutionServicesTest extends Specification {
         CacheRepository cacheRepository = Mock()
         CacheBuilder cacheBuilder = Mock()
         _ * parent.get(Gradle) >> gradle
+        _ * gradle.startParameter >> new StartParameter()
         _ * parent.get(GradleInternal) >> gradle
         gradle.getTaskGraph() >> Mock(TaskGraphExecuter)
         _ * parent.get(ListenerManager) >> Mock(ListenerManager)
@@ -59,7 +60,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         _ * parent.get(CacheRepository) >> cacheRepository
         _ * parent.get(Instantiator) >> Mock(Instantiator)
-        _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
+        _ * parent.get(InMemoryTaskArtifactCache) >> new InMemoryTaskArtifactCache()
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(FileResolver) >> Mock(FileResolver)
         _ * parent.get(FileSystem) >> Mock(FileSystem)

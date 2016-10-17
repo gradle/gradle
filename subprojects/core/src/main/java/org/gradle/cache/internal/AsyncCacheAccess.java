@@ -22,14 +22,19 @@ public interface AsyncCacheAccess {
     /**
      * Submits the given action for execution without waiting for the result.
      *
-     * An implementation may execute the action immediately or later. All actions submitted by this method must complete before any action submitted to {@link #read(Factory)} is executed. Actions submitted using this method must run in the order that they are submitted.
+     * An implementation may execute the action immediately or later. All actions submitted by this method must complete before any action submitted to {@link #read(Factory)} is executed. Actions
+     * submitted using this method must run in the order that they are submitted.
+     *
+     * An exception thrown by the action may be collected and rethrown by {@link #flush()} or may be propagated out of this method.
      */
-    void enqueue(Runnable task);
+    void enqueue(Runnable action);
 
     /**
      * Runs the given action, blocking until the result is available.
      *
      * All actions submitted using {@link #enqueue(Runnable)} must complete before the action is executed.
+     *
+     * Any exception thrown by the action is propagated out of this method.
      */
     <T> T read(Factory<T> task);
 

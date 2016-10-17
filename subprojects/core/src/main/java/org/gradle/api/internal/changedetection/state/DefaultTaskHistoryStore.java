@@ -20,6 +20,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.serialize.Serializer;
 
@@ -28,11 +29,11 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
-    private final InMemoryTaskArtifactCache inMemoryTaskArtifactCache;
+    private final CacheDecorator cacheDecorator;
     private final PersistentCache cache;
 
     public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-        this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
+        this.cacheDecorator = inMemoryTaskArtifactCache.decorator(gradle.getStartParameter().isParallelProjectExecutionEnabled());
         cache = cacheRepository
                 .cache(gradle, "taskArtifacts")
                 .withDisplayName("task history cache")
@@ -45,8 +46,7 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
-        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryTaskArtifactCache);
+        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer).cacheDecorator(cacheDecorator);
         return cache.createCache(parameters);
     }
 

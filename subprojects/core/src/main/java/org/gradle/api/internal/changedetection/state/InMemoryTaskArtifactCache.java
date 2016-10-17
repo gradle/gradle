@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.CacheAccess;
 import org.gradle.cache.internal.AsyncCacheAccess;
 import org.gradle.cache.internal.AsyncCacheAccessDecoratedCache;
 import org.gradle.cache.internal.CacheDecorator;
@@ -37,26 +38,37 @@ import java.util.concurrent.atomic.AtomicReference;
  * A {@link CacheDecorator} that wraps each cache with an in-memory cache that is used to short-circuit reads from the backing cache.
  * The in-memory cache is invalidated when the backing cache is changed by another process.
  */
-public class InMemoryTaskArtifactCache implements CacheDecorator {
+public class InMemoryTaskArtifactCache {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final Cache<String, Cache<Object, Object>> cache;
     private final Map<String, AtomicReference<FileLock.State>> fileLockStates = new HashMap<String, AtomicReference<FileLock.State>>();
     private final CacheCapSizer cacheCapSizer;
 
     public InMemoryTaskArtifactCache() {
-        this(new CacheCapSizer());
-    }
-
-    private InMemoryTaskArtifactCache(CacheCapSizer cacheCapSizer) {
-        this.cacheCapSizer = cacheCapSizer;
+        this.cacheCapSizer = new CacheCapSizer();
         final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder()
                 .maximumSize(cacheCapSizer.getNumberOfCaches() * 2);
         this.cache = cacheBuilder //X2 to factor in a child build (for example buildSrc)
                 .build();
     }
 
-    @Override
-    public synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+    /**
+     * @param multipleConsumerThreads A hint whether the cache will be used from a multiple threads (when true) or a single thread (when false), to allow the implementation to optimize for this case. The returned cache will be thread-safe regardless of the value of this parameter.
+     */
+    public CacheDecorator decorator(final boolean multipleConsumerThreads) {
+        return new CacheDecorator() {
+            @Override
+            public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess, CacheAccess cacheAccess) {
+                return wrapCache(cacheId, cacheName, persistentCache, crossProcessCacheAccess, asyncCacheAccess, cacheAccess, multipleConsumerThreads);
+            }
+        };
+    }
+
+    private synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> wrapCache(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess, CacheAccess cacheAccess, boolean multipleConsumerThreads) {
+        // When there will be a single consumer thread _and_ when there is nothing in-memory (typically when not using the daemon), then use synchronous cache access
+        if (!multipleConsumerThreads && !hasSomethingCache(cacheId)) {
+            asyncCacheAccess = new BlockingCacheAccess(cacheAccess);
+        }
         MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache);
         MultiProcessSafeAsyncPersistentIndexedCache<K, V> memCache = applyInMemoryCaching(cacheId, cacheName, asyncCache);
         return new CrossProcessSynchronizingCache<K, V>(memCache, crossProcessCacheAccess);
@@ -75,6 +87,11 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             fileLockStates.put(cacheId, fileLockStateReference);
         }
         return fileLockStateReference;
+    }
+
+    private boolean hasSomethingCache(String cacheId) {
+        Cache<Object, Object> inMemoryCache = this.cache.getIfPresent(cacheId);
+        return inMemoryCache != null && inMemoryCache.size() > 0;
     }
 
     private Cache<Object, Object> createInMemoryCache(String cacheId, String cacheName) {
