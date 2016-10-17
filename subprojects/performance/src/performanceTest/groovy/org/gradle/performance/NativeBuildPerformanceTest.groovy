@@ -19,11 +19,12 @@ package org.gradle.performance
 import org.gradle.performance.categories.NativePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
+import static org.gradle.performance.results.Flakiness.*
 
 @Category([NativePerformanceTest])
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll('Project #type native build')
-    def "build" () {
+    def "build"() {
         given:
         runner.testId = "native build ${type}"
         runner.testProject = "${type}Native"
@@ -35,17 +36,17 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed(flakiness)
 
         where:
-        type           | fastestVersion
-        "small"        | '3.2-20161012120730+0000'
-        "medium"       | '2.14.1'
-        "big"          | '2.14.1'
-        "multi"        | '2.14.1'
+        type     | fastestVersion            | flakiness
+        "small"  | '3.2-20161012120730+0000' | flaky
+        "medium" | '2.14.1'                  | not_flaky
+        "big"    | '2.14.1'                  | not_flaky
+        "multi"  | '2.14.1'                  | not_flaky
     }
 
-    def "Many projects native build" () {
+    def "Many projects native build"() {
         given:
         runner.testId = "native build many projects"
         runner.testProject = "manyProjectsNative"

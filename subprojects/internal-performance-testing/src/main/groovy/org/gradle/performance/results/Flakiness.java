@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.performance.results;
 
-package org.gradle.performance
+public enum Flakiness {
+    flaky(true),
+    not_flaky(false);
 
-import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+    private final boolean isFlaky;
 
-@CompileStatic
-abstract class AbstractAndroidPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def setup() {
-        runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
-        runner.executerDecorator = { GradleExecuter executor ->
-            // todo: investigate why Android builds require this check disabled
-            executor.withEagerClassLoaderCreationCheckDisabled()
-                .noDeprecationChecks()
-        }
+    Flakiness(boolean flaky) {
+        this.isFlaky = flaky;
+    }
+
+
+
+    public boolean isFlaky() {
+        return isFlaky;
     }
 }

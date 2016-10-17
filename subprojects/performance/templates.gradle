@@ -581,7 +581,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 }
 
 task mediumAndroidBuild(type: RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-android-medium.git'
+    remoteUri = 'https://github.com/melix/perf-android-medium.git'
     branch = 'cc-gradle-profile'
 
     doLast {

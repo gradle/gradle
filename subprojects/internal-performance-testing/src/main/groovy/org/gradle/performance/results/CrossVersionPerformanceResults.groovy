@@ -83,18 +83,26 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
         }
     }
 
-    void assertCurrentVersionHasNotRegressed() {
+    void assertCurrentVersionHasNotRegressed(Flakiness flakiness=Flakiness.not_flaky) {
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
         def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
         if (slower && larger && whatToCheck().speed() && whatToCheck().memory()) {
-            throw new AssertionError("$slower\n$larger")
+            throwAssertionErrorIfNotFlaky(flakiness, "$slower\n$larger")
         }
         if (slower && whatToCheck().speed()) {
-            throw new AssertionError(slower)
+            throwAssertionErrorIfNotFlaky(flakiness, slower)
         }
         if (larger && whatToCheck().memory()) {
-            throw new AssertionError(larger)
+            throwAssertionErrorIfNotFlaky(flakiness, larger)
+        }
+    }
+
+    private static void throwAssertionErrorIfNotFlaky(Flakiness flakiness, String message) {
+        if (flakiness.isFlaky()) {
+            LOGGER.error("Performance test failed but it is known as flaky: $message")
+        } else {
+            throw new AssertionError(message)
         }
     }
 

@@ -20,6 +20,9 @@ import org.gradle.performance.categories.BasicPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.results.Flakiness.flaky
+import static org.gradle.performance.results.Flakiness.not_flaky
+
 @Category(BasicPerformanceTest)
 class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' dependency report")
@@ -34,15 +37,15 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed(flakiness)
 
         where:
-        testProject       | targetVersions
-        "small"           | ['3.2-20161004202618+0000']
-        "multi"           | ['3.2-20161004202618+0000']
+        testProject       | targetVersions              | flakiness
+        "small"           | ['3.2-20161004202618+0000'] | not_flaky
+        "multi"           | ['3.2-20161004202618+0000'] | not_flaky
         // TODO(pepper): Revert this to 'last' when 3.2 is released
         // The regression was determined acceptable in this discussion:
         // https://issues.gradle.org/browse/GRADLE-1346
-        "lotDependencies" | ['3.2-20161004202618+0000']
+        "lotDependencies" | ['3.2-20161004202618+0000'] | flaky
     }
 }
