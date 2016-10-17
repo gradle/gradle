@@ -10,7 +10,7 @@ If you use an IDE and have a lot of dependencies in your build—particular dyna
 
 Our users trialling the **Kotlin build script support** will be glad to hear that progress continues apace with support for **multi-project builds**. And it's easier to try this feature on Windows now that a bug in compiling scripts on that platform has been fixed.
 
-The last change we want to bring to your attention has been a long time coming and will affect a large number of builds: the shortcut syntax for declaring tasks (via `<<`) has **now been deprecated**. The eagle-eyed among you will notice that the user guide examples have been updated to use `doLast()` and we strongly recommend that you follow suit. This feature will be removed in Gradle 4.0! See the [Deprecations section](#deprecations) for more details.
+The last change we want to bring to your attention has been a long time coming and will affect a large number of builds: the shortcut syntax for declaring tasks (via `<<`) has **now been deprecated**. The eagle-eyed among you will notice that the user guide examples have been updated to use `doLast()` and we strongly recommend that you follow suit. This feature will be removed in Gradle 5.0! See the [Deprecations section](#deprecations) for more details.
 
 ## New and noteworthy
 
