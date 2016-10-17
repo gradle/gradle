@@ -136,7 +136,7 @@ class S3ClientTest extends Specification {
         amazonS3Client.getObject(_) >> { throw amazonS3Exception }
 
         when:
-        s3Client.getMetaData(uri)
+        s3Client.getMetaData(uri).close()
         then:
         def ex = thrown(ResourceException)
         ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")

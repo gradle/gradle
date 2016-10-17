@@ -60,13 +60,23 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         if (s3Object == null) {
             return null;
         }
-        ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
-        return new DefaultExternalResourceMetaData(location,
+        try {
+            ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
+            return new DefaultExternalResourceMetaData(location,
                 objectMetadata.getLastModified().getTime(),
                 objectMetadata.getContentLength(),
                 objectMetadata.getContentType(),
                 objectMetadata.getETag(),
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+        } finally {
+            try {
+                s3Object.close();
+            } catch (IOException ex) {
+                LOGGER.debug(
+                    String.format("The HttpResponseResource for '%s' was leaked because it could not be close properly.", location),
+                    ex);
+            }
+        }
     }
 
     @Override

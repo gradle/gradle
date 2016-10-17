@@ -44,5 +44,8 @@ class S3ResourceConnectorTest extends Specification {
 
         then:
         s3Resource != null
+
+        cleanup:
+        s3Resource?.close()
     }
 }

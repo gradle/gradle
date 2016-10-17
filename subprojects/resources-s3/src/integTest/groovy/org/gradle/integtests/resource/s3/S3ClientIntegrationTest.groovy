@@ -112,6 +112,7 @@ class S3ClientIntegrationTest extends Specification {
         server.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
         S3Object data = s3Client.getMetaData(uri)
         def metadata = data.getObjectMetadata()
+        data.close()
 
         then:
         metadata.getContentLength() == 0
@@ -127,6 +128,7 @@ class S3ClientIntegrationTest extends Specification {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
         IOUtils.copyLarge(object.getObjectContent(), outStream);
         outStream.toString() == fileContents
+        object.close()
 
         when:
         server.stubListFile(temporaryFolder.testDirectory, bucketName)
@@ -160,7 +162,7 @@ class S3ClientIntegrationTest extends Specification {
         def stream = new FileInputStream(file)
         def uri = new URI("s3://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
         s3Client.put(stream, file.length(), uri)
-        s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
+        s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt")).close()
     }
 
     @Ignore
@@ -198,7 +200,7 @@ class S3ClientIntegrationTest extends Specification {
             s3Client.put(new FileInputStream(file), file.length(), uri)
 
             println "------Getting object"
-            s3Client.getResource(uri)
+            s3Client.getResource(uri).close()
 
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
                     .withBucketName(bucketName)
