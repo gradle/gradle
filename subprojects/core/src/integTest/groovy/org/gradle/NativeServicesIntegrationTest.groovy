@@ -73,7 +73,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3573")
-    @Requires(adhoc = { isMountedNoexec('/tmp') })
+    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
     def "creates Jansi library directory even if tmp dir is mounted with noexec option"() {
         when:
         executer.withNoExplicitTmpDir().withBuildJvmOpts("-Djava.io.tmpdir=/tmp").run()
