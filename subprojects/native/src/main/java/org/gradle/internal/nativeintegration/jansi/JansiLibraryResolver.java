@@ -43,13 +43,13 @@ public class JansiLibraryResolver {
     private String getOperatingSystem() {
         String name = System.getProperty("os.name").toLowerCase().trim();
 
-        if (name.startsWith("linux") ) {
+        if (name.startsWith("linux")) {
             return "linux";
         }
-        if (name.startsWith("mac os x") ) {
+        if (name.startsWith("mac os x")) {
             return "osx";
         }
-        if (name.startsWith("win") ) {
+        if (name.startsWith("win")) {
             return "windows";
         }
         return name.replaceAll("\\W+", "_");
