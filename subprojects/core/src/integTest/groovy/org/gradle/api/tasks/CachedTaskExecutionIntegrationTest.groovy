@@ -239,7 +239,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
     }
 
-    def "changing custom task implementation in buildSrc doesn't invalidate built-in task"() {
+    def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
@@ -266,6 +266,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         succeedsWithCache "jar", "customTask"
         then:
         skippedTasks.empty
+        file("build/output.txt").text == "input"
 
         when:
         file("buildSrc/src/main/groovy/CustomTask.groovy").text = """
@@ -278,7 +279,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
                 @OutputFile File outputFile
                 @TaskAction void doSomething() {
                     outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text + ": modified"
+                    outputFile.text = inputFile.text + " modified"
                 }
             }
         """
@@ -288,6 +289,75 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
         nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "input modified"
+    }
+
+    def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
+        file("buildSrc/src/main/kotlin/CustomTask.kt") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import java.io.File
+
+            @CacheableTask
+            open class CustomTask() : DefaultTask() {
+                @get:InputFile var inputFile: File? = null
+                @get:OutputFile var outputFile: File? = null
+                @TaskAction fun doSomething() {
+                    outputFile!!.parentFile.mkdirs()
+                    outputFile!!.writeText(inputFile!!.readText())
+                }
+            }
+        """
+        file("buildSrc/src/main/kotlin/CustomTask.kt").makeOlder()
+        file("buildSrc/build.gradle") << """
+            plugins {
+              id "nebula.kotlin" version "1.0.4"
+            }
+            repositories {
+                // required to resolve kotlin-stdlib dependency implicitly added by nebula.kotlin
+                jcenter()
+            }
+            dependencies {
+                compile(gradleApi())
+            }
+        """
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.empty
+        file("build/output.txt").text == "input"
+
+        when:
+        file("buildSrc/src/main/kotlin/CustomTask.kt").text = """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import java.io.File
+
+            @CacheableTask
+            open class CustomTask() : DefaultTask() {
+                @get:InputFile var inputFile: File? = null
+                @get:OutputFile var outputFile: File? = null
+                @TaskAction fun doSomething() {
+                    outputFile!!.parentFile.mkdirs()
+                    outputFile!!.writeText(inputFile!!.readText())
+                    outputFile!!.appendText(" modified")
+                }
+            }
+        """
+
+        run "clean"
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "input modified"
     }
 
     def "outputs are correctly loaded from cache"() {
