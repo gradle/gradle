@@ -22,7 +22,7 @@ import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
 import org.gradle.util.Requires
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.*
+import static org.gradle.util.TestPrecondition.NOT_LINUX
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +42,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.directory
     }
 
-    @Requires(adhoc = { MAC_OS_X.fulfilled || LINUX.fulfilled || WINDOWS.fulfilled })
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         given:
         String libraryPath = factory.create().path
@@ -61,15 +60,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         then:
         library.exists()
         lastModified == library.lastModified()
-    }
-
-    @Requires(adhoc = { !MAC_OS_X.fulfilled && !LINUX.fulfilled && !WINDOWS.fulfilled })
-    def "can initialize jansi for OS without supported library"() {
-        when:
-        quietExecutor().run()
-
-        then:
-        noExceptionThrown()
     }
 
     @Issue("GRADLE-3573")
