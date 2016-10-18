@@ -56,6 +56,9 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         runner.targetVersions = ['last']
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
         runner.args = ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true']
+        runner.warmUpRuns = 2
+        runner.runs = 6
+        runner.setupCleanupOnOddRounds()
 
         when:
         def result = runner.run()
@@ -65,8 +68,8 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
 
         where:
         testProject            | tasks
-        'largeEnterpriseBuild' | ['cleanIdea', 'idea']
-        'largeEnterpriseBuild' | ['clean', 'assemble']
+        'largeEnterpriseBuild' | ['idea']
+        'largeEnterpriseBuild' | ['assemble']
     }
 
     @Unroll("Builds '#testProject' calling #tasks (daemon) with local cache")
