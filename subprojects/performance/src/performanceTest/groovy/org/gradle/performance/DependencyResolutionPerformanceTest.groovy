@@ -35,7 +35,7 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.useDaemon = true
 
         when:
-        def result = runner.run()
+        def result = runner.run(flakiness)
 
         then:
         result.assertCurrentVersionHasNotRegressed(flakiness)

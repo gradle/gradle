@@ -34,7 +34,7 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.targetVersions = targetVersions
 
         when:
-        def result = runner.run()
+        def result = runner.run(flakiness)
 
         then:
         result.assertCurrentVersionHasNotRegressed(flakiness)
