@@ -16,58 +16,30 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
-/**
- * Portions of this class have been copied from org.fusesource.hawtjni.runtime.Library.java,
- * a class available in the project HawtJNI licensed with Eclipse Public License v1.0.
- *
- * @see <a href="https://github.com/fusesource/hawtjni">HawtJNI</a>
- */
 public class JansiLibraryFactory {
 
     public final static String MAC_OSX_LIB_FILENAME = "libjansi.jnilib";
     public final static String LINUX_LIB_FILENAME = "libjansi.so";
     public final static String WINDOWS_LIB_FILENAME = "jansi.dll";
+    private JansiRuntimeResolver jansiRuntimeResolver = new DefaultJansiRuntimeResolver();
+
+    void setJansiRuntimeResolver(JansiRuntimeResolver jansiRuntimeResolver) {
+        this.jansiRuntimeResolver = jansiRuntimeResolver;
+    }
 
     public JansiLibrary create() {
-        String os = getOperatingSystem();
+        String os = jansiRuntimeResolver.getOperatingSystem();
         JansiOperatingSystemSupport osSupport = JansiOperatingSystemSupport.forIdentifier(os);
+
+        if (osSupport == null) {
+            return null;
+        }
 
         switch (osSupport) {
             case MAC_OS_X: return new JansiLibrary(os, MAC_OSX_LIB_FILENAME);
-            case LINUX: return new JansiLibrary(getPlatform(), LINUX_LIB_FILENAME);
-            case WINDOWS: return new JansiLibrary(getPlatform(), WINDOWS_LIB_FILENAME);
+            case LINUX: return new JansiLibrary(jansiRuntimeResolver.getPlatform(), LINUX_LIB_FILENAME);
+            case WINDOWS: return new JansiLibrary(jansiRuntimeResolver.getPlatform(), WINDOWS_LIB_FILENAME);
             default: return null;
         }
-    }
-
-    private String getOperatingSystem() {
-        String name = System.getProperty("os.name").toLowerCase().trim();
-
-        if (name.startsWith("linux")) {
-            return "linux";
-        }
-        if (name.startsWith("mac os x")) {
-            return "osx";
-        }
-        if (name.startsWith("win")) {
-            return "windows";
-        }
-        return name.replaceAll("\\W+", "_");
-
-    }
-
-    private String getPlatform() {
-        return getOperatingSystem() + getBitModel();
-    }
-
-    private int getBitModel() {
-        String prop = System.getProperty("sun.arch.data.model");
-        if (prop == null) {
-            prop = System.getProperty("com.ibm.vm.bitmode");
-        }
-        if (prop != null) {
-            return Integer.parseInt(prop);
-        }
-        return -1;
     }
 }

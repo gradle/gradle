@@ -16,71 +16,46 @@
 
 package org.gradle.internal.nativeintegration.jansi
 
+import org.gradle.util.Requires
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.*
+import static org.gradle.util.TestPrecondition.*
 
-class JansiLibraryFactoryTest extends Specification {
+class JansiLibraryFactoryIntegrationTest extends Specification {
 
     def factory = new JansiLibraryFactory()
-    def resolver = Mock(JansiRuntimeResolver)
 
-    def setup() {
-        factory.jansiRuntimeResolver = resolver
-    }
-
+    @Requires(MAC_OS_X)
     def "jansi library can be created for MacOSX"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        1 * resolver.operatingSystem >> JansiOperatingSystemSupport.MAC_OS_X.identifier
-        0 * resolver.platform
         jansiLibrary.platform == JansiOperatingSystemSupport.MAC_OS_X.identifier
         jansiLibrary.filename == MAC_OSX_LIB_FILENAME
         jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
     }
 
-    @Unroll
-    def "jansi library can be created for Linux platform #platform"() {
+    @Requires(LINUX)
+    def "jansi library can be created for Linux"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        1 * resolver.operatingSystem >> JansiOperatingSystemSupport.LINUX.identifier
-        1 * resolver.platform >> platform
-        jansiLibrary.platform == platform
+        jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.LINUX.identifier)
         jansiLibrary.filename == LINUX_LIB_FILENAME
         jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
-
-        where:
-        platform << ['linux32', 'linux64']
     }
 
-    @Unroll
-    def "jansi library can be created for Windows platform #platform"() {
+    @Requires(WINDOWS)
+    def "jansi library can be created for Windows"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        1 * resolver.operatingSystem >> JansiOperatingSystemSupport.WINDOWS.identifier
-        1 * resolver.platform >> platform
-        jansiLibrary.platform == platform
+        jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.WINDOWS.identifier)
         jansiLibrary.filename == WINDOWS_LIB_FILENAME
         jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
-
-        where:
-        platform << ['windows32', 'windows64']
-    }
-
-    def "jansi library cannot be created for unsupported OS"() {
-        when:
-        JansiLibrary jansiLibrary = factory.create()
-
-        then:
-        1 * resolver.operatingSystem >> 'unknown'
-        0 * resolver.platform
-        !jansiLibrary
     }
 }
