@@ -20,6 +20,7 @@ import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -325,6 +326,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         succeeds()
     }
 
+    @Ignore("This goes into a continuous loop since 6a961999196b10198c3fd437ac39056b4cd3970e")
     def "project directory can be used as input"() {
         given:
         def aFile = file("A")

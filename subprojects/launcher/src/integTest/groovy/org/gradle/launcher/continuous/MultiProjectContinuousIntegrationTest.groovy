@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
+
 class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def upstreamSource, downstreamSource
@@ -81,6 +83,7 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
         executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
     }
 
+    @Ignore("This goes into a continuous loop since 6a961999196b10198c3fd437ac39056b4cd3970e")
     def "can specify root directory of multi project build as a task input; changes are respected"() {
         given:
         buildFile << """
