@@ -29,7 +29,6 @@ import org.gradle.tooling.model.idea.IdeaProject
  */
 @TargetGradleVersion(">=3.1")
 class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
-    def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB
 
