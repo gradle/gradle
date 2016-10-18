@@ -18,7 +18,7 @@ package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.nativeintegration.jansi.JansiLibraryResolver
+import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
 import org.gradle.util.Requires
 import spock.lang.Issue
 
@@ -28,7 +28,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
     final File jansiDir = new File(nativeDir, 'jansi')
-    final JansiLibraryResolver resolver = new JansiLibraryResolver()
+    final JansiLibraryFactory factory = new JansiLibraryFactory()
 
     def setup() {
         requireGradleDistribution()
@@ -45,7 +45,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     @Requires(adhoc = { MAC_OS_X.fulfilled || LINUX.fulfilled || WINDOWS.fulfilled })
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         given:
-        String libraryPath = resolver.resolve().path
+        String libraryPath = factory.create().path
         File library = new File(jansiDir, libraryPath)
 
         when:

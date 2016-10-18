@@ -22,13 +22,13 @@ package org.gradle.internal.nativeintegration.jansi;
  *
  * @see <a href="https://github.com/fusesource/hawtjni">HawtJNI</a>
  */
-public class JansiLibraryResolver {
+public class JansiLibraryFactory {
 
     public final static String MAC_OSX_LIB_FILENAME = "libjansi.jnilib";
     public final static String LINUX_LIB_FILENAME = "libjansi.so";
     public final static String WINDOWS_LIB_FILENAME = "jansi.dll";
 
-    public JansiLibrary resolve() {
+    public JansiLibrary create() {
         String os = getOperatingSystem();
         JansiOperatingSystemSupport osSupport = JansiOperatingSystemSupport.forIdentifier(os);
 

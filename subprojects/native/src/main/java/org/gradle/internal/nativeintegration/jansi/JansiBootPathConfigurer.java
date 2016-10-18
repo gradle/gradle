@@ -26,18 +26,20 @@ import java.io.InputStream;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
-    private final JansiLibraryResolver resolver = new JansiLibraryResolver();
+    private final JansiLibraryFactory factory = new JansiLibraryFactory();
 
     /**
      * Attempts to find the Jansi library and copies it to a specified folder.
      * The copy operation happens only once. Sets the Jansi-related system property.
      *
-     * This hackery is to prevent Jansi from creating a shared lib in the tmp dir, as it does not clean things up.
+     * This hackery is to prevent Jansi from creating a shared lib in a tmp dir which is deleted when
+     * the Java process finishes. To avoid performance impacts caused by Jansi's default behavior the
+     * library is proactively extracted into a known directory and reused by subsequent invocations.
      *
      * @param storageDir where to store the Jansi library
      */
     public void configure(File storageDir) {
-        JansiLibrary jansiLibrary = resolver.resolve();
+        JansiLibrary jansiLibrary = factory.create();
 
         if (jansiLibrary != null) {
             File tmpDir = new File(storageDir, "jansi/" + jansiLibrary.getPlatform());
