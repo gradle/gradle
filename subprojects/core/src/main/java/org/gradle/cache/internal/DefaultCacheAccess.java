@@ -314,7 +314,15 @@ public class DefaultCacheAccess implements CacheCoordinator {
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
         CacheDecorator decorator = parameters.getCacheDecorator();
         if (decorator != null) {
-            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker(), this);
+            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
+            if (fileLock == null) {
+                useCache("Initial operation", new Runnable() {
+                    @Override
+                    public void run() {
+                        // Empty initial operation to trigger onStartWork calls
+                    }
+                });
+            }
         }
 
         lock.lock();
