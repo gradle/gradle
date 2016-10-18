@@ -16,47 +16,34 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
+import static org.gradle.internal.nativeintegration.jansi.JansiOperatingSystemSupport.*;
+
 /**
  * Portions of this class have been copied from org.fusesource.hawtjni.runtime.Library.java,
  * a class available in the project HawtJNI licensed with Eclipse Public License v1.0.
  *
  * @see <a href="https://github.com/fusesource/hawtjni">HawtJNI</a>
  */
-public class JansiLibraryResolver {
+public class DefaultJansiRuntimeResolver implements JansiRuntimeResolver {
 
-    public final static String MAC_OSX_LIB_FILENAME = "libjansi.jnilib";
-    public final static String LINUX_LIB_FILENAME = "libjansi.so";
-    public final static String WINDOWS_LIB_FILENAME = "jansi.dll";
-
-    public JansiLibrary resolve() {
-        String os = getOperatingSystem();
-        JansiOperatingSystemSupport osSupport = JansiOperatingSystemSupport.forIdentifier(os);
-
-        switch (osSupport) {
-            case MAC_OS_X: return new JansiLibrary(os, MAC_OSX_LIB_FILENAME);
-            case LINUX: return new JansiLibrary(getPlatform(), LINUX_LIB_FILENAME);
-            case WINDOWS: return new JansiLibrary(getPlatform(), WINDOWS_LIB_FILENAME);
-            default: return null;
-        }
-    }
-
-    private String getOperatingSystem() {
+    @Override
+    public String getOperatingSystem() {
         String name = System.getProperty("os.name").toLowerCase().trim();
 
         if (name.startsWith("linux")) {
-            return "linux";
+            return LINUX.getIdentifier();
         }
         if (name.startsWith("mac os x")) {
-            return "osx";
+            return MAC_OS_X.getIdentifier();
         }
         if (name.startsWith("win")) {
-            return "windows";
+            return WINDOWS.getIdentifier();
         }
         return name.replaceAll("\\W+", "_");
-
     }
 
-    private String getPlatform() {
+    @Override
+    public String getPlatform() {
         return getOperatingSystem() + getBitModel();
     }
 

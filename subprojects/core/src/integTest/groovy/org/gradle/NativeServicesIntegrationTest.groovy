@@ -18,17 +18,17 @@ package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.nativeintegration.jansi.JansiLibraryResolver
+import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
 import org.gradle.util.Requires
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.*
+import static org.gradle.util.TestPrecondition.NOT_LINUX
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
     final File jansiDir = new File(nativeDir, 'jansi')
-    final JansiLibraryResolver resolver = new JansiLibraryResolver()
+    final JansiLibraryFactory factory = new JansiLibraryFactory()
 
     def setup() {
         requireGradleDistribution()
@@ -42,10 +42,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.directory
     }
 
-    @Requires(adhoc = { MAC_OS_X.fulfilled || LINUX.fulfilled || WINDOWS.fulfilled })
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         given:
-        String libraryPath = resolver.resolve().path
+        String libraryPath = factory.create().path
         File library = new File(jansiDir, libraryPath)
 
         when:
@@ -61,15 +60,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         then:
         library.exists()
         lastModified == library.lastModified()
-    }
-
-    @Requires(adhoc = { !MAC_OS_X.fulfilled && !LINUX.fulfilled && !WINDOWS.fulfilled })
-    def "can initialize jansi for OS without supported library"() {
-        when:
-        quietExecutor().run()
-
-        then:
-        noExceptionThrown()
     }
 
     @Issue("GRADLE-3573")

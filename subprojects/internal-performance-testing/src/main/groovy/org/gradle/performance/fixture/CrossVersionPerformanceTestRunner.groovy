@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.Flakiness
@@ -59,6 +60,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> targetVersions = []
 
     BuildExperimentListener buildExperimentListener
+    InvocationCustomizer invocationCustomizer
     GradleExecuterDecorator executerDecorator
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
@@ -220,6 +222,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
             .listener(buildExperimentListener)
+            .invocationCustomizer(invocationCustomizer)
             .invocation {
                 workingDirectory(workingDir)
                 distribution(new ExecuterDecoratingGradleDistribution(dist, executerDecorator))
@@ -246,5 +249,32 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     HonestProfilerCollector getHonestProfiler() {
         return experimentRunner.honestProfiler
+    }
+
+    void setupCleanupOnOddRounds() {
+        setupCleanupOnOddRounds('clean')
+    }
+
+    void setupCleanupOnOddRounds(String... cleanUpTasks) {
+        invocationCustomizer = new InvocationCustomizer() {
+            @Override
+            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    def builder = ((GradleInvocationSpec) invocationSpec).withBuilder()
+                    builder.setTasksToRun(cleanUpTasks as List)
+                    return builder.build()
+                } else {
+                    return invocationSpec
+                }
+            }
+        }
+        buildExperimentListener = new BuildExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
     }
 }

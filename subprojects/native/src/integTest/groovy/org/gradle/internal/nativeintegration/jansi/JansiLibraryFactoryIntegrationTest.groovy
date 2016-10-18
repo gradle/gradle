@@ -19,17 +19,17 @@ package org.gradle.internal.nativeintegration.jansi
 import org.gradle.util.Requires
 import spock.lang.Specification
 
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryResolver.*
+import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.*
 import static org.gradle.util.TestPrecondition.*
 
-class JansiLibraryResolverTest extends Specification {
+class JansiLibraryFactoryIntegrationTest extends Specification {
 
-    def resolver = new JansiLibraryResolver()
+    def factory = new JansiLibraryFactory()
 
     @Requires(MAC_OS_X)
-    def "jansi library can be resolved for MacOSX"() {
+    def "jansi library can be created for MacOSX"() {
         when:
-        JansiLibrary jansiLibrary = resolver.resolve()
+        JansiLibrary jansiLibrary = factory.create()
 
         then:
         jansiLibrary.platform == JansiOperatingSystemSupport.MAC_OS_X.identifier
@@ -38,9 +38,9 @@ class JansiLibraryResolverTest extends Specification {
     }
 
     @Requires(LINUX)
-    def "jansi library can be resolved for Linux"() {
+    def "jansi library can be created for Linux"() {
         when:
-        JansiLibrary jansiLibrary = resolver.resolve()
+        JansiLibrary jansiLibrary = factory.create()
 
         then:
         jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.LINUX.identifier)
@@ -49,22 +49,13 @@ class JansiLibraryResolverTest extends Specification {
     }
 
     @Requires(WINDOWS)
-    def "jansi library can be resolved for Windows"() {
+    def "jansi library can be created for Windows"() {
         when:
-        JansiLibrary jansiLibrary = resolver.resolve()
+        JansiLibrary jansiLibrary = factory.create()
 
         then:
         jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.WINDOWS.identifier)
         jansiLibrary.filename == WINDOWS_LIB_FILENAME
         jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
-    }
-
-    @Requires(adhoc = { !MAC_OS_X.fulfilled && !LINUX.fulfilled && !WINDOWS.fulfilled })
-    def "jansi library cannot be resolved for unsupported OS"() {
-        when:
-        JansiLibrary jansiLibrary = resolver.resolve()
-
-        then:
-        !jansiLibrary
     }
 }
