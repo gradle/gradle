@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.specs.Spec;
@@ -132,12 +133,16 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
             public Set<ResolvedArtifact> create() {
                 return CollectionUtils.filter(allArtifacts, new Spec<ResolvedArtifact>() {
                     public boolean isSatisfiedBy(ResolvedArtifact element) {
-                        try {
-                            File file = element.getFile();
-                            return file != null;
-                        } catch (ArtifactResolveException e) {
-                            return false;
+                        // Check existence of external module artifacts
+                        if (element.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                            try {
+                                File file = element.getFile();
+                                return file != null;
+                            } catch (ArtifactResolveException e) {
+                                return false;
+                            }
                         }
+                        return true;
                     }
                 });
             }

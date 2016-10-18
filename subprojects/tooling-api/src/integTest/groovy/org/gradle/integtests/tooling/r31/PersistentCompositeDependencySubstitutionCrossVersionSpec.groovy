@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
-
 /**
  * Dependency substitution is performed for models in a composite build
  */
@@ -132,5 +131,19 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b1-renamed" }
         ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b2-renamed" }
 
+    }
+
+    @TargetGradleVersion(">=3.3")
+    def "Does not execute tasks for included builds when generating IDE models"() {
+        when:
+        def modelOperation = withModel(modelType)
+        def modelInstance = modelOperation.model
+
+        then:
+        modelType.isInstance modelInstance
+        modelOperation.result.executedTasks.empty
+
+        where:
+        modelType << [EclipseProject, IdeaProject]
     }
 }
