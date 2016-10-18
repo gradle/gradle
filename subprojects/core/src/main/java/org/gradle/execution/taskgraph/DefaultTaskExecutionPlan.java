@@ -401,7 +401,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         });
         graphWalker.add(entryTasks);
-        final List<TaskInfo> firstCycle = new ArrayList<TaskInfo>(graphWalker.findCycles().get(0));
+        List<Set<TaskInfo>> cycles = graphWalker.findCycles();
+
+        if (cycles.isEmpty()) {
+            return;
+        }
+
+        final List<TaskInfo> firstCycle = new ArrayList<TaskInfo>(cycles.get(0));
         Collections.sort(firstCycle);
 
         DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
