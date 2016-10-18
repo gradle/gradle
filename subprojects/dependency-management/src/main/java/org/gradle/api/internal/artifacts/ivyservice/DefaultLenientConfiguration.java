@@ -131,20 +131,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         final Set<ResolvedArtifact> allArtifacts = getAllArtifacts(dependencySpec);
         return cacheLockingManager.useCache("retrieve artifacts from " + configuration, new Factory<Set<ResolvedArtifact>>() {
             public Set<ResolvedArtifact> create() {
-                return CollectionUtils.filter(allArtifacts, new Spec<ResolvedArtifact>() {
-                    public boolean isSatisfiedBy(ResolvedArtifact element) {
-                        // Check existence of external module artifacts
-                        if (element.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
-                            try {
-                                File file = element.getFile();
-                                return file != null;
-                            } catch (ArtifactResolveException e) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
-                });
+                return CollectionUtils.filter(allArtifacts, new IgnoreMissingExternalArtifacts());
             }
         });
     }
@@ -209,6 +196,24 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
                                   Collection<ResolvedArtifact> values) {
             values.addAll(to.getParentArtifacts(from));
+        }
+    }
+
+    private static class IgnoreMissingExternalArtifacts implements Spec<ResolvedArtifact> {
+        public boolean isSatisfiedBy(ResolvedArtifact element) {
+            if (isExternalModuleArtifact(element)) {
+                try {
+                    File file = element.getFile();
+                    return file != null;
+                } catch (ArtifactResolveException e) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        boolean isExternalModuleArtifact(ResolvedArtifact element) {
+            return element.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier;
         }
     }
 }
