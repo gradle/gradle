@@ -33,6 +33,7 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         runner.useDaemon = true
         runner.targetVersions = ['last']
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
+        setupRunner()
 
         when:
         def result = runner.run()
@@ -42,8 +43,14 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
 
         where:
         testProject            | tasks
-        'largeEnterpriseBuild' | ['cleanIdea', 'idea']
-        'largeEnterpriseBuild' | ['clean', 'assemble']
+        'largeEnterpriseBuild' | ['idea']
+        'largeEnterpriseBuild' | ['assemble']
+    }
+
+    private void setupRunner() {
+        runner.warmUpRuns = 2
+        runner.runs = 6
+        runner.setupCleanupOnOddRounds()
     }
 
     @Unroll("Builds '#testProject' calling #tasks (daemon) in parallel")
@@ -56,9 +63,7 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         runner.targetVersions = ['last']
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
         runner.args = ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true']
-        runner.warmUpRuns = 2
-        runner.runs = 6
-        runner.setupCleanupOnOddRounds()
+        setupRunner()
 
         when:
         def result = runner.run()
@@ -82,6 +87,7 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
         runner.targetVersions = ['last']
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
         runner.args = ['-Dorg.gradle.cache.tasks=true']
+        setupRunner()
 
         when:
         def result = runner.run()
@@ -91,6 +97,6 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest 
 
         where:
         testProject            | tasks
-        'largeEnterpriseBuild' | ['clean', 'assemble']
+        'largeEnterpriseBuild' | ['assemble']
     }
 }
