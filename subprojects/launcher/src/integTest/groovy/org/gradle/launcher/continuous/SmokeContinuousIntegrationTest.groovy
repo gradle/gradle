@@ -326,12 +326,24 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         succeeds()
     }
 
-    @Ignore("This goes into a continuous loop since 6a961999196b10198c3fd437ac39056b4cd3970e")
+    @Ignore("This goes into a continuous loop since .gradle files change")
     def "project directory can be used as input"() {
         given:
         def aFile = file("A")
         buildFile << """
+        task before {
+            def outputFile = new File(buildDir, "output.txt")
+            outputs.file outputFile
+            outputs.upToDateWhen { false }
+
+            doLast {
+                outputFile.parentFile.mkdirs()
+                outputFile.text = "OK"
+            }
+        }
+
         task a {
+            dependsOn before
             inputs.dir projectDir
             doLast {}
         }

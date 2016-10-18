@@ -83,12 +83,24 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
         executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
     }
 
-    @Ignore("This goes into a continuous loop since 6a961999196b10198c3fd437ac39056b4cd3970e")
+    @Ignore("This goes into a continuous loop since .gradle files change")
     def "can specify root directory of multi project build as a task input; changes are respected"() {
         given:
         buildFile << """
             allprojects {
+                task before {
+                    def outputFile = new File(buildDir, "output.txt")
+                    outputs.file outputFile
+                    outputs.upToDateWhen { false }
+
+                    doLast {
+                        outputFile.parentFile.mkdirs()
+                        outputFile.text = "OK"
+                    }
+                }
+
                 task a {
+                    dependsOn before
                     inputs.dir rootDir
                     doLast {
                     }
