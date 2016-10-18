@@ -21,8 +21,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
 
 class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -241,7 +243,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
+    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
+    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
         file("buildSrc/build.gradle") << APPLY_KOTLIN
@@ -296,7 +299,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         file("build/output.txt").text == "input modified"
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
+    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
+    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
     def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
