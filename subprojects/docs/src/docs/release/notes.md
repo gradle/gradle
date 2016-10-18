@@ -95,13 +95,6 @@ We made a number of improvements in Gradle 3.1 that allow the Daemon to cancel a
 
 This release resolves the remaining issues so that Ctrl-C will reliably _not_ kill the Daemon. As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
 
-### Continuous build usability improvements
-
-Continuous build now ignores changes in the root project's `.gradle` directory and in all `build` directories. 
-This change is important for projects that have the project directory as an input in some task in the build. 
-Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
-Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
-
 ### Multi-project builds with Kotlin scripting
 
 This release ships with Gradle Script Kotlin v0.3.3.
