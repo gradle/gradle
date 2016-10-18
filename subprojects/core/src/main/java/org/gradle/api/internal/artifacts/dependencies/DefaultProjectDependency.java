@@ -88,11 +88,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
-    public Configuration findProjectConfiguration(Map<String, String> clientAttributes) {
+    public Configuration findProjectConfiguration(final Map<String, String> clientAttributes) {
         Configuration selectedConfiguration = null;
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
-        if (declaredConfiguration == null && !clientAttributes.isEmpty()) {
+        boolean useConfigurationAttributes = declaredConfiguration == null && !clientAttributes.isEmpty();
+        if (useConfigurationAttributes) {
             List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {

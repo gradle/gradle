@@ -279,7 +279,7 @@ public class DependencyGraphBuilder {
 
             Set<ConfigurationMetadata> targetConfigurations = dependencyMetadata.selectConfigurations(from.moduleRevision.metaData, from.metaData, targetModuleVersion);
             for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
-                ConfigurationNode targetConfigurationNode = resolveState.getConfigurationNode(targetModuleRevision, targetConfiguration.getName());
+                ConfigurationNode targetConfigurationNode = resolveState.getConfigurationNode(targetModuleRevision, targetConfiguration);
                 this.targetConfigurations.add(targetConfigurationNode);
             }
         }
@@ -372,11 +372,11 @@ public class DependencyGraphBuilder {
             return nodes.values();
         }
 
-        public ConfigurationNode getConfigurationNode(ModuleVersionResolveState module, String configurationName) {
-            ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.id, configurationName);
+        public ConfigurationNode getConfigurationNode(ModuleVersionResolveState module, ConfigurationMetadata configurationMetadata) {
+            ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.id, configurationMetadata.getName());
             ConfigurationNode configuration = nodes.get(id);
             if (configuration == null) {
-                configuration = new ConfigurationNode(idGenerator.generateId(), id, module, this);
+                configuration = new ConfigurationNode(idGenerator.generateId(), id, module, this, configurationMetadata);
                 nodes.put(id, configuration);
             }
             return configuration;
@@ -672,11 +672,15 @@ public class DependencyGraphBuilder {
         private ModuleExclusion previousTraversalExclusions;
 
         private ConfigurationNode(Long resultId, ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState) {
+            this(resultId, id, moduleRevision, resolveState, moduleRevision.metaData.getConfiguration(id.getConfiguration()));
+        }
+
+        private ConfigurationNode(Long resultId, ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState, ConfigurationMetadata md) {
             this.resultId = resultId;
             this.id = id;
             this.moduleRevision = moduleRevision;
             this.resolveState = resolveState;
-            this.metaData = moduleRevision.metaData.getConfiguration(id.getConfiguration());
+            this.metaData = md;
             moduleRevision.addConfiguration(this);
         }
 

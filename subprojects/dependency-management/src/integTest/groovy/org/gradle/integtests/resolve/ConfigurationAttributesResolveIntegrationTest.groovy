@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Ignore
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -512,6 +513,76 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         then:
         executedAndNotSkipped ':b:barJar'
         notExecuted ':b:fooJar'
+    }
+
+    @Ignore // ignored because it doesn't work for the "without fluid dependencies" case
+    def "context travels down to transitive dependencies"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default' project(':c')
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':c:fooJar'
+        notExecuted ':c:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':c:barJar'
+        notExecuted ':c:fooJar'
     }
 
 }
