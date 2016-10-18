@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.tooling.internal.gradle;
 
-import java.lang.annotation.*;
+import java.io.File;
+import java.io.Serializable;
 
-/**
- * Specifies that a test should not be executed with an integrated composite
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Inherited
-public @interface IgnoreIntegratedComposite {
+public class DefaultBuildIdentifier implements Serializable, GradleBuildIdentity {
+    private final File rootDir;
+
+    public DefaultBuildIdentifier(File rootDir) {
+        this.rootDir = rootDir.getAbsoluteFile();
+    }
+
+    public File getRootDir() {
+        return rootDir;
+    }
+
+    @Override
+    public String toString() {
+        return "build=" + rootDir.getPath();
+    }
+
 }

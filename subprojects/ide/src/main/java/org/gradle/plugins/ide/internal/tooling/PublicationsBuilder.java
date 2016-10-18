@@ -20,15 +20,16 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradlePublication;
 import org.gradle.tooling.internal.gradle.DefaultProjectPublications;
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.List;
 import java.util.Set;
 
-class PublicationsBuilder extends ProjectSensitiveToolingModelBuilder {
+class PublicationsBuilder implements ToolingModelBuilder {
     private final ProjectPublicationRegistry publicationRegistry;
 
     PublicationsBuilder(ProjectPublicationRegistry publicationRegistry) {
@@ -42,16 +43,19 @@ class PublicationsBuilder extends ProjectSensitiveToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return new DefaultProjectPublications().setPublications(publications(project.getPath()));
+        DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
+        return new DefaultProjectPublications().setPublications(publications(projectIdentifier)).setProjectIdentifier(projectIdentifier);
     }
 
-    private List<DefaultGradlePublication> publications(String projectPath) {
+    private List<DefaultGradlePublication> publications(DefaultProjectIdentifier projectIdentifier) {
         List<DefaultGradlePublication> gradlePublications = Lists.newArrayList();
 
-        Set<ProjectPublication> projectPublications = publicationRegistry.getPublications(projectPath);
+        Set<ProjectPublication> projectPublications = publicationRegistry.getPublications(projectIdentifier.getProjectPath());
         for (ProjectPublication projectPublication : projectPublications) {
             gradlePublications.add(new DefaultGradlePublication()
-                    .setId(new DefaultGradleModuleVersion(projectPublication.getId())));
+                    .setId(new DefaultGradleModuleVersion(projectPublication.getId()))
+                    .setProjectIdentifier(projectIdentifier)
+            );
         }
 
         return gradlePublications;

@@ -17,13 +17,19 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
@@ -44,20 +50,57 @@ class DefaultBuildController implements InternalBuildController {
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
         }
-        ToolingModelBuilderRegistry modelBuilderRegistry;
+        ProjectInternal project = getTargetProject(target);
+        ToolingModelBuilder builder = getToolingModelBuilder(project, modelIdentifier);
+        Object model = builder.buildAll(modelIdentifier.getName(), project);
+        return new ProviderBuildResult<Object>(model);
+    }
+
+    private ProjectInternal getTargetProject(Object target) {
         ProjectInternal project;
-        boolean isImplicitProject;
         if (target == null) {
             project = gradle.getDefaultProject();
-            isImplicitProject = true;
         } else if (target instanceof GradleProjectIdentity) {
-            GradleProjectIdentity gradleProject = (GradleProjectIdentity) target;
-            project = gradle.getRootProject().project(gradleProject.getPath());
-            isImplicitProject = false;
+            GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
+            GradleInternal build = findBuild(projectIdentity);
+            project = findProject(build, projectIdentity);
+        } else if (target instanceof GradleBuildIdentity) {
+            GradleBuildIdentity buildIdentity = (GradleBuildIdentity) target;
+            project = findBuild(buildIdentity).getDefaultProject();
         } else {
             throw new IllegalArgumentException("Don't know how to build models for " + target);
         }
-        modelBuilderRegistry = project.getServices().get(ToolingModelBuilderRegistry.class);
+        return project;
+    }
+
+    private GradleInternal findBuild(GradleBuildIdentity buildIdentity) {
+        GradleInternal build = findBuild(gradle, buildIdentity);
+        if (build != null) {
+            return build;
+        } else {
+            throw new IllegalArgumentException(buildIdentity.getRootDir() + " is not included in this build");
+        }
+    }
+
+    private GradleInternal findBuild(GradleInternal rootBuild, GradleBuildIdentity buildIdentity) {
+        if (rootBuild.getRootProject().getProjectDir().equals(buildIdentity.getRootDir())) {
+            return rootBuild;
+        }
+        for (IncludedBuild includedBuild : rootBuild.getIncludedBuilds()) {
+            GradleInternal matchingBuild = findBuild(((IncludedBuildInternal) includedBuild).getConfiguredBuild(), buildIdentity);
+            if (matchingBuild != null) {
+                return matchingBuild;
+            }
+        }
+        return null;
+    }
+
+    private ProjectInternal findProject(GradleInternal build, GradleProjectIdentity projectIdentity) {
+        return build.getRootProject().project(projectIdentity.getProjectPath());
+    }
+
+    private ToolingModelBuilder getToolingModelBuilder(ProjectInternal project, ModelIdentifier modelIdentifier) {
+        ToolingModelBuilderRegistry modelBuilderRegistry = project.getServices().get(ToolingModelBuilderRegistry.class);
 
         ToolingModelBuilder builder;
         try {
@@ -65,12 +108,6 @@ class DefaultBuildController implements InternalBuildController {
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
         }
-        Object model;
-        if (builder instanceof ProjectSensitiveToolingModelBuilder) {
-            model = ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelIdentifier.getName(), project, isImplicitProject);
-        } else {
-            model = builder.buildAll(modelIdentifier.getName(), project);
-        }
-        return new ProviderBuildResult<Object>(model);
+        return builder;
     }
 }

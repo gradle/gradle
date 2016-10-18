@@ -63,7 +63,7 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
         1 * mapping.getModelIdentifierFromModelType(SomeModel.class) >> someModelIdentifier
         BuildResult buildResult = Mock(BuildResult)
         ViewBuilder<SomeModel> viewBuilder = Mock()
-        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
+        ConsumerOperationParameters operationParameters = Stub(ConsumerOperationParameters)
 
         when:
         SomeModel model = modelProducer.produceModel(SomeModel.class, operationParameters)

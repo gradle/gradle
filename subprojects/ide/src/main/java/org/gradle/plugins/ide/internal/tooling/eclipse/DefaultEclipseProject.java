@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 import java.io.File;
@@ -66,13 +67,12 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         return "project '" + path + "'";
     }
 
-    @Override
-    public String getPath() {
-        return path;
-    }
-
     public String getName() {
         return name;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public String getDescription() {
@@ -182,5 +182,19 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
 
     public void setOutputLocation(DefaultEclipseOutputLocation outputLocation) {
         this.outputLocation = outputLocation;
+    }
+
+    public DefaultProjectIdentifier getProjectIdentifier() {
+        return gradleProject.getProjectIdentifier();
+    }
+
+    @Override
+    public String getProjectPath() {
+        return getProjectIdentifier().getProjectPath();
+    }
+
+    @Override
+    public File getRootDir() {
+        return getProjectIdentifier().getBuildIdentifier().getRootDir();
     }
 }

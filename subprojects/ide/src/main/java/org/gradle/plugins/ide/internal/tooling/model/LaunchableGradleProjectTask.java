@@ -16,16 +16,16 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.tooling.internal.gradle.PartialGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 
 public class LaunchableGradleProjectTask extends LaunchableGradleTask {
-    private PartialGradleProject project;
+    private DefaultGradleProject<?> project;
 
-    public PartialGradleProject getProject() {
+    public DefaultGradleProject<?> getProject() {
         return project;
     }
 
-    public LaunchableGradleProjectTask setProject(PartialGradleProject project) {
+    public LaunchableGradleProjectTask setProject(DefaultGradleProject<?> project) {
         this.project = project;
         return this;
     }

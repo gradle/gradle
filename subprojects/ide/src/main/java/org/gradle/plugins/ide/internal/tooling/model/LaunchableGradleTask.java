@@ -17,8 +17,10 @@
 package org.gradle.plugins.ide.internal.tooling.model;
 
 import org.gradle.TaskExecutionRequest;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +33,7 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
     private String displayName;
     private String group;
     private boolean isPublic;
+    private DefaultProjectIdentifier projectIdentifier;
 
     public String getPath() {
         return path;
@@ -92,6 +95,20 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
     public LaunchableGradleTask setPublic(boolean isPublic) {
         this.isPublic = isPublic;
         return this;
+    }
+
+    @Override
+    public File getRootDir() {
+        return projectIdentifier.getBuildIdentifier().getRootDir();
+    }
+
+    public LaunchableGradleTask setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
+    }
+
+    public DefaultProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
     }
 
     @Override

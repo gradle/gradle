@@ -22,14 +22,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.eclipse.EclipseProject;
-import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
-import org.gradle.tooling.model.idea.BasicIdeaProject;
-import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 /**
  * An adapter for a {@link BuildActionRunner} based provider.
@@ -41,7 +34,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
     private final UnsupportedActionRunner actionRunner;
 
     public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, new R12VersionDetails(delegate.getMetaData().getVersion()));
+        super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
         ModelProducer consumerConnectionBackedModelProducer = new BuildActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping,  (BuildActionRunner) delegate, this);
         ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer, this);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
@@ -56,24 +49,6 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
     @Override
     protected ModelProducer getModelProducer() {
         return modelProducer;
-    }
-
-    private static class R12VersionDetails extends VersionDetails {
-        public R12VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return modelType.equals(ProjectOutcomes.class)
-                    || modelType.equals(HierarchicalEclipseProject.class)
-                    || modelType.equals(EclipseProject.class)
-                    || modelType.equals(IdeaProject.class)
-                    || modelType.equals(BasicIdeaProject.class)
-                    || modelType.equals(BuildEnvironment.class)
-                    || modelType.equals(GradleProject.class)
-                    || modelType.equals(Void.class);
-        }
     }
 
     private static class BuildActionRunnerBackedModelProducer implements ModelProducer {

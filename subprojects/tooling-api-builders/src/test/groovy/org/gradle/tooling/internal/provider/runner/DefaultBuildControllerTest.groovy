@@ -24,7 +24,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.UnknownModelException
@@ -65,14 +64,17 @@ class DefaultBuildControllerTest extends Specification {
     }
 
     def "uses builder for specified project"() {
+        def rootDir = new File("dummy")
         def target = Stub(GradleProjectIdentity)
         def rootProject = Stub(ProjectInternal)
         def model = new Object()
 
         given:
-        _ * target.path >> ":some:path"
+        _ * target.projectPath >> ":some:path"
+        _ * target.rootDir >> rootDir
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
+        _ * rootProject.getProjectDir() >> rootDir
         _ * registry.getBuilder("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
@@ -93,42 +95,6 @@ class DefaultBuildControllerTest extends Specification {
 
         when:
         def result = controller.getModel(null, modelId)
-
-        then:
-        result.getModel() == model
-    }
-
-    def "passes information about default project when context sensitive builder is used"() {
-        def contextModelBuilder = Stub(ProjectSensitiveToolingModelBuilder)
-        def model = new Object()
-
-        given:
-        _ * gradle.defaultProject >> project
-        _ * registry.getBuilder("some.model") >> contextModelBuilder
-        _ * contextModelBuilder.buildAll("some.model", project, true) >> model
-
-        when:
-        def result = controller.getModel(null, modelId)
-
-        then:
-        result.getModel() == model
-    }
-
-    def "passes information about specified project when context sensitive builder is used"() {
-        def contextModelBuilder = Stub(ProjectSensitiveToolingModelBuilder)
-        def model = new Object()
-        def target = Stub(GradleProjectIdentity)
-        def rootProject = Stub(ProjectInternal)
-
-        given:
-        _ * target.path >> ":some:path"
-        _ * gradle.rootProject >> rootProject
-        _ * rootProject.project(":some:path") >> project
-        _ * registry.getBuilder("some.model") >> contextModelBuilder
-        _ * contextModelBuilder.buildAll("some.model", project, false) >> model
-
-        when:
-        def result = controller.getModel(target, modelId)
 
         then:
         result.getModel() == model

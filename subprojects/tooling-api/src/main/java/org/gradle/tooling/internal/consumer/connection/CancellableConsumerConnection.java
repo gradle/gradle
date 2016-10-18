@@ -42,11 +42,11 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
     private final ModelProducer modelProducer;
 
     public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, new R21VersionDetails(delegate.getMetaData().getVersion()));
+        super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
         Transformer<RuntimeException, RuntimeException> exceptionTransformer = new ExceptionTransformer();
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
         modelProducer = createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
-        actionRunner = new CancellableActionRunner(connection, exceptionTransformer);
+        actionRunner = new CancellableActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
     protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
@@ -66,27 +66,6 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         return modelProducer;
     }
 
-    private static class R21VersionDetails extends VersionDetails {
-        private R21VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean supportsTaskDisplayName() {
-            return true;
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return true;
-        }
-
-        @Override
-        public boolean supportsCancellation() {
-            return true;
-        }
-    }
-
     private static class ExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
         public RuntimeException transform(RuntimeException e) {
             for (Throwable t = e; t != null; t = t.getCause()) {
@@ -102,10 +81,12 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
     private static class CancellableActionRunner implements ActionRunner {
         private final InternalCancellableConnection executor;
         private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
+        private final VersionDetails versionDetails;
 
-        private CancellableActionRunner(InternalCancellableConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+        private CancellableActionRunner(InternalCancellableConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
             this.executor = executor;
             this.exceptionTransformer = exceptionTransformer;
+            this.versionDetails = versionDetails;
         }
 
         public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
@@ -115,7 +96,7 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
             BuildResult<T> result;
             try {
                 try {
-                    result = executor.run(new InternalBuildActionAdapter<T>(action, rootDir), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+                    result = executor.run(new InternalBuildActionAdapter<T>(action, rootDir, versionDetails), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
                 } catch (RuntimeException e) {
                     throw exceptionTransformer.transform(e);
                 }

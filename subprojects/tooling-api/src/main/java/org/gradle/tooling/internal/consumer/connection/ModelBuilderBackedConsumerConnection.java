@@ -21,9 +21,6 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
-import org.gradle.tooling.model.gradle.BuildInvocations;
-import org.gradle.tooling.model.gradle.GradleBuild;
-import org.gradle.tooling.model.gradle.ProjectPublications;
 
 /**
  * An adapter for a {@link ModelBuilder} based provider.
@@ -35,7 +32,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
     private final ActionRunner actionRunner;
 
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, new R16VersionDetails(delegate.getMetaData().getVersion()));
+        super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
         ModelBuilder builder = (ModelBuilder) delegate;
         ModelProducer modelProducer =  new ModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer, this);
@@ -54,16 +51,4 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         return modelProducer;
     }
 
-    static class R16VersionDetails extends VersionDetails {
-        public R16VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return modelType != BuildInvocations.class
-                    && modelType != ProjectPublications.class
-                    && modelType != GradleBuild.class;
-        }
-    }
 }

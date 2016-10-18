@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -56,7 +57,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         }
 
         DefaultGradleProject<LaunchableGradleTask> gradleProject = new DefaultGradleProject<LaunchableGradleTask>()
-                .setPath(project.getPath())
+                .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
                 .setName(project.getName())
                 .setDescription(project.getDescription())
                 .setBuildDirectory(project.getBuildDir())
@@ -80,7 +81,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
-                out.add(buildFromTask(new LaunchableGradleProjectTask(), t).setProject(owner));
+                out.add(buildFromTask(new LaunchableGradleProjectTask(), t).setProject(owner).setProjectIdentifier(owner.getProjectIdentifier()));
             }
         }
 

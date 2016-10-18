@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.tooling.internal.consumer.converters;
 
-import java.lang.annotation.*;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
-/**
- * Specifies that a test must be executed with an integrated composite
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Inherited
-public @interface RequiresIntegratedComposite {
+import java.io.Serializable;
+import java.util.Collections;
+
+public class IncludedBuildsMixin implements Serializable {
+    public DomainObjectSet<? extends GradleBuild> getIncludedBuilds() {
+        return ImmutableDomainObjectSet.of(Collections.<GradleBuild>emptyList());
+    }
 }

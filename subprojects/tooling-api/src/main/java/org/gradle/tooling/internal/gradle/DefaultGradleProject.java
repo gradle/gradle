@@ -22,34 +22,94 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject<T> extends PartialGradleProject implements Serializable, GradleProjectIdentity {
+public class DefaultGradleProject<T> implements Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
     private List<T> tasks = new LinkedList<T>();
+    private String name;
+    private String description;
+    private DefaultProjectIdentifier projectIdentifier;
+    private DefaultGradleProject<T> parent;
+    private List<? extends DefaultGradleProject<T>> children = new LinkedList<DefaultGradleProject<T>>();
 
-    @Override
+    public String getName() {
+        return name;
+    }
+
     public DefaultGradleProject<T> setName(String name) {
-        super.setName(name);
+        this.name = name;
         return this;
     }
 
-    @Override
-    public DefaultGradleProject<T> setPath(String path) {
-        super.setPath(path);
-        return this;
+    public String getDescription() {
+        return description;
     }
 
-    @Override
     public DefaultGradleProject<T> setDescription(String description) {
-        super.setDescription(description);
+        this.description = description;
         return this;
     }
 
-    @Override
-    public DefaultGradleProject<T> setChildren(List<? extends PartialGradleProject> children) {
-        super.setChildren(children);
+    public DefaultGradleProject<T> getParent() {
+        return parent;
+    }
+
+    public DefaultGradleProject<T> setParent(DefaultGradleProject<T> parent) {
+        this.parent = parent;
         return this;
+    }
+
+    public Collection<? extends DefaultGradleProject<T>> getChildren() {
+        return children;
+    }
+
+    public DefaultGradleProject<T> setChildren(List<? extends DefaultGradleProject<T>> children) {
+        this.children = children;
+        return this;
+    }
+
+    public String getPath() {
+        return projectIdentifier.getProjectPath();
+    }
+
+    public DefaultProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
+    }
+
+    @Override
+    public String getProjectPath() {
+        return projectIdentifier.getProjectPath();
+    }
+
+    @Override
+    public File getRootDir() {
+        return projectIdentifier.getBuildIdentifier().getRootDir();
+    }
+
+    public DefaultGradleProject<T> setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
+    }
+
+    public DefaultGradleProject<T> findByPath(String path) {
+        if (path.equals(this.getPath())) {
+            return this;
+        }
+        for (DefaultGradleProject<T> child : children) {
+            DefaultGradleProject<T> found = child.findByPath(path);
+            if (found != null) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    public String toString() {
+        return "GradleProject{"
+            + "path='" + getPath() + '\''
+            + '}';
     }
 
     public Collection<T> getTasks() {
@@ -81,10 +141,5 @@ public class DefaultGradleProject<T> extends PartialGradleProject implements Ser
 
     public DefaultGradleScript getBuildScript() {
         return buildScript;
-    }
-
-    @Override
-    public DefaultGradleProject<T> findByPath(String path) {
-        return (DefaultGradleProject<T>) super.findByPath(path);
     }
 }

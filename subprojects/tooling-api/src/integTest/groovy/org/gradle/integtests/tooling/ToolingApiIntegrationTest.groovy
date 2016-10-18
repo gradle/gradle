@@ -105,6 +105,7 @@ allprojects {
     }
 
     def "can specify a gradle installation to use"() {
+        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -118,6 +119,7 @@ allprojects {
     }
 
     def "can specify a gradle distribution to use"() {
+        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -131,6 +133,7 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
+        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -245,9 +248,9 @@ allprojects {
 
         when:
         GradleHandle handle = executer.inDirectory(projectDir)
-                .expectDeprecationWarning() // tapi on java 6
-                .withTasks('run')
-                .start()
+            .expectDeprecationWarning() // tapi on java 6
+            .withTasks('run')
+            .start()
 
         then:
         // Wait for the tooling API to start the build
