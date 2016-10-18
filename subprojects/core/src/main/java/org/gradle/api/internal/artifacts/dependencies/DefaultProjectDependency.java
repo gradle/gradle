@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -82,6 +83,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Deprecated
     public Configuration getProjectConfiguration() {
+        DeprecationLogger.nagUserOfDeprecated("ProjectDependency#getProjectConfiguration()", "There might not be a single matching configuration. Please use ProjectDependency#getDependencyProject().getConfigurations() instead");
         return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 
