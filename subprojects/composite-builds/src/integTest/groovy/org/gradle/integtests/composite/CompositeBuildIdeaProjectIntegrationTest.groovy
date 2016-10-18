@@ -54,13 +54,13 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
         imlHasDependencies "buildB"
-
-        and:
-        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
-        !result.executedTasks.contains(":buildA:ideaModule")
         imlHasNoDependencies(buildB)
         imlHasNoDependencies(buildB.file("b1"))
         imlHasNoDependencies(buildB.file("b2"))
+
+        and:
+        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
+        notExecuted ":buildA:ideaModule"
     }
 
     def "builds IDEA metadata with substituted subproject dependencies"() {
