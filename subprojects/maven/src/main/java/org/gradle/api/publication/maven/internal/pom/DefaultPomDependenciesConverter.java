@@ -113,6 +113,15 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         addMavenDependencies(dependenciesPriorityMap, dependency, dependency.getName(), null, scope, null, priority, configurations);
     }
 
+    private static Configuration getTargetConfiguration(ProjectDependency dependency) {
+        // todo CC: check that it ok to do this if configurations have attributes
+        String targetConfiguration = dependency.getTargetConfiguration();
+        if (targetConfiguration == null) {
+            targetConfiguration = org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
+        }
+        return dependency.getDependencyProject().getConfigurations().getByName(targetConfiguration);
+    }
+
     private void addMavenDependencies(Map<Dependency, Integer> dependenciesWithPriorities,
                                       ModuleDependency dependency, String name, String type, String scope, String classifier, Integer priority,
                                       Set<Configuration> configurations) {
@@ -122,7 +131,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             ProjectDependency projectDependency = (ProjectDependency) dependency;
             final String artifactId = determineProjectDependencyArtifactId((ProjectDependency) dependency);
 
-            Configuration dependencyConfig = projectDependency.getProjectConfiguration();
+            Configuration dependencyConfig = getTargetConfiguration(projectDependency);
             for (PublishArtifact artifactToPublish : dependencyConfig.getAllArtifacts()) {
                 Dependency mavenDependency = new Dependency();
                 mavenDependency.setArtifactId(artifactId);
