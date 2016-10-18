@@ -21,14 +21,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.ImmutableDirectoryTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
