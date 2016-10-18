@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class LocalComponentDependencyMetadataTest extends Specification {
     def "returns this when same version requested"() {
@@ -56,6 +57,45 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         expect:
         dep.selectConfigurations(fromComponent, fromConfig, toComponent) == [toConfig] as Set
+    }
+
+    @Unroll("selects configuration '#expected' from target component")
+    def "selects the target configuration from target component which matches the attributes"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConfigurationNames() >> ['foo', 'bar']
+        }
+        def fromConfig = Stub(ConfigurationMetadata) {
+            getAttributes() >> queryAttributes
+        }
+        fromConfig.hierarchy >> ["from"]
+        def defaultConfig = Stub(ConfigurationMetadata) {
+            getName() >> 'default'
+        }
+        def toFooConfig = Stub(ConfigurationMetadata) {
+            getName() >> 'foo'
+            getAttributes() >> [key: 'something']
+        }
+        def toBarConfig = Stub(ConfigurationMetadata) {
+            getName() >> 'bar'
+            getAttributes() >> [key: 'something else']
+        }
+
+        given:
+        toComponent.getConfiguration("default") >> defaultConfig
+        toComponent.getConfiguration("foo") >> toFooConfig
+        toComponent.getConfiguration("bar") >> toBarConfig
+
+        expect:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent)*.name as Set == [expected] as Set
+
+        where:
+        queryAttributes                 | expected
+        [key: 'something']              | 'foo'
+        [key: 'something else']         | 'bar'
+        [key: 'other']                  | 'default'
+        [key: 'something', extra: 'no'] | 'default'
     }
 
     def "fails to select target configuration when not present in the target component"() {
