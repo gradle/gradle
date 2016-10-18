@@ -19,7 +19,10 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import spock.lang.IgnoreIf
+
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -34,6 +37,18 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
                 public static void main(String... args) {
                     System.out.println("Hello World with Changes!");
                 }
+            }
+        """
+    public static final String APPLY_KOTLIN = """
+            plugins {
+                id "nebula.kotlin" version "1.0.4"
+            }
+            repositories {
+                // required to resolve kotlin-stdlib dependency implicitly added by nebula.kotlin
+                jcenter()
+            }
+            dependencies {
+                compile(gradleApi())
             }
         """
 
@@ -201,21 +216,35 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         output.contains ":buildSrc:jar FROM-CACHE"
     }
 
-    def "tasks stay cached after buildSrc is rebuilt"() {
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile File inputFile
-                @OutputFile File outputFile
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text
-                }
+    def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
             }
         """
+        when:
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/build").deleteDir()
+        file("buildSrc/.gradle").deleteDir()
+        // Run this without cache, so buildSrc gets rebuilt
+        succeeds "clean"
+
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
+    }
+
+    @Requires(FIX_TO_WORK_ON_JAVA9)
+    def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
+        file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
+        file("buildSrc/build.gradle") << APPLY_KOTLIN
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
@@ -240,21 +269,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
     }
 
     def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile File inputFile
-                @OutputFile File outputFile
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text
-                }
-            }
-        """
-        file("buildSrc/src/main/groovy/CustomTask.groovy").makeOlder()
+        def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
+        taskSourceFile << customGroovyTask()
+        taskSourceFile.makeOlder()
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
@@ -269,20 +286,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         file("build/output.txt").text == "input"
 
         when:
-        file("buildSrc/src/main/groovy/CustomTask.groovy").text = """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile File inputFile
-                @OutputFile File outputFile
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text + " modified"
-                }
-            }
-        """
+        taskSourceFile.text = customGroovyTask(" modified")
 
         run "clean"
         succeedsWithCache "jar", "customTask"
@@ -292,35 +296,12 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         file("build/output.txt").text == "input modified"
     }
 
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
-        file("buildSrc/src/main/kotlin/CustomTask.kt") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-            import java.io.File
-
-            @CacheableTask
-            open class CustomTask() : DefaultTask() {
-                @get:InputFile var inputFile: File? = null
-                @get:OutputFile var outputFile: File? = null
-                @TaskAction fun doSomething() {
-                    outputFile!!.parentFile.mkdirs()
-                    outputFile!!.writeText(inputFile!!.readText())
-                }
-            }
-        """
-        file("buildSrc/src/main/kotlin/CustomTask.kt").makeOlder()
-        file("buildSrc/build.gradle") << """
-            plugins {
-              id "nebula.kotlin" version "1.0.4"
-            }
-            repositories {
-                // required to resolve kotlin-stdlib dependency implicitly added by nebula.kotlin
-                jcenter()
-            }
-            dependencies {
-                compile(gradleApi())
-            }
-        """
+        def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
+        taskSourceFile << customKotlinTask()
+        taskSourceFile.makeOlder()
+        file("buildSrc/build.gradle") << APPLY_KOTLIN
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
@@ -335,7 +316,35 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
         file("build/output.txt").text == "input"
 
         when:
-        file("buildSrc/src/main/kotlin/CustomTask.kt").text = """
+        taskSourceFile.text = customKotlinTask(" modified")
+
+        run "clean"
+        succeedsWithCache "jar", "customTask"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "input modified"
+    }
+
+    private static String customGroovyTask(String suffix = "") {
+        """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text + "$suffix"
+                }
+            }
+        """
+    }
+
+    private static String customKotlinTask(String suffix = "") {
+        """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
             import java.io.File
@@ -347,17 +356,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrati
                 @TaskAction fun doSomething() {
                     outputFile!!.parentFile.mkdirs()
                     outputFile!!.writeText(inputFile!!.readText())
-                    outputFile!!.appendText(" modified")
+                    outputFile!!.appendText("$suffix")
                 }
             }
         """
-
-        run "clean"
-        succeedsWithCache "jar", "customTask"
-        then:
-        skippedTasks.containsAll ":compileJava", ":jar"
-        nonSkippedTasks.contains ":customTask"
-        file("build/output.txt").text == "input modified"
     }
 
     def "outputs are correctly loaded from cache"() {
