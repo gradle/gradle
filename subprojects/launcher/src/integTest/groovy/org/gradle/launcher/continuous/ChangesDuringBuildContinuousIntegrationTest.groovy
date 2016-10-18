@@ -22,8 +22,9 @@ import spock.lang.Unroll
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     protected int getMinimumBuildTimeMillis() {
-        // Polling interval is 2 seconds on MacOSX so make build last at least 3 seconds on MacOSX to catch changes
-        OperatingSystem.current().isMacOsX() ? 3000 : super.getMinimumBuildTimeMillis()
+        // Polling interval is 10 seconds on MacOSX so make build last longer than that so MacOSX can detect changes reliably in the tests
+        // TODO: This makes the test really, really slow on OSX.  We really need a native inotify-like solution for OSX
+        OperatingSystem.current().isMacOsX() ? 15000 : super.getMinimumBuildTimeMillis()
     }
 
     def "should trigger rebuild when java source file is changed during build execution"() {
