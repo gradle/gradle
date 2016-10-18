@@ -20,8 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -106,6 +108,7 @@ public class IdeaProject {
 
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
+    private final CompositeBuildContext compositeContext;
     private final CompositeBuildIdeProjectResolver moduleToProjectMapper;
 
     private List<IdeaModule> modules;
@@ -121,7 +124,10 @@ public class IdeaProject {
     public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
         this.project = project;
         this.ipr = ipr;
-        this.moduleToProjectMapper = new CompositeBuildIdeProjectResolver(((ProjectInternal) project).getServices());
+
+        ServiceRegistry services = ((ProjectInternal) project).getServices();
+        this.compositeContext = services.get(CompositeBuildContext.class);
+        this.moduleToProjectMapper = new CompositeBuildIdeProjectResolver(services);
     }
 
     /**
@@ -302,7 +308,7 @@ public class IdeaProject {
 
     private void includeModulesFromComposite(Project xmlProject) {
         PathFactory pathFactory = getPathFactory();
-        Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
+        Set<ProjectComponentIdentifier> projectsInComposite = compositeContext.getAllProjects();
         for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {
             File imlFile = moduleToProjectMapper.resolveArtifactFile(otherProjectId, "iml");
             if (imlFile != null) {

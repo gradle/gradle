@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
+import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
