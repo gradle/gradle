@@ -20,9 +20,8 @@ import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.Stoppable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +32,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CacheAccessWorker.class);
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
     private final CacheAccess cacheAccess;
@@ -46,7 +43,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private boolean workerCompleted;
     private boolean stopSeen;
     private final CountDownLatch doneSignal = new CountDownLatch(1);
-    private final AtomicReference<Throwable> failureHolder = new AtomicReference<Throwable>(null);
+    private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
     CacheAccessWorker(String displayName, CacheAccess cacheAccess) {
         this.displayName = displayName;
@@ -102,10 +99,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     private void rethrowFailure() {
-        Throwable failure = failureHolder.getAndSet(null);
-        if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
-        }
+        failureHandler.onStop();
     }
 
     private static class FlushOperationsCommand implements Runnable {
@@ -152,7 +146,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                 }
             }
         } catch (Throwable t) {
-            onFailure(t);
+            failureHandler.onFailure("Failed to execute cache operations on " + displayName, t);
         } finally {
             // Notify any waiting flush threads that the worker is done, possibly with a failure
             List<Runnable> runnables = new ArrayList<Runnable>();
@@ -180,22 +174,12 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                 public void run() {
                     long lockingStarted = System.currentTimeMillis();
                     if (updateOperation != null) {
-                        try {
-                            updateOperation.run();
-                        } catch (Throwable e) {
-                            // Collect for later and continue
-                            onFailure(e);
-                        }
+                        failureHandler.onExecute(updateOperation);
                     }
                     Runnable otherOperation;
                     try {
                         while ((otherOperation = workQueue.poll(batchWindowMillis, TimeUnit.MILLISECONDS)) != null) {
-                            try {
-                                otherOperation.run();
-                            } catch (Throwable e) {
-                                // Collect for later and continue
-                                onFailure(e);
-                            }
+                            failureHandler.onExecute(otherOperation);
                             final Class<? extends Runnable> runnableClass = otherOperation.getClass();
                             if (runnableClass == FlushOperationsCommand.class) {
                                 flushOperations.add((FlushOperationsCommand) otherOperation);
@@ -218,13 +202,6 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             for (FlushOperationsCommand flushOperation : flushOperations) {
                 flushOperation.completed();
             }
-        }
-    }
-
-    protected void onFailure(Throwable e) {
-        if (!failureHolder.compareAndSet(null, e)) {
-            // Collect only a single exception, and log any others
-            LOGGER.error("Failed to apply operations to " + displayName + '.', e);
         }
     }
 

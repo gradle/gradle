@@ -17,10 +17,10 @@
 package org.gradle.launcher.continuous
 
 import groovy.transform.TupleConstructor
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.filewatch.ChangeReporter.SHOW_INDIVIDUAL_CHANGES_LIMIT
-
 // Developer is able to easily determine the file(s) that triggered a rebuild
 class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     TestFile inputDir
@@ -182,6 +182,14 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
                 }
             }
         """
+        // OSX watcher is based on polling
+        if (OperatingSystem.current().macOsX) {
+            buildFile << """
+                gradle.buildFinished {
+                    Thread.sleep(15000)
+                }
+            """
+        }
 
         when:
         succeeds("theTask")

@@ -27,6 +27,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.Flakiness
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
@@ -66,7 +67,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.releases = releases
     }
 
-    CrossVersionPerformanceResults run() {
+    CrossVersionPerformanceResults run(Flakiness flakiness = Flakiness.not_flaky) {
         if (testId == null) {
             throw new IllegalStateException("Test id has not been specified")
         }
@@ -116,7 +117,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         // Don't store results when builds have failed
         reporter.report(results)
 
-        results.assertCurrentVersionHasNotRegressed()
+        results.assertCurrentVersionHasNotRegressed(flakiness)
 
         return results
     }

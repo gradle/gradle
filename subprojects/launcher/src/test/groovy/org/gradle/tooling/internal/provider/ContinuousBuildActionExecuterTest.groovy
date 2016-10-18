@@ -16,17 +16,16 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.Project
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
@@ -59,9 +58,10 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
+    def globalServices = Stub(ServiceRegistry)
     def executer = executer()
     def taskInternal = Stub(TaskInternal)
-    def buildSessionScopeServices = Stub(ServiceRegistry)
+    def sessionService = Mock(Stoppable)
 
     private File file = new File('file')
 
@@ -69,15 +69,6 @@ class ContinuousBuildActionExecuterTest extends Specification {
         requestMetadata.getBuildTimeClock() >> clock
         waiterFactory.createChangeWaiter(_) >> waiter
         waiter.isWatching() >> true
-        def project = Stub(Project)
-        taskInternal.getProject() >> project
-        def rootProject = Stub(Project)
-        project.getRootProject() >> rootProject
-        def rootDir = new File('rootDir')
-        rootProject.getRootDir() >> rootDir
-        def cacheScopeMapping = Stub(CacheScopeMapping)
-        buildSessionScopeServices.get(CacheScopeMapping) >> cacheScopeMapping
-        cacheScopeMapping.getRootDirectory(_) >> { new File(rootDir, ".gradle") }
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -86,14 +77,14 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+        1 * delegate.execute(action, requestContext, actionParameters, _)
         0 * waiterFactory._
     }
 
     def "allows exceptions to propagate for single builds"() {
         when:
         singleBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             throw new RuntimeException("!")
         }
         executeBuild()
@@ -105,7 +96,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "waits for waiter"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
         }
         executeBuild()
@@ -119,7 +110,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "exits if there are no file system inputs"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+        1 * delegate.execute(action, requestContext, actionParameters, _)
         executeBuild()
 
         then:
@@ -130,7 +121,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "throws exception if last build fails in continous mode"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
         }
@@ -149,7 +140,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
         }
 
@@ -157,7 +148,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _)
 
         and:
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
         }
@@ -166,7 +157,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _)
 
         and:
-        1 * delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
         }
 
@@ -185,11 +176,11 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void executeBuild() {
-        executer.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+        executer.execute(action, requestContext, actionParameters, globalServices)
     }
 
     private void declareInput(File file) {
-        listenerManager.getBroadcaster(TaskInputsListener).onExecute(taskInternal, new SimpleFileCollection(file))
+        listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
     private ContinuousBuildActionExecuter executer() {

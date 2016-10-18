@@ -436,4 +436,82 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.error.contains("default")
 
     }
+
+    def "transitive dependencies of selected configuration are included"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c', 'd'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-transitive.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', 'd-transitive.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    foo project(':c')
+                    bar project(':d')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('c-transitive.jar')
+                }
+            }
+            project(':d') {
+                configurations.create('default') {
+                }
+                artifacts {
+                    'default' file('d-transitive.jar')
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
+    }
+
 }

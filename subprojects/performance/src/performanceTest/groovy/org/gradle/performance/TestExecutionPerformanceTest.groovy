@@ -37,7 +37,7 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.useDaemon = true
 
         when:
-        def result = runner.run()
+        def result = runner.run(flakiness)
 
         then:
         result.assertCurrentVersionHasNotRegressed(flakiness)
