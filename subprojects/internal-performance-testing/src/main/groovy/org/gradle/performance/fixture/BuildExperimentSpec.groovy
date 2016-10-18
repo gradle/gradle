@@ -35,8 +35,9 @@ abstract class BuildExperimentSpec {
     Long sleepAfterWarmUpMillis
     Long sleepAfterTestRoundMillis
     BuildExperimentListener listener
+    InvocationCustomizer invocationCustomizer
 
-    BuildExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
+    BuildExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
         this.displayName = displayName
         this.projectName = projectName
         this.workingDirectory = workingDirectory
@@ -45,6 +46,7 @@ abstract class BuildExperimentSpec {
         this.sleepAfterWarmUpMillis = sleepAfterWarmUpMillis
         this.sleepAfterTestRoundMillis = sleepAfterTestRoundMillis
         this.listener = listener
+        this.invocationCustomizer = invocationCustomizer
     }
 
     abstract BuildDisplayInfo getDisplayInfo()
@@ -61,6 +63,9 @@ abstract class BuildExperimentSpec {
 
         BuildExperimentListener getListener()
         void setListener(BuildExperimentListener listener)
+
+        InvocationCustomizer getInvocationCustomizer()
+        void setInvocationCustomizer(InvocationCustomizer invocationCustomizer)
 
         InvocationSpec.Builder getInvocation()
 

@@ -21,8 +21,8 @@ import org.gradle.performance.results.BuildDisplayInfo
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
 
-    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
         this.invocation = invocation
     }
 
@@ -45,6 +45,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Long sleepAfterWarmUpMillis = 5000L
         Long sleepAfterTestRoundMillis = 1000L
         BuildExperimentListener listener
+        InvocationCustomizer invocationCustomizer
 
         GradleBuilder displayName(String displayName) {
             this.displayName = displayName
@@ -86,12 +87,17 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
+        GradleBuilder invocationCustomizer(InvocationCustomizer invocationCustomizer) {
+            this.invocationCustomizer = invocationCustomizer
+            this
+        }
+
         BuildExperimentSpec build() {
             assert projectName != null
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
         }
     }
 }

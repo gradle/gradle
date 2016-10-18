@@ -37,6 +37,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final DataReporter<R> reporter
 
     BuildExperimentListener buildExperimentListener
+    InvocationCustomizer invocationCustomizer
 
     public AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<R> dataReporter) {
         this.reporter = dataReporter
@@ -65,7 +66,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.listener(buildExperimentListener)
+        builder.setListener(buildExperimentListener)
+        builder.setInvocationCustomizer(invocationCustomizer)
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
