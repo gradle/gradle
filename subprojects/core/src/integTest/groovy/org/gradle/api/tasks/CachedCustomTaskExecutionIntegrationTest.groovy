@@ -403,6 +403,74 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         file("build").listFiles().sort() as List == [file("build/output.txt")]
     }
 
+    @NotYetImplemented
+    def "plural output files are only restored when map keys match"() {
+        file("input.txt") << "data"
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFiles Map<String, File> outputFiles
+                @TaskAction void doSomething() {
+                    outputFiles.each { String key, File outputFile ->
+                        outputFile.parentFile.mkdirs()
+                        outputFile.text = key
+                    }
+                }
+            }
+        """
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file("input.txt")
+                outputFiles = [
+                    one: file("build/output-1.txt"),
+                    two: file("build/output-2.txt")
+                ]
+            }
+        """
+
+        when:
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output-1.txt").text == "one"
+        file("build/output-2.txt").text == "two"
+        file("build").listFiles().sort() as List == [file("build/output-1.txt"), file("build/output-2.txt")]
+
+        when:
+        cleanBuildDir()
+        buildFile << """
+            customTask.outputFiles = [
+                one: file("build/output-a.txt"),
+                two: file("build/output-b.txt")
+            ]
+        """
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output-a.txt").text == "one"
+        file("build/output-b.txt").text == "two"
+        file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
+
+        when:
+        cleanBuildDir()
+        buildFile << """
+            customTask.outputFiles = [
+                first: file("build/output-a.txt"),
+                second: file("build/output-b.txt")
+            ]
+        """
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output-a.txt").text == "first"
+        file("build/output-b.txt").text == "second"
+        file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
+    }
+
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
     }
