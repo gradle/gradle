@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -66,18 +67,18 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def toComponent = Stub(ComponentResolveMetadata) {
             getConfigurationNames() >> ['foo', 'bar']
         }
-        def fromConfig = Stub(ConfigurationMetadata) {
+        def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> queryAttributes
         }
         fromConfig.hierarchy >> ["from"]
-        def defaultConfig = Stub(ConfigurationMetadata) {
+        def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
         }
-        def toFooConfig = Stub(ConfigurationMetadata) {
+        def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> [key: 'something']
         }
-        def toBarConfig = Stub(ConfigurationMetadata) {
+        def toBarConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'bar'
             getAttributes() >> [key: 'something else']
         }
