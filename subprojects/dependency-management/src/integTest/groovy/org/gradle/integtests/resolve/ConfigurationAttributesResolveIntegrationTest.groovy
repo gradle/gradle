@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Ignore
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -658,6 +659,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':c:fooJar'
     }
 
+    @Ignore
     def "context travels down to transitive dependencies with composite builds"() {
         given:
         file('settings.gradle') << """
