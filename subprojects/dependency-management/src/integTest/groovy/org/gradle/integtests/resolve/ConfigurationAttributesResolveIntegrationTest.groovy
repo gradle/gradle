@@ -379,9 +379,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         run ':a:checkDebug'
 
         then:
-        // Curiously the task is not executed in this case. Need to figure out why it is different
-        // from the behavior with other configurations
-        // executedAndNotSkipped ':b:defaultJar'
+        executedAndNotSkipped ':b:defaultJar'
         notExecuted ':b:fooJar', ':b:barJar'
 
     }
@@ -888,4 +886,88 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':external:fooJar'
     }
 
+    def "transitive dependencies selection uses the source configuration attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', , 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
+                    bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
+                }
+                dependencies {
+                    foo project(':c')
+                    bar project(':c')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    foo2.attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
+                    bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra')
+                    bar2.attributes(buildType: 'release', flavor: 'free', extra: 'extra 2')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'c-foo2'
+                }
+                task bar2Jar(type: Jar) {
+                   baseName = 'c-bar2'
+                }
+                artifacts {
+                    foo fooJar, foo2Jar
+                    bar barJar, bar2Jar
+                }
+            }
+
+        '''
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of then match the client attributes {flavor=free, buildType=debug}')
+
+        when:
+        fails ':a:checkRelease'
+
+        then:
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {flavor=free, buildType=release}')
+
+    }
 }

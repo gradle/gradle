@@ -28,7 +28,9 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
@@ -121,7 +123,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 }
             }
             if (candidateConfigurations.size()==1) {
-                return ImmutableSet.of(candidateConfigurations.get(0));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.of(candidateConfigurations.get(0), attributes));
             } else if (!candidateConfigurations.isEmpty()) {
                 throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + attributes);
             }
@@ -133,7 +135,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         ConfigurationMetadata delegate = toConfiguration;
         if (useConfigurationAttributes) {
-            delegate = new ClientAttributesPreservingConfigurationMetadata(delegate, attributes);
+            delegate = ClientAttributesPreservingConfigurationMetadata.of(delegate, attributes);
         }
         return ImmutableSet.of(delegate);
     }
@@ -227,11 +229,18 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 
-    private static class ClientAttributesPreservingConfigurationMetadata implements ConfigurationMetadata {
-        private final ConfigurationMetadata delegate;
+    private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
+        private final LocalConfigurationMetadata delegate;
         private final Map<String, String> attributes;
 
-        private ClientAttributesPreservingConfigurationMetadata(ConfigurationMetadata delegate, Map<String, String> attributes) {
+        private static ConfigurationMetadata of(ConfigurationMetadata md, Map<String, String> attributes) {
+            if (!(md instanceof LocalConfigurationMetadata)) {
+                throw new IllegalArgumentException("Unexpected configuration metadata type : " + md.getClass());
+            }
+            return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
+        }
+
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, Map<String, String> attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
         }
@@ -279,6 +288,21 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Override
         public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
             return delegate.artifact(artifact);
+        }
+
+        @Override
+        public String getDescription() {
+            return delegate.getDescription();
+        }
+
+        @Override
+        public Set<String> getExtendsFrom() {
+            return delegate.getExtendsFrom();
+        }
+
+        @Override
+        public TaskDependency getDirectBuildDependencies() {
+            return delegate.getDirectBuildDependencies();
         }
     }
 }
