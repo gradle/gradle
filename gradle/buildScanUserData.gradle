@@ -97,13 +97,13 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                 def executed = statistics.getTasksCount(TaskExecutionOutcome.EXECUTED)
                 def cacheable = statistics.cacheMissCount
                 def allTasks = statistics.allTasksCount
-                addCacheLine('TC0 Tasks in build', allTasks, null)
-                addCacheLine('TC1 Skipped', skipped, allTasks)
-                addCacheLine('TC2 Up to date', upToDate, allTasks)
-                addCacheLine('TC3 From cache', fromCache, allTasks)
-                addCacheLine('TC4 Executed', executed, allTasks)
-                addCacheLine('TC5 - Cache miss', cacheable, allTasks)
-                addCacheLine('TC6 - Not cacheable', (executed - cacheable), allTasks)
+                addCacheLine('TC_0 Tasks in build', allTasks, null)
+                addCacheLine('TC_1 Skipped', skipped, allTasks)
+                addCacheLine('TC_2 Up to date', upToDate, allTasks)
+                addCacheLine('TC_3 From cache', fromCache, allTasks)
+                addCacheLine('TC_4 Executed', executed, allTasks)
+                addCacheLine('TC_5 - Cache miss', cacheable, allTasks)
+                addCacheLine('TC_6 - Not cacheable', (executed - cacheable), allTasks)
             } catch (Exception e) {
                 e.printStackTrace()
             }
@@ -117,6 +117,9 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                 if (task.getPath() in tasksToInvestigate) {
                     def buildScan = task.project.buildScan
                     addTaskState(task, state)
+                    task.inputs.properties.each { name, value ->
+                        buildScan.value "${task.path}-input-${name}", value?.toString()
+                    }
                     def fileProperties = task.inputs.fileProperties
                     fileProperties.each { inputProperty ->
                         def name = inputProperty.propertyName
