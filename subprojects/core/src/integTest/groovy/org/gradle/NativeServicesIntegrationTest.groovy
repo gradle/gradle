@@ -19,12 +19,15 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GFileUtils
+import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.NOT_LINUX
-
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
     final File jansiDir = new File(nativeDir, 'jansi')
@@ -42,47 +45,55 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.directory
     }
 
+    @Issue("GRADLE-3573")
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         given:
         String libraryPath = factory.create().path
         File library = new File(jansiDir, libraryPath)
+        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
 
         when:
-        quietExecutor().run()
+        customizedExecutor(tmpDirJvmOpt).run()
 
         then:
         library.exists()
+        tmpDir.testDirectory.listFiles().length == 0
         long lastModified = library.lastModified()
 
         when:
-        quietExecutor().run()
+        customizedExecutor(tmpDirJvmOpt).run()
 
         then:
         library.exists()
+        tmpDir.testDirectory.listFiles().length == 0
         lastModified == library.lastModified()
     }
 
     @Issue("GRADLE-3573")
-    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
-    def "creates Jansi library directory even if tmp dir is mounted with noexec option"() {
+    def "can start Gradle even with broken Jansi library file"() {
+        given:
+        String libraryPath = factory.create().path
+        File library = new File(tmpDir.testDirectory, libraryPath)
+        GFileUtils.touch(library)
+        File libraryDir = library.parentFile
+        File tmpDir = tmpDir.createDir('tmp')
+        String[] buildJvmOpts = ["-Djava.io.tmpdir=${tmpDir.absolutePath}",
+                                 "-Dlibrary.jansi.path=$libraryDir.absolutePath"]
+
         when:
-        executer.withNoExplicitTmpDir().withBuildJvmOpts("-Djava.io.tmpdir=/tmp").run()
+        customizedExecutor(buildJvmOpts).run()
 
         then:
-        jansiDir.directory
+        noExceptionThrown()
+        library.file && library.size() == 0
+        tmpDir.directory && tmpDir.listFiles().size() == 0
     }
 
     private GradleExecuter quietExecutor() {
         executer.withArguments('-q')
     }
 
-    static boolean isMountedNoexec(String dir) {
-        if (NOT_LINUX) {
-            return false
-        }
-
-        def out = new StringBuffer()
-        'mount'.execute().waitForProcessOutput(out, System.err)
-        out.readLines().find { it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec') } != null
+    private GradleExecuter customizedExecutor(String... buildJvmOpts) {
+        executer.withNoExplicitTmpDir().withBuildJvmOpts(buildJvmOpts)
     }
 }
