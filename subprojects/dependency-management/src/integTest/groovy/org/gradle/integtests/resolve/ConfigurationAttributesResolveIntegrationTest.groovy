@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
-import spock.lang.Ignore
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -515,7 +514,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':b:fooJar'
     }
 
-    @Ignore // ignored because it doesn't work for the "without fluid dependencies" case
     def "context travels down to transitive dependencies"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"
