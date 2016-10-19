@@ -114,6 +114,8 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
             triggerFile << "\n#another change"
             succeeds()
             deploymentIsRunning(key)
+
+            cancel()
         }
 
         then:
