@@ -583,4 +583,79 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':c:fooJar'
     }
 
+
+    def "context travels down to transitive dependencies with dependency substitution"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module('com.acme.external:external') with project(":c")
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':c:fooJar'
+        notExecuted ':c:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':c:barJar'
+        notExecuted ':c:fooJar'
+    }
+
 }
