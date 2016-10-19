@@ -19,7 +19,6 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GFileUtils
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -28,26 +27,17 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    File library
-
-    def setup() {
-        executer.requireGradleDistribution().
-            requireOwnGradleUserHomeDir().
-            withNoExplicitNativeServicesDir().
-            withNoExplicitTmpDir()
-        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
-        executer.withBuildJvmOpts(tmpDirJvmOpt)
-
-        def libraryFactory = new JansiLibraryFactory()
-        File jansiDir = new File(executer.gradleUserHomeDir, 'native/jansi')
-        library = new File(jansiDir, libraryFactory.create().path)
-    }
+    def libraryFactory = new JansiLibraryFactory()
+    File jansiDir = new File(executer.gradleUserHomeDir, 'native/jansi')
+    File library = new File(jansiDir, libraryFactory.create().path)
 
     def "native services libs are unpacked to gradle user home dir"() {
         given:
         executer.withArguments('-q')
+
         when:
         succeeds("help")
+
         then:
         library.exists()
         library.size() > 0
@@ -56,6 +46,10 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3573")
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
+        executer.requireGradleDistribution().withNoExplicitTmpDir()
+        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
+        executer.withBuildJvmOpts(tmpDirJvmOpt)
+
         when:
         succeeds("help")
 
@@ -71,20 +65,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         library.exists()
         assertNoFilesInTmp()
         lastModified == library.lastModified()
-    }
-
-    @Issue("GRADLE-3573")
-    def "can start Gradle even with broken Jansi library file"() {
-        given:
-        GFileUtils.touch(library)
-
-        when:
-        succeeds("help")
-
-        then:
-        noExceptionThrown()
-        library.file && library.size() == 0
-        assertNoFilesInTmp()
     }
 
     private void assertNoFilesInTmp() {
