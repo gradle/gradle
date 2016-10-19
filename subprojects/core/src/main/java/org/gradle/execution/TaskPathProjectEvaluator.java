@@ -35,16 +35,39 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         project.evaluate();
     }
 
-    public void configureHierarchy(ProjectInternal project) {
+    @Override
+    public void configureFully(ProjectInternal project) {
+        configure(project);
+        discoverTasks(project);
+        bindAllModelRules(project);
+    }
+
+    private void discoverTasks(ProjectInternal project) {
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException();
         }
-        project.evaluate();
+        project.getTasks().discoverTasks();
+    }
+
+    private void bindAllModelRules(ProjectInternal project) {
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException();
+        }
+        project.bindAllModelRules();
+    }
+
+    public void configureHierarchy(ProjectInternal project) {
+        configure(project);
         for (Project sub : project.getSubprojects()) {
-            if (cancellationToken.isCancellationRequested()) {
-                throw new BuildCancelledException();
-            }
-            ((ProjectInternal) sub).evaluate();
+            configure((ProjectInternal) sub);
+        }
+    }
+
+    @Override
+    public void configureHierarchyFully(ProjectInternal project) {
+        configureFully(project);
+        for (Project sub : project.getSubprojects()) {
+            configureFully((ProjectInternal) sub);
         }
     }
 }

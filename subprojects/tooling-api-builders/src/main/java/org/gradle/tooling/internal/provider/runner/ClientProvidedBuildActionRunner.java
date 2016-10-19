@@ -85,12 +85,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
     private void forceFullConfiguration(GradleInternal gradle) {
         try {
-            gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                ProjectInternal projectInternal = (ProjectInternal) project;
-                projectInternal.getTasks().discoverTasks();
-                projectInternal.bindAllModelRules();
-            }
+            gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
             for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
                 GradleInternal build = ((IncludedBuildInternal) includedBuild).getConfiguredBuild();
                 forceFullConfiguration(build);
