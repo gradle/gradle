@@ -16,18 +16,18 @@
 
 package org.gradle.integtests.tooling.r33;
 
-import com.google.common.collect.Lists;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FetchBuildEnvironments implements BuildAction<List<BuildEnvironment>> {
     @Override
     public List<BuildEnvironment> execute(BuildController controller) {
-        List<BuildEnvironment> environments = Lists.newArrayList();
+        List<BuildEnvironment> environments = new ArrayList<BuildEnvironment>();
         GradleBuild build = controller.getBuildModel();
         environments.add(controller.getModel(build, BuildEnvironment.class));
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {

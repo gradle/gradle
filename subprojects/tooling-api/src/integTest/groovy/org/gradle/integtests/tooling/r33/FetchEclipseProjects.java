@@ -16,20 +16,20 @@
 
 package org.gradle.integtests.tooling.r33;
 
-import com.google.common.collect.Lists;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FetchEclipseProjects implements BuildAction<List<EclipseProject>> {
 
     @Override
     public List<EclipseProject> execute(BuildController controller) {
-        List<EclipseProject> eclipseProjects = Lists.newArrayList();
+        List<EclipseProject> eclipseProjects = new ArrayList<EclipseProject>();
         GradleBuild build = controller.getBuildModel();
         collectEclipseProjects(build, eclipseProjects, controller);
         return eclipseProjects;
