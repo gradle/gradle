@@ -19,8 +19,6 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
-
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
@@ -63,6 +61,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         and:
         executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
         notExecuted ":buildA:ideaModule"
+        notExecuted ":buildB:jar", ":buildB:b1:jar", ":buildB:b2:jar"
     }
 
     def "builds IDEA metadata with substituted subproject dependencies"() {
@@ -158,7 +157,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         imlHasDependencies(["buildB"], ["external-dep-1.0.jar"])
     }
 
-    @Ignore // TODO:DAZ Fix
     def "builds IDEA metadata with dependency cycle between substituted projects in a multiproject build"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -189,7 +187,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         imlHasDependencies "buildB", "b1", "b2"
     }
 
-    @Ignore // TODO:DAZ Fix
     def "builds IDEA metadata with dependency cycle between substituted participants in a composite build"() {
         given:
         dependency(buildA, "org.test:buildB:1.0")
@@ -245,14 +242,16 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/buildC.iml"
-
-        and:
-        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule", ":buildC:ideaModule"
         imlHasNoDependencies(buildA)
         imlHasNoDependencies(buildB)
         imlHasNoDependencies(buildB.file("b1"))
         imlHasNoDependencies(buildB.file("b2"))
         imlHasNoDependencies(buildC)
+
+        and:
+        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule", ":buildC:ideaModule"
+        notExecuted ":buildB:jar", ":buildB:b1:jar", ":buildB:b2:jar"
+        notExecuted ":buildC:jar"
     }
 
     def "generated IDEA metadata respects idea plugin configuration"() {

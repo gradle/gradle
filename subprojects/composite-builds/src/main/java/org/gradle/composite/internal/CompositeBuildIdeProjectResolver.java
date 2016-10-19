@@ -19,19 +19,21 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
+import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
-import java.util.List;
 
 public class CompositeBuildIdeProjectResolver {
     private final LocalComponentRegistry registry;
-    private final List<ProjectArtifactBuilder> artifactBuilders;
+    private final ProjectArtifactBuilder artifactBuilder;
 
     public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
         registry = services.get(LocalComponentRegistry.class);
-        artifactBuilders = services.getAll(ProjectArtifactBuilder.class);
+        // Can't use the session-scope `IncludedBuildArtifactBuilder`, because we don't want to be execute jar tasks (which are pre-registered)
+        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(services.get(IncludedBuildExecuter.class)), services.get(BuildIdentity.class));
     }
 
     public LocalComponentArtifactMetadata resolveArtifact(ProjectComponentIdentifier project, String type) {
@@ -43,9 +45,7 @@ public class CompositeBuildIdeProjectResolver {
         if (artifactMetaData == null) {
             return null;
         }
-        for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
-            artifactBuilder.build(artifactMetaData);
-        }
+        artifactBuilder.build(artifactMetaData);
         return artifactMetaData.getFile();
     }
 
