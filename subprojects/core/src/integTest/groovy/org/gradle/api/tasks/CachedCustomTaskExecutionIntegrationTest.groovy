@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -334,6 +335,72 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
             }
         }
         """.stripIndent()
+    }
+
+    @NotYetImplemented
+    def "optional file output is not stored when there is no output"() {
+        file("input.txt") << "data"
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @Optional @OutputFile File secondaryOutputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text
+                    if (secondaryOutputFile != null) {
+                        secondaryOutputFile.text = "secondary"
+                    }
+                }
+            }
+        """
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file("input.txt")
+                outputFile = file("build/output.txt")
+                secondaryOutputFile = file("build/secondary.txt")
+            }
+        """
+
+        when:
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/secondary.txt").text == "secondary"
+        file("build").listFiles().sort() as List == [file("build/output.txt"), file("build/secondary.txt")]
+
+        when:
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/secondary.txt").text == "secondary"
+        file("build").listFiles().sort() as List == [file("build/output.txt"), file("build/secondary.txt")]
+
+        when:
+        cleanBuildDir()
+        buildFile << """
+            customTask.secondaryOutputFile = null
+        """
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build").listFiles().sort() as List == [file("build/output.txt")]
+
+        when:
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build").listFiles().sort() as List == [file("build/output.txt")]
     }
 
     private TestFile cleanBuildDir() {
