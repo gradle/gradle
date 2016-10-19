@@ -330,6 +330,62 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
     }
 
+    def "selects default configuration when partial match is found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-default.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    create 'default'
+                    foo {
+                       attributes(buildType: 'debug') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(flavor: 'free') // partial match on `flavor`
+                    }
+                }
+                task defaultJar(type: Jar) {
+                   baseName = 'b-default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    'default' defaultJar
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        // Curiously the task is not executed in this case. Need to figure out why it is different
+        // from the behavior with other configurations
+        // executedAndNotSkipped ':b:defaultJar'
+        notExecuted ':b:fooJar', ':b:barJar'
+
+    }
+
     /**
      * Whenever a dependency on a project is found and that the client configuration
      * defines attributes, we try to find a target configuration with the same attributes
