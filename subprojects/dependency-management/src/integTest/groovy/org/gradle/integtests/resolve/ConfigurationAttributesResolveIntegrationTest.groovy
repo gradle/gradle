@@ -386,6 +386,54 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
     }
 
+    def "selects configuration when it has more attributes than the resolved configuration"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    }
+                    bar {
+                       attributes(flavor: 'free')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+    }
+
     /**
      * Whenever a dependency on a project is found and that the client configuration
      * defines attributes, we try to find a target configuration with the same attributes
@@ -431,6 +479,53 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug}'
+    }
+
+    def "fails when multiple configurations match but have more attributes than requested"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    }
+                    bar {
+                      attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {flavor=free, buildType=debug}')
     }
 
     /**
