@@ -29,12 +29,4 @@ public interface CrossProcessCacheAccess {
      * The lock may be released by any thread.
      */
     Runnable acquireFileLock();
-
-    /**
-     * Acquires an exclusive file lock on the cache. The caller is responsible for running the resulting action to release the lock.
-     * The lock may be released by any thread.
-     *
-     * @param completion Action to run _after_ the lock is released. The action is called by the thread that releases the lock.
-     */
-    Runnable acquireFileLock(Runnable completion);
 }

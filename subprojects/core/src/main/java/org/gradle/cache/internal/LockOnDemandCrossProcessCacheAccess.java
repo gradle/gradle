@@ -142,15 +142,4 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         };
     }
 
-    @Override
-    public Runnable acquireFileLock(final Runnable completion) {
-        incrementLockCount();
-        return new Runnable() {
-            @Override
-            public void run() {
-                decrementLockCount();
-                completion.run();
-            }
-        };
-    }
 }
