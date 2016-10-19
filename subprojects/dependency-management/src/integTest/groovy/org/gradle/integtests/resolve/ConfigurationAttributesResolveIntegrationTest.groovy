@@ -523,7 +523,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {flavor=free, buildType=debug}')
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug, flavor=free}')
     }
 
     /**
@@ -961,13 +961,13 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of then match the client attributes {flavor=free, buildType=debug}')
+        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of then match the client attributes {buildType=debug, flavor=free}')
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {flavor=free, buildType=release}')
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {buildType=release, flavor=free}')
 
     }
 }

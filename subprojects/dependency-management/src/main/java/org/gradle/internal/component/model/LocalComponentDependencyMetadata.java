@@ -39,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
@@ -125,7 +126,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (candidateConfigurations.size()==1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.of(candidateConfigurations.get(0), attributes));
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + attributes);
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + new TreeMap<String, String>(attributes));
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);

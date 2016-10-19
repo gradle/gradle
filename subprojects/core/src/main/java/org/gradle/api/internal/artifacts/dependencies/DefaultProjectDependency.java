@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private static final Function<Configuration, String> CONFIG_NAME = new Function<Configuration, String>() {
@@ -106,7 +107,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             if (candidateConfigurations.size()==1) {
                 selectedConfiguration = candidateConfigurations.get(0);
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + clientAttributes);
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + new TreeMap<String, String>(clientAttributes));
             }
         }
         if (selectedConfiguration == null) {
