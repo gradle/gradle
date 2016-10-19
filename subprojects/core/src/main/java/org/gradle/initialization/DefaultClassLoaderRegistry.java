@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -26,14 +25,14 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader pluginsClassLoader;
 
-    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, LegacyTypesSupport legacyTypesSupport) {
+    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
-        this.apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader, classLoaderFactory);
+        this.apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
         this.pluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_EXTENSIONS"), legacyTypesSupport);
-        this.apiAndPluginsClassLoader = restrictToGradleApi(pluginsClassLoader, classLoaderFactory);
+        this.apiAndPluginsClassLoader = restrictToGradleApi(pluginsClassLoader);
     }
 
-    private static ClassLoader restrictToGradleApi(ClassLoader parent, ClassLoaderFactory classLoaderFactory) {
+    private static ClassLoader restrictToGradleApi(ClassLoader parent) {
         FilteringClassLoader.Spec rootSpec = new FilteringClassLoader.Spec();
         rootSpec.allowPackage("org.gradle");
         rootSpec.allowResources("META-INF/gradle-plugins");
