@@ -17,7 +17,6 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
@@ -29,71 +28,66 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
-    final File jansiDir = new File(nativeDir, 'jansi')
-    final JansiLibraryFactory factory = new JansiLibraryFactory()
+    File library
 
     def setup() {
-        requireGradleDistribution()
+        executer.requireGradleDistribution().
+            requireOwnGradleUserHomeDir().
+            withNoExplicitNativeServicesDir().
+            withNoExplicitTmpDir()
+        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
+        executer.withBuildJvmOpts(tmpDirJvmOpt)
+
+        def libraryFactory = new JansiLibraryFactory()
+        File jansiDir = new File(executer.gradleUserHomeDir, 'native/jansi')
+        library = new File(jansiDir, libraryFactory.create().path)
     }
 
     def "native services libs are unpacked to gradle user home dir"() {
+        given:
+        executer.withArguments('-q')
         when:
-        quietExecutor().run()
-
+        succeeds("help")
         then:
-        nativeDir.directory
+        library.exists()
+        library.size() > 0
+        assertNoFilesInTmp()
     }
 
     @Issue("GRADLE-3573")
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
-        given:
-        String libraryPath = factory.create().path
-        File library = new File(jansiDir, libraryPath)
-        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
-
         when:
-        customizedExecutor(tmpDirJvmOpt).run()
+        succeeds("help")
 
         then:
         library.exists()
-        tmpDir.testDirectory.listFiles().length == 0
+        assertNoFilesInTmp()
         long lastModified = library.lastModified()
 
         when:
-        customizedExecutor(tmpDirJvmOpt).run()
+        succeeds("help")
 
         then:
         library.exists()
-        tmpDir.testDirectory.listFiles().length == 0
+        assertNoFilesInTmp()
         lastModified == library.lastModified()
     }
 
     @Issue("GRADLE-3573")
     def "can start Gradle even with broken Jansi library file"() {
         given:
-        String libraryPath = factory.create().path
-        File library = new File(tmpDir.testDirectory, libraryPath)
         GFileUtils.touch(library)
-        File libraryDir = library.parentFile
-        File tmpDir = tmpDir.createDir('tmp')
-        String[] buildJvmOpts = ["-Djava.io.tmpdir=${tmpDir.absolutePath}",
-                                 "-Dlibrary.jansi.path=$libraryDir.absolutePath"]
 
         when:
-        customizedExecutor(buildJvmOpts).run()
+        succeeds("help")
 
         then:
         noExceptionThrown()
         library.file && library.size() == 0
-        tmpDir.directory && tmpDir.listFiles().size() == 0
+        assertNoFilesInTmp()
     }
 
-    private GradleExecuter quietExecutor() {
-        executer.withArguments('-q')
-    }
-
-    private GradleExecuter customizedExecutor(String... buildJvmOpts) {
-        executer.withNoExplicitTmpDir().withBuildJvmOpts(buildJvmOpts)
+    private void assertNoFilesInTmp() {
+        assert tmpDir.testDirectory.listFiles().length == 0
     }
 }
