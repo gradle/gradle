@@ -46,6 +46,9 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
         for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
             CacheableTaskOutputFilePropertySpec property = (CacheableTaskOutputFilePropertySpec) propertySpec;
             File output = property.getOutputFile();
+            if (output == null) {
+                continue;
+            }
             switch (property.getOutputType()) {
                 case DIRECTORY:
                     makeDirectory(output);

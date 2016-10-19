@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -337,7 +336,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         """.stripIndent()
     }
 
-    @NotYetImplemented
     def "optional file output is not stored when there is no output"() {
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
@@ -403,7 +401,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         file("build").listFiles().sort() as List == [file("build/output.txt")]
     }
 
-    @NotYetImplemented
     def "plural output files are only restored when map keys match"() {
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """

@@ -93,6 +93,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final TarOutputStream outputStream) throws IOException {
         final String propertyName = propertySpec.getPropertyName();
         File outputFile = propertySpec.getOutputFile();
+        if (outputFile == null) {
+            return;
+        }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
                 storeDirectoryProperty(propertyName, outputFile, outputStream);
