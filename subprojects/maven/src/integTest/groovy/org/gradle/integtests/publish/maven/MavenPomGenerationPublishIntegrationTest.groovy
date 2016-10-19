@@ -18,6 +18,7 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
+import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -143,8 +144,8 @@ configurations {
 
         then:
         def mavenModule = mavenRepo.module('org.gradle.test', 'something', '1.1')
-        def pom = mavenModule.pomFile.text
-        assert pom == '''<?xml version="1.0" encoding="UTF-8"?>
+        def pom = normaliseLineSeparators(mavenModule.pomFile.text)
+        assert pom == normaliseLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
@@ -152,7 +153,7 @@ configurations {
   <artifactId>something</artifactId>
   <version>1.1</version>
 </project>
-'''
+''')
 
         where:
         attributes << [
@@ -213,8 +214,8 @@ configurations {
 
         then:
         def mavenModule = mavenRepo.module('org.gradle.test', 'something', '1.1')
-        def pom = mavenModule.pomFile.text
-        assert pom == '''<?xml version="1.0" encoding="UTF-8"?>
+        def pom = normaliseLineSeparators(mavenModule.pomFile.text)
+        assert pom == normaliseLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
@@ -230,7 +231,7 @@ configurations {
     </dependency>
   </dependencies>
 </project>
-'''
+''')
 
         where:
         attributes << [
