@@ -16,10 +16,13 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.initialization.GradleApiSpecProvider.Spec;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.service.DefaultServiceLocator;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 class GradleApiSpecAggregator {
 
@@ -29,23 +32,60 @@ class GradleApiSpecAggregator {
         this.classLoader = classLoader;
     }
 
-    public GradleApiSpecProvider.Spec aggregate() {
-        GradleApiSpecProvider.SpecBuilder builder = new GradleApiSpecProvider.SpecBuilder();
-        for (Class<? extends GradleApiSpecProvider> provider : providers()) {
-            builder.merge(specFrom(provider));
+    public Spec aggregate() {
+        List<Class<? extends GradleApiSpecProvider>> providers = providers();
+        if (providers.isEmpty()) {
+            return new GradleApiSpecProvider.SpecAdapter();
         }
-        return builder.build();
+
+        if (providers.size() == 1) {
+            return specFrom(providers.get(0));
+        }
+
+        return mergeSpecsOf(providers);
     }
 
-    private GradleApiSpecProvider.Spec specFrom(Class<? extends GradleApiSpecProvider> provider) {
+    private Spec mergeSpecsOf(List<Class<? extends GradleApiSpecProvider>> providers) {
+        final ImmutableSet.Builder<String> exportedPackages = ImmutableSet.builder();
+        final ImmutableSet.Builder<String> exportedResourcePrefixes = ImmutableSet.builder();
+        for (Class<? extends GradleApiSpecProvider> provider : providers) {
+            Spec spec = specFrom(provider);
+            exportedPackages.addAll(spec.getExportedPackages());
+            exportedResourcePrefixes.addAll(spec.getExportedResourcePrefixes());
+        }
+        return new DefaultSpec(exportedPackages.build(), exportedResourcePrefixes.build());
+    }
+
+    private Spec specFrom(Class<? extends GradleApiSpecProvider> provider) {
         return instantiate(provider).get();
     }
 
-    private Collection<Class<? extends GradleApiSpecProvider>> providers() {
+    private List<Class<? extends GradleApiSpecProvider>> providers() {
         return new DefaultServiceLocator(classLoader).implementationsOf(GradleApiSpecProvider.class);
     }
 
     private GradleApiSpecProvider instantiate(Class<? extends GradleApiSpecProvider> providerClass) {
         return DirectInstantiator.INSTANCE.newInstance(providerClass);
+    }
+
+    static class DefaultSpec implements Spec {
+
+        private final ImmutableSet<String> exportedPackages;
+        private final ImmutableSet<String> exportedResourcePrefixes;
+
+        DefaultSpec(ImmutableSet<String> exportedPackages, ImmutableSet<String> exportedResourcePrefixes) {
+            this.exportedPackages = exportedPackages;
+            this.exportedResourcePrefixes = exportedResourcePrefixes;
+        }
+
+        @Override
+        public Set<String> getExportedPackages() {
+            return exportedPackages;
+        }
+
+        @Override
+        public Set<String> getExportedResourcePrefixes() {
+            return exportedResourcePrefixes;
+        }
     }
 }

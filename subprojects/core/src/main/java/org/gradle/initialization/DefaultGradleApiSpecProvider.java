@@ -16,24 +16,35 @@
 
 package org.gradle.initialization;
 
-public class DefaultGradleApiSpecProvider implements GradleApiSpecProvider {
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
+
+public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdapter implements GradleApiSpecProvider {
+
+    @Override
+    public Set<String> getExportedPackages() {
+        return ImmutableSet.of(
+            "org.gradle",
+            "org.apache.tools.ant",
+            "groovy",
+            "org.codehaus.groovy",
+            "groovyjarjarantlr",
+            "org.slf4j",
+            "org.apache.commons.logging",
+            "org.apache.log4j",
+            "javax.inject",
+            // TODO: remove in the next gradle-script-kotlin upgrade
+            "kotlin");
+    }
+
+    @Override
+    public Set<String> getExportedResourcePrefixes() {
+        return ImmutableSet.of("META-INF/gradle-plugins");
+    }
 
     @Override
     public Spec get() {
-        return new SpecBuilder()
-            .exportResourcePrefix("META-INF/gradle-plugins")
-            .exportPackages(
-                "org.gradle",
-                "org.apache.tools.ant",
-                "groovy",
-                "org.codehaus.groovy",
-                "groovyjarjarantlr",
-                "org.slf4j",
-                "org.apache.commons.logging",
-                "org.apache.log4j",
-                "javax.inject",
-                // TODO: remove in the next gradle-script-kotlin upgrade
-                "kotlin")
-            .build();
+        return this;
     }
 }

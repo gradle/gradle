@@ -46,80 +46,20 @@ public interface GradleApiSpecProvider {
         Set<String> getExportedResourcePrefixes();
     }
 
-    class SpecBuilder {
+    /**
+     * Empty {@link Spec} implementation to be extended by SPI implementors to isolate them
+     * from changes to the interface.
+     */
+    class SpecAdapter implements Spec {
 
-        private final ImmutableSet.Builder<String> exportedPackages = ImmutableSet.builder();
-        private final ImmutableSet.Builder<String> exportedResourcePrefixes = ImmutableSet.builder();
-
-        /**
-         * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
-         *
-         * @param packageName the package name
-         */
-        public SpecBuilder exportPackage(String packageName) {
-            exportedPackages.add(packageName);
-            return this;
+        @Override
+        public Set<String> getExportedPackages() {
+            return ImmutableSet.of();
         }
 
-        /**
-         * Marks a set of packages and all their sub-packages as visible. Also makes resources in those packages visible.
-         *
-         * @param packageNames the set of package names
-         */
-        public SpecBuilder exportPackages(String... packageNames) {
-            exportedPackages.add(packageNames);
-            return this;
-        }
-
-        /**
-         * Marks all resources with the given prefix as visible.
-         *
-         * @param resourcePrefix the resource prefix
-         */
-        public SpecBuilder exportResourcePrefix(String resourcePrefix) {
-            exportedResourcePrefixes.add(resourcePrefix);
-            return this;
-        }
-
-        /**
-         * Merges a Spec into the current set of allowed packages and resources.
-         *
-         * @param spec the spec to be merged
-         */
-        public SpecBuilder merge(Spec spec) {
-            exportedPackages.addAll(spec.getExportedPackages());
-            exportedResourcePrefixes.addAll(spec.getExportedResourcePrefixes());
-            return this;
-        }
-
-        /**
-         * Builds the final (immutable) Spec with all allowed packages and resources.
-         *
-         * @return the Spec
-         */
-        public Spec build() {
-            return new DefaultSpec(exportedPackages.build(), exportedResourcePrefixes.build());
-        }
-
-        static class DefaultSpec implements Spec {
-
-            private final ImmutableSet<String> exportedPackages;
-            private final ImmutableSet<String> exportedResourcePrefixes;
-
-            DefaultSpec(ImmutableSet<String> exportedPackages, ImmutableSet<String> exportedResourcePrefixes) {
-                this.exportedPackages = exportedPackages;
-                this.exportedResourcePrefixes = exportedResourcePrefixes;
-            }
-
-            @Override
-            public Set<String> getExportedPackages() {
-                return exportedPackages;
-            }
-
-            @Override
-            public Set<String> getExportedResourcePrefixes() {
-                return exportedResourcePrefixes;
-            }
+        @Override
+        public Set<String> getExportedResourcePrefixes() {
+            return ImmutableSet.of();
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.initialization
 
+import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
 import static java.util.Collections.enumeration
@@ -43,19 +44,29 @@ class GradleApiSpecAggregatorTest extends Specification {
     static class SpecProvider1 implements GradleApiSpecProvider {
         @Override
         GradleApiSpecProvider.Spec get() {
-            return new GradleApiSpecProvider.SpecBuilder()
-                .exportPackage("kotlin")
-                .build()
+            return new GradleApiSpecProvider.SpecAdapter() {
+                @Override
+                Set<String> getExportedPackages() {
+                    return ImmutableSet.of("kotlin")
+                }
+            }
         }
     }
 
     static class SpecProvider2 implements GradleApiSpecProvider {
         @Override
         GradleApiSpecProvider.Spec get() {
-            return new GradleApiSpecProvider.SpecBuilder()
-                .exportPackages("org.gradle", "groovy")
-                .exportResourcePrefix("META-INF/gradle-plugins")
-                .build()
+            return new GradleApiSpecProvider.SpecAdapter() {
+                @Override
+                Set<String> getExportedPackages() {
+                    return ImmutableSet.of("org.gradle", "groovy")
+                }
+
+                @Override
+                Set<String> getExportedResourcePrefixes() {
+                    return ImmutableSet.of("META-INF/gradle-plugins")
+                }
+            }
         }
     }
 
