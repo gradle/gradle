@@ -658,4 +658,83 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':c:fooJar'
     }
 
+    def "context travels down to transitive dependencies with composite builds"() {
+        given:
+        file('settings.gradle') << """
+            include 'a', 'b'
+            includeBuild 'includedBuild'
+        """
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+        '''
+
+        file('includedBuild/build.gradle') << '''
+
+            group = 'com.acme.external'
+            version = '2.0-SNAPSHOT'
+            configurations {
+                foo.attributes(buildType: 'debug', flavor: 'free')
+                bar.attributes(buildType: 'release', flavor: 'free')
+            }
+            task fooJar(type: Jar) {
+               baseName = 'c-foo'
+            }
+            task barJar(type: Jar) {
+               baseName = 'c-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        '''
+        file('includedBuild/settings.gradle') << '''
+            rootProject.name = 'external'
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':external:fooJar'
+        notExecuted ':external:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':external:barJar'
+        notExecuted ':external:fooJar'
+    }
+
 }
