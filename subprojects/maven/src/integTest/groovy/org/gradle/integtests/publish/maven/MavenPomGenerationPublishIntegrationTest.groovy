@@ -18,7 +18,8 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
-import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
+
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
