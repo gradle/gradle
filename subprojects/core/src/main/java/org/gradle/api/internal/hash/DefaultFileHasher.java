@@ -33,8 +33,7 @@ public class DefaultFileHasher implements FileHasher {
 
     @Override
     public HashCode hash(TextResource resource) {
-        Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
+        Hasher hasher = createFileHasher();
         hasher.putString(resource.getText(), Charsets.UTF_8);
         return hasher.hash();
     }
@@ -42,8 +41,7 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(File file) {
         try {
-            Hasher hasher = Hashing.md5().newHasher();
-            hasher.putBytes(SIGNATURE);
+            Hasher hasher = createFileHasher();
             Files.copy(file, Funnels.asOutputStream(hasher));
             return hasher.hash();
         } catch (IOException e) {
@@ -54,5 +52,11 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(FileTreeElement fileDetails) {
         return hash(fileDetails.getFile());
+    }
+
+    private static Hasher createFileHasher() {
+        Hasher hasher = Hashing.md5().newHasher();
+        hasher.putBytes(SIGNATURE);
+        return hasher;
     }
 }
