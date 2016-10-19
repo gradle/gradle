@@ -72,17 +72,4 @@ public interface ExecutorPolicy {
             }
         }
     }
-
-    /**
-     * Just runs the Runnable and lets any exceptions propagate as usual.
-     */
-    static class PropagateFailures implements ExecutorPolicy {
-        public void onExecute(Runnable command) {
-            command.run();
-        }
-
-        public void onStop() {
-            // Do nothing
-        }
-    }
 }

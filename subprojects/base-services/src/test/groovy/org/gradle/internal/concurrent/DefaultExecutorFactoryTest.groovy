@@ -27,6 +27,36 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         factory.stop()
     }
 
+    def fixedSizeExecutorRunsNoMoreThanRequestedNumberOfActionsConcurrently() {
+        given:
+        def action1 = {
+            instant.started1
+            thread.block()
+            instant.completed1
+        }
+        def action2 = {
+            instant.started2
+            thread.blockUntil.started3
+        }
+        def action3 = {
+            instant.started3
+        }
+
+        when:
+        def executor = factory.create('test', 2)
+        executor.execute(action1)
+        executor.execute(action2)
+        executor.execute(action3)
+        thread.blockUntil.started3
+
+        then:
+        instant.started3 > instant.completed1
+        instant.started3 > instant.started2
+
+        cleanup:
+        executor?.stop()
+    }
+
     def stopBlocksUntilAllJobsAreComplete() {
         given:
         def action1 = {
@@ -76,7 +106,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         instant.stopped > instant.completed2
     }
 
-    public void cannotStopExecutorFromAnExecutorThread() {
+    def cannotStopExecutorFromAnExecutorThread() {
         when:
         def executor = factory.create('<display-name>')
         def action = {
@@ -128,6 +158,37 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         def executor = factory.create('test')
         executor.execute(runnable1)
         thread.blockUntil.broken1
+        thread.block()
+        executor.execute(runnable2)
+        thread.blockUntil.broken2
+
+        then:
+        noExceptionThrown()
+
+        when:
+        executor.stop()
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.is(failure1)
+    }
+
+    def stopOfFixedSizedExecutorRethrowsFirstExecutionException() {
+        given:
+        def failure1 = new RuntimeException()
+        def runnable1 = {
+            throw failure1
+        }
+
+        def failure2 = new RuntimeException()
+        def runnable2 = {
+            instant.broken2
+            throw failure2
+        }
+
+        when:
+        def executor = factory.create('test', 1)
+        executor.execute(runnable1)
         executor.execute(runnable2)
         thread.blockUntil.broken2
 
