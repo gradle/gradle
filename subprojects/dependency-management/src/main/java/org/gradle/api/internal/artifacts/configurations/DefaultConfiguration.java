@@ -439,7 +439,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        if (attributes.size() > 0 || resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+        if ((attributes!=null && attributes.size() > 0) || resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
             final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
 
