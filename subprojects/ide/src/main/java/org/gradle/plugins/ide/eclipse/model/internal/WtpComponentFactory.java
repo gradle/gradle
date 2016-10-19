@@ -44,7 +44,7 @@ public class WtpComponentFactory {
     private final CompositeBuildIdeProjectResolver ideProjectResolver;
 
     public WtpComponentFactory(Project project) {
-        ideProjectResolver = new CompositeBuildIdeProjectResolver(((ProjectInternal) project).getServices());
+        ideProjectResolver = CompositeBuildIdeProjectResolver.from(((ProjectInternal) project).getServices());
     }
 
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {

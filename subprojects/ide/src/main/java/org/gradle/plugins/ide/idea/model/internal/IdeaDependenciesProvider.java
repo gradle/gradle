@@ -91,7 +91,7 @@ public class IdeaDependenciesProvider {
         scopeMappings.put(GeneratedIdeaScope.COMPILE_CLASSPATH,
                 Collections.singletonList(new IdeaScopeMappingRule("compileClasspath")));
 
-        moduleDependencyBuilder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry));
+        moduleDependencyBuilder = new ModuleDependencyBuilder(CompositeBuildIdeProjectResolver.from(serviceRegistry));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {

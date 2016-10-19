@@ -127,7 +127,7 @@ public class IdeaProject {
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.compositeContext = services.get(CompositeBuildContext.class);
-        this.moduleToProjectMapper = new CompositeBuildIdeProjectResolver(services);
+        this.moduleToProjectMapper = CompositeBuildIdeProjectResolver.from(services);
     }
 
     /**

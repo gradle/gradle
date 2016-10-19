@@ -48,7 +48,7 @@ public class EclipseDependenciesCreator {
         this.dependenciesExtractor = new IdeDependenciesExtractor();
         this.classpath = classpath;
         ServiceRegistry serviceRegistry = ((ProjectInternal) classpath.getProject()).getServices();
-        this.projectDependencyBuilder = new ProjectDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry));
+        this.projectDependencyBuilder = new ProjectDependencyBuilder(CompositeBuildIdeProjectResolver.from(serviceRegistry));
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {

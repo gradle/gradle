@@ -18,12 +18,10 @@ package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver
-import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
 import org.gradle.initialization.IncludedBuildExecuter
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import spock.lang.Specification
 
@@ -34,11 +32,8 @@ class ModuleDependencyBuilderTest extends Specification {
     def projectId = newProjectId("project-path")
     def ideDependency = new IdeProjectDependency(projectId, "test")
     def localComponentRegistry = Mock(LocalComponentRegistry)
-    def serviceRegistry = new DefaultServiceRegistry()
-        .add(LocalComponentRegistry, localComponentRegistry)
-        .add(IncludedBuildExecuter, Stub(IncludedBuildExecuter))
-        .add(BuildIdentity, new DefaultBuildIdentity(projectId.build))
-    def builder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry))
+    def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildExecuter), new DefaultBuildIdentity(projectId.build))
+    def builder = new ModuleDependencyBuilder(ideProjectResolver)
 
     def "builds dependency for nonIdea project"() {
         when:
