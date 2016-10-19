@@ -1,0 +1,360 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.tasks
+
+import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import spock.lang.Issue
+
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+
+class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
+    public static final String APPLY_KOTLIN = """
+            plugins {
+                id "nebula.kotlin" version "1.0.4"
+            }
+            repositories {
+                // required to resolve kotlin-stdlib dependency implicitly added by nebula.kotlin
+                jcenter()
+            }
+            dependencies {
+                compile(gradleApi())
+            }
+        """
+
+    def "buildSrc is loaded from cache"() {
+        file("buildSrc/src/main/groovy/MyTask.groovy") << """
+            import org.gradle.api.*
+
+            class MyTask extends DefaultTask {}
+        """
+        when:
+        succeedsWithCache "tasks"
+        then:
+        skippedTasks.empty
+
+        expect:
+        file("buildSrc/build").assertIsDir().deleteDir()
+
+        when:
+        succeedsWithCache "tasks"
+        then:
+        output.contains ":buildSrc:compileGroovy FROM-CACHE"
+        output.contains ":buildSrc:jar FROM-CACHE"
+    }
+
+    def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/build").deleteDir()
+        file("buildSrc/.gradle").deleteDir()
+        cleanBuildDir()
+
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+    }
+
+    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
+    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
+    def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
+        file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
+        file("buildSrc/build.gradle") << APPLY_KOTLIN
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/build").deleteDir()
+        file("buildSrc/.gradle").deleteDir()
+        cleanBuildDir()
+
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+    }
+
+    def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
+        def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
+        taskSourceFile << customGroovyTask()
+        taskSourceFile.makeOlder()
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.empty
+        file("build/output.txt").text == "input"
+
+        when:
+        taskSourceFile.text = customGroovyTask(" modified")
+
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "input modified"
+    }
+
+    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
+    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
+    def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
+        def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
+        taskSourceFile << customKotlinTask()
+        taskSourceFile.makeOlder()
+        file("buildSrc/build.gradle") << APPLY_KOTLIN
+        file("input.txt") << "input"
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file "input.txt"
+                outputFile = file "build/output.txt"
+            }
+        """
+        when:
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.empty
+        file("build/output.txt").text == "input"
+
+        when:
+        taskSourceFile.text = customKotlinTask(" modified")
+
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "input modified"
+    }
+
+    private static String customGroovyTask(String suffix = "") {
+        """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text + "$suffix"
+                }
+            }
+        """
+    }
+
+    private static String customKotlinTask(String suffix = "") {
+        """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import java.io.File
+
+            @CacheableTask
+            open class CustomTask() : DefaultTask() {
+                @get:InputFile var inputFile: File? = null
+                @get:OutputFile var outputFile: File? = null
+                @TaskAction fun doSomething() {
+                    outputFile!!.parentFile.mkdirs()
+                    outputFile!!.writeText(inputFile!!.readText())
+                    outputFile!!.appendText("$suffix")
+                }
+            }
+        """
+    }
+
+    def "cacheable task with cache disabled doesn't get cached"() {
+        file("input.txt") << "data"
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile
+                @OutputFile File outputFile
+                @TaskAction void doSomething() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text
+                }
+            }
+        """
+        buildFile << """
+            task customTask(type: CustomTask) {
+                inputFile = file("input.txt")
+                outputFile = file("\$buildDir/output.txt")
+            }
+        """
+
+        when:
+        runWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+
+        when:
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+
+
+        when:
+        buildFile << """
+            customTask.outputs.cacheIf { false }
+        """
+
+        runWithCache "customTask"
+        cleanBuildDir()
+
+        succeedsWithCache "customTask"
+
+        then:
+        nonSkippedTasks.contains ":customTask"
+    }
+
+    def "cacheable task with multiple outputs doesn't get cached"() {
+        buildFile << """
+            task customTask {
+                outputs.cacheIf { true }
+                outputs.files files("build/output1.txt", "build/output2.txt")
+                doLast {
+                    file("build").mkdirs()
+                    file("build/output1.txt") << "data"
+                    file("build/output2.txt") << "data"
+                }
+            }
+        """
+
+        when:
+        succeedsWithCache "customTask", "--info"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        output.contains "Not caching task ':customTask' because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+    }
+
+    def "non-cacheable task with cache enabled gets cached"() {
+        file("input.txt") << "data"
+        buildFile << """
+            class NonCacheableTask extends DefaultTask {
+                @InputFile inputFile
+                @OutputFile outputFile
+
+                @TaskAction copy() {
+                    project.mkdir outputFile.parentFile
+                    outputFile.text = inputFile.text
+                }
+            }
+            task customTask(type: NonCacheableTask) {
+                inputFile = file("input.txt")
+                outputFile = file("\$buildDir/output.txt")
+                outputs.cacheIf { true }
+            }
+        """
+
+        when:
+        runWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+
+        when:
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+    }
+
+    def "ad hoc tasks are not cacheable by default"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+
+        expect:
+        taskIsNotCached ':adHocTask'
+    }
+
+    def "ad hoc tasks are cached when explicitly requested"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << 'adHocTask { outputs.cacheIf { true } }'
+
+        expect:
+        taskIsCached ':adHocTask'
+    }
+
+    private static String adHocTaskWithInputs() {
+        """
+        task adHocTask {
+            def outputFile = file("\$buildDir/output.txt")
+            inputs.file(file("input.txt"))
+            outputs.file(outputFile)
+            doLast {
+                project.mkdir outputFile.parentFile
+                outputFile.text = file("input.txt").text
+            }
+        }
+        """.stripIndent()
+    }
+
+    private TestFile cleanBuildDir() {
+        file("build").assertIsDir().deleteDir()
+    }
+
+    void taskIsNotCached(String task) {
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+        cleanBuildDir()
+
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+    }
+
+    void taskIsCached(String task) {
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+        cleanBuildDir()
+
+        runWithCache task
+        assert skippedTasks.contains(task)
+    }
+}
