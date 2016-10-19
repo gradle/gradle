@@ -310,7 +310,7 @@ public class IdeaProject {
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = compositeContext.getAllProjects();
         for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {
-            File imlFile = moduleToProjectMapper.resolveArtifactFile(otherProjectId, "iml");
+            File imlFile = moduleToProjectMapper.buildArtifactFile(otherProjectId, "iml");
             if (imlFile != null) {
                 xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));
             }

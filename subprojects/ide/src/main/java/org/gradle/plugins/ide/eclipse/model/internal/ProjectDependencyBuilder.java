@@ -33,7 +33,7 @@ public class ProjectDependencyBuilder {
     }
 
     private String determineTargetProjectPath(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.resolveArtifact(dependency.getProjectId(), "eclipse.project");
+        ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.findArtifact(dependency.getProjectId(), "eclipse.project");
         String targetProjectName = eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
         return "/" + targetProjectName;
     }

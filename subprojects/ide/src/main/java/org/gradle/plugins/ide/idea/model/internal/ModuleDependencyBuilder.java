@@ -33,7 +33,7 @@ class ModuleDependencyBuilder {
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata imlArtifact = ideProjectResolver.resolveArtifact(dependency.getProjectId(), "iml");
+        ComponentArtifactMetadata imlArtifact = ideProjectResolver.findArtifact(dependency.getProjectId(), "iml");
         return imlArtifact == null ? dependency.getProjectName() : imlArtifact.getName().getName();
     }
 }
