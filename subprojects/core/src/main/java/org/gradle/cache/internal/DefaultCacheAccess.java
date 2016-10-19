@@ -37,7 +37,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.*;
+import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
@@ -116,12 +117,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
             if (open) {
                 throw new IllegalStateException("Cache is already open.");
             }
-            crossProcessCacheAccess.open();
-            open = true;
-            if (lockOptions.getMode() == FileLockManager.LockMode.None) {
-                return;
+            takeOwnershipNow("initialize cache");
+            try {
+                crossProcessCacheAccess.open();
+                open = true;
+            } finally {
+                releaseOwnership();
             }
-            takeOwnership(String.format("Access %s", cacheDisplayName));
         } catch (Throwable throwable) {
             crossProcessCacheAccess.close();
             throw UncheckedException.throwAsUncheckedException(throwable);
@@ -142,12 +144,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         lock.lock();
         try {
             // Take ownership
-            if (owner == null) {
-                owner = Thread.currentThread();
-            } else if (lockOptions.getMode() != Shared && owner != Thread.currentThread()) {
-                // TODO:ADAM - The check for shared mode is a work around. Owner should release the lock
-                throw new IllegalStateException(String.format("Cannot close %s as it is currently being used by another thread.", cacheDisplayName));
-            }
+            takeOwnershipNow("close cache");
             if (fileLockHeldByOwner != null) {
                 fileLockHeldByOwner.run();
             }
@@ -196,33 +193,43 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
+    /**
+     * Waits until the current thread can take ownership.
+     * Must be called while holding the lock.
+     */
     private void takeOwnership(String operationDisplayName) {
-        lock.lock();
-        try {
-            while (owner != null && owner != Thread.currentThread()) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        while (owner != null && owner != Thread.currentThread()) {
+            try {
+                condition.await();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
-            owner = Thread.currentThread();
-            operations.pushCacheAction(operationDisplayName);
-        } finally {
-            lock.unlock();
         }
+        owner = Thread.currentThread();
+        operations.pushCacheAction(operationDisplayName);
     }
 
+    /**
+     * Takes ownership of the cache, asserting that this can be done without waiting.
+     * Must be called while holding the lock.
+     */
+    private void takeOwnershipNow(String operationDisplayName) {
+        if (owner != null && owner != Thread.currentThread()) {
+            throw new IllegalStateException(String.format("Cannot take ownership of %s as it is currently being used by another thread.", cacheDisplayName));
+        }
+        owner = Thread.currentThread();
+        operations.pushCacheAction(operationDisplayName);
+    }
+
+    /**
+     * Releases ownership of the cache.
+     * Must be called while holding the lock.
+     */
     private void releaseOwnership() {
-        lock.lock();
-        try {
-            operations.popCacheAction();
-            if (!operations.isInCacheAction()) {
-                owner = null;
-                condition.signalAll();
-            }
-        } finally {
-            lock.unlock();
+        operations.popCacheAction();
+        if (!operations.isInCacheAction()) {
+            owner = null;
+            condition.signalAll();
         }
     }
 
@@ -355,8 +362,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == null;
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
-        for (UnitOfWorkParticipant cache : caches) {
-            cache.afterLockAcquire(stateAtOpen);
+        takeOwnershipNow("initialise caches");
+        try {
+            for (UnitOfWorkParticipant cache : caches) {
+                cache.afterLockAcquire(stateAtOpen);
+            }
+        } finally {
+            releaseOwnership();
         }
         if (lockOptions.getMode() == None) {
             lockManager.allowContention(fileLock, whenContended());
@@ -370,16 +382,20 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == fileLock;
         try {
             cacheClosedCount++;
+            takeOwnershipNow("release caches");
+            try {
+                // Notify caches that lock is to be released. The caches may do work on the cache files during this
+                for (MultiProcessSafePersistentIndexedCache cache : caches) {
+                    cache.finishWork();
+                }
 
-            // Notify caches that lock is to be released. The caches may do work on the cache files during this
-            for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                cache.finishWork();
-            }
-
-            // Snapshot the state and notify the caches
-            FileLock.State state = fileLock.getState();
-            for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                cache.beforeLockRelease(state);
+                // Snapshot the state and notify the caches
+                FileLock.State state = fileLock.getState();
+                for (MultiProcessSafePersistentIndexedCache cache : caches) {
+                    cache.beforeLockRelease(state);
+                }
+            } finally {
+                releaseOwnership();
             }
         } finally {
             this.fileLock = null;
