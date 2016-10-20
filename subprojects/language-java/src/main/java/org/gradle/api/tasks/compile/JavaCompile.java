@@ -177,7 +177,7 @@ public class JavaCompile extends AbstractCompile {
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getOutputs());
+        return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
     @Nested
@@ -191,12 +191,26 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private DefaultJavaCompileSpec createSpec() {
-        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
+        final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
+        final File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public File create() {
+                return getDependencyCacheDir();
+            }
+        });
+        DeprecationLogger.whileDisabled(new Runnable() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public void run() {
+                spec.setDependencyCacheDir(dependencyCacheDir);
+            }
+        });
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);

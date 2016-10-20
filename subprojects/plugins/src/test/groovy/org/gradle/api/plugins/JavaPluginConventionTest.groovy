@@ -50,6 +50,7 @@ class JavaPluginConventionTest {
 
     @Test public void defaultValues() {
         assertThat(convention.sourceSets, instanceOf(DefaultSourceSetContainer))
+        assertEquals('dependency-cache', convention.dependencyCacheDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('tests', convention.testReportDirName)
@@ -81,6 +82,7 @@ class JavaPluginConventionTest {
     }
 
     private void checkDirs() {
+        assertEquals(new File(project.buildDir, convention.dependencyCacheDirName), convention.dependencyCacheDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
