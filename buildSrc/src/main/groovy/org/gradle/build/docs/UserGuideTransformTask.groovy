@@ -37,6 +37,7 @@ import org.w3c.dom.Element
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  */
+@CacheableTask
 public class UserGuideTransformTask extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }
@@ -45,14 +46,21 @@ public class UserGuideTransformTask extends DefaultTask {
     def dsldocUrl
     def websiteUrl
 
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File sourceFile
+
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File linksFile
+
     @OutputFile
     File destFile
+
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     File snippetsDir
+
     @Input
     Set<String> tags = new HashSet()
 
