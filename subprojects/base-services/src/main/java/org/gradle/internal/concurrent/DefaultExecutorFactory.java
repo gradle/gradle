@@ -44,7 +44,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     }
 
     public StoppableExecutor create(String displayName, int fixedSize) {
-        StoppableExecutor executor = new TrackedStoppableExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.PropagateFailures());
+        StoppableExecutor executor = new TrackedStoppableExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
     }

@@ -116,11 +116,6 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
         throw failure();
     }
 
-    @Override
-    public Runnable acquireFileLock(Runnable completion) {
-        throw failure();
-    }
-
     protected UnsupportedOperationException failure() {
         return new UnsupportedOperationException("Cannot escalate a shared lock to an exclusive lock. This is not yet supported.");
     }

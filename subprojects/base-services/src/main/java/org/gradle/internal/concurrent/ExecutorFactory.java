@@ -18,7 +18,9 @@ package org.gradle.internal.concurrent;
 
 public interface ExecutorFactory {
     /**
-     * Creates an executor which can run multiple tasks concurrently. It is the caller's responsibility to stop the executor.
+     * Creates an executor which can run multiple actions concurrently. It is the caller's responsibility to stop the executor.
+     *
+     * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
      *
      * @param displayName The display name for the this executor. Used for thread names, logging and error message.
      * @return The executor.
@@ -27,6 +29,8 @@ public interface ExecutorFactory {
 
     /**
      * Creates an executor which can run multiple tasks concurrently. It is the caller's responsibility to stop the executor.
+     *
+     * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
      *
      * @param displayName The display name for the this executor. Used for thread names, logging and error message.
      * @param fixedSize The maximum number of threads allowed

@@ -17,72 +17,57 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Issue
-
-import static org.gradle.util.TestPrecondition.NOT_LINUX
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
-    final File nativeDir = new File(executer.gradleUserHomeDir, 'native')
-    final File jansiDir = new File(nativeDir, 'jansi')
-    final JansiLibraryFactory factory = new JansiLibraryFactory()
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def setup() {
-        requireGradleDistribution()
-    }
+    def libraryFactory = new JansiLibraryFactory()
+    File jansiDir = new File(executer.gradleUserHomeDir, 'native/jansi')
+    File library = new File(jansiDir, libraryFactory.create().path)
 
     def "native services libs are unpacked to gradle user home dir"() {
-        when:
-        quietExecutor().run()
-
-        then:
-        nativeDir.directory
-    }
-
-    def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         given:
-        String libraryPath = factory.create().path
-        File library = new File(jansiDir, libraryPath)
+        executer.withArguments('-q')
 
         when:
-        quietExecutor().run()
+        succeeds("help")
 
         then:
         library.exists()
-        long lastModified = library.lastModified()
-
-        when:
-        quietExecutor().run()
-
-        then:
-        library.exists()
-        lastModified == library.lastModified()
+        library.size() > 0
+        assertNoFilesInTmp()
     }
 
     @Issue("GRADLE-3573")
-    @Requires(adhoc = { NativeServicesIntegrationTest.isMountedNoexec('/tmp') })
-    def "creates Jansi library directory even if tmp dir is mounted with noexec option"() {
+    def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
+        executer.requireGradleDistribution().withNoExplicitTmpDir()
+        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
+        executer.withBuildJvmOpts(tmpDirJvmOpt)
+
         when:
-        executer.withNoExplicitTmpDir().withBuildJvmOpts("-Djava.io.tmpdir=/tmp").run()
+        succeeds("help")
 
         then:
-        jansiDir.directory
+        library.exists()
+        assertNoFilesInTmp()
+        long lastModified = library.lastModified()
+
+        when:
+        succeeds("help")
+
+        then:
+        library.exists()
+        assertNoFilesInTmp()
+        lastModified == library.lastModified()
     }
 
-    private GradleExecuter quietExecutor() {
-        executer.withArguments('-q')
-    }
-
-    static boolean isMountedNoexec(String dir) {
-        if (NOT_LINUX) {
-            return false
-        }
-
-        def out = new StringBuffer()
-        'mount'.execute().waitForProcessOutput(out, System.err)
-        out.readLines().find { it.startsWith("tmpfs on $dir type tmpfs") && it.contains('noexec') } != null
+    private void assertNoFilesInTmp() {
+        assert tmpDir.testDirectory.listFiles().length == 0
     }
 }

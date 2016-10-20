@@ -96,8 +96,4 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         return factory.create();
     }
 
-    @Override
-    public Runnable acquireFileLock(Runnable completion) {
-        return completion;
-    }
 }

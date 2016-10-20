@@ -42,9 +42,9 @@ public class JansiBootPathConfigurer {
         JansiLibrary jansiLibrary = factory.create();
 
         if (jansiLibrary != null) {
-            File tmpDir = new File(storageDir, "jansi/" + jansiLibrary.getPlatform());
-            tmpDir.mkdirs();
-            File libFile = new File(tmpDir, jansiLibrary.getFilename());
+            File jansiDir = new File(storageDir, "jansi/");
+            File libFile = new File(jansiDir, jansiLibrary.getPath());
+            libFile.getParentFile().mkdirs();
 
             if (!libFile.exists()) {
                 InputStream libraryInputStream = getClass().getResourceAsStream(jansiLibrary.getResourcePath());
@@ -54,7 +54,7 @@ public class JansiBootPathConfigurer {
                 }
             }
 
-            System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, tmpDir.getAbsolutePath());
+            System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());
         }
     }
 
