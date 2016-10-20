@@ -21,7 +21,7 @@ def taskInfos = []
 class TaskOutputInfo {
     Class type
     String path
-    List<File> outputs
+    Map<String, File> outputs
 }
 
 gradle.addListener(new TaskExecutionAdapter() {
@@ -34,7 +34,7 @@ gradle.addListener(new TaskExecutionAdapter() {
         def outputs = task.outputs.fileProperties
             .findAll { it instanceof CacheableTaskOutputFilePropertySpec }
             .findAll { it.outputFile != null }
-            .collect { it.outputFile }
+            .collectEntries { [it.propertyName, it.outputFile] }
 
         def info = new TaskOutputInfo(
             type: type,
@@ -53,35 +53,37 @@ gradle.addListener(new BuildAdapter() {
         taskInfos.sort { a, b ->
             a.path <=> b.path
         }
-        def byPath = [:].withDefault { [] }
+        def byPath = [:].withDefault { [:].withDefault { [] } }
         def root = rootProject.projectDir
         taskInfos.each { taskInfo ->
-            taskInfo.outputs.each { output ->
-                byPath[output].add(taskInfo)
+            taskInfo.outputs.each { outputName, outputFile ->
+                byPath[outputFile][outputName].add(taskInfo)
             }
         }
         taskInfos.each { taskInfo ->
-            taskInfo.outputs.each { output ->
-                def path = output
+            taskInfo.outputs.each { outputName, outputFile ->
+                def path = outputFile
                 while (true) {
                     path = path.parentFile
                     if (path == null || path == root) {
                         break;
                     }
                     if (byPath.containsKey(path)) {
-                        byPath[path].add(taskInfo)
+                        byPath[path][outputName].add(taskInfo)
                     }
                 }
             }
         }
         def tasksAffected = []
-        byPath.each { path, tasks ->
-            if (tasks.size() > 1) {
+        byPath.each { path, byName ->
+            if (byName.values().flatten()*.path.unique().size() > 1) {
                 println "  - ${relPath(root, path)} has overlap between:"
-                tasks.each { task ->
-                    println "      - $task.path ($task.type.name)"
+                byName.each { outputName, tasks ->
+                    tasks.each { task ->
+                        println "      - ${task.path}.$outputName ($task.type.name)"
+                    }
+                    tasksAffected.addAll tasks
                 }
-                tasksAffected.addAll tasks
             }
         }
         if (tasksAffected.empty) {
