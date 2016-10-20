@@ -36,8 +36,9 @@ import org.w3c.dom.Element
  * <li>A directory containing the snippets for the samples to be included in the document, as produced by {@link ExtractSnippetsTask}.</li>
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
+ *
+ * TODO: This task is not cacheable yet because samples.xml is not an output and is written multiple times by different tasks.
  */
-@CacheableTask
 public class UserGuideTransformTask extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }
