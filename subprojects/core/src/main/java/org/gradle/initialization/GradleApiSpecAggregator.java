@@ -35,7 +35,7 @@ class GradleApiSpecAggregator {
     public Spec aggregate() {
         List<Class<? extends GradleApiSpecProvider>> providers = providers();
         if (providers.isEmpty()) {
-            return new GradleApiSpecProvider.SpecAdapter();
+            return emptySpec();
         }
 
         if (providers.size() == 1) {
@@ -43,6 +43,14 @@ class GradleApiSpecAggregator {
         }
 
         return mergeSpecsOf(providers);
+    }
+
+    private GradleApiSpecProvider.SpecAdapter emptySpec() {
+        return new GradleApiSpecProvider.SpecAdapter();
+    }
+
+    private Spec specFrom(Class<? extends GradleApiSpecProvider> provider) {
+        return instantiate(provider).get();
     }
 
     private Spec mergeSpecsOf(List<Class<? extends GradleApiSpecProvider>> providers) {
@@ -54,10 +62,6 @@ class GradleApiSpecAggregator {
             exportedResourcePrefixes.addAll(spec.getExportedResourcePrefixes());
         }
         return new DefaultSpec(exportedPackages.build(), exportedResourcePrefixes.build());
-    }
-
-    private Spec specFrom(Class<? extends GradleApiSpecProvider> provider) {
-        return instantiate(provider).get();
     }
 
     private List<Class<? extends GradleApiSpecProvider>> providers() {
