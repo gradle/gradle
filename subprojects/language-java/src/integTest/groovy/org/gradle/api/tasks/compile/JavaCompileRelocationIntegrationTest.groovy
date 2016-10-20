@@ -44,7 +44,6 @@ class JavaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegra
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
-                dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
                 classpath = files('$classpath')
             }

@@ -274,16 +274,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        project.getTasks().withType(JavaCompile.class, new Action<JavaCompile>() {
-            public void execute(final JavaCompile compile) {
-                ConventionMapping conventionMapping = compile.getConventionMapping();
-                conventionMapping.map("dependencyCacheDir", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return javaConvention.getDependencyCacheDir();
-                    }
-                });
-            }
-        });
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {

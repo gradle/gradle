@@ -233,6 +233,12 @@ public class CompileOptions extends AbstractOptions {
         this.forkOptions = forkOptions;
     }
 
+    /**
+     * Tells whether to use the Ant {@code <depend>} task.
+     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
+     * {@code false}.
+     */
+    @Input
     @Internal
     @Deprecated
     public boolean isUseDepend() {
@@ -240,6 +246,11 @@ public class CompileOptions extends AbstractOptions {
         return useDepend;
     }
 
+    /**
+     * Sets whether to use the Ant {@code <depend>} task.
+     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
+     * {@code false}.
+     */
     @Deprecated
     public void setUseDepend(boolean useDepend) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.setUseDepend()");
