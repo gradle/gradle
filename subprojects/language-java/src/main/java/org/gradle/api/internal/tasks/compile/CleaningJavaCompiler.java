@@ -15,22 +15,17 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
-    private final Factory<AntBuilder> antBuilderFactory;
     private final TaskOutputsInternal taskOutputs;
 
-    public CleaningJavaCompiler(Compiler<JavaCompileSpec> compiler, Factory<AntBuilder> antBuilderFactory,
-                                TaskOutputsInternal taskOutputs) {
+    public CleaningJavaCompiler(Compiler<JavaCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
-        this.antBuilderFactory = antBuilderFactory;
         this.taskOutputs = taskOutputs;
     }
 
@@ -41,14 +36,6 @@ public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompil
 
     @Override
     protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
-        //TODO SF do we want to keep useDepend? The docs advertise that this option makes sense only when useAnt is on
-        //but the latter has been removed in 2.* Either we need to fix the the docs or deprecate useDepend
-        if (spec.getCompileOptions().isUseDepend()) {
-            AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory, spec.getCompileOptions());
-            cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
-            return cleaner;
-        } else {
-            return new SimpleStaleClassCleaner(taskOutputs);
-        }
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

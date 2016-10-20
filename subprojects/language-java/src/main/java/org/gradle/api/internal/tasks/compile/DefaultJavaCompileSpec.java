@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -33,13 +34,17 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         this.compileOptions = compileOptions;
     }
 
+    @Deprecated
     @Override
     public File getDependencyCacheDir() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("DefaultJavaCompileSpec.getDependencyCacheDir()");
         return dependencyCacheDir;
     }
 
+    @Deprecated
     @Override
     public void setDependencyCacheDir(File dependencyCacheDir) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("DefaultJavaCompileSpec.setDependencyCacheDir()");
         this.dependencyCacheDir = dependencyCacheDir;
     }
 }

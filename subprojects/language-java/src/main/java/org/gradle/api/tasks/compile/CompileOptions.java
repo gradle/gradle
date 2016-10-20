@@ -22,8 +22,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 import java.util.List;
@@ -231,22 +233,16 @@ public class CompileOptions extends AbstractOptions {
         this.forkOptions = forkOptions;
     }
 
-    /**
-     * Tells whether to use the Ant {@code <depend>} task.
-     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
-     * {@code false}.
-     */
-    @Input
+    @Internal
+    @Deprecated
     public boolean isUseDepend() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.isUseDepend()");
         return useDepend;
     }
 
-    /**
-     * Sets whether to use the Ant {@code <depend>} task.
-     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
-     * {@code false}.
-     */
+    @Deprecated
     public void setUseDepend(boolean useDepend) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.setUseDepend()");
         this.useDepend = useDepend;
     }
 

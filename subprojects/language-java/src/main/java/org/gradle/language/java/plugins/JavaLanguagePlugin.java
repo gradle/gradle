@@ -152,7 +152,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
                 compile.setDescription("Compiles " + javaSourceSet + ".");
                 compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
-                compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                 compile.dependsOn(javaSourceSet);
                 compile.setSource(javaSourceSet.getSource());
 

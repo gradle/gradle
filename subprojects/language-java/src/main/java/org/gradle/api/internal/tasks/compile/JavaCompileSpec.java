@@ -23,8 +23,10 @@ import java.io.File;
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     CompileOptions getCompileOptions();
 
+    @Deprecated
     File getDependencyCacheDir();
 
+    @Deprecated
     void setDependencyCacheDir(File dependencyCacheDir);
 
     @Override
