@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 
@@ -40,8 +41,11 @@ public class PayloadSerializer {
             StreamByteBuffer buffer = new StreamByteBuffer();
             final ObjectOutputStream objectStream = new PayloadSerializerObjectOutputStream(buffer.getOutputStream(), map);
 
-            objectStream.writeObject(payload);
-            objectStream.close();
+            try {
+                objectStream.writeObject(payload);
+            } finally {
+                IoActions.closeQuietly(objectStream);
+            }
 
             Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
             map.collectClassLoaderDefinitions(classLoaders);
