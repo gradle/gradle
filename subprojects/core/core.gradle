@@ -93,6 +93,7 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
 task pluginsManifest(type: PluginsManifest)
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
+@CacheableTask
 class PluginsManifest extends DefaultTask {
     @OutputFile
     File getPropertiesFile() {
