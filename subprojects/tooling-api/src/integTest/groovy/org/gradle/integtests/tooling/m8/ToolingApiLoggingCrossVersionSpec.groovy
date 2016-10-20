@@ -20,10 +20,13 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Assume
+import spock.lang.Ignore
 
 // Issue on Windows deleting isolated user home dir (set by toolingApi.requireIsolatedDaemons())
 // Unable to delete file: user-home-dir\native\21\windows-amd64\native-platform.dll
 @LeaksFileHandles
+@Ignore // TODO:DAZ Ignoring this test on the suspicion that it is causing flakiness
+// My theory is that the static methods `ConnectorServices.close()` and `ConnectorServices.reset()` may be interfering with other TAPI tests
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def setup() {

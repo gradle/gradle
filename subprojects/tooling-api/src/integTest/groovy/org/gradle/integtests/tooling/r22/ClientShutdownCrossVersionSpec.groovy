@@ -25,7 +25,10 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore // TODO:DAZ Ignoring this test on the suspicion that it is causing flakiness
+// My theory is that the static methods `ConnectorServices.close()` and `ConnectorServices.reset()` may be interfering with other TAPI tests
 @ToolingApiVersion(">=2.2")
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     @Rule
