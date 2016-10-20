@@ -16,15 +16,13 @@
 
 package org.gradle.plugins.pegdown
 
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.pegdown.Extensions
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.*
+import org.pegdown.Extensions
 import org.pegdown.PegDownProcessor
 
+@CacheableTask
 class PegDown extends SourceTask {
 
     @Input
@@ -38,9 +36,15 @@ class PegDown extends SourceTask {
     String outputEncoding
 
     private destination
-    
+
     void setDestination(destination) {
         this.destination = destination
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Override
+    FileTree getSource() {
+        super.getSource()
     }
 
     @OutputFile
@@ -56,11 +60,11 @@ class PegDown extends SourceTask {
         String html = processor.markdownToHtml(markdown)
         getDestination().write(html, getOutputEncoding())
     }
-    
+
     int getCalculatedOptions() {
         getOptions().inject(0) { acc, val -> acc | toOptionValue(val) } as int
     }
-    
+
     protected int toOptionValue(String optionName) {
         String upName = val.toUpperCase()
         try {
@@ -69,7 +73,7 @@ class PegDown extends SourceTask {
             throw new InvalidUserDataException("$optionName is not a valid PegDown extension name")
         }
     }
-    
+
     void options(String... options) {
         this.options.addAll(options)
     }
