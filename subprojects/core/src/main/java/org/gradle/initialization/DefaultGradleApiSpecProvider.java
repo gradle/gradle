@@ -33,9 +33,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.slf4j",
             "org.apache.commons.logging",
             "org.apache.log4j",
-            "javax.inject",
-            // TODO: remove in the next gradle-script-kotlin upgrade
-            "kotlin");
+            "javax.inject");
     }
 
     @Override
