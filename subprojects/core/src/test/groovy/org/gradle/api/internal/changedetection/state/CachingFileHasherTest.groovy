@@ -25,8 +25,9 @@ import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 
-class CachingFileSnapshotterTest extends Specification {
+class CachingFileHasherTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def target = Mock(FileHasher)
@@ -34,12 +35,12 @@ class CachingFileSnapshotterTest extends Specification {
     def cacheAccess = Mock(TaskHistoryStore)
     def hash = Hashing.md5().hashString("hello", Charsets.UTF_8)
     def file = tmpDir.createFile("testfile")
-    CachingFileSnapshotter hasher
+    CachingFileHasher hasher
 
     def setup() {
         file.write("some-content")
         1 * cacheAccess.createCache("fileHashes", _, _) >> cache
-        hasher = new CachingFileSnapshotter(target, cacheAccess, new StringInterner());
+        hasher = new CachingFileHasher(target, cacheAccess, new StringInterner());
     }
 
     def hashesFileWhenHashNotCached() {
@@ -52,7 +53,7 @@ class CachingFileSnapshotterTest extends Specification {
         and:
         1 * cache.get(file.getAbsolutePath()) >> null
         1 * target.hash(file) >> hash
-        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -68,9 +69,9 @@ class CachingFileSnapshotterTest extends Specification {
         result == hash
 
         and:
-        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new FileInfo(hash, 1024, file.lastModified())
         1 * target.hash(file) >> hash
-        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -86,9 +87,9 @@ class CachingFileSnapshotterTest extends Specification {
         result == hash
 
         and:
-        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
+        1 * cache.get(file.getAbsolutePath()) >> new FileInfo(hash, file.length(), 124)
         1 * target.hash(file) >> hash
-        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -104,7 +105,7 @@ class CachingFileSnapshotterTest extends Specification {
         result == hash
 
         and:
-        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }
 
@@ -119,7 +120,7 @@ class CachingFileSnapshotterTest extends Specification {
 
         and:
         1 * resource.file >> file
-        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }
 

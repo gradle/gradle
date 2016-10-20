@@ -23,7 +23,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
+import org.gradle.api.internal.changedetection.state.CachingFileHasher
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
@@ -78,7 +78,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache())
         def stringInterner = new StringInterner()
-        def snapshotter = new CachingFileSnapshotter(new DefaultFileHasher(), cacheAccess, stringInterner)
+        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner)
         fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
