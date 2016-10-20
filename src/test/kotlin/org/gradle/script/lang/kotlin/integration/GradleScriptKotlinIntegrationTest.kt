@@ -274,7 +274,7 @@ class GradleScriptKotlinIntegrationTest {
                 buildSrcOutput(),
                 existing("classes.jar")))
 
-        val version = "[0-9.]+-.+?"
+        val version = "[0-9.]+(-.+?)?"
         assertThat(
             classPath.map { it.name },
             hasItems(
