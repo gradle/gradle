@@ -56,12 +56,14 @@ task startScripts(type: StartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
+@CacheableTask
 class StartScriptGenerator extends DefaultTask {
     File startScriptsDir
 
-    @InputFiles
+    @Classpath
     FileCollection classpath
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     FileCollection launcherJar
 
