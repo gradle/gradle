@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
 
+@CacheableTask
 class Docbook2Xhtml extends SourceTask {
     @Classpath
     FileCollection classpath
