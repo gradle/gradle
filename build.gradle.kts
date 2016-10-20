@@ -10,7 +10,7 @@ apply {
 
 group = "org.gradle"
 
-version = "0.4.0"
+version = "0.5.0-SNAPSHOT"
 
 val kotlinVersion by extra.properties
 
