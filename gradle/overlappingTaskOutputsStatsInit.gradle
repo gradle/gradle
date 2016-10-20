@@ -19,6 +19,7 @@ import org.gradle.api.internal.tasks.*
 def taskInfos = []
 
 class TaskOutputInfo {
+    Class type
     String path
     List<File> outputs
 }
@@ -26,11 +27,16 @@ class TaskOutputInfo {
 gradle.addListener(new TaskExecutionAdapter() {
     @Override
     void afterExecute(Task task, TaskState state) {
+        def type = task.getClass()
+        if (type.name.endsWith("_Decorated")) {
+            type = type.superclass
+        }
         def outputs = task.outputs.fileProperties.findAll { it instanceof CacheableTaskOutputFilePropertySpec }.collect { fileProperty ->
             fileProperty.outputFile
         }
 
         def info = new TaskOutputInfo(
+            type: type,
             path: task.path,
             outputs: outputs
         )
@@ -67,15 +73,28 @@ gradle.addListener(new BuildAdapter() {
                 }
             }
         }
-        boolean foundAny = false
+        def tasksAffected = []
         byPath.each { path, tasks ->
             if (tasks.size() > 1) {
-                foundAny = true
-                println "  ${relPath(root, path)} has overlap between ${tasks*.path.join(", ")}"
+                println "  - ${relPath(root, path)} has overlap between:"
+                tasks.each { task ->
+                    println "      - $task.path ($task.type.name)"
+                }
+                tasksAffected.addAll tasks
             }
         }
-        if (!foundAny) {
+        if (tasksAffected.empty) {
             println "  No tasks with overlapping outputs found"
+        } else {
+            println ""
+            println "  Tasks affected by type:"
+            println ""
+            tasksAffected*.type.unique().sort { a, b -> a.name <=> b.name }.each { type ->
+                println "    - ${type.name}"
+                tasksAffected.findAll { task -> task.type == type }.each { task ->
+                    println "      - ${task.path}"
+                }
+            }
         }
     }
 })
