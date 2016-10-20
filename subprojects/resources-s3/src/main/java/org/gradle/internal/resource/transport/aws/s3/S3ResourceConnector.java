@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -69,13 +70,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
                 objectMetadata.getETag(),
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
         } finally {
-            try {
-                s3Object.close();
-            } catch (IOException ex) {
-                LOGGER.debug(
-                    String.format("The HttpResponseResource for '%s' was leaked because it could not be close properly.", location),
-                    ex);
-            }
+            IoActions.closeQuietly(s3Object);
         }
     }
 

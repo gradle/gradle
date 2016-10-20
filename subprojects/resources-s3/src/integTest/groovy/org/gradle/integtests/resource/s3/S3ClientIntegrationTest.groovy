@@ -28,6 +28,7 @@ import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.api.GradleException
 import org.gradle.integtests.resource.s3.fixtures.S3Server
+import org.gradle.internal.IoActions
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
@@ -111,8 +112,10 @@ class S3ClientIntegrationTest extends Specification {
         when:
         server.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
         S3Object data = s3Client.getMetaData(uri)
-        def metadata = data.getObjectMetadata()
-        data.close()
+        def metadata = null
+        IoActions.withResource(data) {
+            metadata = data.getObjectMetadata()
+        }
 
         then:
         metadata.getContentLength() == 0
@@ -123,12 +126,13 @@ class S3ClientIntegrationTest extends Specification {
 
         then:
         S3Object object = s3Client.getResource(uri)
-        object.metadata.getContentLength() == fileContents.length()
-        object.metadata.getETag() ==~ /\w{32}/
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream()
-        IOUtils.copyLarge(object.getObjectContent(), outStream);
-        outStream.toString() == fileContents
-        object.close()
+        IoActions.withResource(object) {
+            object.metadata.getContentLength() == fileContents.length()
+            object.metadata.getETag() ==~ /\w{32}/
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream()
+            IOUtils.copyLarge(object.getObjectContent(), outStream);
+            outStream.toString() == fileContents
+        }
 
         when:
         server.stubListFile(temporaryFolder.testDirectory, bucketName)

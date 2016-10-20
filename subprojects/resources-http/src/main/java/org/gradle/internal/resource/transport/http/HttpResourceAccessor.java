@@ -18,12 +18,12 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.gradle.api.Nullable;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 
 public class HttpResourceAccessor implements ExternalResourceAccessor {
@@ -70,13 +70,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             try {
                 result = resource.getMetaData();
             } finally {
-                try {
-                    resource.close();
-                } catch (IOException ex) {
-                    LOGGER.debug(
-                        String.format("The HttpResponseResource for '%s' was leaked because it could not be close properly.", uri),
-                        ex);
-                }
+                IoActions.closeQuietly(resource);
             }
         }
         return result;
