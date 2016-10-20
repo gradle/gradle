@@ -17,9 +17,7 @@
 package org.gradle.integtests.samples
 
 import org.junit.runner.RunWith
-import spock.lang.Ignore
 
-@Ignore("checking what's wrong with this test on Windows with the task output cache enabled")
 @RunWith(UserGuideSamplesRunner.class)
 class UserGuideSamplesIntegrationTest {
     /*
