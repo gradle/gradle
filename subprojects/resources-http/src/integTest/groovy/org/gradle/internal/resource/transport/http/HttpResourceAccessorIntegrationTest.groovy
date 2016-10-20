@@ -18,10 +18,12 @@ package org.gradle.internal.resource.transport.http
 
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.gradle.util.ConcurrentSpecification
+import spock.lang.Issue
 
 class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
     URI uri = new URI("http://somewhere")
 
+    @Issue("GRADLE-3574")
     def "should not generate any concurrent exception"() {
         def http = Mock(HttpClientHelper) {
             performGet(uri.toString(), _) >> Mock(CloseableHttpResponse)
