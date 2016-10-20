@@ -118,9 +118,7 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                     def buildScan = task.project.buildScan
                     addTaskState(task, state)
                     task.inputs.properties.each { name, value ->
-                        if (value) {
-                            buildScan.value "${task.path}-input-${name}", value.toString()
-                        }
+                        buildScan.value "${task.path}-input-${name}", String.valueOf(value)
                     }
                     def fileProperties = task.inputs.fileProperties
                     fileProperties.each { inputProperty ->
