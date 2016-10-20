@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        maven { url 'https://gradle.artifactoryonline.com/gradle/gradle-build-internal' }
-        maven { url 'https://repo.gradle.org/gradle/libs-releases' }
-    }
-    dependencies {
-        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.22'
+package org.gradle.internal.resource.transport.http
+
+import org.apache.http.client.methods.CloseableHttpResponse
+import spock.lang.Specification
+
+class HttpResourceAccessorTest  extends Specification {
+    URI uri = new URI("http://somewhere")
+
+    def "should call close() on ClosableHttpResource when getMetaData is called"() {
+        def response = Mock(CloseableHttpResponse)
+        def http = Mock(HttpClientHelper) {
+            performHead(uri.toString(), _) >> response
+        }
+
+        when:
+        new HttpResourceAccessor(http).getMetaData(uri, false)
+
+        then:
+        1 * response.close()
     }
 }
-
-apply plugin: org.gradle.ci.tagging.plugin.TeamCityBuildTagPlugin
