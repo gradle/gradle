@@ -37,9 +37,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Deprecated Ant-related Java compiler properties
 
 * `JavaCompile.dependencyCacheDir`
+* `JavaCompileSpec.dependencyCacheDir`
+* `JavaPluginConvention.dependencyCacheDir`
+* `JavaPluginConvention.dependencyCacheDirName`
 * `CompileOptions.useDepend`
-
-These were not used since `CompileOptions.useAnt` was already removed in Gradle 2.0.
+* `CompileOptions.depend()`
 
 ## Potential breaking changes
 
