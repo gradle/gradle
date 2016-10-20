@@ -181,25 +181,25 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return null;
         }
 
+        final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
-            final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
+            final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
             try {
-                final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
                 try {
                     LOGGER.debug("Downloading {} to {}", source, destination);
                     if (destination.getParentFile() != null) {
                         GFileUtils.mkdirs(destination.getParentFile());
                     }
                     resource.withContent(downloadAction);
-                } catch (Exception e) {
-                    throw ResourceExceptions.getFailed(source, e);
+                } finally {
+                    resource.close();
                 }
-                return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
-            } finally {
-                destination.delete();
+            } catch (Exception e) {
+                throw ResourceExceptions.getFailed(source, e);
             }
+            return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {
-            resource.close();
+            destination.delete();
         }
     }
 
