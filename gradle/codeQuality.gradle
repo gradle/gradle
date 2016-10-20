@@ -39,9 +39,10 @@ def codeQualityTasks = tasks.matching { task ->
 }
 
 tasks.withType(Checkstyle) { task ->
-    task.inputs.property('configProperties', null)
+    String configDirPropertyName = 'checkstyleConfigDir'
+    task.inputs.property('configProperties') { task.configProperties - [(configDirPropertyName): task.configProperties[configDirPropertyName]] }
     task.inputs.dir(checkstyleConfigDir)
-        .withPropertyName('checkstyleConfigDir')
+        .withPropertyName(configDirPropertyName)
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
