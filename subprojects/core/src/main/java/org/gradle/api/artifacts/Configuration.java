@@ -459,9 +459,10 @@ public interface Configuration extends FileCollection {
     /**
      * Sets this configuration role. A configuration role allows you to differentiate between 2 cases:
      * <ul>
-     *     <li>is this configuration something intended to be resolved (typically, a compile classpath), in which case its role is {@link ConfigurationRole#FOR_RESOLUTION}</li>
-     *     <li>is this configuration something intended be selected during dependency resolution (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#FOR_SELECTION}</li>
+     *     <li>If this configuration is intended to be resolved inside this project (typically, a compile classpath), in which case its role is {@link ConfigurationRole#FOR_RESOLUTION}</li>
+     *     <li>If this configuration provides artifacts and transitive dependencies for downstream projects (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#FOR_SELECTION}</li>
      * </ul>
+     * The configuration role will only be used for dependencies that declare {@link #getAttributes() attributes}.
      * @param role the role of this configuration.
      */
     @Incubating
