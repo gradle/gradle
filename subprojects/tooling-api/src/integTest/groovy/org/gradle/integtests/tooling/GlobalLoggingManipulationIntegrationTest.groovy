@@ -24,11 +24,14 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.util.logging.LogManager
 
 import static java.util.logging.Level.OFF
 
+@Ignore // TODO:DAZ Ignoring this test on the suspicion that it is causing flakiness
+// My theory is that the static methods `ConnectorServices.close()` and `ConnectorServices.reset()` may be interfering with other TAPI tests
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     RedirectStdIn stdIn
