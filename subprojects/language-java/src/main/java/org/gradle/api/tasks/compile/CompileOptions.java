@@ -352,7 +352,9 @@ public class CompileOptions extends AbstractOptions {
      * Convenience method to set {@link DependOptions} with named parameter syntax.
      * Calling this method will set {@code useDepend} to {@code true}.
      */
+    @Deprecated
     public CompileOptions depend(Map<String, Object> dependArgs) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.depend()");
         useDepend = true;
         dependOptions.define(dependArgs);
         return this;
