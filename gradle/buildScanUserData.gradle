@@ -119,7 +119,7 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
 
             @Override
             void afterExecute(Task task, TaskState state) {
-                def tasksToInvestigate = [':core:compileTestFixturesGroovy', ':diagnostics:compileTestGroovy', ':internalAndroidPerformanceTesting:compileJava', ':docs:checkstyleApi', ':announce:checkstyleIntegTestGroovy']
+                def tasksToInvestigate = [':core:compileTestGroovy', ':core:compileTestFixturesGroovy', ':diagnostics:compileTestGroovy', ':internalAndroidPerformanceTesting:compileJava', ':docs:checkstyleApi', ':announce:checkstyleIntegTestGroovy']
                 if (task.getPath() in tasksToInvestigate) {
                     def buildScan = task.project.buildScan
                     addTaskState(task, state)
