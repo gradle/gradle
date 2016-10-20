@@ -15,6 +15,12 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+
+/**
+ * A configuration role defines the role of a configuration during dependency resolution.
+ */
+@Incubating
 public enum ConfigurationRole {
     FOR_SELECTION("For selection in dependency resolution", true),
     FOR_RESOLUTION("For resolution", false);
