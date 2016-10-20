@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -79,9 +80,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allFiles.put(configuration, files);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, ConfigurationRole role) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, role);
         allConfigurations.put(name, conf);
     }
 
@@ -151,13 +152,21 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
         private final Map<String, String> attributes;
+        private final ConfigurationRole role;
 
         private List<DependencyMetadata> configurationDependencies;
         private Set<ComponentArtifactMetadata> configurationArtifacts;
         private Set<FileCollection> configurationFiles;
         private ModuleExclusion configurationExclude;
 
-        private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, Map<String, String> attributes) {
+        private DefaultLocalConfigurationMetadata(String name,
+                                                  String description,
+                                                  boolean visible,
+                                                  boolean transitive,
+                                                  Set<String> extendsFrom,
+                                                  Set<String> hierarchy,
+                                                  Map<String, String> attributes,
+                                                  ConfigurationRole role) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
@@ -165,6 +174,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
             this.attributes = attributes;
+            this.role = role;
         }
 
         @Override
@@ -235,6 +245,10 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 }
             }
             return configurationFiles;
+        }
+
+        public ConfigurationRole getRole() {
+            return role;
         }
 
         public List<DependencyMetadata> getDependencies() {

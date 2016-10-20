@@ -48,8 +48,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.attributes(buildType: 'release', flavor: 'free')
+                    foo {
+                        forUseInSelection()
+                        attributes(buildType: 'debug', flavor: 'free')
+                    }
+                    bar {
+                        forUseInSelection()
+                        attributes(buildType: 'release', flavor: 'free')
+                    }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -108,7 +114,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 task fooJar(type: Jar) {
@@ -170,10 +178,12 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compile
                     foo {
+                       forUseInSelection()
                        extendsFrom compile
                        attributes(buildType: 'debug', flavor: 'free')
                     }
                     bar {
+                       forUseInSelection()
                        extendsFrom compile
                        attributes(buildType: 'release', flavor: 'free')
                     }
@@ -237,10 +247,12 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compile
                     foo {
+                       forUseInSelection()
                        extendsFrom compile
                        attributes(buildType: 'debug', flavor: 'free')
                     }
                     bar {
+                       forUseInSelection()
                        extendsFrom compile
                        attributes(buildType: 'release', flavor: 'free')
                     }
@@ -304,8 +316,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo
-                    bar
+                    foo.forUseInSelection()
+                    bar.forUseInSelection()
                     create 'default'
                 }
                 task fooJar(type: Jar) {
@@ -351,9 +363,11 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     create 'default'
                     foo {
+                       forUseInSelection()
                        attributes(buildType: 'debug') // partial match on `buildType`
                     }
                     bar {
+                       forUseInSelection()
                        attributes(flavor: 'free') // partial match on `flavor`
                     }
                 }
@@ -404,9 +418,11 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':b') {
                 configurations {
                     foo {
+                       forUseInSelection()
                        attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
                     }
                     bar {
+                       forUseInSelection()
                        attributes(flavor: 'free')
                     }
                 }
@@ -455,7 +471,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'debug')
                 }
                 task fooJar(type: Jar) {
@@ -499,9 +517,11 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':b') {
                 configurations {
                     foo {
+                       forUseInSelection()
                        attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
                     }
                     bar {
+                      forUseInSelection()
                       attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
                     }
                 }
@@ -612,7 +632,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 dependencies {
@@ -700,7 +722,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':c') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 task fooJar(type: Jar) {
@@ -775,7 +799,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':c') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 task fooJar(type: Jar) {
@@ -853,7 +879,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
             configurations {
+                foo.forUseInSelection()
                 foo.attributes(buildType: 'debug', flavor: 'free')
+                bar.forUseInSelection()
                 bar.attributes(buildType: 'release', flavor: 'free')
             }
             task fooJar(type: Jar) {
@@ -912,7 +940,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
                 }
                 dependencies {
@@ -932,9 +962,13 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':c') {
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    foo2.forUseInSelection()
                     foo2.attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra')
+                    bar2.forUseInSelection()
                     bar2.attributes(buildType: 'release', flavor: 'free', extra: 'extra 2')
                 }
                 task fooJar(type: Jar) {
@@ -1012,7 +1046,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':c') {
                 repositories { jcenter() }
                 configurations {
+                    foo.forUseInSelection()
                     foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.forUseInSelection()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 dependencies {
@@ -1045,6 +1081,74 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         then:
         executedAndNotSkipped ':c:barJar'
         notExecuted ':c:fooJar'
+    }
+
+    def "two configuratios can have the same attributes but for different roles"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    compileFreeDebug project(':b')
+                    compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations.compileFreeDebug) {
+                    doLast {
+                       assert configurations.compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations.compileFreeRelease) {
+                    doLast {
+                       assert configurations.compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    // configurations used when resolving
+                    compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    // configurations used when selecting dependencies
+                    _compileFreeDebug {
+                        forUseInSelection()
+                        attributes(buildType: 'debug', flavor: 'free')
+                    }
+                    _compileFreeRelease {
+                        forUseInSelection()
+                        attributes(buildType: 'release', flavor: 'free')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    _compileFreeDebug fooJar
+                    _compileFreeRelease barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
 }

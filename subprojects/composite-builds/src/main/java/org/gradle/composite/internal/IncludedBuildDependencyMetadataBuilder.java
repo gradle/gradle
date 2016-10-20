@@ -76,7 +76,8 @@ public class IncludedBuildDependencyMetadataBuilder {
             LocalConfigurationMetadata originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);
             compositeComponentMetadata.addConfiguration(configurationName,
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
-                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes());
+                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes(),
+                originalConfiguration.getRole());
 
             final Set<String> targetTasks = determineTargetTasks(originalConfiguration);
 

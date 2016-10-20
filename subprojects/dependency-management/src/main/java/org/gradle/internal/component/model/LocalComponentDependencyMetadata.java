@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -118,7 +119,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
                 Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
-                if (!dependencyConfigurationAttributes.isEmpty()) {
+                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.getRole() == ConfigurationRole.FOR_SELECTION) {
                     if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
                         candidateConfigurations.add(dependencyConfiguration);
                     }
@@ -250,6 +251,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Override
         public Map<String, String> getAttributes() {
             return attributes;
+        }
+
+        @Override
+        public ConfigurationRole getRole() {
+            return delegate.getRole();
         }
 
         @Override

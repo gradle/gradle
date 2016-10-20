@@ -455,4 +455,27 @@ public interface Configuration extends FileCollection {
 
     @Incubating
     boolean hasAttributes();
+
+    /**
+     * Sets this configuration role. A configuration role allows you to differentiate between 2 cases:
+     * <ul>
+     *     <li>is this configuration something intended to be resolved (typically, a compile classpath), in which case its role is {@link ConfigurationRole#FOR_RESOLUTION}</li>
+     *     <li>is this configuration something intended be selected during dependency resolution (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#FOR_SELECTION}</li>
+     * </ul>
+     * @param role the role of this configuration.
+     */
+    @Incubating
+    void setRole(ConfigurationRole role);
+
+    /**
+     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#FOR_RESOLUTION}
+     * @return the role of this configuration.
+     */
+    @Incubating
+    ConfigurationRole getRole();
+
+    /**
+     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#FOR_SELECTION}
+     */
+    void forUseInSelection();
 }

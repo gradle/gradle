@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -129,6 +130,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
+    private ConfigurationRole role = ConfigurationRole.FOR_RESOLUTION;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -742,6 +744,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public boolean hasAttributes() {
         return attributes != null && !attributes.isEmpty();
+    }
+
+    @Override
+    public ConfigurationRole getRole() {
+        return role;
+    }
+
+    @Override
+    public void setRole(ConfigurationRole role) {
+        this.role = role;
+    }
+
+    @Override
+    public void forUseInSelection() {
+        setRole(ConfigurationRole.FOR_SELECTION);
     }
 
     /**
