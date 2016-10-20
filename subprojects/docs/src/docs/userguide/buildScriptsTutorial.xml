@@ -78,9 +78,9 @@
         <title>A shortcut task definition</title>
         <note>
             <para>
-                This functionality is deprecated and will be removed in Gradle 4.0 without replacement.
+                This functionality is deprecated and will be removed in Gradle 5.0 without replacement.
                 Use the methods <apilink class="org.gradle.api.Task" method="doFirst(org.gradle.api.Action)"/> and <apilink class="org.gradle.api.Task" method="doLast(org.gradle.api.Action)"/>
-                to define an action instead.
+                to define an action instead, as demonstrated by the rest of the examples in this chapter.
             </para>
         </note>
         <para>There is a shorthand way to define a task like our <literal>hello</literal> task above, which is more
