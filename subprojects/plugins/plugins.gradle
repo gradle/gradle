@@ -48,12 +48,13 @@ dependencies {
     integTestRuntime project(":maven")
 }
 
+def wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
 evaluationDependsOn(":wrapper")
 task wrapperJar(type: Copy) {
     from project(":wrapper").executableJar.outputs.files
-    into generatedResourcesDir
+    into wrapperJarDir
 }
-sourceSets.main.output.dir generatedResourcesDir, builtBy: wrapperJar
+sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
