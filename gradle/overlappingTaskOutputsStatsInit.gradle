@@ -31,9 +31,10 @@ gradle.addListener(new TaskExecutionAdapter() {
         if (type.name.endsWith("_Decorated")) {
             type = type.superclass
         }
-        def outputs = task.outputs.fileProperties.findAll { it instanceof CacheableTaskOutputFilePropertySpec }.collect { fileProperty ->
-            fileProperty.outputFile
-        }
+        def outputs = task.outputs.fileProperties
+            .findAll { it instanceof CacheableTaskOutputFilePropertySpec }
+            .findAll { it.outputFile != null }
+            .collect { it.outputFile }
 
         def info = new TaskOutputInfo(
             type: type,
@@ -91,7 +92,7 @@ gradle.addListener(new BuildAdapter() {
             println ""
             tasksAffected*.type.unique().sort { a, b -> a.name <=> b.name }.each { type ->
                 println "    - ${type.name}"
-                tasksAffected.findAll { task -> task.type == type }.each { task ->
+                tasksAffected.findAll { task -> task.type == type }.unique { it.path }.each { task ->
                     println "      - ${task.path}"
                 }
             }
