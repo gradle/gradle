@@ -211,8 +211,8 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
             getAttributes() >> queryAttributes
         }
         project.configurations.create('default')
-        project.configurations.create('foo').attribute('key', 'something')
-        project.configurations.create('bar').attribute('key', 'something else')
+        project.configurations.create('foo').attribute('key', 'something').forUseInSelection()
+        project.configurations.create('bar').attribute('key', 'something else').forUseInSelection()
         project.dependencies.add('foo', project.files('a.jar'))
         project.dependencies.add('bar', project.files('b.jar'))
         project.dependencies.add('default', project.files('default.jar'))
