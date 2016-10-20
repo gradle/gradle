@@ -124,7 +124,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 }
             }
             if (candidateConfigurations.size()==1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.of(candidateConfigurations.get(0), attributes));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
             } else if (!candidateConfigurations.isEmpty()) {
                 throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + new TreeMap<String, String>(attributes));
             }
@@ -136,7 +136,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         ConfigurationMetadata delegate = toConfiguration;
         if (useConfigurationAttributes) {
-            delegate = ClientAttributesPreservingConfigurationMetadata.of(delegate, attributes);
+            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, attributes);
         }
         return ImmutableSet.of(delegate);
     }
@@ -234,11 +234,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         private final LocalConfigurationMetadata delegate;
         private final Map<String, String> attributes;
 
-        private static ConfigurationMetadata of(ConfigurationMetadata md, Map<String, String> attributes) {
-            if (!(md instanceof LocalConfigurationMetadata)) {
-                throw new IllegalArgumentException("Unexpected configuration metadata type : " + md.getClass());
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, Map<String, String> attributes) {
+            if (md instanceof LocalConfigurationMetadata) {
+                return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
-            return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
+            return md;
         }
 
         private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, Map<String, String> attributes) {

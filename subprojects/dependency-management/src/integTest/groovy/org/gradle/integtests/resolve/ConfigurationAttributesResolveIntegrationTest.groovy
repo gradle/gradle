@@ -970,4 +970,81 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {buildType=release, flavor=free}')
 
     }
+
+    def "context travels down to transitive dependencies with external dependencies in graph"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                repositories { jcenter() }
+
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                    _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-foo.jar', 'commons-lang3-3.5.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-bar.jar', 'commons-lang3-3.4.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default' project(':c')
+                }
+            }
+            project(':c') {
+                repositories { jcenter() }
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    bar 'org.apache.commons:commons-lang3:3.4'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':c:fooJar'
+        notExecuted ':c:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':c:barJar'
+        notExecuted ':c:fooJar'
+    }
+
 }
