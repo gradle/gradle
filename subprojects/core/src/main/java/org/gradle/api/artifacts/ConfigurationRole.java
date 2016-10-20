@@ -16,17 +16,22 @@
 package org.gradle.api.artifacts;
 
 public enum ConfigurationRole {
-    FOR_SELECTION("For selection in dependency resolution"),
-
-    FOR_RESOLUTION("For resolution");
+    FOR_SELECTION("For selection in dependency resolution", true),
+    FOR_RESOLUTION("For resolution", false);
 
     private final String description;
+    private final boolean canBeUsedInSelection;
 
-    ConfigurationRole(String desc) {
+    ConfigurationRole(String desc, boolean canBeUsedInSelection) {
         this.description = desc;
+        this.canBeUsedInSelection = canBeUsedInSelection;
     }
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean canBeUsedInSelection() {
+        return canBeUsedInSelection;
     }
 }

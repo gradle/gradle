@@ -119,7 +119,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
                 Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
-                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.getRole() == ConfigurationRole.FOR_SELECTION) {
+                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.getRole().canBeUsedInSelection()) {
                     if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
                         candidateConfigurations.add(dependencyConfiguration);
                     }

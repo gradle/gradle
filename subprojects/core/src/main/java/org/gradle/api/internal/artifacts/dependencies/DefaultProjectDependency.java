@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
@@ -98,7 +97,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (useConfigurationAttributes) {
             List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
-                if (dependencyConfiguration.hasAttributes() && dependencyConfiguration.getRole() == ConfigurationRole.FOR_SELECTION) {
+                if (dependencyConfiguration.hasAttributes() && dependencyConfiguration.getRole().canBeUsedInSelection()) {
                     Map<String, String> attributes = dependencyConfiguration.getAttributes();
                     if (attributes.entrySet().containsAll(clientAttributes.entrySet())) {
                         candidateConfigurations.add(dependencyConfiguration);
