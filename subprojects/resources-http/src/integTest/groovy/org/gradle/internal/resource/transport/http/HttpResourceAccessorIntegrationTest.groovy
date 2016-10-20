@@ -17,40 +17,28 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.client.methods.CloseableHttpResponse
-import spock.lang.Specification
+import org.gradle.util.ConcurrentSpecification
 
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-
-class HttpResourceAccessorIntegrationTest  extends Specification {
+class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
     URI uri = new URI("http://somewhere")
 
     def "should not generate any concurrent exception"() {
-        def executor = Executors.newCachedThreadPool()
         def http = Mock(HttpClientHelper) {
             performGet(uri.toString(), _) >> Mock(CloseableHttpResponse)
         }
         def httpResourceAccessor = new HttpResourceAccessor(http)
-        def hasConcurrentFailure = new AtomicBoolean(false)
 
         when:
-        (1..10).each { thread ->
-            executor.execute {
-                try {
-                    (1..100).each {
-                        httpResourceAccessor.openResource(uri, false).close()
-                    }
-                } catch (ConcurrentModificationException) {
-                    hasConcurrentFailure.set(true)
+        10.times {
+            concurrent.start {
+                100.times {
+                    httpResourceAccessor.openResource(uri, false).close()
                 }
-
             }
         }
-        executor.shutdown()
-        executor.awaitTermination(30, TimeUnit.SECONDS)
+        concurrent.finished()
 
         then:
-        hasConcurrentFailure.get() == false
+        noExceptionThrown()
     }
 }
