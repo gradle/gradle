@@ -97,11 +97,11 @@ This release resolves the remaining issues so that Ctrl-C will reliably _not_ ki
 
 ### Multi-project builds with Kotlin scripting
 
-This release ships with Gradle Script Kotlin v0.3.3.
+This release ships with Gradle Script Kotlin v0.4.0.
 
-v0.3.3 improves support for multi-project builds of Kotlin based projects and fixes Kotlin build script compilation on Windows.
+v0.4.0 improves support for multi-project builds of Kotlin based projects, enables the usage of Gradle Script Kotlin extensions to the Gradle API in `buildSrc` and fixes Kotlin build script compilation on Windows.
 
-See the [Gradle Script Kotlin v0.3.3 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.3) for the details.
+See the [Gradle Script Kotlin v0.4.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.4.0) for the details.
 
 ## Fixed issues
 
