@@ -27,6 +27,12 @@ import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 
 if (plugins.hasPlugin("com.gradle.build-scan")) {
+    if (gradle.startParameter.taskNames == ["verifyTestFilesCleanup"]) {
+        buildScan.publishOnFailure()
+    } else {
+        buildScan.publishAlways()
+    }
+
     String commitId
     if (System.getenv("CI")) {
         buildScan.tag "CI"
