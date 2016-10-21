@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.process.internal.daemon;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
@@ -26,21 +26,21 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 
-public class CompilerDaemonStarter {
-    private final static Logger LOG = Logging.getLogger(CompilerDaemonStarter.class);
+public class WorkerDaemonStarter {
+    private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
     private final WorkerProcessFactory workerFactory;
     private final StartParameter startParameter;
 
-    public CompilerDaemonStarter(WorkerProcessFactory workerFactory, StartParameter startParameter) {
+    public WorkerDaemonStarter(WorkerProcessFactory workerFactory, StartParameter startParameter) {
         this.workerFactory = workerFactory;
         this.startParameter = startParameter;
     }
 
-    public CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
-        LOG.debug("Starting Gradle compiler daemon with fork options {}.", forkOptions);
+    public WorkerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
+        LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Timers.startTimer();
-        MultiRequestWorkerProcessBuilder<CompilerDaemonWorker> builder = workerFactory.multiRequestWorker(CompilerDaemonWorker.class, CompilerDaemonProtocol.class, CompilerDaemonServer.class);
-        builder.setBaseName("Gradle Compiler Daemon");
+        MultiRequestWorkerProcessBuilder<WorkerDaemonWorker> builder = workerFactory.multiRequestWorker(WorkerDaemonWorker.class, WorkerDaemonProtocol.class, WorkerDaemonServer.class);
+        builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
         builder.sharedPackages(forkOptions.getSharedPackages());
@@ -49,13 +49,13 @@ public class CompilerDaemonStarter {
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(workingDir);
-        CompilerDaemonWorker worker = builder.build();
+        WorkerDaemonWorker worker = builder.build();
         worker.start();
 
-        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, worker);
+        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, worker);
 
-        LOG.info("Started Gradle compiler daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
-
+        LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
+        
         return client;
     }
 }

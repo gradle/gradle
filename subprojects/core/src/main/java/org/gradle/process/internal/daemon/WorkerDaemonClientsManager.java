@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.process.internal.daemon;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -24,29 +24,29 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class CompilerClientsManager {
+public class WorkerDaemonClientsManager {
 
-    private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
+    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonManager.class);
 
     private final Object lock = new Object();
-    private final List<CompilerDaemonClient> allClients = new ArrayList<CompilerDaemonClient>();
-    private final List<CompilerDaemonClient> idleClients = new ArrayList<CompilerDaemonClient>();
+    private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
+    private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
 
-    private CompilerDaemonStarter compilerDaemonStarter;
+    private WorkerDaemonStarter workerDaemonStarter;
 
-    public CompilerClientsManager(CompilerDaemonStarter compilerDaemonStarter) {
-        this.compilerDaemonStarter = compilerDaemonStarter;
+    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter) {
+        this.workerDaemonStarter = workerDaemonStarter;
     }
 
-    public CompilerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {
         return reserveIdleClient(forkOptions, idleClients);
     }
 
-    CompilerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions, List<CompilerDaemonClient> clients) {
+    WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions, List<WorkerDaemonClient> clients) {
         synchronized (lock) {
-            Iterator<CompilerDaemonClient> it = clients.iterator();
+            Iterator<WorkerDaemonClient> it = clients.iterator();
             while(it.hasNext()) {
-                CompilerDaemonClient candidate = it.next();
+                WorkerDaemonClient candidate = it.next();
                 if(candidate.isCompatibleWith(forkOptions)) {
                     it.remove();
                     return candidate;
@@ -56,16 +56,16 @@ public class CompilerClientsManager {
         }
     }
 
-    public CompilerDaemonClient reserveNewClient(File workingDir, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveNewClient(File workingDir, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        CompilerDaemonClient client = compilerDaemonStarter.startDaemon(workingDir, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workingDir, forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }
         return client;
     }
 
-    public void release(CompilerDaemonClient client) {
+    public void release(WorkerDaemonClient client) {
         synchronized (lock) {
             idleClients.add(client);
         }

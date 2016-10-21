@@ -15,7 +15,7 @@
  */
 
 package org.gradle.play.internal.toolchain
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
+import org.gradle.process.internal.daemon.WorkerDaemonFactory
 import org.gradle.api.tasks.compile.BaseForkOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
@@ -25,7 +25,7 @@ class DaemonPlayCompilerTest extends Specification {
 
     def workingDirectory = Mock(File)
     def delegate = Mock(Compiler)
-    def compilerDaemonFactory = Mock(CompilerDaemonFactory)
+    def compilerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
 

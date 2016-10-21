@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
+import org.gradle.process.internal.daemon.WorkerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.run.PlayApplicationRunner
@@ -35,7 +35,7 @@ import spock.lang.Unroll
 
 class DefaultPlayToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
-    CompilerDaemonManager compilerDaemonManager = Mock()
+    WorkerDaemonManager compilerDaemonManager = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()

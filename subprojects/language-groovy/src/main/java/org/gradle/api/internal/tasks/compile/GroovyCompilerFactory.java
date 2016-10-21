@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.process.internal.daemon.WorkerDaemonFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
@@ -29,10 +29,10 @@ import org.gradle.language.base.internal.compile.CompilerFactory;
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final JavaCompilerFactory javaCompilerFactory;
-    private final CompilerDaemonManager compilerDaemonFactory;
+    private final WorkerDaemonManager compilerDaemonFactory;
     private final InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory;
 
-    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, CompilerDaemonManager compilerDaemonManager,
+    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, WorkerDaemonManager compilerDaemonManager,
                                  InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;
@@ -45,7 +45,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         GroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
         Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
-        CompilerDaemonFactory daemonFactory;
+        WorkerDaemonFactory daemonFactory;
         if (groovyOptions.isFork()) {
             daemonFactory = compilerDaemonFactory;
         } else {

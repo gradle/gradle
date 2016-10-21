@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.process.internal.daemon;
 
-package org.gradle.api.internal.tasks.compile.daemon;
-
-import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
-
-public interface CompilerDaemonProtocol {
-    <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec);
+/**
+ * A service that executes workers in a (potentially) long-lived process.
+ */
+public interface WorkerDaemon {
+    <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec);
 }
