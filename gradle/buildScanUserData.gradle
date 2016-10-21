@@ -61,7 +61,7 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
 
     if (commitId) {
         buildScan.value "Git Commit ID", commitId
-        buildScan.link "Source", "https://github.com/gradle/gradle/tree/" + commitId
+        buildScan.link commitId, "https://github.com/gradle/gradle/tree/" + commitId
     }
 
     // Capture reports from Reporting tasks
