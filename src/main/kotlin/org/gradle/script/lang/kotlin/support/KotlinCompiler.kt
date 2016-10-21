@@ -155,6 +155,8 @@ fun messageCollectorFor(log: Logger): MessageCollector =
     object : MessageCollector {
         override fun hasErrors(): Boolean = false
 
+        override fun clear() {}
+
         override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
             fun msg() =
                 if (location == CompilerMessageLocation.NO_LOCATION) "$message"
