@@ -27,29 +27,6 @@ class ConfigurationBuildOperationsTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    def "project configuration build operation events are emitted"() {
-        when:
-        run 'help', '-q'
-
-        then:
-        output.count('STARTED  Configure project :') == 1
-        output.count('FINISHED Configure project :') == 1
-    }
-
-    def "project configuration failure build operations events are emitted"() {
-        given:
-        buildFile << '''
-            error
-        '''.stripIndent()
-
-        when:
-        fails 'help', '-q'
-
-        then:
-        output.count('STARTED  Configure project :') == 1
-        output.count('FINISHED Configure project : A problem occurred configuring root project') == 1
-    }
-
     def "plugin application build operation events are emitted"() {
         given:
         buildFile << '''
