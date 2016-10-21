@@ -21,7 +21,7 @@ import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.plugins.ide.idea.model.PathInterner;
+import org.gradle.plugins.ide.idea.model.internal.PathInterner;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 

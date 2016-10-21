@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea.model;
+package org.gradle.plugins.ide.idea.model.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.ide.idea.model.FilePath;
+import org.gradle.plugins.ide.idea.model.Path;
 
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-/**
+/*
  * De-duplicates FilePath and Path instances referenced in the built IdeaModel and the IdeaProjects contained in it
  *
  * Uses the constructor arguments as the key for each instance since {@link Path} has custom {@link Path#equals(Object)} and
@@ -44,7 +46,7 @@ public class PathInterner {
         pathCache = CacheBuilder.newBuilder().maximumSize(cacheMaxSize).build();
     }
 
-    FilePath createFilePath(final File file, final String url, final String canonicalUrl, final String relPath) {
+    public FilePath createFilePath(final File file, final String url, final String canonicalUrl, final String relPath) {
         try {
             return filePathCache.get(new FilePathCacheKey(file, url, canonicalUrl, relPath), new Callable<FilePath>() {
                 @Override
@@ -57,7 +59,7 @@ public class PathInterner {
         }
     }
 
-    Path createPath(final String url, final String expandedUrl, final String relPath) {
+    public Path createPath(final String url, final String expandedUrl, final String relPath) {
         try {
             return pathCache.get(new PathCacheKey(url, expandedUrl, relPath), new Callable<Path>() {
                 @Override
