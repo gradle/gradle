@@ -43,6 +43,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 * `CompileOptions.useDepend`
 * `CompileOptions.depend()`
 
+### Deprecated methods
+
+* `FileCollectionDependency.registerWatchPoints()` is deprecated.
+
 ## Potential breaking changes
 
 ### BuildInvocations model is always returned for the connected project

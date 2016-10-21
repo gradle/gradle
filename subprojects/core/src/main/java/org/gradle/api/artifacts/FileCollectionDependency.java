@@ -23,6 +23,11 @@ import org.gradle.api.internal.file.FileSystemSubset;
  */
 public interface FileCollectionDependency extends SelfResolvingDependency {
 
+    /**
+     * Registers locations to watch for this dependency.
+     * @deprecated No replacement
+     */
+    @Deprecated
     void registerWatchPoints(FileSystemSubset.Builder builder);
 
 }
