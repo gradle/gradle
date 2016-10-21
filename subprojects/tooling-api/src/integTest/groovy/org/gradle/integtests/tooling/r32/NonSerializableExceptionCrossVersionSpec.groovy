@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling.r32
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r16.CustomModel
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
@@ -78,6 +80,21 @@ class CustomPlugin implements Plugin<Project> {
 
         where:
         exceptionNestingLevel << (0..2).toList()
+    }
+
+    @Issue("GRADLE-3307")
+    @TargetGradleVersion(">=1.6")
+    def "returns proper error message when non-serializable exception is thrown while executing a build action"() {
+        when:
+        withConnection { connection ->
+            connection.action(new BrokenAction()).run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        def exceptionString = getStackTraceAsString(e)
+        !exceptionString.contains("java.io.NotSerializableException")
+        exceptionString.contains("Caused by: ${BrokenAction.CustomException.getName()}: Something went wrong when executing the build action")
     }
 
     def createBuildFileForConfigurationPhaseCheck(int exceptionNestingLevel) {
@@ -151,5 +168,18 @@ task run {
         StringWriter stringWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(stringWriter));
         return stringWriter.toString();
+    }
+
+    static class BrokenAction implements BuildAction<String> {
+        String execute(BuildController controller) {
+            throw new CustomException("Something went wrong when executing the build action")
+        }
+
+        static class CustomException extends Exception {
+            Thread thread = Thread.currentThread() // non-serializable field
+            CustomException(String msg) {
+                super(msg)
+            }
+        }
     }
 }
