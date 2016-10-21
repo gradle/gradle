@@ -39,11 +39,11 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
-                                    forBuildingOnly()
+                                    forPublishingOnly()
                                     attributes buildType: bt, flavor: f
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
-                                    forPublishingOnly()
+                                    forBuildingOnly()
                                     attributes buildType: bt, flavor: f
                                 }
 
@@ -51,7 +51,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                     def taskName = task.name
                                     task.source(p.tasks.compileJava.source)
                                     task.destinationDir = project.file("${p.buildDir}/classes/$taskName")
-                                    task.classpath = compileConfig
+                                    task.classpath = _compileConfig
                                     task.doFirst {
                                        // this is only for assertions in tests
                                        println "Compile classpath for ${p.path}:$taskName : ${task.classpath.files*.name}"
@@ -79,10 +79,10 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             task checkConfigurations {
                 doLast {
                     ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
-                        assert configurations.getByName(it).role.canBeUsedForBuilding()
-                        assert !configurations.getByName(it).role.canBeUsedForPublishing()
-                        assert !configurations.getByName("_$it").role.canBeUsedForBuilding()
-                        assert configurations.getByName("_$it").role.canBeUsedForPublishing()
+                        assert !configurations.getByName(it).role.canBeUsedForBuilding()
+                        assert configurations.getByName(it).role.canBeUsedForPublishing()
+                        assert configurations.getByName("_$it").role.canBeUsedForBuilding()
+                        assert !configurations.getByName("_$it").role.canBeUsedForPublishing()
                     }
                 }
             }
@@ -101,7 +101,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         projectDir {
             withVariants(buildFile)
             withExternalDependencies(buildFile, '''
-                compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
+                _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
                 main {
@@ -135,7 +135,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             def buildDotGradle = file('build.gradle')
             withVariants(buildDotGradle)
             withExternalDependencies(buildDotGradle, '''
-                compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
+                _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
                 main {
@@ -164,7 +164,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         subproject('client') {
             def buildDotGradle = file('build.gradle')
             withVariants(buildDotGradle)
-            withDependencies(buildDotGradle, 'compileFreeDebug project(":core")')
+            withDependencies(buildDotGradle, '_compileFreeDebug project(":core")')
             src {
                 main {
                     java {
