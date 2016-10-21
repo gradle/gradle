@@ -82,32 +82,32 @@ class CustomPlugin implements Plugin<Project> {
 
     @Issue("GRADLE-3307")
     @TargetGradleVersion(">=1.6")
-    def "returns proper error message when non-serializable exception is thrown while executing a backward compatible build action"() {
+    def "returns proper error message when non-serializable Exception is thrown while executing a broken build action"() {
         when:
         withConnection { connection ->
-            connection.action(new BackwardCompatibleBrokenBuildAction()).run()
+            connection.action(new CheckedExceptionBrokenBuildAction()).run()
         }
 
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
         !exceptionString.contains(NotSerializableException.getName())
-        exceptionString.contains("Caused by: ${BackwardCompatibleBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
+        exceptionString.contains("Caused by: ${CheckedExceptionBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
     }
 
     @Issue("GRADLE-3307")
     @TargetGradleVersion(">=3.2")
-    def "returns proper error message when non-serializable exception is thrown while executing a backward incompatible build action"() {
+    def "returns proper error message when non-serializable RuntimeException is thrown while executing a broken build action"() {
         when:
         withConnection { connection ->
-            connection.action(new BackwardIncompatibleBrokenBuildAction()).run()
+            connection.action(new RuntimeExceptionThrowingBrokenBuildAction()).run()
         }
 
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
         !exceptionString.contains(NotSerializableException.getName())
-        exceptionString.contains("Caused by: ${BackwardIncompatibleBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
+        exceptionString.contains("Caused by: ${RuntimeExceptionThrowingBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
     }
 
     def createBuildFileForConfigurationPhaseCheck(int exceptionNestingLevel) {

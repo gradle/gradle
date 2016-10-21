@@ -16,16 +16,16 @@
 
 package org.gradle.integtests.tooling.r32;
 
-class BackwardIncompatibleBrokenBuildAction extends BrokenBuildAction {
+class CheckedExceptionBrokenBuildAction extends BrokenBuildAction {
     void throwException() {
-        throw new CustomException();
+        throw new CustomException()
     }
 
-    static class CustomException extends RuntimeException {
-        Thread thread = Thread.currentThread(); // non-serializable field
+    static class CustomException extends Exception {
+        Thread thread = Thread.currentThread() // non-serializable field
 
         CustomException() {
-            super(BUILD_ACTION_EXCEPTION_MESSAGE);
+            super(BUILD_ACTION_EXCEPTION_MESSAGE)
         }
     }
 }
