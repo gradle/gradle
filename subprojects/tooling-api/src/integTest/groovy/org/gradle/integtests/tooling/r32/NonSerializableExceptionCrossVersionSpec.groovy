@@ -75,7 +75,7 @@ class CustomPlugin implements Plugin<Project> {
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
+        !exceptionString.contains(NotSerializableException.getName())
         exceptionString.contains('Caused by: CustomException: Something went wrong in building the model')
 
         where:
@@ -84,17 +84,32 @@ class CustomPlugin implements Plugin<Project> {
 
     @Issue("GRADLE-3307")
     @TargetGradleVersion(">=1.6")
-    def "returns proper error message when non-serializable exception is thrown while executing a build action"() {
+    def "returns proper error message when non-serializable exception is thrown while executing a backward compatible build action"() {
         when:
         withConnection { connection ->
-            connection.action(new BrokenAction()).run()
+            connection.action(new BackwardCompatibleBrokenBuildAction()).run()
         }
 
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
-        exceptionString.contains("Caused by: ${BrokenAction.CustomException.getName()}: Something went wrong when executing the build action")
+        !exceptionString.contains(NotSerializableException.getName())
+        exceptionString.contains("Caused by: ${BackwardCompatibleBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
+    }
+
+    @Issue("GRADLE-3307")
+    @TargetGradleVersion(">=3.2")
+    def "returns proper error message when non-serializable exception is thrown while executing a backward incompatible build action"() {
+        when:
+        withConnection { connection ->
+            connection.action(new BackwardIncompatibleBrokenBuildAction()).run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        def exceptionString = getStackTraceAsString(e)
+        !exceptionString.contains(NotSerializableException.getName())
+        exceptionString.contains("Caused by: ${BackwardIncompatibleBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
     }
 
     def createBuildFileForConfigurationPhaseCheck(int exceptionNestingLevel) {
@@ -121,7 +136,7 @@ throw ${'new RuntimeException(' * exceptionNestingLevel}new CustomException("Som
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
+        !exceptionString.contains(NotSerializableException.getName())
         exceptionString.contains('Caused by: CustomException: Something went wrong in configuring the build')
 
         where:
@@ -156,7 +171,7 @@ task run {
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
+        !exceptionString.contains(NotSerializableException.getName())
         exceptionString.contains('Caused by: CustomException: Something went wrong in configuring the build')
 
         where:
@@ -170,15 +185,38 @@ task run {
         return stringWriter.toString();
     }
 
-    static class BrokenAction implements BuildAction<String> {
+    private static abstract class BrokenBuildAction implements BuildAction<String> {
+        public static final String BUILD_ACTION_EXCEPTION_MESSAGE = 'Something went wrong when executing the build action'
+
         String execute(BuildController controller) {
-            throw new CustomException("Something went wrong when executing the build action")
+            throw getException()
+        }
+
+        abstract Exception getException()
+    }
+
+    private static class BackwardCompatibleBrokenBuildAction extends BrokenBuildAction {
+        Exception getException() {
+            throw new CustomException()
         }
 
         static class CustomException extends Exception {
             Thread thread = Thread.currentThread() // non-serializable field
-            CustomException(String msg) {
-                super(msg)
+            CustomException() {
+                super(BUILD_ACTION_EXCEPTION_MESSAGE)
+            }
+        }
+    }
+
+    private static class BackwardIncompatibleBrokenBuildAction extends BrokenBuildAction {
+        Exception getException() {
+            throw new CustomException()
+        }
+
+        static class CustomException extends RuntimeException {
+            Thread thread = Thread.currentThread() // non-serializable field
+            CustomException() {
+                super(BUILD_ACTION_EXCEPTION_MESSAGE)
             }
         }
     }
