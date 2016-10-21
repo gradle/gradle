@@ -109,7 +109,7 @@ allprojects {
 
         if (buildArtifacts) {
             def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
-            def expectedFiles = graph.artifactNodes.collect { it.fileName }
+            def expectedFiles = graph.root.files + graph.artifactNodes.collect { it.fileName }
             compare("files", actualFiles, expectedFiles)
         }
     }
@@ -299,6 +299,7 @@ allprojects {
         final String version
         String configuration = "default"
         private boolean implicitArtifact = true
+        final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
 
