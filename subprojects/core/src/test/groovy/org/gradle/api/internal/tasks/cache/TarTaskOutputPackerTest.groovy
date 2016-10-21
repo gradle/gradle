@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.cache
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+
 class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
     def packer = new TarTaskOutputPacker(fileSystem)
@@ -104,7 +106,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
     def "can pack single task output file with long name"() {
         def propertyName = "prop-" + ("x" * 100)
-        def sourceOutputFile = tempDir.file("source-.txt")
+        def sourceOutputFile = tempDir.file("source.txt")
         sourceOutputFile << "output"
         def targetOutputFile = tempDir.file("target.txt")
         def output = new ByteArrayOutputStream()
@@ -130,6 +132,61 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         1 * fileSystem.chmod(targetOutputFile, 0644)
         then:
         targetOutputFile.text == "output"
+        0 * _
+    }
+
+    def "can pack task output with all optional, empty outputs"() {
+        def output = new ByteArrayOutputStream()
+
+        when:
+        packer.pack(taskOutputs, output)
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "out1", outputFile: null),
+            new TestProperty(propertyName: "out2", outputFile: null)
+        ] as SortedSet)
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        packer.unpack(taskOutputs, input)
+
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "out1", outputFile: null),
+            new TestProperty(propertyName: "out2", outputFile: null)
+        ] as SortedSet)
+        0 * _
+    }
+
+    def "can pack task output with empty output directory"() {
+        def sourceDir = tempDir.file("source").createDir()
+        def targetDir = tempDir.file("target")
+        def output = new ByteArrayOutputStream()
+
+        when:
+        packer.pack(taskOutputs, output)
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "empty", outputFile: sourceDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        packer.unpack(taskOutputs, input)
+
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "empty", outputFile: targetDir, outputType: DIRECTORY),
+        ] as SortedSet)
+        1 * fileSystem.chmod(targetDir, 0755)
+        then:
+        targetDir.assertIsEmptyDir()
         0 * _
     }
 }
