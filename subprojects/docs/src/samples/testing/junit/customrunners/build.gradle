@@ -1,0 +1,18 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+
+// START SNIPPET custom-request-class
+test {
+    useJUnit {
+        requestClass = 'org.gradle.junit.MyRequest'
+    }
+}
+// END SNIPPET custom-request-class
+

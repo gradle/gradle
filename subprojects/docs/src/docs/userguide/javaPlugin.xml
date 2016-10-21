@@ -1378,6 +1378,15 @@
             </para>
         </section>
 
+        <section id="junit_custom_runners">
+            <title>JUnit custom runners</title>
+            <para>To instantiate a custom runner JUnit provides abstract Request class.</para>
+            <para>By implementing org.junit.runner.Request.getRunner method they can provide a custom Runner implementation.</para>
+            <sample id="junitcustomrunner" dir="testing/junit/customrunners" title="JUnit Custom Runner">
+                <sourcefile file="build.gradle" snippet="custom-request-class"/>
+            </sample>
+        </section>
+
         <section id="test_grouping">
             <title>Test grouping</title>
             <para>JUnit and TestNG allows sophisticated groupings of test methods. </para>

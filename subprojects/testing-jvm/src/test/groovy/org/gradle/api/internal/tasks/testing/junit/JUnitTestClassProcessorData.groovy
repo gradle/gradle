@@ -25,9 +25,11 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.Description
+import org.junit.runner.Request
 import org.junit.runner.RunWith
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
+import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.Parameterized
 import org.junit.runners.Suite
@@ -354,4 +356,24 @@ public class AnEmptyParameterizedTest {
 
     @Test public void helpfulTest() {}
     @Test public void unhelpfulTest() {}
+}
+
+public class OkRunListener extends RunListener {}
+
+public class ConstructorWithParamRunListener extends RunListener {
+    public ConstructorWithParamRunListener(Object arg) {}
+}
+
+public class WrongConstructorRunListener extends RunListener {
+    public WrongConstructorRunListener() { throw new RuntimeException("Boo!") }
+}
+
+
+public class RuequestClassWithoutClassConstructor extends Request {
+    @Override Runner getRunner() { return null }
+}
+
+public class ValidRequestClass extends Request {
+    ValidRequestClass(Class<?> clazz) {}
+    @Override Runner getRunner() { throw new RuntimeException("bang!") }
 }

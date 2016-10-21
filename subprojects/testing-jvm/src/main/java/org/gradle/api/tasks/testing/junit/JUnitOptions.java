@@ -28,8 +28,8 @@ import java.util.Set;
  */
 public class JUnitOptions extends TestFrameworkOptions {
     private Set<String> includeCategories = new HashSet<String>();
-
     private Set<String> excludeCategories = new HashSet<String>();
+    private String requestClass = "";
 
     @Incubating
     public JUnitOptions includeCategories(String... includeCategories) {
@@ -69,4 +69,23 @@ public class JUnitOptions extends TestFrameworkOptions {
     }
 
 
+    @Incubating
+    public String getRequestClass() {
+        return requestClass;
+    }
+
+    /**
+     * Custom JUnit Request class implementation to use to request a test class.
+     * @see org.junit.runner.Request
+     */
+    @Incubating
+    public void setRequestClass(String requestClass) {
+        this.requestClass = requestClass;
+    }
+
+    @Incubating
+    public JUnitOptions requestClass(String runnerName) {
+        this.requestClass = runnerName;
+        return this;
+    }
 }

@@ -30,16 +30,22 @@ import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class JUnitTestClassExecuter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassExecuter.class);
+
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
     private final JUnitSpec options;
     private final TestClassExecutionListener executionListener;
+    private final Constructor<? extends Request> requestClassConstructor;
 
     public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
         assert executionListener instanceof ThreadSafe;
@@ -47,6 +53,7 @@ public class JUnitTestClassExecuter {
         this.listener = listener;
         this.options = spec;
         this.executionListener = executionListener;
+        this.requestClassConstructor = getRequestClassConstructor(spec);
     }
 
     public void execute(String testClassName) {
@@ -82,7 +89,7 @@ public class JUnitTestClassExecuter {
             ));
         }
 
-        Request request = Request.aClass(testClass);
+        Request request = createRequest(testClass);
         Runner runner = request.getRunner();
 
         if (!options.getIncludedTests().isEmpty()) {
@@ -120,6 +127,34 @@ public class JUnitTestClassExecuter {
         } catch (ClassNotFoundException e) {
             throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
         }
+    }
+
+    private Constructor<? extends Request> getRequestClassConstructor(JUnitSpec options) {
+        String className = options.getRequestClass();
+        if (className != null && !"".equals(className)) {
+            try {
+                Class requestClass = Class.forName(options.getRequestClass(), false, applicationClassLoader);
+                return (Constructor<Request>) requestClass.getConstructor(Class.class);
+            } catch (ClassNotFoundException cnfe) {
+                throw new InvalidUserDataException("JUnit Runner request class '" + className + "' not found", cnfe);
+            } catch (NoSuchMethodException nsme) {
+                throw new InvalidUserDataException("JUnit Runner request class '" + className + "' has not constructor with class parameter", nsme);
+            }
+        }
+        return null;
+    }
+
+    private Request createRequest(Class testClass) {
+        if (requestClassConstructor != null) {
+            try {
+                Request request = requestClassConstructor.newInstance(testClass);
+                LOGGER.info("Request class overridden to: {}", request.getClass().getCanonicalName());
+                return request;
+            } catch (Exception e) {
+                throw new RuntimeException("Could not create custom request class", e);
+            }
+        }
+        return Request.aClass(testClass);
     }
 
     private boolean allTestsFiltered(Runner runner, List<Filter> filters) {
