@@ -41,7 +41,7 @@ apply plugin: 'broken'
 
         then:
         failure.assertHasCause("Failed to apply plugin [id 'broken']")
-        failure.assertHasCause("throwing plugin")
+        failure.assertHasCause("java.lang.Exception: throwing plugin")
     }
 
     def "reports failure to apply plugin by type"() {
@@ -60,7 +60,7 @@ class BrokenPlugin implements Plugin<Project> {
 
         then:
         failure.assertHasCause("Failed to apply plugin [class 'BrokenPlugin']")
-        failure.assertHasCause("throwing plugin")
+        failure.assertHasCause("java.lang.Exception: throwing plugin")
     }
 
     def "cannot apply a plugin that does not implement Plugin and does not extend RuleSource"() {
