@@ -44,10 +44,8 @@ public class DirectBuildDependencies extends AbstractTaskDependency {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        for (SelfResolvingDependency dependency : dependencies.withType(SelfResolvingDependency.class)) {
-            if (!(dependency instanceof ProjectDependency)) {
-                context.add(dependency);
-            }
+        for (FileCollectionDependency dependency : dependencies.withType(FileCollectionDependency.class)) {
+            context.add(dependency);
         }
         if (publishArtifacts != null) {
             context.add(publishArtifacts);
