@@ -19,8 +19,6 @@ package org.gradle.integtests.tooling.r32
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r16.CustomModel
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
@@ -183,41 +181,5 @@ task run {
         StringWriter stringWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(stringWriter));
         return stringWriter.toString();
-    }
-
-    private static abstract class BrokenBuildAction implements BuildAction<String> {
-        public static final String BUILD_ACTION_EXCEPTION_MESSAGE = 'Something went wrong when executing the build action'
-
-        String execute(BuildController controller) {
-            throw getException()
-        }
-
-        abstract Exception getException()
-    }
-
-    private static class BackwardCompatibleBrokenBuildAction extends BrokenBuildAction {
-        Exception getException() {
-            throw new CustomException()
-        }
-
-        static class CustomException extends Exception {
-            Thread thread = Thread.currentThread() // non-serializable field
-            CustomException() {
-                super(BUILD_ACTION_EXCEPTION_MESSAGE)
-            }
-        }
-    }
-
-    private static class BackwardIncompatibleBrokenBuildAction extends BrokenBuildAction {
-        Exception getException() {
-            throw new CustomException()
-        }
-
-        static class CustomException extends RuntimeException {
-            Thread thread = Thread.currentThread() // non-serializable field
-            CustomException() {
-                super(BUILD_ACTION_EXCEPTION_MESSAGE)
-            }
-        }
     }
 }

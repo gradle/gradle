@@ -87,8 +87,3 @@ dependencies {
     }
 
 }
-
-interface CustomArtifactModel {
-    Exception getFailure()
-    List<File> getFiles()
-}
