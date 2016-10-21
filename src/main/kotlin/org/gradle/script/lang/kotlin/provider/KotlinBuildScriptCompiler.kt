@@ -29,7 +29,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
+import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromAnnotatedTemplate
 
 import org.slf4j.Logger
 
@@ -154,7 +154,7 @@ class KotlinBuildScriptCompiler(
             classLoader, logger)
 
     private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
-        KotlinScriptDefinitionFromTemplate(template, environment = mapOf("classPath" to classPath))
+        KotlinScriptDefinitionFromAnnotatedTemplate(template, environment = mapOf("classPath" to classPath))
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
         withContextClassLoader(classLoader) {

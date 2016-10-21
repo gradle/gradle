@@ -145,7 +145,7 @@ object DefaultKotlinBuildScriptModelProvider : KotlinBuildScriptModelProvider {
 
         val projectRoot = environment.projectRoot
         val gradleHome = environment.gradleHome
-        val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
+        val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let { File(it) }
         if (projectRoot != null && gradleHome != null && gradleJavaHome != null)
             return retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
 

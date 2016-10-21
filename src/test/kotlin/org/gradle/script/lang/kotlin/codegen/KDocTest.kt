@@ -14,7 +14,7 @@ class KDocTest {
         assertThat(
             KDoc("Lorem ipsum.\n@param foo")
                 .format("A notice.")
-                .let(::normaliseLineSeparators),
+                .let { normaliseLineSeparators(it) },
             equalTo("""
                 /**
                  * Lorem ipsum.

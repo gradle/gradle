@@ -127,7 +127,7 @@ Lorem ipsum.
         assertThat(
             extensionsFor(
                 classNodeOf<PluginContainer>(),
-                kDocProvider).let(::normaliseLineSeparators),
+                kDocProvider).let { normaliseLineSeparators(it) },
             endsWith("""
 /**
  * Lorem ipsum.
@@ -151,7 +151,7 @@ fun org.gradle.api.plugins.PluginContainer.withId(id: String, configuration: org
     }
 
     inline fun <reified T : Any> classNodeOf(): ClassNode =
-        T::class.inputStream().use(::classNodeFor)
+        T::class.inputStream().use { classNodeFor(it) }
 
     fun <T : Any> KClass<T>.inputStream() =
         java.getResourceAsStream("/${jvmName.replace('.', '/')}.class")!!

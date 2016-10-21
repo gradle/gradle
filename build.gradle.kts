@@ -14,10 +14,6 @@ version = "0.5.0-SNAPSHOT"
 
 val kotlinVersion by extra.properties
 
-val kotlinCompilerVersion = kotlinVersion as String
-
-val kotlinRuntimeVersion = "1.1-M02"
-
 dependencies {
     compileOnly(gradleApi())
     // compileOnly(gradle("core"))
@@ -29,9 +25,9 @@ dependencies {
     compile("javax.inject:javax.inject:1")
     compile("org.ow2.asm:asm-all:5.1")
 
-    compile(kotlinModule("stdlib", version = kotlinRuntimeVersion))
-    compile(kotlinModule("reflect", version = kotlinRuntimeVersion))
-    compile(kotlinModule("compiler-embeddable", version = kotlinCompilerVersion))
+    compile(kotlin("stdlib"))
+    compile(kotlin("reflect"))
+    compile(kotlin("compiler-embeddable"))
 
     testCompile(gradleTestKit())
     testCompile("junit:junit:4.12")
