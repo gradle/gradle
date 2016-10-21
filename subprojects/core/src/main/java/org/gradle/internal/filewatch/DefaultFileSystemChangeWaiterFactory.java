@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +37,11 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
     private final long quietPeriodMillis;
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-        this(fileWatcherFactory, 250L);
+        this(fileWatcherFactory, defaultQuietPeriodMillis());
+    }
+
+    private static long defaultQuietPeriodMillis() {
+        return OperatingSystem.current().isMacOsX() ? 2500L : 1000L;
     }
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
@@ -177,10 +182,12 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         }
 
         private boolean shouldKeepWaitingForQuietPeriod(long lastChangeAtValue) {
-            long now = monotonicClockMillis();
-            return lastChangeAtValue == 0   // no changes yet
-                || now < lastChangeAtValue  // handle case where monotic clock isn't monotonic
-                || now - lastChangeAtValue < quietPeriodMillis;
+            if (lastChangeAtValue == 0) {
+                // No change, keep waiting
+                return true;
+            }
+            long timeSinceLastChange = monotonicClockMillis() - lastChangeAtValue;
+            return timeSinceLastChange < quietPeriodMillis;
         }
 
         @Override
