@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.process.internal.daemon;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
 
 /**
- * Controls the lifecycle of the compiler daemon and provides access to it.
+ * Controls the lifecycle of the worker daemon and provides access to it.
  */
 @ThreadSafe
-public class CompilerDaemonManager implements CompilerDaemonFactory, Stoppable {
+public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
 
-    private CompilerClientsManager clientsManager;
+    private WorkerDaemonClientsManager clientsManager;
 
-    public CompilerDaemonManager(CompilerClientsManager clientsManager) {
+    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager) {
         this.clientsManager = clientsManager;
     }
 
     @Override
-    public CompilerDaemon getDaemon(final File workingDir, final DaemonForkOptions forkOptions) {
-        return new CompilerDaemon() {
-            public <T extends CompileSpec> CompileResult execute(org.gradle.language.base.internal.compile.Compiler<T> compiler, T spec) {
-                CompilerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
+    public WorkerDaemon getDaemon(final File workingDir, final DaemonForkOptions forkOptions) {
+        return new WorkerDaemon() {
+            public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
+                WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(workingDir, forkOptions);
                 }
                 try {
-                    return client.execute(compiler, spec);
+                    return client.execute(action, spec);
                 } finally {
                     clientsManager.release(client);
                 }

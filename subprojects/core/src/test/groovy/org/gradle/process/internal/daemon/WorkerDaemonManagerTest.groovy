@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.daemon
+package org.gradle.process.internal.daemon
 
-import org.gradle.language.base.internal.compile.CompileSpec
-import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CompilerDaemonManagerTest extends Specification {
+class WorkerDaemonManagerTest extends Specification {
 
-    def clientsManager = Mock(CompilerClientsManager)
-    def client = Mock(CompilerDaemonClient)
+    def clientsManager = Mock(WorkerDaemonClientsManager)
+    def client = Mock(WorkerDaemonClient)
 
-    @Subject manager = new CompilerDaemonManager(clientsManager)
+    @Subject manager = new WorkerDaemonManager(clientsManager)
 
     def workingDir = new File("some-dir")
-    def compiler = Stub(Compiler)
+    def worker = Stub(WorkerDaemonAction)
     def options = Stub(DaemonForkOptions)
-    def compileSpec = Stub(CompileSpec)
+    def spec = Stub(WorkSpec)
 
-    def "getting a compiler daemon does not assume client use"() {
+    def "getting a worker daemon does not assume client use"() {
         when:
         manager.getDaemon(workingDir, options);
 
@@ -43,7 +41,7 @@ class CompilerDaemonManagerTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        manager.getDaemon(workingDir, options).execute(compiler, compileSpec)
+        manager.getDaemon(workingDir, options).execute(worker, spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> null
@@ -52,7 +50,7 @@ class CompilerDaemonManagerTest extends Specification {
         1 * clientsManager.reserveNewClient(workingDir, options) >> client
 
         then:
-        1 * client.execute(compiler, compileSpec)
+        1 * client.execute(worker, spec)
 
         then:
         1 * clientsManager.release(client)
@@ -61,13 +59,13 @@ class CompilerDaemonManagerTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        manager.getDaemon(workingDir, options).execute(compiler, compileSpec)
+        manager.getDaemon(workingDir, options).execute(worker, spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(compiler, compileSpec)
+        1 * client.execute(worker, spec)
 
         then:
         1 * clientsManager.release(client)
@@ -76,13 +74,13 @@ class CompilerDaemonManagerTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        manager.getDaemon(workingDir, options).execute(compiler, compileSpec)
+        manager.getDaemon(workingDir, options).execute(worker, spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(compiler, compileSpec) >> { throw new RuntimeException("Boo!") }
+        1 * client.execute(worker, spec) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)

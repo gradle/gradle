@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonFactory;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -25,10 +25,10 @@ import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final File daemonWorkingDir;
-    private final CompilerDaemonFactory compilerDaemonFactory;
+    private final WorkerDaemonFactory compilerDaemonFactory;
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory compilerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.compilerDaemonFactory = compilerDaemonFactory;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;

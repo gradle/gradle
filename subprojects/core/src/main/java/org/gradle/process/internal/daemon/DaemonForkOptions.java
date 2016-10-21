@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.process.internal.daemon;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
@@ -35,7 +35,7 @@ public class DaemonForkOptions {
     public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs) {
         this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList(), Collections.<String>emptyList());
     }
-    
+
     public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath,
                              Iterable<String> sharedPackages) {
         this.minHeapSize = minHeapSize;
@@ -104,12 +104,12 @@ public class DaemonForkOptions {
         }
         throw new InvalidUserDataException("Cannot parse heap size: " + heapSize);
     }
-    
+
     private String mergeHeapSize(String heapSize1, String heapSize2) {
         int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
         return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
     }
-    
+
     private Set<String> getNormalizedJvmArgs(Iterable<String> jvmArgs) {
         Set<String> normalized = Sets.newLinkedHashSet();
         for (String jvmArg : jvmArgs) {
@@ -117,15 +117,15 @@ public class DaemonForkOptions {
         }
         return normalized;
     }
-    
+
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {
         return Sets.newLinkedHashSet(classpath);
     }
-    
+
     private Set<String> getNormalizedSharedPackages(Iterable<String> allowedPackages) {
         return Sets.newLinkedHashSet(allowedPackages);
     }
-    
+
     public String toString() {
         return Objects.toStringHelper(this).add("minHeapSize", minHeapSize).add("maxHeapSize", maxHeapSize).add("jvmArgs", jvmArgs).add("classpath", classpath).toString();
     }

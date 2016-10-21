@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.process.internal.daemon;
 
 import org.gradle.process.internal.worker.WorkerControl;
 
-public interface CompilerDaemonWorker extends CompilerDaemonProtocol, WorkerControl {
+public interface WorkerDaemonWorker extends WorkerDaemonProtocol, WorkerControl {
 }

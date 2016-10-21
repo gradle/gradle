@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.process.internal.daemon;
 
-import java.io.File;
+import org.gradle.api.tasks.WorkResult;
 
-public interface CompilerDaemonFactory {
-    // TODO - workingDir should be injected into the implementation
-    CompilerDaemon getDaemon(File workingDir, DaemonForkOptions forkOptions);
+import java.io.Serializable;
+
+public interface WorkerDaemonAction<T> extends Serializable {
+    WorkResult execute(T spec);
 }

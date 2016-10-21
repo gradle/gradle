@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.daemon
+package org.gradle.process.internal.daemon
 
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
-class CompilerClientsManagerTest extends ConcurrentSpecification {
+class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def workingDir = new File("some-dir")
 
     def options = Stub(DaemonForkOptions)
-    def starter = Stub(CompilerDaemonStarter)
+    def starter = Stub(WorkerDaemonStarter)
 
-    @Subject manager = new CompilerClientsManager(starter)
+    @Subject manager = new WorkerDaemonClientsManager(starter)
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -34,7 +34,7 @@ class CompilerClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "does not reserve idle client when no matching client found"() {
-        def noMatch = Stub(CompilerDaemonClient) {
+        def noMatch = Stub(WorkerDaemonClient) {
             isCompatibleWith(_) >> false
         }
 
@@ -43,8 +43,8 @@ class CompilerClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "reserves idle client when match found"() {
-        def noMatch = Stub(CompilerDaemonClient) { isCompatibleWith(_) >> false }
-        def match = Stub(CompilerDaemonClient) { isCompatibleWith(_) >> true }
+        def noMatch = Stub(WorkerDaemonClient) { isCompatibleWith(_) >> false }
+        def match = Stub(WorkerDaemonClient) { isCompatibleWith(_) >> true }
         def input = [noMatch, match]
 
         expect:
@@ -53,7 +53,7 @@ class CompilerClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "reserves new client"() {
-        def newClient = Stub(CompilerDaemonClient)
+        def newClient = Stub(WorkerDaemonClient)
         starter.startDaemon(workingDir, options) >> newClient
 
         when:
@@ -64,8 +64,8 @@ class CompilerClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "can stop all created clients"() {
-        def client1 = Mock(CompilerDaemonClient)
-        def client2 = Mock(CompilerDaemonClient)
+        def client1 = Mock(WorkerDaemonClient)
+        def client2 = Mock(WorkerDaemonClient)
         starter.startDaemon(workingDir, options) >>> [client1, client2]
 
         when:
@@ -79,7 +79,7 @@ class CompilerClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "clients can be released for further use"() {
-        def client = Mock(CompilerDaemonClient) { isCompatibleWith(_) >> true }
+        def client = Mock(WorkerDaemonClient) { isCompatibleWith(_) >> true }
         starter.startDaemon(workingDir, options) >> client
 
         when:
