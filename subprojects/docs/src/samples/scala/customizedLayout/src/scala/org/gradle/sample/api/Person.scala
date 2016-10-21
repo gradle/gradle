@@ -1,5 +1,9 @@
 package org.gradle.sample.api
 
-trait Person {
+/**
+ * Defines the interface for a person.
+ */
+abstract trait Person
+{
   def names: List[String]
 }

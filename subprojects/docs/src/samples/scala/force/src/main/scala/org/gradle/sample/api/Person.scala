@@ -1,9 +1,9 @@
 package org.gradle.sample.api
 
-import org.apache.commons.collections.list.GrowthList
-
-trait Person {
+/**
+ * Defines the interface for a person.
+ */
+abstract trait Person
+{
   def names: List[String]
-
-  def importedList: GrowthList
 }
