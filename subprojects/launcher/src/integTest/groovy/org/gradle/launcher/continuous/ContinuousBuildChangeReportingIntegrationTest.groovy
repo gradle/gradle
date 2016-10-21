@@ -182,14 +182,14 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
                 }
             }
         """
-        // OSX watcher is based on polling
-        if (OperatingSystem.current().macOsX) {
-            buildFile << """
-                gradle.buildFinished {
-                    Thread.sleep(15000)
-                }
-            """
-        }
+        // Make sure the build lasts long enough for events to propagate
+        // OSX watcher is based on polling, so needs longer
+        int sleepPeriod = OperatingSystem.current().macOsX ? 5000 : 1000
+        buildFile << """
+            gradle.buildFinished {
+                Thread.sleep(${sleepPeriod})
+            }
+        """
 
         when:
         succeeds("theTask")
