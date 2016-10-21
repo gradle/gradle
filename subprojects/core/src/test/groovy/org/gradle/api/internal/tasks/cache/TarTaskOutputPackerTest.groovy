@@ -20,6 +20,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
@@ -157,6 +158,38 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "out1", outputFile: null),
             new TestProperty(propertyName: "out2", outputFile: null)
+        ] as SortedSet)
+        0 * _
+    }
+
+    def "can pack task output with missing files"() {
+        def sourceDir = tempDir.file("source")
+        def missingSourceFile = sourceDir.file("missing.txt")
+        def missingSourceDir = sourceDir.file("missing")
+        def targetDir = tempDir.file("target")
+        def missingTargetFile = targetDir.file("missing.txt")
+        def missingTargetDir = targetDir.file("missing")
+        def output = new ByteArrayOutputStream()
+
+        when:
+        packer.pack(taskOutputs, output)
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "missingFile", outputFile: missingSourceFile, outputType: FILE),
+            new TestProperty(propertyName: "missingDir", outputFile: missingSourceDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        packer.unpack(taskOutputs, input)
+
+        then:
+        noExceptionThrown()
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "missingFile", outputFile: missingTargetFile, outputType: FILE),
+            new TestProperty(propertyName: "missingDir", outputFile: missingTargetDir, outputType: DIRECTORY)
         ] as SortedSet)
         0 * _
     }
