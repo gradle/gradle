@@ -81,7 +81,7 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @TargetGradleVersion(">=1.6")
+    @TargetGradleVersion(">=1.8")
     def "returns proper error message when non-serializable Exception is thrown while executing a broken build action"() {
         when:
         withConnection { connection ->
