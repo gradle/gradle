@@ -55,6 +55,7 @@ dependencies {
     compile project(":native")
 
     runtime project(":docs")
+    runtime project(':buildReceipt')
 
     testCompile libraries.jsoup
 
@@ -82,13 +83,6 @@ test {
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
-
-task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
-    into "$generatedResourcesDir/org/gradle"
-    from rootProject.createBuildReceipt.receiptFile
-}
-
-sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
 
 task pluginsManifest(type: PluginsManifest)
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
