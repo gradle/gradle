@@ -32,11 +32,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
+    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
+
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-        this(fileWatcherFactory, 250L);
+        this(fileWatcherFactory, getDefaultQuietPeriod());
+    }
+
+    private static long getDefaultQuietPeriod() {
+        return Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
     }
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
