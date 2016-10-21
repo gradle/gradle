@@ -42,7 +42,7 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
 
     def "can add configuration"() {
         when:
-        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null, ConfigurationRole.FOR_RESOLUTION)
+        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
 
         then:
         metadata.configurations.size() == 1

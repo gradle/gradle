@@ -42,8 +42,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup configuration after it has been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, ConfigurationRole.FOR_RESOLUTION)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, ConfigurationRole.FOR_RESOLUTION)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
 
         then:
         metadata.configurationNames == ['conf', 'super'] as Set
@@ -122,7 +122,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = []) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, ConfigurationRole.FOR_RESOLUTION)
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
@@ -346,8 +346,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, ConfigurationRole.FOR_RESOLUTION)
-        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, ConfigurationRole.FOR_RESOLUTION)
+        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
+        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
 
         def rule1 = new DefaultExclude("group1", "module1", ["compile"] as String[], PatternMatchers.EXACT)
         def rule2 = new DefaultExclude("group1", "module1", ["runtime"] as String[], PatternMatchers.EXACT)

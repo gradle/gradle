@@ -22,22 +22,29 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum ConfigurationRole {
-    FOR_SELECTION("For selection in dependency resolution", true),
-    FOR_RESOLUTION("For resolution", false);
+    FOR_BUILDING_OR_PUBLISHING("can be used when building or publishing", true, true),
+    FOR_BUILDING_ONLY("can be used only when building", true, false),
+    FOR_PUBLISHING_ONLY("can be used only when publishing the project", false, true);
 
     private final String description;
-    private final boolean canBeUsedInSelection;
+    private final boolean canBeUsedForBuilding;
+    private final boolean canBeUsedForPublishing;
 
-    ConfigurationRole(String desc, boolean canBeUsedInSelection) {
+    ConfigurationRole(String desc, boolean canBeUsedForBuilding, boolean canBeUsedForPublishing) {
         this.description = desc;
-        this.canBeUsedInSelection = canBeUsedInSelection;
+        this.canBeUsedForBuilding = canBeUsedForBuilding;
+        this.canBeUsedForPublishing = canBeUsedForPublishing;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public boolean canBeUsedInSelection() {
-        return canBeUsedInSelection;
+    public boolean canBeUsedForBuilding() {
+        return canBeUsedForBuilding;
+    }
+
+    public boolean canBeUsedForPublishing() {
+        return canBeUsedForPublishing;
     }
 }

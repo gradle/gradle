@@ -83,7 +83,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 true,
                 true,
                 null,
-                ConfigurationRole.FOR_RESOLUTION);
+                ConfigurationRole.FOR_PUBLISHING_ONLY);
         }
         return metaData;
     }

@@ -74,7 +74,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.displayName == "configuration 'path'"
         configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
-        configuration.role == ConfigurationRole.FOR_RESOLUTION
+        configuration.role == ConfigurationRole.FOR_BUILDING_ONLY
     }
 
     def hasUsefulDisplayName() {
@@ -105,19 +105,25 @@ class DefaultConfigurationSpec extends Specification {
     def "can set the configuration role"() {
         when:
         def configuration = conf("name", "path")
-        configuration.role = ConfigurationRole.FOR_SELECTION
+        configuration.role = ConfigurationRole.FOR_BUILDING_OR_PUBLISHING
 
         then:
-        configuration.role == ConfigurationRole.FOR_SELECTION
+        configuration.role == ConfigurationRole.FOR_BUILDING_OR_PUBLISHING
     }
 
     def "can set the configuration role using short-hand notation"() {
         when:
         def configuration = conf("name", "path")
-        configuration.forUseInSelection()
+        configuration.forPublishingOnly()
 
         then:
-        configuration.role == ConfigurationRole.FOR_SELECTION
+        configuration.role == ConfigurationRole.FOR_PUBLISHING_ONLY
+
+        when:
+        configuration.forBuildingOnly()
+
+        then:
+        configuration.role == ConfigurationRole.FOR_BUILDING_ONLY
     }
 
     def excludes() {

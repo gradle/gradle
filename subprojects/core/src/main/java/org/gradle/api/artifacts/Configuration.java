@@ -459,8 +459,8 @@ public interface Configuration extends FileCollection {
     /**
      * Sets this configuration role. A configuration role allows you to differentiate between 2 cases:
      * <ul>
-     *     <li>If this configuration is intended to be resolved inside this project (typically, a compile classpath), in which case its role is {@link ConfigurationRole#FOR_RESOLUTION}</li>
-     *     <li>If this configuration provides artifacts and transitive dependencies for downstream projects (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#FOR_SELECTION}</li>
+     *     <li>If this configuration is intended to be resolved inside this project (typically, a compile classpath), in which case its role is {@link ConfigurationRole#FOR_PUBLISHING_ONLY}</li>
+     *     <li>If this configuration provides artifacts and transitive dependencies for downstream projects (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#FOR_BUILDING_OR_PUBLISHING}</li>
      * </ul>
      * The configuration role will only be used for dependencies that declare {@link #getAttributes() attributes}.
      * @param role the role of this configuration.
@@ -469,14 +469,21 @@ public interface Configuration extends FileCollection {
     void setRole(ConfigurationRole role);
 
     /**
-     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#FOR_RESOLUTION}
+     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#FOR_BUILDING_ONLY}
      * @return the role of this configuration.
      */
     @Incubating
     ConfigurationRole getRole();
 
     /**
-     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#FOR_SELECTION}
+     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#FOR_PUBLISHING_ONLY}
      */
-    void forUseInSelection();
+    @Incubating
+    void forPublishingOnly();
+
+    /**
+     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#FOR_PUBLISHING_ONLY}
+     */
+    @Incubating
+    void forBuildingOnly();
 }
