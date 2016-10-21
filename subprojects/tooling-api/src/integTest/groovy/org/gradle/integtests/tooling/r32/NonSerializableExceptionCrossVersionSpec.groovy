@@ -18,12 +18,10 @@ package org.gradle.integtests.tooling.r32
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
-@ToolingApiVersion(">=3.2")
 class NonSerializableExceptionCrossVersionSpec extends ToolingApiSpecification {
     def createToolingModelBuilderBuildFile(int exceptionNestingLevel) {
         file('build.gradle') << """
