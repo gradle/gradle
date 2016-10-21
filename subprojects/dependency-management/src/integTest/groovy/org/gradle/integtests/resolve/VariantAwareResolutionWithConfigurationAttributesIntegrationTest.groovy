@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -30,23 +31,32 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             import org.gradle.api.Project
             import org.gradle.api.tasks.compile.JavaCompile
             import org.gradle.api.tasks.bundling.Jar
+            import org.gradle.api.tasks.bundling.Zip
+            import org.gradle.language.jvm.tasks.ProcessResources
 
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
+                        def processResources = p.tasks.processResources
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
+                                    extendsFrom p.configurations.compile
                                     forPublishingOnly()
-                                    attributes buildType: bt, flavor: f
+                                    attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
+                                    extendsFrom p.configurations.compile
                                     forBuildingOnly()
-                                    attributes buildType: bt, flavor: f
+                                    attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
-
+                                def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
+                                    extendsFrom p.configurations.compile
+                                    attributes buildType: bt, flavor: f, usage: 'resources'
+                                }
+                                p.dependencies.add(mergedResourcesConf.name, processResources.outputs.files)
                                 def compileTask = p.tasks.create("compileJava${f.capitalize()}${bt.capitalize()}", JavaCompile) { task ->
                                     def taskName = task.name
                                     task.source(p.tasks.compileJava.source)
@@ -57,13 +67,25 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                        println "Compile classpath for ${p.path}:$taskName : ${task.classpath.files*.name}"
                                     }
                                 }
-                                def jarTask = p.tasks.create("${f}${bt.capitalize()}Jar", Jar) { task ->
-                                    task.dependsOn compileTask
+                                def mergeResourcesTask = p.tasks.create("merge${f.capitalize()}${bt.capitalize()}Resources", Zip) { task ->
+                                    task.baseName = "resources-${p.name}-${f}${bt}"
+                                    task.from mergedResourcesConf
+                                }
+                                def aarTask = p.tasks.create("${f}${bt.capitalize()}Aar", Jar) { task ->
+                                    // it's called AAR to reflect something that bundles everything
+                                    task.dependsOn mergeResourcesTask
                                     task.baseName = "${p.name}-${f}${bt}"
-                                    task.from compileTask.destinationDir
+                                    task.extension = 'aar'
+                                    task.from compileTask.outputs.files
+                                    task.from p.zipTree(mergeResourcesTask.outputs.files.singleFile)
+                                }
+                                def jarTask = p.tasks.create("${f}${bt.capitalize()}Jar", Jar) { task ->
+                                    task.baseName = "${p.name}-${f}${bt}"
+                                    task.from compileTask.outputs.files
                                 }
                                 p.artifacts.add(baseName, jarTask)
-                                p.artifacts.add("_$baseName", jarTask)
+                                p.artifacts.add("_$baseName", aarTask)
+                                //p.artifacts.add(mergedResourcesConf.name, mergeResourcesTask)
                             }
                         }
                 }
@@ -139,6 +161,9 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             ''')
             src {
                 main {
+                    resources {
+                        'core.txt'('core')
+                    }
                     java {
                         com {
                             acme {
@@ -164,9 +189,12 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         subproject('client') {
             def buildDotGradle = file('build.gradle')
             withVariants(buildDotGradle)
-            withDependencies(buildDotGradle, '_compileFreeDebug project(":core")')
+            withDependencies(buildDotGradle, 'compile project(":core")')
             src {
                 main {
+                    resources {
+                        'client.txt'('client')
+                    }
                     java {
                         'Main.java'('''import com.acme.core.Hello;
 
@@ -183,17 +211,32 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         }
 
         when:
-        run ':client:compileJavaFreeDebug'
+        run ':client:freeDebugJar'
 
         then:
         executedAndNotSkipped ':core:compileJavaFreeDebug', ':core:freeDebugJar'
         notExecuted ':core:compileJavaFreeRelease'
+        notExecuted ':core:processResources'
+        notExecuted ':core:mergeFreeDebugResources'
 
         and: "compile classpath for core includes external dependency"
         outputContains 'Compile classpath for :core:compileJavaFreeDebug : [commons-lang3-3.5.jar]'
 
         and: "compile classpath for client excludes external dependency"
         outputContains 'Compile classpath for :client:compileJavaFreeDebug : [core-freedebug.jar]'
+
+        when:
+        run 'clean', ':client:freeDebugAar'
+
+        then:
+        executedAndNotSkipped ':core:processResources'
+        executedAndNotSkipped ':client:processResources'
+        executedAndNotSkipped ':client:mergeFreeDebugResources'
+        executedAndNotSkipped ':client:freeDebugAar'
+
+        and:
+        def aar = new JarTestFixture(file('client/build/libs/client-freedebug.aar'))
+        aar.hasDescendants('Main.class', 'client.txt', 'core.txt')
     }
 
     private static File withVariants(File buildFile) {
