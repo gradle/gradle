@@ -19,29 +19,43 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
  *
- * @see org.gradle.internal.service.scopes.BuildScopeServices#createProjectEvaluator()
+ * @see org.gradle.internal.service.scopes.BuildScopeServices#createProjectEvaluator(BuildOperationExecutor)
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
 
     private final ProjectEvaluator delegate;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
+    public LifecycleProjectEvaluator(ProjectEvaluator delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
+    public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
         //TODO this is one of the places to look into thread safety when we implement parallel configuration
         if (state.getExecuted() || state.getExecuting()) {
             return;
         }
 
+        buildOperationExecutor.run(BuildOperationDetails.displayName("Configure project " + project.getPath()).build(), new Runnable() {
+            @Override
+            public void run() {
+                doEvaluate(project, state);
+                state.rethrowFailure();
+            }
+        });
+    }
+
+    private void doEvaluate(ProjectInternal project, ProjectStateInternal state) {
         ProjectEvaluationListener listener = project.getProjectEvaluationBroadcaster();
         try {
             listener.beforeEvaluate(project);

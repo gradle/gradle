@@ -232,13 +232,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
-    protected ProjectEvaluator createProjectEvaluator() {
+    protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
             new PluginsProjectConfigureActions(get(CachingServiceLocator.class)),
             new BuildScriptProcessor(get(ScriptPluginFactory.class)),
             new DelayedConfigurationActions()
         );
-        return new LifecycleProjectEvaluator(withActionsEvaluator);
+        return new LifecycleProjectEvaluator(withActionsEvaluator, buildOperationExecutor);
     }
 
     protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(ServiceRegistry registry) {

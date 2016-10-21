@@ -571,7 +571,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public DefaultProject evaluate() {
         getProjectEvaluator().evaluate(this, state);
-        state.rethrowFailure();
         return this;
     }
 

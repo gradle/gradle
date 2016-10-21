@@ -20,13 +20,14 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import spock.lang.Specification
 
 public class LifecycleProjectEvaluatorTest extends Specification {
     private project = Mock(ProjectInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
-    private evaluator = new LifecycleProjectEvaluator(delegate)
+    private evaluator = new LifecycleProjectEvaluator(delegate, new TestBuildOperationExecutor())
     private state = Mock(ProjectStateInternal)
 
     void setup() {
