@@ -141,17 +141,22 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
                         def prefix = "${task.path}-input-${name}"
                         buildScan.value "${prefix}-hash", hashKey(snapshot)
                         def propertyFiles = inputProperty.propertyFiles
+                        int idx = 0
                         propertyFiles.visitRootElements(new FileCollectionVisitor() {
                             void visitCollection(FileCollectionInternal fileCollection) {
-                                buildScan.value "${prefix}-fileCollection", fileCollection.toString()
+                                buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
+                                buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.getAsFileTree().getFiles())
+                                idx++
                             }
 
                             void visitTree(FileTreeInternal fileTree) {
-                                buildScan.value "${prefix}-fileTree", fileTree.toString()
+                                buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
+                                idx++
                             }
 
                             void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                                buildScan.value "${prefix}-dirTree", directoryTree.toString()
+                                buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
+                                idx++
                             }
                         })
                     }
