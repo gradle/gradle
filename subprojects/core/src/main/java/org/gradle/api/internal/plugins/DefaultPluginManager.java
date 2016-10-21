@@ -27,8 +27,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.*;
 import org.gradle.internal.Cast;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.plugin.internal.PluginId;
@@ -45,17 +43,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginApplicator applicator;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
     private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
         this.instantiator = instantiator;
         this.applicator = applicator;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -120,42 +116,37 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(pluginRegistry.inspect(type));
     }
 
-    private void doApply(final PluginImplementation<?> plugin) {
-        final Class<?> pluginClass = plugin.asClass();
+    private void doApply(PluginImplementation<?> plugin) {
+        PluginId pluginId = plugin.getPluginId();
+        String pluginIdStr = pluginId == null ? null : pluginId.toString();
+        Class<?> pluginClass = plugin.asClass();
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(pluginClass.getClassLoader());
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
-                final Runnable adder = addPluginInternal(plugin);
+                boolean imperative = plugin.isImperative();
+                Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    final PluginId pluginId = plugin.getPluginId();
-                    String pluginOpName = pluginId != null ? pluginId.toString() : pluginClass.getName();
-                    buildOperationExecutor.run(BuildOperationDetails.displayName("Apply plugin " + pluginOpName).build(), new Runnable() {
-                        @Override
-                        public void run() {
-                            String pluginIdStr = pluginId == null ? null : pluginId.toString();
-                            if (plugin.isImperative()) {
-                                Plugin<?> pluginInstance = producePluginInstance(pluginClass);
-                                instances.put(pluginClass, pluginInstance);
+                    if (imperative) {
+                        Plugin<?> pluginInstance = producePluginInstance(pluginClass);
+                        instances.put(pluginClass, pluginInstance);
 
-                                if (plugin.isHasRules()) {
-                                    applicator.applyImperativeRulesHybrid(pluginIdStr, pluginInstance);
-                                } else {
-                                    applicator.applyImperative(pluginIdStr, pluginInstance);
-                                }
-
-                                // Important not to add until after it has been applied as there can be
-                                // plugins.withType() callbacks waiting to build on what the plugin did
-                                pluginContainer.add(pluginInstance);
-                            } else {
-                                applicator.applyRules(pluginIdStr, pluginClass);
-                            }
-
-                            adder.run();
+                        if (plugin.isHasRules()) {
+                            applicator.applyImperativeRulesHybrid(pluginIdStr, pluginInstance);
+                        } else {
+                            applicator.applyImperative(pluginIdStr, pluginInstance);
                         }
-                    });
+
+                        // Important not to add until after it has been applied as there can be
+                        // plugins.withType() callbacks waiting to build on what the plugin did
+                        pluginContainer.add(pluginInstance);
+                    } else {
+                        applicator.applyRules(pluginIdStr, pluginClass);
+                    }
+
+                    adder.run();
                 }
             }
         } catch (PluginApplicationException e) {
