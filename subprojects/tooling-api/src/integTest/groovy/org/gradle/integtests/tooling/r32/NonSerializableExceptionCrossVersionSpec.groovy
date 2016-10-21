@@ -81,21 +81,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @TargetGradleVersion(">=1.8")
-    def "returns proper error message when non-serializable Exception is thrown while executing a broken build action"() {
-        when:
-        withConnection { connection ->
-            connection.action(new CheckedExceptionBrokenBuildAction()).run()
-        }
-
-        then:
-        def e = thrown(GradleConnectionException)
-        def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains(NotSerializableException.getName())
-        exceptionString.contains("Caused by: ${CheckedExceptionBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
-    }
-
-    @Issue("GRADLE-3307")
     @TargetGradleVersion(">=3.2")
     def "returns proper error message when non-serializable RuntimeException is thrown while executing a broken build action"() {
         when:
