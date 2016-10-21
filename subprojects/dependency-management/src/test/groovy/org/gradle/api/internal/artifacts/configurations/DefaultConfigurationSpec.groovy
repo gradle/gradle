@@ -19,7 +19,18 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationRole
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.FileCollectionDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -38,6 +49,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.api.artifacts.Configuration.State.*
 import static org.hamcrest.Matchers.equalTo
@@ -74,7 +86,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.displayName == "configuration 'path'"
         configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
-        configuration.role == ConfigurationRole.FOR_BUILDING_ONLY
+        configuration.role == ConfigurationRole.FOR_BUILDING_OR_PUBLISHING
     }
 
     def hasUsefulDisplayName() {
@@ -102,13 +114,17 @@ class DefaultConfigurationSpec extends Specification {
         !configuration.transitive
     }
 
+    @Unroll("can set the configuration role to #role")
     def "can set the configuration role"() {
         when:
         def configuration = conf("name", "path")
-        configuration.role = ConfigurationRole.FOR_BUILDING_OR_PUBLISHING
+        configuration.role = role
 
         then:
-        configuration.role == ConfigurationRole.FOR_BUILDING_OR_PUBLISHING
+        configuration.role == role
+
+        where:
+        role << ConfigurationRole.values().toList()
     }
 
     def "can set the configuration role using short-hand notation"() {

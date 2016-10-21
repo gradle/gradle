@@ -49,11 +49,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':b') {
                 configurations {
                     foo {
-                        forPublishingOnly()
                         attributes(buildType: 'debug', flavor: 'free')
                     }
                     bar {
-                        forPublishingOnly()
                         attributes(buildType: 'release', flavor: 'free')
                     }
                 }
@@ -114,9 +112,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 task fooJar(type: Jar) {
@@ -178,12 +174,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compile
                     foo {
-                       forPublishingOnly()
                        extendsFrom compile
                        attributes(buildType: 'debug', flavor: 'free')
                     }
                     bar {
-                       forPublishingOnly()
                        extendsFrom compile
                        attributes(buildType: 'release', flavor: 'free')
                     }
@@ -247,12 +241,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compile
                     foo {
-                       forPublishingOnly()
                        extendsFrom compile
                        attributes(buildType: 'debug', flavor: 'free')
                     }
                     bar {
-                       forPublishingOnly()
                        extendsFrom compile
                        attributes(buildType: 'release', flavor: 'free')
                     }
@@ -316,8 +308,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.forPublishingOnly()
-                    bar.forPublishingOnly()
+                    foo
+                    bar
                     create 'default'
                 }
                 task fooJar(type: Jar) {
@@ -363,11 +355,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     create 'default'
                     foo {
-                       forPublishingOnly()
                        attributes(buildType: 'debug') // partial match on `buildType`
                     }
                     bar {
-                       forPublishingOnly()
                        attributes(flavor: 'free') // partial match on `flavor`
                     }
                 }
@@ -418,11 +408,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':b') {
                 configurations {
                     foo {
-                       forPublishingOnly()
                        attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
                     }
                     bar {
-                       forPublishingOnly()
                        attributes(flavor: 'free')
                     }
                 }
@@ -471,9 +459,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'debug')
                 }
                 task fooJar(type: Jar) {
@@ -517,11 +503,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':b') {
                 configurations {
                     foo {
-                       forPublishingOnly()
                        attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
                     }
                     bar {
-                      forPublishingOnly()
                       attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
                     }
                 }
@@ -632,9 +616,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 dependencies {
@@ -722,9 +704,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':c') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 task fooJar(type: Jar) {
@@ -799,9 +779,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':c') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 task fooJar(type: Jar) {
@@ -879,9 +857,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
             configurations {
-                foo.forPublishingOnly()
                 foo.attributes(buildType: 'debug', flavor: 'free')
-                bar.forPublishingOnly()
                 bar.attributes(buildType: 'release', flavor: 'free')
             }
             task fooJar(type: Jar) {
@@ -940,9 +916,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
                 }
                 dependencies {
@@ -962,13 +936,9 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':c') {
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
-                    foo2.forPublishingOnly()
                     foo2.attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra')
-                    bar2.forPublishingOnly()
                     bar2.attributes(buildType: 'release', flavor: 'free', extra: 'extra 2')
                 }
                 task fooJar(type: Jar) {
@@ -1046,9 +1016,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             project(':c') {
                 repositories { jcenter() }
                 configurations {
-                    foo.forPublishingOnly()
                     foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.forPublishingOnly()
                     bar.attributes(buildType: 'release', flavor: 'free')
                 }
                 dependencies {
@@ -1091,6 +1059,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    compileFreeDebug.forBuildingOnly()
+                    compileFreeRelease.forBuildingOnly()
                 }
                 dependencies {
                     compileFreeDebug project(':b')
@@ -1112,13 +1082,13 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     // configurations used when resolving
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    compileFreeDebug.forBuildingOnly()
+                    compileFreeRelease.forBuildingOnly()
                     // configurations used when selecting dependencies
                     _compileFreeDebug {
-                        forPublishingOnly()
                         attributes(buildType: 'debug', flavor: 'free')
                     }
                     _compileFreeRelease {
-                        forPublishingOnly()
                         attributes(buildType: 'release', flavor: 'free')
                     }
                 }

@@ -130,7 +130,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
-    private ConfigurationRole role = ConfigurationRole.FOR_BUILDING_ONLY;
+    private ConfigurationRole role = ConfigurationRole.FOR_BUILDING_OR_PUBLISHING;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,

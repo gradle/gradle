@@ -469,7 +469,7 @@ public interface Configuration extends FileCollection {
     void setRole(ConfigurationRole role);
 
     /**
-     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#FOR_BUILDING_ONLY}
+     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#FOR_BUILDING_OR_PUBLISHING}
      * @return the role of this configuration.
      */
     @Incubating
