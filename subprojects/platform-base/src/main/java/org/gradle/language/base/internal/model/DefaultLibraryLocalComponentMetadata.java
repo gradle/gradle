@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
@@ -82,8 +81,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 Collections.singleton(usage),
                 true,
                 true,
-                null,
-                new DefaultTaskDependency());
+                null);
         }
         return metaData;
     }

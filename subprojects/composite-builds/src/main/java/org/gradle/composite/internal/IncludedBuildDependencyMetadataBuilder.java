@@ -26,7 +26,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -77,7 +76,7 @@ public class IncludedBuildDependencyMetadataBuilder {
             LocalConfigurationMetadata originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);
             compositeComponentMetadata.addConfiguration(configurationName,
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
-                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes(), new DefaultTaskDependency());
+                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes());
 
             final Set<String> targetTasks = determineTargetTasks(originalConfiguration);
 

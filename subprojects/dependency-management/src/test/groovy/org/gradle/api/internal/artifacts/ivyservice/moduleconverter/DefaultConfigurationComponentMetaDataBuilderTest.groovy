@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata
@@ -58,8 +57,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         converter.addConfigurations(metaData, [config1, config2])
 
         then:
-        _ * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, [:], _ as TaskDependency)
-        _ * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, [:], _ as TaskDependency)
+        _ * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, [:])
+        _ * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, [:])
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._

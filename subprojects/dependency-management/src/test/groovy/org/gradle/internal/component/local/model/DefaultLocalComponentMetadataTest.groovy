@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -39,12 +38,11 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
     def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status")
-    def taskDep = new DefaultTaskDependency()
 
     def "can lookup configuration after it has been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, taskDep)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, taskDep)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null)
 
         then:
         metadata.configurationNames == ['conf', 'super'] as Set
@@ -110,12 +108,14 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = []) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, taskDep)
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null)
     }
 
-    def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = taskDep) {
+    def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
         PublishArtifact publishArtifact = new DefaultPublishArtifact(name.name, name.extension, name.type, name.classifier, new Date(), file)
-        publishArtifact.builtBy(buildDeps)
+        if (buildDeps != null) {
+            publishArtifact.builtBy(buildDeps)
+        }
         addArtifact(configuration, publishArtifact)
     }
 
@@ -309,8 +309,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, Stub(TaskDependency))
-        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, Stub(TaskDependency))
+        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null)
+        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null)
 
         def rule1 = new DefaultExclude("group1", "module1", ["compile"] as String[], PatternMatchers.EXACT)
         def rule2 = new DefaultExclude("group1", "module1", ["runtime"] as String[], PatternMatchers.EXACT)
