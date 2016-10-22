@@ -1,6 +1,5 @@
 package org.gradle.sample
 
-import org.gradle.sample.impl.{JavaPerson, PersonImpl}
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
@@ -9,12 +8,12 @@ import org.scalatest.junit.JUnitRunner
 class PersonSpec extends FunSpec {
   describe("create a person") {
     it("should succeed for scala") {
-      val person: Person = new PersonImpl("bob smith")
+      val person: PersonLike = new Person("bob smith")
       person
     }
 
     it("should succeed for java") {
-      val person: Person = new JavaPerson("alice smith")
+      val person: PersonLike = new JavaPerson("alice smith")
       person
     }
   }
