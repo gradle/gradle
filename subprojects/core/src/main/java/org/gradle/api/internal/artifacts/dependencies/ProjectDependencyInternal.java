@@ -27,7 +27,7 @@ public interface ProjectDependencyInternal extends ProjectDependency {
     /**
      * This method is called when the project dependency is resolved
      */
-    public void beforeResolved();
+    void beforeResolved();
 
     TaskDependencyInternal getTaskDependency(Map<String, String> attributes);
 

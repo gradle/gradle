@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileSystemSubset;
 
 /**
@@ -22,12 +24,18 @@ import org.gradle.api.internal.file.FileSystemSubset;
  * repository.
  */
 public interface FileCollectionDependency extends SelfResolvingDependency {
+    /**
+     * Returns the files attached to this dependency.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    FileCollection getFiles();
 
     /**
      * Registers locations to watch for this dependency.
-     * @deprecated No replacement
+     * @deprecated Use {@link #getFiles()} instead.
      */
     @Deprecated
     void registerWatchPoints(FileSystemSubset.Builder builder);
-
 }

@@ -55,6 +55,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -317,7 +318,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return fileCollection(Specs.SATISFIES_ALL).getFiles();
+        return fileCollection(Specs.<Dependency>satisfyAll()).getFiles();
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -704,7 +705,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         for (Dependency dependency : allDependencies) {
             if (dependency instanceof FileCollectionDependency) {
-                ((FileCollectionDependency) dependency).registerWatchPoints(builder);
+                FileCollection files = ((FileCollectionDependency) dependency).getFiles();
+                ((FileCollectionInternal) files).registerWatchPoints(builder);
             }
         }
         super.registerWatchPoints(builder);

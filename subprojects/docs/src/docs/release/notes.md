@@ -45,7 +45,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Deprecated methods
 
-* `FileCollectionDependency.registerWatchPoints()` is deprecated.
+* `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
 
 ## Potential breaking changes
 
