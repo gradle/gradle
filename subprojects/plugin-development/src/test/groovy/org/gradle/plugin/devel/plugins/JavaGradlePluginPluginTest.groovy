@@ -171,7 +171,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         project.configurations
             .getByName(JavaGradlePluginPlugin.COMPILE_CONFIGURATION)
             .dependencies.find {
-            it.source.files == project.dependencies.gradleApi().source.files
+            it.files == project.dependencies.gradleApi().files
         }
     }
 

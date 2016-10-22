@@ -145,7 +145,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
         assert project.configurations
                 .getByName(testSourceSet.compileConfigurationName)
                 .dependencies.find {
-            it.source.files == project.dependencies.gradleTestKit().source.files
+            it.files == project.dependencies.gradleTestKit().files
         }
     }
 
@@ -153,7 +153,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
         project.configurations
                 .getByName(testSourceSet.runtimeConfigurationName)
                 .dependencies.find {
-            it.source.files.containsAll(pluginClasspathManifestTask.outputs.files.files)
+            it.files.containsAll(pluginClasspathManifestTask.outputs.files)
         }
     }
 
