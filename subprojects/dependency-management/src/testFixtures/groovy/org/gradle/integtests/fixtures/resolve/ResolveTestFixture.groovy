@@ -83,35 +83,52 @@ allprojects {
         def configDetailsFile = buildFile.parentFile.file("build/${config}.txt")
         def configDetails = configDetailsFile.text.readLines()
 
-        def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
+        def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot == expectedRoot
 
-        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
+        def actualFirstLevel = findLines(configDetails, 'first-level')
         def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
 
-        def actualConfigurations = configDetails.findAll { it.startsWith('configuration:') }.collect { it.substring(14) } as Set
+        def actualConfigurations = findLines(configDetails, 'configuration') as Set
         def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]" }
         compare("configurations in graph", actualConfigurations, expectedConfigurations)
 
-        def actualComponents = configDetails.findAll { it.startsWith('component:') }.collect { it.substring(10) }
+        def actualComponents = findLines(configDetails, 'component')
         def expectedComponents = graph.nodes.collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
         compare("components in graph", actualComponents, expectedComponents)
 
-        def actualEdges = configDetails.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
+        def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
-        def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
+        def actualArtifacts = findLines(configDetails, 'artifact')
         compare("artifacts", actualArtifacts, expectedArtifacts)
 
         if (buildArtifacts) {
-            def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
             def expectedFiles = graph.root.files + graph.artifactNodes.collect { it.fileName }
+
+            def actualFiles = findLines(configDetails, 'file')
             compare("files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-incoming')
+            compare("incoming.files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-filtered')
+            compare("filtered files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-collection-filtered')
+            compare("filtered FileCollection", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-resolved-config')
+            compare("resolved configuration files", actualFiles, expectedFiles)
         }
+    }
+
+    List<String> findLines(List<String> lines, String prefix) {
+        return lines.findAll { it.startsWith(prefix + ":") }.collect { it.substring(prefix.length() + 1) }
     }
 
     void compare(String compType, Collection<String> actual, Collection<String> expected) {
@@ -120,7 +137,7 @@ allprojects {
         Assert.assertEquals("Result contains unexpected $compType", expectedFormatted, actualFormatted)
     }
 
-    public static class GraphBuilder {
+    static class GraphBuilder {
         private final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
         private NodeBuilder root
 
@@ -243,7 +260,7 @@ allprojects {
         }
     }
 
-    public static class EdgeBuilder {
+    static class EdgeBuilder {
         final String requested
         final NodeBuilder from
         NodeBuilder selected
@@ -260,7 +277,7 @@ allprojects {
         }
     }
 
-    public static class ExpectedArtifact {
+    static class ExpectedArtifact {
         String group
         String module
         String version
@@ -289,7 +306,7 @@ allprojects {
         }
     }
 
-    public static class NodeBuilder {
+    static class NodeBuilder {
         final List<EdgeBuilder> deps = []
         private final GraphBuilder graph
         final String id
@@ -447,7 +464,7 @@ allprojects {
     }
 }
 
-public class GenerateGraphTask extends DefaultTask {
+class GenerateGraphTask extends DefaultTask {
     File outputFile
     Configuration configuration
     boolean buildArtifacts
@@ -475,6 +492,18 @@ public class GenerateGraphTask extends DefaultTask {
             if (buildArtifacts) {
                 configuration.files.each {
                     writer.println("file:${it.name}")
+                }
+                configuration.incoming.files.each {
+                    writer.println("file-incoming:${it.name}")
+                }
+                configuration.files { true }.each {
+                    writer.println("file-filtered:${it.name}")
+                }
+                configuration.fileCollection { true }.each {
+                    writer.println("file-collection-filtered:${it.name}")
+                }
+                configuration.resolvedConfiguration.getFiles { true }.each {
+                    writer.println("file-resolved-config:${it.name}")
                 }
             }
         }
