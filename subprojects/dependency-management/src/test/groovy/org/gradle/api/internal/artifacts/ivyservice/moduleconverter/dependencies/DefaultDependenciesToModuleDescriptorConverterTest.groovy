@@ -27,8 +27,6 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
 import spock.lang.Specification
 
-import static org.gradle.util.WrapUtil.toDomainObjectSet
-
 class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
     def dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
