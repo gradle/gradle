@@ -20,9 +20,7 @@ allprojects {
 subprojects {
     tasks.withType<KotlinCompile> {
         println("Configuring ${name} in project ${project.name}...")
-        kotlinOptions {
-            suppressWarnings = true
-        }
+        kotlinOptions.suppressWarnings = true
     }
 }
 
