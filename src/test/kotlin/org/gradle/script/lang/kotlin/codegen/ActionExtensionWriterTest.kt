@@ -127,7 +127,7 @@ Lorem ipsum.
         assertThat(
             extensionsFor(
                 classNodeOf<PluginContainer>(),
-                kDocProvider).let { normaliseLineSeparators(it) },
+                kDocProvider).let(::normaliseLineSeparators),
             endsWith("""
 /**
  * Lorem ipsum.

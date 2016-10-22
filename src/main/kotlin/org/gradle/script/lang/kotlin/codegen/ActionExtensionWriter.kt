@@ -84,7 +84,7 @@ import org.gradle.api.Action
 
         val kDoc = kDocFor(className, method, parameterTypeNames)
         val parameterNames = kDoc?.parameterNames ?: (0..parameterTypeNames.size).map { "p$it" }
-        val parameters = parameterNames.zip(parameterTypeNames, { n, t -> Parameter(n, t) })
+        val parameters = parameterNames.zip(parameterTypeNames, ::Parameter)
 
         // extension declaration
         writeKDocFor(className, method, kDoc)
@@ -161,7 +161,7 @@ import org.gradle.api.Action
             .asSequence()
             .filterIsInstance<MethodNode>()
             .map { MethodDescriptor(it.name, it.signature ?: it.desc, it.access) }
-            .filter { conflictsWithExtension(it) }
+            .filter(::conflictsWithExtension)
 
     private fun write(text: String) = writer.write(text)
 }
