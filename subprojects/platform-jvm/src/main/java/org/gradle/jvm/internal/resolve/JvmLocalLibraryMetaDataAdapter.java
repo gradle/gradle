@@ -124,8 +124,8 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
             // - there's no such thing as a "stubbed classes assembly"
             // - for performance reasons only the classes that belong to the API are stubbed, so we would miss the classes that do not belong to the API
             // So this makes the UsageKind.API misleading (should this be COMPILE?).
-            addArtifact(UsageKind.API, assembly.getClassDirectories(), artifacts);
-            addArtifact(UsageKind.RUNTIME, Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()), artifacts);
+            addArtifact(UsageKind.API, assembly.getClassDirectories(), artifacts, assembly);
+            addArtifact(UsageKind.RUNTIME, Sets.union(assembly.getClassDirectories(), assembly.getResourceDirectories()), artifacts, assembly);
         }
     }
 
@@ -142,10 +142,12 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         artifacts.get(usage).add(publishArtifact);
     }
 
-    private static void addArtifact(UsageKind usage, Set<File> directories, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
+    private static void addArtifact(UsageKind usage, Set<File> directories, EnumMap<UsageKind, List<PublishArtifact>> artifacts, JvmAssembly assembly) {
         List<PublishArtifact> publishArtifacts = artifacts.get(usage);
         for (File dir : directories) {
-            publishArtifacts.add(new DefaultPublishArtifact("assembly", "", "", "", new Date(dir.lastModified()), dir));
+            DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact("assembly", "", "", "", new Date(dir.lastModified()), dir);
+            publishArtifact.builtBy(assembly);
+            publishArtifacts.add(publishArtifact);
         }
     }
 
