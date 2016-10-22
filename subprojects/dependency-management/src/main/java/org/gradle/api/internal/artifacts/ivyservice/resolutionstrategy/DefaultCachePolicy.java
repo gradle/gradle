@@ -207,11 +207,27 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
 
         public void cacheFor(int value, TimeUnit units) {
             long timeoutMillis = TimeUnit.MILLISECONDS.convert(value, units);
-            if (ageMillis <= timeoutMillis) {
-                setMustCheck(false);
-            } else {
+
+            // If timeout == 0 then check any entry that isn't from the current build.
+            // This handles the obscure case where entry age < 0 since the clock has shifted backward since the entry was written.
+            if (timeoutMillis == 0 && !cachedEntryIsFromCurrentBuild()) {
                 setMustCheck(true);
+            } else if (cachedEntryIsOlderThan(timeoutMillis)) {
+                setMustCheck(true);
+            } else {
+                setMustCheck(false);
             }
+        }
+
+        /**
+         * If the entry was created in the current build, then it's age will always be zero (since we always use the build-started clock for comparisons).
+         */
+        private boolean cachedEntryIsFromCurrentBuild() {
+            return ageMillis == 0;
+        }
+
+        private boolean cachedEntryIsOlderThan(long millis) {
+            return ageMillis > millis;
         }
 
         public void useCachedResult() {
