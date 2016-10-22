@@ -19,10 +19,11 @@ import org.gradle.internal.TimeProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(JMock.class)
 public class ClockTest {
@@ -80,7 +81,7 @@ public class ClockTest {
 
     private void returnFromTimeProvider(final long time) {
         context.checking(new Expectations(){{
-            one(timeProvider).getCurrentTime();
+            one(timeProvider).getCurrentTimeForDuration();
             will(returnValue(time));
         }});
     }

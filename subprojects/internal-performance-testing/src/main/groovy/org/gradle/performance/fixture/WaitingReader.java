@@ -16,6 +16,9 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
@@ -35,6 +38,7 @@ public class WaitingReader {
     private final BufferedReader reader;
     private final int timeoutMs;
     private final int clockTick;
+    private final TimeProvider timeProvider = new TrueTimeProvider();
 
     //for testing
     int retriedCount;
@@ -50,13 +54,13 @@ public class WaitingReader {
     }
 
     String readLine() throws IOException {
-        long upTo = System.currentTimeMillis() + timeoutMs;
+        long upTo = timeProvider.getCurrentTimeForDuration() + timeoutMs;
         reader.mark(READAHEAD_BUFFER_SIZE);
         int character = EOF;
         while (character != NEW_LINE && character != CARRIAGE_RETURN) {
             character = reader.read();
             if (character == EOF) {
-                if (System.currentTimeMillis() >= upTo) {
+                if (timeProvider.getCurrentTimeForDuration() >= upTo) {
                     break;
                 }
                 try {

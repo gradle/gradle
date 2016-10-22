@@ -20,6 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -46,6 +48,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
+    private final TimeProvider timeProvider = new TrueTimeProvider();
     private final Condition condition = lock.newCondition();
     private final long cancelTimeoutMs;
 
@@ -242,7 +245,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void cancelNow() {
-        long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
+        long waitUntil = timeProvider.getCurrentTimeForDuration() + cancelTimeoutMs;
         Date expiry = new Date(waitUntil);
 
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
@@ -254,7 +257,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
         lock.lock();
         try {
-            while (System.currentTimeMillis() < waitUntil) {
+            while (timeProvider.getCurrentTimeForDuration() < waitUntil) {
                 try {
                     switch (state) {
                         case Idle:
@@ -420,7 +423,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void updateActivityTimestamp() {
-        long now = System.currentTimeMillis();
+        long now = timeProvider.getCurrentTimeForDuration();
         LOGGER.debug("updating lastActivityAt to {}", now);
         lastActivityAt = now;
     }
@@ -428,7 +431,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private double getIdleMinutes() {
         lock.lock();
         try {
-            return (System.currentTimeMillis() - lastActivityAt) / 1000 / 60;
+            return (timeProvider.getCurrentTimeForDuration() - lastActivityAt) / 1000 / 60;
         } finally {
             lock.unlock();
         }

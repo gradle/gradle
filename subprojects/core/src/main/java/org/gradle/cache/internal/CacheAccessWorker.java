@@ -19,6 +19,8 @@ package org.gradle.cache.internal;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.Stoppable;
@@ -44,6 +46,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private boolean stopSeen;
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
+    private final TimeProvider timeProvider = new TrueTimeProvider();
 
     CacheAccessWorker(String displayName, CacheAccess cacheAccess) {
         this.displayName = displayName;
@@ -172,7 +175,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             cacheAccess.useCache("CacheAccessWorker flushing operations", new Runnable() {
                 @Override
                 public void run() {
-                    long lockingStarted = System.currentTimeMillis();
+                    long lockingStarted = timeProvider.getCurrentTimeForDuration();
                     if (updateOperation != null) {
                         failureHandler.onExecute(updateOperation);
                     }
@@ -189,7 +192,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                             }
                             if (runnableClass == ShutdownOperationsCommand.class
                                     || runnableClass == FlushOperationsCommand.class
-                                    || maximumLockingTimeMillis > 0L && System.currentTimeMillis() - lockingStarted > maximumLockingTimeMillis) {
+                                    || maximumLockingTimeMillis > 0L && timeProvider.getCurrentTimeForDuration() - lockingStarted > maximumLockingTimeMillis) {
                                 break;
                             }
                         }

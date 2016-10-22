@@ -598,14 +598,6 @@ model {
         return toolChain.meets(ToolChainRequirement.GCC) && (sourceType == "C" || sourceType == "Cpp")
     }
 
-    private void maybeWait() {
-        if (toolChain.visualCpp) {
-            def now = System.currentTimeMillis()
-            def nextSecond = now % 1000
-            Thread.sleep(1200 - nextSecond)
-        }
-    }
-
     static boolean rename(TestFile sourceFile) {
         final newFile = new File(sourceFile.getParentFile(), "changed_${sourceFile.name}")
         newFile << sourceFile.text

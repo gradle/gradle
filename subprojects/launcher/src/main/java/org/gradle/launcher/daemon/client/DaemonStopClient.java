@@ -20,6 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -50,6 +52,7 @@ public class DaemonStopClient {
     private final DaemonConnector connector;
     private final IdGenerator<?> idGenerator;
     private final StopDispatcher stopDispatcher;
+    private final TimeProvider timeProvider = new TrueTimeProvider();
 
     public DaemonStopClient(DaemonConnector connector, IdGenerator<?> idGenerator) {
         this.connector = connector;
@@ -80,7 +83,7 @@ public class DaemonStopClient {
      * Stops all daemons, blocking until all have completed.
      */
     public void stop() {
-        long start = System.currentTimeMillis();
+        long start = timeProvider.getCurrentTimeForDuration();
         long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
         final Set<String> seen = new HashSet<String>();
 
@@ -106,7 +109,7 @@ public class DaemonStopClient {
 
         //iterate and stop all daemons
         int numStopped = 0;
-        while (connection != null && System.currentTimeMillis() < expiry) {
+        while (connection != null && timeProvider.getCurrentTimeForDuration() < expiry) {
             try {
                 seen.add(connection.getDaemon().getUid());
                 LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
@@ -125,7 +128,7 @@ public class DaemonStopClient {
         }
 
         if (connection != null) {
-            throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s seconds.", (System.currentTimeMillis() - start) / 1000));
+            throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s seconds.", (timeProvider.getCurrentTimeForDuration() - start) / 1000));
         }
     }
 }

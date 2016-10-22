@@ -16,6 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -40,7 +41,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final ListenerManager listenerManager = globalServices.get(ListenerManager)
     final ProgressLoggerFactory progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry)
+    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry, new TrueTimeProvider());
 
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)

@@ -16,15 +16,17 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.util.GradleVersion
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
 
 class LegacyDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
 
     LegacyDaemon(File daemonLog, String version) {
         super(daemonLog)
+        timeProvider = new TrueTimeProvider()
         if (GradleVersion.version(version).baseVersion >= GradleVersion.version("2.2")) {
             logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
         } else {
@@ -33,9 +35,9 @@ class LegacyDaemon extends AbstractDaemonFixture {
     }
 
     protected void waitForState(State state) {
-        def expiry = System.currentTimeMillis() + STATE_CHANGE_TIMEOUT
+        def expiry = timeProvider.getCurrentTimeForDuration() + STATE_CHANGE_TIMEOUT
         def lastLogState = logFileProbe.currentState
-        while (expiry > System.currentTimeMillis() && lastLogState != state) {
+        while (expiry > timeProvider.getCurrentTimeForDuration() && lastLogState != state) {
             Thread.sleep(200)
             lastLogState = logFileProbe.currentState
         }

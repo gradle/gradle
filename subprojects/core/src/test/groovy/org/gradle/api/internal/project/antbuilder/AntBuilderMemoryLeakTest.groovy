@@ -21,6 +21,8 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.TimeProvider
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
 import spock.lang.Ignore
@@ -39,6 +41,9 @@ class AntBuilderMemoryLeakTest extends Specification {
 
     @Shared
     private DefaultClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory()
+
+    @Shared
+    private TimeProvider timeProvider = new TrueTimeProvider()
 
     def "should release cache when cleanup is called"() {
         classLoaderFactory = new DefaultClassLoaderFactory()
@@ -71,9 +76,9 @@ class AntBuilderMemoryLeakTest extends Specification {
         when:
         int i = 0
         // time out after 10 minutes
-        long maxTime = System.currentTimeMillis() + 10 * 60 * 1000
+        long maxTime = timeProvider.getCurrentTimeForDuration() + 10 * 60 * 1000
         try {
-            while (System.currentTimeMillis() < maxTime) {
+            while (timeProvider.getCurrentTimeForDuration() < maxTime) {
                 builder.withClasspath([new File("foo$i")]).execute {
 
                 }

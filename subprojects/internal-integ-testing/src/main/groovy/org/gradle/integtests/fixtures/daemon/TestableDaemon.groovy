@@ -31,10 +31,10 @@ class TestableDaemon extends AbstractDaemonFixture {
     }
 
     protected void waitForState(State state) {
-        def expiry = System.currentTimeMillis() + STATE_CHANGE_TIMEOUT
+        def expiry = timeProvider.getCurrentTimeForDuration() + STATE_CHANGE_TIMEOUT
         def lastRegistryState = registryProbe.currentState
         def lastLogState = logFileProbe.currentState
-        while (expiry > System.currentTimeMillis() && (lastRegistryState != state || lastLogState != state)) {
+        while (expiry > timeProvider.getCurrentTimeForDuration() && (lastRegistryState != state || lastLogState != state)) {
             Thread.sleep(200)
             lastRegistryState = registryProbe.currentState
             lastLogState = logFileProbe.currentState

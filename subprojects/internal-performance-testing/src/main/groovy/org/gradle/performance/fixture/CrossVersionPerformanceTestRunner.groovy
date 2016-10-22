@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.TimeProvider
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
@@ -46,6 +48,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
     final ReleasedVersionDistributions releases
+    final TimeProvider timeProvider = new TrueTimeProvider()
 
     String testProject
     File workingDir
@@ -99,7 +102,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            startTime: System.currentTimeMillis(),
+            startTime: timeProvider.getCurrentTimeForDuration(),
             channel: ResultsStoreHelper.determineChannel()
         )
 
@@ -112,7 +115,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
         }
 
-        results.endTime = System.currentTimeMillis()
+        results.endTime = timeProvider.getCurrentTimeForDuration()
 
         results.assertEveryBuildSucceeds()
 

@@ -21,4 +21,5 @@ public interface TimeProvider extends Serializable {
 
     long getCurrentTime();
 
+    long getCurrentTimeForDuration();
 }
