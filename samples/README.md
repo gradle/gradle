@@ -29,14 +29,9 @@ Version 2016.1.2 or better is required, and can be downloaded from https://www.j
 
 ### Install IDEA Kotlin Plugin
 
-_Note: the specific version of the Kotlin plugin matters. If you intend to use the plugin with the official Gradle 3.0 release stick to the Early Access Preview 1.1 channel version otherwise follow the instructions below regardless the version you already have installed._
+_Note: the specific version of the Kotlin plugin matters._
 
-All the samples should work against the latest Kotlin plugin from the _Early Access Preview 1.1_ channel accessible via the _Configure Kotlin Plugin Updates_ action in IDEA but for the latest and greatest support please install the development version by following these instructions:
-
- 1. Download the plugin from https://teamcity.jetbrains.com/guestAuth/repository/download/bt345/837716:id/kotlin-plugin-1.1.0-dev-2222.zip (_Note: this version will not work with the official Gradle 3.0 release, stick to the official EAP 1.1 from JetBrains if you intend to use Gradle 3.0_)
- 2. In IDEA, Go to `Preferences->Plugins->Install from disk`
- 3. Install the plugin and restart IDEA
-
+All the samples should work against the latest Kotlin plugin, _1.1-M02-12_ at the time of this writing, from the _Early Access Preview 1.1_ channel accessible via the _Configure Kotlin Plugin Updates_ action.
 
 Set up a sample project
 -----------------------
