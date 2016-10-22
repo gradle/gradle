@@ -223,7 +223,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         projectDependency.resolve(context)
 
         then:
-        1 * context.add({ it.source.files*.name == [expectedJar] })
+        1 * context.add({ it.files*.name == [expectedJar] })
 
         where:
         queryAttributes         | expectedJar
