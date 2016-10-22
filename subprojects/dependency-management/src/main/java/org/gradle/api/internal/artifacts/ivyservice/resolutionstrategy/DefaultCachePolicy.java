@@ -194,8 +194,19 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         private AbstractResolutionControl(A request, B cachedResult, long ageMillis) {
             this.request = request;
             this.cachedResult = cachedResult;
-            this.ageMillis = ageMillis;
+            this.ageMillis = correctForClockShift(ageMillis);
         }
+
+        /**
+         * If the age < 0, then it's probable that we've had a clock shift. In this case, treat the age as 1ms.
+         */
+        private long correctForClockShift(long ageMillis) {
+            if (ageMillis < 0) {
+                return 1;
+            }
+            return ageMillis;
+        }
+
 
         public A getRequest() {
             return request;
@@ -206,28 +217,12 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         }
 
         public void cacheFor(int value, TimeUnit units) {
-            long timeoutMillis = TimeUnit.MILLISECONDS.convert(value, units);
-
-            // If timeout == 0 then check any entry that isn't from the current build.
-            // This handles the obscure case where entry age < 0 since the clock has shifted backward since the entry was written.
-            if (timeoutMillis == 0 && !cachedEntryIsFromCurrentBuild()) {
-                setMustCheck(true);
-            } else if (cachedEntryIsOlderThan(timeoutMillis)) {
+            long expiryMillis = TimeUnit.MILLISECONDS.convert(value, units);
+            if (ageMillis > expiryMillis) {
                 setMustCheck(true);
             } else {
                 setMustCheck(false);
             }
-        }
-
-        /**
-         * If the entry was created in the current build, then it's age will always be zero (since we always use the build-started clock for comparisons).
-         */
-        private boolean cachedEntryIsFromCurrentBuild() {
-            return ageMillis == 0;
-        }
-
-        private boolean cachedEntryIsOlderThan(long millis) {
-            return ageMillis > millis;
         }
 
         public void useCachedResult() {
