@@ -21,11 +21,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -169,7 +171,14 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         @Override
         public TaskDependency getDirectBuildDependencies() {
-            return buildDependencies;
+            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+            taskDependency.add(buildDependencies);
+            for (ComponentArtifactMetadata artifact : getArtifacts()) {
+                if (artifact instanceof Buildable) {
+                    taskDependency.add(artifact);
+                }
+            }
+            return taskDependency;
         }
 
         public String getDescription() {

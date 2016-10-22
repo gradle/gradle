@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
@@ -27,28 +29,19 @@ import org.gradle.api.tasks.TaskDependency;
  */
 public class DirectBuildDependencies extends AbstractTaskDependency {
     private final DependencySet dependencies;
-    private final PublishArtifactSet publishArtifacts;
 
     public static TaskDependency forDependenciesOnly(Configuration configuration) {
-        return new DirectBuildDependencies(configuration.getAllDependencies(), null);
+        return new DirectBuildDependencies(configuration.getAllDependencies());
     }
 
-    public static TaskDependency forDependenciesAndArtifacts(Configuration configuration) {
-        return new DirectBuildDependencies(configuration.getAllDependencies(), configuration.getAllArtifacts());
-    }
-
-    private DirectBuildDependencies(DependencySet dependencies, PublishArtifactSet artifacts) {
+    private DirectBuildDependencies(DependencySet dependencies) {
         this.dependencies = dependencies;
-        this.publishArtifacts = artifacts;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         for (FileCollectionDependency dependency : dependencies.withType(FileCollectionDependency.class)) {
             context.add(dependency);
-        }
-        if (publishArtifacts != null) {
-            context.add(publishArtifacts);
         }
     }
 }

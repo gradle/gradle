@@ -21,8 +21,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JarFile;
@@ -52,24 +50,23 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     @SuppressWarnings("unchecked")
     public DefaultLibraryLocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly) {
         EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<UsageKind, Iterable<DependencySpec>>(UsageKind.class);
-        EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage = new EnumMap<UsageKind, TaskDependency>(UsageKind.class);
         EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<UsageKind, List<PublishArtifact>>(UsageKind.class);
-        initializeUsages(dependenciesPerUsage, buildDependenciesPerUsage, artifacts);
+        initializeUsages(dependenciesPerUsage, artifacts);
         if (selectedBinary instanceof JarBinarySpecInternal) {
             JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
-            createJarBinarySpecLocalComponentMetaData(artifacts, jarBinarySpec, dependenciesPerUsage, buildDependenciesPerUsage, toAssembly);
+            createJarBinarySpecLocalComponentMetaData(artifacts, jarBinarySpec, dependenciesPerUsage, toAssembly);
         }
         if (selectedBinary instanceof WithJvmAssembly) {
             // a local component that provides a JVM assembly
             JvmAssembly assembly = ((WithJvmAssembly) selectedBinary).getAssembly();
-            createJvmAssemblyLocalComponentMetaData(artifacts, assembly, dependenciesPerUsage, buildDependenciesPerUsage, toAssembly);
+            createJvmAssemblyLocalComponentMetaData(artifacts, assembly, dependenciesPerUsage, toAssembly);
         }
-        return createResolvedMetaData((BinarySpecInternal) selectedBinary, projectPath, dependenciesPerUsage, buildDependenciesPerUsage, artifacts);
+        return createResolvedMetaData((BinarySpecInternal) selectedBinary, projectPath, dependenciesPerUsage, artifacts);
     }
 
-    private DefaultLibraryLocalComponentMetadata createResolvedMetaData(BinarySpecInternal selectedBinary, String projectPath, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
+    private DefaultLibraryLocalComponentMetadata createResolvedMetaData(BinarySpecInternal selectedBinary, String projectPath, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
 
-        DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(selectedBinary.getId(), toStringMap(buildDependenciesPerUsage), toStringMap(dependenciesPerUsage), projectPath);
+        DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(selectedBinary.getId(), toStringMap(dependenciesPerUsage), projectPath);
         for (Map.Entry<UsageKind, List<PublishArtifact>> entry : artifacts.entrySet()) {
             UsageKind usage = entry.getKey();
             List<PublishArtifact> publishArtifacts = entry.getValue();
@@ -87,30 +84,25 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         return map;
     }
 
-    private void initializeUsages(EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
+    private void initializeUsages(EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
         for (UsageKind usageKind : UsageKind.values()) {
             dependenciesPerUsage.put(usageKind, Collections.<DependencySpec>emptyList());
-            buildDependenciesPerUsage.put(usageKind, new DefaultTaskDependency());
             artifacts.put(usageKind, new LinkedList<PublishArtifact>());
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void createJarBinarySpecLocalComponentMetaData(EnumMap<UsageKind, List<PublishArtifact>> artifacts, JarBinarySpecInternal jarBinarySpec, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage, boolean toAssembly) {
+    private void createJarBinarySpecLocalComponentMetaData(EnumMap<UsageKind, List<PublishArtifact>> artifacts, JarBinarySpecInternal jarBinarySpec, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, boolean toAssembly) {
         JarFile apiJar = jarBinarySpec.getApiJar();
         configureUsageMetadata(UsageKind.API,
-            toAssembly ? null : apiJar,
             jarBinarySpec.getApiDependencies(),
-            dependenciesPerUsage,
-            buildDependenciesPerUsage);
+            dependenciesPerUsage);
 
         JarFile runtimeJar = jarBinarySpec.getRuntimeJar();
         JvmLibrarySpec library = jarBinarySpec.getLibrary();
         configureUsageMetadata(UsageKind.RUNTIME,
-            toAssembly ? null : runtimeJar,
             library != null ? collectDependencies(jarBinarySpec, library, library.getDependencies().getDependencies(), jarBinarySpec.getApiDependencies()) : Collections.<DependencySpec>emptyList(),
-            dependenciesPerUsage,
-            buildDependenciesPerUsage);
+            dependenciesPerUsage);
 
         if (!toAssembly) {
             addArtifact(UsageKind.API, apiJar, artifacts);
@@ -119,17 +111,13 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
 
     }
 
-    private void createJvmAssemblyLocalComponentMetaData(EnumMap<UsageKind, List<PublishArtifact>> artifacts, JvmAssembly assembly, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage, boolean toAssembly) {
+    private void createJvmAssemblyLocalComponentMetaData(EnumMap<UsageKind, List<PublishArtifact>> artifacts, JvmAssembly assembly, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, boolean toAssembly) {
         configureUsageMetadata(UsageKind.API,
-            toAssembly ? assembly : null,
             Collections.<DependencySpec>emptyList(),
-            dependenciesPerUsage,
-            buildDependenciesPerUsage);
+            dependenciesPerUsage);
         configureUsageMetadata(UsageKind.RUNTIME,
-            toAssembly ? assembly : null,
             Collections.<DependencySpec>emptyList(),
-            dependenciesPerUsage,
-            buildDependenciesPerUsage);
+            dependenciesPerUsage);
         if (toAssembly) {
             // TODO:Cedric This is an approximation: when a component wants to compile against the assembly of
             // a library (not the jar), then we should give it the *stubbed classes* instead of the raw classes. However:
@@ -142,20 +130,16 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     }
 
     private static void configureUsageMetadata(UsageKind usage,
-                                               Object buildDependency,
                                                Iterable<DependencySpec> dependencies,
-                                               EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage,
-                                               EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage) {
+                                               EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage) {
         Iterable<DependencySpec> dependencySpecs = dependenciesPerUsage.get(usage);
         dependenciesPerUsage.put(usage, Iterables.concat(dependencies, dependencySpecs));
-        if (buildDependency !=null) {
-            DefaultTaskDependency buildDependencies = (DefaultTaskDependency) buildDependenciesPerUsage.get(usage);
-            buildDependencies.add(buildDependency);
-        }
     }
 
     private static void addArtifact(UsageKind usage, JarFile jarFile, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
-        artifacts.get(usage).add(new LibraryPublishArtifact("jar", jarFile.getFile()));
+        LibraryPublishArtifact publishArtifact = new LibraryPublishArtifact("jar", jarFile.getFile());
+        publishArtifact.builtBy(jarFile);
+        artifacts.get(usage).add(publishArtifact);
     }
 
     private static void addArtifact(UsageKind usage, Set<File> directories, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {

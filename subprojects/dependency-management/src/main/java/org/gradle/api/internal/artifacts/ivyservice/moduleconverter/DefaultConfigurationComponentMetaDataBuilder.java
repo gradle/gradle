@@ -43,7 +43,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
     private void addConfiguration(BuildableLocalComponentMetadata metaData, Configuration configuration) {
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
-        TaskDependency directBuildDependencies = DirectBuildDependencies.forDependenciesAndArtifacts(configuration);
+        TaskDependency directBuildDependencies = DirectBuildDependencies.forDependenciesOnly(configuration);
         metaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), configuration.getAttributes(), directBuildDependencies);
     }
 
