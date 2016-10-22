@@ -16,7 +16,9 @@
 
 package org.gradle.internal.component.local.model
 
+import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
@@ -51,11 +53,13 @@ class DefaultLocalComponentMetadataTest extends Specification {
         conf != null
         conf.visible
         conf.transitive
+        conf.hierarchy == ['conf', 'super'] as Set
 
         def superConf = metadata.getConfiguration('super')
         superConf != null
         !superConf.visible
         !superConf.transitive
+        superConf.hierarchy == ['super'] as Set
     }
 
     def "can lookup artifact in various ways after it has been added"() {
@@ -80,12 +84,38 @@ class DefaultLocalComponentMetadataTest extends Specification {
         publishArtifact == metadata.getConfiguration("conf").artifact(artifact)
     }
 
-    private addConfiguration(String name) {
-        metadata.addConfiguration(name, "", [] as Set, [name] as Set, true, true, null, taskDep)
+    def "artifact is attached to child configurations"() {
+        def artifact1 = artifactName()
+        def artifact2 = artifactName()
+        def artifact3 = artifactName()
+        def file1 = new File("artifact-1.zip")
+        def file2 = new File("artifact-2.zip")
+        def file3 = new File("artifact-3.zip")
+
+        given:
+        addConfiguration("conf1")
+        addConfiguration("conf2")
+        addConfiguration("child1", ["conf1", "conf2"])
+        addConfiguration("child2", ["conf1"])
+
+        when:
+        addArtifact("conf1", artifact1, file1)
+        addArtifact("conf2", artifact2, file2)
+        addArtifact("child1", artifact3, file3)
+
+        then:
+        metadata.getConfiguration("conf1").artifacts.size() == 1
+        metadata.getConfiguration("child1").artifacts.size() == 3
+        metadata.getConfiguration("child2").artifacts.size() == 1
     }
 
-    def addArtifact(String configuration, IvyArtifactName name, File file) {
+    private addConfiguration(String name, Collection<String> extendsFrom = []) {
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, taskDep)
+    }
+
+    def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = taskDep) {
         PublishArtifact publishArtifact = new DefaultPublishArtifact(name.name, name.extension, name.type, name.classifier, new Date(), file)
+        publishArtifact.builtBy(buildDeps)
         addArtifact(configuration, publishArtifact)
     }
 
@@ -169,6 +199,78 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
+    def "collects build dependencies for artifacts attached to configuration and its parents"() {
+        def artifact1 = artifactName()
+        def artifact2 = artifactName()
+        def artifact3 = artifactName()
+        def file1 = new File("artifact-1.zip")
+        def file2 = new File("artifact-2.zip")
+        def file3 = new File("artifact-3.zip")
+        def buildDeps1 = Stub(TaskDependency)
+        def buildDeps2 = Stub(TaskDependency)
+        def buildDeps3 = Stub(TaskDependency)
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+
+        given:
+        addConfiguration("conf1")
+        addConfiguration("conf2")
+        addConfiguration("child1", ["conf1", "conf2"])
+        addConfiguration("child2", ["conf1"])
+
+        buildDeps1.getDependencies(_) >> [task1]
+        buildDeps2.getDependencies(_) >> [task2]
+        buildDeps3.getDependencies(_) >> [task3]
+
+        when:
+        addArtifact("conf1", artifact1, file1, buildDeps1)
+        addArtifact("conf2", artifact2, file2, buildDeps2)
+        addArtifact("child1", artifact3, file3, buildDeps3)
+
+        then:
+        metadata.getConfiguration("conf1").directBuildDependencies.getDependencies(null) == [task1] as Set
+        metadata.getConfiguration("conf2").directBuildDependencies.getDependencies(null) == [task2] as Set
+        metadata.getConfiguration("child1").directBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
+        metadata.getConfiguration("child2").directBuildDependencies.getDependencies(null) == [task1] as Set
+    }
+
+    def "collects build dependencies for files attached to configuration and its parents"() {
+        def files1 = Stub(FileCollection)
+        def files2 = Stub(FileCollection)
+        def files3 = Stub(FileCollection)
+        def buildDeps1 = Stub(TaskDependency)
+        def buildDeps2 = Stub(TaskDependency)
+        def buildDeps3 = Stub(TaskDependency)
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+
+        given:
+        addConfiguration("conf1")
+        addConfiguration("conf2")
+        addConfiguration("child1", ["conf1", "conf2"])
+        addConfiguration("child2", ["conf1"])
+
+        files1.buildDependencies >> buildDeps1
+        files2.buildDependencies >> buildDeps2
+        files3.buildDependencies >> buildDeps3
+        buildDeps1.getDependencies(_) >> [task1]
+        buildDeps2.getDependencies(_) >> [task2]
+        buildDeps3.getDependencies(_) >> [task3]
+
+        when:
+        metadata.addFiles("conf1", files1)
+        metadata.addFiles("conf2", files2)
+        metadata.addFiles("child1", files3)
+
+        then:
+        metadata.getConfiguration("conf1").directBuildDependencies.getDependencies(null) == [task1] as Set
+        metadata.getConfiguration("conf2").directBuildDependencies.getDependencies(null) == [task2] as Set
+        metadata.getConfiguration("child1").directBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
+        metadata.getConfiguration("child2").directBuildDependencies.getDependencies(null) == [task1] as Set
+    }
+
     def "can add dependencies"() {
         def dependency = Mock(LocalOriginDependencyMetadata)
 
@@ -179,22 +281,29 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.dependencies == [dependency]
     }
 
-    def "dependency is attached to module configuration and its children"() {
+    def "dependency is attached to configuration and its children"() {
         def dependency1 = Mock(LocalOriginDependencyMetadata)
-        dependency1.moduleConfiguration >> "conf"
+        dependency1.moduleConfiguration >> "conf1"
         def dependency2 = Mock(LocalOriginDependencyMetadata)
-        dependency2.moduleConfiguration >> "child"
+        dependency2.moduleConfiguration >> "conf2"
+        def dependency3 = Mock(LocalOriginDependencyMetadata)
+        dependency3.moduleConfiguration >> "child1"
 
         when:
-        metadata.addConfiguration("conf", null, [] as Set, ["conf"] as Set, true, true, null, Stub(TaskDependency))
-        metadata.addConfiguration("child", null, ["conf"] as Set, ["conf", "child"] as Set, true, true, null, Stub(TaskDependency))
-        metadata.addConfiguration("other", null, [] as Set, ["other"] as Set, true, true, null, Stub(TaskDependency))
+        addConfiguration("conf1")
+        addConfiguration("conf2")
+        addConfiguration("child1", ["conf1", "conf2"])
+        addConfiguration("child2", ["conf1"])
+        addConfiguration("other")
         metadata.addDependency(dependency1)
         metadata.addDependency(dependency2)
+        metadata.addDependency(dependency3)
 
         then:
-        metadata.getConfiguration("conf").dependencies == [dependency1]
-        metadata.getConfiguration("child").dependencies == [dependency1, dependency2]
+        metadata.getConfiguration("conf1").dependencies == [dependency1]
+        metadata.getConfiguration("conf2").dependencies == [dependency2]
+        metadata.getConfiguration("child1").dependencies == [dependency1, dependency2, dependency3]
+        metadata.getConfiguration("child2").dependencies == [dependency1]
         metadata.getConfiguration("other").dependencies.isEmpty()
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -45,6 +46,7 @@ import java.util.Set;
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
     private final Multimap<String, ComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
+    private final Multimap<String, FileCollection> allFiles = ArrayListMultimap.create();
     private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -70,6 +72,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     public void addArtifact(String configuration, ComponentArtifactMetadata artifactMetadata) {
         allArtifacts.put(configuration, artifactMetadata);
+    }
+
+    @Override
+    public void addFiles(String configuration, FileCollection files) {
+        allFiles.put(configuration, files);
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, TaskDependency buildDependencies) {
@@ -147,6 +154,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final TaskDependency buildDependencies;
 
         private List<DependencyMetadata> configurationDependencies;
+        private Set<ComponentArtifactMetadata> configurationArtifacts;
         private ModuleExclusion configurationExclude;
 
         private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, Map<String, String> attributes, TaskDependency buildDependencies) {
@@ -176,6 +184,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             for (ComponentArtifactMetadata artifact : getArtifacts()) {
                 if (artifact instanceof Buildable) {
                     taskDependency.add(artifact);
+                }
+            }
+            for (String confName : hierarchy) {
+                for (FileCollection files : allFiles.get(confName)) {
+                    taskDependency.add(files);
                 }
             }
             return taskDependency;
@@ -244,7 +257,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
-            return DefaultLocalComponentMetadata.getArtifacts(getHierarchy(), allArtifacts);
+            if (configurationArtifacts == null) {
+                configurationArtifacts = Sets.newLinkedHashSet();
+                for (String config : hierarchy) {
+                    configurationArtifacts.addAll(allArtifacts.get(config));
+                }
+            }
+            return configurationArtifacts;
         }
 
         public ComponentArtifactMetadata artifact(IvyArtifactName ivyArtifactName) {
@@ -256,13 +275,5 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
             return new MissingLocalArtifactMetadata(componentIdentifier, id.toString(), ivyArtifactName);
         }
-    }
-
-    static Set<ComponentArtifactMetadata> getArtifacts(Set<String> configurationHierarchy, Multimap<String, ComponentArtifactMetadata> allArtifacts) {
-        Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
-        for (String config : configurationHierarchy) {
-            artifacts.addAll(allArtifacts.get(config));
-        }
-        return artifacts;
     }
 }

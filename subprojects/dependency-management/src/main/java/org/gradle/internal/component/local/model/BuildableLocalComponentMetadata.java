@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -25,15 +26,31 @@ import java.util.Map;
 import java.util.Set;
 
 public interface BuildableLocalComponentMetadata {
+    /**
+     * Adds some artifacts to this component.
+     */
     void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
 
     /**
+     * Adds a configuration to this component.
+     *
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration. Can be null.
      */
     void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, TaskDependency buildDependencies);
 
+    /**
+     * Adds a dependency to this component.
+     */
     void addDependency(LocalOriginDependencyMetadata dependency);
 
+    /**
+     * Adds an exclude rule to this component.
+     */
     void addExclude(Exclude exclude);
+
+    /**
+     * Adds some files to this component. These should be treated as dependencies of this component, however they are currently treated separately as a migration step.
+     */
+    void addFiles(String configuration, FileCollection files);
 }

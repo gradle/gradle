@@ -17,9 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.DirectBuildDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 
 import java.util.Collection;
@@ -43,8 +42,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
     private void addConfiguration(BuildableLocalComponentMetadata metaData, Configuration configuration) {
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
-        TaskDependency directBuildDependencies = DirectBuildDependencies.forDependenciesOnly(configuration);
-        metaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), configuration.getAttributes(), directBuildDependencies);
+        metaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), configuration.getAttributes(), new DefaultTaskDependency());
     }
 
     private void addDependencies(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {

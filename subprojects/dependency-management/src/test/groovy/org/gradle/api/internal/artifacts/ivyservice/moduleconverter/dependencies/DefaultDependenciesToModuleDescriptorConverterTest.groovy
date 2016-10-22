@@ -19,7 +19,9 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.file.FileCollection
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
@@ -27,8 +29,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toDomainObjectSet
 
-public class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
-
+class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
     def dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
     def converter = new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter)
@@ -36,7 +37,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     def descriptor = Mock(DefaultModuleDescriptor)
     def metaData = Mock(BuildableLocalComponentMetadata)
     def configuration = Mock(Configuration)
-    def dependencySet = Mock(DependencySet.class);
+    def dependencySet = Mock(DependencySet)
 
     def "ignores configuration with no dependencies or exclude rules"() {
         when:
@@ -44,26 +45,50 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
 
         then:
         1 * configuration.dependencies >> dependencySet
-        1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency)
+        1 * dependencySet.iterator() >> [].iterator()
         1 * configuration.excludeRules >> ([] as Set)
         0 * _
     }
 
-    def "adds dependencies from configuration"() {
-        def dependencyDescriptor = Mock(DslOriginDependencyMetadata)
-        def dependency = Mock(ModuleDependency)
+    def "adds ModuleDependency instances from configuration"() {
+        def dependencyDescriptor1 = Mock(DslOriginDependencyMetadata)
+        def dependencyDescriptor2 = Mock(DslOriginDependencyMetadata)
+        def dependency1 = Mock(ModuleDependency)
+        def dependency2 = Mock(ModuleDependency)
 
         when:
         converter.addDependencyDescriptors(metaData, [configuration])
 
         then:
-        _ * metaData.moduleDescriptor >> descriptor
         1 * configuration.dependencies >> dependencySet
-        1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency, dependency)
-        1 * configuration.name >> "config"
-        1 * configuration.getAttributes()
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dependency) >> dependencyDescriptor
-        1 * metaData.addDependency(dependencyDescriptor)
+        1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
+        _ * configuration.name >> "config"
+        _ * configuration.attributes
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dependency1) >> dependencyDescriptor1
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dependency2) >> dependencyDescriptor2
+        1 * metaData.addDependency(dependencyDescriptor1)
+        1 * metaData.addDependency(dependencyDescriptor2)
+        1 * configuration.excludeRules >> ([] as Set)
+        0 * _
+    }
+
+    def "adds FileCollectionDependency instances from configuration"() {
+        def files1 = Mock(FileCollection)
+        def files2 = Mock(FileCollection)
+        def dependency1 = Mock(FileCollectionDependency)
+        def dependency2 = Mock(FileCollectionDependency)
+
+        when:
+        converter.addDependencyDescriptors(metaData, [configuration])
+
+        then:
+        1 * configuration.dependencies >> dependencySet
+        1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
+        _ * configuration.name >> "config"
+        1 * dependency1.files >> files1
+        1 * dependency2.files >> files2
+        1 * metaData.addFiles("config", files1)
+        1 * metaData.addFiles("config", files2)
         1 * configuration.excludeRules >> ([] as Set)
         0 * _
     }
@@ -77,7 +102,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
 
         then:
         1 * configuration.dependencies >> dependencySet
-        1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency)
+        1 * dependencySet.iterator() >> [].iterator()
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * configuration.getName() >> "config"

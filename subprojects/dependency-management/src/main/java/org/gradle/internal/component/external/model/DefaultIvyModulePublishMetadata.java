@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -138,4 +139,8 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
         return artifactsById.values();
     }
 
+    @Override
+    public void addFiles(String configuration, FileCollection files) {
+        // Ignore
+    }
 }
