@@ -124,7 +124,7 @@ server state: ${server.dump()}
                 return
             }
 
-            Date expiry = new Date(new TrueTimeProvider().getCurrentTimeForDuration() + 30000)
+            Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000)
             lock.lock()
             try {
                 if (shortCircuit) {
