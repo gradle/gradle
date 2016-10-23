@@ -520,14 +520,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         true
     }
 
-    private void maybeWait() {
-        if (toolChain.visualCpp) {
-            def now = System.currentTimeMillis()
-            def nextSecond = now % 1000
-            Thread.sleep(1200 - nextSecond)
-        }
-    }
-
     String getSuffix() {
         return toolChain.typeDisplayName == "visual c++" ? "pch" : "h.gch"
     }

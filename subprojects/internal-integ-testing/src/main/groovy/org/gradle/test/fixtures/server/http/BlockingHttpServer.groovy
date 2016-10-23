@@ -17,6 +17,7 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.internal.TrueTimeProvider
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
@@ -123,7 +124,7 @@ server state: ${server.dump()}
                 return
             }
 
-            Date expiry = new Date(System.currentTimeMillis() + 30000)
+            Date expiry = new Date(new TrueTimeProvider().getCurrentTimeForDuration() + 30000)
             lock.lock()
             try {
                 if (shortCircuit) {

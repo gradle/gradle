@@ -24,6 +24,8 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
+import org.gradle.internal.TimeProvider
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
@@ -116,6 +118,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     private class Measurement implements ToolingApiClasspathProvider {
+        private final TimeProvider timeProvider = new TrueTimeProvider();
 
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName
@@ -134,7 +137,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 versionUnderTest: GradleVersion.current().getVersion(),
                 vcsBranch: Git.current().branchName,
                 vcsCommits: [Git.current().commitId],
-                startTime: System.currentTimeMillis(),
+                startTime: timeProvider.getCurrentTimeForDuration(),
                 tasks: [],
                 args: [],
                 gradleOpts: [],
@@ -168,7 +171,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 resolver.stop()
             }
 
-            results.endTime = System.currentTimeMillis();
+            results.endTime = timeProvider.getCurrentTimeForDuration()
 
             results.assertEveryBuildSucceeds()
             resultStore.report(results)

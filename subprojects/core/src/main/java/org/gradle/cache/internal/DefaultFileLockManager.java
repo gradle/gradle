@@ -20,6 +20,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.filelock.*;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -47,6 +49,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final IdGenerator<Long> generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
+    private final TimeProvider timeProvider = new TrueTimeProvider();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -219,7 +222,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 // Discard information region
                                 java.nio.channels.FileLock info;
                                 try {
-                                    info = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
+                                    info = lockInformationRegion(LockMode.Exclusive, timeProvider.getCurrentTimeForDuration() + shortTimeoutMs);
                                 } catch (InterruptedException e) {
                                     throw throwAsUncheckedException(e);
                                 }
@@ -255,12 +258,12 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private LockState lock(FileLockManager.LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
-            long waitUntil = System.currentTimeMillis() + lockTimeoutMs;
+            long waitUntil = timeProvider.getCurrentTimeForDuration() + lockTimeoutMs;
 
             // Lock the state region, with the requested mode
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, waitUntil);
             if (stateRegionLock == null) {
-                LockInfo lockInfo = readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
+                LockInfo lockInfo = readInformationRegion(timeProvider.getCurrentTimeForDuration() + shortTimeoutMs);
                 throw new LockTimeoutException(displayName, lockInfo.pid, metaDataProvider.getProcessIdentifier(), lockInfo.operation, operationDisplayName, lockFile);
             }
 
@@ -273,7 +276,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     lockState = lockFileAccess.ensureLockState();
 
                     // Acquire an exclusive lock on the information region and write our details there
-                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
+                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, timeProvider.getCurrentTimeForDuration() + shortTimeoutMs);
                     if (informationRegionLock == null) {
                         throw new IllegalStateException(String.format("Unable to lock the information region for %s", displayName));
                     }
@@ -319,7 +322,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     return fileLock;
                 }
                 if (port != -1) { //we don't like the assumption about the port very much
-                    LockInfo lockInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
+                    LockInfo lockInfo = readInformationRegion(timeProvider.getCurrentTimeForDuration()); //no need for timeout here, as we're already looping with timeout
                     if (lockInfo.port != -1) {
                         LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", lockInfo.pid, lockInfo.operation, lockInfo.port);
                         fileLockContentionHandler.pingOwner(lockInfo.port, lockInfo.lockId, displayName);
@@ -329,7 +332,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
                 //TODO SF we should inform on the progress/status bar that we're waiting
                 Thread.sleep(200L);
-            } while (System.currentTimeMillis() < waitUntil);
+            } while (timeProvider.getCurrentTimeForDuration() < waitUntil);
             return null;
         }
 
@@ -341,7 +344,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
                 Thread.sleep(200L);
             }
-            while (System.currentTimeMillis() < waitUntil);
+            while (timeProvider.getCurrentTimeForDuration() < waitUntil);
             return null;
         }
     }

@@ -18,6 +18,8 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.TimeProvider
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceTestResult
@@ -29,6 +31,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
     final BuildExperimentRunner experimentRunner
     final TestProjectLocator testProjectLocator = new TestProjectLocator()
+    final TimeProvider timeProvider = new TrueTimeProvider()
 
     String testId
     String testGroup
@@ -91,7 +94,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
         runAllSpecifications(results)
 
-        results.endTime = System.currentTimeMillis()
+        results.endTime = timeProvider.getCurrentTimeForDuration()
 
         results.assertEveryBuildSucceeds()
         reporter.report(results)

@@ -40,6 +40,7 @@ import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -290,7 +291,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private BuildRequestContext createBuildRequestContext(StandardOutputListener outputListener, StandardOutputListener errorListener) {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()),
+            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), new TrueTimeProvider().getCurrentTimeForDuration()),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer(),
             outputListener, errorListener);

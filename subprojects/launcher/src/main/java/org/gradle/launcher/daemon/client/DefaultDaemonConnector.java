@@ -21,6 +21,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -62,6 +64,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private final DaemonStarter daemonStarter;
     private final DaemonStartListener startListener;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final TimeProvider timeProvider = new TrueTimeProvider();
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
     public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener, ProgressLoggerFactory progressLoggerFactory) {
@@ -151,8 +154,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
         final Collection<DaemonInfo> compatibleCanceledDaemons = getCompatibleDaemons(canceledBusy.getLeft(), constraint);
         if (!compatibleCanceledDaemons.isEmpty()) {
             LOGGER.info(DaemonMessages.WAITING_ON_CANCELED);
-            long waitUntil = System.currentTimeMillis() + CANCELED_WAIT_TIMEOUT;
-            while (connection == null && System.currentTimeMillis() < waitUntil) {
+            long waitUntil = timeProvider.getCurrentTimeForDuration() + CANCELED_WAIT_TIMEOUT;
+            while (connection == null && timeProvider.getCurrentTimeForDuration() < waitUntil) {
                 try {
                     sleep(200);
                     connection = connectToIdleDaemon(daemonRegistry.getIdle(), constraint);
@@ -202,7 +205,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             .start("Starting Gradle Daemon", "Starting Daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
-        long expiry = System.currentTimeMillis() + connectTimeout;
+        long expiry = timeProvider.getCurrentTimeForDuration() + connectTimeout;
         try {
             do {
                 DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
@@ -215,7 +218,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
-            } while (System.currentTimeMillis() < expiry);
+            } while (timeProvider.getCurrentTimeForDuration() < expiry);
         } finally {
             progressLogger.completed();
         }

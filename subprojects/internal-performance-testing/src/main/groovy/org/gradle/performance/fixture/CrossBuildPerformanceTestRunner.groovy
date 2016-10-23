@@ -59,7 +59,7 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            startTime: System.currentTimeMillis(),
+            startTime: timeProvider.getCurrentTimeForDuration(),
             channel: determineChannel()
         )
     }

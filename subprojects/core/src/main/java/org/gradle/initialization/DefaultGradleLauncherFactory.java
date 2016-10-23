@@ -28,6 +28,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.CacheStatisticsReporter;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
@@ -61,10 +62,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final NestedBuildTracker tracker;
     private final BuildProgressLogger buildProgressLogger;
+    private final TimeProvider timeProvider;
 
-    public DefaultGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
+    public DefaultGradleLauncherFactory(
+        ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry, TimeProvider timeProvider) {
         this.listenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
+        this.timeProvider = timeProvider;
         tracker = new NestedBuildTracker();
 
         // Register default loggers
@@ -105,7 +109,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         ServiceRegistry services = tracker.getCurrentBuild().getServices();
-        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), System.currentTimeMillis());
+        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), timeProvider.getCurrentTimeForDuration());
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
