@@ -173,7 +173,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             // Last entry, complete the result
                             Long rootId = decoder.readSmallLong();
                             ResolvedComponentResult root = builder.complete(rootId).getRoot();
-                            LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), data);
+                            LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;
                         case COMPONENT:
                             ComponentResult component = componentResultSerializer.read(decoder);
@@ -193,7 +193,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Problems loading the resolution results (" + clock.getTime() + "). "
+                throw new RuntimeException("Problems loading the resolution results (" + clock.getElapsed() + "). "
                         + "Read " + valuesRead + " values, last was: " + type, e);
             }
         }

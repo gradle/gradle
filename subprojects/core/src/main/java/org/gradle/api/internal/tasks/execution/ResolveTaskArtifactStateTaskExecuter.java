@@ -40,7 +40,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         Clock clock = new Clock();
         context.setTaskArtifactState(repository.getStateFor(task));
-        LOGGER.info("Putting task artifact state for {} into context took {}.", task, clock.getTime());
+        LOGGER.info("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
         try {
             executer.execute(task, state, context);
         } finally {

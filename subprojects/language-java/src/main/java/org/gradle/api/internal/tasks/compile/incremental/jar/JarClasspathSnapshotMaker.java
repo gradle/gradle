@@ -43,7 +43,7 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
         Clock clock = new Clock();
         classpathSnapshotStore.put(jarClasspathSnapshot.getData());
-        LOG.info("Written jar classpath snapshot for incremental compilation in {}.", clock.getTime());
+        LOG.info("Written jar classpath snapshot for incremental compilation in {}.", clock.getElapsed());
     }
 
     @Override
@@ -62,7 +62,7 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
         jarClasspathSnapshot = classpathSnapshotFactory.createSnapshot(jarArchives);
         int duplicatesCount = jarClasspathSnapshot.getData().getDuplicateClasses().size();
         String duplicateClassesMessage = duplicatesCount == 0? "" : ". " + duplicatesCount + " duplicate classes found in classpath (see all with --debug)";
-        LOG.info("Created jar classpath snapshot for incremental compilation in {}{}.", clock.getTime(), duplicateClassesMessage);
+        LOG.info("Created jar classpath snapshot for incremental compilation in {}{}.", clock.getElapsed(), duplicateClassesMessage);
         LOG.debug("While calculating jar classpath snapshot {} duplicate classes were found: {}.", duplicatesCount, jarClasspathSnapshot.getData().getDuplicateClasses());
     }
 }

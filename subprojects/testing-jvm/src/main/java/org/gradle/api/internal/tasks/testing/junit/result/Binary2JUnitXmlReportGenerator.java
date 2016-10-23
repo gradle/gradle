@@ -60,7 +60,7 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
 
-        LOG.info("Finished generating test XML results ({}) into: {}", clock.getTime(), testResultsDir);
+        LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }
 
     private String getReportFileName(TestClassResult result) {

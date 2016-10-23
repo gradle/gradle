@@ -101,7 +101,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         taskExecutionPlan.addToTaskGraph(taskSet);
         taskGraphState = TaskGraphState.DIRTY;
 
-        LOGGER.debug("Timing: Creating the DAG took " + clock.getTime());
+        LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
     }
 
     public void execute() {
@@ -111,7 +111,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         graphListeners.getSource().graphPopulated(this);
         try {
             taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperationId()));
-            LOGGER.debug("Timing: Executing the DAG took " + clock.getTime());
+            LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             taskExecutionPlan.clear();
         }

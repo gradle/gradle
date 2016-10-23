@@ -97,7 +97,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                             @Override
                                             public void readFrom(InputStream input) throws IOException {
                                                 packer.unpack(taskOutputs, input);
-                                                LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
+                                                LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                             }
                                         });
                                         if (found) {

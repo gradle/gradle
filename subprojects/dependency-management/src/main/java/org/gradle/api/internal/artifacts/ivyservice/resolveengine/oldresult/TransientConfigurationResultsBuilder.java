@@ -150,7 +150,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
                         //root should be the last
-                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
+                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
                         return results;
                     case FIRST_LVL:
                         id = decoder.readSmallLong();

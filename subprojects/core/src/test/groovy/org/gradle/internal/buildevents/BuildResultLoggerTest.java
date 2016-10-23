@@ -49,7 +49,7 @@ public class BuildResultLoggerTest {
     @Test
     public void logsBuildSuccessAndTotalTime() {
         context.checking(new Expectations() {{
-            one(buildTimeClock).getTime();
+            one(buildTimeClock).getElapsed();
             will(returnValue("10s"));
             one(textOutputFactory).create(BuildResultLogger.class, LogLevel.LIFECYCLE);
             will(returnValue(textOutput));
@@ -63,7 +63,7 @@ public class BuildResultLoggerTest {
     @Test
     public void logsBuildFailedAndTotalTime() {
         context.checking(new Expectations() {{
-            one(buildTimeClock).getTime();
+            one(buildTimeClock).getElapsed();
             will(returnValue("10s"));
             one(textOutputFactory).create(BuildResultLogger.class, LogLevel.LIFECYCLE);
             will(returnValue(textOutput));

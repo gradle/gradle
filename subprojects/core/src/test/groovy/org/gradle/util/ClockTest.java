@@ -43,27 +43,27 @@ public class ClockTest {
 
     @Test public void testOnlySecondsTwoDigits() throws Exception {
         setDtMs(51243);
-        assertEquals("51.243 secs", clock.getTime());
+        assertEquals("51.243 secs", clock.getElapsed());
     }
 
     @Test public void testOnlySecondsEvenMs() {
         setDtMs(4000);
-        assertEquals("4.0 secs", clock.getTime());
+        assertEquals("4.0 secs", clock.getElapsed());
     }
 
     @Test public void testMinutesAndSeconds() {
         setDtHrsMinsSecsMillis(0, 32, 40, 322);
-        assertEquals("32 mins 40.322 secs", clock.getTime());
+        assertEquals("32 mins 40.322 secs", clock.getElapsed());
     }
 
     @Test public void testHoursMinutesAndSeconds() {
         setDtHrsMinsSecsMillis(3, 2, 5, 111);
-        assertEquals("3 hrs 2 mins 5.111 secs", clock.getTime());
+        assertEquals("3 hrs 2 mins 5.111 secs", clock.getElapsed());
     }
 
     @Test public void testHoursZeroMinutes() {
         setDtHrsMinsSecsMillis(1, 0, 32, 0);
-        assertEquals("1 hrs 0 mins 32.0 secs", clock.getTime());
+        assertEquals("1 hrs 0 mins 32.0 secs", clock.getElapsed());
     }
 
     private void setBaseTime() {

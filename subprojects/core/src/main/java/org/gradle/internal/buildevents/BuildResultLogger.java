@@ -48,6 +48,6 @@ public class BuildResultLogger extends BuildAdapter {
         }
         textOutput.println();
         textOutput.println();
-        textOutput.formatln("Total time: %s", buildTimeClock.getTime());
+        textOutput.formatln("Total time: %s", buildTimeClock.getElapsed());
     }
 }

@@ -119,7 +119,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         try {
             Clock clock = new Clock();
             cleanUpLater.stop();
-            LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
+            LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getElapsed());
         } finally {
             oldModelCache = null;
             newModelCache = null;

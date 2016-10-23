@@ -20,8 +20,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 
 public class Clock {
-    private long start;
     private long startTime;
+    private long startInstant;
     private TimeProvider timeProvider;
 
     private static final long MS_PER_MINUTE = 60000;
@@ -31,8 +31,9 @@ public class Clock {
         this(new TrueTimeProvider());
     }
 
-    public Clock(long start) {
-        this(new TrueTimeProvider(), start);
+    // TODO:DAZ Remove this
+    public Clock(long startInstant) {
+        this(new TrueTimeProvider(), startInstant);
     }
 
     protected Clock(TimeProvider timeProvider) {
@@ -40,24 +41,29 @@ public class Clock {
         reset();
     }
 
-    protected Clock(TimeProvider timeProvider, long start) {
-        this.timeProvider = timeProvider;
-        this.startTime = timeProvider.getCurrentTime();
-        this.start = start;
+    // TODO:DAZ Remove this
+    protected Clock(TimeProvider timeProvider, long startInstant) {
+        this(timeProvider, timeProvider.getCurrentTime(), startInstant);
     }
 
-    public String getTime() {
-        long timeInMs = getTimeInMs();
+    private Clock(TimeProvider timeProvider, long startTime, long startInstant) {
+        this.timeProvider = timeProvider;
+        this.startTime = startTime;
+        this.startInstant = startInstant;
+    }
+
+    public String getElapsed() {
+        long timeInMs = getElapsedMillis();
         return prettyTime(timeInMs);
     }
 
-    public long getTimeInMs() {
-        return Math.max(timeProvider.getCurrentTimeForDuration() - start, 0);
+    public long getElapsedMillis() {
+        return Math.max(timeProvider.getCurrentTimeForDuration() - startInstant, 0);
     }
 
     public void reset() {
         startTime = timeProvider.getCurrentTime();
-        start = timeProvider.getCurrentTimeForDuration();
+        startInstant = timeProvider.getCurrentTimeForDuration();
     }
 
     public long getStartTime() {

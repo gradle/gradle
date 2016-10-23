@@ -48,6 +48,6 @@ public class ClassSetAnalysisUpdater {
         tree.visit(analyzer);
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
-        LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getTime());
+        LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
     }
 }

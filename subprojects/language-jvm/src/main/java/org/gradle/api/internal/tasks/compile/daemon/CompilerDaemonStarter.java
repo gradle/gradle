@@ -53,7 +53,7 @@ public class CompilerDaemonStarter {
 
         CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, worker);
 
-        LOG.info("Started Gradle compiler daemon ({}) with fork options {}.", clock.getTime(), forkOptions);
+        LOG.info("Started Gradle compiler daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 
         return client;
     }

@@ -154,7 +154,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         } catch (Exception e) {
             throw new GradleException("Could not start Gradle daemon.", e);
         } finally {
-            LOGGER.info("An attempt to start the daemon took {}.", clock.getTime());
+            LOGGER.info("An attempt to start the daemon took {}.", clock.getElapsed());
         }
     }
 

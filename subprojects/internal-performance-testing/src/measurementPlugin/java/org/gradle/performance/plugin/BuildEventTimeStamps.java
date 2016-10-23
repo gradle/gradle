@@ -81,7 +81,7 @@ public class BuildEventTimeStamps {
             return 0;
         }
         try {
-            return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
+            return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getElapsedMillis();
         } catch (Exception e) {
             System.err.println("Exception in getting build time " + e.getMessage());
             useBuildTimeClock = false;

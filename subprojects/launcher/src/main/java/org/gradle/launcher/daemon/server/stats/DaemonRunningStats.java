@@ -35,7 +35,7 @@ public class DaemonRunningStats {
     }
 
     public String getPrettyUpTime() {
-        return daemonClock.getTime();
+        return daemonClock.getElapsed();
     }
 
     public long getStartTime() {
@@ -58,7 +58,7 @@ public class DaemonRunningStats {
     }
 
     public void buildFinished() {
-        long buildTime = Math.max(currentBuildClock.getTimeInMs(), 1);
+        long buildTime = Math.max(currentBuildClock.getElapsedMillis(), 1);
         allBuildsTime += buildTime;
     }
 }
