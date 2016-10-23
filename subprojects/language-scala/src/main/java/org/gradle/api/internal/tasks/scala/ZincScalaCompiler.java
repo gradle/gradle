@@ -17,26 +17,43 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.typesafe.zinc.*;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.*;
+import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.GFileUtils;
 import scala.Option;
+import xsbti.F0;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
+
+    public static final String ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY = "org.gradle.zinc.home.dir";
+    private static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
+    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
 
     public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
         this.scalaClasspath = scalaClasspath;
@@ -57,7 +74,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             final xsbti.Logger logger = new SbtLoggerAdapter();
 
-            com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
+            com.typesafe.zinc.Compiler compiler = createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
 
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
@@ -98,32 +115,91 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             return options;
         }
 
+        static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
+            ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
+            SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
+            Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome(), true);
+            if (LOGGER.isDebugEnabled()) {
+                Setup.debug(setup, logger);
+            }
+            com.typesafe.zinc.Compiler compiler = com.typesafe.zinc.Compiler.getOrCreate(setup, logger);
+            return compiler;
+        }
+
+        static com.typesafe.zinc.Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
+            File zincCacheHomeDir = new File(System.getProperty(ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
+            CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
+            final PersistentCache zincCache = cacheRepository.cache("zinc")
+                                                            .withDisplayName("Zinc compiler cache")
+                                                            .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                                                            .open();
+            final File cacheDir = zincCache.getBaseDir();
+
+            final String userSuppliedZincDir = System.getProperty("zinc.dir");
+            if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
+                LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
+            }
+
+            com.typesafe.zinc.Compiler compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<com.typesafe.zinc.Compiler>() {
+                @Override
+                public com.typesafe.zinc.Compiler create() {
+                    return zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
+                        @Override
+                        public com.typesafe.zinc.Compiler create() {
+                            return createCompiler(scalaClasspath, zincClasspath, logger);
+                        }
+                    });
+                }
+            });
+            zincCache.close();
+
+            return compiler;
+        }
     }
 
     private static class SbtLoggerAdapter implements xsbti.Logger {
         @Override
-        public void error(xsbti.F0<String> msg) {
+        public void error(F0<String> msg) {
             LOGGER.error(msg.apply());
         }
 
         @Override
-        public void warn(xsbti.F0<String> msg) {
+        public void warn(F0<String> msg) {
             LOGGER.warn(msg.apply());
         }
 
         @Override
-        public void info(xsbti.F0<String> msg) {
+        public void info(F0<String> msg) {
             LOGGER.info(msg.apply());
         }
 
         @Override
-        public void debug(xsbti.F0<String> msg) {
+        public void debug(F0<String> msg) {
             LOGGER.debug(msg.apply());
         }
 
         @Override
-        public void trace(xsbti.F0<Throwable> exception) {
+        public void trace(F0<Throwable> exception) {
             LOGGER.trace(exception.apply().toString());
+        }
+    }
+
+    private static class ZincCompilerServices extends DefaultServiceRegistry {
+        private static ZincCompilerServices instance;
+
+        private ZincCompilerServices(File gradleUserHome) {
+            super(NativeServices.getInstance());
+
+            addProvider(new GlobalScopeServices(true));
+            addProvider(new CacheRepositoryServices(gradleUserHome, null));
+        }
+
+        public static ZincCompilerServices getInstance(File gradleUserHome) {
+            if (instance == null) {
+                NativeServices.initialize(gradleUserHome);
+                instance = new ZincCompilerServices(gradleUserHome);
+            }
+            return instance;
         }
     }
 }

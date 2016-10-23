@@ -43,8 +43,7 @@ import java.io.File;
 import java.util.Arrays;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
-    private static final Iterable<String> SHARED_PACKAGES =
-            Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
     private final Iterable<File> zincClasspath;
 
     public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
