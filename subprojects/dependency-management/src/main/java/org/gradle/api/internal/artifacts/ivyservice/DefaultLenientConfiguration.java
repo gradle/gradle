@@ -163,8 +163,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
             return artifactResults.getArtifacts();
         }
 
-        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
-                = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
+        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 

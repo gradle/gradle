@@ -104,7 +104,6 @@ public class DefaultResolverResults implements ResolverResults {
         this.artifactResults = null;
     }
 
-    // State not exposed via BuildableResolverResults, that is only accessed via DefaultConfigurationResolver
     public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
