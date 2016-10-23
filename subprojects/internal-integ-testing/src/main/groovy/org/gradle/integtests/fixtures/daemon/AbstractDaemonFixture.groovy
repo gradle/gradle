@@ -21,7 +21,8 @@ import org.gradle.internal.TimeProvider
 import org.gradle.internal.TrueTimeProvider
 import org.gradle.launcher.daemon.context.DaemonContext
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
