@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -304,6 +305,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Override
         public TaskDependency getDirectBuildDependencies() {
             return delegate.getDirectBuildDependencies();
+        }
+
+        @Override
+        public Set<FileCollection> getFiles() {
+            return delegate.getFiles();
         }
     }
 }

@@ -17,10 +17,11 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -38,7 +39,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -154,6 +154,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         private List<DependencyMetadata> configurationDependencies;
         private Set<ComponentArtifactMetadata> configurationArtifacts;
+        private Set<FileCollection> configurationFiles;
         private ModuleExclusion configurationExclude;
 
         private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, Map<String, String> attributes) {
@@ -183,10 +184,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                     taskDependency.add(artifact);
                 }
             }
-            for (String confName : hierarchy) {
-                for (FileCollection files : allFiles.get(confName)) {
-                    taskDependency.add(files);
-                }
+            for (FileCollection fileCollection : getFiles()) {
+                taskDependency.add(fileCollection);
             }
             return taskDependency;
         }
@@ -220,13 +219,36 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return attributes;
         }
 
+        @Override
+        public Set<FileCollection> getFiles() {
+            if (configurationFiles == null) {
+                if (allFiles.isEmpty()) {
+                    configurationFiles = ImmutableSet.of();
+                } else {
+                    ImmutableSet.Builder<FileCollection> result = ImmutableSet.builder();
+                    for (String confName : hierarchy) {
+                        for (FileCollection files : allFiles.get(confName)) {
+                            result.add(files);
+                        }
+                    }
+                    configurationFiles = result.build();
+                }
+            }
+            return configurationFiles;
+        }
+
         public List<DependencyMetadata> getDependencies() {
             if (configurationDependencies == null) {
-                configurationDependencies = new ArrayList<DependencyMetadata>();
-                for (LocalOriginDependencyMetadata dependency : allDependencies) {
-                    if (include(dependency)) {
-                        configurationDependencies.add(dependency);
+                if (allDependencies.isEmpty()) {
+                    configurationDependencies = ImmutableList.of();
+                } else {
+                    ImmutableList.Builder<DependencyMetadata> result = ImmutableList.builder();
+                    for (LocalOriginDependencyMetadata dependency : allDependencies) {
+                        if (include(dependency)) {
+                            result.add(dependency);
+                        }
                     }
+                    configurationDependencies = result.build();
                 }
             }
             return configurationDependencies;
@@ -239,25 +261,34 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         @Override
         public ModuleExclusion getExclusions() {
             if (configurationExclude == null) {
-                List<Exclude> filtered = Lists.newArrayList();
-                for (Exclude exclude : allExcludes) {
-                    for (String config : exclude.getConfigurations()) {
-                        if (hierarchy.contains(config)) {
-                            filtered.add(exclude);
-                            break;
+                if (allExcludes.isEmpty()) {
+                    configurationExclude = ModuleExclusions.excludeNone();
+                } else {
+                    List<Exclude> filtered = Lists.newArrayList();
+                    for (Exclude exclude : allExcludes) {
+                        for (String config : exclude.getConfigurations()) {
+                            if (hierarchy.contains(config)) {
+                                filtered.add(exclude);
+                                break;
+                            }
                         }
                     }
+                    configurationExclude = ModuleExclusions.excludeAny(filtered);
                 }
-                configurationExclude = ModuleExclusions.excludeAny(filtered);
             }
             return configurationExclude;
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
             if (configurationArtifacts == null) {
-                configurationArtifacts = Sets.newLinkedHashSet();
-                for (String config : hierarchy) {
-                    configurationArtifacts.addAll(allArtifacts.get(config));
+                if (allArtifacts.isEmpty()) {
+                    configurationArtifacts = ImmutableSet.of();
+                } else {
+                    ImmutableSet.Builder<ComponentArtifactMetadata> result = ImmutableSet.builder();
+                    for (String config : hierarchy) {
+                        result.addAll(allArtifacts.get(config));
+                    }
+                    configurationArtifacts = result.build();
                 }
             }
             return configurationArtifacts;

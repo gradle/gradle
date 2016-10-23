@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
@@ -31,4 +32,9 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata {
      * The task dependencies required to build any artifacts and self-resolving dependencies for this configuration.
      */
     TaskDependency getDirectBuildDependencies();
+
+    /**
+     * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are represented as files as a migration step.
+     */
+    Set<FileCollection> getFiles();
 }

@@ -60,6 +60,19 @@ class DefaultLocalComponentMetadataTest extends Specification {
         superConf.hierarchy == ['super'] as Set
     }
 
+    def "configuration has no dependencies or artifacts when none have been added"() {
+        when:
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null)
+
+        then:
+        def conf = metadata.getConfiguration('conf')
+        conf.dependencies.empty
+        conf.artifacts.empty
+        conf.exclusions == ModuleExclusions.excludeNone()
+        conf.files.empty
+    }
+
     def "can lookup artifact in various ways after it has been added"() {
         def artifact = artifactName()
         def file = new File("artifact.zip")
@@ -197,6 +210,29 @@ class DefaultLocalComponentMetadataTest extends Specification {
         and:
         metadata.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
+    }
+
+    def "files attached to configuration and its children"() {
+        def files1 = Stub(FileCollection)
+        def files2 = Stub(FileCollection)
+        def files3 = Stub(FileCollection)
+
+        given:
+        addConfiguration("conf1")
+        addConfiguration("conf2")
+        addConfiguration("child1", ["conf1", "conf2"])
+        addConfiguration("child2", ["conf1"])
+
+        when:
+        metadata.addFiles("conf1", files1)
+        metadata.addFiles("conf2", files2)
+        metadata.addFiles("child1", files3)
+
+        then:
+        metadata.getConfiguration("conf1").files == [files1] as Set
+        metadata.getConfiguration("conf2").files == [files2] as Set
+        metadata.getConfiguration("child1").files == [files1, files2, files3] as Set
+        metadata.getConfiguration("child2").files == [files1] as Set
     }
 
     def "collects build dependencies for artifacts attached to configuration and its parents"() {

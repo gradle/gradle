@@ -18,37 +18,45 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public interface ResolverResults {
     boolean hasError();
 
-    //old model, slowly being replaced by the new model
+    /**
+     * Returns the old model, slowly being replaced by the new model represented by {@link ResolutionResult}. Requires artifacts to be resolved.
+     */
     ResolvedConfiguration getResolvedConfiguration();
 
-    //new model
+    /**
+     * Returns the dependency graph resolve result.
+     */
     ResolutionResult getResolutionResult();
 
+    /**
+     * Returns details of the local components in the resolved dependency graph.
+     */
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
-    // makes the new model available
+    /**
+     * Marks the dependency graph resolution as successful, with the given result.
+     */
     void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult);
 
     void failed(ResolveException failure);
 
-    // retains state required to later calculate the ResolvedConfiguration
-    void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactsBuilder, TransientConfigurationResultsBuilder oldTransientModelBuilder);
+    /**
+     * Attaches some opaque state calculated during dependency graph resolution that will later be required to resolve the artifacts.
+     */
+    void retainState(Object artifactResolveState);
 
-    // makes the old model available, clearing state provided by retainState().
+    /**
+     * Marks artifact resolution as successful, clearing state provided by {@link #retainState(Object)}.
+     */
     void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration);
 
-    ResolvedGraphResults getGraphResults();
-
-    ResolvedArtifactResults getResolvedArtifacts();
-
-    TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder();
+    /**
+     * Returns the opaque state required to resolve the artifacts.
+     */
+    Object getArtifactResolveState();
 }

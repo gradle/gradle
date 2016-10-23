@@ -147,7 +147,7 @@ task verify {
         then:
         outputContains("external-dependencies: [test1-1.0.jar]")
         outputContains("external-dependencies artifacts: [test1-1.0.jar]")
-        outputContains("child1-dependencies: [lib.jar, child1-lib.jar, child1.jar, test1-1.0.jar, test2-1.0.jar, main.jar]")
+        outputContains("child1-dependencies: [child1-lib.jar, lib.jar, child1.jar, test1-1.0.jar, test2-1.0.jar, main.jar]")
         outputContains("child1-dependencies artifacts: [child1.jar, test1-1.0.jar, test2-1.0.jar, main.jar]")
     }
 
