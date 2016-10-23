@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
-import java.io.File;
-import java.util.Collection;
+import java.util.Set;
 
 public interface FileDependencyResults {
-    void collectAll(Collection<File> dest);
+    Set<FileCollection> getFiles(ResolvedConfigurationIdentifier node);
 
-    void collect(ResolvedConfigurationIdentifier node, Collection<File> dest);
+    Set<FileCollection> getFiles();
 }

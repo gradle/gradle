@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
@@ -25,8 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -64,21 +64,20 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public void collect(ResolvedConfigurationIdentifier node, Collection<File> dest) {
+    public Set<FileCollection> getFiles(ResolvedConfigurationIdentifier node) {
         Set<FileCollection> fileCollections = filesByConfiguration.get(node);
         if (fileCollections != null) {
-            for (FileCollection fileCollection : fileCollections) {
-                dest.addAll(fileCollection.getFiles());
-            }
+            return fileCollections;
         }
+        return ImmutableSet.of();
     }
 
     @Override
-    public void collectAll(Collection<File> dest) {
+    public Set<FileCollection> getFiles() {
+        Set<FileCollection> result = Sets.newLinkedHashSet();
         for (Set<FileCollection> fileCollections : filesByConfiguration.values()) {
-            for (FileCollection fileCollection : fileCollections) {
-                dest.addAll(fileCollection.getFiles());
-            }
+            result.addAll(fileCollections);
         }
+        return result;
     }
 }

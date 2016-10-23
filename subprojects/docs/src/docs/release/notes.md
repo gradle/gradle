@@ -79,6 +79,17 @@ test {
 }
 ```
 
+### `LenientConfiguration.getFiles()` returns the same set of files as other dependency query methods
+
+There are several different methods you can use to query the set of files for the dependencies defined for a `Configuration`.
+One such method is `LenientConfiguration.getFiles()`. In previous versions of Gradle this method would not include files defined by file dependencies. These are dependencies that are declared using a `FileCollection`, such as:
+
+    dependencies {
+        compile fileTree(dir: 'some-dir', include: '**/*.jar')
+    }
+    
+In this version of Gradle, `LenientConfiguration.getFiles()` now includes these files in the result. This change makes this method consistent with other query methods such as `ResolvedConfiguration.getFiles()` or `Configuration.getFiles()`.    
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

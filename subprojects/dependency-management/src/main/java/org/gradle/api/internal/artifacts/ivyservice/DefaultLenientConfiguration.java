@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.Action;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
@@ -26,13 +26,13 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
@@ -119,43 +119,39 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         return resolvedElements;
     }
 
+    /**
+     * Recursive but excludes unsuccessfully resolved artifacts.
+     */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-        Set<ResolvedArtifact> artifacts = getArtifacts(dependencySpec);
-        return getFiles(artifacts);
+        Set<File> files = Sets.newLinkedHashSet();
+        FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(files);
+        visitArtifacts(dependencySpec, collector);
+        files.addAll(getFiles(filterUnresolved(collector.artifacts)));
+        return files;
     }
 
     /**
      * Collects files reachable from first level dependencies that satisfy the given spec. Throws first failure.
      */
     public void collectFiles(Spec<? super Dependency> dependencySpec, final Collection<File> dest) {
-        // TODO - collect these when traversing the graph
-        for (Dependency dependency : configuration.getAllDependencies()) {
-            if (dependency instanceof FileCollectionDependency && dependencySpec.isSatisfiedBy(dependency)) {
-                dest.addAll(((FileCollectionDependency) dependency).getFiles().getFiles());
-            }
-        }
-        if (dependencySpec == Specs.SATISFIES_ALL) {
-            fileDependencyResults.collectAll(dest);
-        }
-        Set<ResolvedArtifact> artifacts = getAllArtifacts(dependencySpec, new Action<ResolvedDependency>() {
-            @Override
-            public void execute(ResolvedDependency resolvedDependency) {
-                fileDependencyResults.collect(((DefaultResolvedDependency) resolvedDependency).getId(), dest);
-            }
-        });
-        dest.addAll(getFiles(artifacts));
+        FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(dest);
+        visitArtifacts(dependencySpec, collector);
+        dest.addAll(getFiles(collector.artifacts));
     }
 
     /**
      * Recursive but excludes unsuccessfully resolved artifacts.
-     *
-     * @param dependencySpec dependency spec
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-        final Set<ResolvedArtifact> allArtifacts = getAllArtifacts(dependencySpec, Actions.<ResolvedDependency>doNothing());
+        ArtifactsCollector collector = new ArtifactsCollector();
+        visitArtifacts(dependencySpec, collector);
+        return filterUnresolved(collector.artifacts);
+    }
+
+    private Set<ResolvedArtifact> filterUnresolved(final Set<ResolvedArtifact> artifacts) {
         return cacheLockingManager.useCache("retrieve artifacts from " + configuration, new Factory<Set<ResolvedArtifact>>() {
             public Set<ResolvedArtifact> create() {
-                return CollectionUtils.filter(allArtifacts, new IgnoreMissingExternalArtifacts());
+                return CollectionUtils.filter(artifacts, new IgnoreMissingExternalArtifacts());
             }
         });
     }
@@ -180,26 +176,37 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      */
-    private Set<ResolvedArtifact> getAllArtifacts(Spec<? super Dependency> dependencySpec, Action<? super ResolvedDependency> nodeVisitor) {
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, ArtifactsCollector artifactsCollector) {
+        // TODO - collect these when traversing the graph
+        if (artifactsCollector.collectFiles()) {
+            for (Dependency dependency : configuration.getAllDependencies()) {
+                if (dependency instanceof FileCollectionDependency && dependencySpec.isSatisfiedBy(dependency)) {
+                    artifactsCollector.visitFiles(((FileCollectionDependency) dependency).getFiles());
+                }
+            }
+        }
+
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
-            return artifactResults.getArtifacts();
+            if (artifactsCollector.collectFiles()) {
+                for (FileCollection fileCollection : fileDependencyResults.getFiles()) {
+                    artifactsCollector.visitFiles(fileCollection);
+                }
+            }
+            artifactsCollector.visitArtifacts(artifactResults.getArtifacts());
+            return;
         }
 
-        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(nodeVisitor));
+        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactsCollector));
 
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 
-        Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-
         for (ResolvedDependency resolvedDependency : firstLevelModuleDependencies) {
-            artifacts.addAll(resolvedDependency.getParentArtifacts(loadTransientGraphResults().getRoot()));
+            artifactsCollector.visitArtifacts(resolvedDependency.getParentArtifacts(loadTransientGraphResults().getRoot()));
             walker.add(resolvedDependency);
         }
-
-        artifacts.addAll(walker.findValues());
-        return artifacts;
+        walker.findValues();
     }
 
     public Configuration getConfiguration() {
@@ -210,22 +217,60 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         return loadTransientGraphResults().getRoot().getChildren();
     }
 
-    private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
-        private final Action<? super ResolvedDependency> nodeVisitor;
+    private static class ArtifactsCollector {
+        final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
 
-        ResolvedDependencyArtifactsGraph(Action<? super ResolvedDependency> nodeVisitor) {
-            this.nodeVisitor = nodeVisitor;
+        void visitArtifacts(Set<ResolvedArtifact> artifacts) {
+            this.artifacts.addAll(artifacts);
+        }
+
+        boolean collectFiles() {
+            return false;
+        }
+
+        void visitFiles(FileCollection fileCollection) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class FilesAndArtifactsCollector extends ArtifactsCollector {
+        final Collection<File> files;
+
+        public FilesAndArtifactsCollector(Collection<File> files) {
+            this.files = files;
+        }
+
+        @Override
+        boolean collectFiles() {
+            return true;
+        }
+
+        @Override
+        void visitFiles(FileCollection fileCollection) {
+            this.files.addAll(fileCollection.getFiles());
+        }
+    }
+
+    private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
+        private final ArtifactsCollector artifactsCollector;
+
+        ResolvedDependencyArtifactsGraph(ArtifactsCollector artifactsCollector) {
+            this.artifactsCollector = artifactsCollector;
         }
 
         public void getNodeValues(ResolvedDependency node, Collection<? super ResolvedArtifact> values,
                                   Collection<? super ResolvedDependency> connectedNodes) {
             connectedNodes.addAll(node.getChildren());
-            nodeVisitor.execute(node);
+            if (artifactsCollector.collectFiles()) {
+                for (FileCollection fileCollection : fileDependencyResults.getFiles(((DefaultResolvedDependency) node).getId())) {
+                    artifactsCollector.visitFiles(fileCollection);
+                }
+            }
         }
 
         public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
                                   Collection<ResolvedArtifact> values) {
-            values.addAll(to.getParentArtifacts(from));
+            artifactsCollector.visitArtifacts(to.getParentArtifacts(from));
         }
     }
 
@@ -233,8 +278,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         public boolean isSatisfiedBy(ResolvedArtifact element) {
             if (isExternalModuleArtifact(element)) {
                 try {
-                    File file = element.getFile();
-                    return file != null;
+                    element.getFile();
                 } catch (ArtifactResolveException e) {
                     return false;
                 }

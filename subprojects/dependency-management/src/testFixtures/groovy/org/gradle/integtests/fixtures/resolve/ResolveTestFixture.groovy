@@ -124,6 +124,9 @@ allprojects {
 
             actualFiles = findLines(configDetails, 'file-resolved-config')
             compare("resolved configuration files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-lenient-config')
+            compare("lenient configuration files", actualFiles, expectedFiles)
         }
     }
 
@@ -504,6 +507,9 @@ class GenerateGraphTask extends DefaultTask {
                 }
                 configuration.resolvedConfiguration.getFiles { true }.each {
                     writer.println("file-resolved-config:${it.name}")
+                }
+                configuration.resolvedConfiguration.lenientConfiguration.getFiles { true }.each {
+                    writer.println("file-lenient-config:${it.name}")
                 }
             }
         }
