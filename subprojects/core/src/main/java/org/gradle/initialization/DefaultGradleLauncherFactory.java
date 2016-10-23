@@ -109,7 +109,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         ServiceRegistry services = tracker.getCurrentBuild().getServices();
-        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), timeProvider.getCurrentTimeForDuration());
+        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 

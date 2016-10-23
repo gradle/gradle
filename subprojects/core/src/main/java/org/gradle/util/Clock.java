@@ -31,25 +31,21 @@ public class Clock {
         this(new TrueTimeProvider());
     }
 
-    // TODO:DAZ Remove this
-    public Clock(long startInstant) {
-        this(new TrueTimeProvider(), startInstant);
+    /**
+     * Creates a clock with the specified startTime, in ms since epoch.
+     * An attempt is made to correct the startInstant for time elapsed since the specified startTime.
+     * However, this correction is susceptible to clock-shift, as well clocks that are not synchronized.
+     */
+    public Clock(long startTime) {
+        this.timeProvider = new TrueTimeProvider();
+        this.startTime = startTime;
+        long msSinceStart = Math.max(timeProvider.getCurrentTime() - startTime, 0);
+        this.startInstant = timeProvider.getCurrentTimeForDuration() - msSinceStart;
     }
 
     protected Clock(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
         reset();
-    }
-
-    // TODO:DAZ Remove this
-    protected Clock(TimeProvider timeProvider, long startInstant) {
-        this(timeProvider, timeProvider.getCurrentTime(), startInstant);
-    }
-
-    private Clock(TimeProvider timeProvider, long startTime, long startInstant) {
-        this.timeProvider = timeProvider;
-        this.startTime = startTime;
-        this.startInstant = startInstant;
     }
 
     public String getElapsed() {
