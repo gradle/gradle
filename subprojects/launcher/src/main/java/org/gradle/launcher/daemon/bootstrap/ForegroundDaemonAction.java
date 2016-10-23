@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -42,7 +41,7 @@ public class ForegroundDaemonAction implements Runnable {
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.start();
 
-        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath(), new TrueTimeProvider().getCurrentTime());
+        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath());
         Daemon daemon = daemonServices.get(Daemon.class);
         DaemonRegistry daemonRegistry = daemonServices.get(DaemonRegistry.class);
         DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
