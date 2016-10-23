@@ -90,6 +90,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         app.librarySources.each {
             librarySourceFiles << it.writeToDir(file("src/hello"))
         }
+        ([buildFile, settingsFile, sourceFile, headerFile, commonHeaderFile] + librarySourceFiles)*.makeOlder()
     }
 
     def "does not re-execute build with no change"() {
@@ -133,7 +134,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     def "recompiles but does not relink executable with source comment change"() {
         given:
         run "installMainExecutable"
-        maybeWait()
 
         when:
         sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
@@ -159,7 +159,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     def "recompiles library and relinks executable with library source file change"() {
         given:
         run "installMainExecutable"
-        maybeWait()
+
         def install = installation("build/install/main")
 
         when:
@@ -188,7 +188,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     def "recompiles binary when header file changes"() {
         given:
         run "installMainExecutable"
-        maybeWait()
 
         when:
         headerFile << """
@@ -213,7 +212,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
         given:
         run "installMainExecutable"
-        maybeWait()
 
         when:
         headerFile << """
@@ -269,7 +267,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
 """
 
-        maybeWait()
         run "installMainExecutable"
 
         then:

@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.TrueTimeProvider
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
@@ -78,14 +77,6 @@ allprojects { p ->
                         .withOutputBaseFolder(file(rootObjectFilesDir))
                         .map(sourceFile)
         return file(getTestDirectory().toURI().relativize(objectFile.toURI()));
-    }
-
-    protected void maybeWait() {
-        if (toolChain.visualCpp) {
-            def now = new TrueTimeProvider().getCurrentTimeForDuration()
-            def nextSecond = now % 1000
-            Thread.sleep(1200 - nextSecond)
-        }
     }
 
     String hashFor(File inputFile){

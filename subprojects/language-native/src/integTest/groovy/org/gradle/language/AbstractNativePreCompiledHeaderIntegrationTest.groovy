@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
@@ -37,6 +38,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     def "can set a precompiled header on a source set for a source header in the headers directory" () {
         given:
         writeStandardSourceFiles(path)
+        ageSources()
 
         when:
         buildFile << preCompiledHeaderComponent(path)
@@ -61,9 +63,9 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     def "can set a precompiled header on a source set for a header colocated with the source" () {
         given:
-        new SourceFile(app.sourceType, "hello.h", app.libraryHeader.content).writeToDir(file("src/hello"))
-        app.librarySources.each { it.writeToDir(file("src/hello")) }
-        new SourceFile(app.sourceType, "common.h", app.commonHeader.content).writeToDir(file("src/hello"))
+        app.librarySources.each { it.writeToDir(file("src/hello")).makeOlder() }
+        new SourceFile(app.sourceType, "hello.h", app.libraryHeader.content).writeToDir(file("src/hello")).makeOlder()
+        new SourceFile(app.sourceType, "common.h", app.commonHeader.content).writeToDir(file("src/hello")).makeOlder()
 
         when:
         buildFile << preCompiledHeaderComponent()
@@ -78,6 +80,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 }
             }
         """
+        ageSources()
 
         then:
         args("--info")
@@ -119,6 +122,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 }
             }
         """
+        ageSources()
 
         then:
         args("--info")
@@ -147,6 +151,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         when:
         buildFile << preCompiledHeaderComponent()
+        ageSources()
 
         then:
         args("--info")
@@ -186,6 +191,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 }
             }
         """
+        ageSources()
 
         then:
         args("--info")
@@ -221,6 +227,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 }
             }
         """
+        ageSources()
 
         then:
         args("--info")
@@ -256,6 +263,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 }
             }
         """
+        ageSources()
 
         then:
         args("--info")
@@ -313,6 +321,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 }
             }
         """
+        ageSources()
 
         then:
         args("--info")
@@ -336,6 +345,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         when:
         buildFile << preCompiledHeaderComponent()
+        ageSources()
 
         then:
         args("--info")
@@ -449,10 +459,25 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         """
     }
 
+    def ageSources() {
+        buildFile.makeOlder()
+        ageFilesInDir(file("src"))
+    }
+
+    def ageFilesInDir(TestFile dir) {
+        dir.listFiles().each {
+            if (it.directory) {
+                ageFilesInDir(it)
+            } else if (it.file) {
+                it.makeOlder()
+            }
+        }
+    }
+
     def writeStandardSourceFiles(path="") {
-        app.libraryHeader.writeToDir(file("src/hello"))
-        getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
-        getCommonHeader(path).writeToDir(file("src/hello"))
+        app.libraryHeader.writeToDir(file("src/hello")).makeOlder()
+        getLibrarySources(path).each { it.writeToDir(file("src/hello")).makeOlder() }
+        getCommonHeader(path).writeToDir(file("src/hello")).makeOlder()
         assert file("src/hello/headers/${path}common.h").exists()
     }
 
@@ -487,13 +512,12 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     def librarySourceModified(String lib="hello", String path="") {
         getAlternateLibrarySources(path).find { it.name == "hello.${app.sourceExtension}" }.writeToDir(file("src/${lib}"))
-        maybeWait()
     }
 
     def libraryHeaderModified() {
         alternateLibraryHeader.writeToDir(file("src/hello"))
-        maybeWait()
     }
+
 
     def libAndPCHTasksExecuted(String lib="hello", String linkage="shared", String sourceSet=app.sourceType) {
         executedAndNotSkipped(":${getPCHCompileTaskName(lib, linkage, sourceSet)}", ":${getLibraryCompileTaskName(lib, linkage, sourceSet)}", ":${getGeneratePrefixHeaderTaskName(lib, sourceSet)}")
