@@ -29,6 +29,7 @@ import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -158,7 +159,7 @@ public class ZincScalaCompilerFactory {
     private static Setup createZincSetup(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
         ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
         SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
-        Setup setup = Setup.create(scalaLocation, sbtJars, null, false);
+        Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome(), true);
         if (LOGGER.isDebugEnabled()) {
             Setup.debug(setup, logger);
         }
