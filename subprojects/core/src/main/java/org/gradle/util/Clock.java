@@ -21,6 +21,7 @@ import org.gradle.internal.TrueTimeProvider;
 
 public class Clock {
     private long start;
+    private long startTime;
     private TimeProvider timeProvider;
 
     private static final long MS_PER_MINUTE = 60000;
@@ -41,6 +42,7 @@ public class Clock {
 
     protected Clock(TimeProvider timeProvider, long start) {
         this.timeProvider = timeProvider;
+        this.startTime = timeProvider.getCurrentTime();
         this.start = start;
     }
 
@@ -54,11 +56,12 @@ public class Clock {
     }
 
     public void reset() {
+        startTime = timeProvider.getCurrentTime();
         start = timeProvider.getCurrentTimeForDuration();
     }
 
     public long getStartTime() {
-        return start;
+        return startTime;
     }
 
     public static String prettyTime(long timeInMs) {
