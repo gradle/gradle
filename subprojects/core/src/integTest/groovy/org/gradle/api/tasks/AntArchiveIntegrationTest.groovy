@@ -82,7 +82,7 @@ afterEvaluate {
             clock.reset()
         }
         doLast {
-            elapsed = clock.timeInMs
+            elapsed = clock.elapsedMillis
         }
     }
 }
