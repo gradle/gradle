@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -33,6 +34,7 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -75,6 +77,20 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
+
+    public JavaCompile() {
+        getOutputs().doNotCacheIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task task) {
+                return DeprecationLogger.whileDisabled(new Factory<Boolean>() {
+                    @Override
+                    public Boolean create() {
+                        return compileOptions.isUseDepend();
+                    }
+                });
+            }
+        });
+    }
 
     /**
      * {@inheritDoc}
