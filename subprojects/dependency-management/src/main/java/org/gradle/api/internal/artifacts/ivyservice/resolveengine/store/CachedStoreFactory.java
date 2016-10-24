@@ -22,8 +22,8 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
@@ -37,17 +37,16 @@ public class CachedStoreFactory<T> implements Closeable {
 
     private final Cache<Object, T> cache;
     private final Stats stats;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
     private String displayName;
 
     public CachedStoreFactory(String displayName) {
         this.displayName = displayName;
         cache = CacheBuilder.newBuilder().maximumSize(100).expireAfterAccess(10000, TimeUnit.MILLISECONDS).build();
-        stats = new Stats(timeProvider);
+        stats = new Stats();
     }
 
     public Store<T> createCachedStore(final Object id) {
-        return new SimpleStore<T>(cache, id, stats, timeProvider);
+        return new SimpleStore<T>(cache, id, stats);
     }
 
     public void close() {
@@ -57,17 +56,11 @@ public class CachedStoreFactory<T> implements Closeable {
     }
 
     private static class Stats {
-        private final TimeProvider timeProvider;
         private final AtomicLong diskReadsTotalMs = new AtomicLong();
         private final AtomicLong readsFromCache = new AtomicLong();
         private final AtomicLong readsFromDisk = new AtomicLong();
 
-        public Stats(TimeProvider timeProvider) {
-            this.timeProvider = timeProvider;
-        }
-
-        public void readFromDisk(long start) {
-            long duration = timeProvider.getCurrentTimeForDuration() - start;
+        public void readFromDisk(long duration) {
             readsFromDisk.incrementAndGet();
             diskReadsTotalMs.addAndGet(duration);
         }
@@ -87,14 +80,12 @@ public class CachedStoreFactory<T> implements Closeable {
     private static class SimpleStore<T> implements Store<T> {
         private Cache<Object, T> cache;
         private final Object id;
-        private final TimeProvider timeProvider;
         private Stats stats;
 
-        public SimpleStore(Cache<Object, T> cache, Object id, Stats stats, TimeProvider timeProvider) {
+        public SimpleStore(Cache<Object, T> cache, Object id, Stats stats) {
             this.cache = cache;
             this.id = id;
             this.stats = stats;
-            this.timeProvider = timeProvider;
         }
 
         public T load(Factory<T> createIfNotPresent) {
@@ -103,9 +94,9 @@ public class CachedStoreFactory<T> implements Closeable {
                 stats.readFromCache();
                 return out;
             }
-            long start = timeProvider.getCurrentTimeForDuration();
+            Timer timer = Timers.startTimer();
             T value = createIfNotPresent.create();
-            stats.readFromDisk(start);
+            stats.readFromDisk(timer.getElapsedMillis());
             cache.put(id, value);
             return value;
         }
