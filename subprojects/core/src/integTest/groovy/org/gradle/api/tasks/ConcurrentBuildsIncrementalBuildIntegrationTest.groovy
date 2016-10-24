@@ -41,10 +41,7 @@ class ConcurrentBuildsIncrementalBuildIntegrationTest extends AbstractIntegratio
     @Rule CyclicBarrierHttpServer server2 = new CyclicBarrierHttpServer()
 
     private void prepareTransformTask() {
-        file('buildSrc/src/main/groovy/TransformerTask.groovy') << '''
-import org.gradle.api.*
-import org.gradle.api.tasks.*
-
+        buildFile << '''
 public class TransformerTask extends DefaultTask {
     private File inputFile
     private File outputFile
@@ -83,10 +80,6 @@ public class TransformerTask extends DefaultTask {
     }
 }
 '''
-
-        // Execute a build to pre-build the `buildSrc` project
-        // TODO Could precompile this into a plugin
-        succeeds "help"
     }
 
     def "task history is shared between multiple build processes"() {
@@ -179,13 +172,11 @@ block2.mustRunAfter b
         when:
         // Start build 1 then wait until it has run task 'a'.
         executer.withTasks("a", "block1", "b")
-        executer.withArgument("--info")
         def build1 = executer.start()
         server1.waitFor()
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         executer.withTasks("a", "b", "block2")
-        executer.withArgument("--info")
         def build2 = executer.start()
         server2.waitFor()
 
