@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.TimeProvider
@@ -81,14 +80,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected List<String> customizeJvmOptions(List<String> jvmOptions) {
-        if (!jvmOptions) {
-            jvmOptions = ['-Xms2g', '-Xmx2g']
-            if (!JavaVersion.current().isJava8Compatible()) {
-                jvmOptions << '-XX:MaxPermSize=256m'
-            }
-        }
-        jvmOptions << '-XX:+AlwaysPreTouch'
-        return jvmOptions
+        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptions)
     }
 
     abstract R newResult()

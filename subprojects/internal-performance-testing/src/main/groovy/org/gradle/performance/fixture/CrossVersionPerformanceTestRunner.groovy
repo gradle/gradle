@@ -17,16 +17,15 @@
 package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.ExecuterDecoratingGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
@@ -56,9 +55,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> tasksToRun = []
     List<String> args = []
-    List<String> gradleOpts = ['-Xms2g', '-Xmx2g']
+    List<String> gradleOpts = []
     List<String> previousTestIds = []
-    int maxPermSizeMB = 256
 
     List<String> targetVersions = []
 
@@ -95,7 +93,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             testProject: testProject,
             tasks: tasksToRun.collect { it.toString() },
             args: args.collect { it.toString() },
-            gradleOpts: resolveGradleOpts().collect { it.toString() },
+                gradleOpts: resolveGradleOpts(),
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
@@ -243,11 +241,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     def resolveGradleOpts() {
-        def gradleOptsInUse = ['-XX:+AlwaysPreTouch'] + this.gradleOpts
-        if (!JavaVersion.current().isJava8Compatible() && gradleOptsInUse.count { it.startsWith('-XX:MaxPermSize=') } == 0) {
-            gradleOptsInUse << "-XX:MaxPermSize=${maxPermSizeMB}m".toString()
-        }
-        gradleOptsInUse
+        PerformanceTestJvmOptions.customizeJvmOptions(this.gradleOpts)
     }
 
     HonestProfilerCollector getHonestProfiler() {

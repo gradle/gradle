@@ -17,7 +17,6 @@
 package org.gradle.performance
 
 import groovy.transform.InheritConstructors
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -25,11 +24,11 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentRunner
@@ -40,6 +39,7 @@ import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.measure.DataAmount
@@ -97,11 +97,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     protected List<String> createDefaultJvmOptions(String heapSize = '1g') {
-        List<String> jvmOptions = ["-Xms${heapSize}", "-Xmx${heapSize}"].collect { it.toString() }
-        if (!JavaVersion.current().isJava8Compatible()) {
-            jvmOptions << '-XX:MaxPermSize=256m'
-        }
-        jvmOptions << '-XX:+AlwaysPreTouch'
+        List<String> jvmOptions = PerformanceTestJvmOptions.customizeJvmOptions(["-Xms${heapSize}", "-Xmx${heapSize}"])
         jvmOptions << '-Dorg.gradle.performance.measurement.disabled=true'
         return jvmOptions
     }
