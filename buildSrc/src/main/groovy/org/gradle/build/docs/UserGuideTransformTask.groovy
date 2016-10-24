@@ -63,7 +63,7 @@ public class UserGuideTransformTask extends DefaultTask {
     File snippetsDir
 
     @Input
-    Set<String> tags = new HashSet()
+    Set<String> tags = new LinkedHashSet()
 
     final SampleElementValidator validator = new SampleElementValidator();
 
