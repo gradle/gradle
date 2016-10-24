@@ -709,6 +709,24 @@ class DefaultConfigurationSpec extends Specification {
         assert copiedConfiguration.extendsFrom.empty
     }
 
+    @Unroll("Copies configuration role #role")
+    void "copies configuration role"() {
+        def configuration = prepareConfigurationForCopyTest()
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        when:
+        configuration.role = role
+        def copy = configuration.copy()
+
+
+        then:
+        copy.role == configuration.role
+
+        where:
+        role << ConfigurationRole.values()
+    }
+
     def "can copy with spec"() {
         def configuration = prepareConfigurationForCopyTest()
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)

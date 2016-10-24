@@ -542,6 +542,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
+        copiedConfiguration.role = role;
+
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
