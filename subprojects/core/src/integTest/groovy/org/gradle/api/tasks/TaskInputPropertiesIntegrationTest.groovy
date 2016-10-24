@@ -117,7 +117,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains "Input property 'inputs2' file ${file("input2.txt")} has been added."
 
         when:
-        executer.withArgument("-i")
         succeeds "test"
 
         then:
