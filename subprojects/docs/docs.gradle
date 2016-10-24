@@ -449,6 +449,7 @@ test {
     dependsOn releaseNotes
     inputs.files releaseNotesMarkdown.source withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
     inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
+    input.property "systemProperties", [:]
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
