@@ -21,7 +21,9 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Timers
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
@@ -30,6 +32,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import java.lang.reflect.Proxy
+import java.util.concurrent.TimeUnit
 
 class AntBuilderMemoryLeakTest extends Specification {
 
@@ -76,9 +79,9 @@ class AntBuilderMemoryLeakTest extends Specification {
         when:
         int i = 0
         // time out after 10 minutes
-        long maxTime = timeProvider.getCurrentTimeForDuration() + 10 * 60 * 1000
+        CountdownTimer timer = Timers.startTimer(10, TimeUnit.MINUTES)
         try {
-            while (timeProvider.getCurrentTimeForDuration() < maxTime) {
+            while (!timer.hasExpired()) {
                 builder.withClasspath([new File("foo$i")]).execute {
 
                 }
