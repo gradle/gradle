@@ -92,7 +92,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.info('message')
 
         then:
-        1 * listener.onOutput({it.timestamp >= new TrueTimeProvider().getCurrentTimeForDuration() - 300})
+        1 * listener.onOutput({it.timestamp >= new TrueTimeProvider().getCurrentTime() - 300})
         0 * listener._
     }
 
