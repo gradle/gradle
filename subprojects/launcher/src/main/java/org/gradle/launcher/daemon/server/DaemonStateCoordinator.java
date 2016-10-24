@@ -246,7 +246,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     private void cancelNow() {
         long waitUntil = timeProvider.getCurrentTimeForDuration() + cancelTimeoutMs;
-        Date expiry = new Date(waitUntil);
+        Date expiry = new Date(timeProvider.getCurrentTime() + cancelTimeoutMs);
 
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
