@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.internal.time.Timers
 import org.gradle.util.GradleVersion
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
@@ -33,9 +34,9 @@ class LegacyDaemon extends AbstractDaemonFixture {
     }
 
     protected void waitForState(State state) {
-        def expiry = timeProvider.getCurrentTimeForDuration() + STATE_CHANGE_TIMEOUT
+        def timer = Timers.startTimer(STATE_CHANGE_TIMEOUT)
         def lastLogState = logFileProbe.currentState
-        while (expiry > timeProvider.getCurrentTimeForDuration() && lastLogState != state) {
+        while (!timer.hasExpired() && lastLogState != state) {
             Thread.sleep(200)
             lastLogState = logFileProbe.currentState
         }

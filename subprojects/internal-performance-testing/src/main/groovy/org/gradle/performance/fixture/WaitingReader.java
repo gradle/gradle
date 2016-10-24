@@ -16,7 +16,9 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timers;
 import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.BufferedReader;
@@ -54,13 +56,13 @@ public class WaitingReader {
     }
 
     String readLine() throws IOException {
-        long upTo = timeProvider.getCurrentTimeForDuration() + timeoutMs;
+        CountdownTimer timer = Timers.startTimer(timeoutMs);
         reader.mark(READAHEAD_BUFFER_SIZE);
         int character = EOF;
         while (character != NEW_LINE && character != CARRIAGE_RETURN) {
             character = reader.read();
             if (character == EOF) {
-                if (timeProvider.getCurrentTimeForDuration() >= upTo) {
+                if (timer.hasExpired()) {
                     break;
                 }
                 try {
