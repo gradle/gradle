@@ -20,17 +20,18 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
-import java.util.Date;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -245,8 +246,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void cancelNow() {
-        long waitUntil = timeProvider.getCurrentTimeForDuration() + cancelTimeoutMs;
-        Date expiry = new Date(timeProvider.getCurrentTime() + cancelTimeoutMs);
+        CountdownTimer timer = Timers.startTimer(cancelTimeoutMs);
 
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
@@ -257,7 +257,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
         lock.lock();
         try {
-            while (timeProvider.getCurrentTimeForDuration() < waitUntil) {
+            while (!timer.hasExpired()) {
                 try {
                     switch (state) {
                         case Idle:
@@ -267,7 +267,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                         case Canceled:
                         case StopRequested:
                             LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
-                            condition.awaitUntil(expiry);
+                            condition.awaitUntil(timer.getExpiryTime());
                             break;
                         case Broken:
                             throw new IllegalStateException("This daemon is in a broken state.");

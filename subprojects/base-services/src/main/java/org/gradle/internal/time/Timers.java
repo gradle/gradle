@@ -23,6 +23,10 @@ public class Timers {
         return new Clock();
     }
 
+    public static CountdownTimer startTimer(long timeoutMillis) {
+        return new CountdownClock(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
     /**
      * Provides a countdown timer useful to check if an operation has timed out.
      * When created with a zero or negative timeout, will never expire.
