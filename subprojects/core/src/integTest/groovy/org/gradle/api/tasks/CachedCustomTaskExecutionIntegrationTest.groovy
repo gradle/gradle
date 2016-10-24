@@ -509,6 +509,38 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         // "dir"  | _
     }
 
+    def "empty output directory is cached properly"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << """
+            task customTask {
+                inputs.file "input.txt"
+                outputs.file "build/output.txt" withPropertyName "output"
+                outputs.dir "build/empty" withPropertyName "empty"
+                outputs.cacheIf { true }
+                doLast {
+                    file("build/empty").mkdirs()
+                    file("build/output.txt").text = file("input.txt").text
+                }
+            }
+        """
+
+        when:
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/empty").assertIsEmptyDir()
+
+        when:
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/empty").assertIsEmptyDir()
+    }
+
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
     }
