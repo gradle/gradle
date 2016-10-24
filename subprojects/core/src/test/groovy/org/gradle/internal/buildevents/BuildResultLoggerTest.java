@@ -20,7 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.logging.text.TestStyledTextOutput;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;

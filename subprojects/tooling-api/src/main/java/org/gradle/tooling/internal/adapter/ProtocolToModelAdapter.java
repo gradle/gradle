@@ -17,8 +17,8 @@ package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;

@@ -22,14 +22,14 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.gradle.util.Clock.prettyTime;
+import static org.gradle.internal.time.Clock.prettyTime;
 
 public class CachedStoreFactory<T> implements Closeable {
 

@@ -58,7 +58,7 @@ import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.util.UUID;

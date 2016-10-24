@@ -19,7 +19,7 @@ package org.gradle.internal.logging.source;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.logging.config.LoggingSourceSystem;

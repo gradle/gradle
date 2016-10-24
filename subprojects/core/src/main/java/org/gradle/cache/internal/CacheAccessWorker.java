@@ -19,11 +19,12 @@ package org.gradle.cache.internal;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.time.Clock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -175,7 +176,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             cacheAccess.useCache("CacheAccessWorker flushing operations", new Runnable() {
                 @Override
                 public void run() {
-                    long lockingStarted = timeProvider.getCurrentTimeForDuration();
+                    Clock timer = new Clock();
                     if (updateOperation != null) {
                         failureHandler.onExecute(updateOperation);
                     }
@@ -192,7 +193,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                             }
                             if (runnableClass == ShutdownOperationsCommand.class
                                     || runnableClass == FlushOperationsCommand.class
-                                    || maximumLockingTimeMillis > 0L && timeProvider.getCurrentTimeForDuration() - lockingStarted > maximumLockingTimeMillis) {
+                                    || maximumLockingTimeMillis > 0L && timer.getElapsedMillis() > maximumLockingTimeMillis) {
                                 break;
                             }
                         }

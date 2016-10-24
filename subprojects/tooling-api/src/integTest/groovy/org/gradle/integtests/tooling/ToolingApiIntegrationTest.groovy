@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.internal.TimeProvider
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection

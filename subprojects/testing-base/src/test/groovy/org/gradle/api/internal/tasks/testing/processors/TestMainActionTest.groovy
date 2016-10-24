@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import spock.lang.Specification
 
 class TestMainActionTest extends Specification {

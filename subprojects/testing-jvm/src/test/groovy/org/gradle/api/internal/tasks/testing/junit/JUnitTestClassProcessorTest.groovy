@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

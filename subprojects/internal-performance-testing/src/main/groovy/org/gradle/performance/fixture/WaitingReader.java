@@ -16,8 +16,8 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;

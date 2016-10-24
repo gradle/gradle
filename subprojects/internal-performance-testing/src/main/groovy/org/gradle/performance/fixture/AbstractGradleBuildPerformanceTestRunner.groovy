@@ -18,8 +18,8 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.TimeProvider
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceTestResult

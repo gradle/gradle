@@ -17,8 +17,8 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.ProcessFixture
-import org.gradle.internal.TimeProvider
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.launcher.daemon.context.DaemonContext
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*

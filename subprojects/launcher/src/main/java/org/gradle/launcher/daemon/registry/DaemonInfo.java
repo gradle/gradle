@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

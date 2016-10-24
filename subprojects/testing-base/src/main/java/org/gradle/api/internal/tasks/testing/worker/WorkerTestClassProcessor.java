@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
 

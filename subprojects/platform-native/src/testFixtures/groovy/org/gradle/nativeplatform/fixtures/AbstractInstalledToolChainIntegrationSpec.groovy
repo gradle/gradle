@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
@@ -82,7 +82,7 @@ allprojects { p ->
 
     protected void maybeWait() {
         if (toolChain.visualCpp) {
-            def now = new TrueTimeProvider().getCurrentTimeForDuration()
+            def now = new TrueTimeProvider().getCurrentTime()
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }

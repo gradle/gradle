@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;

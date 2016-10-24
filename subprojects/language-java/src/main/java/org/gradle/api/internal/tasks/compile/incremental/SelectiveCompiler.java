@@ -26,7 +26,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 class SelectiveCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);

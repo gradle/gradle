@@ -31,7 +31,7 @@ import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputReader;
 import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

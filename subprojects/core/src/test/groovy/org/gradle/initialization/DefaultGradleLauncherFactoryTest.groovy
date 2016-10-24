@@ -16,7 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory

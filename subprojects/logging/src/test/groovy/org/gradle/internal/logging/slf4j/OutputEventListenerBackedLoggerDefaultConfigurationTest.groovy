@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.Logging
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.util.TextUtil
 import org.slf4j.Logger
 import spock.lang.Specification

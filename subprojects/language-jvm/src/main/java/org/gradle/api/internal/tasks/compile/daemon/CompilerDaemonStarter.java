@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 import java.io.File;
 

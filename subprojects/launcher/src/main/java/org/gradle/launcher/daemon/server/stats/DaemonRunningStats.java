@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.server.stats;
 
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 public class DaemonRunningStats {
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing
 
 import spock.lang.Specification
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor
 
 class SuiteTestClassProcessorTest extends Specification {

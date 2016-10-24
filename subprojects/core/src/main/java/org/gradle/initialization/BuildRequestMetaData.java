@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 /**
  * A bunch of information about the request which launched a build.

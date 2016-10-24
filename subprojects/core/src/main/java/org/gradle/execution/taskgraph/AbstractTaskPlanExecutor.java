@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 
-import static org.gradle.util.Clock.prettyTime;
+import static org.gradle.internal.time.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);

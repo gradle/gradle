@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.time;
 
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
-
-@Deprecated
 public class Clock {
     private long startTime;
     private long startInstant;
@@ -49,12 +45,12 @@ public class Clock {
         reset();
     }
 
-    public String getTime() {
-        long timeInMs = getTimeInMs();
+    public String getElapsed() {
+        long timeInMs = getElapsedMillis();
         return prettyTime(timeInMs);
     }
 
-    public long getTimeInMs() {
+    public long getElapsedMillis() {
         return Math.max(timeProvider.getCurrentTimeForDuration() - startInstant, 0);
     }
 

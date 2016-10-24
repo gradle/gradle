@@ -20,7 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;

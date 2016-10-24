@@ -29,7 +29,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.io.IOException;

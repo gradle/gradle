@@ -17,7 +17,7 @@
 package org.gradle.internal.progress
 
 import org.gradle.internal.Factory
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec

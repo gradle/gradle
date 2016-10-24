@@ -35,7 +35,7 @@ import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -43,7 +43,7 @@ import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

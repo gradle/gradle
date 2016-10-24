@@ -25,7 +25,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -34,7 +34,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 import java.io.IOException;
 import java.util.ArrayList;

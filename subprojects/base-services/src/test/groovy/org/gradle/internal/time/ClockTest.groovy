@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
 
-import org.gradle.internal.TimeProvider
+
+package org.gradle.internal.time
+
 import spock.lang.Specification
 
 public class ClockTest extends Specification {
@@ -79,4 +80,4 @@ public class ClockTest extends Specification {
         long dt = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis;
         1 * timeProvider.currentTimeForDuration >> TEST_BASE_TIME + dt;
     }
-    }
+}

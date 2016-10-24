@@ -17,7 +17,7 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler

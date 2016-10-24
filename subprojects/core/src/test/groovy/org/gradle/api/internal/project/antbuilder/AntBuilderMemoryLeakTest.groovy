@@ -21,8 +21,8 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.internal.TimeProvider
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
 import spock.lang.Ignore

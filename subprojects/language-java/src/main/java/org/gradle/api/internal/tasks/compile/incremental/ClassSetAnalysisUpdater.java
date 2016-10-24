@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnal
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 
 public class ClassSetAnalysisUpdater {
 

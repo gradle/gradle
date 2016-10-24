@@ -17,7 +17,7 @@ package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.logging.events.OutputEventListener
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -47,7 +47,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
