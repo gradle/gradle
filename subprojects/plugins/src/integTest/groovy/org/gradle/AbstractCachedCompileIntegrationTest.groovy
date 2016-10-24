@@ -16,10 +16,11 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractCachedCompileIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
+abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
     def setup() {
         setupProjectInDirectory()
     }
@@ -30,13 +31,13 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractLocalTaskCac
 
     def 'compilation can be cached'() {
         when:
-        succeedsWithCache compilationTask
+        withCache().succeeds compilationTask
 
         then:
         compileIsNotCached()
 
         when:
-        succeedsWithCache 'clean', 'run'
+        withCache().succeeds 'clean', 'run'
 
         then:
         compileIsCached()
@@ -49,7 +50,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractLocalTaskCac
 
         when:
         executer.inDirectory(remoteProjectDir)
-        succeedsWithCache compilationTask
+        withCache().succeeds compilationTask
         then:
         compileIsNotCached()
         remoteProjectDir.file(getCompiledFile()).exists()
@@ -58,7 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractLocalTaskCac
         remoteProjectDir.deleteDir()
 
         when:
-        succeedsWithCache compilationTask
+        withCache().succeeds compilationTask
         then:
         compileIsCached()
     }
@@ -76,7 +77,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractLocalTaskCac
         def remoteProjectDir = file("remote-project")
         setupProjectInDirectory(remoteProjectDir)
         executer.inDirectory(remoteProjectDir)
-        succeedsWithCache compilationTask
+        withCache().succeeds compilationTask
         compileIsNotCached()
         // Remove the project completely
         remoteProjectDir.deleteDir()

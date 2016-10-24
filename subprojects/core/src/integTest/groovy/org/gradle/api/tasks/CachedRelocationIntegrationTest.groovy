@@ -16,9 +16,10 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 
-class CachedRelocationIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
+class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
 
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
@@ -42,7 +43,7 @@ class CachedRelocationIntegrationTest extends AbstractLocalTaskCacheIntegrationT
 
         when:
         executer.usingProjectDirectory(originalLocation)
-        succeedsWithCache "jar", "customTask"
+        withCache().succeeds "jar", "customTask"
 
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -50,7 +51,7 @@ class CachedRelocationIntegrationTest extends AbstractLocalTaskCacheIntegrationT
         when:
         executer.usingProjectDirectory(originalLocation)
         originalLocation.file("external.gradle").text = externalTaskDef("modified")
-        succeedsWithCache "jar", "customTask"
+        withCache().succeeds "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
@@ -61,7 +62,7 @@ class CachedRelocationIntegrationTest extends AbstractLocalTaskCacheIntegrationT
         run "clean"
 
         executer.usingProjectDirectory(originalLocation)
-        succeedsWithCache "jar", "customTask"
+        withCache().succeeds "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -73,7 +74,7 @@ class CachedRelocationIntegrationTest extends AbstractLocalTaskCacheIntegrationT
         movedLocation.file(".gradle").deleteDir()
 
         executer.usingProjectDirectory(movedLocation)
-        succeedsWithCache "jar", "customTask"
+        withCache().succeeds "jar", "customTask"
 
         then:
         // Built-in tasks are loaded from cache

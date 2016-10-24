@@ -168,6 +168,20 @@ public interface GradleExecuter {
      */
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
+    /**
+     * Activates the task output cache
+     *
+     * @return this executer
+     */
+    GradleExecuter withCacheEnabled();
+
+    /**
+     * Activates the task output cache for a local directory
+     *
+     * @param cacheDir the directory for the cache
+     * @return this executer
+     */
+    GradleExecuter withLocalCache(File cacheDir);
 
     /**
      * Don't set temp folder explicitly.

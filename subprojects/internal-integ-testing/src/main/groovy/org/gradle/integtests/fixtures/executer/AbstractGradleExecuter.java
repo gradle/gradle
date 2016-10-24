@@ -864,6 +864,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter withCacheEnabled() {
+        return withArgument("-Dorg.gradle.cache.tasks=true");
+    }
+
+    @Override
+    public GradleExecuter withLocalCache(File cacheDir) {
+        return withCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
+    }
+
     protected Action<ExecutionResult> getResultAssertion() {
         return new Action<ExecutionResult>() {
             int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;

@@ -61,7 +61,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         executer.requireOwnGradleUserHomeDir() // dependency will be downloaded into a different directory
 
         when:
-        succeedsWithCache compilationTask
+        withCache().succeeds compilationTask
 
         then:
         compileIsCached()
@@ -78,7 +78,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         """.stripIndent()
 
         when:
-        succeedsWithCache compilationTask
+        withCache().succeeds compilationTask
 
         then:
         compileIsNotCached()
@@ -118,14 +118,14 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         def compiledGroovyClass = file('build/classes/main/UsesJava.class')
 
         when:
-        succeedsWithCache ':compileJava', ':compileGroovy'
+        withCache().succeeds ':compileJava', ':compileGroovy'
 
         then:
         compiledJavaClass.exists()
         compiledGroovyClass.exists()
 
         when:
-        succeedsWithCache ':clean', ':compileJava'
+        withCache().succeeds ':clean', ':compileJava'
 
         then:
         skippedTasks.contains(':compileJava')
@@ -136,7 +136,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         // compileGroovy from the cache the compiled java
         // classes are replaced and recorded as changed
         compiledJavaClass.makeOlder()
-        succeedsWithCache ':compileGroovy'
+        withCache().succeeds ':compileGroovy'
 
         then:
         skippedTasks.containsAll([':compileJava', ':compileGroovy'])
@@ -160,7 +160,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
             }
         """
 
-        succeedsWithCache ':compileGroovy'
+        withCache().succeeds ':compileGroovy'
 
         then:
         compiledJavaClass.exists()

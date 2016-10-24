@@ -16,33 +16,31 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Before
 
-abstract class AbstractLocalTaskCacheIntegrationTest extends AbstractIntegrationSpec {
-    File cacheDir
+@SelfType(AbstractIntegrationSpec)
+trait LocalTaskCacheFixture {
+    private TestFile cacheDir
 
-    def setup() {
+    abstract TestNameTestDirectoryProvider getTemporaryFolder()
+    abstract GradleExecuter getExecuter()
+
+    @Before
+    void setupCacheDirectory() {
         // Make sure cache dir is empty for every test execution
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
     }
 
-    def runWithCache(String... tasks) {
-        enableCache()
-        run tasks
+    TestFile getCacheDir() {
+        cacheDir
     }
 
-    def succeedsWithCache(String... tasks) {
-        enableCache()
-        succeeds tasks
-    }
-
-    def failsWithCache(String... tasks) {
-        enableCache()
-        fails tasks
-    }
-
-    protected GradleExecuter enableCache() {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
+    AbstractIntegrationSpec withCache() {
+        executer.withLocalCache(cacheDir)
+        this
     }
 }

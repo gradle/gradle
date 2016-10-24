@@ -16,13 +16,14 @@
 
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 @Requires(FIX_TO_WORK_ON_JAVA9)
-class JacocoCachingIntegrationTest extends AbstractLocalTaskCacheIntegrationTest {
+class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
 
     def "jacoco file results are cached"() {
         file("src/main/java/org/gradle/Class1.java") <<
@@ -48,7 +49,7 @@ class JacocoCachingIntegrationTest extends AbstractLocalTaskCacheIntegrationTest
         """
 
         when:
-        succeedsWithCache "jacocoTestReport"
+        withCache().succeeds "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
@@ -60,7 +61,7 @@ class JacocoCachingIntegrationTest extends AbstractLocalTaskCacheIntegrationTest
         reportFile.assertDoesNotExist()
 
         when:
-        succeedsWithCache "jacocoTestReport"
+        withCache().succeeds "jacocoTestReport"
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertHasNotChangedSince(snapshot)
