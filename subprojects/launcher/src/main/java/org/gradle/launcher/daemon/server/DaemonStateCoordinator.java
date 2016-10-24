@@ -26,6 +26,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
@@ -54,7 +55,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final long cancelTimeoutMs;
 
     private State state = State.Idle;
-    private long lastActivityAt = -1;
+    private final Timer idleTimer;
     private String currentCommandExecution;
     private Object result;
     private String stopReason;
@@ -75,7 +76,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         this.onFinishCommand = onFinishCommand;
         this.onCancelCommand = onCancelCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
-        updateActivityTimestamp();
+        idleTimer = Timers.startTimer();
         updateCancellationToken();
     }
 
@@ -423,15 +424,14 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void updateActivityTimestamp() {
-        long now = timeProvider.getCurrentTimeForDuration();
-        LOGGER.debug("updating lastActivityAt to {}", now);
-        lastActivityAt = now;
+        LOGGER.debug("resetting idle timer");
+        idleTimer.reset();
     }
 
     private double getIdleMinutes() {
         lock.lock();
         try {
-            return (timeProvider.getCurrentTimeForDuration() - lastActivityAt) / 1000 / 60;
+            return idleTimer.getElapsedMillis() / 1000 / 60;
         } finally {
             lock.unlock();
         }
@@ -439,7 +439,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     public long getIdleMillis() {
         if (state == State.Idle) {
-            return timeProvider.getCurrentTimeForDuration() - lastActivityAt;
+            return idleTimer.getElapsedMillis();
         } else {
             return 0L;
         }

@@ -21,7 +21,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
+import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timers;
 import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -154,8 +156,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
         final Collection<DaemonInfo> compatibleCanceledDaemons = getCompatibleDaemons(canceledBusy.getLeft(), constraint);
         if (!compatibleCanceledDaemons.isEmpty()) {
             LOGGER.info(DaemonMessages.WAITING_ON_CANCELED);
-            long waitUntil = timeProvider.getCurrentTimeForDuration() + CANCELED_WAIT_TIMEOUT;
-            while (connection == null && timeProvider.getCurrentTimeForDuration() < waitUntil) {
+            CountdownTimer timer = Timers.startTimer(CANCELED_WAIT_TIMEOUT);
+            while (connection == null && !timer.hasExpired()) {
                 try {
                     sleep(200);
                     connection = connectToIdleDaemon(daemonRegistry.getIdle(), constraint);
@@ -205,7 +207,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             .start("Starting Gradle Daemon", "Starting Daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
-        long expiry = timeProvider.getCurrentTimeForDuration() + connectTimeout;
+        CountdownTimer timer = Timers.startTimer(connectTimeout);
         try {
             do {
                 DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
@@ -218,7 +220,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
-            } while (timeProvider.getCurrentTimeForDuration() < expiry);
+            } while (!timer.hasExpired());
         } finally {
             progressLogger.completed();
         }

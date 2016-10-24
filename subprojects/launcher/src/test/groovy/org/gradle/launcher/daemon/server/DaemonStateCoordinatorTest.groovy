@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.server
 
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -638,11 +637,12 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
     def "idle millis is > 0 when daemon is idle"() {
         when:
-        coordinator.lastActivityAt = new TrueTimeProvider().currentTimeForDuration - 10
+        coordinator.updateActivityTimestamp()
+        sleep(10)
 
         then:
         idle
-        coordinator.getIdleMillis() >= 10
+        coordinator.getIdleMillis() > 0
     }
 
     boolean isStopped() {
