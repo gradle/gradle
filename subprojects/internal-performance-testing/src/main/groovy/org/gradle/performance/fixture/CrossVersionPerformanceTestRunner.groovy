@@ -243,7 +243,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     def resolveGradleOpts() {
-        def gradleOptsInUse = [] + this.gradleOpts
+        def gradleOptsInUse = ['-XX:+AlwaysPreTouch'] + this.gradleOpts
         if (!JavaVersion.current().isJava8Compatible() && gradleOptsInUse.count { it.startsWith('-XX:MaxPermSize=') } == 0) {
             gradleOptsInUse << "-XX:MaxPermSize=${maxPermSizeMB}m".toString()
         }

@@ -87,6 +87,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
                 jvmOptions << '-XX:MaxPermSize=256m'
             }
         }
+        jvmOptions << '-XX:+AlwaysPreTouch'
         return jvmOptions
     }
 
