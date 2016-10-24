@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.TimeProvider
@@ -77,6 +78,16 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert builder.projectName
         assert builder.workingDirectory
         builder.invocation.workingDirectory = builder.workingDirectory
+    }
+
+    protected List<String> customizeJvmOptions(List<String> jvmOptions) {
+        if (!jvmOptions) {
+            jvmOptions = ['-Xms2g', '-Xmx2g']
+            if (!JavaVersion.current().isJava8Compatible()) {
+                jvmOptions << '-XX:MaxPermSize=256m'
+            }
+        }
+        return jvmOptions
     }
 
     abstract R newResult()

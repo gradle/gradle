@@ -51,14 +51,13 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         super.finalizeSpec(builder)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
-            if (!invocation.gradleOptions) {
-                invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
-            }
+            invocation.gradleOptions = customizeJvmOptions(invocation.gradleOptions)
             if (!builder.displayName.startsWith("Gradle ")) {
                 throw new IllegalArgumentException("Gradle invocation display name must start with 'Gradle '")
             }
         } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
             def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
+            invocation.jvmOpts = customizeJvmOptions(invocation.jvmOpts)
             if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
                 def localRepoPath = m2.mavenRepo().rootDir.absolutePath
                 if (OperatingSystem.current().isWindows()) {
