@@ -16,7 +16,7 @@
 
 package org.gradle.internal.time;
 
-public class Clock {
+public class Clock implements Timer {
     private long startTime;
     private long startInstant;
     private TimeProvider timeProvider;
@@ -45,11 +45,13 @@ public class Clock {
         reset();
     }
 
+    @Override
     public String getElapsed() {
         long timeInMs = getElapsedMillis();
         return prettyTime(timeInMs);
     }
 
+    @Override
     public long getElapsedMillis() {
         return Math.max(timeProvider.getCurrentTimeForDuration() - startInstant, 0);
     }

@@ -25,7 +25,8 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,7 +47,7 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     public void generate() {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
 
         buildOperationProcessor.run(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
             @Override

@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.internal.time.Clock;
 
 import java.io.File;
 
@@ -37,7 +38,7 @@ public class CompilerDaemonStarter {
 
     public CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle compiler daemon with fork options {}.", forkOptions);
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         MultiRequestWorkerProcessBuilder<CompilerDaemonWorker> builder = workerFactory.multiRequestWorker(CompilerDaemonWorker.class, CompilerDaemonProtocol.class, CompilerDaemonServer.class);
         builder.setBaseName("Gradle Compiler Daemon");
         builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level

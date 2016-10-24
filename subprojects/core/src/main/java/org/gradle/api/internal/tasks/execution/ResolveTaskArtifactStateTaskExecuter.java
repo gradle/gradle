@@ -21,7 +21,8 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         context.setTaskArtifactState(repository.getStateFor(task));
         LOGGER.info("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
         try {

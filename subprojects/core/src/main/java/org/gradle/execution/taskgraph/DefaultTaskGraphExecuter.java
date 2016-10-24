@@ -35,15 +35,16 @@ import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +93,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     public void addTasks(Iterable<? extends Task> tasks) {
         assert tasks != null;
 
-        Clock clock = new Clock();
+        final Timer clock = Timers.startTimer();
 
         Set<Task> taskSet = new LinkedHashSet<Task>();
         for (Task task : tasks) {
@@ -105,7 +106,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void execute() {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         ensurePopulated();
 
         graphListeners.getSource().graphPopulated(this);

@@ -31,7 +31,8 @@ import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputReader;
 import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        final Clock clock = new Clock();
+        final Timer clock = Timers.startTimer();
 
         final TaskOutputsInternal taskOutputs = task.getOutputs();
 

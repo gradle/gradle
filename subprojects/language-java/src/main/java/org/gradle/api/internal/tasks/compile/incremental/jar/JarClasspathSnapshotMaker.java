@@ -18,7 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.File;
 
@@ -41,7 +42,7 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
     @Override
     public void storeJarSnapshots(Iterable<File> classpath) {
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         classpathSnapshotStore.put(jarClasspathSnapshot.getData());
         LOG.info("Written jar classpath snapshot for incremental compilation in {}.", clock.getElapsed());
     }
@@ -56,7 +57,7 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
         if (jarClasspathSnapshot != null) {
             return;
         }
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
 
         jarClasspathSnapshot = classpathSnapshotFactory.createSnapshot(jarArchives);

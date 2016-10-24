@@ -23,7 +23,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.Closeable;
 import java.io.File;
@@ -117,7 +118,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     public void close() {
         try {
-            Clock clock = new Clock();
+            Timer clock = Timers.startTimer();
             cleanUpLater.stop();
             LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getElapsed());
         } finally {

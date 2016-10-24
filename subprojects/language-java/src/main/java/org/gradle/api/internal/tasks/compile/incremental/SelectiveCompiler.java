@@ -26,7 +26,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 class SelectiveCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
@@ -49,7 +50,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getClasspath());
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
 
