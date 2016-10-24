@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.tar.TarEntry;
@@ -69,14 +70,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
-        TarOutputStream outputStream = new TarOutputStream(output, "utf-8");
+        Closer closer = Closer.create();
+        TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
         outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
         outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
         outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
             pack(taskOutputs, outputStream);
+        } catch (Throwable ex) {
+            throw closer.rethrow(ex);
         } finally {
-            outputStream.close();
+            closer.close();
         }
     }
 
@@ -85,7 +89,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             try {
                 packProperty((CacheableTaskOutputFilePropertySpec) spec, outputStream);
             } catch (Exception ex) {
-                throw new GradleException(String.format("Could not pack property '%s'", spec.getPropertyName()), ex);
+                throw new GradleException(String.format("Could not pack property '%s': %s", spec.getPropertyName(), ex.getMessage()), ex);
             }
         }
     }
@@ -112,6 +116,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (!directory.exists()) {
             return;
         }
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
+        }
         final String propertyRoot = "property-" + propertyName + "/";
         outputStream.putNextEntry(new TarEntry(propertyRoot));
         outputStream.closeEntry();
@@ -133,6 +140,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) {
         if (!file.exists()) {
             return;
+        }
+        if (!file.isFile()) {
+            throw new IllegalArgumentException(String.format("Expected '%s' to be a file", file));
         }
         String path = "property-" + propertyName;
         storeFileEntry(file, path, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
@@ -158,8 +168,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             entry.setSize(size);
             entry.setMode(UnixStat.FILE_FLAG | mode);
             outputStream.putNextEntry(entry);
-            Files.copy(file, outputStream);
-            outputStream.closeEntry();
+            try {
+                Files.copy(file, outputStream);
+            } finally {
+                outputStream.closeEntry();
+            }
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }
@@ -167,11 +180,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+        Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
             unpack(taskOutputs, tarInput);
+        } catch (Throwable ex) {
+            throw closer.rethrow(ex);
         } finally {
-            tarInput.close();
+            closer.close();
         }
     }
 

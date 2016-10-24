@@ -542,6 +542,37 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/empty").assertIsEmptyDir()
     }
 
+    @Unroll
+    def "fails gracefully when output #expected is expected but #actual is produced"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << """
+            task customTask {
+                inputs.file "input.txt"
+                outputs.$expected "build/output" withPropertyName "output"
+                outputs.cacheIf { true }
+                doLast {
+                    ${
+                        actual == "file" ?
+                            "mkdir('build'); file('build/output').text = file('input.txt').text"
+                            : "mkdir('build/output'); file('build/output/output.txt').text = file('input.txt').text"
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withTaskCache().succeeds "customTask"
+        then:
+        output.contains message.replace("PATH", file("build/output").path)
+
+        where:
+        expected | actual | message
+        "file"   | "dir"  | "Expected 'PATH' to be a file"
+        "dir"    | "file" | "Expected 'PATH' to be a directory"
+    }
+
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
     }
