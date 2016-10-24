@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
@@ -239,7 +238,6 @@ public class CompileOptions extends AbstractOptions {
      * {@code false}.
      */
     @Input
-    @Internal
     @Deprecated
     public boolean isUseDepend() {
         DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.isUseDepend()");
