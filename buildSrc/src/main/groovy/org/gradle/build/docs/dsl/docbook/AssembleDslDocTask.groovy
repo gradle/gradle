@@ -71,7 +71,7 @@ class AssembleDslDocTask extends DefaultTask {
     @InputFile
     File pluginsMetaDataFile
 
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     File classDocbookDir
 
