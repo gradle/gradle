@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import groovy.transform.InheritConstructors
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -93,6 +94,16 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         System.addShutdownHook {
             ((Closeable) resultStore).close()
         }
+    }
+
+    protected List<String> createDefaultJvmOptions(String heapSize = '1g') {
+        List<String> jvmOptions = ["-Xms${heapSize}", "-Xmx${heapSize}"].collect { it.toString() }
+        if (!JavaVersion.current().isJava8Compatible()) {
+            jvmOptions << '-XX:MaxPermSize=256m'
+        }
+        jvmOptions << '-XX:+AlwaysPreTouch'
+        jvmOptions << '-Dorg.gradle.performance.measurement.disabled=true'
+        return jvmOptions
     }
 
     @InheritConstructors
