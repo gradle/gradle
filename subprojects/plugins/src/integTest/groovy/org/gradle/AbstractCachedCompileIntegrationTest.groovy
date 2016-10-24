@@ -31,13 +31,13 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
     def 'compilation can be cached'() {
         when:
-        withCache().succeeds compilationTask
+        withTaskCache().succeeds compilationTask
 
         then:
         compileIsNotCached()
 
         when:
-        withCache().succeeds 'clean', 'run'
+        withTaskCache().succeeds 'clean', 'run'
 
         then:
         compileIsCached()
@@ -50,7 +50,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.inDirectory(remoteProjectDir)
-        withCache().succeeds compilationTask
+        withTaskCache().succeeds compilationTask
         then:
         compileIsNotCached()
         remoteProjectDir.file(getCompiledFile()).exists()
@@ -59,7 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
-        withCache().succeeds compilationTask
+        withTaskCache().succeeds compilationTask
         then:
         compileIsCached()
     }
@@ -77,7 +77,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         def remoteProjectDir = file("remote-project")
         setupProjectInDirectory(remoteProjectDir)
         executer.inDirectory(remoteProjectDir)
-        withCache().succeeds compilationTask
+        withTaskCache().succeeds compilationTask
         compileIsNotCached()
         // Remove the project completely
         remoteProjectDir.deleteDir()

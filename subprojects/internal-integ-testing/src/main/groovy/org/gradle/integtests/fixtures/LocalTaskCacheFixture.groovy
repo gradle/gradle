@@ -39,8 +39,8 @@ trait LocalTaskCacheFixture {
         cacheDir
     }
 
-    AbstractIntegrationSpec withCache() {
-        executer.withLocalCache(cacheDir)
+    AbstractIntegrationSpec withTaskCache() {
+        executer.withLocalTaskCache(cacheDir)
         this
     }
 }

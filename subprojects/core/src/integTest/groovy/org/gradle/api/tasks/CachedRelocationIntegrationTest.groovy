@@ -43,7 +43,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
 
         when:
         executer.usingProjectDirectory(originalLocation)
-        withCache().succeeds "jar", "customTask"
+        withTaskCache().succeeds "jar", "customTask"
 
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -51,7 +51,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         when:
         executer.usingProjectDirectory(originalLocation)
         originalLocation.file("external.gradle").text = externalTaskDef("modified")
-        withCache().succeeds "jar", "customTask"
+        withTaskCache().succeeds "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
@@ -62,7 +62,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         run "clean"
 
         executer.usingProjectDirectory(originalLocation)
-        withCache().succeeds "jar", "customTask"
+        withTaskCache().succeeds "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -74,7 +74,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         movedLocation.file(".gradle").deleteDir()
 
         executer.usingProjectDirectory(movedLocation)
-        withCache().succeeds "jar", "customTask"
+        withTaskCache().succeeds "jar", "customTask"
 
         then:
         // Built-in tasks are loaded from cache

@@ -49,7 +49,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Lo
         """
 
         when:
-        withCache().succeeds "jacocoTestReport"
+        withTaskCache().succeeds "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
@@ -61,7 +61,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Lo
         reportFile.assertDoesNotExist()
 
         when:
-        withCache().succeeds "jacocoTestReport"
+        withTaskCache().succeeds "jacocoTestReport"
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertHasNotChangedSince(snapshot)

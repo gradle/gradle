@@ -173,7 +173,7 @@ public interface GradleExecuter {
      *
      * @return this executer
      */
-    GradleExecuter withCacheEnabled();
+    GradleExecuter withTaskCacheEnabled();
 
     /**
      * Activates the task output cache for a local directory
@@ -181,7 +181,7 @@ public interface GradleExecuter {
      * @param cacheDir the directory for the cache
      * @return this executer
      */
-    GradleExecuter withLocalCache(File cacheDir);
+    GradleExecuter withLocalTaskCache(File cacheDir);
 
     /**
      * Don't set temp folder explicitly.
