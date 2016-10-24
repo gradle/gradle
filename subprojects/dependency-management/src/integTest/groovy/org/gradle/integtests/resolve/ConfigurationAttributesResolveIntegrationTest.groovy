@@ -1183,4 +1183,41 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         where:
         role << [ConfigurationRole.CAN_BE_CONSUMED_ONLY, ConfigurationRole.BUCKET]
     }
+
+    @Unroll("cannot add a dependency on a configuration role #role")
+    def "cannot add a dependency on a configuration not meant to be resolvable"() {
+        given:
+        file('settings.gradle') << 'include "a", "b"'
+        buildFile << """
+        project(':a') {
+            configurations {
+                compile
+            }
+            dependencies {
+                compile project(path: ':b', configuration: 'internal')
+            }
+
+            task check {
+                doLast { configurations.compile.resolve() }
+            }
+        }
+        project(':b') {
+            configurations {
+                internal {
+                    role = ConfigurationRole.$role
+                }
+            }
+        }
+
+        """
+
+        when:
+        fails 'a:check'
+
+        then:
+        failure.assertHasCause "Configuration 'internal' cannot be used in a project dependency"
+
+        where:
+        role << [ConfigurationRole.BUCKET]
+    }
 }
