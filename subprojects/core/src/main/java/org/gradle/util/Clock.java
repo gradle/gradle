@@ -16,66 +16,24 @@
 
 package org.gradle.util;
 
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
-
+/**
+ * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.Clock`.
+ */
 @Deprecated
-public class Clock {
-    private long startTime;
-    private long startInstant;
-    private TimeProvider timeProvider;
-
-    private static final long MS_PER_MINUTE = 60000;
-    private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
-
+public class Clock extends org.gradle.internal.time.Clock {
     public Clock() {
-        this(new TrueTimeProvider());
+        super();
     }
 
-    /**
-     * Creates a clock with the specified startTime, in ms since epoch.
-     * An attempt is made to correct the startInstant for time elapsed since the specified startTime.
-     * However, this correction is susceptible to clock-shift, as well clocks that are not synchronized.
-     */
     public Clock(long startTime) {
-        this.timeProvider = new TrueTimeProvider();
-        this.startTime = startTime;
-        long msSinceStart = Math.max(timeProvider.getCurrentTime() - startTime, 0);
-        this.startInstant = timeProvider.getCurrentTimeForDuration() - msSinceStart;
-    }
-
-    protected Clock(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
-        reset();
+        super(startTime);
     }
 
     public String getTime() {
-        long timeInMs = getTimeInMs();
-        return prettyTime(timeInMs);
+        return getElapsed();
     }
 
     public long getTimeInMs() {
-        return Math.max(timeProvider.getCurrentTimeForDuration() - startInstant, 0);
-    }
-
-    public void reset() {
-        startTime = timeProvider.getCurrentTime();
-        startInstant = timeProvider.getCurrentTimeForDuration();
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public static String prettyTime(long timeInMs) {
-        StringBuilder result = new StringBuilder();
-        if (timeInMs > MS_PER_HOUR) {
-            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
-        }
-        if (timeInMs > MS_PER_MINUTE) {
-            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
-        }
-        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
-        return result.toString();
+        return getElapsedMillis();
     }
 }
