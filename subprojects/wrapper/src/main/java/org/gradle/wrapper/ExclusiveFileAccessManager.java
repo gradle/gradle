@@ -22,7 +22,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 public class ExclusiveFileAccessManager {
 
@@ -47,10 +46,10 @@ public class ExclusiveFileAccessManager {
         FileChannel channel = null;
         try {
 
-            long startAt = TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS);
+            long expiry = getTimeMillis() + timeoutMs;
             FileLock lock = null;
 
-            while (lock == null && TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS) < startAt + timeoutMs) {
+            while (lock == null && getTimeMillis() < expiry) {
                 randomAccessFile = new RandomAccessFile(lockFile, "rw");
                 channel = randomAccessFile.getChannel();
                 lock = channel.tryLock();
@@ -80,6 +79,10 @@ public class ExclusiveFileAccessManager {
             maybeCloseQuietly(channel);
             maybeCloseQuietly(randomAccessFile);
         }
+    }
+
+    private long getTimeMillis() {
+        return System.nanoTime() * 1000L * 1000L;
     }
 
     private static void maybeCloseQuietly(Closeable closeable) {
