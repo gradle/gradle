@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.process.internal.daemon;
+
+package org.gradle.process.daemon;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;

@@ -23,7 +23,7 @@ import org.gradle.process.internal.daemon.WorkerDaemonAction;
 import org.gradle.process.internal.daemon.WorkerDaemonResult;
 import org.gradle.process.internal.daemon.WorkerDaemon;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.DaemonForkOptions;
+import org.gradle.process.daemon.DaemonForkOptions;
 
 import java.io.File;
 
@@ -67,8 +67,13 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         }
 
         @Override
-        public WorkResult execute(T spec) {
-            return compiler.execute(spec);
+        public WorkerDaemonResult execute(T spec) {
+            try {
+                WorkResult result = compiler.execute(spec);
+                return new WorkerDaemonResult(true, null);
+            } catch (Throwable t) {
+                return new WorkerDaemonResult(true, t);
+            }
         }
     }
 }

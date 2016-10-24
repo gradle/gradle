@@ -23,7 +23,7 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.DaemonForkOptions;
+import org.gradle.process.daemon.DaemonForkOptions;
 
 import java.io.File;
 import java.util.Arrays;

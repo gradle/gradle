@@ -17,6 +17,7 @@ package org.gradle.process.internal.daemon;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.process.daemon.DaemonForkOptions;
 
 import java.io.File;
 

@@ -16,6 +16,7 @@
 package org.gradle.process.internal.daemon;
 
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.process.daemon.DaemonForkOptions;
 
 class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     private final DaemonForkOptions forkOptions;

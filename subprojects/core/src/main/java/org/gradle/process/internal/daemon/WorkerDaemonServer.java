@@ -26,9 +26,9 @@ public class WorkerDaemonServer implements WorkerDaemonProtocol {
     public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
         try {
             LOGGER.info("Executing {} in worker daemon.", action);
-            WorkResult result = action.execute(spec);
+            WorkerDaemonResult result = action.execute(spec);
             LOGGER.info("Successfully executed {} in worker daemon.", action);
-            return new WorkerDaemonResult(result.getDidWork(), null);
+            return result;
         } catch (Throwable t) {
             LOGGER.info("Exception executing {} in worker daemon: {}.", action, t);
             return new WorkerDaemonResult(true, t);

@@ -58,10 +58,6 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class BuildSessionScopeCompileServices {
-        WorkerDaemonManager createCompilerDaemonManager(WorkerProcessFactory workerFactory, StartParameter startParameter) {
-            return new WorkerDaemonManager(new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter)));
-        }
-
         Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory() {
             return new JavaHomeBasedJavaCompilerFactory();
         }

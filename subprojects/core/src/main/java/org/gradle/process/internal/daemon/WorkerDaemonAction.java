@@ -16,10 +16,8 @@
 
 package org.gradle.process.internal.daemon;
 
-import org.gradle.api.tasks.WorkResult;
-
 import java.io.Serializable;
 
 public interface WorkerDaemonAction<T> extends Serializable {
-    WorkResult execute(T spec);
+    WorkerDaemonResult execute(T spec);
 }

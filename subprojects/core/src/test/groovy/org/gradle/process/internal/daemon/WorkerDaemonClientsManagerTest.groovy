@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
+import org.gradle.process.daemon.DaemonForkOptions
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 

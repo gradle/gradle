@@ -18,6 +18,7 @@ package org.gradle.process.internal.daemon;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.process.daemon.DaemonForkOptions;
 
 import java.io.File;
 import java.util.ArrayList;
