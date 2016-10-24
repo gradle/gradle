@@ -82,7 +82,7 @@ public class ExclusiveFileAccessManager {
     }
 
     private long getTimeMillis() {
-        return System.nanoTime() * 1000L * 1000L;
+        return System.nanoTime() / (1000L * 1000L);
     }
 
     private static void maybeCloseQuietly(Closeable closeable) {
