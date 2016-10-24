@@ -92,7 +92,7 @@ public class GradleWrapperMain {
 
     static String wrapperVersion() {
         try {
-            InputStream resourceAsStream = GradleWrapperMain.class.getResourceAsStream("/build-receipt.properties");
+            InputStream resourceAsStream = GradleWrapperMain.class.getResourceAsStream("/org/gradle/build-receipt.properties");
             if (resourceAsStream == null) {
                 throw new RuntimeException("No build receipt resource found.");
             }
