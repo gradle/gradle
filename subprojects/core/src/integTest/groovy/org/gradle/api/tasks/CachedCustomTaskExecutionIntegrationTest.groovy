@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractLocalTaskCacheIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
@@ -468,14 +469,15 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
     }
 
-    def "missing output file is not cached"() {
+    @Unroll
+    def "missing output #type is not cached"() {
         given:
         file("input.txt") << "data"
         buildFile << """
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output.txt" withPropertyName "output"
-                outputs.file "build/missing.txt" withPropertyName "missing"
+                outputs.$type "build/missing" withPropertyName "missing"
                 outputs.cacheIf { true }
                 doLast {
                     file("build").mkdirs()
@@ -498,6 +500,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
         file("build/missing").assertDoesNotExist()
+
+        where:
+        type   | _
+        "file" | _
+        // TODO:LPTR Do not create output directory when output directory
+        // was not present at original execution
+        // "dir"  | _
     }
 
     private TestFile cleanBuildDir() {
