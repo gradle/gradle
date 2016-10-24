@@ -20,16 +20,16 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * The JUnit specific test options.
  */
 public class JUnitOptions extends TestFrameworkOptions {
-    private Set<String> includeCategories = new HashSet<String>();
+    private Set<String> includeCategories = new LinkedHashSet<String>();
 
-    private Set<String> excludeCategories = new HashSet<String>();
+    private Set<String> excludeCategories = new LinkedHashSet<String>();
 
     @Incubating
     public JUnitOptions includeCategories(String... includeCategories) {

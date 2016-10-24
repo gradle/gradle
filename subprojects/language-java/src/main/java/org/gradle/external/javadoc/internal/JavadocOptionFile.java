@@ -21,7 +21,11 @@ import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOption<?>> options;
@@ -29,7 +33,7 @@ public class JavadocOptionFile {
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        options = new HashMap<String, JavadocOptionFileOption<?>>();
+        options = new LinkedHashMap<String, JavadocOptionFileOption<?>>();
         sourceNames = new OptionLessStringsJavadocOptionFileOption();
     }
 

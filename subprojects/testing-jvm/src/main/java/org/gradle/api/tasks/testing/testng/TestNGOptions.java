@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,9 +42,9 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     private File outputDirectory;
 
-    private Set<String> includeGroups = new HashSet<String>();
+    private Set<String> includeGroups = new LinkedHashSet<String>();
 
-    private Set<String> excludeGroups = new HashSet<String>();
+    private Set<String> excludeGroups = new LinkedHashSet<String>();
 
     private String configFailurePolicy = DEFAULT_CONFIG_FAILURE_POLICY;
 
