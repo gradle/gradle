@@ -84,6 +84,7 @@ public class JavaCompile extends AbstractCompile {
             public boolean isSatisfiedBy(Task task) {
                 return DeprecationLogger.whileDisabled(new Factory<Boolean>() {
                     @Override
+                    @SuppressWarnings("deprecation")
                     public Boolean create() {
                         return compileOptions.isUseDepend();
                     }
