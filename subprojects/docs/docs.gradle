@@ -447,8 +447,8 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
 
 test {
     dependsOn releaseNotes
-    inputs.files releaseNotesMarkdown.source withPropertyName "releaseNotesSource"
-    inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered"
+    inputs.files releaseNotesMarkdown.source withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
+    inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
