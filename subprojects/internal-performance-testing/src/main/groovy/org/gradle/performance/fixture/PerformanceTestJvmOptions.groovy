@@ -30,6 +30,7 @@ class PerformanceTestJvmOptions {
             jvmOptions << '-XX:MaxPermSize=256m'
         }
         jvmOptions << '-XX:+AlwaysPreTouch' // force the JVM to initialize heap at startup time to reduce jitter
+        jvmOptions << '-XX:BiasedLockingStartupDelay=0' // start using biased locking when the JVM starts up
         return jvmOptions
     }
 }
