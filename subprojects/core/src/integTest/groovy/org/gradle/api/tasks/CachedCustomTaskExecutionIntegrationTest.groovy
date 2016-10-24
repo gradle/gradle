@@ -468,6 +468,38 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractLocalTaskCacheInt
         file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
     }
 
+    def "missing output file is not cached"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << """
+            task customTask {
+                inputs.file "input.txt"
+                outputs.file "build/output.txt" withPropertyName "output"
+                outputs.file "build/missing.txt" withPropertyName "missing"
+                outputs.cacheIf { true }
+                doLast {
+                    file("build").mkdirs()
+                    file("build/output.txt").text = file("input.txt").text
+                }
+            }
+        """
+
+        when:
+        succeedsWithCache "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/missing").assertDoesNotExist()
+
+        when:
+        cleanBuildDir()
+        succeedsWithCache "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/missing").assertDoesNotExist()
+    }
+
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
     }
