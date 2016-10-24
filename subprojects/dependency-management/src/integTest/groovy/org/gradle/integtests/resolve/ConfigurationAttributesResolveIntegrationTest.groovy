@@ -15,9 +15,11 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -1059,8 +1061,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.forBuildingOnly()
-                    compileFreeRelease.forBuildingOnly()
+                    compileFreeDebug.forBuildingOrResolvingOnly()
+                    compileFreeRelease.forBuildingOrResolvingOnly()
                 }
                 dependencies {
                     compileFreeDebug project(':b')
@@ -1082,8 +1084,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     // configurations used when resolving
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.forBuildingOnly()
-                    compileFreeRelease.forBuildingOnly()
+                    compileFreeDebug.forBuildingOrResolvingOnly()
+                    compileFreeRelease.forBuildingOrResolvingOnly()
                     // configurations used when selecting dependencies
                     _compileFreeDebug {
                         attributes(buildType: 'debug', flavor: 'free')
@@ -1121,4 +1123,64 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':b:fooJar'
     }
 
+    @Unroll("cannot resolve a configuration with role #role at execution time")
+    def "cannot resolve a configuration which is for publishing only at execution time"() {
+        given:
+        buildFile << """
+
+        configurations {
+            internal {
+                role = ConfigurationRole.$role
+            }
+        }
+        dependencies {
+            internal files('foo.jar')
+        }
+
+        task checkState {
+            doLast {
+                configurations.internal.resolve()
+            }
+        }
+
+        """
+
+        when:
+        fails 'checkState'
+
+        then:
+        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+
+        where:
+        role << [ConfigurationRole.CAN_BE_CONSUMED_ONLY, ConfigurationRole.BUCKET]
+    }
+
+    @Unroll("cannot resolve a configuration with role #role at configuration time")
+    def "cannot resolve a configuration which is for publishing only at configuration time"() {
+        given:
+        buildFile << """
+
+        configurations {
+            internal {
+                role = ConfigurationRole.$role
+            }
+        }
+        dependencies {
+            internal files('foo.jar')
+        }
+
+        task checkState(dependsOn: configurations.internal.files) {
+        }
+
+        """
+
+        when:
+        fails 'checkState'
+
+        then:
+        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+
+        where:
+        role << [ConfigurationRole.CAN_BE_CONSUMED_ONLY, ConfigurationRole.BUCKET]
+    }
 }

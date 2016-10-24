@@ -33,23 +33,25 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             import org.gradle.api.tasks.bundling.Jar
             import org.gradle.api.tasks.bundling.Zip
             import org.gradle.language.jvm.tasks.ProcessResources
+            import org.gradle.api.artifacts.ConfigurationRole
 
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
+                        p.configurations.compile.role = ConfigurationRole.BUCKET
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
                                     extendsFrom p.configurations.compile
-                                    forPublishingOnly()
+                                    forConsumingOrPublishingOnly()
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
                                     extendsFrom p.configurations.compile
-                                    forBuildingOnly()
+                                    forBuildingOrResolvingOnly()
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
@@ -101,10 +103,10 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             task checkConfigurations {
                 doLast {
                     ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
-                        assert !configurations.getByName(it).role.canBeUsedForBuilding()
-                        assert configurations.getByName(it).role.canBeUsedForPublishing()
-                        assert configurations.getByName("_$it").role.canBeUsedForBuilding()
-                        assert !configurations.getByName("_$it").role.canBeUsedForPublishing()
+                        assert !configurations.getByName(it).role.canBeQueriedOrResolved()
+                        assert configurations.getByName(it).role.canBeConsumedOrPublished()
+                        assert configurations.getByName("_$it").role.canBeQueriedOrResolved()
+                        assert !configurations.getByName("_$it").role.canBeConsumedOrPublished()
                     }
                 }
             }

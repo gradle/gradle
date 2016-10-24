@@ -97,7 +97,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (useConfigurationAttributes) {
             List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
-                if (dependencyConfiguration.hasAttributes() && dependencyConfiguration.getRole().canBeUsedForPublishing()) {
+                if (dependencyConfiguration.hasAttributes() && dependencyConfiguration.getRole().canBeConsumedOrPublished()) {
                     Map<String, String> attributes = dependencyConfiguration.getAttributes();
                     if (attributes.entrySet().containsAll(clientAttributes.entrySet())) {
                         candidateConfigurations.add(dependencyConfiguration);

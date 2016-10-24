@@ -303,7 +303,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         public ConfigurationRole getRole() {
-            return ConfigurationRole.FOR_PUBLISHING_ONLY;
+            return ConfigurationRole.CAN_BE_CONSUMED_ONLY;
         }
 
         public List<DependencyMetadata> getDependencies() {

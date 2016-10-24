@@ -22,29 +22,30 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum ConfigurationRole {
-    FOR_BUILDING_OR_PUBLISHING("can be used when building or publishing", true, true),
-    FOR_BUILDING_ONLY("can be used only when building", true, false),
-    FOR_PUBLISHING_ONLY("can be used only when publishing the project", false, true);
+    CAN_BE_QUERIED_OR_CONSUMED("can be used when building or publishing", true, true),
+    CAN_BE_QUERIED_ONLY("It is possible to query this configuration or resolve it", true, false),
+    CAN_BE_CONSUMED_ONLY("can be used only when consuming or publishing the project", false, true),
+    BUCKET("Used as a bucket of dependencies, not supposed to be consumed or built directly", false, false);
 
     private final String description;
-    private final boolean canBeUsedForBuilding;
-    private final boolean canBeUsedForPublishing;
+    private final boolean canBeQueriedOrResolved;
+    private final boolean canBeConsumedOrPublished;
 
-    ConfigurationRole(String desc, boolean canBeUsedForBuilding, boolean canBeUsedForPublishing) {
+    ConfigurationRole(String desc, boolean canBeQueriedOrResolved, boolean canBeConsumedOrPublished) {
         this.description = desc;
-        this.canBeUsedForBuilding = canBeUsedForBuilding;
-        this.canBeUsedForPublishing = canBeUsedForPublishing;
+        this.canBeQueriedOrResolved = canBeQueriedOrResolved;
+        this.canBeConsumedOrPublished = canBeConsumedOrPublished;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public boolean canBeUsedForBuilding() {
-        return canBeUsedForBuilding;
+    public boolean canBeQueriedOrResolved() {
+        return canBeQueriedOrResolved;
     }
 
-    public boolean canBeUsedForPublishing() {
-        return canBeUsedForPublishing;
+    public boolean canBeConsumedOrPublished() {
+        return canBeConsumedOrPublished;
     }
 }

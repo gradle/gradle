@@ -81,6 +81,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     }
 
     def addConfiguration(BuildableIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
-        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, ConfigurationRole.FOR_PUBLISHING_ONLY)
+        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
     }
 }

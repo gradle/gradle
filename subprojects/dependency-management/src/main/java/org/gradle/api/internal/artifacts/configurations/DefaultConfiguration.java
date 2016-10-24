@@ -130,7 +130,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
-    private ConfigurationRole role = ConfigurationRole.FOR_BUILDING_OR_PUBLISHING;
+    private ConfigurationRole role = ConfigurationRole.CAN_BE_QUERIED_OR_CONSUMED;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -664,6 +664,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Spec<? super Dependency> dependencySpec;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
+            if (!role.canBeQueriedOrResolved()) {
+                throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
+            }
             this.dependencySpec = dependencySpec;
         }
 
@@ -757,13 +760,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void forPublishingOnly() {
-        setRole(ConfigurationRole.FOR_PUBLISHING_ONLY);
+    public void forConsumingOrPublishingOnly() {
+        setRole(ConfigurationRole.CAN_BE_CONSUMED_ONLY);
     }
 
     @Override
-    public void forBuildingOnly() {
-        setRole(ConfigurationRole.FOR_BUILDING_ONLY);
+    public void forBuildingOrResolvingOnly() {
+        setRole(ConfigurationRole.CAN_BE_QUERIED_ONLY);
     }
 
     /**
