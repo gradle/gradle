@@ -20,4 +20,6 @@ public interface Timer {
     String getElapsed();
 
     long getElapsedMillis();
+
+    void reset();
 }

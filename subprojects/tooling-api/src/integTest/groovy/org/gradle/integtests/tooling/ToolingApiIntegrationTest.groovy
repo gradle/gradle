@@ -22,7 +22,9 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Timers
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -259,9 +261,10 @@ allprojects {
         // Wait for the tooling API to start the build
         def startMarkerFile = projectDir.file("start.marker")
         def foundStartMarker = startMarkerFile.exists()
-        def startAt = timeProvider.getCurrentTimeForDuration()
+
+        CountdownTimer startTimer = Timers.startTimer(startTimeoutMs)
         while (handle.running && !foundStartMarker) {
-            if (timeProvider.getCurrentTimeForDuration() - startAt > startTimeoutMs) {
+            if (startTimer.hasExpired()) {
                 throw new Exception("timeout waiting for start marker")
             } else {
                 sleep retryIntervalMs
@@ -275,12 +278,12 @@ allprojects {
 
         // Signal the build to finish
         def stopMarkerFile = projectDir.file("stop.marker")
-        def stopMarkerAt = timeProvider.getCurrentTimeForDuration()
+        def stopTimer = Timers.startTimer(stopTimeoutMs)
         stopMarkerFile << new Date().toString()
 
         // Does the tooling API hold the JVM open (which will also hold the build open)?
         while (handle.running) {
-            if (timeProvider.getCurrentTimeForDuration() - stopMarkerAt > stopTimeoutMs) {
+            if (stopTimer.hasExpired()) {
                 throw new Exception("timeout after placing stop marker (JVM might have been held open")
             }
             sleep retryIntervalMs

@@ -17,10 +17,10 @@ package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Timers;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -404,7 +404,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class MethodInvocationCache {
         private final Map<MethodInvocationKey, Optional<Method>> store = new HashMap<MethodInvocationKey, Optional<Method>>();
         private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-        private final TimeProvider timeProvider = new TrueTimeProvider();
         private final static long MINIMAL_CLEANUP_INTERVAL = 30000;
 
         // For stats we don't really care about thread safety
@@ -412,7 +411,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private int cacheHit;
         private int evict;
 
-        private long lastCleanup = timeProvider.getCurrentTimeForDuration();
+        private CountdownTimer cleanupTimer = Timers.startTimer(MINIMAL_CLEANUP_INTERVAL);
 
         private static class MethodInvocationKey {
             private final SoftReference<Class<?>> lookupClass;
@@ -528,8 +527,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
          * 30s.
          */
         private void removeDirtyEntries() {
-            long now = timeProvider.getCurrentTimeForDuration();
-            if (now - lastCleanup < MINIMAL_CLEANUP_INTERVAL) {
+            if (!cleanupTimer.hasExpired()) {
                 return;
             }
             lock.writeLock().lock();
@@ -541,7 +539,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                     }
                 }
             } finally {
-                lastCleanup = now;
+                cleanupTimer.reset();
                 lock.writeLock().unlock();
             }
         }
