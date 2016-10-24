@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.DaemonForkOptions;
+import org.gradle.process.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 

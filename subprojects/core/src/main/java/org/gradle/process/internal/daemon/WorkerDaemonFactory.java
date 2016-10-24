@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.daemon;
 
+import org.gradle.process.daemon.DaemonForkOptions;
+
 import java.io.File;
 
 public interface WorkerDaemonFactory {

@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.cache.DefaultGeneratedGradleJarCache;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.cache.config.DefaultTaskCaching;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
@@ -39,7 +40,12 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
+import org.gradle.process.daemon.WorkerDaemonService;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.process.internal.daemon.DefaultWorkerDaemonService;
+import org.gradle.process.internal.daemon.WorkerDaemonClientsManager;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
+import org.gradle.process.internal.daemon.WorkerDaemonStarter;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
@@ -100,5 +106,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
+    }
+
+    WorkerDaemonManager createWorkerDaemonManager(WorkerProcessFactory workerFactory, StartParameter startParameter) {
+        return new WorkerDaemonManager(new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter)));
+    }
+
+    WorkerDaemonService createWorkerDaemonAdapter(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {
+        return new DefaultWorkerDaemonService(workerDaemonManager, fileResolver);
     }
 }

@@ -35,7 +35,7 @@ import org.gradle.process.internal.daemon.WorkerDaemonAction;
 import org.gradle.process.internal.daemon.WorkerDaemonResult;
 import org.gradle.process.internal.daemon.WorkerDaemon;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.DaemonForkOptions;
+import org.gradle.process.daemon.DaemonForkOptions;
 import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;

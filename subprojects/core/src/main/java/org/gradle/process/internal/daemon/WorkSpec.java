@@ -16,5 +16,7 @@
 
 package org.gradle.process.internal.daemon;
 
-public interface WorkSpec {
+import java.io.Serializable;
+
+public interface WorkSpec extends Serializable {
 }
