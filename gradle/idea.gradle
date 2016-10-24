@@ -207,7 +207,7 @@ idea {
 
         def docsProject = project(":docs")
         def defaultTestVmParams = [
-                "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.source.singleFile}",
+                "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.markdownFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
                 "-DintegTest.gradleHomeDir=${rootProject.intTestImage.destinationDir.absolutePath}",
                 "-DintegTest.gradleUserHomeDir=${rootProject.file('intTestHomeDir').absolutePath}",
