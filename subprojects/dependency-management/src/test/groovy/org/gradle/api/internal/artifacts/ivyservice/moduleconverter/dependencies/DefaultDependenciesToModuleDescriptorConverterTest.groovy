@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.file.FileCollection
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
@@ -71,8 +70,6 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
     }
 
     def "adds FileCollectionDependency instances from configuration"() {
-        def files1 = Mock(FileCollection)
-        def files2 = Mock(FileCollection)
         def dependency1 = Mock(FileCollectionDependency)
         def dependency2 = Mock(FileCollectionDependency)
 
@@ -83,10 +80,8 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
-        1 * dependency1.files >> files1
-        1 * dependency2.files >> files2
-        1 * metaData.addFiles("config", files1)
-        1 * metaData.addFiles("config", files2)
+        1 * metaData.addFiles("config", {it.source == dependency1})
+        1 * metaData.addFiles("config", {it.source == dependency2})
         1 * configuration.excludeRules >> ([] as Set)
         0 * _
     }

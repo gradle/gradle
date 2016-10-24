@@ -42,9 +42,11 @@ public class DefaultResolvedGraphResults implements ResolvedGraphResults {
     }
 
     @Override
-    public ModuleDependency getModuleDependency(long id) {
-        ModuleDependency m = modulesMap.get(id);
-        assert m != null : "Unable to find module dependency for id: " + id;
+    public ModuleDependency getModuleDependency(long nodeId) {
+        ModuleDependency m = modulesMap.get(nodeId);
+        if (m == null) {
+            throw new IllegalArgumentException("Unable to find module dependency for id: " + nodeId);
+        }
         return m;
     }
 }

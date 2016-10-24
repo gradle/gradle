@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -47,7 +46,7 @@ import java.util.Set;
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
     private final Multimap<String, ComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
-    private final Multimap<String, FileCollection> allFiles = ArrayListMultimap.create();
+    private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
     private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -76,7 +75,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public void addFiles(String configuration, FileCollection files) {
+    public void addFiles(String configuration, LocalFileDependencyMetadata files) {
         allFiles.put(configuration, files);
     }
 
@@ -156,7 +155,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         private List<DependencyMetadata> configurationDependencies;
         private Set<ComponentArtifactMetadata> configurationArtifacts;
-        private Set<FileCollection> configurationFiles;
+        private Set<LocalFileDependencyMetadata> configurationFileDependencies;
         private ModuleExclusion configurationExclude;
 
         private DefaultLocalConfigurationMetadata(String name,
@@ -194,8 +193,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                     taskDependency.add(artifact);
                 }
             }
-            for (FileCollection fileCollection : getFiles()) {
-                taskDependency.add(fileCollection);
+            for (LocalFileDependencyMetadata fileCollection : getFiles()) {
+                taskDependency.add(fileCollection.getFiles());
             }
             return taskDependency;
         }
@@ -230,21 +229,21 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public Set<FileCollection> getFiles() {
-            if (configurationFiles == null) {
+        public Set<LocalFileDependencyMetadata> getFiles() {
+            if (configurationFileDependencies == null) {
                 if (allFiles.isEmpty()) {
-                    configurationFiles = ImmutableSet.of();
+                    configurationFileDependencies = ImmutableSet.of();
                 } else {
-                    ImmutableSet.Builder<FileCollection> result = ImmutableSet.builder();
+                    ImmutableSet.Builder<LocalFileDependencyMetadata> result = ImmutableSet.builder();
                     for (String confName : hierarchy) {
-                        for (FileCollection files : allFiles.get(confName)) {
+                        for (LocalFileDependencyMetadata files : allFiles.get(confName)) {
                             result.add(files);
                         }
                     }
-                    configurationFiles = result.build();
+                    configurationFileDependencies = result.build();
                 }
             }
-            return configurationFiles;
+            return configurationFileDependencies;
         }
 
         public ConfigurationRole getRole() {

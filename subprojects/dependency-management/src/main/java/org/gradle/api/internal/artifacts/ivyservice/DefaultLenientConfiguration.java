@@ -177,15 +177,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, ArtifactsCollector artifactsCollector) {
-        // TODO - collect these when traversing the graph
-        if (artifactsCollector.collectFiles()) {
-            for (Dependency dependency : configuration.getAllDependencies()) {
-                if (dependency instanceof FileCollectionDependency && dependencySpec.isSatisfiedBy(dependency)) {
-                    artifactsCollector.visitFiles(((FileCollectionDependency) dependency).getFiles());
-                }
-            }
-        }
-
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
@@ -196,6 +187,14 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
             }
             artifactsCollector.visitArtifacts(artifactResults.getArtifacts());
             return;
+        }
+
+        if (artifactsCollector.collectFiles()) {
+            for (Map.Entry<FileCollectionDependency, FileCollection> entry: fileDependencyResults.getFirstLevelFiles().entrySet()) {
+                if (dependencySpec.isSatisfiedBy(entry.getKey())) {
+                    artifactsCollector.visitFiles(entry.getValue());
+                }
+            }
         }
 
         CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactsCollector));

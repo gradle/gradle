@@ -214,9 +214,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "files attached to configuration and its children"() {
-        def files1 = Stub(FileCollection)
-        def files2 = Stub(FileCollection)
-        def files3 = Stub(FileCollection)
+        def files1 = Stub(LocalFileDependencyMetadata)
+        def files2 = Stub(LocalFileDependencyMetadata)
+        def files3 = Stub(LocalFileDependencyMetadata)
 
         given:
         addConfiguration("conf1")
@@ -273,6 +273,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "collects build dependencies for files attached to configuration and its parents"() {
+        def dep1 = Stub(LocalFileDependencyMetadata)
+        def dep2 = Stub(LocalFileDependencyMetadata)
+        def dep3 = Stub(LocalFileDependencyMetadata)
         def files1 = Stub(FileCollection)
         def files2 = Stub(FileCollection)
         def files3 = Stub(FileCollection)
@@ -289,6 +292,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
         addConfiguration("child1", ["conf1", "conf2"])
         addConfiguration("child2", ["conf1"])
 
+        dep1.files >> files1
+        dep2.files >> files2
+        dep3.files >> files3
         files1.buildDependencies >> buildDeps1
         files2.buildDependencies >> buildDeps2
         files3.buildDependencies >> buildDeps3
@@ -297,9 +303,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
         buildDeps3.getDependencies(_) >> [task3]
 
         when:
-        metadata.addFiles("conf1", files1)
-        metadata.addFiles("conf2", files2)
-        metadata.addFiles("child1", files3)
+        metadata.addFiles("conf1", dep1)
+        metadata.addFiles("conf2", dep2)
+        metadata.addFiles("child1", dep3)
 
         then:
         metadata.getConfiguration("conf1").directBuildDependencies.getDependencies(null) == [task1] as Set

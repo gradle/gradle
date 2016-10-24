@@ -20,7 +20,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.Collection;
 
@@ -46,7 +48,8 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
                     ModuleDependency moduleDependency = (ModuleDependency) dependency;
                     metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), configuration.getAttributes(), moduleDependency));
                 } else if (dependency instanceof FileCollectionDependency) {
-                    metaData.addFiles(configuration.getName(), ((FileCollectionDependency) dependency).getFiles());
+                    final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
+                    metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));
                 }
             }
         }
@@ -57,6 +60,24 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
                 metaData.addExclude(excludeRuleConverter.convertExcludeRule(configuration.getName(), excludeRule));
             }
+        }
+    }
+
+    private static class DefaultLocalFileDependencyMetadata implements LocalFileDependencyMetadata {
+        private final FileCollectionDependency fileDependency;
+
+        DefaultLocalFileDependencyMetadata(FileCollectionDependency fileDependency) {
+            this.fileDependency = fileDependency;
+        }
+
+        @Override
+        public FileCollectionDependency getSource() {
+            return fileDependency;
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return fileDependency.getFiles();
         }
     }
 }
