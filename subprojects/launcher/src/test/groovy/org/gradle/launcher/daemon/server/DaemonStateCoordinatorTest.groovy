@@ -642,7 +642,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         then:
         idle
-        coordinator.getIdleMillis() > 10
+        coordinator.getIdleMillis() >= 10
     }
 
     boolean isStopped() {
