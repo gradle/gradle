@@ -55,7 +55,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
 import org.gradle.plugins.ide.idea.model.PathFactory;
-import org.gradle.plugins.ide.idea.model.PathInterner;
+import org.gradle.plugins.ide.idea.model.internal.PathInterner;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;

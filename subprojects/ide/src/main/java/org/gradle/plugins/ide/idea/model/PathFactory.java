@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.plugins.ide.idea.model.internal.PathInterner;
 
 import java.io.File;
 import java.io.IOException;

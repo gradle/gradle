@@ -18,12 +18,10 @@ package org.gradle.integtests.tooling.r32
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
-@ToolingApiVersion(">=3.2")
 class NonSerializableExceptionCrossVersionSpec extends ToolingApiSpecification {
     def createToolingModelBuilderBuildFile(int exceptionNestingLevel) {
         file('build.gradle') << """
@@ -75,11 +73,26 @@ class CustomPlugin implements Plugin<Project> {
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
+        !exceptionString.contains(NotSerializableException.getName())
         exceptionString.contains('Caused by: CustomException: Something went wrong in building the model')
 
         where:
         exceptionNestingLevel << (0..2).toList()
+    }
+
+    @Issue("GRADLE-3307")
+    @TargetGradleVersion(">=3.2")
+    def "returns proper error message when non-serializable RuntimeException is thrown while executing a broken build action"() {
+        when:
+        withConnection { connection ->
+            connection.action(new RuntimeExceptionThrowingBrokenBuildAction()).run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        def exceptionString = getStackTraceAsString(e)
+        !exceptionString.contains(NotSerializableException.getName())
+        exceptionString.contains("Caused by: ${RuntimeExceptionThrowingBrokenBuildAction.CustomException.getName()}: $BrokenBuildAction.BUILD_ACTION_EXCEPTION_MESSAGE")
     }
 
     def createBuildFileForConfigurationPhaseCheck(int exceptionNestingLevel) {
@@ -106,7 +119,7 @@ throw ${'new RuntimeException(' * exceptionNestingLevel}new CustomException("Som
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
+        !exceptionString.contains(NotSerializableException.getName())
         exceptionString.contains('Caused by: CustomException: Something went wrong in configuring the build')
 
         where:
@@ -141,7 +154,7 @@ task run {
         then:
         def e = thrown(GradleConnectionException)
         def exceptionString = getStackTraceAsString(e)
-        !exceptionString.contains("java.io.NotSerializableException")
+        !exceptionString.contains(NotSerializableException.getName())
         exceptionString.contains('Caused by: CustomException: Something went wrong in configuring the build')
 
         where:

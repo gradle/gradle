@@ -16,8 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.junit.Assume
-
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     def 'nebula recommender plugin'() {
@@ -70,20 +68,44 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     def 'nebula lint plugin'() {
-        when:
+        given:
         buildFile << """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+            }
+
             plugins {
-                id "nebula.lint" version "0.30.9"
+                id "nebula.lint" version "5.1.3"
+            }
+
+            apply plugin: 'java'
+
+            gradleLint.rules = ['dependency-parentheses']
+
+            dependencies {
+                testCompile('junit:junit:4.7')
             }
         """.stripIndent()
 
+        when:
+        def result = runner('lintGradle').build()
+
         then:
-        def result = runner('buildEnvironment', 'lintGradle').buildAndFail()
+        result.output.contains("""parentheses are unnecessary for dependencies
+warning   dependency-parentheses             build.gradle:17
+testCompile('junit:junit:4.7')""")
+        buildFile.text.contains("testCompile('junit:junit:4.7')")
 
-        result.output.contains('''Caused by: java.lang.NoClassDefFoundError: org/gradle/logging/StyledTextOutput
-\tat com.netflix.nebula.lint.plugin.FixGradleLintTask$1.$getStaticMetaClass(FixGradleLintTask.groovy)''')
+        when:
+        result = runner('fixGradleLint').build()
 
-        Assume.assumeTrue("The nebula lint plugin is broken, it depends on internal StyledTextOutput", false)
+        then:
+        result.output.contains("""fixed          dependency-parentheses             parentheses are unnecessary for dependencies
+build.gradle:17
+testCompile('junit:junit:4.7')""")
+        buildFile.text.contains("testCompile 'junit:junit:4.7'")
     }
 
     def 'nebula dependency lock plugin'() {
