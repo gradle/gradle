@@ -41,7 +41,7 @@ class PegDown extends SourceTask {
         this.destination = destination
     }
 
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     @Override
     FileTree getSource() {
         super.getSource()
