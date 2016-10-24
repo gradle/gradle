@@ -16,65 +16,32 @@
 
 package org.gradle.plugins.pegdown
 
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.FileTree
+import groovy.transform.CompileStatic
+import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
-import org.pegdown.Extensions
 import org.pegdown.PegDownProcessor
 
+@CompileStatic
 @CacheableTask
-class PegDown extends SourceTask {
-
-    @Input
-    @Optional
-    List<String> options = []
-
+class PegDown extends DefaultTask {
     @Input
     String inputEncoding
 
     @Input
     String outputEncoding
 
-    private destination
-
-    void setDestination(destination) {
-        this.destination = destination
-    }
-
     @PathSensitive(PathSensitivity.NONE)
-    @Override
-    FileTree getSource() {
-        super.getSource()
-    }
+    @InputFile
+    File markdownFile
 
     @OutputFile
-    File getDestination() {
-        project.file(destination)
-    }
+    File destination
 
     @TaskAction
     void process() {
-        int optionsValue = getCalculatedOptions()
-        PegDownProcessor processor = new PegDownProcessor(optionsValue)
-        String markdown = getSource().singleFile.getText(getInputEncoding())
+        PegDownProcessor processor = new PegDownProcessor(0)
+        String markdown = markdownFile.getText(getInputEncoding())
         String html = processor.markdownToHtml(markdown)
         getDestination().write(html, getOutputEncoding())
-    }
-
-    int getCalculatedOptions() {
-        getOptions().inject(0) { acc, val -> acc | toOptionValue(val) } as int
-    }
-
-    protected int toOptionValue(String optionName) {
-        String upName = val.toUpperCase()
-        try {
-            Extensions."$upName"
-        } catch (MissingPropertyException e) {
-            throw new InvalidUserDataException("$optionName is not a valid PegDown extension name")
-        }
-    }
-
-    void options(String... options) {
-        this.options.addAll(options)
     }
 }

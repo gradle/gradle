@@ -413,8 +413,8 @@ task editReleaseNotes() {
 
 task releaseNotesMarkdown(type: PegDown) {
     group = "release notes"
-    source "src/docs/release/notes.md"
-    destination "$buildDir/release-notes-raw/release-notes.html"
+    markdownFile = file("src/docs/release/notes.md")
+    destination = new File(buildDir, "release-notes-raw/release-notes.html")
 }
 
 task releaseNotes(type: Copy) {
@@ -447,16 +447,16 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
 
 test {
     dependsOn releaseNotes
-    inputs.files releaseNotesMarkdown.source withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
+    inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
     inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
     inputs.property "systemProperties", [:]
-    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
 
 java9Test {
     dependsOn releaseNotes
-    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
 
