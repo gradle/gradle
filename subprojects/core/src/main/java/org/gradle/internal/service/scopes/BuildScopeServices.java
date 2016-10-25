@@ -259,7 +259,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler,
+    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,
+                                                               FileCacheBackedScriptClassCompiler scriptCompiler,
                                                                CrossBuildInMemoryCachingScriptClassCache cache) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(

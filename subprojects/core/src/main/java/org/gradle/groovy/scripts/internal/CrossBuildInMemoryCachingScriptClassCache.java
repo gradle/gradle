@@ -27,14 +27,22 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
-    private final Cache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
+
+    private final Cache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts =
+        CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
+
     private final FileHasher hasher;
 
     public CrossBuildInMemoryCachingScriptClassCache(FileHasher hasher) {
         this.hasher = hasher;
     }
 
-    public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier, ScriptClassCompiler delegate) {
+    public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source, ClassLoader classLoader,
+                                                                   ClassLoaderId classLoaderId,
+                                                                   CompileOperation<M> operation,
+                                                                   Class<T> scriptBaseClass,
+                                                                   Action<? super ClassNode> verifier,
+                                                                   ScriptClassCompiler delegate) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
         CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
         HashCode hash = hasher.hash(source.getResource());
