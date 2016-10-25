@@ -100,7 +100,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            startTime: timeProvider.getCurrentTimeForDuration(),
+            startTime: timeProvider.getCurrentTime(),
             channel: ResultsStoreHelper.determineChannel()
         )
 
@@ -113,7 +113,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
         }
 
-        results.endTime = timeProvider.getCurrentTimeForDuration()
+        results.endTime = timeProvider.getCurrentTime()
 
         results.assertEveryBuildSucceeds()
 

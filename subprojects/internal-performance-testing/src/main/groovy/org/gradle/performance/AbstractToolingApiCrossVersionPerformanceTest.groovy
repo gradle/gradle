@@ -144,7 +144,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 versionUnderTest: GradleVersion.current().getVersion(),
                 vcsBranch: Git.current().branchName,
                 vcsCommits: [Git.current().commitId],
-                startTime: timeProvider.getCurrentTimeForDuration(),
+                startTime: timeProvider.getCurrentTime(),
                 tasks: [],
                 args: [],
                 gradleOpts: [],
@@ -178,7 +178,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 resolver.stop()
             }
 
-            results.endTime = timeProvider.getCurrentTimeForDuration()
+            results.endTime = timeProvider.getCurrentTime()
 
             results.assertEveryBuildSucceeds()
             resultStore.report(results)
