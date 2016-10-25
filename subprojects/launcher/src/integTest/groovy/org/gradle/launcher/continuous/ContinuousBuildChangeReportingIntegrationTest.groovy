@@ -188,14 +188,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
                 }
             }
         """
-        // Make sure the build lasts long enough for events to propagate
-        // Needs to be longer than the quiet period configured
-        int sleepPeriod = quietPeriod * 2
-        buildFile << """
-            gradle.buildFinished {
-                Thread.sleep(${sleepPeriod})
-            }
-        """
+        waitAtEndOfBuildForQuietPeriod(quietPeriod)
 
         when:
         succeeds("theTask")

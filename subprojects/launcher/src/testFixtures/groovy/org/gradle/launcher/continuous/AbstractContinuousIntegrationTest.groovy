@@ -82,6 +82,17 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         2000
     }
 
+    def waitAtEndOfBuildForQuietPeriod(def quietPeriodMillis) {
+        // Make sure the build lasts long enough for events to propagate
+        // Needs to be longer than the quiet period configured
+        int sleepPeriod = quietPeriodMillis * 2
+        buildFile << """
+            gradle.buildFinished {
+                Thread.sleep(${sleepPeriod})
+            }
+        """
+    }
+
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         if (tasks) {
