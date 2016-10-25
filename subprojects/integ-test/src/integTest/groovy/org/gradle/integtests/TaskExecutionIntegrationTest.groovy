@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -473,5 +474,48 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
+    }
+
+    @NotYetImplemented
+    @Issue("GRADLE-3575")
+    def "multiple finalizer tasks point to the same task"() {
+        buildFile << """
+            task a {
+                dependsOn 'c', 'g'
+            }
+
+            task c {
+                dependsOn 'd'
+            }
+
+            task g {
+                dependsOn 'd'
+            }
+
+            task d {
+                dependsOn 'f'
+            }
+
+            task b {
+                dependsOn 'd'
+                finalizedBy 'e'
+            }
+
+            task e {
+                finalizedBy 'h'
+            }
+
+            task f {
+                finalizedBy 'h'
+            }
+
+            task h
+        """
+
+        when:
+        succeeds 'a', 'b'
+
+        then:
+        noExceptionThrown()
     }
 }
