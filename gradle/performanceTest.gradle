@@ -111,6 +111,7 @@ ext.performanceReportTasks = tasks.withType(PerformanceReport)
 performanceReportTasks.all(withPerformanceDb)
 
 task performanceReport(type: PerformanceReport) {
+    //jvmArgs '-Xverify:none', '-XX:+UnlockCommercialFeatures', '-XX:+FlightRecorder', '-XX:+UnlockDiagnosticVMOptions', '-XX:+DebugNonSafepoints', '-XX:FlightRecorderOptions=stackdepth=1024,disk=true,dumponexit=true,defaultrecording=true'
     minHeapSize = '1g'
     maxHeapSize = '2g'
     classpath = sourceSets.performanceTest.runtimeClasspath
