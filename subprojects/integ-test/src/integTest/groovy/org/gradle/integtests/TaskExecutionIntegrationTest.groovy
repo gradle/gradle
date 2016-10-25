@@ -509,7 +509,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         """
 
         when:
-        succeeds 'a', 'b'
+        succeeds 'a'
 
         then:
         executedTasks == [':f', ':d', ':e', ':h', ':c', ':g', ':a']
