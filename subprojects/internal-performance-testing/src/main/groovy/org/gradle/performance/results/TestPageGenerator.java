@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
@@ -131,7 +132,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 textCell(results.getVcsBranch());
 
                 td();
-                renderVcsLinks(results, i < executionsLen - 1 ? testHistory.getExecutions().get(i + 1) : null);
+                renderVcsLinks(results, findPreviousExecutionInSameBranch(results, testHistory, i));
                 end();
 
                 final List<MeasuredOperationList> scenarios = results.getScenarios();
@@ -214,6 +215,21 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                         text(" | ");
                     }
                 }
+            }
+
+            @Nullable
+            private PerformanceTestExecution findPreviousExecutionInSameBranch(PerformanceTestExecution results, PerformanceTestHistory testHistory, int currentIndex) {
+                int executionsLen = testHistory.getExecutions().size();
+                PerformanceTestExecution previousResults = null;
+                if (currentIndex < executionsLen - 1 && results.getVcsBranch() != null) {
+                    for (PerformanceTestExecution execution : testHistory.getExecutions().subList(currentIndex + 1, executionsLen)) {
+                        if (results.getVcsBranch().equals(execution.getVcsBranch())) {
+                            previousResults = execution;
+                            break;
+                        }
+                    }
+                }
+                return previousResults;
             }
 
             private void addPerformanceGraph(String heading, String chartId, String jsonFieldName, String fieldLabel, String fieldUnit) {
