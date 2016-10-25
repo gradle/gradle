@@ -19,7 +19,6 @@ package org.gradle.modules
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.*
@@ -33,11 +32,7 @@ class PatchExternalModules extends DefaultTask {
 
     @Input
     Set<String> getExternalModuleNames() {
-        Set<String> names = new LinkedHashSet<String>()
-        for (Dependency dependency : externalModules.dependencies) {
-            names.add(dependency.getName())
-        }
-        names
+        externalModules.dependencies*.name as Set
     }
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
