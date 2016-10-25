@@ -81,9 +81,10 @@ public class BuildEventTimeStamps {
             return 0;
         }
         try {
-            return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getElapsedMillis();
-        } catch (Exception e) {
-            System.err.println("Exception in getting build time " + e.getMessage());
+            // get the value of build time clock reported by Gradle in a backwards compatible way
+            return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
+        } catch (Throwable t) { // catch possible NoSuchMethodError besides other exceptions
+            System.err.println("Disabling build time clock since there is a problem in getting build time " + t.getMessage());
             useBuildTimeClock = false;
             return 0;
         }
