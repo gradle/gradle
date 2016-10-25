@@ -19,27 +19,9 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
-
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
-    public static final String APPLY_KOTLIN = """
-            plugins {
-                id "nebula.kotlin" version "1.0.4"
-            }
-            repositories {
-                // required to resolve kotlin-stdlib dependency implicitly added by nebula.kotlin
-                jcenter()
-            }
-            dependencies {
-                compile(gradleApi())
-            }
-        """
-
     def "buildSrc is loaded from cache"() {
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
@@ -63,33 +45,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
         file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
-        file("input.txt") << "input"
-        buildFile << """
-            task customTask(type: CustomTask) {
-                inputFile = file "input.txt"
-                outputFile = file "build/output.txt"
-            }
-        """
-        when:
-        withTaskCache().succeeds "customTask"
-        then:
-        skippedTasks.empty
-
-        when:
-        file("buildSrc/build").deleteDir()
-        file("buildSrc/.gradle").deleteDir()
-        cleanBuildDir()
-
-        withTaskCache().succeeds "customTask"
-        then:
-        skippedTasks.contains ":customTask"
-    }
-
-    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
-    def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
-        file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
-        file("buildSrc/build.gradle") << APPLY_KOTLIN
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
@@ -139,36 +94,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/output.txt").text == "input modified"
     }
 
-    @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
-    def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
-        def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
-        taskSourceFile << customKotlinTask()
-        taskSourceFile.makeOlder()
-        file("buildSrc/build.gradle") << APPLY_KOTLIN
-        file("input.txt") << "input"
-        buildFile << """
-            task customTask(type: CustomTask) {
-                inputFile = file "input.txt"
-                outputFile = file "build/output.txt"
-            }
-        """
-        when:
-        withTaskCache().succeeds "customTask"
-        then:
-        skippedTasks.empty
-        file("build/output.txt").text == "input"
-
-        when:
-        taskSourceFile.text = customKotlinTask(" modified")
-
-        cleanBuildDir()
-        withTaskCache().succeeds "customTask"
-        then:
-        nonSkippedTasks.contains ":customTask"
-        file("build/output.txt").text == "input modified"
-    }
-
     private static String customGroovyTask(String suffix = "") {
         """
             import org.gradle.api.*
@@ -181,25 +106,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @TaskAction void doSomething() {
                     outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text + "$suffix"
-                }
-            }
-        """
-    }
-
-    private static String customKotlinTask(String suffix = "") {
-        """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-            import java.io.File
-
-            @CacheableTask
-            open class CustomTask() : DefaultTask() {
-                @get:InputFile var inputFile: File? = null
-                @get:OutputFile var outputFile: File? = null
-                @TaskAction fun doSomething() {
-                    outputFile!!.parentFile.mkdirs()
-                    outputFile!!.writeText(inputFile!!.readText())
-                    outputFile!!.appendText("$suffix")
                 }
             }
         """
