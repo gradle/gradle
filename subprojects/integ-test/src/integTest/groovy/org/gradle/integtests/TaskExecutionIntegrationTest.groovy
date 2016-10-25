@@ -484,21 +484,17 @@ task someTask(dependsOn: [someDep, someOtherDep])
                 dependsOn 'c', 'g'
             }
 
-            task c {
+            task b {
                 dependsOn 'd'
+                finalizedBy 'e'
             }
 
-            task g {
+            task c {
                 dependsOn 'd'
             }
 
             task d {
                 dependsOn 'f'
-            }
-
-            task b {
-                dependsOn 'd'
-                finalizedBy 'e'
             }
 
             task e {
@@ -509,6 +505,10 @@ task someTask(dependsOn: [someDep, someOtherDep])
                 finalizedBy 'h'
             }
 
+            task g {
+                dependsOn 'd'
+            }
+
             task h
         """
 
@@ -516,6 +516,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'b'
 
         then:
-        noExceptionThrown()
+        executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
     }
 }
