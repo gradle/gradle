@@ -52,7 +52,7 @@ task show {
         succeeds("show")
     }
 
-    @Issue("gradle/core-issues#742")
+    @Issue("gradle/gradle#742")
     @NotYetImplemented
     def "doesn't cache the metaclass from previous execution if build script changes"() {
         buildFile << '''
