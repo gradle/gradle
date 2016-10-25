@@ -66,15 +66,6 @@ class ProviderStartParameterConverter {
             startParameter.setTaskNames(parameters.getTasks());
         }
 
-        if (launchables != null) {
-            for (InternalLaunchable launchable : launchables) {
-                if (!launchable.getRootDir().equals(parameters.getProjectDir())) {
-                    throw new InternalUnsupportedBuildArgumentException(
-                        "Tasks from included builds can't be launched");
-                }
-            }
-        }
-
         new PropertiesToStartParameterConverter().convert(properties, startParameter);
 
         List<String> arguments = parameters.getArguments();
