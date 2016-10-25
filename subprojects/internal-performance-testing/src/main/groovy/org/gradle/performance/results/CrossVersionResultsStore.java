@@ -241,9 +241,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             allBranches.add(performanceResults.getVcsBranch());
                         }
 
-                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution in (select * from table(x int = ?))");
+                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, "
+                                + "maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation "
+                                + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
                         operationsForExecution.setFetchSize(10 * results.size());
-                        operationsForExecution.setObject(1, results.keySet().toArray());
+                        operationsForExecution.setInt(1, mostRecentN);
+                        operationsForExecution.setString(2, testName);
+                        operationsForExecution.setTimestamp(3, minDate);
+                        operationsForExecution.setString(4, channel);
 
                         operations = operationsForExecution.executeQuery();
                         while (operations.next()) {
