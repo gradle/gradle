@@ -15,6 +15,7 @@
  */
 
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
+import org.gradle.internal.time.Clock
 
 def taskInfos = []
 
@@ -26,7 +27,7 @@ class TaskCacheInfo {
 }
 
 gradle.addListener(new TaskExecutionListener() {
-    def clocks = [:]
+    Map<String, Clock> clocks = [:]
 
     @Override
     void beforeExecute(Task task) {
@@ -44,7 +45,7 @@ gradle.addListener(new TaskExecutionListener() {
             type: type,
             outcome: state.outcome,
             cacheable: state.cacheable,
-            time: clock.timeInMs
+            time: clock.elapsedMillis
         )
         // println " >> $info.type.name took $info.time ms"
         taskInfos.add info
@@ -56,37 +57,55 @@ gradle.addListener(new BuildAdapter() {
         println ""
         println "Detailed cache statistics"
         println ""
-        println "  All tasks ${summary(taskInfos)}"
         taskInfos.sort { a, b ->
             a.outcome <=> b.outcome
             ?: a.cacheable <=> b.cacheable
             ?: a.type.name <=> b.type.name
         }
-        def byOutcome = taskInfos.groupBy { it.outcome }
-        byOutcome.each { outcome, taskInfosWithOutcome ->
-            println "    $outcome ${summary(taskInfosWithOutcome)}"
-            def byCacheability = taskInfosWithOutcome.groupBy { it.cacheable }
-            byCacheability.each { cacheable, taskInfosWithCacheability ->
-                println "      ${cacheable ? "Cacheable" : "Not cacheable"} ${summary(taskInfosWithCacheability)}"
-                def byType = taskInfosWithCacheability.groupBy { it.type }
-                byType.each { type, taskInfosWithType ->
-                    println "        $type.name ${summary(taskInfosWithType)}"
+
+        if (!gradle.startParameter.systemPropertiesArgs.containsKey("csv")) {
+            println "  All tasks ${summary(taskInfos)}"
+            def byOutcome = taskInfos.groupBy { it.outcome }
+            byOutcome.each { outcome, taskInfosWithOutcome ->
+                println "    $outcome ${summary(taskInfosWithOutcome)}"
+                def byCacheability = taskInfosWithOutcome.groupBy { it.cacheable }
+                byCacheability.each { cacheable, taskInfosWithCacheability ->
+                    println "      ${cacheable ? "Cacheable" : "Not cacheable"} ${summary(taskInfosWithCacheability)}"
+                    def byType = taskInfosWithCacheability.groupBy { it.type }
+                    byType.each { type, taskInfosWithType ->
+                        println "        $type.name ${summary(taskInfosWithType)}"
+                    }
                 }
+            }
+        } else {
+            println(["Outcome", "Cacheable", "Task", "Package", "Count", "Sum", "Mean", "StdDev", "Min", "Max"].collect { quote(it) }.join(","))
+            def byOutcome = taskInfos.groupBy { it.outcome }
+            byOutcome.each { outcome, taskInfosWithOutcome ->
+                def byCacheability = taskInfosWithOutcome.groupBy { it.cacheable }
+                byCacheability.each { cacheable, taskInfosWithCacheability ->
+                    def byType = taskInfosWithCacheability.groupBy { it.type }
+                    byType.each { type, taskInfosWithType ->
+                        println ([*[outcome, cacheable ? "Cacheable" : "Not cacheable", type.simpleName, type.package?.name ?: ""].collect { quote(it) }, *csvSummary(taskInfosWithType)].join(","))
+                    }
+                }
+            }
+            gradle.startParameter.properties.each { k, v ->
+                println([k, v].collect { quote(it) }. join(","))
             }
         }
     }
 })
 
-static String summary(Collection<?> tasks) {
+static String summary(Collection<TaskCacheInfo> tasks) {
     def count = tasks.size() == 1
         ? "1 task"
         : "${tasks.size()} tasks"
     def times = tasks*.time
-    long sumTime = times.sum() ?: 0
+    long sum = times.sum()
 
-    def result = "- $count took $sumTime ms"
+    def result = "- $count took $sum ms"
     if (times.size() > 1) {
-        double mean = sumTime / times.size()
+        double mean = sum / times.size()
         double stddev = Math.sqrt(times.collect { (it - mean) * (it + mean) }.sum() / times.size())
         long min = times.min()
         long max = times.max()
@@ -94,6 +113,32 @@ static String summary(Collection<?> tasks) {
         result += " (avg ${round(mean)} ms, stddev ${round(stddev)} ms, min ${min} ms, max ${max} ms)"
     }
     return result
+}
+
+static List<Object> csvSummary(Collection<TaskCacheInfo> tasks) {
+    def count = tasks.size()
+    def times = tasks*.time
+    long sum = times.sum()
+    long min = times.min()
+    long max = times.max()
+    double mean
+    double stddev
+    if (times.size() > 1) {
+        mean = sum / times.size()
+        stddev = Math.sqrt(times.collect { (it - mean) * (it + mean) }.sum() / times.size())
+    } else {
+        mean = sum
+        stddev = 0
+    }
+    return [count, sum, mean, stddev, min, max]
+}
+
+static String quote(def data) {
+    if (data == null) {
+        return ""
+    }
+    def string = data.toString().replace((char) '"', (char) '\'')
+    return "\"$string\""
 }
 
 static String round(double value) {
