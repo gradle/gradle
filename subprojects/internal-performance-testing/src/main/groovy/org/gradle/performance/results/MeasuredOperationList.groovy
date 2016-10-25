@@ -16,11 +16,13 @@
 
 package org.gradle.performance.results
 
+import groovy.transform.CompileStatic
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.DataSeries
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
 
+@CompileStatic
 public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
     String name
 
