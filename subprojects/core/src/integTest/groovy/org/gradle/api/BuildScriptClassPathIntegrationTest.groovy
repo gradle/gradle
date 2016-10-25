@@ -18,6 +18,7 @@ package org.gradle.api
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class BuildScriptClassPathIntegrationTest extends AbstractIntegrationSpec {
@@ -54,6 +55,7 @@ task show {
 
     @Issue("gradle/gradle#742")
     @NotYetImplemented
+    @Ignore("Apparently sometimes the test passes on CI")
     def "doesn't cache the metaclass from previous execution if build script changes"() {
         buildFile << '''
 void bar() {
