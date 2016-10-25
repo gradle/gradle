@@ -50,14 +50,10 @@ public class MeasurementPlugin implements Plugin<Project> {
         final BuildAdapter performMeasurements = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
-                BuildEventTimeStamps.buildFinished(result);
-                performanceCounterMeasurement.recordFinish();
-                Project rootProject = result.getGradle().getRootProject();
-                Logger logger = rootProject.getLogger();
-                JavaFlightRecorderControl.handle(rootProject, logger);
-                HeapDumper.handle(rootProject, logger);
-                new HeapMeasurement().handle(rootProject, logger);
-                ExternalResources.printAndResetStats();
+                long startTimeNanos = System.nanoTime();
+                doMeasurements(result, performanceCounterMeasurement);
+                long measurementTimeNanos = Math.max(System.nanoTime() - startTimeNanos, 0);
+                BuildEventTimeStamps.appendMeasurementTime(result.getGradle().getRootProject(), measurementTimeNanos);
             }
 
         };
@@ -69,6 +65,23 @@ public class MeasurementPlugin implements Plugin<Project> {
                 BuildEventTimeStamps.configurationEvaluated();
             }
         });
+    }
+
+    private void doMeasurements(BuildResult result, PerformanceCounterMeasurement performanceCounterMeasurement) {
+        BuildEventTimeStamps.buildFinished(result);
+
+        performanceCounterMeasurement.recordFinish();
+
+        Project rootProject = result.getGradle().getRootProject();
+        Logger logger = rootProject.getLogger();
+
+        JavaFlightRecorderControl.handle(rootProject, logger);
+
+        HeapDumper.handle(rootProject, logger);
+
+        new HeapMeasurement().handle(rootProject, logger);
+
+        ExternalResources.printAndResetStats();
     }
 
     static File createFileName(Project project, File targetDirectory, String prefix, String suffix) {

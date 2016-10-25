@@ -49,14 +49,39 @@ public class BuildEventTimeStamps {
         Project project = buildResult.getGradle().getRootProject();
         final long settingsEvaluatedTimeStamp = resolveSettingsEvaluatedTimeStamp(project);
 
-        File buildDir = project.getBuildDir();
-        buildDir.mkdirs();
-        File timestampsFile = new File(buildDir, "buildEventTimestamps.txt");
+        File timestampsFile = resolveTimestampsFile(project);
 
         try {
             writeTimeStamps(timestampsFile, settingsEvaluatedTimeStamp, buildEndTimestamp, buildTime);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static File resolveTimestampsFile(Project project) {
+        File buildDir = project.getBuildDir();
+        if (!buildDir.exists()) {
+            buildDir.mkdirs();
+        }
+        return new File(buildDir, "buildEventTimestamps.txt");
+    }
+
+    public static void appendMeasurementTime(Project rootProject, long measurementTimeNanos) {
+        File timestampsFile = resolveTimestampsFile(rootProject);
+        try {
+            writeMeasurementTime(timestampsFile, measurementTimeNanos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void writeMeasurementTime(File timestampsFile, long measurementTimeNanos) throws IOException {
+        PrintWriter writer = new PrintWriter(new FileWriter(timestampsFile, true));
+        try {
+            writer.println();
+            writer.print(measurementTimeNanos);
+        } finally {
+            writer.close();
         }
     }
 

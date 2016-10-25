@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 
@@ -55,17 +56,23 @@ public class BuildEventTimestampCollector implements DataCollector {
             throw new IllegalStateException(String.format("Could not find %s. Cannot collect build event timestamps.", absolutePath));
         }
         List<String> lines = readLines(timestampFile);
-        if (lines.size() < 3) {
-            throw new IllegalStateException(String.format("Build event timestamp log at %s should contain at least 3 lines.", absolutePath));
+        if (lines.size() < 5) {
+            throw new IllegalStateException(String.format("Build event timestamp log at %s should contain at least 5 lines.", absolutePath));
         }
         List<Long> timestamps = parseTimestamps(absolutePath, lines);
-        operation.setConfigurationTime(Duration.millis((timestamps.get(1) - timestamps.get(0)) / 1000000L));
-        operation.setExecutionTime(Duration.millis((timestamps.get(2) - timestamps.get(1)) / 1000000L));
+        operation.setConfigurationTime(nanosToMillis(timestamps.get(1) - timestamps.get(0)));
+        operation.setExecutionTime(nanosToMillis(timestamps.get(2) - timestamps.get(1)));
+        // subtract the measurement time from total time
+        operation.setTotalTime(operation.getTotalTime().minus(nanosToMillis(timestamps.get(4))));
+    }
+
+    private Amount<Duration> nanosToMillis(long nanos) {
+        return Duration.millis(nanos / 1000000L);
     }
 
     private List<Long> parseTimestamps(final String absolutePath, List<String> lines) {
         try {
-            return ImmutableList.of(Long.valueOf(lines.get(0)), Long.valueOf(lines.get(1)), Long.valueOf(lines.get(2)));
+            return ImmutableList.of(Long.valueOf(lines.get(0)), Long.valueOf(lines.get(1)), Long.valueOf(lines.get(2)), Long.valueOf(lines.get(3)), Long.valueOf(lines.get(4)));
         } catch (NumberFormatException e) {
             throw new IllegalStateException(String.format("One of the timestamps in build event timestamp log at %s is not valid.", absolutePath), e);
         }
