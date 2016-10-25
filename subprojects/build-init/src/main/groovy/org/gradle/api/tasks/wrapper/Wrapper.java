@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.wrapper;
 
+import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileLookup;
@@ -26,17 +27,28 @@ import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.*;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.DistributionLocator;
+import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.net.URL;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * <p>Generates scripts (for *nix and windows) which allow you to build your project with Gradle, without having to
@@ -106,12 +118,7 @@ public class Wrapper extends DefaultTask {
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
 
         writeProperties(getPropertiesFile());
-
-        URL jarFileSource = Wrapper.class.getResource("/gradle-wrapper.jar");
-        if (jarFileSource == null) {
-            throw new GradleException("Cannot locate wrapper JAR resource.");
-        }
-        GFileUtils.copyURLToFile(jarFileSource, jarFileDestination);
+        writeWrapperTo(jarFileDestination);
 
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
@@ -123,6 +130,40 @@ public class Wrapper extends DefaultTask {
         generator.setScriptRelPath(unixScript.getName());
         generator.generateUnixScript(unixScript);
         generator.generateWindowsScript(getBatchScript());
+    }
+
+    private void writeWrapperTo(File destination) {
+        InputStream gradleWrapperJar = Wrapper.class.getResourceAsStream("/gradle-wrapper.jar");
+        if (gradleWrapperJar == null) {
+            throw new GradleException("Cannot locate wrapper JAR resource.");
+        }
+        ZipInputStream zipInputStream = null;
+        ZipOutputStream zipOutputStream = null;
+        try {
+            zipInputStream = new ZipInputStream(gradleWrapperJar);
+            zipOutputStream = new ZipOutputStream(new FileOutputStream(destination));
+            for (ZipEntry entry = zipInputStream.getNextEntry(); entry != null; entry = zipInputStream.getNextEntry()) {
+                zipOutputStream.putNextEntry(entry);
+                if (!entry.isDirectory()) {
+                    ByteStreams.copy(zipInputStream, zipOutputStream);
+                }
+                zipOutputStream.closeEntry();
+            }
+            addBuildReceipt(zipOutputStream);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            IoActions.closeQuietly(zipInputStream);
+            IoActions.closeQuietly(zipOutputStream);
+        }
+    }
+
+    private void addBuildReceipt(ZipOutputStream zipOutputStream) throws IOException {
+        ZipEntry buildReceipt = new ZipEntry("build-receipt.properties");
+        zipOutputStream.putNextEntry(buildReceipt);
+        String contents = "versionNumber=" + GradleVersion.current().getVersion();
+        zipOutputStream.write(contents.getBytes(StandardCharsets.ISO_8859_1));
+        zipOutputStream.closeEntry();
     }
 
     private void writeProperties(File propertiesFileDestination) {

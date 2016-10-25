@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Wrapper main entry point requirest Java 5
+// Wrapper main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
@@ -26,16 +26,24 @@ dependencies {
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
-task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
-    into generatedTestResourcesDir
-    from rootProject.createBuildReceipt.receiptFile
+ext {
+    wrapperBuildReceipt = "build-receipt.properties"
 }
-sourceSets.test.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
+
+task wrapperBuildReceiptResource() {
+    inputs.property 'version', { version }
+    outputs.file { "${generatedTestResourcesDir}/${wrapperBuildReceipt}" }
+    outputs.cacheIf { true }
+    doLast {
+        generatedTestResourcesDir.mkdirs()
+        new File(generatedTestResourcesDir, wrapperBuildReceipt).text = "versionNumber=${version}"
+    }
+}
+sourceSets.test.output.dir generatedTestResourcesDir, builtBy: wrapperBuildReceiptResource
 
 task executableJar(type: Jar) {
     archiveName = 'gradle-wrapper.jar'
     from sourceSets.main.output
-    from rootProject.createBuildReceipt
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
