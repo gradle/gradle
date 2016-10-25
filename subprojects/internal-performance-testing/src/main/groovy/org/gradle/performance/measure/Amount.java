@@ -30,9 +30,13 @@ import java.util.Locale;
  * TODO - need to sort out scaling when dividing or converting between units.
  */
 public class Amount<Q> implements Comparable<Amount<Q>> {
+    // decimalFormat is not thread safe - synchronize access to the instance
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.###", new DecimalFormatSymbols(Locale.US));
     private final BigDecimal value;
     private final Units<Q> units;
     private final BigDecimal normalised;
+    private String cachedToString;
+    private String cachedFormattedString;
 
     private Amount(BigDecimal value, Units<Q> units) {
         this.value = value;
@@ -60,7 +64,10 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
      */
     @Override
     public String toString() {
-        return String.format("%s %s", value, units.format(value));
+        if (cachedToString == null) {
+            cachedToString = String.valueOf(value) + " " + units.format(value);
+        }
+        return cachedToString;
     }
 
     public Units<Q> getUnits() {
@@ -75,16 +82,29 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
      * Returns a human consumable string representation of this amount.
      */
     public String format() {
+        if (cachedFormattedString == null) {
+            cachedFormattedString = doFormat();
+        }
+        return cachedFormattedString;
+    }
+
+    private String doFormat() {
         List<Units<Q>> allUnits = units.getUnitsForQuantity();
         BigDecimal base = normalised.abs();
         for (int i = allUnits.size()-1; i >= 0; i--) {
             Units<Q> candidate = allUnits.get(i);
             if (base.compareTo(candidate.getFactor()) >= 0) {
                 BigDecimal scaled = units.scaleTo(value, candidate);
-                return String.format("%s %s", new DecimalFormat("#.###", new DecimalFormatSymbols(Locale.US)).format(scaled), candidate.format(scaled));
+                return formatValue(scaled) + " " + candidate.format(scaled);
             }
         }
-        return String.format("%s %s", new DecimalFormat("#.###", new DecimalFormatSymbols(Locale.US)).format(value), units.format(value));
+        return formatValue(value) + " " + units.format(value);
+    }
+
+    private static String formatValue(BigDecimal value) {
+        synchronized (DECIMAL_FORMAT) {
+            return DECIMAL_FORMAT.format(value);
+        }
     }
 
     /**
