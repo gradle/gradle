@@ -76,10 +76,6 @@ configurations {
 dependencies {
    compile files('foo.jar') { environmentMarkers('sss') }
 }
-Dependency.metaClass.environmentMarkers = { String... markerStrings ->
-  bar()
-  delegate.class.metaClass = null
-}
 
 task foo {
    doLast {
