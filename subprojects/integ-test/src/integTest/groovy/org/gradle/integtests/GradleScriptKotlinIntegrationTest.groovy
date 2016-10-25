@@ -39,9 +39,14 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
     def 'can run a simple task'() {
         given:
         buildFile << """
-            task("build") {
-                doLast { println("it works!") }
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            
+            open class SimpleTask : DefaultTask() {
+                @TaskAction fun run() = println("it works!")
             }
+
+            task<SimpleTask>("build")
         """
 
         when:
