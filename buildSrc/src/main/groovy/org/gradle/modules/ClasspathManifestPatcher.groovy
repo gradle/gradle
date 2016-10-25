@@ -17,13 +17,13 @@ package org.gradle.modules
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GUtil
+
 /**
  * Patches the classpath manifests of external modules such as gradle-script-kotlin
  * to match the dependencies of the Gradle runtime configuration.
@@ -89,13 +89,10 @@ class ClasspathManifestPatcher {
 
     private File unpack(File file) {
         def unpackDir = new File(temporaryDir, file.name)
-        project.sync(new Action<CopySpec>() {
-            @Override
-            void execute(CopySpec spec) {
-                spec.into(unpackDir)
-                spec.from(project.zipTree(file))
-            }
-        })
+        project.sync { CopySpec spec ->
+            spec.into(unpackDir)
+            spec.from(project.zipTree(file))
+        }
         unpackDir
     }
 

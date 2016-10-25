@@ -17,7 +17,6 @@
 package org.gradle.modules
 
 import groovy.transform.CompileStatic
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -58,13 +57,10 @@ class PatchExternalModules extends DefaultTask {
 
     @TaskAction
     public void patch() {
-        ((ProjectInternal)project).sync(new Action<CopySpec>() {
-            @Override
-            void execute(CopySpec copySpec) {
-                copySpec.from(externalModulesRuntime - coreRuntime)
-                copySpec.into(destination)
-            }
-        })
+        ((ProjectInternal) project).sync { CopySpec copySpec ->
+            copySpec.from(externalModulesRuntime - coreRuntime)
+            copySpec.into(destination)
+        }
 
         new ClasspathManifestPatcher(project.rootProject as ProjectInternal, temporaryDir, externalModulesRuntime, externalModuleNames)
                 .writePatchedFilesTo(destination)
