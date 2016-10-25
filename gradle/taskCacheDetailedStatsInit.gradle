@@ -96,7 +96,7 @@ gradle.addListener(new BuildAdapter() {
                         }
                     }
                 }
-                gradle.startParameter.properties.each { k, v ->
+                gradle.startParameter.properties.sort().each { k, v ->
                     writer.println([k, v].collect { quote(it) }.join(","))
                 }
             } finally {
