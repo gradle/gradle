@@ -115,9 +115,11 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @get:InputFile var inputFile: File? = null
                 @get:OutputFile var outputFile: File? = null
                 @TaskAction fun doSomething() {
-                    outputFile!!.parentFile.mkdirs()
-                    outputFile!!.writeText(inputFile!!.readText())
-                    outputFile!!.appendText("$suffix")
+                    outputFile!!.apply {
+                        parentFile.mkdirs()
+                        writeText(inputFile!!.readText())
+                        appendText("$suffix")
+                    }
                 }
             }
         """
