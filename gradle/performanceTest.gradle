@@ -111,6 +111,8 @@ ext.performanceReportTasks = tasks.withType(PerformanceReport)
 performanceReportTasks.all(withPerformanceDb)
 
 task performanceReport(type: PerformanceReport) {
+    minHeapSize = '1g'
+    maxHeapSize = '2g'
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
