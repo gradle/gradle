@@ -28,18 +28,6 @@ import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
 @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
 @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
-    public static final String APPLY_KOTLIN = """
-            plugins {
-                id "nebula.kotlin" version "1.0.4"
-            }
-            repositories {
-                // required to resolve kotlin-stdlib dependency implicitly added by nebula.kotlin
-                jcenter()
-            }
-            dependencies {
-                compile(gradleApi())
-            }
-        """
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -51,8 +39,8 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
+        withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
-        file("buildSrc/build.gradle") << APPLY_KOTLIN
         file("input.txt") << "input"
         buildFile << """
             task<CustomTask>("customTask") {
@@ -76,10 +64,10 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
+        withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
         taskSourceFile.makeOlder()
-        file("buildSrc/build.gradle") << APPLY_KOTLIN
         file("input.txt") << "input"
         buildFile << """
             task<CustomTask>("customTask") {
@@ -101,6 +89,19 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "input modified"
+    }
+
+    def withKotlinBuildSrc() {
+        file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("buildSrc/build.gradle.kts") << """
+            buildscript {
+                repositories { gradleScriptKotlin() }
+                dependencies { classpath(kotlinModule("gradle-plugin")) }
+            }
+            apply { plugin("kotlin") }
+            repositories { gradleScriptKotlin() }
+            dependencies { compile(gradleScriptKotlinApi()) }
+        """
     }
 
     private static String customKotlinTask(String suffix = "") {
