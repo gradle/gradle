@@ -476,7 +476,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-3575")
     def "multiple finalizer tasks point to the same task"() {
         buildFile << """

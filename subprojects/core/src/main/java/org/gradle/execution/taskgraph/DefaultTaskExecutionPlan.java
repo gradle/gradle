@@ -257,6 +257,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
             if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
+                visitingNodes.remove(taskNode, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
                 continue;
             }
