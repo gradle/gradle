@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -52,8 +53,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -84,7 +85,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, new Spec<DependencyMetadata>() {
             @Override
             public boolean isSatisfiedBy(DependencyMetadata element) {
-                return element instanceof LocalOriginDependencyMetadata;
+                return element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
             }
         }, projectModelVisitor, new CompositeDependencyArtifactsVisitor());
         result.resolved(localComponentsResultBuilder.complete());
