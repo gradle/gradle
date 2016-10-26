@@ -34,6 +34,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Shared String version = GradleVersion.current().version
+    @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
     abstract String getDistributionLabel()
 
@@ -150,7 +151,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected void assertIsGradleJar(TestFile jar) {
         jar.assertIsFile()
-        assertThat(jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(version))
+        assertThat(jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(baseVersion))
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
     }
 }
