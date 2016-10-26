@@ -1218,6 +1218,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause "Configuration 'internal' cannot be used in a project dependency"
 
         where:
-        role << [ConfigurationRole.BUCKET]
+        role << [ConfigurationRole.CAN_BE_QUERIED_ONLY, ConfigurationRole.BUCKET]
     }
 }

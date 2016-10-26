@@ -136,7 +136,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (toConfiguration == null) {
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
-        if (dependencyConfiguration!=null && toConfiguration.getRole() == ConfigurationRole.BUCKET) {
+        if (dependencyConfiguration!=null && !toConfiguration.getRole().canBeConsumedOrPublished()) {
             throw new IllegalArgumentException("Configuration '" + dependencyConfiguration + "' cannot be used in a project dependency");
         }
         ConfigurationMetadata delegate = toConfiguration;
