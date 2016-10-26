@@ -45,7 +45,7 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         // TODO(pepper): Revert this to 'last' when 3.2 is released
         // The regression was determined acceptable in this discussion:
         // https://issues.gradle.org/browse/GRADLE-1346
-        "lotDependencies"        | 'local'  | ['3.2-20160915000027+0000'] | not_flaky
+        "lotDependencies"        | 'local'  | ['3.3-20161026000020+0000'] | not_flaky
         "lotProjectDependencies" | 'local'  | ['3.2-20160915000027+0000'] | flaky
     }
 }

@@ -41,7 +41,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         where:
         type     | fastestVersion            | flakiness
         "small"  | '3.2-20161012120730+0000' | flaky
-        "medium" | '2.14.1'                  | not_flaky
+        "medium" | '3.3-20161026000020+0000' | not_flaky
         "big"    | '2.14.1'                  | not_flaky
         "multi"  | '2.14.1'                  | not_flaky
     }
