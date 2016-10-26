@@ -350,7 +350,7 @@ class DefaultConfigurationSpec extends Specification {
         def failure = new ResolveException("bad", new RuntimeException())
 
         and:
-        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
+        _ * resolver.resolveGraph(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
             resolverResults.failed(failure)
         }
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
@@ -477,7 +477,7 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
-        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
+        _ * resolver.resolveGraph(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
             resolverResults.resolved(resolutionResults, localComponentsResult)
             resolverResults.withResolvedConfiguration(resolvedConfiguration)
         }
@@ -865,7 +865,7 @@ class DefaultConfigurationSpec extends Specification {
         fileTaskDeps == [task] as Set
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
         _ * resolvedConfiguration.hasError() >> false
-        _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
+        _ * resolver.resolveGraph(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.resolved(Mock(ResolutionResult), projectConfigurationResults)
         }
         _ * projectConfigurationResults.get() >> []
@@ -990,7 +990,7 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         localComponentsResult.resolvedProjectConfigurations >> []
         localComponentsResult.componentBuildDependencies >> new DefaultTaskDependency()
-        resolver.resolve(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
+        resolver.resolveGraph(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.resolved(resolutionResult, localComponentsResult)
         }
         resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
@@ -1084,7 +1084,7 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        0 * resolver.resolve(_)
+        0 * resolver.resolveGraph(_)
         config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
@@ -1108,7 +1108,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies()
 
         then:
-        0 * resolver.resolve(_)
+        0 * resolver.resolveGraph(_)
         config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
@@ -1137,7 +1137,7 @@ class DefaultConfigurationSpec extends Specification {
         def nextResolvedConfiguration = config.resolvedConfiguration
 
         then:
-        0 * resolver.resolve(_)
+        0 * resolver.resolveGraph(_)
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
         config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED

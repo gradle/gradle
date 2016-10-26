@@ -17,7 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.LenientConfiguration;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -38,14 +44,25 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults results) {
         try {
-            delegate.resolve(configuration, results);
-        } catch (final Throwable e) {
+            delegate.resolveBuildDependencies(configuration, results);
+        } catch (Throwable e) {
+            results.failed(wrapException(e, configuration));
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+        }
+    }
+
+    @Override
+    public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+        try {
+            delegate.resolveGraph(configuration, results);
+        } catch (Throwable e) {
             results.failed(wrapException(e, configuration));
             results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
             return;
         }
+
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
         results.resolved(wrappedResult, results.getResolvedLocalComponents());
     }
@@ -54,7 +71,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         try {
             delegate.resolveArtifacts(configuration, results);
-        } catch (ResolveException e) {
+        } catch (Throwable e) {
             results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
             return;
         }

@@ -41,6 +41,11 @@ public interface ResolverResults {
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
+    void resolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult);
+
+    /**
+     * Marks the dependency graph resolution as successful, with the given result.
+     */
     void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult);
 
     void failed(ResolveException failure);

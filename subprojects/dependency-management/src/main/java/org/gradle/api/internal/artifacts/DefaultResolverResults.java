@@ -47,32 +47,37 @@ public class DefaultResolverResults implements ResolverResults {
 
     @Override
     public ResolutionResult getResolutionResult() {
-        assertHasResult();
         if (fatalFailure != null) {
             throw fatalFailure;
+        }
+        if (resolutionResult == null) {
+            throw new IllegalStateException("Resolution result has not been attached.");
         }
         return resolutionResult;
     }
 
     @Override
     public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        assertHasResult();
         if (fatalFailure != null) {
             throw fatalFailure;
         }
-        return resolvedLocalComponentsResult;
-    }
-
-    private void assertHasResult() {
-        if (resolutionResult == null && fatalFailure == null) {
+        if (resolvedLocalComponentsResult == null) {
             throw new IllegalStateException("Resolution result has not been attached.");
         }
+        return resolvedLocalComponentsResult;
     }
 
     private void assertHasArtifacts() {
         if (resolvedConfiguration == null) {
             throw new IllegalStateException("Resolution artifacts have not been attached.");
         }
+    }
+
+    @Override
+    public void resolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult) {
+        this.resolutionResult = null;
+        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
+        this.fatalFailure = null;
     }
 
     @Override
@@ -85,6 +90,7 @@ public class DefaultResolverResults implements ResolverResults {
     @Override
     public void failed(ResolveException failure) {
         this.resolutionResult = null;
+        this.resolvedLocalComponentsResult = null;
         this.fatalFailure = failure;
     }
 

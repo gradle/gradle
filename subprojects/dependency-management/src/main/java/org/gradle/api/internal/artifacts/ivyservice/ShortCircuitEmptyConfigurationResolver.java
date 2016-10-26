@@ -50,17 +50,30 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         if (configuration.getAllDependencies().isEmpty()) {
-            Module module = configuration.getModule();
-            ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
-            ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-            ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
-            ResolvedLocalComponentsResult emptyProjectResult = new DefaultResolvedLocalComponentsResultBuilder(false).complete();
-            results.resolved(emptyResult, emptyProjectResult);
+            emptyGraph(configuration, result);
         } else {
-            delegate.resolve(configuration, results);
+            delegate.resolveBuildDependencies(configuration, result);
         }
+    }
+
+    @Override
+    public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+        if (configuration.getAllDependencies().isEmpty()) {
+            emptyGraph(configuration, results);
+        } else {
+            delegate.resolveGraph(configuration, results);
+        }
+    }
+
+    private void emptyGraph(ConfigurationInternal configuration, ResolverResults results) {
+        Module module = configuration.getModule();
+        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
+        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
+        ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
+        ResolvedLocalComponentsResult emptyProjectResult = new DefaultResolvedLocalComponentsResultBuilder(false).complete();
+        results.resolved(emptyResult, emptyProjectResult);
     }
 
     @Override

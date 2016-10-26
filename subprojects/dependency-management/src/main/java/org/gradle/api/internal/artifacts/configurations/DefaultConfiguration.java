@@ -399,7 +399,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ResolvableDependencies incoming = getIncoming();
         performPreResolveActions(incoming);
 
-        resolver.resolve(this, cachedResolverResults);
+        resolver.resolveGraph(this, cachedResolverResults);
         dependenciesModified = false;
         if (resolvedState != InternalState.RESULTS_RESOLVED) {
             resolvedState = InternalState.TASK_DEPENDENCIES_RESOLVED;
@@ -443,9 +443,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         if ((attributes!=null && attributes.size() > 0) || resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
-            final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
 
+            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
             taskDependency.add(cachedResolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
             taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
             return taskDependency;
