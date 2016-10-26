@@ -17,15 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.junit.Rule
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule
-    CyclicBarrierHttpServer sync = new CyclicBarrierHttpServer()
+    def module = mavenHttpRepo.module("test", "test", "1.0").publish()
 
-    def "does not download anything when task dependencies are calculated for configuration that is used as a task input"() {
-        def module = mavenHttpRepo.module("test", "test", "1.0").publish()
+    def setup() {
         settingsFile << "include 'child'"
         buildFile << """
             allprojects {
@@ -42,76 +38,37 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                 compile project(':child')
             }
             project(':child') {
-                task jar { 
-                    outputs.files file('thing.jar')
-                }
-                artifacts {
-                    compile file: jar.outputs.files.singleFile, builtBy: jar
-                }
                 dependencies {
                     compile 'test:test:1.0'
                 }                
             }
-            gradle.taskGraph.whenReady {
-                new URL('$sync.uri').text
-            }
-            task useCompileConfiguration { 
-                inputs.files configurations.compile
-                outputs.file file('output.txt')
-                doLast { }
-            }
             
+            task graph {
+                doLast {
+                    println configurations.compile.incoming.resolutionResult.allComponents
+                }
+            }
+            task artifacts {
+                doLast {
+                    println configurations.compile.resolvedConfiguration.resolvedArtifacts
+                }
+            }
 """
-
-        when:
-        executer.withTasks('useCompileConfiguration')
-        def build = executer.start()
-        // Task graph calculated but nothing executed yet
-        sync.waitFor()
-
-        then:
-        // Nothing downloaded
-        server.resetExpectations()
-
-        when:
-        // Expect downloads once execution starts
-        module.pom.expectGet()
-        module.artifact.expectGet()
-        sync.release()
-        def result = build.waitForFinish()
-
-        then:
-        result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
     }
 
-    def "downloads metadata only when dependency graph is queried"() {
-        def module = mavenHttpRepo.module("test", "test", "1.0").publish()
-        settingsFile << "include 'child'"
-        buildFile << """
-            allprojects {
-                repositories {
-                    maven { url '$mavenHttpRepo.uri' }
-                }
-                configurations {
-                    compile
-                    create('default').extendsFrom compile
-                }
-            }
-            
-            dependencies {
-                compile project(':child')
-            }
-            project(':child') {
-                dependencies {
-                    compile 'test:test:1.0'
-                }                
-            }
-            
-            configurations.compile.incoming.resolutionResult
-"""
-
-        expect:
+    def "downloads only metadata when dependency graph is queried"() {
+        when:
         module.pom.expectGet()
-        succeeds()
+
+        then:
+        succeeds("graph")
+    }
+
+    def "downloads only metadata when artifacts are queried"() {
+        when:
+        module.pom.expectGet()
+
+        then:
+        succeeds("artifacts")
     }
 }
