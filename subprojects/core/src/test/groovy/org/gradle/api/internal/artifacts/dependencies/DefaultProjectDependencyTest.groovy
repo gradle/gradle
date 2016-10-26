@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
 import static org.gradle.util.Matchers.strictlyEqual
@@ -80,7 +79,6 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         1 * context.transitive >> true
         1 * context.add(dep1)
         1 * context.add(dep2)
-        1 * context.getAttributes()
         0 * _
     }
 
@@ -202,34 +200,5 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         base != differentConf
         base != differentBuildDeps
         base != differentProject
-    }
-
-    @Unroll("Resolves dependencies to #expectedJar using attributes #queryAttributes")
-    def "resolves configuration using attributes"() {
-        def context = Mock(DependencyResolveContext) {
-            isTransitive() >> true
-            getAttributes() >> queryAttributes
-        }
-        project.configurations.create('default')
-        project.configurations.create('foo').attribute('key', 'something').forConsumingOrPublishingOnly()
-        project.configurations.create('bar').attribute('key', 'something else').forConsumingOrPublishingOnly()
-        project.dependencies.add('foo', project.files('a.jar'))
-        project.dependencies.add('bar', project.files('b.jar'))
-        project.dependencies.add('default', project.files('default.jar'))
-        projectDependency = new DefaultProjectDependency(project, null, true)
-        projectDependency.setTransitive(true)
-
-        when:
-        projectDependency.resolve(context)
-
-        then:
-        1 * context.add({ it.files*.name == [expectedJar] })
-
-        where:
-        queryAttributes         | expectedJar
-        [key: 'something']      | 'a.jar'
-        [key: 'something else'] | 'b.jar'
-        [bad: 'something']      | 'default.jar'
-        [:]                     | 'default.jar'
     }
 }
