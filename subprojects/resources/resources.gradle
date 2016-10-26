@@ -11,6 +11,7 @@ dependencies {
     compile project(':messaging')
     compile libraries.commons_io
     testCompile libraries.groovy
+    integTestCompile project(':internalIntegTesting')
 }
 
 useTestFixtures()

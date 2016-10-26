@@ -696,27 +696,6 @@ task test {
         inTestDirectory().withTasks("listJars").run()
     }
 
-    @Test
-    public void canSpecifyProducerTasksForFileDependency() {
-        testFile("settings.gradle").write("include 'sub'");
-        testFile("build.gradle") << '''
-            configurations { compile }
-            dependencies { compile project(path: ':sub', configuration: 'compile') }
-            task test(dependsOn: configurations.compile) {
-                doLast {
-                    assert file('sub/sub.jar').isFile()
-                }
-            }
-'''
-        testFile("sub/build.gradle") << '''
-            configurations { compile }
-            dependencies { compile files('sub.jar') { builtBy 'jar' } }
-            task jar { doLast { file('sub.jar').text = 'content' } }
-'''
-
-        inTestDirectory().withTasks("test").run().assertTasksExecuted(":sub:jar", ":test");
-    }
-
     def getRepo() {
         return maven(testFile('repo'))
     }

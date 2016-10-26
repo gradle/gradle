@@ -18,8 +18,8 @@ package org.gradle.testfixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.junit.Rule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.junit.Rule
 
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server
@@ -49,5 +49,17 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         then:
         compileFiles.size() == 1
         runtimeFiles.size() == 1
+    }
+
+    def "can provide custom Gradle user home"() {
+        given:
+        File customGradleUserHome = temporaryFolder.createDir('gradle-user-home')
+
+        when:
+        def project = ProjectBuilder.builder().withGradleUserHomeDir(customGradleUserHome).build()
+
+        then:
+        customGradleUserHome.exists()
+        project.gradle.startParameter.gradleUserHomeDir == customGradleUserHome
     }
 }

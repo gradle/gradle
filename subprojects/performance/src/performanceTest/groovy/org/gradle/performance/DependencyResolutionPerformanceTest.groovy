@@ -39,7 +39,10 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         testProject              | repoType | targetVersions
-        "lotDependencies"        | 'local'  | ['2.13', 'last']
-        "lotProjectDependencies" | 'local'  | ['2.13', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "lotDependencies"        | 'local'  | ['3.3-20161026000020+0000']
+        "lotProjectDependencies" | 'local'  | ['3.2-20160915000027+0000']
     }
 }

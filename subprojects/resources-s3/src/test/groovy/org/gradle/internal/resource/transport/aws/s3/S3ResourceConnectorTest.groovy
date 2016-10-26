@@ -40,9 +40,31 @@ class S3ResourceConnectorTest extends Specification {
         }
 
         when:
-        def s3Resource = new S3ResourceConnector(s3Client).openResource(uri)
+        def s3Resource = new S3ResourceConnector(s3Client).openResource(uri, false)
 
         then:
         s3Resource != null
+
+        cleanup:
+        s3Resource?.close()
     }
+
+
+    def "should call close() on S3Object when getMetaData is called"() {
+        S3Object s3object = Mock(S3Object) {
+            getObjectMetadata() >> Mock(ObjectMetadata) {
+                getLastModified() >> new Date()
+            }
+        }
+        S3Client s3Client = Mock {
+            1 * getMetaData(uri) >> s3object
+        }
+
+        when:
+        new S3ResourceConnector(s3Client).getMetaData(uri, false)
+
+        then:
+        1 * s3object.close()
+    }
+
 }

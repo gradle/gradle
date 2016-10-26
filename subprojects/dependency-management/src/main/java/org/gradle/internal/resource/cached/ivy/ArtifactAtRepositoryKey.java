@@ -16,18 +16,18 @@
 
 package org.gradle.internal.resource.cached.ivy;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 public class ArtifactAtRepositoryKey {
     private final String repositoryId;
-    private final ModuleComponentArtifactIdentifier artifactId;
+    private final ComponentArtifactIdentifier artifactId;
 
-    public ArtifactAtRepositoryKey(String repositoryId, ModuleComponentArtifactIdentifier artifactId) {
+    public ArtifactAtRepositoryKey(String repositoryId, ComponentArtifactIdentifier artifactId) {
         this.repositoryId = repositoryId;
         this.artifactId = artifactId;
     }
 
-    public ModuleComponentArtifactIdentifier getArtifactId() {
+    public ComponentArtifactIdentifier getArtifactId() {
         return artifactId;
     }
 

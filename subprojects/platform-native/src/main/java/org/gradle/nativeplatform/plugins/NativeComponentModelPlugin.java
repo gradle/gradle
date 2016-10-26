@@ -30,8 +30,11 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -73,6 +76,7 @@ import org.gradle.nativeplatform.internal.DefaultSharedLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.DefaultStaticLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativeComponents;
+import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativePlatformResolver;
 import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal;
@@ -101,6 +105,7 @@ import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -350,6 +355,21 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeComponents.createExecutableTask(executableBinary, executableBinary.getExecutable().getFile());
         }
 
+        @Defaults
+        public void createBuildDependentComponentsTasks(ModelMap<Task> tasks, ComponentSpecContainer components, BinaryContainer binaries) {
+            NativeComponents.createBuildDependentComponentsTasks(tasks, components);
+        }
+
+        @BinaryTasks
+        public void createBuildDependentBinariesTasks(ModelMap<Task> tasks, NativeBinarySpecInternal nativeBinary) {
+            NativeComponents.createBuildDependentBinariesTasks(nativeBinary, nativeBinary.getNamingScheme());
+        }
+
+        @Finalize
+        public void wireBuildDependentTasks(ModelMap<Task> tasks, BinaryContainer binaries, DependentBinariesResolver dependentsResolver, ServiceRegistry serviceRegistry) {
+            NativeComponents.wireBuildDependentTasks(tasks, binaries, dependentsResolver, serviceRegistry.get(ProjectModelResolver.class));
+        }
+
         /**
          * Can't use @BinaryTasks because the binary is not _built-by_ the install task, but it is associated with it. Rule is called multiple times, so need to check for task existence before
          * creating.
@@ -383,6 +403,13 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
             FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
             NativeComponentRules.createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver, fileCollectionFactory);
+        }
+
+        @Defaults
+        void registerNativeDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
+            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
+            resolver.register(new NativeDependentBinariesResolutionStrategy(projectRegistry, projectModelResolver));
         }
     }
 

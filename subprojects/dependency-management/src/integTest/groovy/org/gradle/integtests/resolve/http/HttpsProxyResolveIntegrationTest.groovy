@@ -17,12 +17,10 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
-@LeaksFileHandles
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
     @Override
     MavenHttpRepository getRepo() {

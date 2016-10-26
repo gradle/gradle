@@ -22,12 +22,14 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.gradle.util.Clock.prettyTime;
+import static org.gradle.internal.time.Clock.prettyTime;
 
 public class CachedStoreFactory<T> implements Closeable {
 
@@ -58,8 +60,7 @@ public class CachedStoreFactory<T> implements Closeable {
         private final AtomicLong readsFromCache = new AtomicLong();
         private final AtomicLong readsFromDisk = new AtomicLong();
 
-        public void readFromDisk(long start) {
-            long duration = System.currentTimeMillis() - start;
+        public void readFromDisk(long duration) {
             readsFromDisk.incrementAndGet();
             diskReadsTotalMs.addAndGet(duration);
         }
@@ -93,9 +94,9 @@ public class CachedStoreFactory<T> implements Closeable {
                 stats.readFromCache();
                 return out;
             }
-            long start = System.currentTimeMillis();
+            Timer timer = Timers.startTimer();
             T value = createIfNotPresent.create();
-            stats.readFromDisk(start);
+            stats.readFromDisk(timer.getElapsedMillis());
             cache.put(id, value);
             return value;
         }

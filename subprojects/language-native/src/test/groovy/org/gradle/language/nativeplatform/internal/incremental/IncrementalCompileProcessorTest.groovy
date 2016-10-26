@@ -17,8 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
-import org.gradle.api.internal.changedetection.state.FileSnapshot
-import org.gradle.api.internal.changedetection.state.FileSnapshotter
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentStateCache
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
@@ -32,9 +31,9 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyParser = Mock(SourceIncludesResolver)
-    def fileSnapshotter = Stub(FileSnapshotter)
+    def hasher = Stub(FileHasher)
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, fileSnapshotter)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, hasher)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -48,10 +47,8 @@ class IncrementalCompileProcessorTest extends Specification {
     List<TestFile> modified = []
 
     def setup() {
-        fileSnapshotter.snapshot(_) >> { File file ->
-            return Stub(FileSnapshot) {
-                getHash() >> Files.asByteSource(file).hash(Hashing.sha1())
-            }
+        hasher.hash(_) >> { File file ->
+            Files.asByteSource(file).hash(Hashing.sha1())
         }
 
         // S1 - D1 \
@@ -95,9 +92,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private static IncludeDirectives includes(Set<ResolvedInclude> deps) {
-        def includes = new DefaultIncludeDirectives()
-        includes.addAll(deps.collect { '<' + it.file.name + '>' })
-        return includes
+        return new DefaultIncludeDirectives(deps.collect { '<' + it.file.name + '>' })
     }
 
     def added(TestFile sourceFile) {

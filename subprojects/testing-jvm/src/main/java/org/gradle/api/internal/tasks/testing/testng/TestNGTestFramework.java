@@ -30,7 +30,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;

@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
-import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -30,9 +30,9 @@ class ResourceVersionListerTest extends Specification {
 
     def repo = Mock(ExternalResourceRepository)
     def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "proj1", "1.0")
-    def module = new DefaultModuleIdentifier("org.acme", "proj1")
-    def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
-    def artifact = new DefaultIvyArtifactName("proj1", "jar", "jar")
+    def module = DefaultModuleIdentifier.of("org.acme", "proj1")
+    def moduleVersion = DefaultModuleVersionIdentifier.of(module, "1.0")
+    def artifact = DefaultIvyArtifactName.of("proj1", "jar", "jar")
     def result = new DefaultResourceAwareResolveResult()
 
     def ResourceVersionLister lister;

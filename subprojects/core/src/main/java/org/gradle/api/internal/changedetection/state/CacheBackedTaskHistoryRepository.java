@@ -24,7 +24,10 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -37,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +52,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final TaskExecutionListSerializer serializer;
     private final StringInterner stringInterner;
 
-    public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
+    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
         this.serializer = new TaskExecutionListSerializer(stringInterner);
@@ -61,6 +63,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
         final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;
+        currentExecution.setCacheableOutputProperties(getCacheableOutputProperties(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
         final LazyTaskExecution previousExecution = findBestMatchingPreviousExecution(currentExecution, previousExecutions.executions);
         if (previousExecution != null) {
@@ -117,33 +120,46 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private TaskExecutionList loadPreviousExecutions(final TaskInternal task) {
-        // The following mutates the serializer, so block on getting from the cache
-        // TODO: Fix this properly
-        synchronized (serializer) {
-            ClassLoader original = serializer.getClassLoader();
-            ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
+        boolean contextCreated = AsyncCacheAccessContext.createWhenMissing();
+        ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
+        try {
             serializer.setClassLoader(projectClassLoader);
-            try {
-                List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
-                TaskExecutionList result = new TaskExecutionList();
-                if (history != null) {
-                    for (TaskExecutionSnapshot taskExecutionSnapshot : history) {
-                        result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
-                    }
+            List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
+            TaskExecutionList result = new TaskExecutionList();
+            if (history != null) {
+                for (TaskExecutionSnapshot taskExecutionSnapshot : history) {
+                    result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
                 }
-                return result;
-            } finally {
-                serializer.setClassLoader(original);
+            }
+            return result;
+        } finally {
+            serializer.setClassLoader(null);
+            if (contextCreated) {
+                AsyncCacheAccessContext.remove();
             }
         }
     }
 
+    private static ImmutableSet<String> getCacheableOutputProperties(TaskInternal task) {
+        ImmutableSet.Builder<String> cacheableOutputProperties = ImmutableSet.builder();
+        for (TaskOutputFilePropertySpec propertySpec : task.getOutputs().getFileProperties()) {
+            if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
+                continue;
+            }
+            if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() == null) {
+                continue;
+            }
+            cacheableOutputProperties.add(propertySpec.getPropertyName());
+        }
+        return cacheableOutputProperties.build();
+    }
+
     private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
-        Set<String> declaredOutputFilePaths = new HashSet<String>();
+        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSet.builder();
         for (File file : task.getOutputs().getFiles()) {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
-        return ImmutableSet.copyOf(declaredOutputFilePaths);
+        return declaredOutputFilePaths.build();
     }
 
     private LazyTaskExecution findBestMatchingPreviousExecution(TaskExecution currentExecution, Collection<LazyTaskExecution> previousExecutions) {
@@ -171,7 +187,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
-        private ClassLoader classLoader;
+        private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
         private final StringInterner stringInterner;
 
         TaskExecutionListSerializer(StringInterner stringInterner) {
@@ -181,7 +197,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public ImmutableList<TaskExecutionSnapshot> read(Decoder decoder) throws Exception {
             byte count = decoder.readByte();
             List<TaskExecutionSnapshot> executions = new ArrayList<TaskExecutionSnapshot>(count);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader, stringInterner);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
             for (int i = 0; i < count; i++) {
                 TaskExecutionSnapshot exec = executionSerializer.read(decoder);
                 executions.add(exec);
@@ -192,18 +208,26 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public void write(Encoder encoder, ImmutableList<TaskExecutionSnapshot> value) throws Exception {
             int size = value.size();
             encoder.writeByte((byte) size);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader, stringInterner);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
             for (TaskExecutionSnapshot execution : value) {
                 executionSerializer.write(encoder, execution);
             }
         }
 
         public ClassLoader getClassLoader() {
-            return classLoader;
+            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
+            if (context != null) {
+                return context.get(CONTEXT_KEY_FOR_CLASSLOADER, ClassLoader.class);
+            } else {
+                return getClass().getClassLoader();
+            }
         }
 
         public void setClassLoader(ClassLoader classLoader) {
-            this.classLoader = classLoader;
+            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
+            if (context != null) {
+                context.put(CONTEXT_KEY_FOR_CLASSLOADER, classLoader);
+            }
         }
     }
 
@@ -241,6 +265,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
             // Take copy of input properties map
             setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
+            setCacheableOutputProperties(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
             outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
@@ -304,6 +329,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
                 getTaskClass(),
+                getCacheableOutputProperties(),
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
                 getTaskActionsClassLoaderHash(),
@@ -335,12 +361,20 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 if (decoder.readBoolean()) {
                     taskActionsClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
                 }
-                int outputFiles = decoder.readSmallInt();
-                Set<String> files = new HashSet<String>();
-                for (int j = 0; j < outputFiles; j++) {
-                    files.add(stringInterner.intern(decoder.readString()));
+
+                int cacheableOutputPropertiesCount = decoder.readSmallInt();
+                ImmutableSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSet.builder();
+                for (int j = 0; j < cacheableOutputPropertiesCount; j++) {
+                    cacheableOutputPropertiesBuilder.add(decoder.readString());
                 }
-                ImmutableSet<String> declaredOutputFilePaths = ImmutableSet.copyOf(files);
+                ImmutableSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
+
+                int outputFilesCount = decoder.readSmallInt();
+                ImmutableSet.Builder<String> declaredOutputFilePathsBuilder = ImmutableSet.builder();
+                for (int j = 0; j < outputFilesCount; j++) {
+                    declaredOutputFilePathsBuilder.add(stringInterner.intern(decoder.readString()));
+                }
+                ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
 
                 boolean hasInputProperties = decoder.readBoolean();
                 Map<String, Object> inputProperties;
@@ -351,6 +385,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
                 return new TaskExecutionSnapshot(
                     taskClass,
+                    cacheableOutputProperties,
                     declaredOutputFilePaths,
                     taskClassLoaderHash,
                     taskActionsClassLoaderHash,
@@ -379,6 +414,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 } else {
                     encoder.writeBoolean(true);
                     encoder.writeBinary(actionsClassLoaderHash.asBytes());
+                }
+                encoder.writeSmallInt(execution.getCacheableOutputProperties().size());
+                for (String outputFile : execution.getCacheableOutputProperties()) {
+                    encoder.writeString(outputFile);
                 }
                 encoder.writeSmallInt(execution.getDeclaredOutputFilePaths().size());
                 for (String outputFile : execution.getDeclaredOutputFilePaths()) {

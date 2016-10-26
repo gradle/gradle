@@ -19,10 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public class DefaultResolverResults implements ResolverResults {
@@ -30,9 +26,7 @@ public class DefaultResolverResults implements ResolverResults {
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
     private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
-    private TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
-    private ResolvedGraphResults graphResults;
-    private ResolvedArtifactsBuilder artifactResults;
+    private Object artifactResolveState;
 
     @Override
     public boolean hasError() {
@@ -45,42 +39,45 @@ public class DefaultResolverResults implements ResolverResults {
         return false;
     }
 
-    //old model, slowly being replaced by the new model
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         assertHasArtifacts();
         return resolvedConfiguration;
     }
 
-    //new model
     @Override
     public ResolutionResult getResolutionResult() {
-        assertHasResult();
         if (fatalFailure != null) {
             throw fatalFailure;
+        }
+        if (resolutionResult == null) {
+            throw new IllegalStateException("Resolution result has not been attached.");
         }
         return resolutionResult;
     }
 
     @Override
     public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        assertHasResult();
         if (fatalFailure != null) {
             throw fatalFailure;
         }
-        return resolvedLocalComponentsResult;
-    }
-
-    private void assertHasResult() {
-        if (resolutionResult == null && fatalFailure == null) {
+        if (resolvedLocalComponentsResult == null) {
             throw new IllegalStateException("Resolution result has not been attached.");
         }
+        return resolvedLocalComponentsResult;
     }
 
     private void assertHasArtifacts() {
         if (resolvedConfiguration == null) {
             throw new IllegalStateException("Resolution artifacts have not been attached.");
         }
+    }
+
+    @Override
+    public void resolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult) {
+        this.resolutionResult = null;
+        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
+        this.fatalFailure = null;
     }
 
     @Override
@@ -93,33 +90,23 @@ public class DefaultResolverResults implements ResolverResults {
     @Override
     public void failed(ResolveException failure) {
         this.resolutionResult = null;
+        this.resolvedLocalComponentsResult = null;
         this.fatalFailure = failure;
     }
 
     @Override
     public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
         this.resolvedConfiguration = resolvedConfiguration;
-        this.graphResults = null;
-        this.transientConfigurationResultsBuilder = null;
-        this.artifactResults = null;
+        this.artifactResolveState = null;
     }
 
-    // State not exposed via BuildableResolverResults, that is only accessed via DefaultConfigurationResolver
-    public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
-        this.graphResults = graphResults;
-        this.artifactResults = artifactResults;
-        this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
+    @Override
+    public void retainState(Object artifactResolveState) {
+        this.artifactResolveState = artifactResolveState;
     }
 
-    public ResolvedGraphResults getGraphResults() {
-        return graphResults;
-    }
-
-    public ResolvedArtifactResults getResolvedArtifacts() {
-        return artifactResults.resolve();
-    }
-
-    public TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder() {
-        return transientConfigurationResultsBuilder;
+    @Override
+    public Object getArtifactResolveState() {
+        return artifactResolveState;
     }
 }

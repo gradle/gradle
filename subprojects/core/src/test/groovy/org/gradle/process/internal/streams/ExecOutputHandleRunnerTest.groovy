@@ -16,19 +16,20 @@
 
 package org.gradle.process.internal.streams
 
-import groovy.transform.NotYetImplemented
-import org.gradle.internal.io.TextStream
 import org.gradle.internal.io.LineBufferingOutputStream
+import org.gradle.internal.io.TextStream
 import spock.lang.Issue
 import spock.lang.Specification
 
 class ExecOutputHandleRunnerTest extends Specification {
 
     @Issue("GRADLE-3329")
-    @NotYetImplemented
-    def "passes long Unicode line as single line"() {
-        def bufferLength = 8
-        def text = "a" * (bufferLength - 1) + "\u0151"
+    def "Handles exec output with line containing multi-byte unicode character at buffer boundary"() {
+        given:
+        def bufferLength = 7
+        def text1 = "a" * (bufferLength - 1)
+        def text2 = "\u0151" + ("a" * 5)
+        def text = text1 + text2
         def action = Mock(TextStream)
         def output = new LineBufferingOutputStream(action)
         def input = new ByteArrayInputStream(text.getBytes("utf-8"))
@@ -38,7 +39,10 @@ class ExecOutputHandleRunnerTest extends Specification {
         runner.run()
 
         then:
-        1 * action.text(text)
+        1 * action.text(text1)
+        then:
+        1 * action.text(text2)
+        then:
         1 * action.endOfStream(null)
     }
 }

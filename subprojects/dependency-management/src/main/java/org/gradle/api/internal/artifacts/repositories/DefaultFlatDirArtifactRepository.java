@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -41,13 +42,13 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
-    private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final IvyContextManager ivyContextManager;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                            FileStore<ModuleComponentArtifactMetadata> artifactFileStore, IvyContextManager ivyContextManager) {
+                                            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;

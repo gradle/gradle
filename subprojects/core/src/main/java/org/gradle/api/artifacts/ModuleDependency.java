@@ -15,10 +15,9 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Action;
-import com.google.common.base.Optional;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.gradle.api.Action;
 
 import java.util.Map;
 import java.util.Set;
@@ -146,13 +145,12 @@ public interface ModuleDependency extends Dependency {
     String getConfiguration();
 
     /**
-     * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
-     * returns null. If absent, the default configuration should be used. A dependency source
+     * Returns the configuration of this dependency module (not the configurations this dependency belongs too).
+     * If null, the default configuration should be used. A dependency source
      * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
      * for this dependency module.
-     *
      */
-    Optional<String> getTargetConfiguration();
+    String getTargetConfiguration();
 
     /**
      * {@inheritDoc}

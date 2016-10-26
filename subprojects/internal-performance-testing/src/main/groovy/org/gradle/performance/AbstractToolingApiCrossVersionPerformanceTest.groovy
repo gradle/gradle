@@ -27,12 +27,19 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
 import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.measure.DataAmount
@@ -72,7 +79,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, 5000L, 500L, null)
+        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, 5000L, 500L, null, null)
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.call(experimentSpec)
@@ -87,6 +94,12 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         System.addShutdownHook {
             ((Closeable) resultStore).close()
         }
+    }
+
+    protected List<String> createDefaultJvmOptions(String heapSize = '1g') {
+        List<String> jvmOptions = PerformanceTestJvmOptions.customizeJvmOptions(["-Xms${heapSize}", "-Xmx${heapSize}"])
+        jvmOptions << '-Dorg.gradle.performance.measurement.disabled=true'
+        return jvmOptions
     }
 
     @InheritConstructors
@@ -112,6 +125,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     private class Measurement implements ToolingApiClasspathProvider {
+        private final TimeProvider timeProvider = new TrueTimeProvider();
 
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName
@@ -130,7 +144,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 versionUnderTest: GradleVersion.current().getVersion(),
                 vcsBranch: Git.current().branchName,
                 vcsCommits: [Git.current().commitId],
-                startTime: System.currentTimeMillis(),
+                startTime: timeProvider.getCurrentTime(),
                 tasks: [],
                 args: [],
                 gradleOpts: [],
@@ -143,9 +157,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
-                    if ('current' != version) {
-                        def baselineVersion = results.baseline(version)
-                    }
                     def toolingApiDistribution = resolver.resolve(dist.version.version)
                     def testClassPath = [*experimentSpec.extraTestClassPath]
                     // add TAPI test fixtures to classpath
@@ -153,18 +164,21 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
+                    assert tapiClazz != ToolingApi
                     def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
-                    assert toolingApi != ToolingApi
-                    warmup(toolingApi)
+                    toolingApi.requireIsolatedDaemons()
+                    toolingApi.requireIsolatedUserHome()
+                    warmup(toolingApi, workingDirProvider.testDirectory)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
                     sleep(experimentSpec.sleepAfterWarmUpMillis)
-                    measure(results, toolingApi, version)
+                    measure(results, toolingApi, version, workingDirProvider.testDirectory)
+                    toolingApi.daemons.killAll()
                 }
             } finally {
                 resolver.stop()
             }
 
-            results.endTime = System.currentTimeMillis();
+            results.endTime = timeProvider.getCurrentTime()
 
             results.assertEveryBuildSucceeds()
             resultStore.report(results)
@@ -194,15 +208,21 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             }
         }
 
-        private void measure(CrossVersionPerformanceResults results, toolingApi, String version) {
+        private void measure(CrossVersionPerformanceResults results, toolingApi, String version, File workingDir) {
             OperationTimer timer = new OperationTimer()
             MeasuredOperationList versionResults = 'current' == version ? results.current : results.version(version).results
             experimentSpec.with {
-                invocationCount.times { n ->
+                def count = iterationCount("runs", invocationCount)
+                count.times { n ->
+                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir , BuildExperimentRunner.Phase.MEASUREMENT, n+1, count)
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.beforeInvocation(info)
+                    }
                     println "Run #${n + 1}"
                     def measuredOperation = timer.measure {
                         toolingApi.withConnection(action)
                     }
+
                     measuredOperation.configurationTime = Duration.millis(0)
                     measuredOperation.executionTime = Duration.millis(0)
                     // TODO: cc find a way to collect memory stats
@@ -211,20 +231,48 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     measuredOperation.maxUncollectedHeap = DataAmount.mbytes(0)
                     measuredOperation.totalHeapUsage = DataAmount.mbytes(0)
                     measuredOperation.totalMemoryUsed = DataAmount.mbytes(0)
-                    versionResults.add(measuredOperation)
+                    boolean omit = false
+                    BuildExperimentListener.MeasurementCallback cb = new BuildExperimentListener.MeasurementCallback() {
+                        @Override
+                        void omitMeasurement() {
+                            omit = true
+                        }
+                    }
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.afterInvocation(info, measuredOperation, cb)
+                    }
+                    if (!omit) {
+                        versionResults.add(measuredOperation)
+                    }
                     sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
 
-        private void warmup(toolingApi) {
+        private void warmup(toolingApi, File workingDir) {
             experimentSpec.with {
-                warmUpCount.times { n ->
+                def count = iterationCount("warmups", warmUpCount)
+                count.times { n ->
+                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir , BuildExperimentRunner.Phase.WARMUP, n+1, count)
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.beforeInvocation(info)
+                    }
                     println "Warm-up #${n + 1}"
                     toolingApi.withConnection(action)
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.afterInvocation(info, null, null)
+                    }
                     sleep(sleepAfterTestRoundMillis)
                 }
             }
+        }
+
+        private static int iterationCount(String key, int defaultValue) {
+            String value = System.getProperty("org.gradle.performance.execution.$key")
+            if (value != null && !"defaults".equals(value)) {
+                return Integer.valueOf(value)
+            }
+            return defaultValue
         }
     }
 }

@@ -1,0 +1,216 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
+import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder
+import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder.ByteArrayToStringer
+import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter
+import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+
+if (plugins.hasPlugin("com.gradle.build-scan")) {
+    if (gradle.startParameter.taskNames == ["verifyTestFilesCleanup"]) {
+        buildScan.publishOnFailure()
+    } else {
+        buildScan.publishAlways()
+    }
+
+    String commitId
+    if (System.getenv("CI")) {
+        buildScan.tag "CI"
+        buildScan.link "TeamCity Build", System.getenv("BUILD_URL")
+        buildScan.value "Build ID", System.getenv("BUILD_ID")
+        commitId = System.getenv("BUILD_VCS_NUMBER")
+    } else {
+        buildScan.tag "LOCAL"
+
+        try {
+            commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
+        } catch (ignore) {
+            // ignore
+        }
+
+        try {
+            def status = 'git status --porcelain'.execute().text
+            if (status) {
+                buildScan.tag "dirty"
+                buildScan.value "Git Status", status
+            }
+        } catch (ignore) {
+            // ignore
+        }
+    }
+
+    if (commitId) {
+        buildScan.value "Git Commit ID", commitId
+        buildScan.link "Source", "https://github.com/gradle/gradle/tree/" + commitId
+    }
+
+    // Capture reports from Reporting tasks
+    if (System.getenv("CI")) {
+        def capturedReportingTypes = ['html'] // can add xml, text, junitXml if wanted
+        def basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
+
+        gradle.taskGraph.afterTask { Task task, TaskState state ->
+            if (task instanceof Reporting && state.failure) {
+                (task.reports as ReportContainer<Report>)
+                    .findAll { it.name in capturedReportingTypes && it.enabled && it.destination.exists() }
+                    .each {
+                        def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
+                        def reportPath = task.project.rootProject.relativePath(it.destination)
+                        def reportLink = "$basePath/$reportPath"
+                        task.project.buildScan.link linkName, reportLink
+                    }
+            }
+        }
+    }
+
+    if (gradle.startParameter.taskOutputCacheEnabled) {
+        buildScan.tag 'CACHED'
+
+        buildScan.buildFinished {
+            def addCacheLine = { name, part, total ->
+                def percentage = total ? (int) Math.round(100d * part / total) : null
+                if (part > 0) {
+                    buildScan.value(name, "${part}${percentage ? " (${percentage} %)" : ''}")
+                }
+            }
+
+            try {
+                def eventAdapter = gradle.services.get(TaskExecutionStatisticsEventAdapter)
+                def statistics = new TaskExecutionStatistics(eventAdapter.taskCounts, eventAdapter.cacheMissCount)
+                def skipped = statistics.getTasksCount(TaskExecutionOutcome.SKIPPED)
+                def upToDate = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE)
+                def fromCache = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE)
+                def executed = statistics.getTasksCount(TaskExecutionOutcome.EXECUTED)
+                def cacheable = statistics.cacheMissCount
+                def allTasks = statistics.allTasksCount
+                addCacheLine('TC_0 Tasks in build', allTasks, null)
+                addCacheLine('TC_1 Skipped', skipped, allTasks)
+                addCacheLine('TC_2 Up to date', upToDate, allTasks)
+                addCacheLine('TC_3 From cache', fromCache, allTasks)
+                addCacheLine('TC_4 Executed', executed, allTasks)
+                addCacheLine('TC_5 - Cache miss', cacheable, allTasks)
+                addCacheLine('TC_6 - Not cacheable', (executed - cacheable), allTasks)
+            } catch (Exception e) {
+                e.printStackTrace()
+            }
+        }
+
+        gradle.addListener(new TaskExecutionAdapter() {
+
+            @Override
+            void afterExecute(Task task, TaskState state) {
+                def tasksToInvestigate = [
+                    ':core:compileTestGroovy',
+                    ':core:compileTestFixturesGroovy',
+                    ':diagnostics:compileTestGroovy',
+                    ':internalAndroidPerformanceTesting:compileJava',
+                    ':launcher:compileTestFixturesGroovy',
+                    ':docs:checkstyleApi',
+                    ':announce:checkstyleIntegTestGroovy']
+                if (task.getPath() in tasksToInvestigate) {
+                    def buildScan = task.project.buildScan
+                    addTaskState(task, state)
+                    task.inputs.properties.each { name, value ->
+                        buildScan.value "${task.path}-input-${name}", String.valueOf(value)
+                    }
+                    def fileProperties = task.inputs.fileProperties
+                    fileProperties.each { inputProperty ->
+                        def name = inputProperty.propertyName
+                        def snapshotter = gradle.services.get(inputProperty.snapshotter)
+                        def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy())
+                        def prefix = "${task.path}-input-${name}"
+                        buildScan.value "${prefix}-hash", hashKey(snapshot)
+                        def propertyFiles = inputProperty.propertyFiles
+                        int idx = 0
+                        propertyFiles.visitRootElements(new FileCollectionVisitor() {
+                            void visitCollection(FileCollectionInternal fileCollection) {
+                                buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
+                                buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.getAsFileTree().getFiles())
+                                idx++
+                            }
+
+                            void visitTree(FileTreeInternal fileTree) {
+                                buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
+                                idx++
+                            }
+
+                            void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                                buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
+                                idx++
+                            }
+                        })
+                    }
+                }
+                if (task.getPath() in (tasksToInvestigate + [':baseServices:classpathManifest'])) {
+                    addTaskState(task, state)
+                    def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
+                    new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
+                }
+            }
+
+            private static addTaskState(Task task, TaskState state) {
+                task.project.buildScan.value(task.getPath(), state.getOutcome().name())
+            }
+
+            private static String hashKey(some) {
+                def builder = new DefaultTaskCacheKeyBuilder()
+                some.appendToCacheKey(builder)
+                builder.build().getHashCode()
+            }
+        })
+    }
+}
+
+class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
+    final buildScan
+    final ClassLoaderHierarchyHasher hasher
+    final String prefix
+    int counter
+
+    Visitor(buildScan, ClassLoaderHierarchyHasher hasher, Task task) {
+        this.buildScan = buildScan
+        this.hasher = hasher
+        this.prefix = "${task.path}-classloader"
+    }
+
+    private String classloaderHash(ClassLoader loader) {
+        def hash = hasher.getStrictHash(loader)
+        if (hash != null) {
+            new ByteArrayToStringer(hash.asBytes()).toString()
+        } else {
+            null
+        }
+    }
+
+    @Override
+    public void visit(ClassLoader classLoader) {
+        def hash = classloaderHash(classLoader)
+        if (hash) {
+            buildScan.value("${prefix}-${counter++}-${classLoader.getClass().getSimpleName()}-hash", hash)
+            if ((counter <= 2) && (classLoader instanceof URLClassLoader)) {
+                buildScan.value("${prefix}-${counter - 1}-classpath", classLoader.getURLs().join(':'))
+            }
+        }
+        super.visit(classLoader)
+    }
+}

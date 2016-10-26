@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
@@ -48,7 +49,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         addConfiguration(metadata, "runtime", ["compile"])
         addDependencyDescriptor(metadata, "Dep1")
         addDependencyDescriptor(metadata, "Dep2")
-        metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
+        metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, DefaultIvyArtifactName.of("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
 
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
         ivyXmlModuleDescriptorWriter.write(metadata, ivyFile);
@@ -80,6 +81,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     }
 
     def addConfiguration(BuildableIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
-        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, null)
+        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
     }
 }

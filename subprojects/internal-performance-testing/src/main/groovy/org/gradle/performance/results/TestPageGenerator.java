@@ -19,7 +19,9 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.googlecode.jatl.Html;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
@@ -121,20 +123,16 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().text("Gradle JVM opts").end();
             th().text("Daemon").end();
             end();
-            for (PerformanceTestExecution results : testHistory.getExecutions()) {
+            final int executionsLen = testHistory.getExecutions().size();
+            for (int i = 0; i < executionsLen; i++) {
+                PerformanceTestExecution results = testHistory.getExecutions().get(i);
                 tr();
+                id("result" + results.getExecutionId());
                 textCell(format.timestamp(new Date(results.getStartTime())));
                 textCell(results.getVcsBranch());
 
                 td();
-                List<Link> vcsCommits = urlify(results.getVcsCommits());
-                for (int i = 0; i < vcsCommits.size(); i++) {
-                    Link vcsCommit = vcsCommits.get(i);
-                    a().href(vcsCommit.getValue()).text(vcsCommit.getLabel()).end();
-                    if (i != vcsCommits.size() - 1) {
-                        text(" | ");
-                    }
-                }
+                renderVcsLinks(results, findPreviousExecutionInSameBranch(results, testHistory, i));
                 end();
 
                 final List<MeasuredOperationList> scenarios = results.getScenarios();
@@ -204,6 +202,36 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             endAll();
         }
 
+            private void renderVcsLinks(PerformanceTestExecution results, PerformanceTestExecution previousResults) {
+                List<GitHubLink> vcsCommits = createGitHubLinks(results.getVcsCommits());
+                for (int i = 0; i < vcsCommits.size(); i++) {
+                    GitHubLink vcsCommit = vcsCommits.get(i);
+                    vcsCommit.renderCommitLink(this);
+                    if (previousResults != null) {
+                        text(" ");
+                        vcsCommit.renderCompareLink(this, previousResults.getVcsCommits().get(i));
+                    }
+                    if (i != vcsCommits.size() - 1) {
+                        text(" | ");
+                    }
+                }
+            }
+
+            @Nullable
+            private PerformanceTestExecution findPreviousExecutionInSameBranch(PerformanceTestExecution results, PerformanceTestHistory testHistory, int currentIndex) {
+                int executionsLen = testHistory.getExecutions().size();
+                PerformanceTestExecution previousResults = null;
+                if (currentIndex < executionsLen - 1 && results.getVcsBranch() != null) {
+                    for (PerformanceTestExecution execution : testHistory.getExecutions().subList(currentIndex + 1, executionsLen)) {
+                        if (results.getVcsBranch().equals(execution.getVcsBranch())) {
+                            previousResults = execution;
+                            break;
+                        }
+                    }
+                }
+                return previousResults;
+            }
+
             private void addPerformanceGraph(String heading, String chartId, String jsonFieldName, String fieldLabel, String fieldUnit) {
                 h3().text(heading).end();
                 div().id(chartId).classAttr("chart");
@@ -245,34 +273,47 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             + " -x prepareSamples";
     }
 
-    private static class Link {
-        private final String label;
-        private final String value;
+    private static class GitHubLink {
+        private final String repo;
+        private final String hash;
 
-        public Link(String label, String value) {
-            this.label = label;
-            this.value = value;
+        public GitHubLink(String repo, String hash) {
+            this.repo = repo;
+            this.hash = hash;
+        }
+
+        public void renderCommitLink(Html html) {
+            html.a().classAttr("commit-link").href(getUrl()).text(getLabel()).end();
+        }
+
+        public String getUrl() {
+            return String.format("https://github.com/%s/commit/%s", repo, formatHash(hash));
         }
 
         public String getLabel() {
-            return label;
+            return formatHash(hash);
         }
 
-        public String getValue() {
-            return value;
+        private String formatHash(String hash) {
+            return shorten(hash, 7);
+        }
+
+        public void renderCompareLink(Html html, String previousHash) {
+            String range = String.format("%s...%s", formatHash(previousHash), formatHash(hash));
+            html.a().classAttr("compare-link").href(String.format("https://github.com/%s/compare/%s", repo, range)).text("changes").end();
         }
     }
 
-    private List<Link> urlify(List<String> commits) {
+    private List<GitHubLink> createGitHubLinks(List<String> commits) {
         if (null == commits || commits.size() == 0) {
             return Collections.emptyList();
         }
-        Link gradleUrl = new Link(shorten(commits.get(0), 7), String.format("https://github.com/gradle/gradle/commit/%s", commits.get(0).trim()));
+        GitHubLink gradleUrl = new GitHubLink("gradle/gradle", commits.get(0));
         if (commits.size() == 1) {
             return Collections.singletonList(gradleUrl);
         } else if (commits.size() == 2) {
-            Link dotComUrl = new Link(shorten(commits.get(1), 7), String.format("https://github.com/gradle/dotcom/commit/%s", commits.get(1).trim()));
-            List<Link> links = Lists.newArrayList();
+            GitHubLink dotComUrl = new GitHubLink("gradle/dotcom", commits.get(1));
+            List<GitHubLink> links = Lists.newArrayList();
             links.add(gradleUrl);
             links.add(dotComUrl);
             return links;

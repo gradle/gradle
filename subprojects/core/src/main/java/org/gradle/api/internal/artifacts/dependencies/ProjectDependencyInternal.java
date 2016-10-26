@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-
-import java.util.Map;
 
 public interface ProjectDependencyInternal extends ProjectDependency {
 
     /**
      * This method is called when the project dependency is resolved
      */
-    public void beforeResolved();
+    void beforeResolved();
 
-    TaskDependencyInternal getTaskDependency(Map<String, String> attributes);
+    Configuration findProjectConfiguration();
 }

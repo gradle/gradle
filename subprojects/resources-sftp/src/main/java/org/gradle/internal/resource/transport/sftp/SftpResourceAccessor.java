@@ -37,7 +37,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         this.credentials = credentials;
     }
 
-    public ExternalResourceMetaData getMetaData(URI uri) {
+    public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
         LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
             SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
@@ -66,8 +66,8 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         return new DefaultExternalResourceMetaData(uri, lastModified, contentLength);
     }
 
-    public ExternalResourceReadResponse openResource(URI location) {
-        ExternalResourceMetaData metaData = getMetaData(location);
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+        ExternalResourceMetaData metaData = getMetaData(location, revalidate);
         return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;
     }
 }

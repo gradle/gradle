@@ -71,7 +71,7 @@ public class TextUtil {
      * Converts all native file separators in the specified string to '/'.
      */
     public static String normaliseFileSeparators(String path) {
-        return path.replaceAll(Pattern.quote(File.separator), "/");
+        return path.replace(File.separatorChar, '/');
     }
 
     /**

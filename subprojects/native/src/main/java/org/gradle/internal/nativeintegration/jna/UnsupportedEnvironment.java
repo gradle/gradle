@@ -111,7 +111,12 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     @Override
-    public void maybeDetach() {
+    public boolean maybeDetachProcess() {
+        return false;
+    }
+
+    @Override
+    public void detachProcess() {
         throw notSupported();
     }
 

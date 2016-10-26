@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -45,7 +46,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         return s3Client.listDirectChildren(parent);
     }
 
-    public ExternalResourceReadResponse openResource(URI location) {
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
         S3Object s3Object = s3Client.getResource(location);
         if (s3Object == null) {
@@ -54,19 +55,23 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         return new S3Resource(s3Object, location);
     }
 
-    public ExternalResourceMetaData getMetaData(URI location) {
+    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         S3Object s3Object = s3Client.getMetaData(location);
         if (s3Object == null) {
             return null;
         }
-        ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
-        return new DefaultExternalResourceMetaData(location,
+        try {
+            ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
+            return new DefaultExternalResourceMetaData(location,
                 objectMetadata.getLastModified().getTime(),
                 objectMetadata.getContentLength(),
                 objectMetadata.getContentType(),
                 objectMetadata.getETag(),
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+        } finally {
+            IoActions.closeQuietly(s3Object);
+        }
     }
 
     @Override

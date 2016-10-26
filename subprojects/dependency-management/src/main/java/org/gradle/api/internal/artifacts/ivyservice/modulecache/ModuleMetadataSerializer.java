@@ -368,7 +368,7 @@ public class ModuleMetadataSerializer {
         private void readArtifacts() throws IOException {
             int size = readCount();
             for (int i = 0; i < size; i++) {
-                IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString());
+                IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(readString(), readString(), readNullableString(), readNullableString());
                 md.addArtifact(ivyArtifactName, readStringSet());
             }
         }
@@ -422,7 +422,7 @@ public class ModuleMetadataSerializer {
             int size = readCount();
             List<Artifact> result = Lists.newArrayListWithCapacity(size);
             for (int i = 0; i < size; i++) {
-                IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString());
+                IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(readString(), readString(), readNullableString(), readNullableString());
                 result.add(new Artifact(ivyArtifactName, readStringSet()));
             }
             return result;

@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.ivy.IvyDescriptorDependencyExclusion
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
@@ -27,7 +26,6 @@ import org.gradle.test.fixtures.server.RepositoryServer
 import org.junit.Rule
 import spock.lang.Issue
 
-@LeaksFileHandles
 public abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec {
     abstract RepositoryServer getServer()
 

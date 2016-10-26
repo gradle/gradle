@@ -17,6 +17,8 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.BuildableComponentSpec;
+import org.gradle.api.CheckableComponentSpec;
+import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
@@ -26,9 +28,11 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec {
+public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec, CheckableComponentSpec {
     private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
     private Task buildTask;
+    private final DefaultTaskDependency checkTaskDependencies = new DefaultTaskDependency();
+    private Task checkTask;
 
     public AbstractBuildableComponentSpec(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType) {
         super(identifier, publicType);
@@ -65,5 +69,22 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
     @Override
     public boolean hasBuildDependencies() {
         return buildTaskDependencies.getDependencies(buildTask).size() > 0;
+    }
+
+    @Nullable
+    @Override
+    public Task getCheckTask() {
+        return checkTask;
+    }
+
+    @Override
+    public void setCheckTask(Task checkTask) {
+        this.checkTask = checkTask;
+        checkTask.dependsOn(checkTaskDependencies);
+    }
+
+    @Override
+    public void checkedBy(Object... tasks) {
+        checkTaskDependencies.add(tasks);
     }
 }

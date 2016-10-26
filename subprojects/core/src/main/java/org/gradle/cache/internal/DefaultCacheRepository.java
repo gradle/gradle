@@ -38,14 +38,6 @@ public class DefaultCacheRepository implements CacheRepository {
         this.factory = factory;
     }
 
-    public CacheBuilder store(String key) {
-        return new PersistentStoreBuilder(null, key);
-    }
-
-    public CacheBuilder store(Object scope, String key) {
-        return new PersistentStoreBuilder(scope, key);
-    }
-
     public CacheBuilder cache(String key) {
         return new PersistentCacheBuilder(null, key);
     }
@@ -58,7 +50,7 @@ public class DefaultCacheRepository implements CacheRepository {
         return new PersistentCacheBuilder(scope, key);
     }
 
-    private abstract class AbstractCacheBuilder implements CacheBuilder {
+    private class PersistentCacheBuilder implements CacheBuilder {
         final Object scope;
         final String key;
         final File baseDir;
@@ -68,14 +60,15 @@ public class DefaultCacheRepository implements CacheRepository {
         LockOptions lockOptions = mode(LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
+        LockTarget lockTarget = LockTarget.DefaultTarget;
 
-        protected AbstractCacheBuilder(Object scope, String key) {
+        PersistentCacheBuilder(Object scope, String key) {
             this.scope = scope;
             this.key = key;
             this.baseDir = null;
         }
 
-        protected AbstractCacheBuilder(File baseDir) {
+        PersistentCacheBuilder(File baseDir) {
             this.scope = null;
             this.key = null;
             this.baseDir = baseDir;
@@ -86,8 +79,10 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public CacheBuilder withCrossVersionCache() {
+        @Override
+        public CacheBuilder withCrossVersionCache(LockTarget lockTarget) {
             this.versionStrategy = VersionStrategy.SharedCache;
+            this.lockTarget = lockTarget;
             return this;
         }
 
@@ -118,38 +113,7 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
             }
-            return doOpen(cacheBaseDir, properties, validator);
-        }
-
-        protected abstract PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);
-    }
-
-    private class PersistentCacheBuilder extends AbstractCacheBuilder {
-        private PersistentCacheBuilder(Object scope, String key) {
-            super(scope, key);
-        }
-
-        private PersistentCacheBuilder(File baseDir) {
-            super(baseDir);
-        }
-
-        @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.open(cacheDir, displayName, validator, properties, lockOptions, initializer);
-        }
-    }
-
-    private class PersistentStoreBuilder extends AbstractCacheBuilder {
-        private PersistentStoreBuilder(Object scope, String key) {
-            super(scope, key);
-        }
-
-        @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            if (!properties.isEmpty()) {
-                throw new UnsupportedOperationException("Properties are not supported for stores.");
-            }
-            return factory.openStore(cacheDir, displayName, lockOptions, initializer);
+            return factory.open(cacheBaseDir, displayName, validator, properties, lockTarget, lockOptions, initializer);
         }
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.util;
 
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 public class MockTimeProvider implements TimeProvider {
 
@@ -39,5 +39,11 @@ public class MockTimeProvider implements TimeProvider {
     public long getCurrentTime() {
         current += 10L;
         return current;
+    }
+
+    /** Increments the time by 10ms and returns it. */
+    @Override
+    public long getCurrentTimeForDuration() {
+        return getCurrentTime();
     }
 }

@@ -39,10 +39,12 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         testProject       | targetVersions
-        "small"           | ['2.8', 'last']
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "multi"           | ['3.1-20160825000026+0000']
-        "lotDependencies" | ['3.1-20160825000026+0000']
-        "bigOldJava"      | ['3.1-20160825000026+0000']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "small"           | ['3.3-20161026000020+0000']
+        "multi"           | ['3.2-20160915000027+0000']
+        "lotDependencies" | ['3.2-20160915000027+0000']
+        "bigOldJava"      | ['3.2-20160915000027+0000']
     }
 }

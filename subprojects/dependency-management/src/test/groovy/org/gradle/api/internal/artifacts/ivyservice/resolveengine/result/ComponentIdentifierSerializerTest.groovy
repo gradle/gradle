@@ -39,10 +39,10 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentIdentifier"() {
         given:
-        ModuleComponentIdentifier selection = new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        ModuleComponentIdentifier identifier = DefaultModuleComponentIdentifier.of('group-one', 'name-one', 'version-one')
 
         when:
-        ModuleComponentIdentifier result = serialize(selection, serializer)
+        ModuleComponentIdentifier result = serialize(identifier, serializer)
 
         then:
         result.group == 'group-one'
@@ -52,22 +52,22 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes LibraryIdentifier"() {
         given:
-        LibraryBinaryIdentifier selection = new DefaultLibraryBinaryIdentifier(':project', 'lib', 'variant')
+        LibraryBinaryIdentifier identifier = DefaultLibraryBinaryIdentifier.of(':project', 'lib', 'variant')
 
         when:
-        LibraryBinaryIdentifier result = serialize(selection, serializer)
+        LibraryBinaryIdentifier result = serialize(identifier, serializer)
 
         then:
         result.projectPath == ':project'
         result.libraryName == 'lib'
     }
 
-    def "serializes BuildComponentIdentifier"() {
+    def "serializes ProjectComponentIdentifier"() {
         given:
-        ProjectComponentIdentifier selection = newProjectId(':myPath')
+        ProjectComponentIdentifier identifier = newProjectId(':myPath')
 
         when:
-        ProjectComponentIdentifier result = serialize(selection, serializer)
+        ProjectComponentIdentifier result = serialize(identifier, serializer)
 
         then:
         result.projectPath == ':myPath'

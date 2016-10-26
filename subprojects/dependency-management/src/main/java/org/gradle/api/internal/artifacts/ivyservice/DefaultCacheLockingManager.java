@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -22,23 +23,18 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.util.VersionNumber;
 
 import java.io.Closeable;
-import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheLockingManager implements CacheLockingManager, Closeable {
-
-    public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
-
     private final PersistentCache cache;
 
-    public DefaultCacheLockingManager(CacheRepository cacheRepository) {
+    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData cacheMetaData) {
         cache = cacheRepository
-                .store(CacheLayout.ROOT.getKey())
-                .withCrossVersionCache()
+                .cache(cacheMetaData.getCacheDir())
+                .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();
@@ -46,10 +42,6 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
     public void close() {
         cache.close();
-    }
-
-    public File getCacheDir() {
-        return cache.getBaseDir();
     }
 
     public void longRunningOperation(String operationDisplayName, final Runnable action) {
@@ -71,17 +63,5 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
         return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
-    }
-
-    public File getFileStoreDirectory() {
-        return createCacheRelativeDir(CacheLayout.FILE_STORE);
-    }
-
-    public File createMetaDataStore() {
-        return new File(createCacheRelativeDir(CacheLayout.META_DATA), "descriptors");
-    }
-
-    private File createCacheRelativeDir(CacheLayout cacheLayout) {
-        return cacheLayout.getPath(cache.getBaseDir());
     }
 }

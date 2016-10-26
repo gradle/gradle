@@ -25,7 +25,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultModuleComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ModuleComponentIdentifier defaultModuleComponentIdentifier = new DefaultModuleComponentIdentifier('some-group', 'some-name', '1.0')
+        ModuleComponentIdentifier defaultModuleComponentIdentifier = DefaultModuleComponentIdentifier.of('some-group', 'some-name', '1.0')
 
         then:
         defaultModuleComponentIdentifier.group == 'some-group'
@@ -38,7 +38,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
     @Unroll
     def "is instantiated with null constructor parameter values (#group, #name, #version)"() {
         when:
-        new DefaultModuleComponentIdentifier(group, name, version)
+        DefaultModuleComponentIdentifier.of(group, name, version)
 
         then:
         thrown(AssertionError)
@@ -53,8 +53,8 @@ class DefaultModuleComponentIdentifierTest extends Specification {
     @Unroll
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
-        ModuleComponentIdentifier defaultModuleComponentIdentifier1 = new DefaultModuleComponentIdentifier('some-group', 'some-name', '1.0')
-        ModuleComponentIdentifier defaultModuleComponentIdentifier2 = new DefaultModuleComponentIdentifier(group, name, version)
+        ModuleComponentIdentifier defaultModuleComponentIdentifier1 = DefaultModuleComponentIdentifier.of('some-group', 'some-name', '1.0')
+        ModuleComponentIdentifier defaultModuleComponentIdentifier2 = DefaultModuleComponentIdentifier.of(group, name, version)
         strictlyEquals(defaultModuleComponentIdentifier1, defaultModuleComponentIdentifier2) == equality
         (defaultModuleComponentIdentifier1.hashCode() == defaultModuleComponentIdentifier2.hashCode()) == hashCode
         (defaultModuleComponentIdentifier1.toString() == defaultModuleComponentIdentifier2.toString()) == stringRepresentation

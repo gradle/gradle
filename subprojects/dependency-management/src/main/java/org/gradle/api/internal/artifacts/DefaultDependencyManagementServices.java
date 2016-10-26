@@ -40,7 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualArtifactPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.SelfResolvingDependencyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -173,15 +172,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        StartParameter startParameter) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
-                            new SelfResolvingDependencyConfigurationResolver(
-                                    new DefaultConfigurationResolver(
-                                            artifactDependencyResolver,
-                                            repositories,
-                                            metadataHandler,
-                                            cacheLockingManager,
-                                            resolutionResultsStoreFactory,
-                                            startParameter.isBuildProjectDependencies())),
-                            componentIdentifierFactory)
+                        new DefaultConfigurationResolver(
+                            artifactDependencyResolver,
+                            repositories,
+                            metadataHandler,
+                            cacheLockingManager,
+                            resolutionResultsStoreFactory,
+                            startParameter.isBuildProjectDependencies()),
+                        componentIdentifierFactory)
             );
         }
 

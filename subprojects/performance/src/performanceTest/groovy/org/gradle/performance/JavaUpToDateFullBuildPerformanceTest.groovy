@@ -39,9 +39,14 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
 
         where:
         testProject       | targetVersions
-        "small"           |  ['2.4', 'last']
-        "multi"           |  ['2.8', 'last']
-        "lotDependencies" |  ['2.8', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was introduced by some code which makes parallel
+        // execution and non-up-to-date cases work much better. That is
+        // currently a more important use case, so we are accepting the
+        // performance regression in these fully up-to-date cases.
+        "small"           | ['3.2-20161004202618+0000']
+        "multi"           | ['3.2-20161004202618+0000']
+        "lotDependencies" | ['3.2-20161004202618+0000']
     }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")
@@ -51,7 +56,10 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
-        runner.targetVersions = ['2.11', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        runner.targetVersions = ['3.2-20160915000027+0000']
         runner.useDaemon = true
         when:
         def result = runner.run()

@@ -49,6 +49,11 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectGetMissing(getPath(), credentials)
     }
 
+    @Override
+    void expectGetRevalidate() {
+        server.expectGetRevalidate(getPath(), file)
+    }
+
     void expectHead() {
         server.expectHead(getPath(), file)
     }
@@ -59,6 +64,10 @@ abstract class HttpResource extends AbstractHttpResource {
 
     void expectHeadBroken() {
         server.expectHeadBroken(path)
+    }
+
+    void expectHeadRevalidate() {
+        server.expectHeadRevalidate(path, file)
     }
 
     void expectPut(PasswordCredentials credentials) {

@@ -70,7 +70,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
         when:
         def publication = Mock(PublicationInternal)
         publication.name >> 'mock'
-        publication.coordinates >> new DefaultModuleVersionIdentifier("pub-group", "pub-name", "pub-version")
+        publication.coordinates >> DefaultModuleVersionIdentifier.of("pub-group", "pub-name", "pub-version")
 
         dependentProjectHasPublications(publication)
 
@@ -128,7 +128,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
     private PublicationInternal pub(def name, def group, def module, def version) {
         def publication = Mock(PublicationInternal)
         publication.name >> name
-        publication.coordinates >> new DefaultModuleVersionIdentifier(group, module, version)
+        publication.coordinates >> DefaultModuleVersionIdentifier.of(group, module, version)
         return publication
     }
 }

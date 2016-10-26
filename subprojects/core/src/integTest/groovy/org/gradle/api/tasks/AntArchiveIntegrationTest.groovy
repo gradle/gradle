@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.Clock
+import org.gradle.internal.time.Clock
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -82,7 +82,7 @@ afterEvaluate {
             clock.reset()
         }
         doLast {
-            elapsed = clock.timeInMs
+            elapsed = clock.elapsedMillis
         }
     }
 }

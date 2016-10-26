@@ -433,11 +433,57 @@ public interface Configuration extends FileCollection {
      */
     Configuration copyRecursive(Closure dependencySpec);
 
+    /**
+     * Sets a configuration attribute.
+     * @param key the name of the attribute
+     * @param value the value of the attribute
+     * @return this configuration
+     */
+    @Incubating
     Configuration attribute(String key, String value);
 
+    /**
+     * Sets multiple configuration attributes at once. The attributes are copied from the source map.
+     * @param attributes the attributes to be copied to this configuration
+     * @return this configuration
+     */
+    @Incubating
     Configuration attributes(Map<String, String> attributes);
 
+    @Incubating
     Map<String, String> getAttributes();
 
+    @Incubating
     boolean hasAttributes();
+
+    /**
+     * Sets this configuration role. A configuration role allows you to differentiate between 2 cases:
+     * <ul>
+     *     <li>If this configuration is intended to be resolved inside this project (typically, a compile classpath), in which case its role is {@link ConfigurationRole#CAN_BE_CONSUMED_ONLY}</li>
+     *     <li>If this configuration provides artifacts and transitive dependencies for downstream projects (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#CAN_BE_QUERIED_OR_CONSUMED}</li>
+     * </ul>
+     * The configuration role will only be used for dependencies that declare {@link #getAttributes() attributes}.
+     * @param role the role of this configuration.
+     */
+    @Incubating
+    void setRole(ConfigurationRole role);
+
+    /**
+     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#CAN_BE_QUERIED_OR_CONSUMED}
+     * @return the role of this configuration.
+     */
+    @Incubating
+    ConfigurationRole getRole();
+
+    /**
+     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#CAN_BE_CONSUMED_ONLY}
+     */
+    @Incubating
+    void forConsumingOrPublishingOnly();
+
+    /**
+     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#CAN_BE_QUERIED_ONLY}
+     */
+    @Incubating
+    void forBuildingOrResolvingOnly();
 }

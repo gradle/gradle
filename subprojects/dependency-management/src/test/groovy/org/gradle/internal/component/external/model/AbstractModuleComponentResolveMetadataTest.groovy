@@ -148,7 +148,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def artifact(String name, List<String> confs = []) {
-        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
+        moduleDescriptor.addArtifact(DefaultIvyArtifactName.of(name, "type", "ext", "classifier"), confs as Set<String>)
     }
 
     def exclude(String name, List<String> confs = []) {

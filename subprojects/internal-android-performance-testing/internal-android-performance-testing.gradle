@@ -12,9 +12,12 @@ task renameAndroidTools(type: Copy) {
 // workaround for idea not triggering the resolution of the `androidTools`
 tasks.ideaModule.dependsOn(renameAndroidTools)
 
+def renamedAndroidLibs = files({ -> fileTree(renameAndroidTools.destinationDir).files.sort() })
+renamedAndroidLibs.builtBy(renameAndroidTools)
+
 dependencies {
     compile project(':toolingApi')
-    compile files(renameAndroidTools).asFileTree
+    compile renamedAndroidLibs
     androidTools('com.android.tools.build:gradle:2.2.0-beta2') {
         exclude group: 'org.gradle'
     }

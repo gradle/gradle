@@ -17,61 +17,68 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.Factory;
 
-import java.util.concurrent.Callable;
-
-public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
+public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
-    private final MultiProcessSafePersistentIndexedCache<K, V> original;
+    private final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
 
-    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> original) {
+    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> persistentCache) {
         this.asyncCacheAccess = asyncCacheAccess;
-        this.original = original;
-    }
-
-    @Override
-    public void close() {
-        original.close();
+        this.persistentCache = persistentCache;
     }
 
     @Nullable
     @Override
     public V get(final K key) {
-        return asyncCacheAccess.read(new Callable<V>() {
+        return asyncCacheAccess.read(new Factory<V>() {
             @Override
-            public V call() throws Exception {
-                return original.get(key);
+            public V create() {
+                return persistentCache.get(key);
             }
         });
     }
 
     @Override
-    public void put(final K key, final V value) {
+    public void putLater(final K key, final V value, final Runnable completion) {
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
             public void run() {
-                original.put(key, value);
+                try {
+                    persistentCache.put(key, value);
+                } finally {
+                    completion.run();
+                }
             }
         });
     }
 
     @Override
-    public void remove(final K key) {
+    public void removeLater(final K key, final Runnable completion) {
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
             public void run() {
-                original.remove(key);
+                try {
+                    persistentCache.remove(key);
+                } finally {
+                    completion.run();
+                }
             }
         });
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-        original.onStartWork(operationDisplayName, currentCacheState);
+    public void afterLockAcquire(FileLock.State currentCacheState) {
+        persistentCache.afterLockAcquire(currentCacheState);
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
-        original.onEndWork(currentCacheState);
+    public void finishWork() {
+        persistentCache.finishWork();
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
+        persistentCache.beforeLockRelease(currentCacheState);
     }
 }

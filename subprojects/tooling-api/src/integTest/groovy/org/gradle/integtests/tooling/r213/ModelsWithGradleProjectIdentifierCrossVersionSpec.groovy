@@ -26,12 +26,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
-@ToolingApiVersion('>=2.13')
+@ToolingApiVersion('>=3.3')
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecification {
     TestFile rootSingle
     TestFile rootMulti
@@ -68,13 +69,14 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         modelType << modelsHavingGradleProjectIdentifier
     }
     private static void assertSameIdentifiers(def gradleProject, def model) {
-        assert gradleProject.projectIdentifier == model.projectIdentifier
+        assertSameIdentifiers([gradleProject], [model])
     }
 
     private static void assertSameIdentifiers(List gradleProjects, List models) {
-        def gradleProjectIdentifiers = gradleProjects.collect { it.projectIdentifier } as Set
-        def modelIdentifiers = models.collect { it.projectIdentifier } as Set
-        assert gradleProjectIdentifiers == modelIdentifiers
+        def gradleProjectIdentifiers = gradleProjects.collect { it.projectIdentifier } as Set<ProjectIdentifier>
+        def modelIdentifiers = models.collect { it.projectIdentifier } as Set<ProjectIdentifier>
+        assert gradleProjectIdentifiers*.projectPath == modelIdentifiers*.projectPath
+        assert gradleProjectIdentifiers*.buildIdentifier*.rootDir == modelIdentifiers*.buildIdentifier*.rootDir
     }
 
     private getModelWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {

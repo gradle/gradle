@@ -16,10 +16,11 @@
 
 package org.gradle.internal.logging.services;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
@@ -130,7 +131,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+        stdout.setLevel(LogLevel.QUIET);
         LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+        stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
                 renderer,
                 new LoggingSystemAdapter(new Slf4jLoggingConfigurer(renderer)),

@@ -69,16 +69,6 @@ project(':b:c') {
 }'''
     }
 
-    @TargetGradleVersion(">=1.8 <=1.11")
-    def "cannot fetch task selectors from action in older target version"() {
-        when:
-        withConnection { connection -> connection.action(new FetchAllTaskSelectorsBuildAction()).run() }
-
-        then:
-        Exception e = thrown()
-        e.cause.message.startsWith('No model of type \'BuildInvocations\' is available in this build.')
-    }
-
     @TargetGradleVersion(">=1.12")
     def "can request task selectors in action"() {
         when:

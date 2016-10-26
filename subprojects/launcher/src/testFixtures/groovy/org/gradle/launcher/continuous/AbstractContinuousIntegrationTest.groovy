@@ -46,7 +46,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     List<ExecutionResult> results = []
 
     public void turnOnDebug() {
-        executer.withDebug(true)
+        executer.startBuildProcessInDebugger(true)
         executer.withArgument("--no-daemon")
         buildTimeout *= 100
         shutdownTimeout *= 100
@@ -80,6 +80,17 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     protected int getMinimumBuildTimeMillis() {
         2000
+    }
+
+    def waitAtEndOfBuildForQuietPeriod(def quietPeriodMillis) {
+        // Make sure the build lasts long enough for events to propagate
+        // Needs to be longer than the quiet period configured
+        int sleepPeriod = quietPeriodMillis * 2
+        buildFile << """
+            gradle.buildFinished {
+                Thread.sleep(${sleepPeriod})
+            }
+        """
     }
 
     @Override

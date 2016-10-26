@@ -29,7 +29,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.

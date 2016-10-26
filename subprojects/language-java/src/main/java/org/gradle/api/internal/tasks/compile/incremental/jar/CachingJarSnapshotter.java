@@ -17,17 +17,17 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.internal.Factory;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 
     private final DefaultJarSnapshotter snapshotter;
-    private final Hasher hasher;
+    private final FileHasher hasher;
     private final JarSnapshotCache cache;
 
-    public CachingJarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
+    public CachingJarSnapshotter(FileHasher hasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
         this.snapshotter = new DefaultJarSnapshotter(hasher, analyzer);
         this.hasher = hasher;
         this.cache = cache;

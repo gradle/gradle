@@ -52,8 +52,8 @@ class ToolingApiBackedGradleSession implements GradleSession {
     }
 
 
-    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
-        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
+    Runnable runner(final BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
         BuildLauncher buildLauncher = projectConnection.newBuild()
             .withArguments(invocation.args + ["-u"] as String[])

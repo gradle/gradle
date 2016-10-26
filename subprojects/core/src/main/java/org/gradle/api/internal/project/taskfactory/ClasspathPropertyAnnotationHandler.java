@@ -17,36 +17,14 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileDetails;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.IncrementalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.tasks.Classpath;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.getRelativeSnapshot;
-
 public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    static final SnapshotNormalizationStrategy STRATEGY = new SnapshotNormalizationStrategy() {
-        @Override
-        public boolean isPathAbsolute() {
-            return false;
-        }
-
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-            // Ignore path of root files and directories
-            if (fileDetails.isRoot()) {
-                return new IgnoredPathFileSnapshot(snapshot);
-            }
-            return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
-        }
-    };
-
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
@@ -59,7 +37,8 @@ public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHan
                 task.getInputs().files(futureValue)
                     .withPropertyName(context.getName())
                     .orderSensitive(true)
-                    .withSnapshotNormalizationStrategy(STRATEGY);
+                    .withSnapshotNormalizationStrategy(ClasspathSnapshotNormalizationStrategy.INSTANCE)
+                    .withSnapshotter(ClasspathSnapshotter.class);
             }
         });
     }

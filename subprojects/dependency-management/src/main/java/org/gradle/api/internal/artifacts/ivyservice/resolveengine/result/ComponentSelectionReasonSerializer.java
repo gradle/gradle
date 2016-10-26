@@ -29,7 +29,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
-    private static final BiMap<Byte, ComponentSelectionReason> REASONS = HashBiMap.create(6);
+    private static final BiMap<Byte, ComponentSelectionReason> REASONS = HashBiMap.create(7);
 
     static {
         REASONS.put((byte) 1, REQUESTED);
@@ -39,6 +39,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         REASONS.put((byte) 5, SELECTED_BY_RULE);
         REASONS.put((byte) 6, CONFLICT_RESOLUTION_BY_RULE);
         REASONS.put((byte) 7, COMPOSITE_BUILD);
+        // update HashBiMap's expectedSize when adding new REASONS
     }
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {

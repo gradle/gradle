@@ -31,9 +31,9 @@ import java.util.ListIterator;
  * <p>{@code RelativePath} instances are immutable.</p>
  */
 public class RelativePath implements Serializable, Comparable<RelativePath> {
+    public static final RelativePath EMPTY_ROOT = new RelativePath(false);
     private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
-    private static final RelativePath EMPTY_PARENT_DIRECTORY = new RelativePath(false);
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -165,7 +165,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
             case 0:
                 return null;
             case 1:
-                return EMPTY_PARENT_DIRECTORY;
+                return EMPTY_ROOT;
             default:
                 String[] parentSegments = new String[segments.length - 1];
                 copySegments(parentSegments, segments);

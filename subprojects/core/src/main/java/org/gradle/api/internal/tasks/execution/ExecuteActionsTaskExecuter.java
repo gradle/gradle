@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -36,23 +37,29 @@ import java.util.List;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
-    private final TaskActionExecutionListener internalListener;
+    private final TaskOutputsGenerationListener outputsGenerationListener;
     private final TaskActionListener listener;
 
-    public ExecuteActionsTaskExecuter(TaskActionExecutionListener internalListener, TaskActionListener publicListener) {
-        this.internalListener = internalListener;
-        this.listener = publicListener;
+    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener) {
+        this.outputsGenerationListener = outputsGenerationListener;
+        this.listener = taskActionListener;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         listener.beforeActions(task);
         if (!task.getTaskActions().isEmpty()) {
-            internalListener.startTaskActions();
+            outputsGenerationListener.beforeTaskOutputsGenerated();
         }
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state, context);
-            state.executed(failure);
+            if (failure != null) {
+                state.setOutcome(failure);
+            } else {
+                state.setOutcome(
+                    state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
+                );
+            }
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);

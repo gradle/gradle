@@ -15,10 +15,11 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
+import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -49,8 +50,12 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
             }
             project(':b') {
                 configurations {
-                    foo.attributes(buildType: 'debug', flavor: 'free')
-                    bar.attributes(buildType: 'release', flavor: 'free')
+                    foo {
+                        attributes(buildType: 'debug', flavor: 'free')
+                    }
+                    bar {
+                        attributes(buildType: 'release', flavor: 'free')
+                    }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -71,12 +76,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
@@ -129,12 +136,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration and target configuration is not top-level"() {
@@ -194,12 +203,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     def "explicit configuration selection should take precedence"() {
@@ -259,12 +270,14 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         then:
         executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
 
         when:
         run ':a:checkRelease'
 
         then:
         executed ':b:barJar'
+        notExecuted ':b:fooJar'
     }
 
     /**
@@ -323,6 +336,108 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
     }
 
+    def "selects default configuration when partial match is found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-default.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    create 'default'
+                    foo {
+                       attributes(buildType: 'debug') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(flavor: 'free') // partial match on `flavor`
+                    }
+                }
+                task defaultJar(type: Jar) {
+                   baseName = 'b-default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    'default' defaultJar
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:defaultJar'
+        notExecuted ':b:fooJar', ':b:barJar'
+
+    }
+
+    def "selects configuration when it has more attributes than the resolved configuration"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    }
+                    bar {
+                       attributes(flavor: 'free')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+    }
+
     /**
      * Whenever a dependency on a project is found and that the client configuration
      * defines attributes, we try to find a target configuration with the same attributes
@@ -370,39 +485,31 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug}'
     }
 
-    /**
-     * If a configuration defines attributes, and that the target project declares configurations
-     * with attributes too, should the attributes of parent configurations in the target project
-     * be used?
-     *
-     * This test implements option 1, "yes", which basically means that attributes of a configuration
-     * are inherited.
-     *
-     * Rationale: configurations are inherited, so why wouldn't be attributes too?
-     */
-    @NotYetImplemented
-    def "attributes of parent configurations should be used when matching"() {
+    def "fails when multiple configurations match but have more attributes than requested"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << '''
             project(':a') {
                 configurations {
-                    compile.attributes(p1: 'foo', p2: 'bar')
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                 }
                 dependencies {
-                    compile project(':b')
+                    _compileFreeDebug project(':b')
                 }
-                task check(dependsOn: configurations.compile) {
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
                     doLast {
-                        assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }
             project(':b') {
                 configurations {
-                    debug.attributes(p1: 'foo')
-                    compile.extendsFrom debug
-                    compile.attributes(p2: 'bar')
+                    foo {
+                       attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    }
+                    bar {
+                      attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
+                    }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -411,19 +518,18 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                    baseName = 'b-bar'
                 }
                 artifacts {
-                    debug fooJar
-                    compile barJar
+                    foo fooJar
+                    bar barJar
                 }
             }
 
         '''
 
         when:
-        run ':a:check'
+        fails ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug, flavor=free}')
     }
 
     /**
@@ -482,8 +588,636 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:check'
 
         then:
-        // todo: depending on choices we will make, we need to look either for a "no matching configuration" or "no such configuration 'default'" error
         failure.error.contains("default")
 
+    }
+
+    def "transitive dependencies of selected configuration are included"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c', 'd'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-transitive.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', 'd-transitive.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    foo project(':c')
+                    bar project(':d')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('c-transitive.jar')
+                }
+            }
+            project(':d') {
+                configurations.create('default') {
+                }
+                artifacts {
+                    'default' file('d-transitive.jar')
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
+    }
+
+    def "context travels down to transitive dependencies"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default' project(':c')
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':c:fooJar'
+        notExecuted ':c:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':c:barJar'
+        notExecuted ':c:fooJar'
+    }
+
+
+    def "context travels down to transitive dependencies with dependency substitution"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module('com.acme.external:external') with project(":c")
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':c:fooJar'
+        notExecuted ':c:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':c:barJar'
+        notExecuted ':c:fooJar'
+    }
+
+    def "context travels down to transitive dependencies with composite builds"() {
+        given:
+        file('settings.gradle') << """
+            include 'a', 'b'
+            includeBuild 'includedBuild'
+        """
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+        '''
+
+        file('includedBuild/build.gradle') << '''
+
+            group = 'com.acme.external'
+            version = '2.0-SNAPSHOT'
+            configurations {
+                foo.attributes(buildType: 'debug', flavor: 'free')
+                bar.attributes(buildType: 'release', flavor: 'free')
+            }
+            task fooJar(type: Jar) {
+               baseName = 'c-foo'
+            }
+            task barJar(type: Jar) {
+               baseName = 'c-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        '''
+        file('includedBuild/settings.gradle') << '''
+            rootProject.name = 'external'
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':external:fooJar'
+        notExecuted ':external:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':external:barJar'
+        notExecuted ':external:fooJar'
+    }
+
+    def "transitive dependencies selection uses the source configuration attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', , 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
+                    bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra') // the "extra" attribute will be used when matching ':c'
+                }
+                dependencies {
+                    foo project(':c')
+                    bar project(':c')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free', extra: 'extra')
+                    foo2.attributes(buildType: 'debug', flavor: 'free', extra: 'extra 2')
+                    bar.attributes(buildType: 'release', flavor: 'free', extra: 'extra')
+                    bar2.attributes(buildType: 'release', flavor: 'free', extra: 'extra 2')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'c-foo2'
+                }
+                task bar2Jar(type: Jar) {
+                   baseName = 'c-bar2'
+                }
+                artifacts {
+                    foo fooJar, foo2Jar
+                    bar barJar, bar2Jar
+                }
+            }
+
+        '''
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of then match the client attributes {buildType=debug, flavor=free}')
+
+        when:
+        fails ':a:checkRelease'
+
+        then:
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {buildType=release, flavor=free}')
+
+    }
+
+    def "context travels down to transitive dependencies with external dependencies in graph"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            project(':a') {
+                repositories { jcenter() }
+
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                    _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-foo.jar', 'commons-lang3-3.5.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-bar.jar', 'commons-lang3-3.4.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default') {
+
+                }
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default' project(':c')
+                }
+            }
+            project(':c') {
+                repositories { jcenter() }
+                configurations {
+                    foo.attributes(buildType: 'debug', flavor: 'free')
+                    bar.attributes(buildType: 'release', flavor: 'free')
+                }
+                dependencies {
+                    bar 'org.apache.commons:commons-lang3:3.4'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':c:fooJar'
+        notExecuted ':c:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':c:barJar'
+        notExecuted ':c:fooJar'
+    }
+
+    def "two configuratios can have the same attributes but for different roles"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    compileFreeDebug.forBuildingOrResolvingOnly()
+                    compileFreeRelease.forBuildingOrResolvingOnly()
+                }
+                dependencies {
+                    compileFreeDebug project(':b')
+                    compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations.compileFreeDebug) {
+                    doLast {
+                       assert configurations.compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations.compileFreeRelease) {
+                    doLast {
+                       assert configurations.compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    // configurations used when resolving
+                    compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    compileFreeDebug.forBuildingOrResolvingOnly()
+                    compileFreeRelease.forBuildingOrResolvingOnly()
+                    // configurations used when selecting dependencies
+                    _compileFreeDebug {
+                        attributes(buildType: 'debug', flavor: 'free')
+                    }
+                    _compileFreeRelease {
+                        attributes(buildType: 'release', flavor: 'free')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    _compileFreeDebug fooJar
+                    _compileFreeRelease barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
+    }
+
+    @Unroll("cannot resolve a configuration with role #role at execution time")
+    def "cannot resolve a configuration which is for publishing only at execution time"() {
+        given:
+        buildFile << """
+
+        configurations {
+            internal {
+                role = ConfigurationRole.$role
+            }
+        }
+        dependencies {
+            internal files('foo.jar')
+        }
+
+        task checkState {
+            doLast {
+                configurations.internal.resolve()
+            }
+        }
+
+        """
+
+        when:
+        fails 'checkState'
+
+        then:
+        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+
+        where:
+        role << [ConfigurationRole.CAN_BE_CONSUMED_ONLY, ConfigurationRole.BUCKET]
+    }
+
+    @Unroll("cannot resolve a configuration with role #role at configuration time")
+    def "cannot resolve a configuration which is for publishing only at configuration time"() {
+        given:
+        buildFile << """
+
+        configurations {
+            internal {
+                role = ConfigurationRole.$role
+            }
+        }
+        dependencies {
+            internal files('foo.jar')
+        }
+
+        task checkState(dependsOn: configurations.internal.files) {
+        }
+
+        """
+
+        when:
+        fails 'checkState'
+
+        then:
+        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+
+        where:
+        role << [ConfigurationRole.CAN_BE_CONSUMED_ONLY, ConfigurationRole.BUCKET]
+    }
+
+    @Unroll("cannot add a dependency on a configuration role #role")
+    def "cannot add a dependency on a configuration not meant to be resolvable"() {
+        given:
+        file('settings.gradle') << 'include "a", "b"'
+        buildFile << """
+        project(':a') {
+            configurations {
+                compile
+            }
+            dependencies {
+                compile project(path: ':b', configuration: 'internal')
+            }
+
+            task check {
+                doLast { configurations.compile.resolve() }
+            }
+        }
+        project(':b') {
+            configurations {
+                internal {
+                    role = ConfigurationRole.$role
+                }
+            }
+        }
+
+        """
+
+        when:
+        fails 'a:check'
+
+        then:
+        failure.assertHasCause "Configuration 'internal' cannot be used in a project dependency"
+
+        where:
+        role << [ConfigurationRole.BUCKET]
     }
 }

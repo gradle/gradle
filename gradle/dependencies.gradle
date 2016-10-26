@@ -25,6 +25,8 @@ versions.groovy = "2.4.7"
 
 versions.bouncycastle = "1.51"
 
+versions.maven = "3.0.4"
+
 libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
     dependency 'org.apache.ant:ant-launcher:1.9.6@jar'
 }
@@ -61,11 +63,11 @@ libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:
 
 // Jetty
 libraries.servlet_api = "org.mortbay.jetty:servlet-api:2.5-20081211@jar"
-libraries.jetty_util = dependencies.module("org.mortbay.jetty:jetty-util:6.1.25") {
+libraries.jetty_util = dependencies.module("org.mortbay.jetty:jetty-util:6.1.26") {
     dependency libraries.slf4j_api
     dependency libraries.servlet_api
 }
-libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
+libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.26") {
     dependency libraries.jetty_util
     dependency libraries.servlet_api
 }
@@ -97,9 +99,9 @@ libraries += [
         jsoup:'org.jsoup:jsoup:1.6.3'
 ]
 
-libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
-    dependency "org.apache.maven:maven-settings:3.0.4@jar"
-    dependency "org.apache.maven:maven-settings-builder:3.0.4@jar"
+libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
+    dependency "org.apache.maven:maven-settings:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-settings-builder:${versions.maven}@jar"
 
     //plexus:
     dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
@@ -113,16 +115,16 @@ libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
     dependency "org.sonatype.plexus:plexus-sec-dispatcher:1.3@jar"
 
     //core:
-    dependency "org.apache.maven:maven-core:3.0.4@jar"
-    dependency "org.apache.maven:maven-compat:3.0.4@jar"
-    dependency "org.apache.maven:maven-model-builder:3.0.4@jar"
-    dependency "org.apache.maven:maven-model:3.0.4@jar"
+    dependency "org.apache.maven:maven-core:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-compat:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-model-builder:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-model:${versions.maven}@jar"
 
     //somewhat core:
-    dependency "org.apache.maven:maven-artifact:3.0.4@jar"
-    dependency "org.apache.maven:maven-repository-metadata:3.0.4@jar"
-    dependency "org.apache.maven:maven-plugin-api:3.0.4@jar"
-    dependency "org.apache.maven:maven-aether-provider:3.0.4@jar"
+    dependency "org.apache.maven:maven-artifact:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-repository-metadata:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-plugin-api:${versions.maven}@jar"
+    dependency "org.apache.maven:maven-aether-provider:${versions.maven}@jar"
 
     dependency 'org.apache.maven.wagon:wagon-file:2.4@jar'
     dependency 'org.apache.maven.wagon:wagon-http:2.4@jar'

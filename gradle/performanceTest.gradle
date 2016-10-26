@@ -17,6 +17,7 @@
 
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
@@ -110,6 +111,9 @@ ext.performanceReportTasks = tasks.withType(PerformanceReport)
 performanceReportTasks.all(withPerformanceDb)
 
 task performanceReport(type: PerformanceReport) {
+    //jvmArgs '-Xverify:none', '-XX:+UnlockCommercialFeatures', '-XX:+FlightRecorder', '-XX:+UnlockDiagnosticVMOptions', '-XX:+DebugNonSafepoints', '-XX:FlightRecorderOptions=stackdepth=1024,disk=true,dumponexit=true,defaultrecording=true'
+    minHeapSize = '1g'
+    maxHeapSize = '2g'
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
@@ -257,6 +261,9 @@ class PerformanceReport extends JavaExec {
 
 tasks.withType(ProjectGeneratorTask) {
     sharedTemplateDirectory = project.findProject(':internalPerformanceTesting').file('src/templates')
+}
+
+tasks.withType(AbstractProjectGeneratorTask) {
     dependsOn ':internalPerformanceTesting:measurementPluginJar'
     doFirst {
         templateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath

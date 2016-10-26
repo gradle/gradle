@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -74,7 +73,6 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -110,10 +108,10 @@ class DependencyManagementBuildScopeServices {
         ProjectInternal rootProject = projectRegistry.getProject(":");
         if (rootProject == null || rootProject.getGradle().getParent() == null) {
             // BuildIdentity for a top-level build
-            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
+            return new DefaultBuildIdentity(DefaultBuildIdentifier.of(":", true));
         }
         // BuildIdentity for an included build
-        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
+        return new DefaultBuildIdentity(DefaultBuildIdentifier.of(rootProject.getName(), true));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
@@ -144,10 +142,6 @@ class DependencyManagementBuildScopeServices {
         return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory);
     }
 
-    CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {
-        return new DefaultCacheLockingManager(cacheRepository);
-    }
-
     BuildCommencedTimeProvider createBuildTimeProvider() {
         return new BuildCommencedTimeProvider();
     }
@@ -166,10 +160,11 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData) {
         return new DefaultModuleMetaDataCache(
             timeProvider,
-            cacheLockingManager
+            cacheLockingManager,
+            artifactCacheMetaData
         );
     }
 
@@ -189,8 +184,8 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(CacheLockingManager cacheLockingManager) {
-        return new ArtifactIdentifierFileStore(new UniquePathKeyFileStore(cacheLockingManager.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
+    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
+        return new ArtifactIdentifierFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

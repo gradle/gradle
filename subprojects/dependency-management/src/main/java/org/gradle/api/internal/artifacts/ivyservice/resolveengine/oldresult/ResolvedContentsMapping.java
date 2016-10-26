@@ -22,8 +22,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import java.util.Set;
 
 public interface ResolvedContentsMapping {
+    Set<ResolvedArtifact> getArtifacts(long artifactSetId);
 
-    Set<ResolvedArtifact> getArtifacts(long id);
-
-    ModuleDependency getModuleDependency(long id);
+    ModuleDependency getModuleDependency(long nodeId);
 }

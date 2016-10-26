@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -41,7 +41,22 @@ public abstract class TaskExecution {
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
+    private ImmutableSet<String> cacheableOutputProperties;
     private ImmutableSet<String> declaredOutputFilePaths;
+
+    /**
+     * Returns the names of all cacheable output properties that have a value set.
+     * The collection includes names of properties declared via mapped plural outputs,
+     * and excludes optional properties that don't have a value set. If the task is not
+     * cacheable, it returns an empty collection.
+     */
+    public ImmutableSet<String> getCacheableOutputProperties() {
+        return cacheableOutputProperties;
+    }
+
+    public void setCacheableOutputProperties(Collection<String> cacheableOutputProperties) {
+        this.cacheableOutputProperties = ImmutableSet.copyOf(cacheableOutputProperties);
+    }
 
     /**
      * Returns the absolute path of every declared output file and directory.
@@ -122,17 +137,28 @@ public abstract class TaskExecution {
             FileCollectionSnapshot snapshot = entry.getValue();
             snapshot.appendToCacheKey(builder);
         }
+
+        for (String cacheableOutputProperty : sortStrings(getCacheableOutputProperties())) {
+            builder.putString(cacheableOutputProperty);
+        }
+
         return builder.build();
     }
 
     private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {
-        ArrayList<Map.Entry<String, T>> sortedEntries = Lists.newArrayList(entries);
+        List<Map.Entry<String, T>> sortedEntries = Lists.newArrayList(entries);
         Collections.sort(sortedEntries, new Comparator<Map.Entry<String, T>>() {
             @Override
             public int compare(Map.Entry<String, T> o1, Map.Entry<String, T> o2) {
                 return o1.getKey().compareTo(o2.getKey());
             }
         });
+        return sortedEntries;
+    }
+
+    private static List<String> sortStrings(Collection<String> entries) {
+        List<String> sortedEntries = Lists.newArrayList(entries);
+        Collections.sort(sortedEntries);
         return sortedEntries;
     }
 

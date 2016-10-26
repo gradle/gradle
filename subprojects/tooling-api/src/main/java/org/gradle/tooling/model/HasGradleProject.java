@@ -19,7 +19,13 @@ package org.gradle.tooling.model;
 /**
  * An element that is associated with a Gradle project. Via the Gradle project you can access (list, run, etc.) Gradle tasks.
  */
-public interface HasGradleProject {
+public interface HasGradleProject extends ProjectModel {
+
+    /**
+     * Returns the identifier for the project that this model is associated with.
+     * @since 3.3
+     */
+    ProjectIdentifier getProjectIdentifier();
 
     /**
      * The associated Gradle project. Via the gradle project you can access (list, run, etc.) Gradle tasks.

@@ -18,11 +18,12 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,28 +37,25 @@ import java.util.List;
 public class SkipUpToDateTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateTaskExecuter.class);
     private final TaskExecuter executer;
-    private final TaskArtifactStateRepository repository;
 
-    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer) {
+    public SkipUpToDateTaskExecuter(TaskExecuter executer) {
         this.executer = executer;
-        this.repository = repository;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is up-to-date", task);
-        Clock clock = new Clock();
-        TaskArtifactState taskArtifactState = repository.getStateFor(task);
+        Timer clock = Timers.startTimer();
+        TaskArtifactState taskArtifactState = context.getTaskArtifactState();
         try {
             List<String> messages = LOGGER.isInfoEnabled() ? new ArrayList<String>() : null;
             if (taskArtifactState.isUpToDate(messages)) {
-                LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getTime());
-                state.upToDate();
+                LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getElapsed());
+                state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
                 return;
             }
-            logOutOfDateMessages(messages, task, clock.getTime());
+            logOutOfDateMessages(messages, task, clock.getElapsed());
 
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
-            context.setTaskArtifactState(taskArtifactState);
 
             taskArtifactState.beforeTask();
             try {
@@ -67,7 +65,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
                 }
             } finally {
                 task.getOutputs().setHistory(null);
-                context.setTaskArtifactState(null);
             }
         } finally {
             taskArtifactState.finished();

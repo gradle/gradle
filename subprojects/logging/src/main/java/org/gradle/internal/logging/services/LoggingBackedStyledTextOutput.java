@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;

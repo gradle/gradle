@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -24,6 +26,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.io.File;
 
 public class DefaultResolvedArtifact implements ResolvedArtifact {
+    private static final Interner<File> ARTIFACT_FILE_INTERNER = Interners.newWeakInterner();
     private final ResolvedModuleVersion owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
@@ -88,6 +91,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     public File getFile() {
         if (file == null) {
             file = artifactSource.create();
+            file = ARTIFACT_FILE_INTERNER.intern(file);
             artifactSource = null;
         }
         return file;

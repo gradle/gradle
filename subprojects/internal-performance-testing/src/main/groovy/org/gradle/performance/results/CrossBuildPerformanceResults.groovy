@@ -16,8 +16,10 @@
 
 package org.gradle.performance.results
 
+import groovy.transform.CompileStatic
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 
+@CompileStatic
 class CrossBuildPerformanceResults extends PerformanceTestResult {
     String testGroup
 
@@ -55,9 +57,9 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
     }
 
     List<Exception> getFailures() {
-        buildResults.values().collect() {
+        List.cast(buildResults.values().collect() {
             it.exception
-        }.flatten().findAll()
+        }.flatten().findAll())
     }
 
     void assertEveryBuildSucceeds() {

@@ -106,7 +106,7 @@ class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements T
 
     @Override
     protected void before() {
-        def testClazz = testClassLoader.loadClass(AbstractToolingApiSpecification.name)
+        def testClazz = testClassLoader.loadClass(ToolingApiSpecification.name)
         testClazz.selectTargetDist(gradle)
     }
 }

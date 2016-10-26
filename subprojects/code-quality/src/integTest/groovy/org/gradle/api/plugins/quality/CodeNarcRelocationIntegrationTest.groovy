@@ -17,10 +17,13 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+    private TestFile configFile
+
     @Override
     protected String getTaskName() {
         return ":codenarc"
@@ -28,7 +31,7 @@ class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
 
     @Override
     protected void setupProjectInOriginalLocation() {
-        file("config/codenarc/codenarc.xml") << """
+        configFile = file("config/codenarc/codenarc.xml") << """
             <ruleset xmlns="http://codenarc.org/ruleset/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
                      xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
@@ -68,6 +71,11 @@ class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     protected void moveFilesAround() {
         file("src").renameTo(file("other-src"))
         buildFile.text = buildFileWithSourceDir("other-src/main/groovy")
+        def movedConfigPath = "config/codenarc-config.xml"
+        configFile.renameTo(file(movedConfigPath))
+        buildFile << """
+            codenarc.configFile = file("$movedConfigPath")
+        """
     }
 
     @Override

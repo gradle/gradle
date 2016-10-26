@@ -26,8 +26,8 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
 
     final MavenInvocationSpec invocation
 
-    MavenBuildExperimentSpec(String displayName, String projectName, File workingDirectory, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+    MavenBuildExperimentSpec(String displayName, String projectName, File workingDirectory, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
         this.invocation = mavenInvocation
     }
 
@@ -51,6 +51,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         Long sleepAfterWarmUpMillis = 5000L
         Long sleepAfterTestRoundMillis = 1000L
         BuildExperimentListener listener
+        InvocationCustomizer invocationCustomizer
 
         MavenBuilder invocation(@DelegatesTo(MavenInvocationSpec.InvocationBuilder) Closure<?> conf) {
             invocation.with(conf)
@@ -92,12 +93,17 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
+        MavenBuilder invocationCustomizer(InvocationCustomizer invocationCustomizer) {
+            this.invocationCustomizer = invocationCustomizer
+            this
+        }
+
         BuildExperimentSpec build() {
             assert projectName != null
             assert displayName != null
             assert invocation != null
 
-            new MavenBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+            new MavenBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener, invocationCustomizer)
         }
 
     }

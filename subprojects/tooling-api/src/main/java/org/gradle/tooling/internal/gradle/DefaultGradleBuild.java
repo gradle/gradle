@@ -16,13 +16,16 @@
 
 package org.gradle.tooling.internal.gradle;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultGradleBuild implements Serializable {
+public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private PartialBasicGradleProject rootProject;
+    private DefaultBuildIdentifier buildIdentifier;
     private Set<PartialBasicGradleProject> projects = new LinkedHashSet<PartialBasicGradleProject>();
+    private Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<DefaultGradleBuild>();
 
     public PartialBasicGradleProject getRootProject() {
         return rootProject;
@@ -30,6 +33,7 @@ public class DefaultGradleBuild implements Serializable {
 
     public DefaultGradleBuild setRootProject(PartialBasicGradleProject rootProject) {
         this.rootProject = rootProject;
+        this.buildIdentifier = new DefaultBuildIdentifier(rootProject.getRootDir());
         return this;
     }
 
@@ -39,5 +43,22 @@ public class DefaultGradleBuild implements Serializable {
 
     public void addProject(PartialBasicGradleProject project) {
         projects.add(project);
+    }
+
+    public Set<DefaultGradleBuild> getIncludedBuilds() {
+        return includedBuilds;
+    }
+
+    public void addIncludedBuild(DefaultGradleBuild includedBuild) {
+        includedBuilds.add(includedBuild);
+    }
+
+    public DefaultBuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Override
+    public File getRootDir() {
+        return getBuildIdentifier().getRootDir();
     }
 }

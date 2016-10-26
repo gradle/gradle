@@ -21,6 +21,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
@@ -54,7 +55,12 @@ public class SingleOperationPersistentStore<V> {
     public void putAndClose(final V value) {
         initCaches("write");
         try {
-            cache.put(CACHE_KEY, value);
+            cacheAccess.useCache("write entry", new Runnable() {
+                @Override
+                public void run() {
+                    cache.put(CACHE_KEY, value);
+                }
+            });
         } finally {
             closeCaches();
         }
@@ -64,7 +70,12 @@ public class SingleOperationPersistentStore<V> {
     public V getAndClose() {
         initCaches("read");
         try {
-            return cache.get(CACHE_KEY);
+            return cacheAccess.useCache("read entry", new Factory<V>() {
+                @Override
+                public V create() {
+                    return cache.get(CACHE_KEY);
+                }
+            });
         } finally {
             cacheAccess.close();
         }
@@ -72,7 +83,7 @@ public class SingleOperationPersistentStore<V> {
 
     private void initCaches(String operation) {
         String identifier = uncapitalize(toCamelCase(cacheName));
-        cacheAccess = cacheRepository.store(scope, identifier)
+        cacheAccess = cacheRepository.cache(scope, identifier)
                 .withDisplayName(cacheName + " " + operation + " cache")
                 .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                 .open();

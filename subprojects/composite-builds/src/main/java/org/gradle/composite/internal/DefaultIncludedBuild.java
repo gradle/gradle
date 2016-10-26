@@ -38,7 +38,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
     private DefaultDependencySubstitutions dependencySubstitutions;
 
-    // State that must be purged together
     private GradleLauncher gradleLauncher;
     private SettingsInternal settings;
     private GradleInternal gradle;
@@ -106,8 +105,14 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             gradleLauncher = gradleLauncherFactory.create();
+            reset();
         }
         return gradleLauncher;
+    }
+
+    private void reset() {
+        gradle = null;
+        settings = null;
     }
 
     @Override
@@ -117,15 +122,12 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         try {
             return launcher.run();
         } finally {
-            // Can no longer use a configured Gradle instance after tasks are executed.
-            reset();
+            markAsNotReusable();
         }
     }
 
-    private void reset() {
+    private void markAsNotReusable() {
         gradleLauncher = null;
-        gradle = null;
-        settings = null;
     }
 
     @Override

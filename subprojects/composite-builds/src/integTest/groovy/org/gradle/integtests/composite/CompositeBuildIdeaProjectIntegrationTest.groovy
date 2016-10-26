@@ -54,13 +54,14 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
         imlHasDependencies "buildB"
-
-        and:
-        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
-        !result.executedTasks.contains(":buildA:ideaModule")
         imlHasNoDependencies(buildB)
         imlHasNoDependencies(buildB.file("b1"))
         imlHasNoDependencies(buildB.file("b2"))
+
+        and:
+        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
+        notExecuted ":buildA:ideaModule"
+        notExecuted ":buildB:jar", ":buildB:b1:jar", ":buildB:b2:jar"
     }
 
     def "builds IDEA metadata with substituted subproject dependencies"() {
@@ -241,14 +242,16 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/buildC.iml"
-
-        and:
-        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule", ":buildC:ideaModule"
         imlHasNoDependencies(buildA)
         imlHasNoDependencies(buildB)
         imlHasNoDependencies(buildB.file("b1"))
         imlHasNoDependencies(buildB.file("b2"))
         imlHasNoDependencies(buildC)
+
+        and:
+        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule", ":buildC:ideaModule"
+        notExecuted ":buildB:jar", ":buildB:b1:jar", ":buildB:b2:jar"
+        notExecuted ":buildC:jar"
     }
 
     def "generated IDEA metadata respects idea plugin configuration"() {

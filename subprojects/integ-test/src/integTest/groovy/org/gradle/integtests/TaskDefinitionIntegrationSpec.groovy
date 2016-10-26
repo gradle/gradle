@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -46,6 +45,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         output.contains(message)
-        output.contains("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle ${GradleVersion.current().nextMajor.version}. Please use Task.doLast(Action) instead.")
+        output.contains("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
     }
 }

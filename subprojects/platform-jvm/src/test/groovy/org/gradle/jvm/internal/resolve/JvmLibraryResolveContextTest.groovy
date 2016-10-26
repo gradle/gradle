@@ -27,7 +27,7 @@ class JvmLibraryResolveContextTest extends Specification {
     @Unroll
     def "context name for project #path and library #library is #contextName"() {
         given:
-        def id = new DefaultLibraryBinaryIdentifier(path, COMPONENT_NAME, VARIANT)
+        def id = DefaultLibraryBinaryIdentifier.of(path, COMPONENT_NAME, VARIANT)
 
         when:
         def context = resolveContext(id, usage)

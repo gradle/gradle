@@ -170,7 +170,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * @param name The name of the task to be created
      * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     Task replace(String name);
 
@@ -184,7 +183,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param name The name of the task to be created.
      * @param type The type of task to create.
      * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     <T extends Task> T replace(String name, Class<T> type);
 }

@@ -33,11 +33,12 @@ public interface ExternalResourceAccessor {
      * must throw an {@link ResourceException} to indicate a fatal condition.
      *
      * @param location The address of the resource to obtain
+     * @param revalidate The resource should be revalidated as part of the request
      * @return The resource if it exists, otherwise null. Caller is responsible for closing the result.
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    ExternalResourceReadResponse openResource(URI location) throws ResourceException;
+    ExternalResourceReadResponse openResource(URI location, boolean revalidate) throws ResourceException;
 
     /**
      * Obtains only the metadata about the resource.
@@ -48,10 +49,11 @@ public interface ExternalResourceAccessor {
      * must throw an {@link ResourceException} to indicate a fatal condition.
      *
      * @param location The location of the resource to obtain the metadata for
+     * @param revalidate The resource should be revalidated as part of the request
      * @return The available metadata, null if the resource doesn't exist
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason
      */
     @Nullable
-    ExternalResourceMetaData getMetaData(URI location) throws ResourceException;
-    
+    ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException;
+
 }

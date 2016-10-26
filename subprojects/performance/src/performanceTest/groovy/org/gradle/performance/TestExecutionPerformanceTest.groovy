@@ -29,7 +29,10 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
-        runner.targetVersions = ['2.11', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        runner.targetVersions = ['3.2-20161012120730+0000']
         runner.useDaemon = true
 
         when:
@@ -39,6 +42,10 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["withTestNG", "withJUnit", "withVerboseTestNG", "withVerboseJUnit"]
+        testProject         | _
+        "withTestNG"        | _
+        "withJUnit"         | _
+        "withVerboseTestNG" | _
+        "withVerboseJUnit"  | _
     }
 }

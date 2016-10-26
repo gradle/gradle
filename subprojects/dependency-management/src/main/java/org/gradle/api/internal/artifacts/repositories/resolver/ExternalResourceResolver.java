@@ -36,6 +36,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -92,7 +93,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final boolean local;
     private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
-    private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
 
     private final VersionLister versionLister;
 
@@ -104,7 +105,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        CacheAwareExternalResourceAccessor cachingResourceAccessor,
                                        VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                       FileStore<ModuleComponentArtifactMetadata> artifactFileStore) {
+                                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -145,7 +146,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        ModuleIdentifier module = DefaultModuleIdentifier.of(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
@@ -222,7 +223,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         artifactSet.addAll(artifacts);
 
         if (artifactSet.isEmpty()) {
-            artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar"));
+            artifactSet.add(DefaultIvyArtifactName.of(moduleName, "jar", "jar"));
         }
 
         return artifactSet;

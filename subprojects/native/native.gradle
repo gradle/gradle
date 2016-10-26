@@ -9,7 +9,7 @@ dependencies {
     compile libraries.commons_io
     compile libraries.slf4j_api
     compile libraries.nativePlatform
-    compile module('org.fusesource.jansi:jansi:1.13')
+    compile module('org.fusesource.jansi:jansi:1.14')
     compile libraries.guava
     compile libraries.jcip
     testCompile libraries.groovy

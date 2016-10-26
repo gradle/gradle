@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -14,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.modules
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.util.GUtil;
-import org.gradle.util.CollectionUtils;
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.util.CollectionUtils
+import org.gradle.util.GUtil
 
 /**
  * Patches the classpath manifests of external modules such as gradle-script-kotlin
  * to match the dependencies of the Gradle runtime configuration.
  */
+@CompileStatic
 class ClasspathManifestPatcher {
 
     /**
      * The project.
      */
-    Project project
+    ProjectInternal project
 
     /**
      * The Gradle runtime configuration.
@@ -40,12 +44,15 @@ class ClasspathManifestPatcher {
     /**
      * The configuration containing the external modules whose classpath manifests must be patched.
      */
-    Configuration external
+    Set<String> moduleNames
 
-    ClasspathManifestPatcher(Project project, Configuration runtime, Configuration external) {
+    File temporaryDir
+
+    ClasspathManifestPatcher(ProjectInternal project, File temporaryDir, Configuration runtime, Set<String> moduleNames) {
         this.project = project
         this.runtime = runtime
-        this.external = external
+        this.temporaryDir = temporaryDir
+        this.moduleNames = moduleNames
     }
 
     def writePatchedFilesTo(File outputDir) {
@@ -62,7 +69,6 @@ class ClasspathManifestPatcher {
      * Resolves each external module against the runtime configuration.
      */
     private Collection<ResolvedDependency> resolveExternalModuleJars() {
-        def moduleNames = external.dependencies.collect { it.name }.toSet()
         runtime
             .resolvedConfiguration
             .firstLevelModuleDependencies
@@ -82,14 +88,15 @@ class ClasspathManifestPatcher {
     }
 
     private File unpack(File file) {
-        def unpackDir = project.file("${project.buildDir}/external/unpack/${file.name}")
-        project.copy { spec ->
+        def unpackDir = new File(temporaryDir, file.name)
+        project.sync { CopySpec spec ->
             spec.into(unpackDir)
             spec.from(project.zipTree(file))
         }
         unpackDir
     }
 
+    @CompileDynamic
     private void pack(File baseDir, File destFile) {
         project.ant.zip(basedir: baseDir, destfile: destFile)
     }

@@ -157,6 +157,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             this.result = result;
         }
 
+        @Override
+        public String getExecutionId() {
+            return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
+        }
+
         public String getVersionUnderTest() {
             return result.getVersionUnderTest();
         }

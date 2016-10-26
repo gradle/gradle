@@ -24,23 +24,30 @@ import java.io.OutputStream;
  * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
  */
 public class LineBufferingOutputStream extends OutputStream {
+    private final static int LINE_MAX_LENGTH = 1024 * 1024; // Split line if a single line goes over 1 MB
     private boolean hasBeenClosed;
-    private final byte[] lineSeparator;
-    private final int bufferIncrement;
     private final TextStream handler;
-    private byte[] buf;
-    private int count;
+    private StreamByteBuffer buffer;
+    private final OutputStream output;
+    private final byte lastLineSeparatorByte;
+    private final int lineMaxLength;
+    private int counter;
 
     public LineBufferingOutputStream(TextStream handler) {
         this(handler, 2048);
     }
 
     public LineBufferingOutputStream(TextStream handler, int bufferLength) {
+        this(handler, bufferLength, LINE_MAX_LENGTH);
+    }
+
+    public LineBufferingOutputStream(TextStream handler, int bufferLength, int lineMaxLength) {
         this.handler = handler;
-        bufferIncrement = bufferLength;
-        buf = new byte[bufferLength];
-        count = 0;
-        lineSeparator = SystemProperties.getInstance().getLineSeparator().getBytes();
+        buffer = new StreamByteBuffer(bufferLength);
+        this.lineMaxLength = lineMaxLength;
+        output = buffer.getOutputStream();
+        byte[] lineSeparator = SystemProperties.getInstance().getLineSeparator().getBytes();
+        lastLineSeparatorByte = lineSeparator[lineSeparator.length - 1];
     }
 
     /**
@@ -67,46 +74,26 @@ public class LineBufferingOutputStream extends OutputStream {
         if (hasBeenClosed) {
             throw new IOException("The stream has been closed.");
         }
-
-        if (count == buf.length) {
-            // grow the buffer
-            final int newBufLength = buf.length + bufferIncrement;
-            final byte[] newBuf = new byte[newBufLength];
-
-            System.arraycopy(buf, 0, newBuf, 0, buf.length);
-            buf = newBuf;
-        }
-
-        buf[count] = (byte) b;
-        count++;
-        if (endsWithLineSeparator()) {
+        output.write(b);
+        counter++;
+        if (endsWithLineSeparator(b) || counter >= lineMaxLength) {
             flush();
         }
     }
 
-    private boolean endsWithLineSeparator() {
-        if (count < lineSeparator.length) {
-            return false;
-        }
-        for (int i = 0; i < lineSeparator.length; i++) {
-            if (buf[count - lineSeparator.length + i] != lineSeparator[i]) {
-                return false;
-            }
-        }
-        return true;
+    // only check for the last byte of a multi-byte line separator
+    // besides this, always check for '\n'
+    // this handles '\r' (MacOSX 9), '\r\n' (Windows) and '\n' (Linux/Unix/MacOSX 10)
+    private boolean endsWithLineSeparator(int b) {
+        byte currentByte = (byte) (b & 0xff);
+        return currentByte == lastLineSeparatorByte || currentByte == '\n';
     }
 
     public void flush() {
-        if (count != 0) {
-            handler.text(new String(buf, 0, count));
+        String text = buffer.readAsString();
+        if (text.length() > 0) {
+            handler.text(text);
         }
-        reset();
-    }
-
-    private void reset() {
-        if (buf.length > bufferIncrement) {
-            buf = new byte[bufferIncrement];
-        }
-        count = 0;
+        counter = 0;
     }
 }

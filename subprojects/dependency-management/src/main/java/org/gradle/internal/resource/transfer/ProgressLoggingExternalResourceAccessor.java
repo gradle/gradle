@@ -32,8 +32,8 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         this.delegate = delegate;
     }
 
-    public ExternalResourceReadResponse openResource(URI location) {
-        ExternalResourceReadResponse resource = delegate.openResource(location);
+    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+        ExternalResourceReadResponse resource = delegate.openResource(location, revalidate);
         if (resource != null) {
             return new ProgressLoggingExternalResource(location, resource);
         } else {
@@ -42,8 +42,8 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     }
 
     @Nullable
-    public ExternalResourceMetaData getMetaData(URI location) {
-        return delegate.getMetaData(location);
+    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
+        return delegate.getMetaData(location, revalidate);
     }
 
     private class ProgressLoggingExternalResource implements ExternalResourceReadResponse {

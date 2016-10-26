@@ -15,6 +15,8 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
@@ -40,7 +42,7 @@ class IncrementalNativeCompilerTest extends Specification {
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
     def directoryTreeFactory = TestFiles.directoryFileTreeFactory()
-    def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain, directoryTreeFactory)
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -97,7 +99,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain, directoryTreeFactory)
+       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory)
        then:
        compiler.importsAreIncludes
        where:
@@ -137,13 +139,14 @@ class IncrementalNativeCompilerTest extends Specification {
         def includeRoots = [ includeDir ]
 
         def compilation = Mock(IncrementalCompilation)
-        def finalState = new CompilationState()
         def sourceState = Mock(CompilationFileState)
+        def sourceFiles = ImmutableSet.copyOf([sourceFile])
+        def map = ImmutableMap.copyOf(Collections.singletonMap(sourceFile, sourceState))
+        def finalState = new CompilationState(sourceFiles, map)
 
-        finalState.setState(sourceFile, sourceState)
-        compilation.discoveredInputs >> [includedFile ]
+        compilation.discoveredInputs >> [includedFile]
         compilation.getFinalState() >> finalState
-        sourceState.getResolvedIncludes() >> [ new ResolvedInclude("MACRO", null) ]
+        sourceState.getResolvedIncludes() >> ImmutableSet.copyOf([new ResolvedInclude("MACRO", null)])
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)

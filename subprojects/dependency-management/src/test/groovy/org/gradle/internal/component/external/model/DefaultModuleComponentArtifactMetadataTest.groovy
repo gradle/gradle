@@ -51,6 +51,6 @@ class DefaultModuleComponentArtifactMetadataTest extends Specification {
     }
 
     def ivyArtifact(String name, String type, String extension, String classifier = null) {
-        new DefaultIvyArtifactName(name, type, extension, classifier)
+        DefaultIvyArtifactName.of(name, type, extension, classifier)
     }
 }

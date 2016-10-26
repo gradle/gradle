@@ -26,10 +26,10 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.ClosedWatchServiceException;
@@ -64,18 +64,13 @@ public class WatchServiceFileWatcherBacking {
         }
 
         @Override
-        public void ignoreDirectory(File directory) {
-            WatchServiceFileWatcherBacking.this.watchServiceRegistrar.ignoreDirectory(directory);
-        }
-
-        @Override
         public void stop() {
             WatchServiceFileWatcherBacking.this.stop();
         }
     };
 
-    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
-        this(onError, listener, watchService, new WatchServiceRegistrar(watchService, listener));
+    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService, FileSystem fileSystem) throws IOException {
+        this(onError, listener, watchService, new WatchServiceRegistrar(watchService, listener, fileSystem));
     }
 
     WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService, WatchServiceRegistrar watchServiceRegistrar) throws IOException {

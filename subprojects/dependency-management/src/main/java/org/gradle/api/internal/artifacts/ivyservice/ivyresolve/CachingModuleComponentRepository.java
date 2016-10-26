@@ -29,9 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersio
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -111,7 +109,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private DefaultModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
-        return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
+        return DefaultModuleIdentifier.of(requested.getGroup(), requested.getName());
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -139,7 +137,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 Set<String> versionList = cachedModuleVersionList.getModuleVersions();
                 Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList, new Transformer<ModuleVersionIdentifier, String>() {
                     public ModuleVersionIdentifier transform(String original) {
-                        return new DefaultModuleVersionIdentifier(moduleId, original);
+                        return DefaultModuleVersionIdentifier.of(moduleId, original);
                     }
                 });
                 if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
@@ -232,14 +230,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         private void resolveModuleArtifactsFromCache(String contextId, ComponentResolveMetadata component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
-            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
+            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getComponentId(), contextId);
             BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
                 if (!cachePolicy.mustRefreshModuleArtifacts(component.getId(), null, cachedModuleArtifacts.getAgeMillis(),
                         cachedModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
-                    Set<ModuleComponentArtifactMetadata> artifactMetaDataSet = CollectionUtils.collect(cachedModuleArtifacts.getArtifacts(), new ArtifactIdToMetaData());
-                    result.resolved(artifactMetaDataSet);
+                    result.resolved(cachedModuleArtifacts.getArtifacts());
                     return;
                 }
 
@@ -339,8 +336,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().resolveArtifactsWithType(component.withSource(moduleSource.getDelegate()), artifactType, result);
 
             if (result.getFailure() == null) {
-                Set<ModuleComponentArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getResult(), new ArtifactMetaDataToId());
-                moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), cacheKey(artifactType), moduleSource.getDescriptorHash(), artifactIdentifierSet);
+                moduleArtifactsCache.cacheArtifacts(delegate, component.getComponentId(), cacheKey(artifactType), moduleSource.getDescriptorHash(), result.getResult());
             }
         }
 
@@ -351,8 +347,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             if (result.getFailure() == null) {
                 FixedComponentArtifacts artifacts = (FixedComponentArtifacts) result.getResult();
-                Set<ModuleComponentArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(artifacts.getArtifacts(), new ArtifactMetaDataToId());
-                moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), "component:", moduleSource.getDescriptorHash(), artifactIdentifierSet);
+                moduleArtifactsCache.cacheArtifacts(delegate, component.getComponentId(), "component:", moduleSource.getDescriptorHash(), artifacts.getArtifacts());
             }
         }
 
@@ -377,9 +372,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactMetadata artifact) {
-        // TODO:ADAM - Don't assume this
-        ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) artifact;
-        return new ArtifactAtRepositoryKey(delegate.getId(), moduleComponentArtifactMetadata.getId());
+        return new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
     }
 
     static class CachingModuleSource implements ModuleSource {
@@ -408,18 +401,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         public ModuleSource getDelegate() {
             return delegate;
-        }
-    }
-
-    static class ArtifactIdToMetaData implements Transformer<ModuleComponentArtifactMetadata, ModuleComponentArtifactIdentifier> {
-        public ModuleComponentArtifactMetadata transform(ModuleComponentArtifactIdentifier original) {
-            return new DefaultModuleComponentArtifactMetadata(original);
-        }
-    }
-
-    static class ArtifactMetaDataToId implements Transformer<ModuleComponentArtifactIdentifier, ComponentArtifactMetadata> {
-        public ModuleComponentArtifactIdentifier transform(ComponentArtifactMetadata original) {
-            return ((ModuleComponentArtifactMetadata)original).getId();
         }
     }
 }

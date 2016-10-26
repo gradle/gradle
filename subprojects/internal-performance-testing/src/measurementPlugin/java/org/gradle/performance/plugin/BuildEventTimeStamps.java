@@ -49,14 +49,39 @@ public class BuildEventTimeStamps {
         Project project = buildResult.getGradle().getRootProject();
         final long settingsEvaluatedTimeStamp = resolveSettingsEvaluatedTimeStamp(project);
 
-        File buildDir = project.getBuildDir();
-        buildDir.mkdirs();
-        File timestampsFile = new File(buildDir, "buildEventTimestamps.txt");
+        File timestampsFile = resolveTimestampsFile(project);
 
         try {
             writeTimeStamps(timestampsFile, settingsEvaluatedTimeStamp, buildEndTimestamp, buildTime);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static File resolveTimestampsFile(Project project) {
+        File buildDir = project.getBuildDir();
+        if (!buildDir.exists()) {
+            buildDir.mkdirs();
+        }
+        return new File(buildDir, "buildEventTimestamps.txt");
+    }
+
+    public static void appendMeasurementTime(Project rootProject, long measurementTimeNanos) {
+        File timestampsFile = resolveTimestampsFile(rootProject);
+        try {
+            writeMeasurementTime(timestampsFile, measurementTimeNanos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void writeMeasurementTime(File timestampsFile, long measurementTimeNanos) throws IOException {
+        PrintWriter writer = new PrintWriter(new FileWriter(timestampsFile, true));
+        try {
+            writer.println();
+            writer.print(measurementTimeNanos);
+        } finally {
+            writer.close();
         }
     }
 
@@ -81,9 +106,10 @@ public class BuildEventTimeStamps {
             return 0;
         }
         try {
+            // get the value of build time clock reported by Gradle in a backwards compatible way
             return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
-        } catch (Exception e) {
-            System.err.println("Exception in getting build time " + e.getMessage());
+        } catch (Throwable t) { // catch possible NoSuchMethodError besides other exceptions
+            System.err.println("Disabling build time clock since there is a problem in getting build time " + t.getMessage());
             useBuildTimeClock = false;
             return 0;
         }

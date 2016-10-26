@@ -24,7 +24,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultLibraryBinaryIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        LibraryBinaryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryBinaryIdentifier(':myPath', 'myLib', 'api')
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier = DefaultLibraryBinaryIdentifier.of(':myPath', 'myLib', 'api')
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
@@ -36,7 +36,7 @@ class DefaultLibraryBinaryIdentifierTest extends Specification {
 
     def "is instantiated with null project constructor parameter value"() {
         when:
-        new DefaultLibraryBinaryIdentifier(null, 'foo', 'api')
+        DefaultLibraryBinaryIdentifier.of(null, 'foo', 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -45,7 +45,7 @@ class DefaultLibraryBinaryIdentifierTest extends Specification {
 
     def "is instantiated with null library constructor parameter value"() {
         when:
-        new DefaultLibraryBinaryIdentifier('foo', null, 'api')
+        DefaultLibraryBinaryIdentifier.of('foo', null, 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -54,7 +54,7 @@ class DefaultLibraryBinaryIdentifierTest extends Specification {
 
     def "is instantiated with null variant constructor parameter value"() {
         when:
-        new DefaultLibraryBinaryIdentifier('foo', 'bar', null)
+        DefaultLibraryBinaryIdentifier.of('foo', 'bar', null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -64,8 +64,8 @@ class DefaultLibraryBinaryIdentifierTest extends Specification {
     @Unroll
     def "can compare with other instance (#projectPath,#libraryName,#variant)"() {
         expect:
-        LibraryBinaryIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryBinaryIdentifier(':myProjectPath1', 'myLib', 'api')
-        LibraryBinaryIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryBinaryIdentifier(projectPath, libraryName, variant)
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier1 = DefaultLibraryBinaryIdentifier.of(':myProjectPath1', 'myLib', 'api')
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier2 = DefaultLibraryBinaryIdentifier.of(projectPath, libraryName, variant)
         strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
         (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
         (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation

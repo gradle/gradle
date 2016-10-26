@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -40,18 +38,14 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
     public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
-        // TODO CC: find a better location to do this, on the selected dependency only, instead of all configurations
-        for (Configuration configuration : projectDependency.getDependencyProject().getConfigurations()) {
-            ((ConfigurationInternal)configuration).triggerWhenEmptyActionsIfNecessary();
-        }
         Module module = getProjectModule(dependency);
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.of(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
             selector, requested, clientConfiguration,
             clientAttributes,
-            projectDependency.getTargetConfiguration().orNull(),
+            projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
             convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
             false, false, dependency.isTransitive());

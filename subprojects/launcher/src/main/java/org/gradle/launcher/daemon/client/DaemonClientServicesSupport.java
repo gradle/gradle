@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.CompositeIdGenerator;

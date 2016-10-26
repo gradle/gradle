@@ -22,6 +22,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
@@ -33,7 +34,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     FileWatcherFactory fileWatcherFactory
 
     void setup() {
-        fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
+        fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory(), Stub(FileSystem))
         fileSystemSubset = FileSystemSubset.builder().add(testDir.testDirectory).build()
     }
 

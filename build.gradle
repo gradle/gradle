@@ -139,6 +139,7 @@ buildTypes {
 
 apply from: "gradle/testGroupings.gradle"
 apply from: 'gradle/buildSplits.gradle'
+apply from: 'gradle/buildScanUserData.gradle'
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
@@ -267,13 +268,13 @@ configurations {
     }
 }
 
-def patchedExternalModulesDir = "$rootProject.buildDir/external/files"
+def patchedExternalModulesDir = new File(buildDir, "external/files")
 def patchedExternalModules = fileTree(patchedExternalModulesDir) {
     builtBy 'patchExternalModules'
 }
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.3.2'
+    externalModules 'org.gradle:gradle-script-kotlin:0.4.0'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
@@ -283,19 +284,16 @@ dependencies {
     gradlePlugins project(':testKit')
 }
 
-task patchExternalModules(type: Sync) {
-    description 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
+import org.gradle.modules.PatchExternalModules
+
+task patchExternalModules(type: PatchExternalModules) {
     // Include any dependency jars that are not available in the core runtime
-    from configurations.externalModulesRuntime.minus(configurations.coreRuntime)
-    into patchedExternalModulesDir
-    outputs.cacheIf { true }
-    doLast {
-        new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, configurations.externalModules)
-            .writePatchedFilesTo(destinationDir)
-        new ExcludeEntryPatcher(rootProject, configurations.externalModulesRuntime, "kotlin-compiler-embeddable")
-            .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
-            .writePatchedFilesTo(destinationDir)
-    }
+    externalModulesRuntime = configurations.externalModulesRuntime
+    coreRuntime = configurations.coreRuntime
+    externalModules = configurations.externalModules
+    destination = patchedExternalModulesDir
+
+    dependsOn configurations.externalModules
 }
 
 task verifyIsProductionBuildEnvironment {
@@ -389,3 +387,4 @@ if (isCiServer) {
         }
     }
 }
+

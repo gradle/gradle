@@ -42,7 +42,6 @@ public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
         try {
             executer.execute(task, state, context);
         } finally {
-            state.executed();
             LOGGER.debug("Finished executing {}", task);
         }
     }

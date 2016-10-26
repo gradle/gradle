@@ -17,31 +17,18 @@
 
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetaData
 import org.gradle.integtests.fixtures.IgnoreVersions
-import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.junit.Rule
 
-@IgnoreVersions({ it.artifactCacheLayoutVersion != DefaultCacheLockingManager.CACHE_LAYOUT_VERSION })
+@IgnoreVersions({ it.artifactCacheLayoutVersion != DefaultArtifactCacheMetaData.CACHE_LAYOUT_VERSION })
 class SameCacheUsageCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
-    @Rule public final HttpServer server = new HttpServer()
-    final MavenHttpRepository httpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
-
-    @Override
-    void setup() {
-        requireOwnGradleUserHomeDir()
-    }
-
     def "incurs zero remote requests when cache version not upgraded"() {
         given:
-        def projectB = httpRepo.module('org.name', 'projectB', '1.0').publish()
+        def projectB = mavenHttpRepo.module('org.name', 'projectB', '1.0').publish()
         server.sendSha1Header = false
-        server.start()
         buildFile << """
 repositories {
-    maven { url '${httpRepo.uri}' }
+    maven { url '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {

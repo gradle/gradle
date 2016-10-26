@@ -31,7 +31,7 @@ import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.DefaultListenerManager

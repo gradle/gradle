@@ -28,7 +28,12 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata {
     Set<String> getExtendsFrom();
 
     /**
-     * The task dependencies required to build any artifacts and self-resolving dependencies for this configuration.
+     * The task dependencies required to build any artifacts and file dependencies for this configuration.
      */
     TaskDependency getDirectBuildDependencies();
+
+    /**
+     * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.
+     */
+    Set<LocalFileDependencyMetadata> getFiles();
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
@@ -90,12 +91,15 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
     @Internal
     boolean isEmpty();
 
+    @Incubating
     @OutputDirectories
     Map<String, File> getEnabledDirectoryReportDestinations();
 
+    @Incubating
     @OutputFiles
     Map<String, File> getEnabledFileReportDestinations();
 
+    @Incubating
     @Input
     SortedSet<String> getEnabledReportNames();
 }

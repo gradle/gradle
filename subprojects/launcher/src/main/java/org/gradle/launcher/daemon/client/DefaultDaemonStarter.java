@@ -26,8 +26,11 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
@@ -37,13 +40,10 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.streams.EncodedStream;
-import org.gradle.util.Clock;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,8 +110,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(GradleVersion.current().getVersion());
 
         // Serialize configuration to daemon via the process' stdin
-        ByteArrayOutputStream serializedConfig = new ByteArrayOutputStream();
-        FlushableEncoder encoder = new KryoBackedEncoder(new EncodedStream.EncodedOutput(serializedConfig));
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        FlushableEncoder encoder = new KryoBackedEncoder(new EncodedStream.EncodedOutput(buffer.getOutputStream()));
         try {
             encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
             encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
@@ -130,14 +130,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        ByteArrayInputStream stdInput = new ByteArrayInputStream(serializedConfig.toByteArray());
+        InputStream stdInput = buffer.getInputStream();
 
         return startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
     }
 
     private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         try {
             GFileUtils.mkdirs(workingDir);
 
@@ -155,7 +155,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         } catch (Exception e) {
             throw new GradleException("Could not start Gradle daemon.", e);
         } finally {
-            LOGGER.info("An attempt to start the daemon took {}.", clock.getTime());
+            LOGGER.info("An attempt to start the daemon took {}.", clock.getElapsed());
         }
     }
 

@@ -17,11 +17,9 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -29,27 +27,30 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
 import org.gradle.util.CollectionUtils;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer {
+public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
     private final PersistentCache cache;
     private final Transformer<File, File> jarFileTransformer;
 
-    public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, CacheScopeMapping cacheScopeMapping) {
+    public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, List<CachedJarFileStore> fileStores) {
         this.cache = cacheRepository
-            .cache("jars-1")
+            .cache("jars-2")
             .withDisplayName("jars")
-            .withCrossVersionCache()
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
-        this.jarFileTransformer = new CachedJarFileTransformer(jarCache, cache, new AlreadyCachedSpec(cacheScopeMapping));
+        this.jarFileTransformer = new CachedJarFileTransformer(jarCache, cache, fileStores);
     }
 
     @Override
@@ -85,17 +86,21 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private static class CachedJarFileTransformer implements Transformer<File, File> {
         private final JarCache jarCache;
         private final PersistentCache cache;
-        private final Spec<File> alreadyCachedSpec;
+        private final List<String> prefixes;
 
-        CachedJarFileTransformer(JarCache jarCache, PersistentCache cache, Spec<File> alreadyCachedSpec) {
+        CachedJarFileTransformer(JarCache jarCache, PersistentCache cache, List<CachedJarFileStore> fileStores) {
             this.jarCache = jarCache;
             this.cache = cache;
-            this.alreadyCachedSpec = alreadyCachedSpec;
+            prefixes = new ArrayList<String>(fileStores.size() + 1);
+            prefixes.add(cache.getBaseDir().getAbsolutePath() + File.separator);
+            for (CachedJarFileStore fileStore : fileStores) {
+                prefixes.add(fileStore.getJarFileStoreDirectory().getAbsolutePath() + File.separator);
+            }
         }
 
         @Override
         public File transform(final File original) {
-            if (original.isFile() && !alreadyCachedSpec.isSatisfiedBy(original)) {
+            if (moveToCache(original)) {
                 return cache.useCache("Locate Jar file", new Factory<File>() {
                     public File create() {
                         return jarCache.getCachedJar(original, Factories.constant(cache.getBaseDir()));
@@ -105,18 +110,17 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 return original;
             }
         }
-    }
 
-    private static class AlreadyCachedSpec implements Spec<File> {
-        private final String cacheRootDirName;
-
-        AlreadyCachedSpec(CacheScopeMapping cacheScopeMapping) {
-            this.cacheRootDirName = cacheScopeMapping.getBaseDirectory(null, "dummy", CacheBuilder.VersionStrategy.SharedCache).getParent();
-        }
-
-        @Override
-        public boolean isSatisfiedBy(File file) {
-            return file.getAbsolutePath().startsWith(cacheRootDirName);
+        private boolean moveToCache(File original) {
+            if (!original.isFile()) {
+                return false;
+            }
+            for (String prefix : prefixes) {
+                if (original.getAbsolutePath().startsWith(prefix)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

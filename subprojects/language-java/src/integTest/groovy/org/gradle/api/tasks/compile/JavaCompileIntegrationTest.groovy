@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.JarUtils.jarWithContents
@@ -31,7 +32,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
-                dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
             }
         """
@@ -203,10 +203,74 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
-                dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
                 classpath = files('${dependencies.join("', '")}')
             }
         """
+    }
+
+    @Ignore
+    def "can compile after package case-rename"() {
+        buildFile << """
+            apply plugin: "java"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                testCompile "junit:junit:4.12"
+            }
+        """
+
+        file("src/main/java/com/example/Foo.java") << """
+            package com.example;
+
+            public class Foo {}
+        """
+        file("src/test/java/com/example/FooTest.java") << """
+            package com.example;
+
+            import org.junit.Test;
+
+            public class FooTest {
+                @Test
+                public void test() {
+                    new com.example.Foo();
+                }
+            }
+        """
+
+        when:
+        succeeds "test"
+        then:
+        nonSkippedTasks.contains ":test"
+        file("build/classes/main/com/example/Foo.class").file
+
+        when:
+        // Move source file to case-renamed package
+        file("src/main/java/com/example").deleteDir()
+        file("src/main/java/com/Example/Foo.java") << """
+            package com.Example;
+
+            public class Foo {}
+        """
+        file("src/test/java/com/example/FooTest.java").text = """
+            package com.example;
+
+            import org.junit.Test;
+
+            public class FooTest {
+                @Test
+                public void test() {
+                    new com.Example.Foo();
+                }
+            }
+        """
+
+        succeeds "test"
+        then:
+        nonSkippedTasks.contains ":test"
+        file("build/classes/main/com/Example/Foo.class").file
     }
 }

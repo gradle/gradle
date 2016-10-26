@@ -97,4 +97,10 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     public Long maybeGetPid() {
         return getPid();
     }
+
+    @Override
+    public boolean maybeDetachProcess() {
+        detachProcess();
+        return true;
+    }
 }

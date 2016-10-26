@@ -19,12 +19,11 @@ package org.gradle.launcher.daemon.server.health.memory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,14 +55,14 @@ public class VmstatAvailableMemory implements AvailableMemory {
     }
 
     private List<String> getVmstatOutput() {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        StreamByteBuffer buffer = new StreamByteBuffer();
         ExecHandleBuilder builder = new DefaultExecActionFactory(new IdentityFileResolver()).newExec();
         builder.setWorkingDir(new File(".").getAbsolutePath());
         builder.setCommandLine(VMSTAT_EXECUTABLE_PATH);
-        builder.setStandardOutput(outputStream);
+        builder.setStandardOutput(buffer.getOutputStream());
         builder.build().start().waitForFinish().assertNormalExitValue();
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray())));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(buffer.getInputStream()));
         List<String> lines = Lists.newArrayList();
         try {
             String line;

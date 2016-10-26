@@ -43,7 +43,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
                 publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
             }
 
-            IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
+            IvyArtifactName artifact = DefaultIvyArtifactName.of("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
 
             publisher.publish(publishMetaData);
@@ -53,6 +53,6 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
     }
 
     private IvyArtifactName createIvyArtifact(IvyArtifact ivyArtifact) {
-        return new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
+        return DefaultIvyArtifactName.of(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
     }
 }

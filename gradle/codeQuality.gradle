@@ -38,6 +38,18 @@ def codeQualityTasks = tasks.matching { task ->
     [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle, org.gradle.plugin.devel.tasks.ValidateTaskProperties].any { it.isInstance(task) }
 }
 
+tasks.withType(Checkstyle) { task ->
+    // We add an absolute path to configProperties for every checkstyle path
+    // In order to make the task relocatable and therefore cacheable between machines
+    // we need to remove the absolute path from the input and "do the right thing",
+    // which in this case is adding the directory as an input with relative path sensitivity
+    String configDirPropertyName = 'checkstyleConfigDir'
+    task.inputs.property('configProperties') { task.configProperties - [(configDirPropertyName): task.configProperties[configDirPropertyName]] }
+    task.inputs.dir(checkstyleConfigDir)
+        .withPropertyName(configDirPropertyName)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 task codeQuality {
     dependsOn codeQualityTasks
 }

@@ -28,7 +28,7 @@ class BuildableIvyArtifact {
     private final Set<String> configurations = new LinkedHashSet<String>();
 
     public BuildableIvyArtifact(String name, String type, String ext, String classifier) {
-        this.ivyArtifactName = new DefaultIvyArtifactName(name, type, ext, classifier);
+        this.ivyArtifactName = DefaultIvyArtifactName.of(name, type, ext, classifier);
     }
 
     public BuildableIvyArtifact addConfiguration(String confName) {

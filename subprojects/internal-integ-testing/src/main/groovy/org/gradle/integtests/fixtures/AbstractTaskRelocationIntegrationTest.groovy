@@ -16,11 +16,18 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.file.TestFile
+
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is relocatable"() {
-        when:
         setupProjectInOriginalLocation()
+        // Make sure modified files receive new timestamps later on
+        testDirectory.traverse { file ->
+            TestFile.makeOlder(file)
+        }
+
+        when:
         succeeds taskName
         def originalResults = extractResults()
         then:
@@ -32,12 +39,10 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
         skippedTasks.contains taskName
 
         when:
-        // Make sure modified files receive new timestamps
-        sleep(1000)
         moveFilesAround()
         succeeds taskName
         then:
-        skippedTasks.contains taskName
+        skippedTasks.contains(taskName)
 
         when:
         removeResults()
@@ -45,7 +50,7 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
         def movedResults = extractResults()
         then:
         nonSkippedTasks.contains taskName
-        originalResults == movedResults
+        assertResultsEqual originalResults, movedResults
     }
 
     abstract protected String getTaskName()
@@ -60,4 +65,8 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
     }
 
     abstract protected def extractResults()
+
+    protected void assertResultsEqual(def originalResult, def movedResult) {
+        assert movedResult == originalResult
+    }
 }

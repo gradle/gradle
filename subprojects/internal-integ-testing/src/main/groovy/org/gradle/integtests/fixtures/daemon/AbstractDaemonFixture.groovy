@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.fixtures.daemon
 
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.integtests.fixtures.ProcessFixture
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.process.internal.streams.SafeStreams
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
@@ -27,8 +27,10 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
     final DaemonContext context
+    final TimeProvider timeProvider
 
     AbstractDaemonFixture(File daemonLog) {
+        this.timeProvider = new TrueTimeProvider()
         this.context = DaemonContextParser.parseFrom(daemonLog.text)
         if(!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
@@ -86,64 +88,8 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
 
     protected abstract void assertHasState(State state)
 
-    /**
-     * Forcefully kills this daemon.
-     */
+    @Override
     void kill() {
-        Long pid = context.pid
-        println "Killing daemon with pid: $pid"
-        if (pid == null) {
-            throw new RuntimeException("Unable to force kill the daemon because provided pid is null!")
-        }
-        if (!(OperatingSystem.current().unix || OperatingSystem.current().windows)) {
-            throw new RuntimeException("This implementation does not know how to forcefully kill the daemon on os: " + OperatingSystem.current())
-        }
-        def output = new ByteArrayOutputStream()
-        def e = TestFiles.execHandleFactory().newExec()
-                .commandLine(killArgs(pid))
-                .redirectErrorStream()
-                .setStandardInput(killScript(pid))
-                .setStandardOutput(output)
-                .workingDir(new File(".").absoluteFile) //does not matter
-                .build()
-        e.start()
-        def result = e.waitForFinish()
-        result.rethrowFailure()
-    }
-
-    private static Object[] killArgs(Long pid) {
-        if (OperatingSystem.current().unix) {
-            // start shell, read script from stdin
-            return ["bash"]
-        } else if (OperatingSystem.current().windows) {
-            // '/T' kills full process tree
-            // TODO: '/T' option should be removed after fixing GRADLE-3298
-            return ["taskkill.exe", "/F", "/T", "/PID", pid]
-        } else {
-            throw new IllegalStateException()
-        }
-    }
-
-    private static InputStream killScript(Long pid) {
-        if (OperatingSystem.current().unix) {
-            // script for killing full process tree
-            // TODO: killing full process tree should be removed after fixing GRADLE-3298
-            // this script is tested on Linux and MacOSX
-            def killScript = '''
-killtree() {
-    local _pid=$1
-    for _child in $(ps -o pid,ppid -ax | awk "{ if ( \\$2 == ${_pid} ) { print \\$1 }}"); do
-        killtree ${_child}
-    done
-    kill -9 ${_pid}
-}
-'''
-            killScript += "\nkilltree $pid\n"
-            return new ByteArrayInputStream(killScript.getBytes())
-        } else if (OperatingSystem.current().windows) {
-            return SafeStreams.emptyInput()
-        } else {
-            throw new IllegalStateException()
-        }
+        new ProcessFixture(context.pid).kill(true);
     }
 }

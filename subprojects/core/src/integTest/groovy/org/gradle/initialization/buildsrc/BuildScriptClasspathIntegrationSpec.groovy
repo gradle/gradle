@@ -38,10 +38,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         server.start()
     }
 
-    def cleanup() {
-        executer.withArguments("--stop").run()
-    }
-
     @Unroll("jars on buildscript classpath can change (deleteIfExists: #deleteIfExists, loopNumber: #loopNumber)")
     def "jars on buildscript classpath can change"() {
         given:
@@ -224,6 +220,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
     void inJarCache(String filename, boolean shouldBeFound=true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }
-        assert fullpath.contains("/caches/jars-1/") == shouldBeFound
+        assert fullpath.contains("/caches/jars-2/") == shouldBeFound
     }
 }

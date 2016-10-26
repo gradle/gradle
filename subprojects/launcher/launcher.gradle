@@ -21,13 +21,12 @@ dependencies {
     testCompile libraries.groovy
 
     integTestCompile project(':internalIntegTesting')
+    // Needed for testing debug command line option (JDWPUtil)
+    integTestCompile files(Jvm.current().toolsJar?:[])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
-
-    // Needed for testing debug command line option
-    testFixturesCompile files(Jvm.current().toolsJar?:[])
 
     startScriptGenerator project(':plugins')
 }
@@ -56,12 +55,14 @@ task startScripts(type: StartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
+@CacheableTask
 class StartScriptGenerator extends DefaultTask {
     File startScriptsDir
 
-    @InputFiles
+    @Classpath
     FileCollection classpath
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     FileCollection launcherJar
 

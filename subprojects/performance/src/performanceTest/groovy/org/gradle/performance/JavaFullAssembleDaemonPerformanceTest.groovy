@@ -44,13 +44,13 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | targetVersions
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', 'last']
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', 'last']
-        "smallJavaSwModelProject"                    | ['2.9', 'last']
-        "largeJavaSwModelProject"                    | ['2.10', 'last']
-        "bigNewJava"                                 | ['2.11', 'last']
-        "mediumNewJava"                              | ['2.11', 'last']
-        "smallNewJava"                               | ['2.9', '2.10', 'last']
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-20161012120730+0000']
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-20161012120730+0000']
+        "smallJavaSwModelProject"                    | ['2.9', '3.2-20161012120730+0000']
+        "largeJavaSwModelProject"                    | ['2.10', '3.2-20161012120730+0000']
+        "bigNewJava"                                 | ['2.11', '3.2-20161012120730+0000']
+        "mediumNewJava"                              | ['2.11', '3.2-20161012120730+0000']
+        "smallNewJava"                               | ['2.9', '2.10', '3.2-20161012120730+0000']
     }
 
     @Unroll("full assemble Java build - #testProject")
@@ -74,10 +74,12 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject            | targetVersions
-        "bigOldJavaMoreSource" | ['2.11', 'last']
-        "bigOldJava"           | ['2.11', 'last']
-        "mediumOldJava"        | ['2.11', 'last']
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "smallOldJava"         | ['3.1-20160818000032+0000']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "bigOldJavaMoreSource" | ['3.2-20160915000027+0000']
+        "bigOldJava"           | ['3.2-20160915000027+0000']
+        "mediumOldJava"        | ['3.2-20160915000027+0000']
+        "smallOldJava"         | ['3.2-20160915000027+0000']
     }
 }

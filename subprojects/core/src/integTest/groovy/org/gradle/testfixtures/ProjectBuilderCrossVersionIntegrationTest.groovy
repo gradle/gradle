@@ -16,100 +16,117 @@
 
 package org.gradle.testfixtures
 
-import groovy.transform.NotYetImplemented
-import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import spock.lang.Issue
 
-class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
+
+@Issue("GRADLE-3558")
+@TargetVersions(['2.0', '2.7']) // Pick first incompatible version and oldest version of Gradle 2.x. Avoid testing version range in favor of better coverage build performance.
+@Requires(JDK8_OR_EARLIER) // Versions < 2.10 fail to compile the plugin with Java 9 (Could not determine java version from '9-ea')
+class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
+
+    public static final List<String> BROKEN_GRADLE_VERSIONS = ['3.0', '3.1']
+    public static final String TEST_TASK_NAME = 'test'
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    public static final String CONSUMER_GRADLE_VERSION = '2.7'
-    public static final String PRODUCER_GRADLE_VERSION = '3.0'
+    private final List<GradleExecuter> executers = []
 
-    @NotYetImplemented
-    @Issue("GRADLE-3558")
-    def "can use plugin built with 2.x to execute a test on top of ProjectBuilder run with Gradle 3.x"() {
-        given:
-        TestFile producerProjectDir = temporaryFolder.createDir('producer')
-        TestFile consumerProjectDir = temporaryFolder.createDir('consumer')
-        TestFile repoDir = new TestFile(testDirectory, 'repo')
+    def setup() {
+        writeSourceFiles()
+    }
 
-        when:
-        producerProjectDir.file('src/main/groovy/org/gradle/producer/HelloWorldPlugin.groovy') << """
-            package org.gradle.producer
+    def cleanup() {
+        executers.each { it.cleanup() }
+    }
 
-            import org.gradle.api.Project
-            import org.gradle.api.Plugin
+    def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
+        expect:
+        run(TEST_TASK_NAME)
+    }
 
-            class HelloWorldPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.tasks.create('helloWorld', HelloWorld)
-                }
-            }
-        """
+    def "cannot apply plugin using ProjectBuilder in a test running with broken Gradle versions"() {
+        expect:
+        BROKEN_GRADLE_VERSIONS.each {
+            def executionFailure = createGradleExecutor(it, TEST_TASK_NAME).runWithFailure()
+            executionFailure.assertTestsFailed()
+            executionFailure.assertOutputContains('Caused by: java.lang.ClassNotFoundException at PluginTest.java:21')
+        }
+    }
 
-        producerProjectDir.file('src/main/groovy/org/gradle/producer/HelloWorld.groovy') << """
-            package org.gradle.producer
+    private void writeSourceFiles() {
+        File repoDir = file('repo')
+        publishHelloWorldPluginWithOldGradleVersion(repoDir)
+        writeConsumingProject(repoDir)
+    }
 
-            import org.gradle.api.DefaultTask
-            import org.gradle.api.tasks.TaskAction
+    private void publishHelloWorldPluginWithOldGradleVersion(File repoDir) {
+        TestFile helloWorldPluginDir = temporaryFolder.createDir('hello')
 
-            class HelloWorld extends DefaultTask {
-                @TaskAction
-                void printHelloWorld() {
-                    println 'Hello world!'
-                }
-            }
-        """
+        helloWorldPluginDir.with {
+            file('src/main/groovy/org/gradle/hello/HelloWorldPlugin.groovy') << """
+                package org.gradle.hello
 
-        producerProjectDir.file('build.gradle') << """
-            apply plugin: 'groovy'
-            apply plugin: 'maven-publish'
+                import org.gradle.api.Project
+                import org.gradle.api.Plugin
 
-            group = 'org.gradle'
-            version = '1.0'
-
-            dependencies {
-                compile gradleApi()
-            }
-
-            publishing {
-                publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
+                class HelloWorldPlugin implements Plugin<Project> {
+                    void apply(Project project) {
+                        project.tasks.create('helloWorld', HelloWorld)
                     }
                 }
-                repositories {
-                    maven {
-                        url '${repoDir.toURI().toURL()}'
+            """
+
+            file('src/main/groovy/org/gradle/hello/HelloWorld.groovy') << """
+                package org.gradle.hello
+
+                import org.gradle.api.DefaultTask
+                import org.gradle.api.tasks.TaskAction
+
+                class HelloWorld extends DefaultTask {
+                    @TaskAction
+                    void printHelloWorld() {
+                        println 'Hello world!'
                     }
                 }
-            }
-        """
+            """
 
-        then:
-        createGradleExecutor(CONSUMER_GRADLE_VERSION, producerProjectDir, 'publish').run()
+            file('build.gradle') << """
+                apply plugin: 'groovy'
+                apply plugin: 'maven-publish'
 
-        when:
-        consumerProjectDir.file('src/main/groovy/org/gradle/consumer/AggregationPlugin.groovy') << """
-            package org.gradle.consumer
+                group = 'org.gradle'
+                version = '1.0'
 
-            import org.gradle.api.Project
-            import org.gradle.api.Plugin
-
-            import org.gradle.producer.HelloWorldPlugin
-
-            class AggregationPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.apply(plugin: HelloWorldPlugin)
+                dependencies {
+                    compile gradleApi()
                 }
-            }
-        """
 
-        consumerProjectDir.file('src/test/java/org/gradle/consumer/PluginTest.java') << """
+                publishing {
+                    publications {
+                        mavenJava(MavenPublication) {
+                            from components.java
+                        }
+                    }
+                    repositories {
+                        maven {
+                            url '${repoDir.toURI().toURL()}'
+                        }
+                    }
+                }
+            """
+        }
+
+        createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
+    }
+
+    private void writeConsumingProject(File repoDir) {
+        file('src/test/java/org/gradle/consumer/PluginTest.java') << """
             package org.gradle.consumer;
 
             import org.gradle.api.Project;
@@ -117,6 +134,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
             import org.gradle.testfixtures.ProjectBuilder;
             import org.junit.Before;
             import org.junit.Test;
+            import org.gradle.hello.HelloWorldPlugin;
 
             public class PluginTest {
                 private Project project;
@@ -128,12 +146,12 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
 
                 @Test
                 public void canApplyPlugin() {
-                    project.getPlugins().apply(AggregationPlugin.class);
+                    project.getPlugins().apply(HelloWorldPlugin.class);
                 }
             }
         """
 
-        consumerProjectDir.file('build.gradle') << """
+        file('build.gradle') << """
             apply plugin: 'groovy'
 
             group = 'org.gradle'
@@ -141,7 +159,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
 
             dependencies {
                 compile gradleApi()
-                compile 'org.gradle:producer:1.0'
+                compile 'org.gradle:hello:1.0'
                 testCompile 'junit:junit:4.12'
             }
 
@@ -150,12 +168,13 @@ class ProjectBuilderCrossVersionIntegrationTest extends CrossVersionIntegrationS
                 mavenCentral()
             }
         """
-
-        then:
-        createGradleExecutor(PRODUCER_GRADLE_VERSION, consumerProjectDir, 'test').run()
     }
 
-    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir, String... tasks) {
-        version(buildContext.distribution(gradleVersion)).inDirectory(projectDir).withTasks(tasks)
+    private GradleExecuter createGradleExecutor(String gradleVersion, File projectDir = testDirectory, String... tasks) {
+        def executer = buildContext.distribution(gradleVersion).executer(temporaryFolder)
+        executer.inDirectory(projectDir)
+        executer.withTasks(tasks)
+        executers << executer
+        executer
     }
 }

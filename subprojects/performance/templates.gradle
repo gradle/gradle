@@ -17,6 +17,7 @@ import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
@@ -153,6 +154,10 @@ task bigNewJava(type: JvmProjectGeneratorTask) {
     projects = 500
     subProjectTemplates = ['java-source', 'new-java-plugin']
     testDependencies = files()
+}
+
+[smallNewJava, mediumNewJava, bigNewJava].each { task ->
+    task.buildSrcTemplate = 'new-java-buildsrc'
 }
 
 task smallVariantsNewModel(type: JvmProjectGeneratorTask) {
@@ -365,6 +370,10 @@ task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
+[smallOldJava, mediumOldJava, bigOldJava, bigOldJavaMoreSource].each { task ->
+    task.buildSrcTemplate = 'old-java-buildsrc'
+}
+
 task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
     projects = 10
     sourceFiles = 100
@@ -554,6 +563,17 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
+task nativeDependents(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+}
+
+task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+    generateDeepHierarchy = true
+}
+
 tasks.withType(JvmProjectGeneratorTask) {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
@@ -562,7 +582,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 
 task mediumAndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-medium.git'
-    branch = 'cc-gradle-profile'
+    branch = 'gradle'
 
     doLast {
         // WordPress specific setup
@@ -573,6 +593,45 @@ task mediumAndroidBuild(type: RemoteProject) {
 task largeAndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     branch = 'master'
+}
+
+task largeEnterpriseBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-enterprise-large.git'
+    branch = 'master'
+
+    finalizedBy 'largeEnterpriseBuildPostProcess'
+
+}
+
+if (!project.hasProperty('enterpriseLargeSizeFactor')) {
+    ext.enterpriseLargeSizeFactor = '0.05'
+}
+
+task largeEnterpriseBuildPostProcess(type: GradleBuild) {
+    buildFile = file("$largeEnterpriseBuild.outputDirectory/generator/build.gradle")
+    dir = file("$largeEnterpriseBuild.outputDirectory/generator")
+    tasks = ['run']
+    // pass size scaling parameter to generator
+    startParameter.projectProperties = [projectSizeFactor: enterpriseLargeSizeFactor]
+    doFirst {
+        ext.origBuild = file("$largeEnterpriseBuild.outputDirectory/build.gradle").text
+    }
+    doLast {
+        def buildFile = file("$largeEnterpriseBuild.outputDirectory/build.gradle")
+        buildFile.text = "${origBuild}\n${buildFile.text}"
+    }
+}
+
+task largeNativeBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-native-large'
+    branch = 'master'
+    finalizedBy 'largeNativeBuildPrebuilt'
+}
+
+task largeNativeBuildPrebuilt(type: GradleBuild) {
+    buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
+    dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
+    tasks = ['build']
 }
 
 // The Android Studio performance tests use custom model classes which need to be found in

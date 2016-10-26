@@ -38,8 +38,8 @@ class GradleExecuterBackedSession implements GradleSession {
     }
 
 
-    Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
-        def runner = createExecuter(invocationCustomizer, true)
+    Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+        def runner = createExecuter(invocationInfo, invocationCustomizer, true)
         return {
             if (invocation.expectFailure) {
                 runner.runWithFailure()
@@ -51,11 +51,11 @@ class GradleExecuterBackedSession implements GradleSession {
 
     @Override
     void cleanup() {
-        createExecuter(null, false).withTasks().withArgument("--stop").run()
+        createExecuter(null, null, false).withTasks().withArgument("--stop").run()
     }
 
-    private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
-        def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
+    private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
+        def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
             requireOwnGradleUserHomeDir().

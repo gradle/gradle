@@ -21,13 +21,18 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 /**
  * An immutable snapshot of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot {
+    FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED, true);
+
     boolean isEmpty();
 
     /**

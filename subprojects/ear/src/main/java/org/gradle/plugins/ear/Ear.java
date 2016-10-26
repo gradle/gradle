@@ -61,7 +61,7 @@ public class Ear extends Jar {
                 return getLibDirName();
             }
         });
-        getMainSpec().eachFile(
+        getMainSpec().appendCachingSafeCopyAction(
             new Action<FileCopyDetails>() {
                 @Override
                 public void execute(FileCopyDetails details) {

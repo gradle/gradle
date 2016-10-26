@@ -631,17 +631,18 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         then:
         1 * command.run() >> {
-            coordinator.getIdleMillis(System.currentTimeMillis()) == 0L
+            coordinator.getIdleMillis() == 0L
         }
     }
 
     def "idle millis is > 0 when daemon is idle"() {
         when:
-        coordinator.lastActivityAt = 100
+        coordinator.updateActivityTimestamp()
+        sleep(10)
 
         then:
         idle
-        coordinator.getIdleMillis(110) == 10
+        coordinator.getIdleMillis() > 0
     }
 
     boolean isStopped() {

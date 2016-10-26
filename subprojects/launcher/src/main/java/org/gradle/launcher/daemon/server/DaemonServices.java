@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -44,7 +43,6 @@ import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
 import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput;
 import org.gradle.launcher.daemon.server.exec.HandleCancel;
-import org.gradle.launcher.daemon.server.exec.HintGCAfterBuild;
 import org.gradle.launcher.daemon.server.exec.LogAndCheckHealth;
 import org.gradle.launcher.daemon.server.exec.LogToClient;
 import org.gradle.launcher.daemon.server.exec.RequestStopIfSingleUsedDaemon;
@@ -60,6 +58,7 @@ import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.util.UUID;
@@ -72,14 +71,14 @@ import java.util.concurrent.ScheduledExecutorService;
 public class DaemonServices extends DefaultServiceRegistry {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
-    private final long startTime;
+    private final Clock runningClock;
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath, long startTime) {
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
         super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
-        this.startTime = startTime;
+        this.runningClock = new Clock();
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
@@ -114,7 +113,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonRunningStats createDaemonRunningStats() {
-        return new DaemonRunningStats(new TrueTimeProvider(), startTime);
+        return new DaemonRunningStats(runningClock);
     }
 
     protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {
@@ -146,7 +145,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             new HandleReportStatus(),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
-            new HintGCAfterBuild(),
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new LogAndCheckHealth(healthStats, healthCheck),

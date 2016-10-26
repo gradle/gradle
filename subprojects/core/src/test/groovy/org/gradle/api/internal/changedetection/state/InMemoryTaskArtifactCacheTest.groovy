@@ -17,19 +17,20 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.internal.AsyncCacheAccess
+import org.gradle.cache.internal.CrossProcessCacheAccess
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache
+import org.gradle.internal.Factory
 import spock.lang.Specification
-
-import java.util.concurrent.Callable
 
 class InMemoryTaskArtifactCacheTest extends Specification {
     def cacheFactory = new InMemoryTaskArtifactCache()
     def target = Mock(MultiProcessSafePersistentIndexedCache)
     def asyncCacheAccess = Mock(AsyncCacheAccess)
+    def crossProcessCacheAccess = Mock(CrossProcessCacheAccess)
 
     def "caches result from backing cache"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -38,7 +39,8 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> "result"
         0 * target._
 
@@ -49,12 +51,13 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         0 * target._
     }
 
     def "caches null result from backing cache"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -63,7 +66,8 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == null
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> null
         0 * target._
 
@@ -74,12 +78,15 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == null
 
         and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         0 * target._
     }
 
     def "caches result of putting item"() {
+        def lock = Mock(Runnable)
+
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -88,17 +95,19 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> "result"
         0 * target._
 
         when:
         cache.put("key", "new value")
-        Thread.sleep(100L)
 
         then:
+        1 * crossProcessCacheAccess.acquireFileLock() >> lock
         1 * asyncCacheAccess.enqueue(_) >> { Runnable action -> action.run() }
         1 * target.put("key", "new value")
+        1 * lock.run()
         0 * _._
 
         when:
@@ -108,12 +117,15 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "new value"
 
         and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         0 * target._
     }
 
     def "caches result of removing item"() {
+        def lock = Mock(Runnable)
+
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -122,17 +134,19 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
         1 * target.get("key") >> "result"
         0 * target._
 
         when:
         cache.remove("key")
-        Thread.sleep(100L)
 
         then:
+        1 * crossProcessCacheAccess.acquireFileLock() >> lock
         1 * asyncCacheAccess.enqueue(_) >> { Runnable action -> action.run() }
         1 * target.remove("key")
+        1 * lock.run()
         0 * _._
 
         when:
@@ -142,6 +156,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == null
 
         and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         0 * target._
     }
 

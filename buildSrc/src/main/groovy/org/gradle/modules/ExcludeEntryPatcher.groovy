@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -14,32 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.modules
 
-import org.gradle.api.Project
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
-
+import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.project.ProjectInternal
 /**
  * Removes specific entries from the specified jar file.
  * This is used to patch the kotlin-compiler-embeddable jar, which has a bogus `CharsetProvider` entry.
  */
+@CompileStatic
 class ExcludeEntryPatcher {
 
-    Project project
+    ProjectInternal project
 
     Configuration runtime
 
     String jarFile
 
-    List<String> excludes = []
+    List<String> excludedEntries = []
 
-    ExcludeEntryPatcher(Project project, Configuration runtime, String jarFile) {
+    File temporaryDir
+
+    ExcludeEntryPatcher(ProjectInternal project, File temporaryDir, Configuration runtime, String jarFile) {
         this.project = project
         this.runtime = runtime
         this.jarFile = jarFile
+        this.temporaryDir = temporaryDir
     }
 
-    def exclude(String exclude) {
-        excludes << exclude
+    ExcludeEntryPatcher exclude(String exclude) {
+        excludedEntries << exclude
         this
     }
 
@@ -52,15 +59,19 @@ class ExcludeEntryPatcher {
     }
 
     private File unpack(File file) {
-        def unpackDir = project.file("${project.buildDir}/external/unpack/${file.name}")
-        project.copy { spec ->
-            spec.into(unpackDir)
-            spec.from(project.zipTree(file))
-            spec.exclude this.excludes
-        }
+        def unpackDir = new File(temporaryDir, file.name)
+        project.sync(new Action<CopySpec>() {
+            @Override
+            void execute(CopySpec spec) {
+                spec.into(unpackDir)
+                spec.from(project.zipTree(file))
+                spec.exclude(excludedEntries)
+            }
+        })
         unpackDir
     }
 
+    @CompileDynamic
     private void pack(File baseDir, File destFile) {
         project.ant.zip(basedir: baseDir, destfile: destFile)
     }

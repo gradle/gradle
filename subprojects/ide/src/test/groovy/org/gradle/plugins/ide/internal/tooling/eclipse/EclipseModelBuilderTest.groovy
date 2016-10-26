@@ -37,7 +37,6 @@ import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.tooling.internal.gradle.DefaultGradleProject
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
@@ -296,8 +295,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     private def createEclipseModelBuilder() {
-        def gradleProjectBuilder = Mock(GradleProjectBuilder)
-        gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
+        def gradleProjectBuilder = new GradleProjectBuilder()
         def serviceRegistry = new DefaultServiceRegistry()
         serviceRegistry.add(LocalComponentRegistry, Stub(LocalComponentRegistry))
         serviceRegistry.add(CompositeBuildContext, Stub(CompositeBuildContext))

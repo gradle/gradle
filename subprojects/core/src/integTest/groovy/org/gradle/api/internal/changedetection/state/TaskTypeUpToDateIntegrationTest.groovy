@@ -29,9 +29,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir buildDir
             }
         """
+        buildFile.makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
+
+        file('build/input.txt').makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
@@ -50,9 +53,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt") << "input"
 
         buildFile << declareSimpleCopyTask(false)
+        buildFile.makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
+
+        file("output.txt").makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
@@ -61,10 +67,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile.text = declareSimpleCopyTask(true)
 
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
@@ -79,9 +88,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        buildFile.makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
+
+        file('build/input.txt').makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
@@ -109,9 +121,12 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 output = file("output.txt")
             }
         """
+        file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks.empty
+
+        file("output.txt").makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
@@ -120,10 +135,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
@@ -134,6 +152,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/groovy/SimpleCopy.groovy") << declareSimpleCopyTaskType()
 
         file("buildSrc/build.gradle") << guavaDependency("15.0")
+        file("buildSrc/build.gradle").makeOlder()
 
         buildFile << """
             task copy(type: SimpleCopy) {
@@ -145,6 +164,8 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when: succeeds "copy"
         then: skippedTasks.empty
 
+        file("output.txt").makeOlder()
+
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
@@ -152,10 +173,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 

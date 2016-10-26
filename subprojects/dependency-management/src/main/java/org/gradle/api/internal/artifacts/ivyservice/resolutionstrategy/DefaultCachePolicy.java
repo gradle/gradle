@@ -194,8 +194,19 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         private AbstractResolutionControl(A request, B cachedResult, long ageMillis) {
             this.request = request;
             this.cachedResult = cachedResult;
-            this.ageMillis = ageMillis;
+            this.ageMillis = correctForClockShift(ageMillis);
         }
+
+        /**
+         * If the age < 0, then it's probable that we've had a clock shift. In this case, treat the age as 1ms.
+         */
+        private long correctForClockShift(long ageMillis) {
+            if (ageMillis < 0) {
+                return 1;
+            }
+            return ageMillis;
+        }
+
 
         public A getRequest() {
             return request;
@@ -206,11 +217,11 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         }
 
         public void cacheFor(int value, TimeUnit units) {
-            long timeoutMillis = TimeUnit.MILLISECONDS.convert(value, units);
-            if (ageMillis <= timeoutMillis) {
-                setMustCheck(false);
-            } else {
+            long expiryMillis = TimeUnit.MILLISECONDS.convert(value, units);
+            if (ageMillis > expiryMillis) {
                 setMustCheck(true);
+            } else {
+                setMustCheck(false);
             }
         }
 

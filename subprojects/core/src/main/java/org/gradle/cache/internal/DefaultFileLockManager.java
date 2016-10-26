@@ -20,6 +20,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.filelock.*;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -47,6 +51,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final IdGenerator<Long> generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
+    private final TimeProvider timeProvider = new TrueTimeProvider();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -219,7 +224,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 // Discard information region
                                 java.nio.channels.FileLock info;
                                 try {
-                                    info = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
+                                    info = lockInformationRegion(LockMode.Exclusive, Timers.startTimer(shortTimeoutMs));
                                 } catch (InterruptedException e) {
                                     throw throwAsUncheckedException(e);
                                 }
@@ -255,12 +260,12 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private LockState lock(FileLockManager.LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
-            long waitUntil = System.currentTimeMillis() + lockTimeoutMs;
+            CountdownTimer timer = Timers.startTimer(lockTimeoutMs);
 
             // Lock the state region, with the requested mode
-            java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, waitUntil);
+            java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, timer);
             if (stateRegionLock == null) {
-                LockInfo lockInfo = readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
+                LockInfo lockInfo = readInformationRegion(Timers.startTimer(shortTimeoutMs));
                 throw new LockTimeoutException(displayName, lockInfo.pid, metaDataProvider.getProcessIdentifier(), lockInfo.operation, operationDisplayName, lockFile);
             }
 
@@ -273,7 +278,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     lockState = lockFileAccess.ensureLockState();
 
                     // Acquire an exclusive lock on the information region and write our details there
-                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
+                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, Timers.startTimer(shortTimeoutMs));
                     if (informationRegionLock == null) {
                         throw new IllegalStateException(String.format("Unable to lock the information region for %s", displayName));
                     }
@@ -296,10 +301,10 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
-        private LockInfo readInformationRegion(long waitUntil) throws IOException, InterruptedException {
+        private LockInfo readInformationRegion(CountdownTimer timer) throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
             LockInfo out = new LockInfo();
-            java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, waitUntil);
+            java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timer);
             if (informationRegionLock == null) {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
@@ -312,14 +317,14 @@ public class DefaultFileLockManager implements FileLockManager {
             return out;
         }
 
-        private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long waitUntil) throws IOException, InterruptedException {
+        private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final CountdownTimer timer) throws IOException, InterruptedException {
             do {
                 java.nio.channels.FileLock fileLock = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
                 if (port != -1) { //we don't like the assumption about the port very much
-                    LockInfo lockInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
+                    LockInfo lockInfo = readInformationRegion(timer);
                     if (lockInfo.port != -1) {
                         LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", lockInfo.pid, lockInfo.operation, lockInfo.port);
                         fileLockContentionHandler.pingOwner(lockInfo.port, lockInfo.lockId, displayName);
@@ -329,11 +334,11 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
                 //TODO SF we should inform on the progress/status bar that we're waiting
                 Thread.sleep(200L);
-            } while (System.currentTimeMillis() < waitUntil);
+            } while (!timer.hasExpired());
             return null;
         }
 
-        private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long waitUntil) throws IOException, InterruptedException {
+        private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, CountdownTimer timer) throws IOException, InterruptedException {
             do {
                 java.nio.channels.FileLock fileLock = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
@@ -341,7 +346,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
                 Thread.sleep(200L);
             }
-            while (System.currentTimeMillis() < waitUntil);
+            while (!timer.hasExpired());
             return null;
         }
     }

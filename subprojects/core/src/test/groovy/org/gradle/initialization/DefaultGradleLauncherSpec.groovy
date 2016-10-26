@@ -23,7 +23,7 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -31,10 +31,10 @@ import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
-import org.gradle.internal.Factory
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -50,7 +50,7 @@ public class DefaultGradleLauncherSpec extends Specification {
     def buildExecuter = Mock(BuildExecuter.class);
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class);
     def buildScopeServices = Mock(ServiceRegistry)
-    def taskArtifactStateCacheAccess = Mock(TaskArtifactStateCacheAccess)
+    def taskArtifactStateCacheAccess = Mock(TaskHistoryStore)
 
     private ProjectInternal expectedRootProject;
     private ProjectInternal expectedCurrentProject;
@@ -67,6 +67,7 @@ public class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
+    private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     final RuntimeException failure = new RuntimeException("main");
@@ -103,14 +104,14 @@ public class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.getServices() >> buildScopeServices
         0 * gradleMock._
 
-        buildScopeServices.get(TaskArtifactStateCacheAccess) >> taskArtifactStateCacheAccess
+        buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
     }
 
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices);
+            buildServices, [otherService]);
     }
 
     public void testRun() {
@@ -245,6 +246,7 @@ public class DefaultGradleLauncherSpec extends Specification {
         then:
         1 * loggingManagerMock.stop()
         1 * buildServices.close()
+        1 * otherService.stop()
         1 * buildCompletionListener.completed()
     }
 
@@ -278,32 +280,5 @@ public class DefaultGradleLauncherSpec extends Specification {
 
     private void expectTasksRunWithFailure(final Throwable failure) {
         1 * buildExecuter.execute(gradleMock) >> {throw failure}
-    }
-
-    private static class TestBuildOperationExecutor implements BuildOperationExecutor {
-        @Override
-        public Object getCurrentOperationId() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public <T> T run(String displayName, Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public void run(BuildOperationDetails operationDetails, Runnable action) {
-            action.run();
-        }
-
-        @Override
-        public void run(String displayName, Runnable action) {
-            action.run();
-        }
     }
 }

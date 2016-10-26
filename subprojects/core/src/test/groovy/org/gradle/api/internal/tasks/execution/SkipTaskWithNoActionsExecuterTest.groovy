@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
@@ -48,7 +49,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
         executor.execute(task, state, executionContext)
 
         then:
-        1 * state.upToDate()
+        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
         0 * target._
         0 * state._
     }
@@ -62,6 +63,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
         executor.execute(task, state, executionContext)
 
         then:
+        1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
         0 * target._
         0 * state._
     }

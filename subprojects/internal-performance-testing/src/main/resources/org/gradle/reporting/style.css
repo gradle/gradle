@@ -136,3 +136,27 @@ nav li a:hover {
     opacity: 0.80;
     padding: 3px;
 }
+
+a.commit-link {
+    text-decoration: none;
+    color: #444;
+    padding: 3px 5px;
+}
+
+a.compare-link {
+    text-decoration: none;
+    color: #a0a0a0;
+    font-size: 8pt;
+    padding: 3px 5px;
+}
+
+a.chart-legend {
+    text-decoration: none;
+    color: #444;
+    padding: 3px 5px;
+}
+
+a:hover.commit-link, a:hover.compare-link, a:hover.chart-legend {
+    background-color: #00c489;
+    color: white;
+}

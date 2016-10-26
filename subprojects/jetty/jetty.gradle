@@ -23,9 +23,9 @@ dependencies {
     compile libraries.jetty
     compile libraries.jetty_util
     compile libraries.servlet_api
-    compile module("org.mortbay.jetty:jetty-plus:6.1.25") {
+    compile module("org.mortbay.jetty:jetty-plus:6.1.26") {
         dependency libraries.jetty
-        module("org.mortbay.jetty:jetty-naming:6.1.25") {
+        module("org.mortbay.jetty:jetty-naming:6.1.26") {
             dependency libraries.jetty
         }
     }
@@ -37,7 +37,7 @@ dependencies {
         dependency libraries.servlet_api
     }
 
-    runtime "org.mortbay.jetty:jetty-annotations:6.1.25@jar"
+    runtime "org.mortbay.jetty:jetty-annotations:6.1.26@jar"
     runtime "org.apache.geronimo.specs:geronimo-annotation_1.0_spec:1.0@jar"
 }
 

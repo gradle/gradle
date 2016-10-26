@@ -15,6 +15,6 @@
  */
 package org.gradle.performance.fixture;
 
-public interface InvocationExecutorProvider<T extends InvocationCustomizer> {
-    Runnable runner(T invocationCustomizer);
+public interface InvocationExecutorProvider {
+    Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer);
 }

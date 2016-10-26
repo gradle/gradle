@@ -27,7 +27,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -127,7 +128,7 @@ public class TransientConfigurationResultsBuilder {
     }
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedContentsMapping mapping) {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
         int valuesRead = 0;
@@ -150,7 +151,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
                         //root should be the last
-                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
+                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
                         return results;
                     case FIRST_LVL:
                         id = decoder.readSmallLong();

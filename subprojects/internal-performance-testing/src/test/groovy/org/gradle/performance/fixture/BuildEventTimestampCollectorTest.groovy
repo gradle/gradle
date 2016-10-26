@@ -33,6 +33,7 @@ class BuildEventTimestampCollectorTest extends Specification {
     BuildEventTimestampCollector collector = new BuildEventTimestampCollector(FILENAME)
 
     private void collect() {
+        measuredOperation.setTotalTime(Duration.millis(100000L))
         collector.collect([getProjectDir: { directoryProvider.testDirectory }] as BuildExperimentInvocationInfo, measuredOperation)
     }
 
@@ -53,7 +54,7 @@ class BuildEventTimestampCollectorTest extends Specification {
         e.message == "Could not find $logFilePath. Cannot collect build event timestamps."
     }
 
-    def "throws when file does not contain 3 lines"() {
+    def "throws when file does not contain 5 lines"() {
         given:
         timestampFileContents """1425907240000000
 1425907245000000
@@ -63,14 +64,16 @@ class BuildEventTimestampCollectorTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Build event timestamp log at $logFilePath should contain at least 3 lines."
+        e.message == "Build event timestamp log at $logFilePath should contain at least 5 lines."
     }
 
     def "throws when file contains anything that can't be parsed to a long"() {
         given:
         timestampFileContents """null
 1425907240000000
-1425907245000000"""
+1425907245000000
+99000
+123000000"""
 
         when:
         collect()
@@ -85,7 +88,9 @@ class BuildEventTimestampCollectorTest extends Specification {
         given:
         timestampFileContents """1425907240000000
 1425907245000000
-1425907255000000"""
+1425907255000000
+99000
+123000000"""
 
         when:
         collect()
@@ -93,5 +98,7 @@ class BuildEventTimestampCollectorTest extends Specification {
         then:
         measuredOperation.configurationTime == Duration.millis(5)
         measuredOperation.executionTime == Duration.millis(10)
+        and: 'measurement time is subtracted from total time'
+        measuredOperation.totalTime == Duration.millis(100000L - 123L)
     }
 }

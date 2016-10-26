@@ -1,0 +1,15 @@
+:compileOperatorsTestPassingCUnitExeOperatorsC
+:operatorsTestCUnitLauncher
+:compileOperatorsTestPassingCUnitExeOperatorsTestC
+:compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher
+:linkOperatorsTestPassingCUnitExe
+:operatorsTestPassingCUnitExe
+:assembleDependentsOperatorsTestPassingCUnitExe
+:compileOperatorsPassingStaticLibraryOperatorsC
+:createOperatorsPassingStaticLibrary
+:operatorsPassingStaticLibrary
+:assembleDependentsOperatorsPassingStaticLibrary
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

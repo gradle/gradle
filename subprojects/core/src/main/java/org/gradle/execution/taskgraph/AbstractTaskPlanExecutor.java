@@ -21,8 +21,12 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.TrueTimeProvider;
 
-import static org.gradle.util.Clock.prettyTime;
+import static org.gradle.internal.time.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
@@ -35,6 +39,7 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+        private final TimeProvider timeProvider = new TrueTimeProvider();
 
         private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
             this.taskExecutionPlan = taskExecutionPlan;
@@ -44,16 +49,17 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
 
         public void run() {
             long busy = 0;
-            long start = System.currentTimeMillis();
+            Timer totalTimer = Timers.startTimer();
+            Timer taskTimer = Timers.startTimer();
             TaskInfo task;
             while ((task = taskExecutionPlan.getTaskToExecute()) != null) {
                 BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
                 try {
                     final String taskPath = task.getTask().getPath();
                     LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
-                    long startTask = System.currentTimeMillis();
+                    taskTimer.reset();
                     processTask(task);
-                    long taskDuration = System.currentTimeMillis() - startTask;
+                    long taskDuration = taskTimer.getElapsedMillis();
                     busy += taskDuration;
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
@@ -62,7 +68,7 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
                     completion.operationFinish();
                 }
             }
-            long total = System.currentTimeMillis() - start;
+            long total = totalTimer.getElapsedMillis();
             //TODO SF it would be nice to print one-line statement that concludes the utilisation of the worker threads
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy), prettyTime(total - busy));

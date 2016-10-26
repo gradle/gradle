@@ -26,6 +26,7 @@ abstract class AbstractAndroidPerformanceTest extends AbstractCrossVersionPerfor
         runner.executerDecorator = { GradleExecuter executor ->
             // todo: investigate why Android builds require this check disabled
             executor.withEagerClassLoaderCreationCheckDisabled()
+                .noDeprecationChecks()
         }
     }
 }

@@ -36,52 +36,67 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
     public ComponentIdentifier read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
-        if(Implementation.BUILD.getId() == id) {
+        if (Implementation.BUILD.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            return new DefaultProjectComponentIdentifier(buildIdentifier, decoder.readString());
-        } else if(Implementation.MODULE.getId() == id) {
-            return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+            return DefaultProjectComponentIdentifier.of(buildIdentifier, decoder.readString());
+        } else if (Implementation.MODULE.getId() == id) {
+            return DefaultModuleComponentIdentifier.of(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+            return DefaultLibraryBinaryIdentifier.of(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
-        throw new IllegalArgumentException("Unable to find component identifier with id: " + id);
+        throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);
     }
 
     public void write(Encoder encoder, ComponentIdentifier value) throws IOException {
-        if(value == null) {
+        if (value == null) {
             throw new IllegalArgumentException("Provided component identifier may not be null");
         }
 
-        if(value instanceof DefaultModuleComponentIdentifier) {
-            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)value;
-            encoder.writeByte(Implementation.MODULE.getId());
+        Implementation implementation = resolveImplementation(value);
+
+        encoder.writeByte(implementation.getId());
+
+        if (implementation == Implementation.MODULE) {
+            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) value;
             encoder.writeString(moduleComponentIdentifier.getGroup());
             encoder.writeString(moduleComponentIdentifier.getModule());
             encoder.writeString(moduleComponentIdentifier.getVersion());
-        } else if(value instanceof DefaultProjectComponentIdentifier) {
-            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)value;
-            encoder.writeByte(Implementation.BUILD.getId());
+        } else if (implementation == Implementation.BUILD) {
+            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) value;
             BuildIdentifier build = projectComponentIdentifier.getBuild();
             buildIdentifierSerializer.write(encoder, build);
             encoder.writeString(projectComponentIdentifier.getProjectPath());
-        } else if(value instanceof DefaultLibraryBinaryIdentifier) {
-            LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier)value;
-            encoder.writeByte(Implementation.LIBRARY.getId());
+        } else if (implementation == Implementation.LIBRARY) {
+            LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier) value;
             encoder.writeString(libraryIdentifier.getProjectPath());
             encoder.writeString(libraryIdentifier.getLibraryName());
             encoder.writeString(libraryIdentifier.getVariant());
         } else {
-            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
+            throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
     }
 
-    private static enum Implementation {
+    private Implementation resolveImplementation(ComponentIdentifier value) {
+        Implementation implementation;
+        if (value instanceof ModuleComponentIdentifier) {
+            implementation = Implementation.MODULE;
+        } else if (value instanceof ProjectComponentIdentifier) {
+            implementation = Implementation.BUILD;
+        } else if (value instanceof LibraryBinaryIdentifier) {
+            implementation = Implementation.LIBRARY;
+        } else {
+            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
+        }
+        return implementation;
+    }
+
+    private enum Implementation {
         MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3);
 
         private final byte id;
 
-        private Implementation(byte id) {
+        Implementation(byte id) {
             this.id = id;
         }
 

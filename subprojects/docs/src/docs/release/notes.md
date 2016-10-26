@@ -9,31 +9,6 @@ Add-->
 <!--
 ### Example new and noteworthy
 -->
-### Origin of deprecation warning within build script is rendered on command line
-
-For each deprecation warning Gradle now prints its location in the
-build file to the console. When passing the command line option `-s` or `-S`
-to Gradle then the whole stack trace is printed out.
-The improved log message should make it much easier to spot and fix those warnings.
-
-    > gradle tasks
-    The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.
-            at build_dhrhtn4oo56t198zc6nkf59c4.run(/home/someuser/project-dir/build.gradle:3)
-    
-    ...
-
-### The Wrapper can now use HTTP Basic Authentication to download distributions
-
-The Gradle Wrapper can now download Gradle distributions from a server requiring authentication.
-This allows you to host the Gradle distribution on a private server protected with HTTP Basic Authentication.
-
-See the User guide section on “[authenticated distribution download](userguide/gradle_wrapper.html#sec:authenticated_download)“ for more information.
-
-As stated in the User guide, please note that this shouldn't be used over insecure connections.
-
-### Ctrl-c no longer stops the Daemon
-
-In Gradle 3.1 we made a number of improvements to allow the daemon to cancel a running build when a client disconnects unexpectedly, but there were situations where pressing ctrl-c during a build could still cause the Daemon to exit.  With this release, any time ctrl-c is sent, the Daemon will attempt to cancel the running build.  As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
 
 ## Promoted features
 
@@ -55,64 +30,78 @@ in the next major Gradle version (Gradle 4.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-### The left shift operator on the Task interface
+<!--
+### Example deprecation
+-->
 
-The left shift (`<<`) operator acts as alias for adding a `doLast` action for an existing task. For newcomers to Gradle, the meaning of the operator is not immediately apparent and 
-leads to mixing configuration code with action code. Consequently, mis-configured task lead to unexpected runtime behavior. Let's consider the following two examples to illustrate common 
-mistakes.
- 
-_Definition of a default task that configures the `description` property and defines an action using the left shift operator:_ As a result, the task would not configure the task's description.
-    
-    // WRONG: Description assigned in execution phase
-    task helloWorld << {
-        description = 'Prints out a message.'
-        println 'Hello world!'
-    }
-    
-    // CORRECT: Description assigned in configuration phase
-    task helloWorld {
-        description = 'Prints out a message.'
-        doLast {
-            println 'Hello world!'
-        }
-    }
+### Deprecated Ant-related Java compiler properties
 
-_Definition of an enhanced task using the left shift operator:_ As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the `Copy` task are configured during the execution 
-phase of the Gradle build lifecycle which is to late for Gradle to pick up the configuration.
+The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprecated the Ant-based `<depend/>` task support as well.
 
-    // WRONG: Configuring task in execution phase
-    task copy(type: Copy) << {
-        from 'source'
-        into "$buildDir/output"
-    }
-    
-    // CORRECT: Configuring task in configuration phase
-    task copy(type: Copy) {
-        from 'source'
-        into "$buildDir/output"
-    }
+* `JavaCompile.dependencyCacheDir`
+* `JavaCompileSpec.dependencyCacheDir`
+* `JavaPluginConvention.dependencyCacheDir`
+* `JavaPluginConvention.dependencyCacheDirName`
+* `CompileOptions.useDepend`
+* `CompileOptions.depend()`
 
-With this version of Gradle, the left shift operator on the `Task` interface is deprecated and is scheduled to be removed with the next major release. There's no direct replacement
-for the left shift operation. Please use the existing methods `doFirst` and `doLast` to define task actions.
+### Deprecated methods
+
+* `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### BuildInvocations model is always returned for the connected project
+
+In previous Gradle versions, when connected to a sub-project and asking for the `BuildInvocations` model using a `ProjectConnection`,
+the `BuildInvocations` model for the root project was returned instead. Gradle will now
+return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
+
+
+### Java `Test` task doesn't track working directory as input
+
+Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic, too, since the default working directory is the project directory. All-in-all tracking the working directory path wasn't adding much functionality as most tests don't rely on the working directory at all, and those that do depend on its contents as well.
+
+From Gradle 3.3 the working directory is not tracked at all. Due to this changing the path of the working directory between builds won't make the task out-of-date.
+
+If it's needed, the working directory can be added as an explicit input to the task, with contents tracking:
+
+```groovy
+test {
+    workingDir "$buildDir/test-work"
+    inputs.dir workingDir
+}
+```
+
+To restore the previous behavior of tracking only the path of the working directory:
+
+```groovy
+test {
+    inputs.property "workingDir", workingDir
+}
+```
+
+### `LenientConfiguration.getFiles()` returns the same set of files as other dependency query methods
+
+There are several different methods you can use to query the set of files for the dependencies defined for a `Configuration`.
+One such method is `LenientConfiguration.getFiles()`. In previous versions of Gradle this method would not include files defined by file dependencies. These are dependencies that are declared using a `FileCollection`, such as:
+
+    dependencies {
+        compile fileTree(dir: 'some-dir', include: '**/*.jar')
+    }
+    
+In this version of Gradle, `LenientConfiguration.getFiles()` now includes these files in the result. This change makes this method consistent with other query methods such as `ResolvedConfiguration.getFiles()` or `Configuration.getFiles()`.    
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
-- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning
-- [Jeff Baranski](https://github.com/jbaranski) - Fix doc bug with turning off daemon in a .bat file
-- [Justin Sievenpiper](https://github.com/jsievenpiper) - Prevent navigating down to JDK classes when detecting the parent test class
-- [Alex Proca](https://github.com/alexproca) - Limit Unix Start Scripts to use POSIX standard sh
-- [Spencer Allain](https://github.com/merscwog) - Do not require password for truststore
-- [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
-- [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
+ - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
+ - [Francis Andre](https://github.com/zosrothko) - Import Gradle production source into Eclipse without compile errors
+
+<!--
+ - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+-->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

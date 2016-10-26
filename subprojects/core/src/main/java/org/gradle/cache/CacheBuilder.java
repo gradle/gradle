@@ -22,16 +22,19 @@ import org.gradle.cache.internal.filelock.LockOptions;
 import java.util.Map;
 
 public interface CacheBuilder {
-    enum VersionStrategy {
+    enum LockTarget {
         /**
-         * A separate cache instance for each Gradle version. This is the default.
+         * Use the cache properties file as the lock target, for backwards compatibility with old Gradle versions.
          */
-        CachePerVersion,
+        CachePropertiesFile,
         /**
-         * A single cache instance shared by all Gradle versions. It is the caller's responsibility to make sure that this is shared only with
-         * those versions of Gradle that are compatible with the cache implementation and contents.
+         * Use the cache directory as the lock target, for backwards compatibility with old Gradle versions.
          */
-        SharedCache
+        CacheDirectory,
+        /**
+         * Use the default target.
+         */
+        DefaultTarget,
     }
 
     /**
@@ -45,9 +48,10 @@ public interface CacheBuilder {
 
     /**
      * Specifies that the cache should be shared by all versions of Gradle. The default is to use a Gradle version specific cache.
+     * @param lockTarget The lock target, used for backwards compatibility with older Gradle versions. Use {@link LockTarget#DefaultTarget} when no preference.
      * @return this
      */
-    CacheBuilder withCrossVersionCache();
+    CacheBuilder withCrossVersionCache(LockTarget lockTarget);
 
     /**
      * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.

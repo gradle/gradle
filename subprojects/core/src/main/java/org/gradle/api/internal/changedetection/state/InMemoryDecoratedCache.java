@@ -19,10 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.cache.Cache;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.internal.AsyncCacheAccess;
-import org.gradle.cache.internal.AsyncCacheAccessDecoratedCache;
 import org.gradle.cache.internal.FileLock;
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -30,28 +28,30 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> {
+class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final static Logger LOG = Logging.getLogger(InMemoryDecoratedCache.class);
     private final static Object NULL = new Object();
-    private final Cache<Object, Object> data;
+    private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
+    private final Cache<Object, Object> inMemoryCache;
     private final String cacheId;
     private final AtomicReference<FileLock.State> fileLockStateReference;
 
-    public InMemoryDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> original, Cache<Object, Object> data, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
-        super(asyncCacheAccess, original);
-        this.data = data;
+    public InMemoryDecoratedCache(MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate, Cache<Object, Object> inMemoryCache, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
+        this.delegate = delegate;
+        this.inMemoryCache = inMemoryCache;
         this.cacheId = cacheId;
         this.fileLockStateReference = fileLockStateReference;
     }
 
+    @Override
     public V get(final K key) {
         assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
         Object value;
         try {
-            value = data.get(key, new Callable<Object>() {
+            value = inMemoryCache.get(key, new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    Object out = InMemoryDecoratedCache.super.get(key);
+                    Object out = delegate.get(key);
                     return out == null ? NULL : out;
                 }
             });
@@ -65,17 +65,20 @@ class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> 
         }
     }
 
-    public void put(final K key, final V value) {
-        data.put(key, value);
-        super.put(key, value);
+    @Override
+    public void putLater(K key, V value, Runnable completion) {
+        inMemoryCache.put(key, value);
+        delegate.putLater(key, value, completion);
     }
 
-    public void remove(final K key) {
-        data.put(key, NULL);
-        super.remove(key);
+    @Override
+    public void removeLater(K key, Runnable completion) {
+        inMemoryCache.put(key, NULL);
+        delegate.removeLater(key, completion);
     }
 
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
+    @Override
+    public void afterLockAcquire(FileLock.State currentCacheState) {
         boolean outOfDate = false;
         FileLock.State previousState = fileLockStateReference.get();
         if (previousState == null) {
@@ -85,13 +88,19 @@ class InMemoryDecoratedCache<K, V> extends AsyncCacheAccessDecoratedCache<K, V> 
             outOfDate = true;
         }
         if (outOfDate) {
-            data.invalidateAll();
+            inMemoryCache.invalidateAll();
         }
-        super.onStartWork(operationDisplayName, currentCacheState);
+        delegate.afterLockAcquire(currentCacheState);
     }
 
-    public void onEndWork(FileLock.State currentCacheState) {
+    @Override
+    public void finishWork() {
+        delegate.finishWork();
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
         fileLockStateReference.set(currentCacheState);
-        super.onEndWork(currentCacheState);
+        delegate.beforeLockRelease(currentCacheState);
     }
 }

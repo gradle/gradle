@@ -39,9 +39,12 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject       | targetVersions
-        "small"           | ['last']
-        "multi"           | ['last']
-        "lotDependencies" | ['last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "small"           | ['3.3-20161026000020+0000']
+        "multi"           | ['3.2-20160915000027+0000']
+        "lotDependencies" | ['3.2-20160915000027+0000']
     }
 
     @Unroll("Project '#testProject' idea")
@@ -61,8 +64,11 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject       | targetVersions
-        "small"           | ['last']
-        "multi"           | ['last']
-        "lotDependencies" | ['last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "small"           | ['3.2-20160915000027+0000']
+        "multi"           | ['3.2-20160915000027+0000']
+        "lotDependencies" | ['3.2-20160915000027+0000']
     }
 }

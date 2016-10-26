@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import java.io.Serializable;
 

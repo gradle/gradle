@@ -22,6 +22,10 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.internal.time.CountdownTimer
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Timers
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -33,6 +37,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
+    final TimeProvider timeProvider = new TrueTimeProvider()
 
     TestFile projectDir
 
@@ -105,6 +110,7 @@ allprojects {
     }
 
     def "can specify a gradle installation to use"() {
+        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -118,6 +124,7 @@ allprojects {
     }
 
     def "can specify a gradle distribution to use"() {
+        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -131,6 +138,7 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
+        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -245,17 +253,18 @@ allprojects {
 
         when:
         GradleHandle handle = executer.inDirectory(projectDir)
-                .expectDeprecationWarning() // tapi on java 6
-                .withTasks('run')
-                .start()
+            .expectDeprecationWarning() // tapi on java 6
+            .withTasks('run')
+            .start()
 
         then:
         // Wait for the tooling API to start the build
         def startMarkerFile = projectDir.file("start.marker")
         def foundStartMarker = startMarkerFile.exists()
-        def startAt = System.currentTimeMillis()
+
+        CountdownTimer startTimer = Timers.startTimer(startTimeoutMs)
         while (handle.running && !foundStartMarker) {
-            if (System.currentTimeMillis() - startAt > startTimeoutMs) {
+            if (startTimer.hasExpired()) {
                 throw new Exception("timeout waiting for start marker")
             } else {
                 sleep retryIntervalMs
@@ -269,12 +278,12 @@ allprojects {
 
         // Signal the build to finish
         def stopMarkerFile = projectDir.file("stop.marker")
-        def stopMarkerAt = System.currentTimeMillis()
+        def stopTimer = Timers.startTimer(stopTimeoutMs)
         stopMarkerFile << new Date().toString()
 
         // Does the tooling API hold the JVM open (which will also hold the build open)?
         while (handle.running) {
-            if (System.currentTimeMillis() - stopMarkerAt > stopTimeoutMs) {
+            if (stopTimer.hasExpired()) {
                 throw new Exception("timeout after placing stop marker (JVM might have been held open")
             }
             sleep retryIntervalMs

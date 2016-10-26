@@ -168,6 +168,20 @@ public interface GradleExecuter {
      */
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
+    /**
+     * Activates the task output cache
+     *
+     * @return this executer
+     */
+    GradleExecuter withTaskCacheEnabled();
+
+    /**
+     * Activates the task output cache for a local directory
+     *
+     * @param cacheDir the directory for the cache
+     * @return this executer
+     */
+    GradleExecuter withLocalTaskCache(File cacheDir);
 
     /**
      * Don't set temp folder explicitly.
@@ -291,6 +305,11 @@ public interface GradleExecuter {
     GradleExecuter expectIncubationWarning(int lineCount);
 
     /**
+     * Disable deprecation warning checks.
+     */
+    GradleExecuter noDeprecationChecks();
+
+    /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
      */
     GradleExecuter withEagerClassLoaderCreationCheckDisabled();
@@ -359,7 +378,7 @@ public interface GradleExecuter {
     /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
-    GradleExecuter withDebug(boolean flag);
+    GradleExecuter startBuildProcessInDebugger(boolean flag);
 
     GradleExecuter withProfiler(String profilerArg);
 

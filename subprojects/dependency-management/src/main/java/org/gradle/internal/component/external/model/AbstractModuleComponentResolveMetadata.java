@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -135,7 +136,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
+        IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 
@@ -298,7 +299,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         @Override
         public Map<String, String> getAttributes() {
-            return null;
+            return Collections.emptyMap();
+        }
+
+        public ConfigurationRole getRole() {
+            return ConfigurationRole.CAN_BE_CONSUMED_ONLY;
         }
 
         public List<DependencyMetadata> getDependencies() {

@@ -35,7 +35,7 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;

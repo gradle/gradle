@@ -42,7 +42,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +66,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private String libraryDirectory;
     private Set<EarModule> modules = new LinkedHashSet<EarModule>();
     private Set<EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>();
-    private Map<String, String> moduleTypeMappings = new HashMap<String, String>();
+    private Map<String, String> moduleTypeMappings = new LinkedHashMap<String, String>();
 
     @Inject
     public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, Instantiator instantiator) {

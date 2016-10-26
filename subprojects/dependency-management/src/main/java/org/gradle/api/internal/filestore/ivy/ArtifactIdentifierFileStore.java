@@ -17,28 +17,26 @@
 package org.gradle.api.internal.filestore.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
-import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
-public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactMetadata> {
-
-    private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]";
-    private static final String NAME_PATTERN = "[artifact]-[revision](-[classifier])(.[ext])";
+public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
+    private static final Transformer<String, ModuleComponentArtifactIdentifier> GROUP = new Transformer<String, ModuleComponentArtifactIdentifier>() {
+        @Override
+        public String transform(ModuleComponentArtifactIdentifier artifactId) {
+            return artifactId.getComponentIdentifier().getGroup() + '/' + artifactId.getComponentIdentifier().getModule() + '/' + artifactId.getComponentIdentifier().getVersion();
+        }
+    };
+    private static final Transformer<String, ModuleComponentArtifactIdentifier> NAME = new Transformer<String, ModuleComponentArtifactIdentifier>() {
+        @Override
+        public String transform(ModuleComponentArtifactIdentifier artifactId) {
+            return artifactId.getFileName();
+        }
+    };
 
     public ArtifactIdentifierFileStore(PathKeyFileStore pathKeyFileStore, TemporaryFileProvider temporaryFileProvider) {
-        super(pathKeyFileStore, temporaryFileProvider, toTransformer(GROUP_PATTERN), toTransformer(NAME_PATTERN));
-    }
-
-    private static Transformer<String, ModuleComponentArtifactMetadata> toTransformer(final String pattern) {
-        final ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
-        return new Transformer<String, ModuleComponentArtifactMetadata>() {
-             public String transform(ModuleComponentArtifactMetadata artifact) {
-                 return resourcePattern.getLocation(artifact).getPath();
-             }
-         };
+        super(pathKeyFileStore, temporaryFileProvider, GROUP, NAME);
     }
 }

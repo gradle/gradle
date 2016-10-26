@@ -97,6 +97,7 @@ public interface ResolutionStrategy {
      *
      * @since 3.2
      */
+    @Incubating
     void preferProjectModules();
 
     /**

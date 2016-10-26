@@ -35,10 +35,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -75,49 +71,25 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     private static final String META_CLASS_FIELD = "__meta_class__";
 
-    private final Set<String> classesToMixInGroovyObject;
-    private final Set<String> syntheticClasses;
+    private LegacyTypesSupport legacyTypesSupport;
 
-    public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath) {
+    public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
         super(parent, classPath);
-        classesToMixInGroovyObject = readClassNames("converted-types.txt");
-        syntheticClasses = readClassNames("removed-types.txt");
-    }
-
-    private Set<String> readClassNames(String resourceName) {
-        Set<String> classNames = new HashSet<String>();
-        URL resource = getClass().getResource(resourceName);
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream()));
-            try {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    classNames.add(line.trim());
-                }
-            } finally {
-                reader.close();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load class names from '" + resource + "'.", e);
-        }
-        return classNames;
+        this.legacyTypesSupport = legacyTypesSupport;
     }
 
     @Nullable
     @Override
     protected byte[] generateMissingClass(String name) {
-        if (!syntheticClasses.contains(name)) {
+        if (!legacyTypesSupport.getSyntheticClasses().contains(name)) {
             return null;
         }
-        ClassWriter visitor = new ClassWriter(0);
-        visitor.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT, name.replace('.', '/'), null, OBJECT_TYPE.getInternalName(), null);
-        visitor.visitEnd();
-        return visitor.toByteArray();
+        return legacyTypesSupport.generateSyntheticClass(name);
     }
 
     @Override
     protected boolean shouldTransform(String className) {
-        return classesToMixInGroovyObject.contains(className) || syntheticClasses.contains(className);
+        return legacyTypesSupport.getClassesToMixInGroovyObject().contains(className) || legacyTypesSupport.getSyntheticClasses().contains(className);
     }
 
     @Override

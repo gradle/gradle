@@ -25,7 +25,6 @@ import groovy.xml.XmlUtil
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
@@ -43,7 +42,6 @@ import java.util.zip.ZipInputStream
  * to schedule TeamCity jobs for each individual scenario. This task
  * blocks until all the jobs have finished and aggregates their status.
  */
-@CacheableTask
 @CompileStatic
 class DistributedPerformanceTest extends PerformanceTest {
 

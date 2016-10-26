@@ -20,22 +20,40 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.util.GUtil;
 
 public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
-        this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension));
+        this(componentIdentifier, DefaultIvyArtifactName.of(name, type, extension));
     }
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, @Nullable String classifier) {
-        this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, classifier));
+        this(componentIdentifier, DefaultIvyArtifactName.of(name, type, extension, classifier));
     }
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
         this.name = artifact;
+    }
+
+    @Override
+    public String getFileName() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(name.getName());
+        builder.append('-');
+        builder.append(componentIdentifier.getVersion());
+        if (GUtil.isTrue(name.getClassifier())) {
+            builder.append('-');
+            builder.append(name.getClassifier());
+        }
+        if (GUtil.isTrue(name.getExtension())) {
+            builder.append('.');
+            builder.append(name.getExtension());
+        }
+        return builder.toString();
     }
 
     public String getDisplayName() {

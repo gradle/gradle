@@ -65,7 +65,7 @@ class ClassLoaderScopeIdentifier {
         return result;
     }
 
-    private String getPath() {
+    String getPath() {
         List<String> names = Lists.newLinkedList();
         names.add(name);
         ClassLoaderScopeIdentifier nextParent = parent;

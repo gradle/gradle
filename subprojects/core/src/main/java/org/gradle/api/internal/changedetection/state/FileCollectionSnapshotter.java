@@ -16,21 +16,19 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 public interface FileCollectionSnapshotter {
     /**
+     * The type used to refer to this snapshotter in the {@link FileCollectionSnapshotterRegistry}.
+     * Must be a super-type of the actual implementation.
+     */
+    Class<? extends FileCollectionSnapshotter> getRegisteredType();
+
+    /**
      * Registers the serializer(s) that can be used to serialize the {@link FileCollectionSnapshot} implementations produced by this snapshotter.
      */
     void registerSerializers(SerializerRegistry registry);
-
-    /**
-     * Creates an empty snapshot, which changes can be later merged into.
-     *
-     * @return The snapshot.
-     */
-    FileCollectionSnapshot emptySnapshot();
 
     /**
      * Creates a snapshot of the contents of the given collection.
@@ -41,9 +39,4 @@ public interface FileCollectionSnapshotter {
      * @return The snapshot.
      */
     FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy);
-
-    /**
-     * Creates a snapshot of the contents of the given property.
-     */
-    FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec);
 }

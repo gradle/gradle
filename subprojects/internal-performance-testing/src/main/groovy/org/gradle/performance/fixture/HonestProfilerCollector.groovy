@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Log
 import org.apache.commons.io.FileUtils
 import org.apache.mina.util.AvailablePortFinder
 import org.gradle.internal.UncheckedException
@@ -25,6 +26,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
 
 @CompileStatic
+@Log
 class HonestProfilerCollector implements DataCollector {
     // if set, this system property must point to the directory where log files will be copied
     // and flame graphs generated
@@ -85,18 +87,15 @@ class HonestProfilerCollector implements DataCollector {
     }
 
     private String buildJvmOption(File logFile, File honestProfilerLibFile) {
+
         def hpProperties = [
             interval: interval,
-            maxFrames: maxFrames,
-            logPath: logFile.path
+            logPath: logFile.path,
+            port: honestProfilerPort,
+            host: honestProfilerHost,
+            start: initiallyStopped?0:1,
+            maxFrames: maxFrames, // keep maxFrames last because older versions of HP didn't have this
         ]
-        if (initiallyStopped) {
-            hpProperties += [
-                port: honestProfilerPort,
-                host: honestProfilerHost,
-                start: 0
-            ]
-        }
         def propertiesString = hpProperties.collect { k, v -> "$k=$v".toString() }.join(',')
         "-agentpath:${honestProfilerLibFile.absolutePath}=${propertiesString}".toString()
     }
@@ -113,7 +112,9 @@ class HonestProfilerCollector implements DataCollector {
                 switch (invocationInfo.phase) {
                     case BuildExperimentRunner.Phase.WARMUP:
                         // enable honest-profiler after warmup
-                        start()
+                        if (initiallyStopped) {
+                            start()
+                        }
                         break
                     case BuildExperimentRunner.Phase.MEASUREMENT:
                         stop()
@@ -164,7 +165,11 @@ class HonestProfilerCollector implements DataCollector {
     }
 
     void stop() {
-        sendCommand('stop')
+        try {
+            sendCommand('stop')
+        } catch (ConnectException ex) {
+            log.warning("Unable to stop Honest Profiler : $ex")
+        }
     }
 
     private void sendCommand(String command) {

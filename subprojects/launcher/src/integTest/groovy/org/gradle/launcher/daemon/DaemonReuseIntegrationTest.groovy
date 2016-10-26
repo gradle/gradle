@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -23,9 +24,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
@@ -47,8 +46,6 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 1
     }
 
-    // GradleHandle.abort() does not work reliably on windows and creates flakiness
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "canceled daemon is reused when it becomes available"() {
         buildFile << """
             task block {
@@ -62,14 +59,14 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         given:
         expectEvent("started")
         expectEvent("block")
-        def build = executer.withTasks("block").start()
+        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         waitFor("started")
         daemons.daemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
         daemons.daemon.becomesCanceled()
 
         when:
-        build = executer.withTasks("tasks").withArguments("--info").start()
+        def build = executer.withTasks("tasks").withArguments("--info").start()
         ConcurrentTestUtil.poll {
             assert build.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
         }
@@ -82,8 +79,6 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 1
     }
 
-    // GradleHandle.abort() does not work reliably on windows and creates flakiness
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "does not attempt to reuse a canceled daemon that is not compatible"() {
         buildFile << """
             task block {
@@ -96,14 +91,14 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
         given:
         expectEvent("started")
-        def build = executer.withTasks("block").withArguments("-Dorg.gradle.jvmargs=-Xmx1025m").start()
+        def client = new DaemonClientFixture(executer.withTasks("block").withArguments("--debug", "-Dorg.gradle.jvmargs=-Xmx1025m").start())
         waitFor("started")
         daemons.daemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
         daemons.daemon.becomesCanceled()
 
         when:
-        build = executer.withTasks("tasks").withArguments("--info").start()
+        def build = executer.withTasks("tasks").withArguments("--info").start()
 
         then:
         build.waitForFinish()
@@ -115,29 +110,29 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         !build.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
     }
 
-    // GradleHandle.abort() does not work reliably on windows and creates flakiness
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "starts a new daemon when daemons with canceled builds do not become available"() {
         buildFile << """
             task block {
                 doLast {
                     new URL("${getUrl('started')}").text
-                    java.util.concurrent.locks.LockSupport.park()
+
+                    // Block indefinitely for the daemon to appear busy
+                    new java.util.concurrent.Semaphore(0).acquireUninterruptibly()
                 }
             }
         """
 
         given:
         expectEvent("started")
-        def build = executer.withTasks("block").start()
+        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         waitFor("started")
         def canceledDaemon = daemons.daemon
         canceledDaemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
         canceledDaemon.becomesCanceled()
 
         when:
-        build = executer.withTasks("tasks").withArguments("--info").start()
+        def build = executer.withTasks("tasks").withArguments("--info").start()
         ConcurrentTestUtil.poll {
             assert build.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
         }
@@ -159,16 +154,18 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
             task block {
                 doLast {
                     new URL("${getUrl('started')}\$buildNum").text
-                    java.util.concurrent.locks.LockSupport.park()
+
+                    // Block indefinitely for the daemon to appear busy
+                    new java.util.concurrent.Semaphore(0).acquireUninterruptibly()
                 }
             }
         """
 
         // 2 daemons we can cancel
-        def build1 = executer.withTasks("block").withArguments("-PbuildNum=1").start()
+        def client1 = new DaemonClientFixture(executer.withTasks("block").withArguments("--debug", "-PbuildNum=1").start())
         waitFor("started1")
         def canceledDaemon1 = daemons.daemon
-        def build2 = executer.withTasks("block").withArguments("-PbuildNum=2").start()
+        def client2 = new DaemonClientFixture(executer.withTasks("block").withArguments("--debug", "-PbuildNum=2").start())
         waitFor("started2")
         def canceledDaemon2 = daemons.daemons.find { it.context.pid != canceledDaemon1.context.pid }
 
@@ -186,8 +183,8 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         canceledDaemon2.assertBusy()
 
         when:
-        build1.abort().waitForFailure()
-        build2.abort().waitForFailure()
+        client1.kill()
+        client2.kill()
 
         then:
         canceledDaemon1.becomesCanceled()

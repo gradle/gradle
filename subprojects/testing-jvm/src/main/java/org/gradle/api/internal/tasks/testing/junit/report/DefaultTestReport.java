@@ -26,10 +26,11 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.Clock;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,10 +50,10 @@ public class DefaultTestReport implements TestReporter {
     public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
         LOG.info("Generating HTML test report...");
 
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         AllTestResults model = loadModelFromProvider(resultsProvider);
         generateFiles(model, resultsProvider, reportDir);
-        LOG.info("Finished generating test html results ({}) into: {}", clock.getTime(), reportDir);
+        LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportDir);
     }
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {

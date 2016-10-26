@@ -496,7 +496,18 @@
                     <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.InputFiles"/></literal></td>
                         <td><literal>Iterable&lt;File&gt;</literal>*</td>
-                        <td>An iterable of input files (no directories)</td>
+                        <td>An iterable of input files and directories</td>
+                    </tr>
+
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Classpath"/></literal></td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of input files and directories that represent a Java classpath.
+                            This allows the task to ignore irrelevant changes to the property, such as
+                            different names for the same files. It is similar to annotating the property
+                            with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also
+                            ignore the names of JAR files directly added to the classpath.
+                        </td>
                     </tr>
 
                     <tr>

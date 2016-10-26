@@ -17,10 +17,13 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
 import java.util.regex.Pattern
 
 class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+    private TestFile configFile
+
     @Override
     protected String getTaskName() {
         return ":checkstyle"
@@ -28,7 +31,7 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 
     @Override
     protected void setupProjectInOriginalLocation() {
-        file("config/checkstyle/checkstyle.xml") << """<?xml version="1.0"?>
+        configFile = file("config/checkstyle/checkstyle.xml") << """<?xml version="1.0"?>
 <!DOCTYPE module PUBLIC
           "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
           "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
@@ -70,6 +73,11 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     protected void moveFilesAround() {
         file("src").renameTo(file("other-src"))
         buildFile.text = buildFileWithSourceDir("other-src/main/java")
+        def movedConfigPath = "config/checkstyle-config.xml"
+        configFile.renameTo(file(movedConfigPath))
+        buildFile << """
+            checkstyle.configFile = file("$movedConfigPath")
+        """
     }
 
     @Override

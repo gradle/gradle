@@ -34,7 +34,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 
         when:
         1 * daemon.getStateCoordinator() >> { daemonStateCoordinator }
-        1 * daemonStateCoordinator.getIdleMillis(_) >> { 1000001L }
+        1 * daemonStateCoordinator.getIdleMillis() >> { 1000001L }
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -55,7 +55,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 
         when:
         _ * daemon.getStateCoordinator() >> { daemonStateCoordinator }
-        _ * daemonStateCoordinator.getIdleMillis(_) >> { 2L }
+        _ * daemonStateCoordinator.getIdleMillis() >> { 2L }
 
         then:
         DaemonExpirationResult firstResult = expirationStrategy.checkExpiration()

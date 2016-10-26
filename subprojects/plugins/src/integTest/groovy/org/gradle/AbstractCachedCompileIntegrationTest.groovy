@@ -17,15 +17,11 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec {
-    File cacheDir
-
+abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
     def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
         setupProjectInDirectory()
     }
 
@@ -35,13 +31,13 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
     def 'compilation can be cached'() {
         when:
-        succeedsWithCache compilationTask
+        withTaskCache().succeeds compilationTask
 
         then:
         compileIsNotCached()
 
         when:
-        succeedsWithCache 'clean', 'run'
+        withTaskCache().succeeds 'clean', 'run'
 
         then:
         compileIsCached()
@@ -54,7 +50,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.inDirectory(remoteProjectDir)
-        succeedsWithCache compilationTask
+        withTaskCache().succeeds compilationTask
         then:
         compileIsNotCached()
         remoteProjectDir.file(getCompiledFile()).exists()
@@ -63,7 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
-        succeedsWithCache compilationTask
+        withTaskCache().succeeds compilationTask
         then:
         compileIsCached()
     }
@@ -81,19 +77,9 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         def remoteProjectDir = file("remote-project")
         setupProjectInDirectory(remoteProjectDir)
         executer.inDirectory(remoteProjectDir)
-        succeedsWithCache compilationTask
+        withTaskCache().succeeds compilationTask
         compileIsNotCached()
         // Remove the project completely
         remoteProjectDir.deleteDir()
-    }
-
-    def succeedsWithCache(String... tasks) {
-        enableCache()
-        succeeds tasks
-    }
-
-    private GradleExecuter enableCache() {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -55,6 +56,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -128,6 +130,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
+    private ConfigurationRole role = ConfigurationRole.CAN_BE_QUERIED_OR_CONSUMED;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -317,7 +320,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return fileCollection(Specs.SATISFIES_ALL).getFiles();
+        return fileCollection(Specs.<Dependency>satisfyAll()).getFiles();
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -396,7 +399,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ResolvableDependencies incoming = getIncoming();
         performPreResolveActions(incoming);
 
-        resolver.resolve(this, cachedResolverResults);
+        resolver.resolveGraph(this, cachedResolverResults);
         dependenciesModified = false;
         if (resolvedState != InternalState.RESULTS_RESOLVED) {
             resolvedState = InternalState.TASK_DEPENDENCIES_RESOLVED;
@@ -440,15 +443,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
-            final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+            // Force graph resolution as this is required to calculate build dependencies
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-
-            taskDependency.add(cachedResolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
-            taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
-            return taskDependency;
-        } else {
-            return allDependencies.getBuildDependencies();
         }
+        ResolverResults results;
+        if (getState() == State.UNRESOLVED) {
+            // Traverse graph
+            results = new DefaultResolverResults();
+            resolver.resolveBuildDependencies(this, results);
+        } else {
+            // Otherwise, already have a result, so reuse it
+            results = cachedResolverResults;
+        }
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
+        taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
+        return taskDependency;
     }
 
     /**
@@ -539,7 +549,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
+        copiedConfiguration.role = role;
+
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+
+        if (hasAttributes()) {
+            copiedConfiguration.attributes(attributes);
+        }
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
@@ -661,6 +677,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Spec<? super Dependency> dependencySpec;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
+            if (!role.canBeQueriedOrResolved()) {
+                throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
+            }
             this.dependencySpec = dependencySpec;
         }
 
@@ -704,7 +723,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         for (Dependency dependency : allDependencies) {
             if (dependency instanceof FileCollectionDependency) {
-                ((FileCollectionDependency) dependency).registerWatchPoints(builder);
+                FileCollection files = ((FileCollectionDependency) dependency).getFiles();
+                ((FileCollectionInternal) files).registerWatchPoints(builder);
             }
         }
         super.registerWatchPoints(builder);
@@ -712,6 +732,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attribute(String key, String value) {
+        validateMutation(MutationType.ATTRIBUTES);
         ensureAttributes();
         attributes.put(key, value);
         return this;
@@ -719,6 +740,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attributes(Map<String, String> attributes) {
+        validateMutation(MutationType.ATTRIBUTES);
         ensureAttributes();
         this.attributes.putAll(attributes);
         return this;
@@ -732,12 +754,32 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Map<String, String> getAttributes() {
-        return attributes == null ? null : ImmutableMap.copyOf(attributes);
+        return attributes == null ? Collections.<String, String>emptyMap() : ImmutableMap.copyOf(attributes);
     }
 
     @Override
     public boolean hasAttributes() {
         return attributes != null && !attributes.isEmpty();
+    }
+
+    @Override
+    public ConfigurationRole getRole() {
+        return role;
+    }
+
+    @Override
+    public void setRole(ConfigurationRole role) {
+        this.role = role;
+    }
+
+    @Override
+    public void forConsumingOrPublishingOnly() {
+        setRole(ConfigurationRole.CAN_BE_CONSUMED_ONLY);
+    }
+
+    @Override
+    public void forBuildingOrResolvingOnly() {
+        setRole(ConfigurationRole.CAN_BE_QUERIED_ONLY);
     }
 
     /**

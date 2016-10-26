@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 5
+    private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 4
     private static final int CONCURRENT_TASKS_PROJECT_COUNT = 4
 
     def setup() {

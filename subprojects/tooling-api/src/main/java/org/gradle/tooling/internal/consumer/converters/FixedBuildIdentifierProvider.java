@@ -17,29 +17,27 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.adapter.ViewBuilder;
-import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.BuildModel;
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
 
 import java.io.Serializable;
 
-public class FixedBuildIdentifierProvider implements Serializable, BuildModel, ProjectModel {
-    private final BuildIdentifier buildIdentifier;
-    private final ProjectIdentifier projectIdentifier;
+public class FixedBuildIdentifierProvider implements Serializable {
+    private final DefaultBuildIdentifier buildIdentifier;
+    private final DefaultProjectIdentifier projectIdentifier;
 
-    public FixedBuildIdentifierProvider(ProjectIdentifier projectIdentifier) {
+    public FixedBuildIdentifierProvider(DefaultProjectIdentifier projectIdentifier) {
         this.buildIdentifier = projectIdentifier.getBuildIdentifier();
         this.projectIdentifier = projectIdentifier;
     }
 
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
+    public DefaultBuildIdentifier getBuildIdentifier() {
         return buildIdentifier;
     }
 
-    @Override
-    public ProjectIdentifier getProjectIdentifier() {
+    public DefaultProjectIdentifier getProjectIdentifier() {
         return projectIdentifier;
     }
 

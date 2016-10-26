@@ -34,8 +34,9 @@ public class BasicGradleProject extends PartialBasicGradleProject {
         return this;
     }
 
-    public BasicGradleProject setPath(String path) {
-        super.setPath(path);
+    @Override
+    public BasicGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        super.setProjectIdentifier(projectIdentifier);
         return this;
     }
 

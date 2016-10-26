@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.source
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.StyledTextOutputEvent
@@ -42,7 +42,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def onReplacesOriginalStreamAndRemovesWhenRestored() {
         when:
-        def snapshot = loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
+        def snapshot = loggingSystem.startCapture()
 
         then:
         stream != originalStream
@@ -56,7 +56,8 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def onStartsCapturingWhenNotAlreadyCapturing() {
         when:
-        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+        loggingSystem.setLevel(LogLevel.INFO)
+        loggingSystem.startCapture()
         stream.println('info')
 
         then:
@@ -68,7 +69,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def fillsInEventDetails() {
         when:
-        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+        loggingSystem.startCapture()
         stream.println('info')
 
         then:
@@ -76,10 +77,11 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
 
     def onChangesLogLevelsWhenAlreadyCapturing() {
-        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+        loggingSystem.setLevel(LogLevel.INFO)
+        loggingSystem.startCapture()
 
         when:
-        loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
+        loggingSystem.setLevel(LogLevel.DEBUG)
         stream.println('info')
 
         then:
@@ -104,7 +106,9 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
 
     def restoreFlushesPartialLine() {
-        def snapshot = loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.setLevel(LogLevel.INFO)
+        loggingSystem.startCapture()
 
         when:
         stream.print("info")
@@ -118,7 +122,8 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def restoreStopsCapturingWhenCapturingWasNotInstalledWhenSnapshotTaken() {
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
+        loggingSystem.setLevel(LogLevel.ERROR)
+        loggingSystem.startCapture()
         def capturing = stream
 
         when:
@@ -135,10 +140,13 @@ info-2
     }
 
     def restoreStopsCapturingWhenCapturingWasOffWhenSnapshotTaken() {
-        def off = loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+        def off = loggingSystem.snapshot()
+        loggingSystem.setLevel(LogLevel.INFO)
+        loggingSystem.startCapture()
         loggingSystem.restore(off)
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
+        loggingSystem.setLevel(LogLevel.ERROR)
+        loggingSystem.startCapture()
         def capturing = stream
 
         when:
@@ -155,7 +163,9 @@ info-2
     }
 
     def restoreStartsCapturingWhenCapturingWasOnWhenSnapshotTaken() {
-        def off = loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
+        def off = loggingSystem.snapshot()
+        loggingSystem.setLevel(LogLevel.WARN)
+        loggingSystem.startCapture()
         def snapshot = loggingSystem.snapshot()
         loggingSystem.restore(off)
 
@@ -169,11 +179,12 @@ info-2
         original.toString() == ''
         0 * listener._
     }
-    
+
     def restoreSetsLogLevelToTheLevelWhenSnapshotTaken() {
-        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
+        loggingSystem.setLevel(LogLevel.WARN)
+        loggingSystem.startCapture()
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+        loggingSystem.setLevel(LogLevel.INFO)
 
         when:
         loggingSystem.restore(snapshot)

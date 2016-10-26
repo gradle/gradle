@@ -17,6 +17,7 @@ package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.logging.events.OutputEventListener
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,7 +27,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
     Logger logger = LoggerFactory.getLogger("cat1")
     OutputEventListener listener = Mock()
     Slf4jLoggingConfigurer configurer = new Slf4jLoggingConfigurer(listener)
-    
+
     def cleanup() {
         def context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory()
         context.reset()
@@ -53,7 +54,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         1 * listener.onOutput({it.category == 'cat1' && it.message == 'message' && it.logLevel == LogLevel.INFO && it.throwable == failure})
         0 * listener._
     }
-    
+
     def mapsSlf4jLogLevelsToGradleLogLevels() {
         when:
         configurer.configure(LogLevel.DEBUG)
@@ -91,7 +92,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.info('message')
 
         then:
-        1 * listener.onOutput({it.timestamp >= System.currentTimeMillis() - 300})
+        1 * listener.onOutput({it.timestamp >= new TrueTimeProvider().getCurrentTime() - 300})
         0 * listener._
     }
 

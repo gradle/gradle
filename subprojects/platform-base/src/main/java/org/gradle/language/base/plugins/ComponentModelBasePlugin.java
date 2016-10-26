@@ -17,10 +17,19 @@ package org.gradle.language.base.plugins;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
@@ -31,11 +40,40 @@ import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleInput;
+import org.gradle.model.RuleSource;
+import org.gradle.model.RuleTarget;
+import org.gradle.model.Rules;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.ApplicationSpec;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.GeneralComponentSpec;
+import org.gradle.platform.base.LibrarySpec;
+import org.gradle.platform.base.PlatformAwareComponentSpec;
+import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.SourceComponentSpec;
+import org.gradle.platform.base.TypeBuilder;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultPlatformContainer;
+import org.gradle.platform.base.internal.DefaultPlatformResolvers;
+import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
+import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
+import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.dependents.BaseDependentBinariesResolutionStrategy;
+import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolver;
+import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
 import java.io.File;
@@ -189,7 +227,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         @Finalize
         void applyFallbackSourceConventions(@Each LanguageSourceSet languageSourceSet, ProjectIdentifier projectIdentifier) {
             // Only apply default locations when none explicitly configured
-            if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+            if (languageSourceSet.getSource().getSourceDirectories().isEmpty()) {
                 File baseDir = projectIdentifier.getProjectDir();
                 String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
                 languageSourceSet.getSource().srcDir(defaultSourceDir);
@@ -232,6 +270,18 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                     }
                 });
             }
+        }
+
+        @Hidden @Model
+        DependentBinariesResolver dependentBinariesResolver(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultDependentBinariesResolver.class);
+        }
+
+        @Defaults
+        void registerBaseDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
+            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
+            resolver.register(new BaseDependentBinariesResolutionStrategy(projectRegistry, projectModelResolver));
         }
     }
 }

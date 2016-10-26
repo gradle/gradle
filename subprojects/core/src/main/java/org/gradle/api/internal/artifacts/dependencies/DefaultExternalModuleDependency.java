@@ -30,7 +30,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
     }
 
     public DefaultExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration().orNull());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;
     }
@@ -69,6 +69,6 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
     @Override
     public String toString() {
         return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s'}",
-                getGroup(), getName(), getVersion(), getTargetConfiguration().or(Dependency.DEFAULT_CONFIGURATION));
+                getGroup(), getName(), getVersion(), getTargetConfiguration() != null ? getTargetConfiguration() : Dependency.DEFAULT_CONFIGURATION);
     }
 }

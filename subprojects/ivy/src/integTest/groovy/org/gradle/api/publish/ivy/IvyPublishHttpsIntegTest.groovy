@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Matchers
 import org.junit.Rule
 
@@ -41,7 +40,6 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         module = ivyRemoteRepo.module('org.gradle', 'publish', '2').allowAll()
     }
 
-    @LeaksFileHandles
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
@@ -56,7 +54,6 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         verifyPublications()
     }
 
-    @LeaksFileHandles
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)
@@ -71,7 +68,6 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         verifyPublications()
     }
 
-    @LeaksFileHandles
     def "decent error message when client can't authenticate server"() {
         keyStore.enableSslWithServerCert(server)
         initBuild()
@@ -86,7 +82,6 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertThatCause(Matchers.containsText("javax.net.ssl.SSLHandshakeException"))
     }
 
-    @LeaksFileHandles
     def "build fails when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()

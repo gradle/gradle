@@ -17,14 +17,12 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
-@LeaksFileHandles
 class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
     TestKeyStore keyStore
 

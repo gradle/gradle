@@ -26,8 +26,8 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -42,19 +42,19 @@ import java.util.Collection;
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
     private final TaskHistoryRepository taskHistoryRepository;
-    private final OutputFilesCollectionSnapshotter outputFilesSnapshotter;
-    private final FileCollectionSnapshotter inputFilesSnapshotter;
+    private final OutputFilesSnapshotter outputFilesSnapshotter;
+    private final FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry;
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              OutputFilesCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
+                                              OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
                                               FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
-        this.inputFilesSnapshotter = inputFilesSnapshotter;
+        this.fileCollectionSnapshotterRegistry = fileCollectionSnapshotterRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
@@ -112,6 +112,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
+        public boolean isAllowedToUseCachedResults() {
+            return true;
+        }
+
+        @Override
         public TaskCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();
@@ -156,7 +161,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher);
+                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher);
             }
             return states;
         }

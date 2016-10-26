@@ -91,6 +91,9 @@ class InetAddresses {
                     multicastInterfaces.add(networkInterface);
                 }
             }
+        } catch (SocketException e) {
+            // Log the error but analyze the remaining interfaces. We could for example run into https://bugs.openjdk.java.net/browse/JDK-7032558
+            logger.warn("Error while querying interface {} for IP addresses", networkInterface, e);
         } catch (Throwable e) {
             throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s", networkInterface.getName()), e);
         }

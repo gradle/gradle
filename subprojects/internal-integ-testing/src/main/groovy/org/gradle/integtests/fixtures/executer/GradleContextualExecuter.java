@@ -29,7 +29,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private Executer executerType;
 
-    private static enum Executer {
+    private enum Executer {
         embedded(false),
         forking(true),
         daemon(true),

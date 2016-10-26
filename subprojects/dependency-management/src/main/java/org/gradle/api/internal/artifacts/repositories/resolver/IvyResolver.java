@@ -27,6 +27,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -49,7 +50,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, FileStore<ModuleComponentArtifactMetadata> artifactFileStore, IvyContextManager ivyContextManager) {
+                       boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore);
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser());
         this.dynamicResolve = dynamicResolve;
@@ -76,7 +77,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     @Override
     protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
-        return new DefaultIvyArtifactName("ivy", "ivy", "xml");
+        return DefaultIvyArtifactName.of("ivy", "ivy", "xml");
     }
 
     @Override

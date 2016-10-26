@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.cache;
 
+import org.gradle.internal.io.StreamByteBuffer;
+
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
@@ -47,8 +48,8 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
 
     @Override
     public void store(TaskCacheKey key, TaskOutputWriter output) throws IOException {
-        ByteArrayOutputStream data = new ByteArrayOutputStream();
-        output.writeTo(data);
-        delegate.put(key.getHashCode(), data.toByteArray());
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        output.writeTo(buffer.getOutputStream());
+        delegate.put(key.getHashCode(), buffer.readAsByteArray());
     }
 }

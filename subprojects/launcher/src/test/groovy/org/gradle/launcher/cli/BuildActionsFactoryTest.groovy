@@ -26,6 +26,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
@@ -36,8 +37,10 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.tooling.internal.provider.ContinuousBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.ServicesSetupBuildActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -66,6 +69,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
+        _ * loggingServices.get(FileSystem) >> Mock(FileSystem)
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
         _ * loggingServices.getAll(_) >> []
     }
@@ -159,7 +163,9 @@ class BuildActionsFactoryTest extends Specification {
 
     void isInProcess(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof ContinuousBuildActionExecuter
+        assert action.executer instanceof ServicesSetupBuildActionExecuter
+        assert action.executer.delegate instanceof ContinuousBuildActionExecuter
+        assert action.executer.delegate.delegate instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

@@ -75,4 +75,23 @@ class SimpleHttpFileServerFactoryTest extends Specification {
         cleanup:
         server?.stop()
     }
+
+    def "The status line of 404 has 'Not Found' as the message"() {
+        when:
+        def factory = new SimpleHttpFileServerFactory()
+        def server = factory.start(root, 0)
+
+        then:
+        server.port != 0
+
+        when:
+        HttpURLConnection resource = new URL(server.getResourceUrl("index.html")).openConnection() as HttpURLConnection
+
+        then:
+        resource.getResponseMessage() == 'Not Found'
+        resource.getResponseCode() == 404
+
+        cleanup:
+        server?.stop()
+    }
 }

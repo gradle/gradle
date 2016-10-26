@@ -190,13 +190,21 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
             if(!visited.contains(dependency)){
                 visited.add(dependency);
                 if(dependency instanceof ProjectDependency) {
-                    findAllExternalDependencies(externalDependencies, visited, ((ProjectDependency) dependency).getProjectConfiguration());
+                    findAllExternalDependencies(externalDependencies, visited, getTargetConfiguration((ProjectDependency) dependency));
                 } else if (dependency instanceof SelfResolvingDependency) {
                     externalDependencies.add((SelfResolvingDependency) dependency);
                 }
             }
         }
         return externalDependencies;
+    }
+
+    private Configuration getTargetConfiguration(ProjectDependency dependency) {
+        String targetConfiguration = dependency.getTargetConfiguration();
+        if (targetConfiguration == null) {
+            targetConfiguration = Dependency.DEFAULT_CONFIGURATION;
+        }
+        return dependency.getDependencyProject().getConfigurations().getByName(targetConfiguration);
     }
 
     /**

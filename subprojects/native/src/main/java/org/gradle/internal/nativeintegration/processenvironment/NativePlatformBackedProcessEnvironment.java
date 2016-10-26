@@ -52,7 +52,7 @@ public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvir
     }
 
     @Override
-    public void maybeDetach() {
+    public void detachProcess() {
         process.detach();
     }
 }

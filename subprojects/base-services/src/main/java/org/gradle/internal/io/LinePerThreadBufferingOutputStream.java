@@ -16,7 +16,6 @@
 
 package org.gradle.internal.io;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.security.AccessController;
@@ -37,7 +36,7 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     };
 
     public LinePerThreadBufferingOutputStream(TextStream handler) {
-        super(new ByteArrayOutputStream(), true);
+        super(NullOutputStream.INSTANCE, true);
         this.handler = handler;
     }
 

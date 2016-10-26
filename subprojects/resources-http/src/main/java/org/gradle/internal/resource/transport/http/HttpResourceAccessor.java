@@ -17,41 +17,32 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.gradle.api.Nullable;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 public class HttpResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
 
-    private final List<HttpResponseResource> openResources = new ArrayList<HttpResponseResource>();
-
     public HttpResourceAccessor(HttpClientHelper http) {
         this.http = http;
     }
 
     @Nullable
-    public HttpResponseResource openResource(final URI uri) {
-        abortOpenResources();
+    public HttpResponseResource openResource(final URI uri, boolean revalidate) {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        CloseableHttpResponse response = http.performGet(location);
+        CloseableHttpResponse response = http.performGet(location, revalidate);
         if (response != null) {
-            HttpResponseResource resource = wrapResponse(uri, response);
-            return recordOpenGetResource(resource);
+            return wrapResponse(uri, response);
         }
 
         return null;
@@ -61,56 +52,32 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
      * Same as #getResource except that it always gives access to the response body,
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
-    public HttpResponseResource getRawResource(final URI uri) {
-        abortOpenResources();
+    public HttpResponseResource getRawResource(final URI uri, boolean revalidate) {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
-
-        HttpRequestBase request = new HttpGet(uri);
-        CloseableHttpResponse response;
-        try {
-            response = http.performHttpRequest(request);
-        } catch (IOException e) {
-            throw new HttpRequestException(String.format("Could not %s '%s'.", request.getMethod(), request.getURI()), e);
-        }
-
-        HttpResponseResource resource = wrapResponse(uri, response);
-        return recordOpenGetResource(resource);
+        CloseableHttpResponse response = http.performRawGet(location, revalidate);
+        return wrapResponse(uri, response);
     }
 
-    public ExternalResourceMetaData getMetaData(URI uri) {
-        abortOpenResources();
+    public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
-        CloseableHttpResponse response = http.performHead(location);
-        return response == null ? null : new HttpResponseResource("HEAD", uri, response).getMetaData();
-    }
+        CloseableHttpResponse response = http.performHead(location, revalidate);
 
-    private HttpResponseResource recordOpenGetResource(HttpResponseResource httpResource) {
-        openResources.add(httpResource);
-        return httpResource;
-    }
-
-    private void abortOpenResources() {
-        for (Closeable openResource : openResources) {
-            LOGGER.warn("Forcing close on abandoned resource: {}", openResource);
+        ExternalResourceMetaData result = null;
+        if (response != null) {
+            HttpResponseResource resource = new HttpResponseResource("HEAD", uri, response);
             try {
-                openResource.close();
-            } catch (IOException e) {
-                LOGGER.warn("Failed to close abandoned resource", e);
+                result = resource.getMetaData();
+            } finally {
+                IoActions.closeQuietly(resource);
             }
         }
-        openResources.clear();
+        return result;
     }
 
     private HttpResponseResource wrapResponse(URI uri, CloseableHttpResponse response) {
-        return new HttpResponseResource("GET", uri, response) {
-            @Override
-            public void close() throws IOException {
-                super.close();
-                HttpResourceAccessor.this.openResources.remove(this);
-            }
-        };
+        return new HttpResponseResource("GET", uri, response);
     }
 
 }
