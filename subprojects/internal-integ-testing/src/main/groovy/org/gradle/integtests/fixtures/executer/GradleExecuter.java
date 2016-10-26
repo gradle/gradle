@@ -310,6 +310,11 @@ public interface GradleExecuter {
     GradleExecuter noDeprecationChecks();
 
     /**
+     * Disable incubation warning checks.
+     */
+    GradleExecuter noIncubationChecks();
+
+    /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
      */
     GradleExecuter withEagerClassLoaderCreationCheckDisabled();

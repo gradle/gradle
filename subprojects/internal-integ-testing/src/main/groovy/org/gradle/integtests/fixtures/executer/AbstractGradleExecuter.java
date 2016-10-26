@@ -147,6 +147,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
+    private boolean checkIncubations = true;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -191,6 +192,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        checkIncubations = true;
         return this;
     }
 
@@ -321,6 +323,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
+        }
+
+        if(!checkIncubations) {
+            executer.noIncubationChecks();
         }
 
         return executer;
@@ -889,6 +895,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             List<Warning> expectedIncubationWarnings = new LinkedList<Warning>(AbstractGradleExecuter.this.expectedIncubationWarnings);
             boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
             boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
+            boolean checkIncubations = AbstractGradleExecuter.this.checkIncubations;
 
             @Override
             public void execute(ExecutionResult executionResult) {
@@ -930,14 +937,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                             }
                         }
                     } else if (line.matches(".*\\s+an incubating feature.*")) {
-                        if (expectedIncubationWarnings.isEmpty()) {
+                        if (checkIncubations && expectedIncubationWarnings.isEmpty()) {
                             throw new AssertionError(String.format("%s line %d contains an incubation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                         }
-                        Warning warning = expectedIncubationWarnings.remove(0);
-                        i = i + warning.getLineCount();
-                        // skip over stack trace
-                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                            i++;
+                        if(!expectedIncubationWarnings.isEmpty()) {
+                            Warning warning = expectedIncubationWarnings.remove(0);
+                            i = i + warning.getLineCount();
+                            // skip over stack trace
+                            while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                                i++;
+                            }
                         }
                     } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
@@ -974,8 +983,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         expectedIncubationWarnings.add(new Warning(lineCount));
         return this;
     }
+
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
+        return this;
+    }
+
+    public GradleExecuter noIncubationChecks() {
+        checkIncubations = false;
         return this;
     }
 
