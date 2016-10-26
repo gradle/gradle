@@ -156,6 +156,42 @@ Let's consider the following two examples to illustrate some common mistakes:
 With this version of Gradle, the left shift operator on the `Task` interface is deprecated and is scheduled to be removed with the next major release. There's no direct replacement
 for the left shift operation. Please use the existing methods `doFirst` and `doLast` to define task actions.
 
+### Modifying a child copy spec during task execution
+
+We improved change tracking in copy and archive tasks. When changing a copy spec
+during execution time these changes cannot be tracked since change tracking happens
+before starting to execute the task. As a consequence we deprecated this possibility.
+
+For example, the following would create a deprecation warning:
+
+    task copy(type: Copy) {
+        outputs.cacheIf { true }
+        from ("some-dir")
+        into ("build/output")
+
+        doFirst {
+            from ("some-other-dir") {
+                exclude "excluded-file"
+            }
+        }
+    }
+
+If you want to do something along those lines please add another task which
+configures the task under question:
+
+    task configureCopy {
+        doLast {
+            copy.from ("some-other-dir") {
+                exclude "excluded-file"
+            }
+        }
+    }
+    task copy(type: Copy, dependsOn: configureCopy) {
+        outputs.cacheIf { true }
+        from ("some-dir")
+        into ("build/output")
+    }
+
 ## Potential breaking changes
 
 ### Tooling API builders run before buildFinished listeners
