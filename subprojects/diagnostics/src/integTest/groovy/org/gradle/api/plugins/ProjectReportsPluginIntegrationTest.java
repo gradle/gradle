@@ -16,18 +16,85 @@
 package org.gradle.api.plugins;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
+import org.gradle.integtests.fixtures.executer.ExecutionResult;
+import org.gradle.util.TextUtil;
 import org.junit.Test;
 
 public class ProjectReportsPluginIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void generatesReportFilesToReportsDirectory() {
-        testFile("build.gradle").writelns(
-                "apply plugin: 'project-report'"
-        );
+        applyProjectReportPlugin();
         inTestDirectory().withTasks("projectReport").run();
 
         testFile("build/reports/project/dependencies.txt").assertExists();
         testFile("build/reports/project/properties.txt").assertExists();
         testFile("build/reports/project/tasks.txt").assertExists();
+    }
+
+    private void applyProjectReportPlugin() {
+        testFile("build.gradle").writelns(
+            "apply plugin: 'project-report'"
+        );
+    }
+
+    @Test
+    public void printsLinkToDefaultDependencyReport() {
+        applyProjectReportPlugin();
+
+        ExecutionResult executionResult = inTestDirectory().withTasks("dependencyReport").run();
+
+        executionResult.assertOutputContains("See the report at: file://" + TextUtil.normaliseFileSeparators(testFile("build/reports/project/dependencies.txt").getAbsolutePath()));
+    }
+
+    @Test
+    public void printsLinkToCustomDependencyReport() {
+        applyProjectReportPluginWithCustomProjectReportsDirectory();
+
+        ExecutionResult executionResult = inTestDirectory().withTasks("dependencyReport").run();
+
+        executionResult.assertOutputContains("See the report at: file://" + TextUtil.normaliseFileSeparators(testFile("build/reports/custom/dependencies.txt").getAbsolutePath()));
+    }
+
+    private void applyProjectReportPluginWithCustomProjectReportsDirectory() {
+        testFile("build.gradle").writelns(
+            "apply plugin: 'project-report'",
+            "projectReportDirName = 'custom'"
+        );
+    }
+
+    @Test
+    public void printsLinkToDefaultTaskReport() {
+        applyProjectReportPlugin();
+
+        ExecutionResult executionResult = inTestDirectory().withTasks("taskReport").run();
+
+        executionResult.assertOutputContains("See the report at: file://" + TextUtil.normaliseFileSeparators(testFile("build/reports/project/tasks.txt").getAbsolutePath()));
+    }
+
+    @Test
+    public void printsLinkToCustomTaskReport() {
+        applyProjectReportPluginWithCustomProjectReportsDirectory();
+
+        ExecutionResult executionResult = inTestDirectory().withTasks("taskReport").run();
+
+        executionResult.assertOutputContains("See the report at: file://" + TextUtil.normaliseFileSeparators(testFile("build/reports/custom/tasks.txt").getAbsolutePath()));
+    }
+
+    @Test
+    public void printsLinkToDefaultPropertyReport() {
+        applyProjectReportPlugin();
+
+        ExecutionResult executionResult = inTestDirectory().withTasks("propertyReport").run();
+
+        executionResult.assertOutputContains("See the report at: file://" + TextUtil.normaliseFileSeparators(testFile("build/reports/project/properties.txt").getAbsolutePath()));
+    }
+
+    @Test
+    public void printsLinkToCustomPropertyReport() {
+        applyProjectReportPluginWithCustomProjectReportsDirectory();
+
+        ExecutionResult executionResult = inTestDirectory().withTasks("propertyReport").run();
+
+        executionResult.assertOutputContains("See the report at: file://" + TextUtil.normaliseFileSeparators(testFile("build/reports/custom/properties.txt").getAbsolutePath()));
     }
 }

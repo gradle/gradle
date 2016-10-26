@@ -28,6 +28,7 @@ import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.util.TextUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -71,12 +72,20 @@ public abstract class AbstractReportTask extends ConventionTask {
             @Override
             public void generateReport(Project project) throws IOException {
                 generate(project);
+
+                if (!outputsToConsole()) {
+                    project.getLogger().lifecycle("See the report at: file://{}", TextUtil.normaliseFileSeparators(getOutputFile().getAbsolutePath()));
+                }
             }
         };
 
         ReportGenerator reportGenerator = new ReportGenerator(getRenderer(), getClientMetaData(), getOutputFile(),
                 getTextOutputFactory(), projectReportGenerator);
         reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
+    }
+
+    private boolean outputsToConsole() {
+        return getOutputFile() == null;
     }
 
     @Internal
