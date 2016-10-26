@@ -450,7 +450,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
             return taskDependency;
         } else {
-            return allDependencies.getBuildDependencies();
+            DefaultResolverResults results = new DefaultResolverResults();
+            resolver.resolveBuildDependencies(this, results);
+            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+            taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
+            taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
+            return taskDependency;
         }
     }
 

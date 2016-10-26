@@ -483,6 +483,15 @@ class DefaultConfigurationSpec extends Specification {
         }
     }
 
+    private void expectBuildDependenciesResolved() {
+        def localComponentsResult = Mock(ResolvedLocalComponentsResult)
+
+        _ * localComponentsResult.componentBuildDependencies >> new DefaultTaskDependency()
+        _ * resolver.resolveBuildDependencies(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
+            resolverResults.resolved(localComponentsResult)
+        }
+    }
+
     def "artifacts have correct build dependencies"() {
         def configuration = conf()
         def artifactTask2 = Mock(Task)
@@ -520,10 +529,10 @@ class DefaultConfigurationSpec extends Specification {
         _ * taskDependency.getDependencies(targetTask) >> dependentTasks
 
         and:
-        expectResolved(Mock(ResolvedConfiguration.class))
+        expectBuildDependenciesResolved()
 
         when:
-        configuration.getDependencies().add(selfResolvingDependency);
+        configuration.dependencies.add(selfResolvingDependency);
 
         then:
         configuration.buildDependencies.getDependencies(targetTask) == dependentTasks
@@ -543,7 +552,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * taskDependency.getDependencies(targetTask) >> dependentTasks
 
         and:
-        expectResolved(Mock(ResolvedConfiguration.class))
+        expectBuildDependenciesResolved()
 
         when:
         otherConf.dependencies.add(fileCollectionDependency)
@@ -845,12 +854,10 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "incoming dependencies set depends on all self resolving dependencies"() {
-        SelfResolvingDependency dependency = Mock()
+        FileCollectionDependency dependency = Mock()
         Task task = Mock()
         TaskDependency taskDep = Mock()
         def config = conf("conf")
-        def resolvedConfiguration = Mock(ResolvedConfiguration)
-        def resolverResults = new DefaultResolverResults()
         def projectConfigurationResults = Mock(ResolvedLocalComponentsResult)
 
         given:
@@ -864,11 +871,10 @@ class DefaultConfigurationSpec extends Specification {
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
-        _ * resolvedConfiguration.hasError() >> false
-        _ * resolver.resolveGraph(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
-            res.resolved(Mock(ResolutionResult), projectConfigurationResults)
+        _ * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
+            res.resolved(projectConfigurationResults)
         }
-        _ * projectConfigurationResults.get() >> []
+        _ * projectConfigurationResults.componentBuildDependencies >> new DefaultTaskDependency()
         _ * dependency.buildDependencies >> taskDep
         _ * taskDep.getDependencies(_) >> ([task] as Set)
         0 * _._
@@ -1014,17 +1020,15 @@ class DefaultConfigurationSpec extends Specification {
 
     def "can determine task dependencies without resolution"() {
         def config = conf("conf")
+        expectBuildDependenciesResolved()
 
         when:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
         config.getBuildDependencies()
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
         config.state == UNRESOLVED
-
-        and:
-        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
-        0 * _._
     }
 
     def "resolving configuration marks parent configuration as observed"() {

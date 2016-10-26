@@ -53,7 +53,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -84,7 +84,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, new Spec<DependencyMetadata>() {
             @Override
             public boolean isSatisfiedBy(DependencyMetadata element) {
-                return element instanceof LocalComponentDependencyMetadata;
+                return element instanceof LocalOriginDependencyMetadata;
             }
         }, projectModelVisitor, new CompositeDependencyArtifactsVisitor());
         result.resolved(localComponentsResultBuilder.complete());

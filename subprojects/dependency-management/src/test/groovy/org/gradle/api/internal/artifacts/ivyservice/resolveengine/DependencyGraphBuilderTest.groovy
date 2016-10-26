@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -70,10 +71,10 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements))
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll())
     }
 
-    private TestGraphVisitor resolve() {
+    private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
         def graphVisitor = new TestGraphVisitor()
         builder.resolve(configuration, graphVisitor)
         return graphVisitor
@@ -492,6 +493,29 @@ class DependencyGraphBuilderTest extends Specification {
 
         and:
         result.components == ids(root, a, selected, d, e)
+    }
+
+    def "does not include filtered dependencies"() {
+        given:
+        def spec = { DependencyMetadata dep -> dep.requested.name != 'c' }
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec)
+
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, a
+        traverses a, b
+        doesNotResolve b, c
+        traverses root, d
+        doesNotResolve d, c
+
+        when:
+        def result = resolve(builder)
+        result.rethrowFailure()
+
+        then:
+        result.components == ids(root, a, b, d)
     }
 
     def "does not attempt to resolve a dependency whose target module is excluded earlier in the path"() {
