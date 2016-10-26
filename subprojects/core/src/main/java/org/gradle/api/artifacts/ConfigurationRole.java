@@ -22,23 +22,34 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum ConfigurationRole {
-    CAN_BE_QUERIED_OR_CONSUMED("can be used when building or publishing", true, true),
-    CAN_BE_QUERIED_ONLY("It is possible to query this configuration or resolve it", true, false),
-    CAN_BE_CONSUMED_ONLY("can be used only when consuming or publishing the project", false, true),
-    BUCKET("Used as a bucket of dependencies, not supposed to be consumed or built directly", false, false);
+    /**
+     * Use this if a configuration can be used either when building or publishing.
+     */
+    CAN_BE_QUERIED_OR_CONSUMED(true, true),
 
-    private final String description;
+    /**
+     * Use this if it's possible to query this configuration or resolve it only.
+     */
+    CAN_BE_QUERIED_ONLY(true, false),
+
+    /**
+     * Use this if the configuration can be used only when consuming or publishing the project.
+     */
+    CAN_BE_CONSUMED_ONLY(false, true),
+
+    /**
+     * Use this if the configuration is sed as a bucket of dependencies, not supposed to be consumed or built directly.
+     * This typically includes the case where you define a parent configuration where the user would declare its dependencies
+     * but only child configurations are supposed to be used for resolution.
+     */
+    BUCKET(false, false);
+
     private final boolean canBeQueriedOrResolved;
     private final boolean canBeConsumedOrPublished;
 
-    ConfigurationRole(String desc, boolean canBeQueriedOrResolved, boolean canBeConsumedOrPublished) {
-        this.description = desc;
+    ConfigurationRole(boolean canBeQueriedOrResolved, boolean canBeConsumedOrPublished) {
         this.canBeQueriedOrResolved = canBeQueriedOrResolved;
         this.canBeConsumedOrPublished = canBeConsumedOrPublished;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public boolean canBeQueriedOrResolved() {
