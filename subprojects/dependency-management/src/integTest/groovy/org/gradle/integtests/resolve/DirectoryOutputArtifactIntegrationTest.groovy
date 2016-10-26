@@ -20,17 +20,22 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
-    @NotYetImplemented
     def "can attach a directory as output of a configuration"() {
         given:
+        file('someDir/a.txt') << 'some text'
         buildFile << '''
 
         configurations {
             compile
+            _classpath
         }
 
         artifacts {
-            compile file("someDir")
+            _classpath file("someDir")
+        }
+
+        dependencies {
+            compile project(path: ':', configuration: '_classpath')
         }
 
         task check {
@@ -39,14 +44,26 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
                 assert configurations.compile.files.name == ['someDir']
             }
         }
+
+        task run(dependsOn: configurations.compile) {
+            doLast {
+                assert configurations.compile.files*.listFiles().flatten().text == ['some text']
+            }
+        }
+
         '''
-        file('someDir/a.txt') << 'some text'
 
         when:
         run 'check'
 
         then:
-        noExceptionThrown()
+        executed ':check'
+
+        when:
+        run 'run'
+
+        then:
+        executed ':run'
     }
 
     @NotYetImplemented
@@ -54,8 +71,13 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
 
-        configurations {
+       configurations {
             compile
+            _classpath
+        }
+
+        dependencies {
+            compile project(path: ':', configuration: '_classpath')
         }
 
        task generateFiles {
@@ -67,7 +89,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile file:file("$buildDir/someDir"), builtBy: generateFiles
+            _classpath file:file("someDir"), builtBy: generateFiles
         }
 
         task check {
