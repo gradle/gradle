@@ -456,34 +456,48 @@ public interface Configuration extends FileCollection {
     @Incubating
     boolean hasAttributes();
 
-    /**
-     * Sets this configuration role. A configuration role allows you to differentiate between 2 cases:
-     * <ul>
-     *     <li>If this configuration is intended to be resolved inside this project (typically, a compile classpath), in which case its role is {@link ConfigurationRole#CAN_BE_CONSUMED_ONLY}</li>
-     *     <li>If this configuration provides artifacts and transitive dependencies for downstream projects (typically, a set of dependencies that depend on a variant), in which case its role is {@link ConfigurationRole#CAN_BE_QUERIED_OR_CONSUMED}</li>
-     * </ul>
-     * The configuration role will only be used for dependencies that declare {@link #getAttributes() attributes}.
-     * @param role the role of this configuration.
-     */
     @Incubating
-    void setRole(ConfigurationRole role);
+    void setConsumeOrPublishAllowed(boolean allowed);
 
     /**
-     * Returns the role of this configuration. Defaults to {@link ConfigurationRole#CAN_BE_QUERIED_OR_CONSUMED}
-     * @return the role of this configuration.
+     * Returns true if this configuration can be consumed from another project, or published. Defaults to true.
+     * @return true if this configuration can be consumed or published.
      */
     @Incubating
-    ConfigurationRole getRole();
+    boolean isConsumeOrPublishAllowed();
+
+    @Incubating
+    void setQueryOrResolveAllowed(boolean allowed);
 
     /**
-     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#CAN_BE_CONSUMED_ONLY}
+     * Returns true if it is allowed to query or resolve this configuration. Defaults to true.
+     * @return true if this configuration can be queried or resolved.
+     */
+    @Incubating
+    boolean isQueryOrResolveAllowed();
+
+    /**
+     * Short-hand notation to tell that this configuration can be consumed or published, but not queried or resolved.
+     * This sets {@link #isConsumeOrPublishAllowed()} to true and {@link #isQueryOrResolveAllowed()} to false.
      */
     @Incubating
     void forConsumingOrPublishingOnly();
 
     /**
-     * Short-hand notation to tell that this configuration's role is {@link ConfigurationRole#CAN_BE_QUERIED_ONLY}
+     * Short-hand notation to tell that this configuration can be queried or resolved, but not consumed or published.
+     * This sets {@link #isConsumeOrPublishAllowed()} to false and {@link #isQueryOrResolveAllowed()} to true.
      */
     @Incubating
-    void forBuildingOrResolvingOnly();
+    void forQueryingOrResolvingOnly();
+
+
+    /**
+     * Short-hand notation to tell that this configuration acts as a bucket of dependencies and is not meant to
+     * be queried, resolved, consumed or published directly.
+     * This typically includes the case where you define a parent configuration where the user would declare its dependencies
+     * but only child configurations are supposed to be used for resolution.
+     * This sets {@link #isConsumeOrPublishAllowed()} to false and {@link #isQueryOrResolveAllowed()} to false.
+     */
+    @Incubating
+    void asBucket();
 }

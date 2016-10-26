@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -42,8 +41,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup configuration after it has been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true)
 
         then:
         metadata.configurationNames == ['conf', 'super'] as Set
@@ -63,8 +62,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "configuration has no dependencies or artifacts when none have been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true)
 
         then:
         def conf = metadata.getConfiguration('conf')
@@ -122,7 +121,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = []) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, true, true)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
@@ -352,8 +351,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
-        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
+        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
+        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
 
         def rule1 = new DefaultExclude("group1", "module1", ["compile"] as String[], PatternMatchers.EXACT)
         def rule2 = new DefaultExclude("group1", "module1", ["runtime"] as String[], PatternMatchers.EXACT)

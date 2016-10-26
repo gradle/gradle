@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.FileCollectionDependency
@@ -87,7 +86,8 @@ class DefaultConfigurationSpec extends Specification {
         configuration.displayName == "configuration 'path'"
         configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
-        configuration.role == ConfigurationRole.CAN_BE_QUERIED_OR_CONSUMED
+        configuration.queryOrResolveAllowed
+        configuration.consumeOrPublishAllowed
     }
 
     def hasUsefulDisplayName() {
@@ -115,32 +115,21 @@ class DefaultConfigurationSpec extends Specification {
         !configuration.transitive
     }
 
-    @Unroll("can set the configuration role to #role")
-    def "can set the configuration role"() {
-        when:
-        def configuration = conf("name", "path")
-        configuration.role = role
-
-        then:
-        configuration.role == role
-
-        where:
-        role << ConfigurationRole.values().toList()
-    }
-
     def "can set the configuration role using short-hand notation"() {
         when:
         def configuration = conf("name", "path")
         configuration.forConsumingOrPublishingOnly()
 
         then:
-        configuration.role == ConfigurationRole.CAN_BE_CONSUMED_ONLY
+        configuration.consumeOrPublishAllowed
+        !configuration.queryOrResolveAllowed
 
         when:
-        configuration.forBuildingOrResolvingOnly()
+        configuration.forQueryingOrResolvingOnly()
 
         then:
-        configuration.role == ConfigurationRole.CAN_BE_QUERIED_ONLY
+        !configuration.consumeOrPublishAllowed
+        configuration.queryOrResolveAllowed
     }
 
     def excludes() {
@@ -719,22 +708,28 @@ class DefaultConfigurationSpec extends Specification {
         assert copiedConfiguration.extendsFrom.empty
     }
 
-    @Unroll("Copies configuration role #role")
+    @Unroll
     void "copies configuration role"() {
         def configuration = prepareConfigurationForCopyTest()
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
 
         when:
-        configuration.role = role
+        configuration.queryOrResolveAllowed = queryOrResolveAllowed
+        configuration.consumeOrPublishAllowed = consumeOrPublishAllowed
         def copy = configuration.copy()
 
 
         then:
-        copy.role == configuration.role
+        copy.queryOrResolveAllowed == configuration.queryOrResolveAllowed
+        copy.consumeOrPublishAllowed == configuration.consumeOrPublishAllowed
 
         where:
-        role << ConfigurationRole.values()
+        queryOrResolveAllowed | consumeOrPublishAllowed
+        false                 | false
+        true                  | false
+        false                 | true
+        true                  | true
     }
 
     def "can copy with spec"() {
@@ -754,7 +749,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         checkCopiedConfiguration(configuration, copiedConfiguration, resolutionStrategyCopy)
-        assert copiedConfiguration.dependencies.collect({it.group}) == ["group1", "group2"]
+        assert copiedConfiguration.dependencies.collect({ it.group }) == ["group1", "group2"]
     }
 
     def "can copy recursive"() {
@@ -804,7 +799,8 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.hasAttributes() == original.hasAttributes()
         assert copy.attributes == original.attributes
         assert !copy.attributes.is(original.attributes)
-        assert copy.role == original.role
+        assert copy.queryOrResolveAllowed == original.queryOrResolveAllowed
+        assert copy.consumeOrPublishAllowed == original.consumeOrPublishAllowed
         true
     }
 
@@ -1366,32 +1362,50 @@ class DefaultConfigurationSpec extends Specification {
         given:
         configuration.resolve();
 
-        when: configuration.setTransitive(true)
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.setTransitive(true)
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.setVisible(false)
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.setVisible(false)
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.exclude([:])
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.exclude([:])
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.setExcludeRules([] as Set)
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.setExcludeRules([] as Set)
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.extendsFrom(conf("other"))
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.extendsFrom(conf("other"))
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.dependencies.add(Mock(Dependency))
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.dependencies.add(Mock(Dependency))
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.dependencies.remove(Mock(Dependency))
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.dependencies.remove(Mock(Dependency))
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.artifacts.add(artifact())
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.artifacts.add(artifact())
+        then:
+        thrown(InvalidUserDataException)
 
-        when: configuration.artifacts.remove(artifact())
-        then: thrown(InvalidUserDataException)
+        when:
+        configuration.artifacts.remove(artifact())
+        then:
+        thrown(InvalidUserDataException)
     }
 
     def dumpString() {
@@ -1419,7 +1433,6 @@ All Dependencies:
 All Artifacts:
    none"""
     }
-
 
     // You need to wrap this in an interaction {} block when calling it
     private ResolvedConfiguration resolveConfig(ConfigurationInternal config, ConfigurationResolver dependencyResolver = resolver) {
@@ -1449,13 +1462,13 @@ All Artifacts:
 
     private DefaultPublishArtifact artifact(Map props = [:]) {
         new DefaultPublishArtifact(
-                props.name ?: "artifact",
-                props.extension ?: "artifact",
-                props.type,
-                props.classifier,
-                props.date,
-                props.file,
-                props.tasks ?: []
+            props.name ?: "artifact",
+            props.extension ?: "artifact",
+            props.type,
+            props.classifier,
+            props.date,
+            props.file,
+            props.tasks ?: []
         )
     }
 }

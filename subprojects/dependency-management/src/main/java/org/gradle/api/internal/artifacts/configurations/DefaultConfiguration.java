@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -130,7 +129,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
-    private ConfigurationRole role = ConfigurationRole.CAN_BE_QUERIED_OR_CONSUMED;
+    private boolean isConsumeOrPublishAllowed = true;
+    private boolean isQueryOrResolveAllowed = true;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -549,7 +549,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
-        copiedConfiguration.role = role;
+        copiedConfiguration.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
+        copiedConfiguration.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -677,7 +678,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Spec<? super Dependency> dependencySpec;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
-            if (!role.canBeQueriedOrResolved()) {
+            if (!isQueryOrResolveAllowed) {
                 throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
             }
             this.dependencySpec = dependencySpec;
@@ -763,23 +764,41 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public ConfigurationRole getRole() {
-        return role;
+    public boolean isConsumeOrPublishAllowed() {
+        return isConsumeOrPublishAllowed;
     }
 
     @Override
-    public void setRole(ConfigurationRole role) {
-        this.role = role;
+    public void setConsumeOrPublishAllowed(boolean consumeOrPublishAllowed) {
+        isConsumeOrPublishAllowed = consumeOrPublishAllowed;
+    }
+
+    @Override
+    public boolean isQueryOrResolveAllowed() {
+        return isQueryOrResolveAllowed;
+    }
+
+    @Override
+    public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
+        isQueryOrResolveAllowed = queryOrResolveAllowed;
     }
 
     @Override
     public void forConsumingOrPublishingOnly() {
-        setRole(ConfigurationRole.CAN_BE_CONSUMED_ONLY);
+        setConsumeOrPublishAllowed(true);
+        setQueryOrResolveAllowed(false);
     }
 
     @Override
-    public void forBuildingOrResolvingOnly() {
-        setRole(ConfigurationRole.CAN_BE_QUERIED_ONLY);
+    public void forQueryingOrResolvingOnly() {
+        setConsumeOrPublishAllowed(false);
+        setQueryOrResolveAllowed(true);
+    }
+
+    @Override
+    public void asBucket() {
+        setConsumeOrPublishAllowed(false);
+        setQueryOrResolveAllowed(false);
     }
 
     /**
