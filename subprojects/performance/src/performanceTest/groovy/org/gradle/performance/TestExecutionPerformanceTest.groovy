@@ -19,7 +19,6 @@ package org.gradle.performance
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
-import static org.gradle.performance.results.Flakiness.*
 
 @Category([JavaPerformanceTest])
 class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -37,16 +36,16 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.useDaemon = true
 
         when:
-        def result = runner.run(flakiness)
+        def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed(flakiness)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | flakiness
-        "withTestNG"        | not_flaky
-        "withJUnit"         | not_flaky
-        "withVerboseTestNG" | flaky
-        "withVerboseJUnit"  | flaky
+        testProject         | _
+        "withTestNG"        | _
+        "withJUnit"         | _
+        "withVerboseTestNG" | _
+        "withVerboseJUnit"  | _
     }
 }

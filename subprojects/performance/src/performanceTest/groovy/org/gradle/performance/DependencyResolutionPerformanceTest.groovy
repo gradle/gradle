@@ -20,9 +20,6 @@ import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.results.Flakiness.flaky
-import static org.gradle.performance.results.Flakiness.not_flaky
-
 @Category(GradleCorePerformanceTest)
 class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Resolves dependencies from #repoType repository - #testProject (daemon)")
@@ -35,17 +32,17 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.useDaemon = true
 
         when:
-        def result = runner.run(flakiness)
+        def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed(flakiness)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | repoType | targetVersions              | flakiness
+        testProject              | repoType | targetVersions
         // TODO(pepper): Revert this to 'last' when 3.2 is released
         // The regression was determined acceptable in this discussion:
         // https://issues.gradle.org/browse/GRADLE-1346
-        "lotDependencies"        | 'local'  | ['3.3-20161026000020+0000'] | not_flaky
-        "lotProjectDependencies" | 'local'  | ['3.2-20160915000027+0000'] | flaky
+        "lotDependencies"        | 'local'  | ['3.3-20161026000020+0000']
+        "lotProjectDependencies" | 'local'  | ['3.2-20160915000027+0000']
     }
 }
