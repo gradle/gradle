@@ -29,6 +29,7 @@ public class ProjectReportsPluginIntegrationTest extends AbstractIntegrationTest
         testFile("build/reports/project/dependencies.txt").assertExists();
         testFile("build/reports/project/properties.txt").assertExists();
         testFile("build/reports/project/tasks.txt").assertExists();
+        testFile("build/reports/project/dependencies").assertIsDir();
     }
 
     private void applyProjectReportPlugin() {
