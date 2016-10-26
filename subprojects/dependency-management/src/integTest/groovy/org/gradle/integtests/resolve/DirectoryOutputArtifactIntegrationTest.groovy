@@ -220,10 +220,6 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    private def mavenRepoURL() {
-        mavenRepo.uri.toURL()
-    }
-
     def "fails gracefully if trying to publish a directory with ivy"() {
 
         given:
@@ -285,4 +281,64 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Could not publish configuration 'archives'"
         failure.assertThatCause(containsString('Cannot publish a directory'))
     }
+
+    def "can avoid building a jar when compiling against another project with transitive dependencies"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        file('a/build.gradle') << '''
+
+        repositories { jcenter() }
+
+        apply plugin: 'java'
+
+        dependencies {
+            compile project(path: ':b', configuration: 'compile_output')
+        }
+
+        '''
+        file('a/src/main/java/World.java') << '''import org.apache.commons.lang3.StringUtils;
+
+        public class World extends Hello {
+            public String scream(String name) {
+                return "HELLO, " + StringUtils.capitalize(name);
+            }
+        }
+
+        '''
+
+        file('b/build.gradle') << '''
+
+        apply plugin: 'java'
+
+        repositories { jcenter() }
+
+        configurations {
+            compile_output {
+               extendsFrom compile
+            }
+        }
+
+        dependencies {
+            compile 'org.apache.commons:commons-lang3:3.5'
+        }
+
+        artifacts {
+            compile_output file:compileJava.destinationDir, builtBy: compileJava
+        }
+        '''
+        file('b/src/main/java/Hello.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Hello {
+                String greet(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+
+        when:
+        run 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:jar'
+
+    }
+
 }
