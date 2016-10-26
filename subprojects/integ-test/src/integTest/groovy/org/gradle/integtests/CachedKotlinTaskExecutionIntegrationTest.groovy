@@ -18,8 +18,10 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
@@ -39,6 +41,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
@@ -64,6 +67,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks.contains ":customTask"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
