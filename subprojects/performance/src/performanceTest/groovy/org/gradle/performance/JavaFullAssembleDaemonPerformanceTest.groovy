@@ -44,13 +44,13 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | targetVersions
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-20161012120730+0000']
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-20161012120730+0000']
-        "smallJavaSwModelProject"                    | ['2.9', '3.2-20161012120730+0000']
-        "largeJavaSwModelProject"                    | ['2.10', '3.2-20161012120730+0000']
-        "bigNewJava"                                 | ['2.11', '3.2-20161012120730+0000']
-        "mediumNewJava"                              | ['2.11', '3.2-20161012120730+0000']
-        "smallNewJava"                               | ['2.9', '2.10', '3.2-20161012120730+0000']
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-rc-1']
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', '3.2-rc-1']
+        "smallJavaSwModelProject"                    | ['2.9', '3.2-rc-1']
+        "largeJavaSwModelProject"                    | ['2.10', '3.2-rc-1']
+        "bigNewJava"                                 | ['2.11', '3.2-rc-1']
+        "mediumNewJava"                              | ['2.11', '3.2-rc-1']
+        "smallNewJava"                               | ['2.9', '2.10', '3.2-rc-1']
     }
 
     @Unroll("full assemble Java build - #testProject")
@@ -77,9 +77,9 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         // TODO(pepper): Revert this to 'last' when 3.2 is released
         // The regression was determined acceptable in this discussion:
         // https://issues.gradle.org/browse/GRADLE-1346
-        "bigOldJavaMoreSource" | ['3.2-20160915000027+0000']
-        "bigOldJava"           | ['3.2-20160915000027+0000']
-        "mediumOldJava"        | ['3.2-20160915000027+0000']
-        "smallOldJava"         | ['3.2-20160915000027+0000']
+        "bigOldJavaMoreSource" | ['3.2-rc-1']
+        "bigOldJava"           | ['3.2-rc-1']
+        "mediumOldJava"        | ['3.2-rc-1']
+        "smallOldJava"         | ['3.2-rc-1']
     }
 }

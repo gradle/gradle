@@ -33,7 +33,7 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         // execution and cases work much better. That is currently a more
         // important use case, so we are accepting the performance regression
         // in these non-parallel case.
-        runner.targetVersions = ['3.2-20160922000020+0000']
+        runner.targetVersions = ['3.2-rc-1']
 
         when:
         def result = runner.run()

@@ -43,6 +43,6 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         // The regression was determined acceptable in this discussion:
         // https://issues.gradle.org/browse/GRADLE-1346
         "lotDependencies"        | 'local'  | ['3.3-20161026000020+0000']
-        "lotProjectDependencies" | 'local'  | ['3.2-20160915000027+0000']
+        "lotProjectDependencies" | 'local'  | ['3.2-rc-1']
     }
 }
