@@ -16,7 +16,6 @@
 
 package org.gradle.integtests
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -514,7 +513,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':f', ':d', ':e', ':h', ':c', ':g', ':a']
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-3575")
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
