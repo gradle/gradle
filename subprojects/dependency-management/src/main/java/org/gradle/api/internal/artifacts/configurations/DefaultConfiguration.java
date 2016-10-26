@@ -443,20 +443,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+            // Force graph resolution as this is required to calculate build dependencies
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-
-            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-            taskDependency.add(cachedResolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
-            taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
-            return taskDependency;
-        } else {
-            DefaultResolverResults results = new DefaultResolverResults();
-            resolver.resolveBuildDependencies(this, results);
-            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-            taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
-            taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
-            return taskDependency;
         }
+        ResolverResults results;
+        if (getState() == State.UNRESOLVED) {
+            // Traverse graph
+            results = new DefaultResolverResults();
+            resolver.resolveBuildDependencies(this, results);
+        } else {
+            // Otherwise, already have a result, so reuse it
+            results = cachedResolverResults;
+        }
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
+        taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
+        return taskDependency;
     }
 
     /**

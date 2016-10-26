@@ -35,6 +35,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -1004,33 +1005,6 @@ class DefaultConfigurationSpec extends Specification {
         }
     }
 
-    def "resolving configuration for task dependencies puts it into the right state"() {
-        def config = conf("conf")
-        def result = Mock(ResolutionResult)
-        resolves(config, result, Mock(ResolvedConfiguration))
-
-        when:
-        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
-        config.getBuildDependencies()
-
-        then:
-        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
-        config.state == RESOLVED
-    }
-
-    def "can determine task dependencies without resolution"() {
-        def config = conf("conf")
-        expectBuildDependenciesResolved()
-
-        when:
-        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
-        config.getBuildDependencies()
-
-        then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
-        config.state == UNRESOLVED
-    }
-
     def "resolving configuration marks parent configuration as observed"() {
         def parent = conf("parent", ":parent")
         def config = conf("conf")
@@ -1069,10 +1043,8 @@ class DefaultConfigurationSpec extends Specification {
         config.state == RESOLVED
     }
 
-    def "resolving configuration for task dependencies, and then resolving it for results does not re-resolve configuration"() {
+    def "can determine task dependencies when graph resolution is required"() {
         def config = conf("conf")
-        def result = Mock(ResolutionResult)
-        resolves(config, result, Mock(ResolvedConfiguration))
 
         given:
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
@@ -1084,37 +1056,136 @@ class DefaultConfigurationSpec extends Specification {
         config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
 
-        when:
-        config.incoming.getResolutionResult()
-
-        then:
-        0 * resolver.resolveGraph(_)
-        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
-        config.state == RESOLVED
+        and:
+        1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.resolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult))
+        }
+        0 * resolver._
     }
 
-    def "resolving configuration for results, and then resolving it for task dependencies does not re-resolve configuration"() {
+    def "can determine task dependencies when graph resolution is not"() {
         def config = conf("conf")
-        def result = Mock(ResolutionResult)
 
         given:
-        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
-
-        when:
-        resolves(config, result, Mock(ResolvedConfiguration))
-        config.incoming.getResolutionResult()
-
-        then:
-        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
-        config.state == RESOLVED
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
         config.getBuildDependencies()
 
         then:
-        0 * resolver.resolveGraph(_)
+        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.state == UNRESOLVED
+
+        and:
+        1 * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.resolved(Stub(ResolvedLocalComponentsResult))
+        }
+        0 * resolver._
+    }
+
+    def "resolving graph for task dependencies, and then resolving it for results does not re-resolve graph"() {
+        def config = conf("conf")
+
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == RESOLVED
+
+        and:
+        1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.resolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult))
+        }
+        0 * resolver._
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
         config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
+
+        and:
+        1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.withResolvedConfiguration(Stub(ResolvedConfiguration))
+        }
+        0 * resolver._
+    }
+
+    def "resolves graph when result requested after resolving task dependencies"() {
+        def config = conf("conf")
+
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.state == UNRESOLVED
+
+        and:
+        1 * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.resolved(Stub(ResolvedLocalComponentsResult))
+        }
+        0 * resolver._
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+
+        and:
+        1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.resolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult))
+        }
+        1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.withResolvedConfiguration(Stub(ResolvedConfiguration))
+        }
+        0 * resolver._
+    }
+
+    def "resolving configuration for results, and then resolving task dependencies required does not re-resolve graph"() {
+        def config = conf("conf")
+
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> graphResolveRequired
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+
+        and:
+        1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.resolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult))
+        }
+        1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
+            r.withResolvedConfiguration(Stub(ResolvedConfiguration))
+        }
+        0 * resolver._
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+
+        and:
+        0 * resolver._
+
+        where:
+        graphResolveRequired << [true, false]
     }
 
     def "resolving configuration twice returns the same result objects"() {
