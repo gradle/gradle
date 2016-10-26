@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.hamcrest.core.StringContains.containsString
+
 class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
     def "can attach a directory as output of a configuration"() {
@@ -216,5 +218,71 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':b:compileJava'
         notExecuted ':b:jar'
 
+    }
+
+    private def mavenRepoURL() {
+        mavenRepo.uri.toURL()
+    }
+
+    def "fails gracefully if trying to publish a directory with ivy"() {
+
+        given:
+        file('someDir/a.txt') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+
+        configurations {
+            archives
+        }
+
+        artifacts {
+            archives file("someDir")
+        }
+
+        """
+
+        when:
+        fails 'uploadArchives'
+
+        then:
+        failure.assertHasCause "Could not publish configuration 'archives'"
+        failure.assertThatCause(containsString('Cannot publish a directory'))
+
+    }
+
+    def "fails gracefully if trying to publish a directory with Maven"() {
+
+        given:
+        file('someDir/a.txt') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+        apply plugin: 'maven'
+
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    repository(url: "${mavenRepo.uri.toURL()}")
+                }
+            }
+        }
+
+        configurations {
+            archives
+        }
+
+        artifacts {
+            archives file("someDir")
+        }
+
+        """
+
+        when:
+        fails 'uploadArchives'
+
+        then:
+        failure.assertHasCause "Could not publish configuration 'archives'"
+        failure.assertThatCause(containsString('Cannot publish a directory'))
     }
 }
