@@ -28,6 +28,12 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
+    File cacheDir
+
+    def setup() {
+        // Make sure cache dir is empty for every test execution
+        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+    }
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
@@ -1216,4 +1222,51 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "fileMode"           | "0600"                       | "0644"
         "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
     }
+
+    def "changing child specs of the copy task while executing is deprecated"() {
+        given:
+        setupCopyTaskModifyingChildSpecsAtExecutionTime()
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "copy"
+
+        then:
+        output.contains("Configuring child specs of a copy task at execution time of the task has been deprecated and is scheduled to be removed in Gradle 4.0")
+    }
+
+    def "changing child specs of the copy task is disallowed if caching is enabled"() {
+        given:
+        setupCopyTaskModifyingChildSpecsAtExecutionTime()
+
+        when:
+        withTaskCache().fails "copy"
+
+        then:
+        errorOutput.contains("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled.")
+    }
+
+    void setupCopyTaskModifyingChildSpecsAtExecutionTime() {
+        buildScript """
+            task copy(type: Copy) {
+                outputs.cacheIf { true }
+                from ("some-dir")
+                into ("build/output")
+        
+                doFirst {
+                    from ("some-other-dir") {
+                        exclude "non-existent-file"
+                    }
+                }
+            }
+        """
+        file("some-dir/first-file") << "first file"
+    }
+
+    CopyTaskIntegrationSpec withTaskCache() {
+        executer.withArgument "-Dorg.gradle.cache.tasks=true"
+        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
+        return this
+    }
+
 }
