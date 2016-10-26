@@ -785,6 +785,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
         configuration.dependencies.add(dependency("group1", "name1", "version1"))
         configuration.dependencies.add(dependency("group2", "name2", "version2"))
+        configuration.attribute('key', 'value')
 
         def otherConf = conf("other")
         otherConf.dependencies.add(dependency("otherGroup", "name3", "version3"))
@@ -800,6 +801,10 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.allArtifacts as Set == original.allArtifacts as Set
         assert copy.excludeRules == original.excludeRules
         assert copy.resolutionStrategy == resolutionStrategyInCopy
+        assert copy.hasAttributes() == original.hasAttributes()
+        assert copy.attributes == original.attributes
+        assert !copy.attributes.is(original.attributes)
+        assert copy.role == original.role
         true
     }
 
