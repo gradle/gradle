@@ -178,4 +178,40 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':b:generateFiles'
     }
+
+    def "can avoid building a jar when compiling against another project"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        file('a/build.gradle') << '''
+
+        apply plugin: 'java'
+
+        dependencies {
+            compile project(path: ':b', configuration: 'compile_output')
+        }
+
+        '''
+        file('a/src/main/java/World.java') << 'public class World extends Hello {}'
+        file('b/build.gradle') << '''
+
+        apply plugin: 'java'
+
+        configurations {
+            compile_output
+        }
+
+        artifacts {
+            compile_output file:compileJava.destinationDir, builtBy: compileJava
+        }
+        '''
+        file('b/src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        run 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:jar'
+
+    }
 }
