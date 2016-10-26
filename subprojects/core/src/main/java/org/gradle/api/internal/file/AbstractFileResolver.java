@@ -79,9 +79,8 @@ public abstract class AbstractFileResolver implements FileResolver {
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 
-        if (file != null) {
-            file = fileNormaliser.normalise(file);
-        }
+        file = fileNormaliser.normalise(file);
+
         validate(file, validation);
 
         return file;

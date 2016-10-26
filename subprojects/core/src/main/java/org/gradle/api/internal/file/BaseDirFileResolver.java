@@ -69,7 +69,7 @@ public class BaseDirFileResolver extends AbstractFileResolver {
         }
 
         File file = convertObjectToFile(path);
-        if (file != null && !file.isAbsolute()) {
+        if (!file.isAbsolute()) {
             file = new File(baseDir, file.getPath());
         }
 
