@@ -22,7 +22,7 @@ import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 @Category([Experiment, JavaPerformanceTest])
-class EnterpriseJavaBuildPerformanceTest extends AbstractAndroidPerformanceTest {
+class EnterpriseJavaBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Builds '#testProject' calling #tasks (daemon)")
     def "build"() {
