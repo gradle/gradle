@@ -38,6 +38,52 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
     }
 
+    def "configuration views used as task input build required files"() {
+        buildFile << '''
+            allprojects {
+                task lib
+                task jar
+            }
+            dependencies { 
+                compile project(':child')
+                compile files('main-lib.jar') { builtBy lib } 
+            }
+            project(':child') {
+                artifacts {
+                    compile file: file('child.jar'), builtBy: jar
+                }
+                dependencies { 
+                    compile files('child-lib.jar') { builtBy lib } 
+                }
+            }
+            task direct { inputs.files configurations.compile }
+            task fileCollection { inputs.files configurations.compile.fileCollection { true } }
+            task ownDependencies { dependsOn configurations.compile.dependencies }
+            task allDependencies { dependsOn configurations.compile.allDependencies }
+            task incomingFiles { inputs.files configurations.compile.incoming.files }
+            task incomingDependencies { dependsOn configurations.compile.incoming.dependencies }
+            task copy { inputs.files configurations.compile.copy() }
+            task filteredTree { inputs.files configurations.compile.asFileTree.matching { true } }
+'''
+
+        when:
+        run taskName
+
+        then:
+        result.assertTasksExecuted(":lib", ":child:jar", ":child:lib", ":$taskName");
+
+        where:
+        taskName               | _
+        "direct"               | _
+        "fileCollection"       | _
+        "ownDependencies"      | _
+        "allDependencies"      | _
+        "incomingFiles"        | _
+        "incomingDependencies" | _
+        "copy"                 | _
+        "filteredTree"         | _
+    }
+
     @Unroll
     def "reports failure to calculate build dependencies of artifact - fluid: #fluid"() {
         makeFluid(fluid)
