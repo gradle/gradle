@@ -21,7 +21,7 @@ import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 @Category([BasicPerformanceTest])
-class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
+class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
     def "test"() {
