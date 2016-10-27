@@ -1,3 +1,5 @@
+import org.gradle.build.ReproduciblePropertiesWriter
+
 import java.util.jar.Attributes
 
 apply plugin: 'groovy'
@@ -120,11 +122,7 @@ class ClasspathManifest extends DefaultTask {
 
     @TaskAction
     def generate() {
-        // Remove Properties timestamp for reproducible build
-        def sw = new StringWriter()
-        createProperties().store(sw, "")
-        def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
-        manifestFile.setText(content, "utf-8")
+        ReproduciblePropertiesWriter.store(createProperties(), manifestFile)
     }
 }
 
