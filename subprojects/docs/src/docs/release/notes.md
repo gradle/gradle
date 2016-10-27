@@ -158,14 +158,13 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 
 ### Modifying a child copy spec during task execution
 
-We improved change tracking in copy and archive tasks. When changing a copy spec
+We [improved](#incremental-build-improvements) change tracking in copy and archive tasks. When changing a copy spec
 during execution time these changes cannot be tracked since change tracking happens
 before starting to execute the task. As a consequence we deprecated this possibility.
 
 For example, the following would create a deprecation warning:
 
     task copy(type: Copy) {
-        outputs.cacheIf { true }
         from ("some-dir")
         into ("build/output")
 
@@ -176,8 +175,19 @@ For example, the following would create a deprecation warning:
         }
     }
 
-If you want to do something along those lines please add another task which
-configures the task under question:
+The simple solution is to move the configuration into the configuration phase:
+
+    task copy(type: Copy) {
+        outputs.cacheIf { true }
+        from ("some-dir")
+        into ("build/output")
+        from ("some-other-dir") {
+            exclude "excluded-file"
+        }
+    }
+    
+If you can't do that because the configuration depends on something that needs to be
+calculated by another task (e.g. dependency resolution), then you should a configuration task:
 
     task configureCopy {
         doLast {
@@ -187,7 +197,6 @@ configures the task under question:
         }
     }
     task copy(type: Copy, dependsOn: configureCopy) {
-        outputs.cacheIf { true }
         from ("some-dir")
         into ("build/output")
     }
