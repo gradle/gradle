@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -29,7 +29,7 @@ import spock.lang.Specification
 abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private final List<GradleExecuter> executers = []
-    final GradleDistribution current = new UnderDevelopmentGradleDistribution()
+    final GradleDistribution current = new ForkingUnderDevelopmentGradleDistribution()
     static GradleDistribution previous
     private MavenFileRepository mavenRepo
     private TestFile gradleUserHomeDir

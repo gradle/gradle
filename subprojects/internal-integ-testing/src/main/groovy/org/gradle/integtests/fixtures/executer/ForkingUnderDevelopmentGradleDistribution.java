@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,9 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
-
-public class UnderDevelopmentGradleDistribution extends AbstractUnderDevelopmentGradleDistribution {
-
-    public UnderDevelopmentGradleDistribution() {
+public class ForkingUnderDevelopmentGradleDistribution extends AbstractUnderDevelopmentGradleDistribution {
+    public ForkingUnderDevelopmentGradleDistribution() {
         super();
-    }
-
-    @Override
-    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
-        return new GradleContextualExecuter(this, testDirectoryProvider);
     }
 }
 
