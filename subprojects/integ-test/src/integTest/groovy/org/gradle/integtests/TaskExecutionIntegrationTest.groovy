@@ -477,7 +477,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Issue("GRADLE-3575")
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
