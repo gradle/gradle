@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
+import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -602,6 +603,26 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         executedTasks.size == count+3
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#767")
+    def "detect a cycle when a task finalized itself"() {
+        buildFile << """
+            task a {
+                finalizedBy "b"
+            }
+
+            task b {
+                finalizedBy "b"
+            }
+        """
+
+        when:
+        fails 'a'
+
+        then:
+        thrown(CircularReferenceException)
     }
 
 }
