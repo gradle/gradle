@@ -158,26 +158,25 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 
 ### Modifying a child copy spec during task execution
 
-We [improved](#incremental-build-improvements) change tracking in copy and archive tasks. When changing a copy spec
-during execution time these changes cannot be tracked since change tracking happens
-before starting to execute the task. As a consequence we deprecated this possibility.
+As a consequence of [improved](#incremental-build-improvements) change tracking in copy and archive tasks, we have deprecated the ability to modify a copy spec during the execution phase. These changes are not tracked since Gradle determines the inputs and outputs of a task before executing it.
 
-For example, the following would create a deprecation warning:
+For example, the following will now create a deprecation warning:
 
-    task copy(type: Copy) {
+    task myCopy(type: Copy) {
         from ("some-dir")
         into ("build/output")
 
         doFirst {
+            // DEPRECATED
             from ("some-other-dir") {
                 exclude "excluded-file"
             }
         }
     }
 
-The simple solution is to move the configuration into the configuration phase:
+The simple solution is to move the `from` into the configuration phase:
 
-    task copy(type: Copy) {
+    task myCopy(type: Copy) {
         from ("some-dir")
         into ("build/output")
         from ("some-other-dir") {
@@ -185,17 +184,16 @@ The simple solution is to move the configuration into the configuration phase:
         }
     }
     
-If you can't do that because the configuration depends on something that needs to be
-calculated by another task (e.g. dependency resolution), then you should a configuration task:
+If you can't do that because something must be calculated during the build (e.g. dependency resolution), then you can use a configuration task:
 
     task configureCopy {
         doLast {
-            copy.from ("some-other-dir") {
+            myCopy.from ("some-other-dir") {
                 exclude "excluded-file"
             }
         }
     }
-    task copy(type: Copy, dependsOn: configureCopy) {
+    task myCopy(type: Copy, dependsOn: configureCopy) {
         from ("some-dir")
         into ("build/output")
     }
