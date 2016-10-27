@@ -26,6 +26,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
     private final ResolvedLocalComponentsResultBuilder builder;
     private ComponentIdentifier rootId;
+    private DependencyGraphNode root;
 
     public ResolvedLocalComponentsResultGraphVisitor(ResolvedLocalComponentsResultBuilder builder) {
         this.builder = builder;
@@ -33,21 +34,18 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
 
     @Override
     public void start(DependencyGraphNode root) {
-        rootId = root.getOwner().getComponentId();
+        this.root = root;
+        this.rootId = root.getOwner().getComponentId();
     }
 
     @Override
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
         ComponentIdentifier componentId = resolvedConfiguration.getOwner().getComponentId();
-        if (rootId.equals(componentId)) {
-            return;
-        }
-
-        if (componentId instanceof ProjectComponentIdentifier) {
+        if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
             builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration());
         }
         ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
-        if (configurationMetadata instanceof LocalConfigurationMetadata) {
+        if (resolvedConfiguration != root && configurationMetadata instanceof LocalConfigurationMetadata) {
             builder.localComponentResolved(componentId, ((LocalConfigurationMetadata) configurationMetadata).getDirectBuildDependencies());
         }
     }
