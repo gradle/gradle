@@ -17,15 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 
-class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec {
-
-    File cacheDir
-
-    def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
-    }
+class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
 
     def "changing child specs of the copy task while executing is deprecated"() {
         given:
@@ -67,11 +61,5 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         file("some-dir/first-file") << "first file"
-    }
-
-    CopyTaskChildSpecIntegrationTest withTaskCache() {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
-        return this
     }
 }
