@@ -178,7 +178,6 @@ For example, the following would create a deprecation warning:
 The simple solution is to move the configuration into the configuration phase:
 
     task copy(type: Copy) {
-        outputs.cacheIf { true }
         from ("some-dir")
         into ("build/output")
         from ("some-other-dir") {

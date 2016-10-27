@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
-    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Please configure the spec during configuration time, or use a separate task to do the configuration";
+    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Consider configuring the spec during configuration time, or using a separate task to do the configuration";
 
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
@@ -71,7 +71,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                     }
                     DeprecationLogger.nagUserOfDeprecated(
                         "Configuring child specs of a copy task at execution time of the task",
-                        "Doing this leads to incorrect up to date checks. " + CONFIGURE_SPEC_DURING_CONFIGURATION
+                        CONFIGURE_SPEC_DURING_CONFIGURATION
                     );
                     return;
                 }
