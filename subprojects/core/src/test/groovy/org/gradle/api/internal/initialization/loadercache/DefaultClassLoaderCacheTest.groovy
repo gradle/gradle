@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.loadercache
 
 import com.google.common.hash.HashCode
+import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -28,7 +29,9 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def snapshotter = new FileClassPathSnapshotter()
+    def snapshotter = Mock(ClasspathHasher) {
+        hash(_) >> { ClassPath classpath -> HashCode.fromInt(classpath.hashCode()) }
+    }
     def cache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(snapshotter), snapshotter)
     def id1 = new ClassLoaderId() {}
     def id2 = new ClassLoaderId() {}
