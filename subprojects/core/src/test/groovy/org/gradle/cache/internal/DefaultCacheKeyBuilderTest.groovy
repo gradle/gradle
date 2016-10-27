@@ -52,7 +52,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def string = 's'
-        def stringHash = new BigInteger(42)
+        def stringHash = bigInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string)
@@ -69,7 +69,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def file = new File('f')
-        def fileHash = new BigInteger(42)
+        def fileHash = bigInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + file)
@@ -86,7 +86,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def classPath = DefaultClassPath.of([new File('f')])
-        def classPathHash = new BigInteger(42)
+        def classPathHash = bigInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classPath)
@@ -104,9 +104,9 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def prefix = 'p'
         def string = 's'
         def file = new File('f')
-        def fileHash = new BigInteger(51)
+        def fileHash = bigInt(51)
         def hasher = Mock(Hasher)
-        def combinedHash = new BigInteger(99)
+        def combinedHash = bigInt(99)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string + file)
@@ -121,6 +121,10 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
         and:
         key == "$prefix/${combinedHash.toString(36)}"
+    }
+
+    private BigInteger bigInt(long val) {
+        BigInteger.valueOf(val)
     }
 
     private HashCode hashCodeFrom(BigInteger bigInteger) {
