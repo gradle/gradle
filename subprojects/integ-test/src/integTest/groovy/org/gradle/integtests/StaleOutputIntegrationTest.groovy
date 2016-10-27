@@ -18,9 +18,8 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
-
-import java.util.zip.ZipFile
 
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
@@ -126,7 +125,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/main/Main.class").assertIsFile()
         file("build/classes/main/Redundant.class").assertIsFile()
-        new ZipFile(file("build/libs/test.jar")).entries()*.name.sort().findAll { it.endsWith ".class" } == ["Main.class", "Redundant.class"]
+        new JarTestFixture(file("build/libs/test.jar")).hasDescendants("Main.class", "Redundant.class")
 
         when:
         file(".gradle").assertIsDir().deleteDir()
@@ -135,6 +134,6 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/main/Main.class").assertIsFile()
         file("build/classes/main/Redundant.class").assertDoesNotExist()
-        new ZipFile(file("build/libs/test.jar")).entries()*.name.sort().findAll { it.endsWith ".class" } == ["Main.class"]
+        new JarTestFixture(file("build/libs/test.jar")).hasDescendants("Main.class")
     }
 }
