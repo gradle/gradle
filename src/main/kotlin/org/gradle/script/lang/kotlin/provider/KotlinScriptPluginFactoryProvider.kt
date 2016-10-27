@@ -22,11 +22,12 @@ import org.gradle.configuration.ScriptPluginFactoryProvider
 import javax.inject.Inject
 
 class KotlinScriptPluginFactoryProvider @Inject constructor(
-    val classPathProvider: KotlinScriptClassPathProvider) : ScriptPluginFactoryProvider {
+    val classPathProvider: KotlinScriptClassPathProvider,
+    val kotlinCompiler: CachingKotlinCompiler) : ScriptPluginFactoryProvider {
 
     override fun getFor(fileName: String): ScriptPluginFactory? =
         when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider)
+            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider, kotlinCompiler)
             else -> null
         }
 }

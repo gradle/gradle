@@ -16,10 +16,6 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
-import org.gradle.script.lang.kotlin.support.compileKotlinScript
-
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -28,10 +24,6 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
-import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromAnnotatedTemplate
-
-import org.slf4j.Logger
 
 import java.io.File
 
@@ -42,9 +34,8 @@ import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.util.*
 
-import kotlin.reflect.KClass
-
 class KotlinBuildScriptCompiler(
+    val kotlinCompiler: CachingKotlinCompiler,
     scriptSource: ScriptSource,
     val topLevelScript: Boolean,
     val scriptHandler: ScriptHandlerInternal,
@@ -52,8 +43,7 @@ class KotlinBuildScriptCompiler(
     val targetScope: ClassLoaderScope,
     gradleApi: ClassPath,
     val gradleApiExtensions: ClassPath,
-    gradleScriptKotlinJars: ClassPath,
-    val logger: Logger) {
+    gradleScriptKotlinJars: ClassPath) {
 
     val scriptResource = scriptSource.resource!!
     val scriptFile = scriptResource.file!!
@@ -71,9 +61,7 @@ class KotlinBuildScriptCompiler(
     }
 
     val compilationClassPath: ClassPath by lazy {
-        val classPath = scriptClassPath + buildScriptSectionCompilationClassPath
-        logger.info("Kotlin compilation classpath: {}", classPath)
-        classPath
+        scriptClassPath + buildScriptSectionCompilationClassPath
     }
 
     fun compile(): (Project) -> Unit {
@@ -105,9 +93,9 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun onePassScript(): (Project) -> Unit {
-        val scriptClassLoader = scriptBodyClassLoader()
-        val scriptClass = compileScriptFile(scriptClassLoader)
         return { target ->
+            val scriptClassLoader = scriptBodyClassLoader()
+            val scriptClass = compileScriptFile(scriptClassLoader)
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
     }
@@ -142,19 +130,10 @@ class KotlinBuildScriptCompiler(
         }
 
     private fun compileBuildscriptSection(buildscriptRange: IntRange, classLoader: ClassLoader) =
-        compileKotlinScript(
-            tempBuildscriptFileFor(script.substring(buildscriptRange)),
-            scriptDefinitionFromTemplate(KotlinBuildScriptSection::class, buildScriptSectionCompilationClassPath),
-            classLoader, logger)
+        kotlinCompiler.compileBuildscriptSectionOf(scriptFile, buildscriptRange, buildScriptSectionCompilationClassPath, classLoader)
 
-    private fun compileScriptFile(classLoader: ClassLoader) =
-        compileKotlinScript(
-            scriptFile,
-            scriptDefinitionFromTemplate(KotlinBuildScript::class, compilationClassPath),
-            classLoader, logger)
-
-    private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
-        KotlinScriptDefinitionFromAnnotatedTemplate(template, environment = mapOf("classPath" to classPath))
+    private fun compileScriptFile(classLoader: ClassLoader): Class<*> =
+        kotlinCompiler.compileBuildScript(scriptFile, compilationClassPath, classLoader)
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
         withContextClassLoader(classLoader) {
@@ -209,11 +188,6 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun userHome() = File(System.getProperty("user.home"))
-
-    private fun tempBuildscriptFileFor(buildscript: String) =
-        createTempFile("buildscript-section", ".gradle.kts").apply {
-            writeText(buildscript)
-        }
 
     private fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
         DefaultClassPath.of(

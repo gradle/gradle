@@ -16,8 +16,6 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.loggerFor
-
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 
@@ -30,9 +28,9 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
 import org.gradle.groovy.scripts.ScriptSource
 
-class KotlinScriptPluginFactory(val classPathProvider: KotlinScriptClassPathProvider) : ScriptPluginFactory {
-
-    private val logger = loggerFor<KotlinScriptPluginFactory>()
+class KotlinScriptPluginFactory(
+    val classPathProvider: KotlinScriptClassPathProvider,
+    val kotlinCompiler: CachingKotlinCompiler) : ScriptPluginFactory {
 
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
@@ -55,12 +53,12 @@ class KotlinScriptPluginFactory(val classPathProvider: KotlinScriptClassPathProv
                             targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
                             topLevelScript: Boolean) =
         KotlinBuildScriptCompiler(
+            kotlinCompiler,
             scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
             baseScope, targetScope,
             classPathProvider.gradleApi,
             classPathProvider.gradleApiExtensions,
-            classPathProvider.gradleScriptKotlinJars,
-            logger)
+            classPathProvider.gradleScriptKotlinJars)
 
     private fun inClassPathMode() =
         System.getProperty(modeSystemPropertyName) == classPathMode

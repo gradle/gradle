@@ -39,8 +39,7 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
@@ -50,16 +49,17 @@ import org.slf4j.Logger
 
 import java.io.File
 
-import java.lang.IllegalStateException
-
 internal
-fun compileKotlinScript(scriptFile: File,
-                        scriptDef: KotlinScriptDefinition,
-                        classLoader: ClassLoader,
-                        log: Logger): Class<*> {
+fun compileKotlinScriptToDirectory(outputDirectory: File,
+                                   scriptFile: File,
+                                   scriptDef: KotlinScriptDefinition,
+                                   classLoader: ClassLoader,
+                                   log: Logger): Class<*> {
     withRootDisposable { rootDisposable ->
         withMessageCollectorFor(log) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, scriptFile).apply {
+                put(RETAIN_OUTPUT_IN_MEMORY, true)
+                put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
                 addScriptDefinition(scriptDef)
             }
