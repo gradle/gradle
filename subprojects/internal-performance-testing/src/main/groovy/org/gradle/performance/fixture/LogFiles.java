@@ -17,11 +17,21 @@
 package org.gradle.performance.fixture;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
 
 public class LogFiles {
+    public static File createTempLogFile(String prefix, String postfix) {
+        try {
+            // see comment in org.gradle.integtests.fixtures.executer.InProcessGradleExecuter.getDefaultTmpDir() to find out why directory is passed explicitly
+            return File.createTempFile(prefix, postfix, new File(System.getProperty("java.io.tmpdir")));
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
     public static void copyLogFile(File logFile, BuildExperimentInvocationInfo invocationInfo, String prefix, String postfix) {
         String fileName = createFileNameForBuildInvocation(invocationInfo, prefix, postfix);
         try {
