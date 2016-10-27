@@ -107,7 +107,7 @@ See the [Gradle Script Kotlin v0.4.0 release notes](https://github.com/gradle/gr
 
 ### Fixed a performance problem in the Tooling API
 
-The dependency resolution caches were not being filled when building Tooling API models. As a result, IDE import was very slow when the caches were cold. This especially affected builds with many dynamic dependencies and low cache timeouts. One large enterprise project saw import times drop by a factor of 100.
+The dependency resolution caches were not being filled when building Tooling API models. As a result, IDE import was very slow when the caches were cold. This especially affected builds with many dynamic dependencies and low cache timeouts. One [large enterprise project](https://github.com/gradle/perf-enterprise-large/) saw import times drop by a factor of 100.
 
 ## Deprecations
 
