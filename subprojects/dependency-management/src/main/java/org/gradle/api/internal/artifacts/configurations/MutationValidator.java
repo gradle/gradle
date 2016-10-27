@@ -39,7 +39,12 @@ public interface MutationValidator {
         /**
          * The mutation of the attributes of the configuration.
          */
-        ATTRIBUTES;
+        ATTRIBUTES,
+
+        /**
+         * The mutation of the role of the configuration (can be queries, resolved, ...)
+         */
+        ROLE;
 
         @Override
         public String toString() {

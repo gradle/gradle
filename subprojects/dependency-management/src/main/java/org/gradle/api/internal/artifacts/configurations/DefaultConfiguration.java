@@ -770,6 +770,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setConsumeOrPublishAllowed(boolean consumeOrPublishAllowed) {
+        validateMutation(MutationType.ROLE);
         isConsumeOrPublishAllowed = consumeOrPublishAllowed;
     }
 
@@ -780,6 +781,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
+        validateMutation(MutationType.ROLE);
         isQueryOrResolveAllowed = queryOrResolveAllowed;
     }
 
