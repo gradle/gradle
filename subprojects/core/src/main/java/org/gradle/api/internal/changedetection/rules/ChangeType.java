@@ -19,8 +19,7 @@ package org.gradle.api.internal.changedetection.rules;
 public enum ChangeType {
     ADDED("has been added"),
     MODIFIED("has changed"),
-    REMOVED("has been removed"),
-    REPLACED("has been replaced");
+    REMOVED("has been removed");
 
     private final String description;
 

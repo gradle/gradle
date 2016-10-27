@@ -474,4 +474,103 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
+
+    @Issue("GRADLE-3575")
+    def "multiple finalizer tasks point to the same task"() {
+        buildFile << """
+            task a {
+                dependsOn 'c', 'g'
+            }
+
+            task c {
+                dependsOn 'd'
+            }
+
+            task d {
+                dependsOn 'f'
+                finalizedBy 'e'
+            }
+
+            task e {
+                finalizedBy 'h'
+            }
+
+            task f {
+                finalizedBy 'h'
+            }
+
+            task g {
+                dependsOn 'd'
+            }
+
+            task h
+        """
+
+        when:
+        succeeds 'a'
+
+        then:
+        executedTasks == [':f', ':d', ':e', ':h', ':c', ':g', ':a']
+    }
+
+    @Issue("GRADLE-3575")
+    def "honours task ordering with finalizers on finalizers"() {
+        buildFile << """
+            task a {
+                dependsOn 'c', 'g'
+            }
+
+            task b {
+                dependsOn 'd'
+                finalizedBy 'e'
+            }
+
+            task c {
+                dependsOn 'd'
+            }
+
+            task d {
+                dependsOn 'f'
+            }
+
+            task e {
+                finalizedBy 'h'
+            }
+
+            task f {
+                finalizedBy 'h'
+            }
+
+            task g {
+                dependsOn 'd'
+            }
+
+            task h
+        """
+
+        when:
+        succeeds 'a'
+
+        then:
+        executedTasks == [':f', ':h', ':d', ':c', ':g', ':a']
+
+        when:
+        succeeds 'b'
+
+        then:
+        executedTasks == [':f', ':d', ':b', ':e', ':h']
+
+        when:
+        succeeds 'a', 'b'
+
+        then:
+        executedTasks == [':f', ':d', ':c', ':g', ':a', ':b', ':e', ':h']
+
+        when:
+        succeeds 'b', 'a'
+
+        then:
+        executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
+    }
+
 }
