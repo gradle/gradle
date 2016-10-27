@@ -21,7 +21,8 @@ import com.google.common.hash.HashCode
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
 import org.gradle.api.internal.hash.FileHasher
-import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classloader.ClassPathSnapshot
+import org.gradle.internal.classloader.ClassPathSnapshotter
 import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
 
@@ -31,8 +32,8 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
     def hashFunction = Mock(HashFunction)
     def fileHasher = Mock(FileHasher)
-    def classpathHasher = Mock(ClasspathHasher)
-    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, classpathHasher)
+    def snapshotter = Mock(ClassPathSnapshotter)
+    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, snapshotter)
 
     def 'given just a prefix, it should return it'() {
         given:
@@ -87,12 +88,14 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def prefix = 'p'
         def classPath = DefaultClassPath.of([new File('f')])
         def classPathHash = bigInt(42)
+        def classPathSnapshot = Mock(ClassPathSnapshot)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classPath)
 
         then:
-        1 * classpathHasher.hash(classPath) >> hashCodeFrom(classPathHash)
+        1 * snapshotter.snapshot(classPath) >> classPathSnapshot
+        1 * classPathSnapshot.getStrongHash() >> hashCodeFrom(classPathHash)
         0 * _
 
         and:

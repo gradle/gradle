@@ -21,7 +21,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
@@ -32,12 +32,12 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
 
     private final HashFunction hashFunction;
     private final FileHasher fileHasher;
-    private final ClasspathHasher hasher;
+    private final ClassPathSnapshotter snapshotter;
 
-    public DefaultCacheKeyBuilder(HashFunction hashFunction, FileHasher fileHasher, ClasspathHasher hasher) {
+    public DefaultCacheKeyBuilder(HashFunction hashFunction, FileHasher fileHasher, ClassPathSnapshotter snapshotter) {
         this.hashFunction = hashFunction;
         this.fileHasher = fileHasher;
-        this.hasher = hasher;
+        this.snapshotter = snapshotter;
     }
 
     @Override
@@ -62,7 +62,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
             return fileHasher.hash((File) component);
         }
         if (component instanceof ClassPath) {
-            return hasher.hash((ClassPath) component);
+            return snapshotter.snapshot((ClassPath) component).getStrongHash();
         }
         throw new IllegalStateException("Unsupported cache key component type: " + component.getClass().getName());
     }

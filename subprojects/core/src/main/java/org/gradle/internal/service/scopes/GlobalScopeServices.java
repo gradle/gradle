@@ -29,7 +29,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.ShortLivedProcessInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -49,7 +48,7 @@ import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -78,10 +77,12 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.Factory;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -110,8 +111,6 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -240,7 +239,7 @@ public class GlobalScopeServices {
         return new DefaultListenerManager();
     }
 
-    HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher snapshotter) {
+    HashingClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
         return new DefaultHashingClassLoaderFactory(snapshotter);
     }
 
@@ -315,10 +314,8 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
-    ClasspathHasher createClasspathHasher(GradleBuildEnvironment environment, FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        // This could eventually share the same snapshotter as TaskExecutionServices
-        DefaultClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
-        return new DefaultClasspathHasher(snapshotter);
+    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, FileHasher hasher) {
+        return new HashClassPathSnapshotter(hasher);
     }
 
     MapBackedInMemoryStore createInMemoryStore() {
@@ -329,8 +326,8 @@ public class GlobalScopeServices {
         return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner);
     }
 
-    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher) {
-        return new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
+    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
+        return new DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter);
     }
 
     protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(ServiceRegistry serviceRegistry) {
