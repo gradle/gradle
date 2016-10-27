@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.integtests.fixtures.executer;
 
-public enum ChangeType {
-    ADDED("has been added"),
-    MODIFIED("has changed"),
-    REMOVED("has been removed");
-
-    private final String description;
-
-    ChangeType(String description) {
-        this.description = description;
-    }
-
-    public String describe() {
-        return description;
+public class ForkingUnderDevelopmentGradleDistribution extends AbstractUnderDevelopmentGradleDistribution {
+    public ForkingUnderDevelopmentGradleDistribution() {
+        super();
     }
 }
+

@@ -33,14 +33,13 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             import org.gradle.api.tasks.bundling.Jar
             import org.gradle.api.tasks.bundling.Zip
             import org.gradle.language.jvm.tasks.ProcessResources
-            import org.gradle.api.artifacts.ConfigurationRole
 
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
-                        p.configurations.compile.role = ConfigurationRole.BUCKET
+                        p.configurations.compile.asBucket()
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
@@ -51,7 +50,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
                                     extendsFrom p.configurations.compile
-                                    forBuildingOrResolvingOnly()
+                                    forQueryingOrResolvingOnly()
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
@@ -103,10 +102,10 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             task checkConfigurations {
                 doLast {
                     ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
-                        assert !configurations.getByName(it).role.canBeQueriedOrResolved()
-                        assert configurations.getByName(it).role.canBeConsumedOrPublished()
-                        assert configurations.getByName("_$it").role.canBeQueriedOrResolved()
-                        assert !configurations.getByName("_$it").role.canBeConsumedOrPublished()
+                        assert !configurations.getByName(it).queryOrResolveAllowed
+                        assert configurations.getByName(it).consumeOrPublishAllowed
+                        assert configurations.getByName("_$it").queryOrResolveAllowed
+                        assert !configurations.getByName("_$it").consumeOrPublishAllowed
                     }
                 }
             }

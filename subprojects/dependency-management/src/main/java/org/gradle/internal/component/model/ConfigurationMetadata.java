@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;
@@ -50,9 +49,11 @@ public interface ConfigurationMetadata {
 
     boolean isVisible();
 
-    Map<String, String> getAttributes();
+    boolean isConsumeOrPublishAllowed();
 
-    ConfigurationRole getRole();
+    boolean isQueryOrResolveAllowed();
+
+    Map<String, String> getAttributes();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

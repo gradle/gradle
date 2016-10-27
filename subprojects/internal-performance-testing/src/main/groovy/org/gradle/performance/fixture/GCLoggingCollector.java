@@ -23,6 +23,7 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GFileUtils;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -35,14 +36,25 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GCLoggingCollector implements DataCollector {
+public class GCLoggingCollector implements DataCollector, Closeable {
     private final static Logger LOG = Logging.getLogger(GCLoggingCollector.class);
 
     private File logFile;
 
+    public GCLoggingCollector() {
+
+    }
+
+    // for testing
+    public GCLoggingCollector(File logFile) {
+        this.logFile = logFile;
+    }
+
     @Override
     public List<String> getAdditionalJvmOpts(File workingDir) {
-        logFile = new File(workingDir, "gc.txt");
+        if (logFile == null) {
+            logFile = LogFiles.createTempLogFile("gclog", ".txt");
+        }
         return Arrays.asList(
                 "-verbosegc",
                 "-XX:+PrintGCDetails",
@@ -185,6 +197,13 @@ public class GCLoggingCollector implements DataCollector {
             for (String line : notParsed) {
                 LOG.warn("Unable to parse GC log entry: {}", line);
             }
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (logFile.exists()) {
+            logFile.delete();
         }
     }
 }

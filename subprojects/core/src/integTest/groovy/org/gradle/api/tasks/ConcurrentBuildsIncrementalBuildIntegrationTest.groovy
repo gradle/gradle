@@ -169,6 +169,8 @@ block2.mustRunAfter b
         TestFile inputAFile = file('src.a.txt')
         inputAFile.text = 'content'
 
+        succeeds('help') // Ensure build scripts are compiled
+
         when:
         // Start build 1 then wait until it has run task 'a'.
         executer.withTasks("a", "block1", "b")

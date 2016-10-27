@@ -89,7 +89,7 @@ We recommend using IntelliJ IDEA.
 
 1. You will need Eclipse 4.5 (Mars)
 2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
-3. Make sure you have a Java 7 compatible JRE configured in your workspace
+3. Make sure you have a Java 8 compatible JRE configured in your workspace
 4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
 5. Run `./gradlew eclipse` from the root directory
 6. Import all projects using the "Import Existing Projects into Workspace" wizard

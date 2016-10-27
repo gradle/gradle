@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model
 
-import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
@@ -42,7 +41,7 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
 
     def "can add configuration"() {
         when:
-        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
+        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null, true, true)
 
         then:
         metadata.configurations.size() == 1

@@ -49,8 +49,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def toConfig = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ConfigurationMetadata) {
+            isQueryOrResolveAllowed() >> true
+        }
+        def toConfig = Stub(ConfigurationMetadata) {
+            isConsumeOrPublishAllowed() >> true
+        }
         fromConfig.hierarchy >> ["from"]
 
         given:
@@ -77,10 +81,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> [key: 'something']
+            isConsumeOrPublishAllowed() >> true
         }
         def toBarConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'bar'
             getAttributes() >> [key: 'something else']
+            isConsumeOrPublishAllowed() >> true
         }
 
         given:

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -123,9 +124,11 @@ public enum TaskFilePropertyCompareStrategy {
             }
         } else {
             if (includeAdded) {
-                String path = currentEntry.getKey();
-                TaskStateChange change = new FileChange(path, ChangeType.REPLACED, fileType);
-                return singletonIterator(change);
+                String previousPath = previousEntry.getKey();
+                String currentPath = currentEntry.getKey();
+                TaskStateChange remove = new FileChange(previousPath, ChangeType.REMOVED, fileType);
+                TaskStateChange add = new FileChange(currentPath, ChangeType.ADDED, fileType);
+                return Iterators.forArray(remove, add);
             } else {
                 String path = previousEntry.getKey();
                 TaskStateChange change = new FileChange(path, ChangeType.REMOVED, fileType);

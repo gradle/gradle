@@ -159,7 +159,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.startElement("artifact");
             writer.attribute("name", artifact.getName());
             writer.attribute("type", artifact.getType());
-            writer.attribute("ext", artifact.getExtension());
+            writer.attribute("ext", artifact.getExtension() == null ? "" : artifact.getExtension());
             writer.attribute("conf", Joiner.on(",").join(artifactMetadata.getConfigurations()));
             if (artifact.getClassifier() != null) {
                 printExtraAttributes(Collections.singletonMap("m:classifier", artifact.getClassifier()), writer);

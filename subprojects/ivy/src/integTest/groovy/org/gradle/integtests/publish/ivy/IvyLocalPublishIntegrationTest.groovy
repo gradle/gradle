@@ -151,4 +151,31 @@ task ivyXml(type: Upload) {
             'attributes foo:"bar", baz: "baz"' // multiple attributes
         ]
     }
+
+    def "succeeds if trying to publish a file without extension"() {
+
+        given:
+        file('someDir/a') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+
+        configurations {
+            archives
+        }
+
+        artifacts {
+            archives file("someDir/a")
+        }
+
+        """
+
+        when:
+        run 'uploadArchives'
+
+        then:
+        noExceptionThrown()
+
+    }
+
 }
