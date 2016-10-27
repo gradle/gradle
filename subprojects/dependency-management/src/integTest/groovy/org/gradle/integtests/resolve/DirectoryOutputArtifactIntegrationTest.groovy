@@ -341,4 +341,39 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    def "doesn't throw an NPE when loading results from disk"() {
+        file('someDir/a.txt') << 'some text'
+        file('settings.gradle') << 'rootProject.name="nullsafe"'
+        buildFile << '''
+        version = '1.0'
+
+        configurations {
+            compile
+            _classpath
+        }
+
+        artifacts {
+            _classpath file("someDir")
+        }
+
+        dependencies {
+            compile project(path: ':', configuration: '_classpath')
+        }
+
+        task run {
+            doLast {
+                assert configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.name == [':nullsafe:1.0']
+            }
+        }
+
+        '''
+
+        when:
+        run 'run'
+
+        then:
+        noExceptionThrown()
+        executed ':run'
+    }
+
 }
