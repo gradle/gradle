@@ -17,6 +17,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -28,10 +29,12 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def "produces report files"() {
         when:
         succeeds("projectReport")
+
         then:
         file("build/reports/project/dependencies.txt").assertExists()
         file("build/reports/project/properties.txt").assertExists()
         file("build/reports/project/tasks.txt").assertExists()
+        file("build/reports/project/dependencies").assertIsDir()
     }
 
     def "produces report files in custom directory"() {
@@ -39,11 +42,26 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             projectReportDirName = "custom"
         """
+
         when:
         succeeds("projectReport")
+
         then:
         file("build/reports/custom/dependencies.txt").assertExists()
         file("build/reports/custom/properties.txt").assertExists()
         file("build/reports/custom/tasks.txt").assertExists()
+        file("build/reports/custom/dependencies").assertIsDir()
+    }
+
+    @Unroll
+    def "prints link to default #task"(String task) {
+        when:
+        succeeds(task)
+
+        then:
+        outputContains("See the report at:")
+
+        where:
+        task << ["taskReport", "propertyReport", "dependencyReport"]
     }
 }
