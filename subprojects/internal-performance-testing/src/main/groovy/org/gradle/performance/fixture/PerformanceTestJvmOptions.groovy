@@ -31,6 +31,7 @@ class PerformanceTestJvmOptions {
         }
         jvmOptions << '-XX:+AlwaysPreTouch' // force the JVM to initialize heap at startup time to reduce jitter
         jvmOptions << '-XX:BiasedLockingStartupDelay=0' // start using biased locking when the JVM starts up
+        jvmOptions << '-XX:CICompilerCount=2' // limit number of JIT compiler threads to reduce jitter
         return jvmOptions
     }
 }
