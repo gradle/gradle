@@ -63,12 +63,23 @@ public class BaseDirFileResolver extends AbstractFileResolver {
 
     @Override
     protected File doResolve(Object path) {
-        if (!GUtil.isTrue(path) || !GUtil.isTrue(baseDir)) {
+        if (!GUtil.isTrue(baseDir)) {
             throw new IllegalArgumentException(String.format(
-                    "Neither path nor baseDir may be null or empty string. path='%s' basedir='%s'", path, baseDir));
+                    "baseDir may not be null or empty string. basedir='%s'", baseDir));
+        }
+
+        if (!GUtil.isTrue(path)) {
+            throw new IllegalArgumentException(String.format(
+                "path may not be null or empty string. path='%s'", path));
         }
 
         File file = convertObjectToFile(path);
+
+        if (file == null) {
+            throw new IllegalArgumentException(String.format(
+                "Could not convert path to File. path='%s' basedir='%s'", path, baseDir));
+        }
+
         if (!file.isAbsolute()) {
             file = new File(baseDir, file.getPath());
         }

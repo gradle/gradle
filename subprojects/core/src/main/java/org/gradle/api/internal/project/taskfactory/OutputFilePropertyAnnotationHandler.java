@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 
 import java.io.File;
@@ -46,7 +47,9 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
     protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
         task.getOutputs().file(futureValue)
             .withPropertyName(context.getName())
-            .withPathSensitivity(getPathSensitivity(context));
+            .withPathSensitivity(getPathSensitivity(context))
+            .optional(context.isAnnotationPresent(Optional.class));
+
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
                 File file = (File) uncheckedCall(futureValue);
