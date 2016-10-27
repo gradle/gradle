@@ -539,27 +539,30 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
     }
 
+    @Ignore("Re-enable once serious effort have been put to fix this issue")
     @NotYetImplemented
     @Issue("gradle/gradle#769")
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
         buildFile << """
-            task a {
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
                 finalizedBy 'f'
             }
 
-            task f {
+            task f(type: NotParallel) {
                 dependsOn "d_0"
             }
 
             def nextIndex
             ${count}.times {
                 nextIndex = it + 1
-                task "d_\$it" { task ->
+                task "d_\$it"(type: NotParallel) { task ->
                     dependsOn "d_\$nextIndex"
                 }
             }
-            task "d_\$nextIndex"
+            task "d_\$nextIndex"(type: NotParallel)
         """
 
         when:
@@ -573,11 +576,13 @@ task someTask(dependsOn: [someDep, someOtherDep])
     @Issue("gradle/gradle#767")
     def "detect a cycle when a task finalized itself"() {
         buildFile << """
-            task a {
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
                 finalizedBy "b"
             }
 
-            task b {
+            task b(type: NotParallel) {
                 finalizedBy "b"
             }
         """
