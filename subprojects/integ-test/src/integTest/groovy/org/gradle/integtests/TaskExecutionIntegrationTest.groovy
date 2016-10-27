@@ -19,7 +19,9 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
@@ -477,77 +479,42 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
 
-    @Issue("GRADLE-3575")
-    def "multiple finalizer tasks point to the same task"() {
-        buildFile << """
-            task a {
-                dependsOn 'c', 'g'
-            }
-
-            task c {
-                dependsOn 'd'
-            }
-
-            task d {
-                dependsOn 'f'
-                finalizedBy 'e'
-            }
-
-            task e {
-                finalizedBy 'h'
-            }
-
-            task f {
-                finalizedBy 'h'
-            }
-
-            task g {
-                dependsOn 'd'
-            }
-
-            task h
-        """
-
-        when:
-        succeeds 'a'
-
-        then:
-        executedTasks == [':f', ':d', ':e', ':h', ':c', ':g', ':a']
-    }
-
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Issue("GRADLE-3575")
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
-            task a {
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
                 dependsOn 'c', 'g'
             }
 
-            task b {
+            task b(type: NotParallel) {
                 dependsOn 'd'
                 finalizedBy 'e'
             }
 
-            task c {
+            task c(type: NotParallel) {
                 dependsOn 'd'
             }
 
-            task d {
+            task d(type: NotParallel) {
                 dependsOn 'f'
             }
 
-            task e {
+            task e(type: NotParallel) {
                 finalizedBy 'h'
             }
 
-            task f {
+            task f(type: NotParallel) {
                 finalizedBy 'h'
             }
 
-            task g {
+            task g(type: NotParallel) {
                 dependsOn 'd'
             }
 
-            task h
+            task h(type: NotParallel)
         """
 
         when:
