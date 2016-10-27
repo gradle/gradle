@@ -372,6 +372,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveNow(InternalState requestedState) {
+        assertResolvingAllowed();
         synchronized (resolutionLock) {
             if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
                 resolveGraphIfRequired(requestedState);
@@ -446,6 +447,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // Force graph resolution as this is required to calculate build dependencies
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
         }
+        assertResolvingAllowed();
         ResolverResults results;
         if (getState() == State.UNRESOLVED) {
             // Traverse graph
@@ -678,9 +680,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Spec<? super Dependency> dependencySpec;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
-            if (!isQueryOrResolveAllowed) {
-                throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
-            }
+            assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
         }
 
@@ -717,6 +717,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 }
                 return resolvedConfiguration.getFiles(dependencySpec);
             }
+        }
+    }
+
+    private void assertResolvingAllowed() {
+        if (!isQueryOrResolveAllowed) {
+            throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
         }
     }
 

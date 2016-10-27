@@ -1183,6 +1183,41 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         role << ['forConsumingOrPublishingOnly()', 'asBucket()']
     }
 
+    @Unroll("cannot resolve a configuration with role #role using #method")
+    def "cannot resolve a configuration which is for publishing only"() {
+        given:
+        buildFile << """
+
+        configurations {
+            internal {
+                $role
+            }
+        }
+        dependencies {
+            internal files('foo.jar')
+        }
+
+        task checkState {
+            doLast {
+                configurations.internal.$method
+            }
+        }
+
+        """
+
+        when:
+        fails 'checkState'
+
+        then:
+        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+
+        where:
+        [method, role] << [
+            ['getResolvedConfiguration()', 'getBuildDependencies()', 'getIncoming().getFiles()', 'getIncoming().getResolutionResult()', 'getResolvedConfiguration()'],
+            ['forConsumingOrPublishingOnly()', 'asBucket()']
+        ].combinations()
+    }
+
     @Unroll("cannot add a dependency on a configuration role #role")
     def "cannot add a dependency on a configuration not meant to be resolvable"() {
         given:
