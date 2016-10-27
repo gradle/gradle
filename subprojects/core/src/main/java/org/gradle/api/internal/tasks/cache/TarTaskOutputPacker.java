@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.cache;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
@@ -29,6 +28,7 @@ import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -125,19 +125,27 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         FileVisitor visitor = new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                storeDirectoryEntry(dirDetails, propertyRoot, outputStream);
+                try {
+                    storeDirectoryEntry(dirDetails, propertyRoot, outputStream);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                String path = propertyRoot + fileDetails.getRelativePath().getPathString();
-                storeFileEntry(fileDetails.getFile(), path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
+                try {
+                    String path = propertyRoot + fileDetails.getRelativePath().getPathString();
+                    storeFileEntry(fileDetails.getFile(), path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         };
         directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_ROOT, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
     }
 
-    private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) {
+    private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) throws IOException {
         if (!file.exists()) {
             return;
         }
@@ -148,33 +156,25 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         storeFileEntry(file, path, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
     }
 
-    private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) {
+    private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) throws IOException {
         String path = dirDetails.getRelativePath().getPathString();
-        try {
-            TarEntry entry = new TarEntry(propertyRoot + path + "/");
-            storeModificationTime(entry, dirDetails.getLastModified());
-            entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
-            outputStream.putNextEntry(entry);
-            outputStream.closeEntry();
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
+        TarEntry entry = new TarEntry(propertyRoot + path + "/");
+        storeModificationTime(entry, dirDetails.getLastModified());
+        entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+        outputStream.putNextEntry(entry);
+        outputStream.closeEntry();
     }
 
-    private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) {
+    private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {
+        TarEntry entry = new TarEntry(path);
+        storeModificationTime(entry, lastModified);
+        entry.setSize(size);
+        entry.setMode(UnixStat.FILE_FLAG | mode);
+        outputStream.putNextEntry(entry);
         try {
-            TarEntry entry = new TarEntry(path);
-            storeModificationTime(entry, lastModified);
-            entry.setSize(size);
-            entry.setMode(UnixStat.FILE_FLAG | mode);
-            outputStream.putNextEntry(entry);
-            try {
-                Files.copy(file, outputStream);
-            } finally {
-                outputStream.closeEntry();
-            }
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
+            Files.copy(file, outputStream);
+        } finally {
+            outputStream.closeEntry();
         }
     }
 

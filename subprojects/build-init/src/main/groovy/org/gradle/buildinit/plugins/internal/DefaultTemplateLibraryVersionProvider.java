@@ -15,7 +15,7 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.base.Throwables;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -28,7 +28,7 @@ public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVer
         try {
             this.libraryVersions.load(getClass().getResourceAsStream("/org/gradle/buildinit/tasks/templates/library-versions.properties"));
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new UncheckedIOException(e);
         }
     }
 
