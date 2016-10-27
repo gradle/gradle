@@ -26,7 +26,7 @@ import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
 
-import static org.gradle.internal.hash.HashUtil.createCompactMD5;
+import static org.gradle.internal.hash.HashUtil.compactStringFor;
 
 class DefaultCacheKeyBuilder implements CacheKeyBuilder {
 
@@ -48,9 +48,9 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
             case 0:
                 return prefix;
             case 1:
-                return prefix + "/" + createCompactMD5(hashOf(components[0]));
+                return prefix + "/" + compactStringFor(hashOf(components[0]));
             default:
-                return prefix + "/" + createCompactMD5(combinedHashOf(components));
+                return prefix + "/" + compactStringFor(combinedHashOf(components));
         }
     }
 
