@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -571,6 +572,36 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#769")
+    def "execution succeed in presence of long dependency chain"() {
+        def count = 9000
+        buildFile << """
+            task a {
+                finalizedBy 'f'
+            }
+
+            task f {
+                dependsOn "d_0"
+            }
+
+            def nextIndex
+            ${count}.times {
+                nextIndex = it + 1
+                task "d_\$it" { task ->
+                    dependsOn "d_\$nextIndex"
+                }
+            }
+            task "d_\$nextIndex"
+        """
+
+        when:
+        succeeds 'a'
+
+        then:
+        executedTasks.size == count+3
     }
 
 }
