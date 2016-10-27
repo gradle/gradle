@@ -37,8 +37,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("Configuring child specs of a copy task at execution time of the task has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Doing this leads to incorrect up to date checks. " +
-            "Please configure the spec during configuration time, or use a separate task to do the configuration.")
+            "Consider configuring the spec during configuration time, or using a separate task to do the configuration.")
     }
 
     def "changing child specs of the copy task is disallowed if caching is enabled"() {
@@ -50,7 +49,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled. " +
-            "Please configure the spec during configuration time, or use a separate task to do the configuration.")
+            "Consider configuring the spec during configuration time, or using a separate task to do the configuration.")
     }
 
     void setupCopyTaskModifyingChildSpecsAtExecutionTime() {
