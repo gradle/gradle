@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import com.google.common.base.Charsets
 import com.google.common.hash.HashCode
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
@@ -58,7 +59,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string)
 
         then:
-        1 * hashFunction.hashUnencodedChars(string) >> hashCodeFrom(stringHash)
+        1 * hashFunction.hashString(string, Charsets.UTF_8) >> hashCodeFrom(stringHash)
         0 * _
 
         and:
@@ -115,7 +116,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
         then:
         1 * hashFunction.newHasher() >> hasher
-        1 * hasher.putUnencodedChars(string) >> hasher
+        1 * hasher.putString(string, Charsets.UTF_8) >> hasher
         1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
         1 * hasher.putBytes(fileHash.toByteArray())
         1 * hasher.hash() >> hashCodeFrom(combinedHash)

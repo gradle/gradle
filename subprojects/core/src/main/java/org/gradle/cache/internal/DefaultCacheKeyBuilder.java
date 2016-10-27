@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -55,7 +56,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
 
     private HashCode hashOf(Object component) {
         if (component instanceof String) {
-            return hashFunction.hashUnencodedChars((CharSequence) component);
+            return hashFunction.hashString((String) component, Charsets.UTF_8);
         }
         if (component instanceof File) {
             return fileHasher.hash((File) component);
@@ -70,7 +71,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
         Hasher hasher = hashFunction.newHasher();
         for (Object c : components) {
             if (c instanceof String) {
-                hasher.putUnencodedChars((String)c);
+                hasher.putString((String) c, Charsets.UTF_8);
             } else {
                 // TODO: optimize away the intermediate ClassPath hashes by introducing `ClasspathHasher#hashInto(Hasher, ClassPath)`
                 hasher.putBytes(hashOf(c).asBytes());
