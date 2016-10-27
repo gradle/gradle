@@ -113,7 +113,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         Map<String, String> attributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
         if (useConfigurationAttributes) {
-            // CC: this duplicates the logic of org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency.findProjectConfiguration()
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
             for (String configurationName : configurationNames) {
