@@ -397,20 +397,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private Set<TaskInfo> getAllSuccessorsRecursively(TaskInfo finalizer) {
         Set<TaskInfo> dependsOnTasks = new HashSet<TaskInfo>();
-        addAllSuccessorsRecursively(dependsOnTasks, finalizer.getDependencySuccessors());
-        addAllSuccessorsRecursively(dependsOnTasks, finalizer.getMustSuccessors());
-        addAllSuccessorsRecursively(dependsOnTasks, finalizer.getShouldSuccessors());
-        return dependsOnTasks;
-    }
+        Stack<TaskInfo> processingTasks = new Stack<TaskInfo>();
 
-    private void addAllSuccessorsRecursively(Set<TaskInfo> collector, TreeSet<TaskInfo> tasks) {
-        for (TaskInfo task : tasks) {
-            if (collector.add(task)) {
-                addAllSuccessorsRecursively(collector, task.getDependencySuccessors());
-                addAllSuccessorsRecursively(collector, task.getMustSuccessors());
-                addAllSuccessorsRecursively(collector, task.getShouldSuccessors());
+        processingTasks.addAll(finalizer.getDependencySuccessors());
+        processingTasks.addAll(finalizer.getMustSuccessors());
+        processingTasks.addAll(finalizer.getShouldSuccessors());
+        while (!processingTasks.isEmpty()) {
+            TaskInfo task = processingTasks.pop();
+            if (dependsOnTasks.add(task)) {
+                processingTasks.addAll(task.getDependencySuccessors());
+                processingTasks.addAll(task.getMustSuccessors());
+                processingTasks.addAll(task.getShouldSuccessors());
             }
         }
+
+        return dependsOnTasks;
     }
 
     private void onOrderingCycle() {
