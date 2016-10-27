@@ -331,7 +331,7 @@ class NaggersTest extends ConcurrentSpec  {
         simpleSourceClassName = source.class.simpleName
     }
 
-    def 'DeprecationNagger methods create expected messages.'() {
+    def 'NextMajorVersionDeprecationNagger methods create expected messages.'() {
         setup:
         DeprecationNagger deprecationNagger = Naggers.deprecationNagger
 
@@ -383,6 +383,76 @@ class NaggersTest extends ConcurrentSpec  {
             'The taskName task has been deprecated and is scheduled to be removed in Gradle ' + NEXT_GRADLE_VERSION + '. Please use the replacement task instead.',
             'The taskName task type has been deprecated and is scheduled to be removed in Gradle ' + NEXT_GRADLE_VERSION + '. Please use the replacement instead.',
         ]
+    }
+
+    @Unroll
+    def 'DeprecationNagger methods create expected messages for #gradleVersion.'() {
+        setup:
+        DeprecationNagger deprecationNagger = Naggers.deprecationNagger
+
+        when:
+        deprecationNagger.nagUserOfDeprecated('thing', gradleVersion)
+        deprecationNagger.nagUserOfDeprecated('thing', 'explanation', gradleVersion)
+        deprecationNagger.nagUserOfDeprecatedBehaviour('behaviour', gradleVersion)
+        deprecationNagger.nagUserOfDiscontinuedApi('api', 'advice', gradleVersion)
+        deprecationNagger.nagUserOfDiscontinuedMethod('methodName', gradleVersion)
+        deprecationNagger.nagUserOfDiscontinuedMethod('methodName', 'advice', gradleVersion)
+        deprecationNagger.nagUserOfDiscontinuedProperty('propertyName', 'advice', gradleVersion)
+        deprecationNagger.nagUserOfPluginReplacedWithExternalOne('pluginName', 'replacement', gradleVersion)
+        deprecationNagger.nagUserOfReplacedMethod('methodName', 'replacement', gradleVersion)
+        deprecationNagger.nagUserOfReplacedNamedParameter('parameterName', 'replacement', gradleVersion)
+        deprecationNagger.nagUserOfReplacedPlugin('pluginName', 'replacement', gradleVersion)
+        deprecationNagger.nagUserOfReplacedProperty('propertyName', 'replacement', gradleVersion)
+        deprecationNagger.nagUserOfReplacedTask('taskName', 'replacement', gradleVersion)
+        deprecationNagger.nagUserOfReplacedTaskType('taskName', 'replacement', gradleVersion)
+
+        and:
+        def messages = reporter.usages.collect {
+            it.message
+        }
+
+        then:
+
+        messages.size() == 14
+
+        // produces better assertion failure messages than
+        // messages == expectedMessages
+        (0..13).each {
+            assert messages[it] == expectedMessages[it]
+        }
+
+        where:
+        gradleVersion << [GradleVersion.current(), GradleVersion.current().getNextMajor(), GradleVersion.version('1.0')]
+        gradleVersionString = gradleVersion.getVersion()
+
+        expectedMessages = [
+            'thing has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '.',
+            'thing has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. explanation',
+            'behaviour. This behaviour has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '.',
+            'The api has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. advice',
+            'The methodName method has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '.',
+            'The methodName method has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. advice',
+            'The propertyName property has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. advice',
+            'The pluginName plugin has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Consider using the replacement plugin instead.',
+            'The methodName method has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Please use the replacement method instead.',
+            'The parameterName named parameter has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Please use the replacement named parameter instead.',
+            'The pluginName plugin has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Please use the replacement plugin instead.',
+            'The propertyName property has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Please use the replacement property instead.',
+            'The taskName task has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Please use the replacement task instead.',
+            'The taskName task type has been deprecated and is scheduled to be removed in Gradle ' + gradleVersionString + '. Please use the replacement instead.',
+        ]
+    }
+
+    def 'DeprecationNagger method explodes as expected in case of null GradleVersion.'() {
+        setup:
+        DeprecationNagger deprecationNagger = Naggers.deprecationNagger
+
+        when:
+        deprecationNagger.nagUserOfDeprecated('thing', (GradleVersion)null)
+
+        then:
+        NullPointerException ex = thrown()
+        ex.message == 'gradleVersion must not be null!'
     }
 
     def 'IncubationNagger methods create expected messages.'() {

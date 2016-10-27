@@ -16,6 +16,8 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.util.GradleVersion;
+
 /**
  * Use this to nag the user with deprecation messages.
  *
@@ -23,22 +25,35 @@ package org.gradle.internal.featurelifecycle;
  *
  * @see Naggers#getDeprecationNagger()
  */
-public interface DeprecationNagger {
+public interface DeprecationNagger extends NextMajorVersionDeprecationNagger {
     /**
      * Avoid using this method, use the variant with an explanation instead.
      */
-    void nagUserOfDeprecated(String thing);
-    void nagUserOfDeprecated(String thing, String explanation);
-    void nagUserOfDeprecatedBehaviour(String behaviour);
-    void nagUserOfDiscontinuedApi(String api, String advice);
-    void nagUserOfDiscontinuedMethod(String methodName);
-    void nagUserOfDiscontinuedMethod(String methodName, String advice);
-    void nagUserOfDiscontinuedProperty(String propertyName, String advice);
-    void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement);
-    void nagUserOfReplacedMethod(String methodName, String replacement);
-    void nagUserOfReplacedNamedParameter(String parameterName, String replacement);
-    void nagUserOfReplacedPlugin(String pluginName, String replacement);
-    void nagUserOfReplacedProperty(String propertyName, String replacement);
-    void nagUserOfReplacedTask(String taskName, String replacement);
-    void nagUserOfReplacedTaskType(String taskName, String replacement);
+    void nagUserOfDeprecated(String thing, GradleVersion gradleVersion);
+
+    void nagUserOfDeprecated(String thing, String explanation, GradleVersion gradleVersion);
+
+    void nagUserOfDeprecatedBehaviour(String behaviour, GradleVersion gradleVersion);
+
+    void nagUserOfDiscontinuedApi(String api, String advice, GradleVersion gradleVersion);
+
+    void nagUserOfDiscontinuedMethod(String methodName, GradleVersion gradleVersion);
+
+    void nagUserOfDiscontinuedMethod(String methodName, String advice, GradleVersion gradleVersion);
+
+    void nagUserOfDiscontinuedProperty(String propertyName, String advice, GradleVersion gradleVersion);
+
+    void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement, GradleVersion gradleVersion);
+
+    void nagUserOfReplacedMethod(String methodName, String replacement, GradleVersion gradleVersion);
+
+    void nagUserOfReplacedNamedParameter(String parameterName, String replacement, GradleVersion gradleVersion);
+
+    void nagUserOfReplacedPlugin(String pluginName, String replacement, GradleVersion gradleVersion);
+
+    void nagUserOfReplacedProperty(String propertyName, String replacement, GradleVersion gradleVersion);
+
+    void nagUserOfReplacedTask(String taskName, String replacement, GradleVersion gradleVersion);
+
+    void nagUserOfReplacedTaskType(String taskName, String replacement, GradleVersion gradleVersion);
 }

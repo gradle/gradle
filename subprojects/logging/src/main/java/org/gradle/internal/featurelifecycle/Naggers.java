@@ -21,6 +21,8 @@ import org.gradle.util.GradleVersion;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -230,96 +232,156 @@ public class Naggers {
         }
     }
 
-    private static class DefaultDeprecationNagger implements DeprecationNagger {
-        private static String deprecationMessage;
+    private static abstract class AbstractDeprecationNagger implements DeprecationNagger {
+        private static final GradleVersion NEXT_MAJOR_GRADLE_VERSION = GradleVersion.current().getNextMajor();
 
         public void nagUserOfDeprecated(String thing) {
-            getBasicNagger().nagUserWith(String.format("%s %s.", thing, getDeprecationMessage()));
+            nagUserOfDeprecated(thing, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfDeprecated(String thing, String explanation) {
-            getBasicNagger().nagUserWith(String.format("%s %s. %s", thing, getDeprecationMessage(), explanation));
+            nagUserOfDeprecated(thing, explanation, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfDeprecatedBehaviour(String behaviour) {
-            getBasicNagger().nagUserWith(String.format("%s. This behaviour %s.",
-                behaviour, getDeprecationMessage()));
+            nagUserOfDeprecatedBehaviour(behaviour, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfDiscontinuedApi(String api, String advice) {
-            getBasicNagger().nagUserWith(String.format("The %s %s. %s",
-                api, getDeprecationMessage(), advice));
+            nagUserOfDiscontinuedApi(api, advice, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfDiscontinuedMethod(String methodName) {
-            getBasicNagger().nagUserWith(String.format("The %s method %s.",
-                methodName, getDeprecationMessage()));
+            nagUserOfDiscontinuedMethod(methodName, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfDiscontinuedMethod(String methodName, String advice) {
-            getBasicNagger().nagUserWith(String.format("The %s method %s. %s",
-                methodName, getDeprecationMessage(), advice));
+            nagUserOfDiscontinuedMethod(methodName, advice, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
-            getBasicNagger().nagUserWith(String.format("The %s property %s. %s",
-                propertyName, getDeprecationMessage(), advice));
+            nagUserOfDiscontinuedProperty(propertyName, advice, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s plugin %s. Consider using the %s plugin instead.",
-                pluginName, getDeprecationMessage(), replacement));
+            nagUserOfPluginReplacedWithExternalOne(pluginName, replacement, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfReplacedMethod(String methodName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s method %s. Please use the %s method instead.",
-                methodName, getDeprecationMessage(), replacement));
+            nagUserOfReplacedMethod(methodName, replacement, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s named parameter %s. Please use the %s named parameter instead.",
-                parameterName, getDeprecationMessage(), replacement));
+            nagUserOfReplacedNamedParameter(parameterName, replacement, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfReplacedPlugin(String pluginName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s plugin %s. Please use the %s plugin instead.",
-                pluginName, getDeprecationMessage(), replacement));
+            nagUserOfReplacedPlugin(pluginName, replacement, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfReplacedProperty(String propertyName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s property %s. Please use the %s property instead.",
-                propertyName, getDeprecationMessage(), replacement));
+            nagUserOfReplacedProperty(propertyName, replacement, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfReplacedTask(String taskName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s task %s. Please use the %s task instead.",
-                taskName, getDeprecationMessage(), replacement));
+            nagUserOfReplacedTask(taskName, replacement, NEXT_MAJOR_GRADLE_VERSION);
         }
 
         public void nagUserOfReplacedTaskType(String taskName, String replacement) {
-            getBasicNagger().nagUserWith(String.format(
-                "The %s task type %s. Please use the %s instead.",
-                taskName, getDeprecationMessage(), replacement));
+            nagUserOfReplacedTaskType(taskName, replacement, NEXT_MAJOR_GRADLE_VERSION);
+        }
+    }
+    private static class DefaultDeprecationNagger extends AbstractDeprecationNagger {
+        private static final ConcurrentMap<String, String> MESSAGE_MAP = new ConcurrentHashMap<String, String>();
+
+        public void nagUserOfDeprecated(String thing, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("%s %s.",
+                thing, getDeprecationMessage(gradleVersion)));
         }
 
-        private static String getDeprecationMessage() {
-            LOCK.lock();
-            try {
-                if (deprecationMessage == null) {
-                    String nextMajorVersionString = GradleVersion.current().getNextMajor().getVersion();
+        public void nagUserOfDeprecated(String thing, String explanation, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("%s %s. %s",
+                thing, getDeprecationMessage(gradleVersion), explanation));
+        }
 
-                    deprecationMessage = "has been deprecated and is scheduled to be removed in Gradle " + nextMajorVersionString;
-                }
-                return deprecationMessage;
-            } finally {
-                LOCK.unlock();
+        public void nagUserOfDeprecatedBehaviour(String behaviour, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("%s. This behaviour %s.",
+                behaviour, getDeprecationMessage(gradleVersion)));
+        }
+
+        public void nagUserOfDiscontinuedApi(String api, String advice, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("The %s %s. %s",
+                api, getDeprecationMessage(gradleVersion), advice));
+        }
+
+        public void nagUserOfDiscontinuedMethod(String methodName, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("The %s method %s.",
+                methodName, getDeprecationMessage(gradleVersion)));
+        }
+
+        public void nagUserOfDiscontinuedMethod(String methodName, String advice, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("The %s method %s. %s",
+                methodName, getDeprecationMessage(gradleVersion), advice));
+        }
+
+        public void nagUserOfDiscontinuedProperty(String propertyName, String advice, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format("The %s property %s. %s",
+                propertyName, getDeprecationMessage(gradleVersion), advice));
+        }
+
+        public void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s plugin %s. Consider using the %s plugin instead.",
+                pluginName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        public void nagUserOfReplacedMethod(String methodName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s method %s. Please use the %s method instead.",
+                methodName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        public void nagUserOfReplacedNamedParameter(String parameterName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s named parameter %s. Please use the %s named parameter instead.",
+                parameterName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        public void nagUserOfReplacedPlugin(String pluginName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s plugin %s. Please use the %s plugin instead.",
+                pluginName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        public void nagUserOfReplacedProperty(String propertyName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s property %s. Please use the %s property instead.",
+                propertyName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        public void nagUserOfReplacedTask(String taskName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s task %s. Please use the %s task instead.",
+                taskName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        public void nagUserOfReplacedTaskType(String taskName, String replacement, GradleVersion gradleVersion) {
+            getBasicNagger().nagUserWith(String.format(
+                "The %s task type %s. Please use the %s instead.",
+                taskName, getDeprecationMessage(gradleVersion), replacement));
+        }
+
+        private static String getDeprecationMessage(GradleVersion gradleVersion) {
+            if (gradleVersion == null) {
+                throw new NullPointerException("gradleVersion must not be null!");
             }
+            final String versionString = gradleVersion.getVersion();
+            String result = MESSAGE_MAP.get(versionString);
+            if (result == null) {
+                result = "has been deprecated and is scheduled to be removed in Gradle " + versionString;
+                MESSAGE_MAP.putIfAbsent(versionString, result);
+            }
+            return result;
         }
     }
 }
