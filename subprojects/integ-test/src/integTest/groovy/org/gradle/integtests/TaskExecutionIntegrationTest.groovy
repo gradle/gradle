@@ -19,9 +19,7 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
