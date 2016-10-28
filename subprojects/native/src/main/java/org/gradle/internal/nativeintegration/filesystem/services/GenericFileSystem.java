@@ -105,7 +105,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     private File createFile(String content) throws IOException {
-        File file = File.createTempFile("gradle_fs_probing", null, null);
+        File file = File.createTempFile("gradle_fs_probing", null, new File(System.getProperty("java.io.tmpdir")));
         Files.write(content, file, Charsets.UTF_8);
         return file;
     }

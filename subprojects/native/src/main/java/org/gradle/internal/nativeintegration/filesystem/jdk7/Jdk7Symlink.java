@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Jdk7Symlink implements Symlink {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
@@ -61,8 +62,9 @@ public class Jdk7Symlink implements Symlink {
         Path sourceFile = null;
         Path linkFile = null;
         try {
-            sourceFile = Files.createTempFile("symlink", "test");
-            linkFile = Files.createTempFile("symlink", "test_link");
+            Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
+            sourceFile = Files.createTempFile(tmpDir, "symlink", "test");
+            linkFile = Files.createTempFile(tmpDir, "symlink", "test_link");
 
             Files.delete(linkFile);
             Files.createSymbolicLink(linkFile, sourceFile);
