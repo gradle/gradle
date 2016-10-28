@@ -82,6 +82,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
         if (gradleExecuter == null) {
             gradleExecuter = createExecuter(executerType);
+        } else {
+            gradleExecuter.reset();
         }
         configureExecuter(gradleExecuter);
         try {
@@ -123,5 +125,13 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             gradleExecuter.stop();
         }
         super.cleanup();
+    }
+
+    @Override
+    public GradleExecuter reset() {
+        if (gradleExecuter != null) {
+            gradleExecuter.reset();
+        }
+        return super.reset();
     }
 }

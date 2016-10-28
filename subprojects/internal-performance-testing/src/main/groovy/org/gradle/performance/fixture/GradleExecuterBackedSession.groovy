@@ -68,6 +68,8 @@ class GradleExecuterBackedSession implements GradleSession {
 
         if (executer == null) {
             executer = invocation.gradleDistribution.executer(testDirectoryProvider)
+        } else {
+            executer.reset()
         }
 
         executer.
@@ -79,6 +81,7 @@ class GradleExecuterBackedSession implements GradleSession {
             withArgument('-u').
             inDirectory(invocation.workingDirectory).
             withTasks(invocation.tasksToRun)
+
 
         executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
         executer.withBuildJvmOpts(invocation.jvmOpts)

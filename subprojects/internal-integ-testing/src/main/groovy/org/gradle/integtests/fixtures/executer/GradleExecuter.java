@@ -383,4 +383,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter startLauncherInDebugger(boolean debugLauncher);
 
     boolean isDebugLauncher();
+
+    /**
+     * Clears previous settings so that instance can be reused
+     */
+    GradleExecuter reset();
 }
