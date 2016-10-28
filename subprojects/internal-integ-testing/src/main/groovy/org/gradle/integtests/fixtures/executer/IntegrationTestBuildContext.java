@@ -67,7 +67,7 @@ public class IntegrationTestBuildContext {
     }
 
     protected TestFile getTmpBaseDir() {
-        return file("integTest.tmpDir", new File(System.getProperty("java.io.tmpdir"), "integTestBuildTmp").getAbsolutePath());
+        return file("integTest.tmpDir", new File(System.getProperty("java.io.tmpdir"), "integTestBuildTmp-" + System.getProperty("user.name")).getAbsolutePath());
     }
 
     public TestFile getNativeServicesDir() {
