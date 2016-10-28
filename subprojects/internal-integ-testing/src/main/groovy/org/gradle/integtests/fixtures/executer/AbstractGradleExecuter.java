@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -624,8 +625,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
+        cleanupDaemons();
+        cleanupTmpDir();
+    }
+
+    protected void cleanupDaemons() {
         for (File baseDir : customDaemonBaseDirs) {
-            new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+            try {
+                new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+            } catch (Exception e) {
+                getLogger().warn("Problem killing daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
+            }
         }
     }
 
@@ -948,7 +958,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected TestFile getDefaultTmpDir() {
-        return buildContext.getTmpDir().createDir();
+        return buildContext.getTmpDir();
+    }
+
+    protected void cleanupTmpDir() {
+        File tmpDir = getDefaultTmpDir();
+        if (tmpDir.exists()) {
+            try {
+                FileUtils.forceDelete(tmpDir);
+            } catch (IOException e) {
+                getLogger().warn("Problem cleaning up temp directory " + tmpDir, e);
+            }
+        }
     }
 
     public GradleExecuter noExtraLogging() {
@@ -1023,4 +1044,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
     }
 
+    @Override
+    public void stop() {
+        cleanup();
+    }
 }

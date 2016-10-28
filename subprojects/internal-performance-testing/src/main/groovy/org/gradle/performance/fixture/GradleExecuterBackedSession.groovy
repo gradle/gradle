@@ -41,17 +41,26 @@ class GradleExecuterBackedSession implements GradleSession {
     Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def runner = createExecuter(invocationInfo, invocationCustomizer, true)
         return {
-            if (invocation.expectFailure) {
-                runner.runWithFailure()
-            } else {
-                runner.run()
+            try {
+                if (invocation.expectFailure) {
+                    runner.runWithFailure()
+                } else {
+                    runner.run()
+                }
+            } finally {
+                runner.stop()
             }
         }
     }
 
     @Override
     void cleanup() {
-        createExecuter(null, null, false).withTasks().withArgument("--stop").run()
+        def runner = createExecuter(null, null, false).withTasks().withArgument("--stop")
+        try {
+            runner.run()
+        } finally {
+            runner.stop()
+        }
     }
 
     private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
