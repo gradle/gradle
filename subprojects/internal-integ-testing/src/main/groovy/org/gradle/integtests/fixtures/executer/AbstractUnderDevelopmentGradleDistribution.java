@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
+package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.classpath.ClassPath;
+public abstract class AbstractUnderDevelopmentGradleDistribution extends DefaultGradleDistribution {
+    public AbstractUnderDevelopmentGradleDistribution() {
+        this(new IntegrationTestBuildContext());
+    }
 
-/**
- * Creates snapshots of classpaths.
- */
-public interface ClassPathSnapshotter {
-    ClassPathSnapshot snapshot(ClassPath classPath);
+    private AbstractUnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
+        super(
+                buildContext.getVersion(),
+                buildContext.getGradleHomeDir(),
+                buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", buildContext.getVersion().getVersion()))
+        );
+    }
 }

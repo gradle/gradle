@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Buildable;
-import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -79,9 +78,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allFiles.put(configuration, files);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, ConfigurationRole role) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, role);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, isConsumeOrPublishAllowed, isQueryOrResolveAllowed);
         allConfigurations.put(name, conf);
     }
 
@@ -151,7 +150,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
         private final Map<String, String> attributes;
-        private final ConfigurationRole role;
+        private final boolean isConsumeOrPublishAllowed;
+        private final boolean isQueryOrResolveAllowed;
 
         private List<DependencyMetadata> configurationDependencies;
         private Set<ComponentArtifactMetadata> configurationArtifacts;
@@ -165,7 +165,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                   Set<String> extendsFrom,
                                                   Set<String> hierarchy,
                                                   Map<String, String> attributes,
-                                                  ConfigurationRole role) {
+                                                  boolean isConsumeOrPublishAllowed,
+                                                  boolean isQueryOrResolveAllowed) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
@@ -173,7 +174,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
             this.attributes = attributes;
-            this.role = role;
+            this.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
+            this.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
         }
 
         @Override
@@ -246,8 +248,14 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return configurationFileDependencies;
         }
 
-        public ConfigurationRole getRole() {
-            return role;
+        @Override
+        public boolean isConsumeOrPublishAllowed() {
+            return isConsumeOrPublishAllowed;
+        }
+
+        @Override
+        public boolean isQueryOrResolveAllowed() {
+            return isQueryOrResolveAllowed;
         }
 
         public List<DependencyMetadata> getDependencies() {

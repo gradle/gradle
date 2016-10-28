@@ -17,12 +17,11 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
-import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([Experiment, BasicPerformanceTest])
-class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceTest {
+@Category([BasicPerformanceTest])
+class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
     def "test"() {
@@ -59,9 +58,9 @@ class LocalTaskOutputCachePerformanceTest extends AbstractCrossBuildPerformanceT
         runner.run()
 
         where:
-        testProject            | tasks
-        "multi"                | ["build"]
-        "largeEnterpriseBuild" | ["assemble"]
+        testProject       | tasks
+        "mediumWithJUnit" | ["build"]
+        "bigOldJava"      | ["assemble"]
     }
 
 }

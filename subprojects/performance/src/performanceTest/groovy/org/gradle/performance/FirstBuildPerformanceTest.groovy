@@ -30,7 +30,7 @@ class FirstBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.args = ['--recompile-scripts']
-        runner.targetVersions = ['2.12', 'last']
+        runner.targetVersions = ['2.12', '3.3-20161026000020+0000']
 
         when:
         def result = runner.run()

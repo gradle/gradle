@@ -16,20 +16,23 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.GradleCorePerformanceTest
+import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(GradleCorePerformanceTest)
-class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Resolves dependencies from #repoType repository - #testProject (daemon)")
-    def "full build Java build"() {
+@Category([JavaPerformanceTest])
+class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
+    @Unroll("Builds '#testProject' calling #tasks (daemon) with local cache")
+    def "build with cache"() {
         given:
-        runner.testId = "resolves dependencies from $repoType repository $testProject (daemon)"
+        runner.testId = "Enterprise Java $testProject ${tasks.join(' ')} (daemon, cached)"
         runner.testProject = testProject
-        runner.tasksToRun = ['resolveDependencies']
-        runner.targetVersions = targetVersions
+        runner.tasksToRun = tasks
         runner.useDaemon = true
+        runner.targetVersions = ['last']
+        runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
+        runner.args = ['-Dorg.gradle.cache.tasks=true']
 
         when:
         def result = runner.run()
@@ -38,11 +41,8 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | repoType | targetVersions
-        // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        "lotDependencies"        | 'local'  | ['3.3-20161026000020+0000']
-        "lotProjectDependencies" | 'local'  | ['3.2-rc-1']
+        testProject      | tasks
+        'bigOldJava'     | ['assemble']
+        'largeWithJUnit' | ['build']
     }
 }

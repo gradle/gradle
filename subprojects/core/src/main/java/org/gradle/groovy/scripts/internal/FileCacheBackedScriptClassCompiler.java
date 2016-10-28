@@ -85,7 +85,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         HashCode sourceHashCode = hasher.hash(source.getResource());
-        final String sourceHash = HashUtil.createCompactMD5(sourceHashCode);
+        final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
         final String dslId = operation.getId();
         final String classpathHash = dslId + classLoaderHierarchyHasher.getLenientHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);

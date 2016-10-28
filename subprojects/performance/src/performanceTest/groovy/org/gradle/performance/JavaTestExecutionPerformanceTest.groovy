@@ -37,8 +37,8 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         template          | size     | description                 | gradleTasks           | targetVersions
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['last']
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['last']
+        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['3.3-20161026000020+0000']
+        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['3.3-20161026000020+0000']
     }
 
     @Unroll("#description build for #template")
@@ -47,7 +47,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testId = "$size $description with old Java plugin"
         runner.testProject = template
         runner.tasksToRun = gradleTasks
-        runner.targetVersions = ['2.11', 'last']
+        runner.targetVersions = ['2.11', '3.3-20161026000020+0000']
         runner.useDaemon = true
         runner.gradleOpts = ['-Xms1G', '-Xmx1G']
         runner.buildExperimentListener = new JavaOldModelSourceFileUpdater(10)

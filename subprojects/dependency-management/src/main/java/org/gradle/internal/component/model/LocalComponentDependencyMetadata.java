@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -113,13 +112,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         Map<String, String> attributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
         if (useConfigurationAttributes) {
-            // CC: this duplicates the logic of org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency.findProjectConfiguration()
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
                 Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
-                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.getRole().canBeConsumedOrPublished()) {
+                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isConsumeOrPublishAllowed()) {
                     if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
                         candidateConfigurations.add(dependencyConfiguration);
                     }
@@ -136,7 +134,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (toConfiguration == null) {
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
-        if (dependencyConfiguration!=null && toConfiguration.getRole() == ConfigurationRole.BUCKET) {
+        if (dependencyConfiguration!=null && !toConfiguration.isConsumeOrPublishAllowed()) {
             throw new IllegalArgumentException("Configuration '" + dependencyConfiguration + "' cannot be used in a project dependency");
         }
         ConfigurationMetadata delegate = toConfiguration;
@@ -257,8 +255,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public ConfigurationRole getRole() {
-            return delegate.getRole();
+        public boolean isConsumeOrPublishAllowed() {
+            return delegate.isConsumeOrPublishAllowed();
+        }
+
+        @Override
+        public boolean isQueryOrResolveAllowed() {
+            return delegate.isQueryOrResolveAllowed();
         }
 
         @Override

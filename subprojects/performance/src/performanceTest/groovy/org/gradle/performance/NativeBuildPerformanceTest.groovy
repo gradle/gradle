@@ -39,7 +39,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         type     | fastestVersion
-        "small"  | '3.2-20161012120730+0000'
+        "small"  | '3.2-rc-1'
         "medium" | '3.3-20161026000020+0000'
         "big"    | '2.14.1'
         "multi"  | '2.14.1'

@@ -30,23 +30,32 @@ class GCLoggingCollectorTest extends Specification {
     Resources resources = new Resources()
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def collector = new GCLoggingCollector()
+    def projectDir
+    def gcLogFile
+    def collector
+
+    def setup() {
+        projectDir = tmpDir.createDir("project")
+        gcLogFile = projectDir.file("gc.txt")
+        collector = new GCLoggingCollector(gcLogFile)
+    }
 
     @Unroll
     def "parses GC Log #logName with locale #locale"() {
         def operation = new MeasuredOperation(start: DateTime.parse("2015-01-22T$startTime"), end: DateTime.parse("2015-01-22T$endTime"))
-        def projectDir = tmpDir.createDir("project")
-        resources.getResource(logName).copyTo(projectDir.file("gc.txt"))
+        resources.getResource(logName).copyTo(gcLogFile)
 
         when:
         collector.getAdditionalJvmOpts(projectDir)
         collector.collect(operation, locale)
+        collector.close()
 
         then:
         operation.totalHeapUsage == DataAmount.kbytes(totalHeapUsage)
         operation.maxHeapUsage == DataAmount.kbytes(maxHeapUsage)
         operation.maxUncollectedHeap == DataAmount.kbytes(maxUncollectedHeap)
         operation.maxCommittedHeap == DataAmount.kbytes(maxCommittedHeap)
+        gcLogFile.exists() == false
 
         where:
         logName             | totalHeapUsage | maxHeapUsage | maxUncollectedHeap | maxCommittedHeap | locale         | startTime      | endTime

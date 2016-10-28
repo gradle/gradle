@@ -67,9 +67,9 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
-        runner.warmUpRuns = 10
+        runner.warmUpRuns = 6
         //the content changing code below assumes an even number of runs
-        runner.runs = 20
+        runner.runs = 10
         if (runner.honestProfiler.enabled) {
             runner.honestProfiler.autoStartStop = false
         }

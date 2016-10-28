@@ -155,8 +155,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy | results
-        ORDERED   | [new FileChange("two-new", REPLACED, "test")]
-        UNORDERED | [new FileChange("two-new", REPLACED, "test")]
+        ORDERED   | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
+        UNORDERED | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
         OUTPUT    | [new FileChange("one-old", REMOVED, "test")]
     }
 
@@ -170,7 +170,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | results
-        ORDERED   | [change("two-new", REPLACED)]
+        ORDERED   | [change("three-old", REMOVED), change("two-new", ADDED)]
         UNORDERED | [change("three-old", REMOVED), change("two-new", ADDED)]
         OUTPUT    | [change("three-old", REMOVED)]
     }
@@ -185,7 +185,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | results
-        ORDERED   | [change("two", REPLACED)]
+        ORDERED   | [change("three", REMOVED), change("two", ADDED)]
         UNORDERED | [change("three", REMOVED), change("two", ADDED)]
         OUTPUT    | [change("three", REMOVED)]
     }
@@ -200,7 +200,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy | results
-        ORDERED   | [change("two-new", REPLACED), change("three-new", REPLACED)]
+        ORDERED   | [change("three-old", REMOVED), change("two-new", ADDED), change("two-old", REMOVED), change("three-new", ADDED)]
         UNORDERED | []
         OUTPUT    | []
     }
@@ -215,7 +215,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy | results
-        ORDERED   | [change("two", REPLACED), change("three", REPLACED)]
+        ORDERED   | [change("three", REMOVED), change("two", ADDED), change("two", REMOVED), change("three", ADDED)]
         UNORDERED | []
         OUTPUT    | []
     }

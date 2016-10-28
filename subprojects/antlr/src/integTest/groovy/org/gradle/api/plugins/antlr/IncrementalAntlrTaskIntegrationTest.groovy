@@ -168,7 +168,9 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     def changedGrammar(String... ids) {
         ids.each { id ->
-            file("src/main/antlr/${id}.g").text = """grammar ${id};
+            file("src/main/antlr/${id}.g").text = """
+/** Comment to ensure the file length is changed */
+grammar ${id};
              list    :   item (item)*
                     ;
 

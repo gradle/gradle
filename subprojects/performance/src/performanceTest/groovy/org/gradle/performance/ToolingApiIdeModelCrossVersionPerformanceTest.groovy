@@ -38,7 +38,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
             invocationCount = 30
             sleepAfterTestRoundMillis = 25
             // rebaselined because of https://github.com/gradle/performance/issues/99
-            targetVersions = ['3.2-20161010071950+0000']
+            targetVersions = ['3.2-rc-1']
             action {
                 def model = model(tapiClass(EclipseProject))
                     .setJvmArguments(createDefaultJvmOptions()).get()
@@ -185,10 +185,10 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         where:
         // rebaselined because of https://github.com/gra
         template          | targetGradleVersions
-        "smallOldJava"    | ['3.2-20161010071950+0000']
-        "mediumOldJava"   | ['3.2-20161010071950+0000']
-        "bigOldJava"      | ['3.2-20161010071950+0000']
-        "lotDependencies" | ['3.2-20161010071950+0000']
+        "smallOldJava"    | ['3.2-rc-1']
+        "mediumOldJava"   | ['3.2-rc-1']
+        "bigOldJava"      | ['3.2-rc-1']
+        "lotDependencies" | ['3.2-rc-1']
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

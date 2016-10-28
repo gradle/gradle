@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConfigurationRole;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
@@ -80,7 +79,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
-        if (declaredConfiguration!=null && selectedConfiguration.getRole() == ConfigurationRole.BUCKET) {
+        if (declaredConfiguration!=null && !selectedConfiguration.isConsumeOrPublishAllowed()) {
             throw new IllegalArgumentException("Configuration '" + declaredConfiguration+"' cannot be used in a project dependency");
         }
         return selectedConfiguration;

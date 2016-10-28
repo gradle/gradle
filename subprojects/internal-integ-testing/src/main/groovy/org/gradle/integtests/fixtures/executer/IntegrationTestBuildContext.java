@@ -58,8 +58,16 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
-    public TestFile getTmpDir() {
-        return file("integTest.tmpDir", "build/tmp");
+    /**
+     * Returns unique temp directory for each build context instance
+     */
+    public final TestFile getTmpDir() {
+        String uniquePart = String.valueOf(Math.abs(System.identityHashCode(this)));
+        return getTmpBaseDir().file(uniquePart);
+    }
+
+    protected TestFile getTmpBaseDir() {
+        return file("integTest.tmpDir", new File(System.getProperty("java.io.tmpdir"), "integTestBuildTmp").getAbsolutePath());
     }
 
     public TestFile getNativeServicesDir() {

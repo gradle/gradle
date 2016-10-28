@@ -174,7 +174,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
             if (diff != 0) {
                 return diff;
             }
-            diff = artifact1.getExtension().compareTo(artifact2.getExtension());
+            diff = ObjectUtils.compare(artifact1.getExtension(), artifact2.getExtension());
             if (diff != 0) {
                 return diff;
             }

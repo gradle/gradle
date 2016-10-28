@@ -17,9 +17,9 @@
 package org.gradle.performance
 
 import groovy.transform.InheritConstructors
+import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
@@ -61,7 +61,7 @@ import spock.lang.Specification
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
 
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
-    protected final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
+    protected final static GradleDistribution CURRENT = new ForkingUnderDevelopmentGradleDistribution()
 
     static def resultStore = new CrossVersionResultsStore()
     final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()

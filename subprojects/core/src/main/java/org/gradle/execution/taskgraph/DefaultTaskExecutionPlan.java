@@ -257,6 +257,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
             if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
+                visitingNodes.remove(taskNode, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
                 continue;
             }
@@ -372,16 +373,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
+    /**
+     * Given a finalizer task, determine where in the current node queue that it should be inserted.
+     * The finalizer should be inserted after any of it's successors, and their successors, recursively.
+     */
     private int finalizerTaskPosition(TaskInfo finalizer, final List<TaskInfoInVisitingSegment> nodeQueue) {
         if (nodeQueue.size() == 0) {
             return 0;
         }
 
-        ArrayList<TaskInfo> dependsOnTasks = new ArrayList<TaskInfo>();
-        dependsOnTasks.addAll(finalizer.getDependencySuccessors());
-        dependsOnTasks.addAll(finalizer.getMustSuccessors());
-        dependsOnTasks.addAll(finalizer.getShouldSuccessors());
-        List<Integer> dependsOnTaskIndexes = CollectionUtils.collect(dependsOnTasks, new Transformer<Integer, TaskInfo>() {
+        Set<TaskInfo> dependsOnTasks = getAllSuccessorsRecursively(finalizer);
+        Set<Integer> dependsOnTaskIndexes = CollectionUtils.collect(dependsOnTasks, new Transformer<Integer, TaskInfo>() {
             public Integer transform(final TaskInfo dependsOnTask) {
                 return Iterables.indexOf(nodeQueue, new Predicate<TaskInfoInVisitingSegment>() {
                     public boolean apply(TaskInfoInVisitingSegment taskInfoInVisitingSegment) {
@@ -391,6 +393,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         });
         return Collections.max(dependsOnTaskIndexes) + 1;
+    }
+
+    private Set<TaskInfo> getAllSuccessorsRecursively(TaskInfo finalizer) {
+        Set<TaskInfo> dependsOnTasks = new HashSet<TaskInfo>();
+        Stack<TaskInfo> processingTasks = new Stack<TaskInfo>();
+
+        processingTasks.addAll(finalizer.getDependencySuccessors());
+        processingTasks.addAll(finalizer.getMustSuccessors());
+        processingTasks.addAll(finalizer.getShouldSuccessors());
+        while (!processingTasks.isEmpty()) {
+            TaskInfo task = processingTasks.pop();
+            if (dependsOnTasks.add(task)) {
+                processingTasks.addAll(task.getDependencySuccessors());
+                processingTasks.addAll(task.getMustSuccessors());
+                processingTasks.addAll(task.getShouldSuccessors());
+            }
+        }
+
+        return dependsOnTasks;
     }
 
     private void onOrderingCycle() {

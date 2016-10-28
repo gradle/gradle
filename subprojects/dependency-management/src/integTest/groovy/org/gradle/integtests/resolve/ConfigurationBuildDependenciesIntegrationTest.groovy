@@ -85,6 +85,36 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     }
 
     @Unroll
+    def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
+        makeFluid(fluid)
+        buildFile << """
+            allprojects { 
+                task jar 
+                artifacts {
+                    compile file: file("\${project.name}.jar"), builtBy: jar
+                }
+            }
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                dependencies {
+                    compile project(':')
+                }
+            }
+"""
+
+        when:
+        run("useCompileConfiguration")
+
+        then:
+        result.assertTasksExecuted(":jar", ":child:jar", ":useCompileConfiguration")
+
+        where:
+        fluid << [true, false]
+    }
+
+    @Unroll
     def "reports failure to calculate build dependencies of artifact - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.ConfigurationRole
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
@@ -81,6 +80,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     }
 
     def addConfiguration(BuildableIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
-        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, ConfigurationRole.CAN_BE_CONSUMED_ONLY)
+        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, true, true)
     }
 }

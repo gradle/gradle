@@ -80,11 +80,11 @@ public class HashUtil {
         return createHash(scriptText, "MD5").asCompactString();
     }
 
-    public static String createCompactMD5(HashCode hashCode) {
-        return createCompactMD5FromHash(hashCode.asBytes());
+    public static String compactStringFor(HashCode hashCode) {
+        return compactStringFor(hashCode.asBytes());
     }
 
-    public static String createCompactMD5FromHash(byte[] digest) {
+    public static String compactStringFor(byte[] digest) {
         return new HashValue(digest).asCompactString();
     }
 

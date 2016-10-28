@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
+package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.classpath.ClassPath;
-
-/**
- * Creates snapshots of classpaths.
- */
-public interface ClassPathSnapshotter {
-    ClassPathSnapshot snapshot(ClassPath classPath);
+public class ForkingUnderDevelopmentGradleDistribution extends AbstractUnderDevelopmentGradleDistribution {
+    public ForkingUnderDevelopmentGradleDistribution() {
+        super();
+    }
 }
+

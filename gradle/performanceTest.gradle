@@ -126,7 +126,7 @@ performanceTestTasks.all { PerformanceTest task ->
     withPerformanceDb(task)
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
-    dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    dependsOn( prepareSamples, { project(':toolingApi').publishLocalArchives }, ':distributions:binZip')
     finalizedBy performanceReport
 
     project.task("clean${task.name.capitalize()}", type: Delete) {

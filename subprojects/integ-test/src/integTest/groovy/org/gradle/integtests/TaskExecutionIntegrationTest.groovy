@@ -16,6 +16,8 @@
 
 package org.gradle.integtests
 
+import groovy.transform.NotYetImplemented
+import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -474,4 +476,122 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
+
+    @Issue("GRADLE-3575")
+    def "honours task ordering with finalizers on finalizers"() {
+        buildFile << """
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
+                dependsOn 'c', 'g'
+            }
+
+            task b(type: NotParallel) {
+                dependsOn 'd'
+                finalizedBy 'e'
+            }
+
+            task c(type: NotParallel) {
+                dependsOn 'd'
+            }
+
+            task d(type: NotParallel) {
+                dependsOn 'f'
+            }
+
+            task e(type: NotParallel) {
+                finalizedBy 'h'
+            }
+
+            task f(type: NotParallel) {
+                finalizedBy 'h'
+            }
+
+            task g(type: NotParallel) {
+                dependsOn 'd'
+            }
+
+            task h(type: NotParallel)
+        """
+
+        when:
+        succeeds 'a'
+
+        then:
+        executedTasks == [':f', ':h', ':d', ':c', ':g', ':a']
+
+        when:
+        succeeds 'b'
+
+        then:
+        executedTasks == [':f', ':d', ':b', ':e', ':h']
+
+        when:
+        succeeds 'a', 'b'
+
+        then:
+        executedTasks == [':f', ':d', ':c', ':g', ':a', ':b', ':e', ':h']
+
+        when:
+        succeeds 'b', 'a'
+
+        then:
+        executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
+    }
+
+    @Ignore("Re-enable once serious effort have been put to fix this issue")
+    @NotYetImplemented
+    @Issue("gradle/gradle#769")
+    def "execution succeed in presence of long dependency chain"() {
+        def count = 9000
+        buildFile << """
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
+                finalizedBy 'f'
+            }
+
+            task f(type: NotParallel) {
+                dependsOn "d_0"
+            }
+
+            def nextIndex
+            ${count}.times {
+                nextIndex = it + 1
+                task "d_\$it"(type: NotParallel) { task ->
+                    dependsOn "d_\$nextIndex"
+                }
+            }
+            task "d_\$nextIndex"(type: NotParallel)
+        """
+
+        when:
+        succeeds 'a'
+
+        then:
+        executedTasks.size == count+3
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#767")
+    def "detect a cycle when a task finalized itself"() {
+        buildFile << """
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
+                finalizedBy "b"
+            }
+
+            task b(type: NotParallel) {
+                finalizedBy "b"
+            }
+        """
+
+        when:
+        fails 'a'
+
+        then:
+        thrown(CircularReferenceException)
+    }
+
 }

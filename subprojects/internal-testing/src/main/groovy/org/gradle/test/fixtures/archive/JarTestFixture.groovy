@@ -69,12 +69,16 @@ class JarTestFixture extends ZipTestFixture {
 
     def getJavaVersion() {
         JarFile jarFile = new JarFile(file)
-        //take the first class file
-        JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class") }
-        if (classEntry == null) {
-            throw new Exception("Could not find a class entry for: " + file)
+        try {
+            //take the first class file
+            JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class") }
+            if (classEntry == null) {
+                throw new Exception("Could not find a class entry for: " + file)
+            }
+            ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
+            return classFile.javaVersion
+        } finally {
+            jarFile.close()
         }
-        ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
-        return classFile.javaVersion
     }
 }
