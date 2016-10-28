@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer.VERSIONED_STORAGE_DIR_NAME
+
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -29,7 +31,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     def libraryFactory = new JansiLibraryFactory()
     def nativeDir = new File(executer.gradleUserHomeDir, 'native')
-    def jansiDir = libraryFactory.makeVersionSpecificDir(nativeDir)
+    def jansiDir = new File(nativeDir, VERSIONED_STORAGE_DIR_NAME)
     def library = new File(jansiDir, libraryFactory.create().path)
 
     def setup() {
