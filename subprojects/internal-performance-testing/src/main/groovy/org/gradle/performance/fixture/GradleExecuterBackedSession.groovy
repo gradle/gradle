@@ -59,6 +59,7 @@ class GradleExecuterBackedSession implements GradleSession {
                 executer.run()
             } finally {
                 executer.stop()
+                executer = null
             }
         }
     }
