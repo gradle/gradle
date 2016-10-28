@@ -117,4 +117,11 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         }
     }
 
+    @Override
+    public void cleanup() {
+        if (gradleExecuter != null) {
+            gradleExecuter.stop();
+        }
+        super.cleanup();
+    }
 }
