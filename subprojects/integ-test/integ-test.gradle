@@ -18,7 +18,7 @@ useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
 
 integTestTasks.all {
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':docs:userguideDocbook')
+    dependsOn({ project(':toolingApi').publishLocalArchives }, ':docs:userguideDocbook')
 
 
     def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")

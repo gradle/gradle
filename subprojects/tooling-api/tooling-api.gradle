@@ -32,7 +32,7 @@ useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
 
 integTestTasks.all {
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    dependsOn(publishLocalArchives, ':distributions:binZip')
 }
 
 forkingIntegTest {
