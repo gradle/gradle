@@ -6,9 +6,11 @@ Perhaps the most significant improvements are in the **incremental build support
 
 Users of Gradle's **native build support** gain an important tool in this release. Many of you will be familiar with the `buildDependents` task for classic multi-project builds. This is now available in native builds as well via new `assembleDependents` and `buildDependents` tasks. These are incredibly useful for determining whether your changes have adversely impacted anything that depends on them.
 
-If you use an IDE and have a lot of dependencies in your build—particular dynamic ones—you may have experienced long import times. The underlying issue has been fixed in this release, resulting in significantly improved import times. One example enterprise build showed **a 100-fold improvement**!
+If you use an IDE and have a lot of dependencies in your build—particular dynamic ones—you may have experienced long import times. The underlying issue has been fixed in this release, resulting in significantly improved import times. [One example enterprise build](https://github.com/gradle/perf-enterprise-large/) showed **a 100-fold improvement**!
 
 Our users trialling the **Kotlin build script support** will be glad to hear that progress continues apace with support for **multi-project builds**. And it's easier to try this feature on Windows now that a bug in compiling scripts on that platform has been fixed.
+
+Gradle 3.1 fixed the behavior of Ctrl-C for many scenarios, but it would still kill the daemon if you used it during the first build run on that daemon. The situation has now improved with this release so that **Ctrl-C _won't_ always kill the daemon on the first run**. See the dedicated section later for a more complete description of the latest behavior.
 
 The last change we want to bring to your attention has been a long time coming and will affect a large number of builds: the shortcut syntax for declaring tasks (via `<<`) has **now been deprecated**. The eagle-eyed among you will notice that the user guide examples have been updated to use `doLast()` and we strongly recommend that you follow suit. This feature will be removed in Gradle 5.0! See the [Deprecations section](#deprecations) for more details.
 
@@ -89,11 +91,11 @@ See the User guide section on “[authenticated distribution download](userguide
 
 As stated in the User guide, please note that this shouldn't be used over insecure connections.
 
-### Ctrl-C no longer stops the Daemon
+### Ctrl-C no longer stops the Daemon on first run
 
-We made a number of improvements in Gradle 3.1 that allow the Daemon to cancel a running build when a client disconnects unexpectedly. This included many scenarios in which the user pressed Ctrl-C, but not all. In other words, a Ctrl-C would still sometimes kill the Daemon. 
+We made a number of improvements in Gradle 3.1 that allow the Daemon to cancel a running build when a client disconnects unexpectedly. This included many scenarios in which the user pressed Ctrl-C, but not all. Pressing Ctrl-C or sending a `SIGINT` would always result in Gradle killing the daemon during the first build execution on that daemon.
 
-This release resolves the remaining issues so that Ctrl-C will reliably _not_ kill the Daemon. As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
+This release fixes the problem so that Gradle will always attempt to cancel the build, even during the first build run. If the build can be successfully canceled, the daemon remains available for subsequent builds. However, if the build is unresponsive and cannot be canceled, then Gradle will kill the daemon to ensure that the system resources are properly reclaimed.
 
 ### Multi-project builds with Kotlin scripting
 
