@@ -58,14 +58,13 @@ import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
+import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -231,30 +230,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private void resetTempDirLocation() {
-        File tmpdirFile = new File(System.getProperty("java.io.tmpdir"));
-        // reset cache in File.createTempFile
-        try {
-            Field tmpdirField = Class.forName("java.io.File.TempDirectory").getDeclaredField("tmpdir");
-            makeFinalFieldAccessible(tmpdirField);
-            tmpdirField.set(null, tmpdirFile);
-        } catch (Exception e) {
-            getLogger().warn("Cannot reset tmpdir field used by java.io.File.createTempFile");
-        }
-        // reset cache in Files.createTempFile
-        try {
-            Field tmpdirField = Class.forName("java.nio.file.TempFileHelper").getDeclaredField("tmpdir");
-            makeFinalFieldAccessible(tmpdirField);
-            tmpdirField.set(null, tmpdirFile.toPath());
-        } catch (Exception e) {
-            getLogger().warn("Cannot reset tmpdir field used by java.nio.file.Files.createTempFile");
-        }
-    }
-
-    private static void makeFinalFieldAccessible(Field field) throws NoSuchFieldException, IllegalAccessException {
-        field.setAccessible(true);
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        SetSystemProperties.resetTempDirLocation();
     }
 
     private BuildResult executeBuild(GradleInvocation invocation, StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
