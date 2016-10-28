@@ -21,6 +21,7 @@ import com.google.common.hash.HashCode
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
 import org.gradle.api.internal.hash.FileHasher
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClassPathSnapshot
 import org.gradle.internal.classloader.ClassPathSnapshotter
 import org.gradle.internal.classpath.DefaultClassPath
@@ -33,7 +34,8 @@ class DefaultCacheKeyBuilderTest extends Specification {
     def hashFunction = Mock(HashFunction)
     def fileHasher = Mock(FileHasher)
     def snapshotter = Mock(ClassPathSnapshotter)
-    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, snapshotter)
+    def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, snapshotter, classLoaderHierarchyHasher)
 
     def 'given just a prefix, it should return it'() {
         given:
@@ -100,6 +102,23 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
         and:
         key == "$prefix/${classPathHash.toString(36)}"
+    }
+
+    def 'given a ClassLoader component, it should hash its hierarchy and append it to the prefix'() {
+        given:
+        def prefix = 'p'
+        def classLoader = Mock(ClassLoader)
+        def classLoaderHierarchyHash = 42G
+
+        when:
+        def key = subject.build(CacheKeySpec.withPrefix(prefix) + classLoader)
+
+        then:
+        1 * classLoaderHierarchyHasher.getLenientHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
+        0 * _
+
+        and:
+        key == "$prefix/${classLoaderHierarchyHash.toString(36)}"
     }
 
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
