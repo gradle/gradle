@@ -24,7 +24,14 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.*;
+import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
+import org.gradle.tooling.internal.provider.events.DefaultFailure;
+import org.gradle.tooling.internal.provider.events.DefaultTaskDescriptor;
+import org.gradle.tooling.internal.provider.events.DefaultTaskFailureResult;
+import org.gradle.tooling.internal.provider.events.DefaultTaskFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
+import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 
 import java.util.Collections;
 
@@ -73,13 +80,13 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         long endTime = result.getEndTime();
 
         if (state.getUpToDate()) {
-            return new DefaultTaskSuccessResult(startTime, endTime, true);
+            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage());
         } else if (state.getSkipped()) {
             return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage());
         } else {
             Throwable failure = state.getFailure();
             if (failure == null) {
-                return new DefaultTaskSuccessResult(startTime, endTime, false);
+                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS");
             } else {
                 return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
             }

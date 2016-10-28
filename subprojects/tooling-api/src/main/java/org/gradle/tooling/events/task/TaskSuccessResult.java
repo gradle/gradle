@@ -27,9 +27,17 @@ import org.gradle.tooling.events.SuccessResult;
 @Incubating
 public interface TaskSuccessResult extends TaskOperationResult, SuccessResult {
     /**
-     * Returns whether this task was uptodate.
+     * Returns whether this task was up-to-date.
      *
-     * @return {@code true} if this task was uptodate
+     * @return {@code true} if this task was up-to-date
      */
     boolean isUpToDate();
+
+    /**
+     * Returns whether the output for this task was pulled from a cache.
+     *
+     * @return {@code true} if the output for this task was from a cache
+     * @since 3.3
+     */
+    boolean isFromCache();
 }
