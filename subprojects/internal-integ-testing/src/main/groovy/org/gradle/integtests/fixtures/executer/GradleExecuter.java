@@ -375,4 +375,11 @@ public interface GradleExecuter {
     boolean isDebug();
 
     boolean isProfile();
+
+    /**
+     * Starts the launcher JVM (daemon client) in suspended debug mode
+     */
+    GradleExecuter startLauncherInDebugger(boolean debugLauncher);
+
+    boolean isDebugLauncher();
 }
