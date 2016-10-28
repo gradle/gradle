@@ -42,6 +42,14 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     private final List<ClassLoader> parents;
 
+    static {
+        /*
+         * This classloader is thread-safe and ClassLoader is parallel capable,
+         * so register as such to reduce contention when running multithreaded builds
+        */
+        ClassLoader.registerAsParallelCapable();
+    }
+
     public MultiParentClassLoader(ClassLoader... parents) {
         this(Arrays.asList(parents));
     }

@@ -72,6 +72,14 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     private LegacyTypesSupport legacyTypesSupport;
 
+    static {
+        /*
+         * This classloader is thread-safe and TransformingClassLoader is parallel capable,
+         * so register as such to reduce contention when running multithreaded builds
+        */
+        ClassLoader.registerAsParallelCapable();
+    }
+
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
         super(parent, classPath);
         this.legacyTypesSupport = legacyTypesSupport;
