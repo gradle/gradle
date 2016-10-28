@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -147,6 +146,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
+
+    private TestFile uniqueTmpDir;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -772,7 +773,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (!noExplicitTmpDir) {
-            String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
+            if (uniqueTmpDir == null) {
+                uniqueTmpDir = createUniqueTmpDir().createDir();
+            }
+            String tmpDirPath = uniqueTmpDir.getAbsolutePath();
             if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
@@ -968,17 +972,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    protected TestFile getDefaultTmpDir() {
-        return buildContext.getTmpDir();
+    protected TestFile createUniqueTmpDir() {
+        return buildContext.createUniqueTmpDir();
     }
 
     protected void cleanupTmpDir() {
-        File tmpDir = getDefaultTmpDir();
-        if (tmpDir.exists()) {
-            try {
-                FileUtils.forceDelete(tmpDir);
-            } catch (IOException e) {
-                getLogger().warn("Problem cleaning up temp directory " + tmpDir, e);
+        if (uniqueTmpDir != null) {
+            if (uniqueTmpDir.exists()) {
+                try {
+                    uniqueTmpDir.deleteDir();
+                } catch (Exception e) {
+                    getLogger().warn("Problem cleaning up temp directory " + uniqueTmpDir, e);
+                } finally {
+                    uniqueTmpDir = null;
+                }
+            } else {
+                uniqueTmpDir = null;
             }
         }
     }
