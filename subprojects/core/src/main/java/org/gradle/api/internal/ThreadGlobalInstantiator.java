@@ -19,7 +19,8 @@ package org.gradle.api.internal;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject#MixInExtensibleDynamicObject(Object, Class, org.gradle.internal.metaobject.DynamicObject)
@@ -27,27 +28,27 @@ import java.util.Stack;
  */
 public abstract class ThreadGlobalInstantiator {
 
-    private static final ThreadLocal<Stack<Instantiator>> STORAGE = new ThreadLocal<Stack<Instantiator>>() {
+    private static final ThreadLocal<Deque<Instantiator>> STORAGE = new ThreadLocal<Deque<Instantiator>>() {
         @Override
-        protected Stack<Instantiator> initialValue() {
-            return new Stack<Instantiator>();
+        protected Deque<Instantiator> initialValue() {
+            return new ArrayDeque<Instantiator>();
         }
     };
 
-    private static Stack<Instantiator> getStack() {
+    private static Deque<Instantiator> getStack() {
         return STORAGE.get();
-    } 
-    
+    }
+
     public static Instantiator get() {
-        Stack<Instantiator> stack = getStack();
-        return stack.empty() ? null : stack.peek(); 
+        Deque<Instantiator> stack = getStack();
+        return stack.isEmpty() ? null : stack.peek();
     }
 
     public static void set(Instantiator instantiator) {
-        Stack<Instantiator> stack = getStack();
+        Deque<Instantiator> stack = getStack();
         if (instantiator != null) {
             stack.push(instantiator);
-        } else if (!stack.empty()) {
+        } else if (!stack.isEmpty()) {
             stack.pop();
         }
     }

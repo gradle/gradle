@@ -19,8 +19,19 @@ package org.gradle.execution.taskgraph;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.collect.*;
-import org.gradle.api.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
+import org.gradle.api.BuildCancelledException;
+import org.gradle.api.CircularReferenceException;
+import org.gradle.api.Nullable;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -45,7 +56,21 @@ import org.gradle.util.TextUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -246,8 +271,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         int visitingSegmentCounter = nodeQueue.size();
 
         HashMultimap<TaskInfo, Integer> visitingNodes = HashMultimap.create();
-        Stack<GraphEdge> walkedShouldRunAfterEdges = new Stack<GraphEdge>();
-        Stack<TaskInfo> path = new Stack<TaskInfo>();
+        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
+        Deque<TaskInfo> path = new ArrayDeque<TaskInfo>();
         HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
 
         while (!nodeQueue.isEmpty()) {
@@ -275,7 +300,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 addAllSuccessorsInReverseOrder(taskNode, successors);
                 for (TaskInfo successor : successors) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
-                        if (!walkedShouldRunAfterEdges.empty()) {
+                        if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
                             GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
                             toBeRemoved.from.removeShouldRunAfterSuccessor(toBeRemoved.to);
@@ -311,7 +336,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         executionQueue.addAll(executionPlan.values());
     }
 
-    private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
+    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
         if (!walkedShouldRunAfterEdges.isEmpty() && walkedShouldRunAfterEdges.peek().to.equals(taskNode)) {
             walkedShouldRunAfterEdges.pop();
         }
@@ -339,7 +364,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void restorePath(Stack<TaskInfo> path, GraphEdge toBeRemoved) {
+    private void restorePath(Deque<TaskInfo> path, GraphEdge toBeRemoved) {
         TaskInfo removedFromPath = null;
         while (!toBeRemoved.from.equals(removedFromPath)) {
             removedFromPath = path.pop();
@@ -367,8 +392,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void recordEdgeIfArrivedViaShouldRunAfter(Stack<GraphEdge> walkedShouldRunAfterEdges, Stack<TaskInfo> path, TaskInfo taskNode) {
-        if (!path.empty() && path.peek().getShouldSuccessors().contains(taskNode)) {
+    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<TaskInfo> path, TaskInfo taskNode) {
+        if (!path.isEmpty() && path.peek().getShouldSuccessors().contains(taskNode)) {
             walkedShouldRunAfterEdges.push(new GraphEdge(path.peek(), taskNode));
         }
     }
@@ -397,7 +422,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private Set<TaskInfo> getAllSuccessorsRecursively(TaskInfo finalizer) {
         Set<TaskInfo> dependsOnTasks = new HashSet<TaskInfo>();
-        Stack<TaskInfo> processingTasks = new Stack<TaskInfo>();
+        Deque<TaskInfo> processingTasks = new ArrayDeque<TaskInfo>();
 
         processingTasks.addAll(finalizer.getDependencySuccessors());
         processingTasks.addAll(finalizer.getMustSuccessors());

@@ -45,11 +45,12 @@ import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesReso
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 
 import java.io.StringWriter;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -200,11 +201,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private List<DependentBinariesResolvedResult> buildResolvedResult(final NativeBinarySpecInternal target, State state) {
-        Stack<NativeBinarySpecInternal> stack = new Stack<NativeBinarySpecInternal>();
+        Deque<NativeBinarySpecInternal> stack = new ArrayDeque<NativeBinarySpecInternal>();
         return doBuildResolvedResult(target, state, stack);
     }
 
-    private List<DependentBinariesResolvedResult> doBuildResolvedResult(final NativeBinarySpecInternal target, State state, Stack<NativeBinarySpecInternal> stack) {
+    private List<DependentBinariesResolvedResult> doBuildResolvedResult(final NativeBinarySpecInternal target, State state, Deque<NativeBinarySpecInternal> stack) {
         if (stack.contains(target)) {
             onCircularDependencies(state, stack, target);
         }
@@ -224,7 +225,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         return result;
     }
 
-    private void onCircularDependencies(final State state, final Stack<NativeBinarySpecInternal> stack, NativeBinarySpecInternal target) {
+    private void onCircularDependencies(final State state, final Deque<NativeBinarySpecInternal> stack, NativeBinarySpecInternal target) {
         GraphNodeRenderer<NativeBinarySpecInternal> nodeRenderer = new GraphNodeRenderer<NativeBinarySpecInternal>() {
             @Override
             public void renderTo(NativeBinarySpecInternal node, StyledTextOutput output) {
