@@ -7,9 +7,11 @@ buildscript {
     }
 }
 
+${beforePlugins}
+
 apply plugin: MeasurementPlugin
 
-${original}
+${afterPlugins}
 
 BuildEventTimeStamps.settingsEvaluated()
 

@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.build;
 
+import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.model.build.GradleEnvironment;
 import org.gradle.tooling.model.build.JavaEnvironment;
@@ -24,18 +26,29 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serializable {
+public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serializable, GradleBuildIdentity {
 
     private final File gradleUserHome;
     private final String gradleVersion;
     private final File javaHome;
     private final List<String> jvmArguments;
+    private DefaultBuildIdentifier buildIdentifier;
 
-    public DefaultBuildEnvironment(File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {
+    public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {
+        this.buildIdentifier = buildIdentifier;
         this.gradleUserHome = gradleUserHome;
         this.gradleVersion = gradleVersion;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
+    }
+
+    public DefaultBuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Override
+    public File getRootDir() {
+        return buildIdentifier.getRootDir();
     }
 
     public GradleEnvironment getGradle() {

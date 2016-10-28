@@ -16,11 +16,14 @@
 
 package org.gradle.performance.results
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Transformer
+import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+@CompileStatic
 public class CrossVersionPerformanceResults extends PerformanceTestResult {
-    private final static LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
+    private final static Logger LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
 
     String testProject
     List<String> args
@@ -30,7 +33,7 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
 
     private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
     final MeasuredOperationList current = new MeasuredOperationList(name: "Current Gradle")
-    private final results = new CurrentVersionResults(current)
+    private final CurrentVersionResults results = new CurrentVersionResults(current)
 
     @Override
     String toString() {
@@ -61,7 +64,7 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
      * Locates the given version. Can use either a baseline version or the current branch name.
      */
     VersionResults version(String version) {
-        if (version.equals(vcsBranch)) {
+        if (version == vcsBranch) {
             return results
         }
         return baseline(version)
@@ -83,18 +86,26 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
         }
     }
 
-    void assertCurrentVersionHasNotRegressed() {
+    void assertCurrentVersionHasNotRegressed(Flakiness flakiness=Flakiness.not_flaky) {
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
         def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
         if (slower && larger && whatToCheck().speed() && whatToCheck().memory()) {
-            throw new AssertionError("$slower\n$larger")
+            throwAssertionErrorIfNotFlaky(flakiness, "$slower\n$larger")
         }
         if (slower && whatToCheck().speed()) {
-            throw new AssertionError(slower)
+            throwAssertionErrorIfNotFlaky(flakiness, slower)
         }
         if (larger && whatToCheck().memory()) {
-            throw new AssertionError(larger)
+            throwAssertionErrorIfNotFlaky(flakiness, larger)
+        }
+    }
+
+    private static void throwAssertionErrorIfNotFlaky(Flakiness flakiness, String message) {
+        if (flakiness.isFlaky()) {
+            LOGGER.error("Performance test failed but it is known as flaky: $message")
+        } else {
+            throw new AssertionError(Object.cast(message))
         }
     }
 
@@ -112,6 +123,7 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
         return failed ? failure.toString() : null
     }
 
+    @CompileStatic
     private static class CurrentVersionResults implements VersionResults {
         final MeasuredOperationList results
 

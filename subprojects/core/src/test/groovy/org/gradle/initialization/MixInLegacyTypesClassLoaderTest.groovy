@@ -47,7 +47,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         !GroovyObject.isAssignableFrom(original)
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
@@ -93,7 +93,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         thrown java.lang.NoSuchMethodException
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
@@ -134,7 +134,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         thrown java.lang.NoSuchMethodException
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         def obj = cl.newInstance()
@@ -178,7 +178,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         !GroovyObject.isAssignableFrom(original)
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
@@ -189,7 +189,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
     def "mixes in empty interfaces for old types that were removed"() {
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass("org.gradle.messaging.actor.ActorFactory")
         cl.classLoader.is(loader)
@@ -199,7 +199,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
     }
 
     def "fails for unknown class"() {
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(), new DefaultLegacyTypesSupport())
 
         when:
         loader.loadClass("org.gradle.Unknown")

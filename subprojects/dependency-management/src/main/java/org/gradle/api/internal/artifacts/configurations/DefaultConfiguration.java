@@ -55,6 +55,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -128,6 +129,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
+    private boolean isConsumeOrPublishAllowed = true;
+    private boolean isQueryOrResolveAllowed = true;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -317,7 +320,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return fileCollection(Specs.SATISFIES_ALL).getFiles();
+        return fileCollection(Specs.<Dependency>satisfyAll()).getFiles();
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -369,6 +372,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveNow(InternalState requestedState) {
+        assertResolvingAllowed();
         synchronized (resolutionLock) {
             if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
                 resolveGraphIfRequired(requestedState);
@@ -396,7 +400,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ResolvableDependencies incoming = getIncoming();
         performPreResolveActions(incoming);
 
-        resolver.resolve(this, cachedResolverResults);
+        resolver.resolveGraph(this, cachedResolverResults);
         dependenciesModified = false;
         if (resolvedState != InternalState.RESULTS_RESOLVED) {
             resolvedState = InternalState.TASK_DEPENDENCIES_RESOLVED;
@@ -440,15 +444,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
-            final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+            // Force graph resolution as this is required to calculate build dependencies
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-
-            taskDependency.add(cachedResolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
-            taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
-            return taskDependency;
-        } else {
-            return allDependencies.getBuildDependencies();
         }
+        assertResolvingAllowed();
+        ResolverResults results;
+        if (getState() == State.UNRESOLVED) {
+            // Traverse graph
+            results = new DefaultResolverResults();
+            resolver.resolveBuildDependencies(this, results);
+        } else {
+            // Otherwise, already have a result, so reuse it
+            results = cachedResolverResults;
+        }
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
+        taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
+        return taskDependency;
     }
 
     /**
@@ -539,7 +551,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
+        copiedConfiguration.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
+        copiedConfiguration.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
+
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+
+        if (hasAttributes()) {
+            copiedConfiguration.attributes(attributes);
+        }
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
@@ -661,6 +680,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Spec<? super Dependency> dependencySpec;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
+            assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
         }
 
@@ -700,11 +720,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private void assertResolvingAllowed() {
+        if (!isQueryOrResolveAllowed) {
+            throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
+        }
+    }
+
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         for (Dependency dependency : allDependencies) {
             if (dependency instanceof FileCollectionDependency) {
-                ((FileCollectionDependency) dependency).registerWatchPoints(builder);
+                FileCollection files = ((FileCollectionDependency) dependency).getFiles();
+                ((FileCollectionInternal) files).registerWatchPoints(builder);
             }
         }
         super.registerWatchPoints(builder);
@@ -740,6 +767,46 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public boolean hasAttributes() {
         return attributes != null && !attributes.isEmpty();
+    }
+
+    @Override
+    public boolean isConsumeOrPublishAllowed() {
+        return isConsumeOrPublishAllowed;
+    }
+
+    @Override
+    public void setConsumeOrPublishAllowed(boolean consumeOrPublishAllowed) {
+        validateMutation(MutationType.ROLE);
+        isConsumeOrPublishAllowed = consumeOrPublishAllowed;
+    }
+
+    @Override
+    public boolean isQueryOrResolveAllowed() {
+        return isQueryOrResolveAllowed;
+    }
+
+    @Override
+    public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
+        validateMutation(MutationType.ROLE);
+        isQueryOrResolveAllowed = queryOrResolveAllowed;
+    }
+
+    @Override
+    public void forConsumingOrPublishingOnly() {
+        setConsumeOrPublishAllowed(true);
+        setQueryOrResolveAllowed(false);
+    }
+
+    @Override
+    public void forQueryingOrResolvingOnly() {
+        setConsumeOrPublishAllowed(false);
+        setQueryOrResolveAllowed(true);
+    }
+
+    @Override
+    public void asBucket() {
+        setConsumeOrPublishAllowed(false);
+        setQueryOrResolveAllowed(false);
     }
 
     /**

@@ -33,6 +33,7 @@ dependencies {
     integTestRuntime project(":resourcesHttp")
     integTestRuntime project(":resourcesS3")
     integTestRuntime project(":resourcesSftp")
+    integTestRuntime project(":compositeBuilds")
     //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk
     //integTestRuntime "org.bouncycastle:bcprov-jdk15:1.46@jar"
 

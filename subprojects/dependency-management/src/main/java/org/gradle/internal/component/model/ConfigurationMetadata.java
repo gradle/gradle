@@ -49,6 +49,10 @@ public interface ConfigurationMetadata {
 
     boolean isVisible();
 
+    boolean isConsumeOrPublishAllowed();
+
+    boolean isQueryOrResolveAllowed();
+
     Map<String, String> getAttributes();
 
     /**

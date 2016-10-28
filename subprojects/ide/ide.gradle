@@ -25,14 +25,13 @@ dependencies {
     compile project(':plugins')
     compile project(':ear')
     compile project(':toolingApi')
+    compile project(':compositeBuilds')
     compile libraries.slf4j_api
     compile libraries.inject
 
     testCompile libraries.xmlunit
     testCompile project(':dependencyManagement')
 
-    // Required for `ProjectBuilder` to have the correct services
-    testRuntime project(':compositeBuilds')
 }
 
 useTestFixtures()

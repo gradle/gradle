@@ -34,7 +34,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -162,7 +163,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private ResolvedComponentResult deserialize(Decoder decoder) {
             int valuesRead = 0;
             byte type = -1;
-            Clock clock = new Clock();
+            Timer clock = Timers.startTimer();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
                 while (true) {
@@ -173,7 +174,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             // Last entry, complete the result
                             Long rootId = decoder.readSmallLong();
                             ResolvedComponentResult root = builder.complete(rootId).getRoot();
-                            LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), data);
+                            LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;
                         case COMPONENT:
                             ComponentResult component = componentResultSerializer.read(decoder);
@@ -193,7 +194,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Problems loading the resolution results (" + clock.getTime() + "). "
+                throw new RuntimeException("Problems loading the resolution results (" + clock.getElapsed() + "). "
                         + "Read " + valuesRead + " values, last was: " + type, e);
             }
         }

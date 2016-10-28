@@ -19,6 +19,8 @@ package org.gradle.internal.io
 import groovy.transform.CompileStatic
 import spock.lang.Specification
 
+import java.security.MessageDigest
+
 class StreamByteBufferTest extends Specification {
     private static final int TESTROUNDS = 10000
     private static final String TEST_STRING = "Hello \u00f6\u00e4\u00e5\u00d6\u00c4\u00c5"
@@ -394,5 +396,26 @@ class StreamByteBufferTest extends Specification {
         byteBuffer.readAsString()
         then:
         byteBuffer.totalBytesUnread() == 0
+    }
+
+    def "can read buffer as list of byte arrays"() {
+        given:
+        def byteBuffer = createTestInstance()
+        def digestTestBuffer = MessageDigest.getInstance("MD5")
+        digestTestBuffer.update(testbuffer, 0, testbuffer.length)
+        def digestByteArrayList = MessageDigest.getInstance("MD5")
+        when:
+        def byteArrayList = byteBuffer.readAsListOfByteArrays()
+        byteArrayList.each { digestByteArrayList.update(it) }
+        then:
+        byteArrayList.sum { it.size() } == testbuffer.length
+        digestByteArrayList.digest() == digestTestBuffer.digest()
+    }
+
+    def "can create buffer instance from list of byte arrays"() {
+        given:
+        def byteArrayList = [[(byte) 1, (byte) 2, (byte) 3] as byte[], [(byte) 4] as byte[], [(byte) 5, (byte) 6] as byte[]]
+        expect:
+        StreamByteBuffer.of(byteArrayList).readAsByteArray() == (byteArrayList.flatten() as byte[])
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 
 import java.util.LinkedHashSet;

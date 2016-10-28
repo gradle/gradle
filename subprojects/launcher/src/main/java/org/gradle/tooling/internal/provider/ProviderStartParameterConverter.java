@@ -25,18 +25,25 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
+import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 class ProviderStartParameterConverter {
 
-    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
+    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables, File projectDir) {
         // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
         // the launchable may hold onto. For example, GradleTask implementations hold onto every task for every project in the build
         List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
         for (InternalLaunchable launchable : launchables) {
             if (launchable instanceof TaskExecutionRequest) {
+                File rootDir = getRootDirOrNull(launchable);
+                if (rootDir != null && !rootDir.equals(projectDir)) {
+                    throw new InternalUnsupportedBuildArgumentException("Tasks from included builds can't be launched");
+                }
+
                 TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
                 TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
                 requests.add(launchableImpl);
@@ -50,6 +57,16 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
+    private File getRootDirOrNull(InternalLaunchable launchable) {
+        // Calling InternalLaunchable.getRootDir() throws NoSuchMethodException if older Gradle distribution is used
+        try {
+            Method rootDirMethod = InternalLaunchable.class.getMethod("getRootDir");
+            return (File)rootDirMethod.invoke(launchable);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public StartParameter toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameter startParameter = new StartParameter();
@@ -61,7 +78,7 @@ class ProviderStartParameterConverter {
 
         List<InternalLaunchable> launchables = parameters.getLaunchables(null);
         if (launchables != null) {
-            startParameter.setTaskRequests(unpack(launchables));
+            startParameter.setTaskRequests(unpack(launchables, parameters.getProjectDir()));
         } else if (parameters.getTasks() != null) {
             startParameter.setTaskNames(parameters.getTasks());
         }

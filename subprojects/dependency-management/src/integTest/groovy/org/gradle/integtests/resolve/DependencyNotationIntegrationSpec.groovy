@@ -92,11 +92,11 @@ task checkDeps {
     doLast {
         def deps = configurations.conf.incoming.dependencies
         assert deps.size() == 1
-        assert deps.find { it.dependencyProject.path == ':otherProject' }
+        assert deps.find { it.dependencyProject.path == ':otherProject' && it.targetConfiguration == null }
 
         deps = configurations.confTwo.incoming.dependencies
         assert deps.size() == 1
-        assert deps.find { it.dependencyProject.path == ':otherProject' && it.projectConfiguration.name == 'otherConf' }
+        assert deps.find { it.dependencyProject.path == ':otherProject' && it.targetConfiguration == 'otherConf' }
     }
 }
 """

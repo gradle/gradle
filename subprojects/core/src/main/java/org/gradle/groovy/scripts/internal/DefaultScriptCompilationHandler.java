@@ -47,7 +47,8 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +83,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     @Override
     public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         GFileUtils.deleteDirectory(classesDir);
         GFileUtils.mkdirs(classesDir);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
@@ -95,7 +96,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw e;
         }
 
-        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getTime());
+        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
     }
 
     private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,

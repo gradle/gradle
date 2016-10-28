@@ -53,6 +53,5 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
     @Override
     public void flush() {
         cache.flush();
-        inMemoryTaskArtifactCache.onFlush();
     }
 }

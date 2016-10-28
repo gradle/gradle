@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -24,8 +25,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.junit.Assume
 import spock.lang.Unroll
-
-import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
@@ -143,7 +142,7 @@ task hello {
     }
 
     static void cleanupDaemons(GradleExecuter executer, GradleDistribution executionVersion) {
-        killIsolatedDaemons(executer, executionVersion.version)
+        new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
     }
 }
 

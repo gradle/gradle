@@ -18,12 +18,13 @@ package org.gradle.tooling.internal.gradle;
 
 import org.gradle.api.Nullable;
 
+import java.io.Serializable;
 import java.util.SortedSet;
 
 /**
  * A consumer-side implementation of {@link org.gradle.tooling.model.TaskSelector}
  */
-public class ConsumerProvidedTaskSelector implements TaskListingLaunchable {
+public class ConsumerProvidedTaskSelector implements TaskListingLaunchable, Serializable {
     private String name;
     private String displayName;
     private String description;

@@ -31,7 +31,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.LegacyTypesUtil;
+import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -115,7 +115,7 @@ public class ProjectBuilderImpl {
             // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
             // in ApplicationClassesInSystemClassLoaderWorkerFactory, BootstrapSecurityManager and GradleWorkerMain.)
             // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
-            LegacyTypesUtil.injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
+            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
         }
         return globalServices;
     }

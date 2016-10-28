@@ -156,6 +156,10 @@ task bigNewJava(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
+[smallNewJava, mediumNewJava, bigNewJava].each { task ->
+    task.buildSrcTemplate = 'new-java-buildsrc'
+}
+
 task smallVariantsNewModel(type: JvmProjectGeneratorTask) {
     projects = 1
     subProjectTemplates = ['variants-new-model']
@@ -366,6 +370,10 @@ task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
+[smallOldJava, mediumOldJava, bigOldJava, bigOldJavaMoreSource].each { task ->
+    task.buildSrcTemplate = 'old-java-buildsrc'
+}
+
 task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
     projects = 10
     sourceFiles = 100
@@ -574,7 +582,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 
 task mediumAndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-medium.git'
-    branch = 'cc-gradle-profile'
+    branch = 'gradle'
 
     doLast {
         // WordPress specific setup

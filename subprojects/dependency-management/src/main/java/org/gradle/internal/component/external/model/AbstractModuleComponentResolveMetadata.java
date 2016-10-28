@@ -301,6 +301,16 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return Collections.emptyMap();
         }
 
+        @Override
+        public boolean isConsumeOrPublishAllowed() {
+            return true;
+        }
+
+        @Override
+        public boolean isQueryOrResolveAllowed() {
+            return false;
+        }
+
         public List<DependencyMetadata> getDependencies() {
             return configDependencies;
         }

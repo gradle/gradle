@@ -23,7 +23,7 @@ import spock.lang.Unroll
 @Category([NativePerformanceTest])
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll('Project #type native build')
-    def "build" () {
+    def "build"() {
         given:
         runner.testId = "native build ${type}"
         runner.testProject = "${type}Native"
@@ -38,14 +38,14 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        type           | fastestVersion
-        "small"        | 'last'
-        "medium"       | '2.14.1'
-        "big"          | '2.14.1'
-        "multi"        | '2.14.1'
+        type     | fastestVersion
+        "small"  | '3.2-rc-1'
+        "medium" | '3.3-20161026000020+0000'
+        "big"    | '2.14.1'
+        "multi"  | '2.14.1'
     }
 
-    def "Many projects native build" () {
+    def "Many projects native build"() {
         given:
         runner.testId = "native build many projects"
         runner.testProject = "manyProjectsNative"

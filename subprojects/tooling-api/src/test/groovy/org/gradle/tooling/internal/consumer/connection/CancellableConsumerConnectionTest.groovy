@@ -20,6 +20,7 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.GradleException
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
+import org.gradle.tooling.BuildController
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -51,6 +52,9 @@ class CancellableConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
+        details.supportsCancellation()
+
+        and:
         details.maySupportModel(HierarchicalEclipseProject)
         details.maySupportModel(EclipseProject)
         details.maySupportModel(IdeaProject)
@@ -62,10 +66,6 @@ class CancellableConsumerConnectionTest extends Specification {
         details.maySupportModel(GradleBuild)
         details.maySupportModel(BuildInvocations)
         details.maySupportModel(CustomModel)
-
-        and:
-        details.supportsTaskDisplayName()
-        details.supportsCancellation()
     }
 
     def "delegates to connection to run build action"() {
@@ -86,7 +86,7 @@ class CancellableConsumerConnectionTest extends Specification {
                 getModel() >> actionResult
             }
         }
-        1 * action.execute({ it instanceof BuildControllerAdapter }) >> 'result'
+        1 * action.execute({ it instanceof BuildController }) >> 'result'
     }
 
     def "adapts build action failure"() {

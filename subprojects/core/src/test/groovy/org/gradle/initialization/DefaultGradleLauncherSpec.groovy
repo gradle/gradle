@@ -31,11 +31,10 @@ import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
-import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -281,32 +280,5 @@ public class DefaultGradleLauncherSpec extends Specification {
 
     private void expectTasksRunWithFailure(final Throwable failure) {
         1 * buildExecuter.execute(gradleMock) >> {throw failure}
-    }
-
-    private static class TestBuildOperationExecutor implements BuildOperationExecutor {
-        @Override
-        public Object getCurrentOperationId() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public <T> T run(String displayName, Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public void run(BuildOperationDetails operationDetails, Runnable action) {
-            action.run();
-        }
-
-        @Override
-        public void run(String displayName, Runnable action) {
-            action.run();
-        }
     }
 }

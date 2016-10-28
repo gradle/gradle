@@ -35,10 +35,7 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
         this.source = source;
     }
 
-    public FileCollection getSource() {
-        return source;
-    }
-
+    @Override
     public boolean contentEquals(Dependency dependency) {
         if (!(dependency instanceof DefaultSelfResolvingDependency)) {
             return false;
@@ -47,18 +44,22 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
         return source.equals(selfResolvingDependency.source);
     }
 
+    @Override
     public SelfResolvingDependency copy() {
         return new DefaultSelfResolvingDependency(source);
     }
 
+    @Override
     public String getGroup() {
         return null;
     }
 
+    @Override
     public String getName() {
         return "unspecified";
     }
 
+    @Override
     public String getVersion() {
         return null;
     }
@@ -68,16 +69,24 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
         context.add(source);
     }
 
+    @Override
     public Set<File> resolve() {
         return source.getFiles();
     }
 
+    @Override
     public Set<File> resolve(boolean transitive) {
         return source.getFiles();
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return source.getBuildDependencies();
+    }
+
+    @Override
+    public FileCollection getFiles() {
+        return source;
     }
 
     @Override

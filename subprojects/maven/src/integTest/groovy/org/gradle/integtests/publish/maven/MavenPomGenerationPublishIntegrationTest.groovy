@@ -19,6 +19,8 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -110,5 +112,133 @@ uploadArchives {
         where:
         deployerGroupId  | deployerArtifactId   | deployerVersion | deployerPackaging | pomGroupId       | pomArtifactId        | pomVersion | pomPackaging
         "deployer.group" | "deployerArtifactId" | "2.7"           | "jar"             | "deployer.group" | "deployerArtifactId" | "2.7"      | "war"
+    }
+
+    @Unroll
+    def "configuration attributes have no influence on generated POM file"() {
+        buildFile << """
+apply plugin: "java"
+apply plugin: "maven"
+
+group = "org.gradle.test"
+version = 1.1
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+            pom.artifactId = 'something'
+        }
+    }
+}
+
+configurations {
+    compile {
+        $attributes
+    }
+}
+
+        """
+
+        when:
+        run "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module('org.gradle.test', 'something', '1.1')
+        def pom = normaliseLineSeparators(mavenModule.pomFile.text)
+        assert pom == normaliseLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.test</groupId>
+  <artifactId>something</artifactId>
+  <version>1.1</version>
+</project>
+''')
+
+        where:
+        attributes << [
+                '', // no attributes
+                'attribute "foo", "bar"', // single attribute
+                'attributes foo:"bar", baz: "baz"' // multiple attributes
+        ]
+    }
+
+    @Unroll
+    def "attributes have no influence on transitive dependencies in POM file"() {
+        file("settings.gradle") << 'include "b"'
+        buildFile << """
+apply plugin: "java"
+apply plugin: "maven"
+
+group = "org.gradle.test"
+version = 1.1
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+            pom.artifactId = 'something'
+        }
+    }
+}
+
+dependencies {
+    compile project(':b')
+}
+
+configurations {
+    compile {
+        $attributes
+    }
+}
+
+
+        """
+
+        file('b/build.gradle') << """
+apply plugin: 'java'
+
+group = 'org.gradle.test'
+version = '1.2'
+
+configurations {
+    compile {
+        $attributes
+    }
+}
+
+"""
+
+        when:
+        run "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module('org.gradle.test', 'something', '1.1')
+        def pom = normaliseLineSeparators(mavenModule.pomFile.text)
+        assert pom == normaliseLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.test</groupId>
+  <artifactId>something</artifactId>
+  <version>1.1</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.gradle.test</groupId>
+      <artifactId>b</artifactId>
+      <version>1.2</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
+''')
+
+        where:
+        attributes << [
+            '', // no attributes
+            'attribute "foo", "bar"', // single attribute
+            'attributes foo:"bar", baz: "baz"' // multiple attributes
+        ]
     }
 }

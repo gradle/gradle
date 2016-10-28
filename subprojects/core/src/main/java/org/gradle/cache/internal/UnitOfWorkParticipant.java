@@ -20,15 +20,20 @@ package org.gradle.cache.internal;
  */
 public interface UnitOfWorkParticipant {
     /**
-     * Called just after the cache is locked. Called before any work has been performed.
+     * Called just after the cache is locked. Called before any work is performed by other threads. This method may access the cache files.
      *
-     * @param operationDisplayName operation
      * @param currentCacheState the current cache state.
      */
-    void onStartWork(String operationDisplayName, FileLock.State currentCacheState);
+    void afterLockAcquire(FileLock.State currentCacheState);
 
     /**
-     * Called just before the cache is to be unlocked. Called after all work has been completed.
+     * Called when the cache is due to be unlocked. Call after other threads have completed work. This method may access the cache files.
      */
-    void onEndWork(FileLock.State currentCacheState);
+    void finishWork();
+
+    /**
+     * Called just before the cache is to be unlocked. Called after all work has been completed, and after {@link #finishWork()} has completed.
+     * This method should not modify the cache files.
+     */
+    void beforeLockRelease(FileLock.State currentCacheState);
 }

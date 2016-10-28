@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.internal.actor.ActorFactory;

@@ -20,7 +20,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer;
 
@@ -28,10 +28,10 @@ import java.util.Map;
 
 class DefaultJarSnapshotter {
 
-    private final Hasher hasher;
+    private final FileHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
 
-    public DefaultJarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer) {
+    public DefaultJarSnapshotter(FileHasher hasher, ClassDependenciesAnalyzer analyzer) {
         this.hasher = hasher;
         this.analyzer = analyzer;
     }

@@ -295,8 +295,6 @@ public class TestUtility {
         }
     }
 
-    //wrapper around File.createTempFile just so we don't have to deal with the exception for tests.
-
     /**
      * This refreshes the projects but blocks until it is complete (its being executed in a separate process).
      *
@@ -311,6 +309,7 @@ public class TestUtility {
             }
 
             public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
+                System.out.println(message);
             }
 
             public void reportTaskStarted(String message, float percentComplete) {
@@ -320,6 +319,7 @@ public class TestUtility {
             }
 
             public void reportLiveOutput(String message) {
+                System.out.println(message);
             }
         }, maximumWaitValue, maximumWaitUnits);
     }

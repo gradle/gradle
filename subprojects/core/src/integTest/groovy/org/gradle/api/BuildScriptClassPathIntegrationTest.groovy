@@ -16,7 +16,10 @@
 
 package org.gradle.api
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class BuildScriptClassPathIntegrationTest extends AbstractIntegrationSpec {
     def "script can use xerces without affecting that used for dependency resolution"() {
@@ -48,5 +51,45 @@ task show {
 
         expect:
         succeeds("show")
+    }
+
+    @Issue("gradle/gradle#742")
+    @NotYetImplemented
+    @Ignore("Apparently sometimes the test passes on CI")
+    def "doesn't cache the metaclass from previous execution if build script changes"() {
+        buildFile << '''
+void bar() {
+   println 'Original bar'
+}
+
+FileCollection.metaClass.environmentMarkers = { String... markerStrings ->
+   bar()
+   // to make this test pass, a workaround is to uncomment this line
+   // see the ticket for explanation why this happens
+   //delegate.class.metaClass = null
+}
+
+configurations {
+   compile
+}
+
+dependencies {
+   compile files('foo.jar') { environmentMarkers('sss') }
+}
+
+task foo {
+   doLast {
+      bar()
+   }
+}
+        '''
+        run 'foo'
+
+        when:
+        buildFile.text = buildFile.text.replaceAll('Original bar', 'New bar')
+        run 'foo'
+
+        then:
+        !result.output.contains('Original bar')
     }
 }

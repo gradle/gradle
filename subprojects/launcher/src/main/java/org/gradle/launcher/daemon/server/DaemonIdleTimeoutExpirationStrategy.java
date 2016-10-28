@@ -46,7 +46,7 @@ public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStra
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        long idleMillis = daemon.getStateCoordinator().getIdleMillis(System.currentTimeMillis());
+        long idleMillis = daemon.getStateCoordinator().getIdleMillis();
         boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {
             LOG.info("Idle timeout: daemon has been idle for {} milliseconds. Expiring.", idleMillis);

@@ -67,7 +67,11 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected TestFile getBuildFile() {
-        testDirectory.file('build.gradle')
+        testDirectory.file(getDefaultBuildFileName())
+    }
+
+    protected String getDefaultBuildFileName() {
+        'build.gradle'
     }
 
     protected TestFile buildScript(String script) {

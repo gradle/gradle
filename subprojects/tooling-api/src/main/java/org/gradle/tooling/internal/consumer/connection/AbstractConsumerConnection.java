@@ -29,7 +29,6 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     private final VersionDetails providerMetaData;
 
     public AbstractConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
-        super(providerMetaData);
         this.delegate = delegate;
         this.providerMetaData = providerMetaData;
     }

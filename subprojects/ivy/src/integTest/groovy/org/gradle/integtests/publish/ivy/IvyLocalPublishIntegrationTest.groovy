@@ -18,6 +18,7 @@ package org.gradle.integtests.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
+import spock.lang.Unroll
 
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     public void canPublishToLocalFileRepository() {
@@ -110,4 +111,71 @@ task ivyXml(type: Upload) {
         then:
         file('ivy.xml').assertIsFile()
     }
+
+    // This test represents the state of the art, not the expected behavior (which remains to be spec'ed out)
+    @Unroll
+    def "Generated ivy.xml file is not influenced by configuration attributes"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+
+configurations {
+  myJars {
+     $attributes
+  }
+}
+
+task myJar(type: Jar)
+
+artifacts {
+  'myJars' myJar
+}
+
+task ivyXml(type: Upload) {
+  descriptorDestination = file('ivy.xml')
+  uploadDescriptor = true
+  configuration = configurations.myJars
+}
+"""
+        when:
+        succeeds 'ivyXml'
+
+        then:
+        file('ivy.xml').assertIsFile()
+        file('ivy.xml').text.contains '<conf name="myJars" visibility="public"/>'
+
+        where:
+        attributes << [
+            '', // no attributes
+            'attribute "foo", "bar"', // single attribute
+            'attributes foo:"bar", baz: "baz"' // multiple attributes
+        ]
+    }
+
+    def "succeeds if trying to publish a file without extension"() {
+
+        given:
+        file('someDir/a') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+
+        configurations {
+            archives
+        }
+
+        artifacts {
+            archives file("someDir/a")
+        }
+
+        """
+
+        when:
+        run 'uploadArchives'
+
+        then:
+        noExceptionThrown()
+
+    }
+
 }

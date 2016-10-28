@@ -40,6 +40,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
     private final long ignoreV17Before;
     private final PerformanceDatabase db;
+    private final Map<String, GradleVersion> gradleVersionCache = new HashMap<String, GradleVersion>();
 
     public CrossVersionResultsStore() {
         this("results");
@@ -192,6 +194,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         return getTestResults(testName, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
     }
 
+
     @Override
     public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
@@ -200,7 +203,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
                     Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
                         public int compare(String o1, String o2) {
-                            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
+                            return resolveGradleVersion(o1).compareTo(resolveGradleVersion(o2));
                         }
                     });
                     Set<String> allBranches = new TreeSet<String>();
@@ -241,9 +244,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             allBranches.add(performanceResults.getVcsBranch());
                         }
 
-                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution in (select * from table(x int = ?))");
+                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, "
+                                + "maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation "
+                                + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
                         operationsForExecution.setFetchSize(10 * results.size());
-                        operationsForExecution.setObject(1, results.keySet().toArray());
+                        operationsForExecution.setInt(1, mostRecentN);
+                        operationsForExecution.setString(2, testName);
+                        operationsForExecution.setTimestamp(3, minDate);
+                        operationsForExecution.setString(4, channel);
 
                         operations = operationsForExecution.executeQuery();
                         while (operations.next()) {
@@ -293,6 +301,15 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
         }
+    }
+
+    protected GradleVersion resolveGradleVersion(String version) {
+        GradleVersion gradleVersion = gradleVersionCache.get(version);
+        if (gradleVersion == null) {
+            gradleVersion = GradleVersion.version(version);
+            gradleVersionCache.put(version, gradleVersion);
+        }
+        return gradleVersion;
     }
 
     public void close() {

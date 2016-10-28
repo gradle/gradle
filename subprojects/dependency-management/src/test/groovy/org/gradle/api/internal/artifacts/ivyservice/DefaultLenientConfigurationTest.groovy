@@ -29,7 +29,7 @@ class DefaultLenientConfigurationTest extends Specification {
     def "should resolve first level dependencies in tree"() {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
+        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
         ResolvedDependency root = Mock(ResolvedDependency)
         def expectedResults = [Mock(ResolvedDependency)] as Set
 
@@ -46,7 +46,7 @@ class DefaultLenientConfigurationTest extends Specification {
     def "should resolve and filter first level dependencies in tree"() {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
+        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
         Spec spec = Mock(Spec)
         def firstLevelDependencies = [(Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency)]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
@@ -66,7 +66,7 @@ class DefaultLenientConfigurationTest extends Specification {
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
+        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
 
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 

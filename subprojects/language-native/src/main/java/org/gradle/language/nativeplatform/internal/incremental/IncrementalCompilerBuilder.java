@@ -16,24 +16,24 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 public class IncrementalCompilerBuilder {
-    private final FileSnapshotter fileSnapshotter;
+    private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public IncrementalCompilerBuilder(FileSnapshotter fileSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this.fileSnapshotter = fileSnapshotter;
+    public IncrementalCompilerBuilder(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain) {
-        return new IncrementalNativeCompiler<T>(task, fileSnapshotter, compilationStateCacheFactory, compiler, toolchain, directoryFileTreeFactory);
+        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, directoryFileTreeFactory);
     }
 }

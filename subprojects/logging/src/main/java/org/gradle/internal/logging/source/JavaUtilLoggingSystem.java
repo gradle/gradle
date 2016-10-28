@@ -20,6 +20,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -27,7 +30,30 @@ import java.util.logging.Logger;
  * A {@link LoggingSourceSystem} which configures JUL to route logging events to SLF4J.
  */
 public class JavaUtilLoggingSystem implements LoggingSourceSystem {
+
+    private static final Map<LogLevel, Level> LOG_LEVEL_MAPPING = new HashMap<LogLevel, Level>();
+
+    // Gradle's log levels correspond to slf4j log levels
+    // as implemented in OutputEventListenerBackedLogger.
+    // These levels are mapped to java.util.logging.Levels
+    // corresponding to the mapping implemented in the
+    // SLF4JBridgeHandler which is installed by this logging system.
+    static {
+        LOG_LEVEL_MAPPING.put(LogLevel.DEBUG, Level.FINE);
+        LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.FINE);
+        LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.FINE);
+        LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.FINE);
+        LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.FINE);
+        LOG_LEVEL_MAPPING.put(LogLevel.ERROR, Level.FINE);
+        //LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.CONFIG);
+        //LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.WARNING);
+        //LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.WARNING);
+        //LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.SEVERE);
+        //LOG_LEVEL_MAPPING.put(LogLevel.ERROR, Level.SEVERE);
+    }
+
     private final Logger logger;
+    private LogLevel requestedLevel;
     private boolean installed;
 
     public JavaUtilLoggingSystem() {
@@ -35,28 +61,41 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     @Override
-    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
-        SnapshotImpl snapshot = new SnapshotImpl(installed, logger.getLevel());
-        install();
+    public Snapshot setLevel(LogLevel logLevel) {
+        Snapshot snapshot = snapshot();
+        if (logLevel != requestedLevel) {
+            requestedLevel = logLevel;
+            if (installed) {
+                logger.setLevel(LOG_LEVEL_MAPPING.get(logLevel));
+            }
+        }
+        return snapshot;
+    }
+
+    @Override
+    public Snapshot startCapture() {
+        Snapshot snapshot = snapshot();
+        install(LOG_LEVEL_MAPPING.get(requestedLevel));
         return snapshot;
     }
 
     @Override
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
+        requestedLevel = snapshot.requestedLevel;
         if (snapshot.installed) {
-            install();
+            install(snapshot.javaUtilLevel);
         } else {
-            uninstall(snapshot.level);
+            uninstall(snapshot.javaUtilLevel);
         }
     }
 
     @Override
     public Snapshot snapshot() {
-        return new SnapshotImpl(installed, logger.getLevel());
+        return new SnapshotImpl(installed, logger.getLevel(), requestedLevel);
     }
 
-    private void uninstall(java.util.logging.Level level) {
+    private void uninstall(Level level) {
         if (!installed) {
             return;
         }
@@ -66,23 +105,26 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
         installed = false;
     }
 
-    private void install() {
+    private void install(Level level) {
         if (installed) {
             return;
         }
 
         LogManager.getLogManager().reset();
         SLF4JBridgeHandler.install();
+        logger.setLevel(level);
         installed = true;
     }
 
     private static class SnapshotImpl implements Snapshot {
         private final boolean installed;
-        private final java.util.logging.Level level;
+        private final java.util.logging.Level javaUtilLevel;
+        private final LogLevel requestedLevel;
 
-        public SnapshotImpl(boolean installed, java.util.logging.Level level) {
+        SnapshotImpl(boolean installed, Level javaUtilLevel, LogLevel requestedLevel) {
             this.installed = installed;
-            this.level = level;
+            this.javaUtilLevel = javaUtilLevel;
+            this.requestedLevel = requestedLevel;
         }
     }
 }

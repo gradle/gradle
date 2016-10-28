@@ -16,11 +16,10 @@
 
 
 package org.gradle.internal.resource
+
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -235,22 +234,6 @@ class UriTextResourceTest extends Specification {
         then:
         e = thrown(MissingResourceException)
         e.message == "Could not read <display-name> '$jarUri' as it does not exist." as String
-    }
-
-    @Requires(TestPrecondition.ONLINE)
-    def hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
-        when:
-        UriTextResource resource = new UriTextResource('<display-name>', new URI("https://gradle.org/unknown.txt"));
-
-        then:
-        !resource.exists
-
-        when:
-        resource.text
-
-        then:
-        def e = thrown(MissingResourceException)
-        e.message == "Could not read <display-name> 'https://gradle.org/unknown.txt' as it does not exist." as String
     }
 
     def usesFilePathToBuildDisplayNameWhenUsingFile() {

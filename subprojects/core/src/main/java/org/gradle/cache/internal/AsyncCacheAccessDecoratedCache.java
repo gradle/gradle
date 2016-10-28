@@ -17,10 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.Factory;
 
-import java.util.concurrent.Callable;
-
-public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
+public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
     private final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
 
@@ -29,49 +28,57 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
         this.persistentCache = persistentCache;
     }
 
-    @Override
-    public void close() {
-        persistentCache.close();
-    }
-
     @Nullable
     @Override
     public V get(final K key) {
-        return asyncCacheAccess.read(new Callable<V>() {
+        return asyncCacheAccess.read(new Factory<V>() {
             @Override
-            public V call() throws Exception {
+            public V create() {
                 return persistentCache.get(key);
             }
         });
     }
 
     @Override
-    public void put(final K key, final V value) {
+    public void putLater(final K key, final V value, final Runnable completion) {
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
             public void run() {
-                persistentCache.put(key, value);
+                try {
+                    persistentCache.put(key, value);
+                } finally {
+                    completion.run();
+                }
             }
         });
     }
 
     @Override
-    public void remove(final K key) {
+    public void removeLater(final K key, final Runnable completion) {
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
             public void run() {
-                persistentCache.remove(key);
+                try {
+                    persistentCache.remove(key);
+                } finally {
+                    completion.run();
+                }
             }
         });
     }
 
     @Override
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-        persistentCache.onStartWork(operationDisplayName, currentCacheState);
+    public void afterLockAcquire(FileLock.State currentCacheState) {
+        persistentCache.afterLockAcquire(currentCacheState);
     }
 
     @Override
-    public void onEndWork(FileLock.State currentCacheState) {
-        persistentCache.onEndWork(currentCacheState);
+    public void finishWork() {
+        persistentCache.finishWork();
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
+        persistentCache.beforeLockRelease(currentCacheState);
     }
 }

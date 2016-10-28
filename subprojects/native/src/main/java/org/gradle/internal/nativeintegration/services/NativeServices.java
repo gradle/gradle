@@ -33,6 +33,7 @@ import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
+import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
@@ -53,6 +54,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     private static final NativeServices INSTANCE = new NativeServices();
+    private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
     private static boolean initialized;
     private static File nativeBaseDir;
 
@@ -80,10 +82,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     }
                 }
             }
+            initializeJansi(nativeBaseDir);
             initialized = true;
 
             LOGGER.info("Initialized native services in: " + nativeBaseDir);
         }
+    }
+
+    private static void initializeJansi(File nativeBaseDir) {
+        JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
     }
 
     public static File getNativeServicesDir(File userHomeDir) {

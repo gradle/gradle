@@ -34,6 +34,8 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when: succeeds "copy"
         then: skippedTasks.empty
 
+        file('build/input.txt').makeOlder()
+
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
@@ -56,6 +58,8 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when: succeeds "copy"
         then: skippedTasks.empty
 
+        file("output.txt").makeOlder()
+
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
@@ -63,10 +67,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile.text = declareSimpleCopyTask(true)
 
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
@@ -85,6 +92,8 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
         when: succeeds "copy"
         then: skippedTasks.empty
+
+        file('build/input.txt').makeOlder()
 
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
@@ -117,6 +126,8 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when: succeeds "copy"
         then: skippedTasks.empty
 
+        file("output.txt").makeOlder()
+
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
@@ -124,10 +135,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 
@@ -150,6 +164,8 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when: succeeds "copy"
         then: skippedTasks.empty
 
+        file("output.txt").makeOlder()
+
         when: succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
@@ -157,10 +173,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
         succeeds "copy"
+
         then:
         skippedTasks.empty
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
+
         then: skippedTasks == ([":copy"] as Set)
     }
 

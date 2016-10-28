@@ -20,7 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.logging.text.TestStyledTextOutput;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -49,7 +49,7 @@ public class BuildResultLoggerTest {
     @Test
     public void logsBuildSuccessAndTotalTime() {
         context.checking(new Expectations() {{
-            one(buildTimeClock).getTime();
+            one(buildTimeClock).getElapsed();
             will(returnValue("10s"));
             one(textOutputFactory).create(BuildResultLogger.class, LogLevel.LIFECYCLE);
             will(returnValue(textOutput));
@@ -63,7 +63,7 @@ public class BuildResultLoggerTest {
     @Test
     public void logsBuildFailedAndTotalTime() {
         context.checking(new Expectations() {{
-            one(buildTimeClock).getTime();
+            one(buildTimeClock).getElapsed();
             will(returnValue("10s"));
             one(textOutputFactory).create(BuildResultLogger.class, LogLevel.LIFECYCLE);
             will(returnValue(textOutput));

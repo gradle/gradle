@@ -19,6 +19,8 @@ import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Timers;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -409,7 +411,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private int cacheHit;
         private int evict;
 
-        private long lastCleanup = System.currentTimeMillis();
+        private CountdownTimer cleanupTimer = Timers.startTimer(MINIMAL_CLEANUP_INTERVAL);
 
         private static class MethodInvocationKey {
             private final SoftReference<Class<?>> lookupClass;
@@ -525,8 +527,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
          * 30s.
          */
         private void removeDirtyEntries() {
-            long now = System.currentTimeMillis();
-            if (now - lastCleanup < MINIMAL_CLEANUP_INTERVAL) {
+            if (!cleanupTimer.hasExpired()) {
                 return;
             }
             lock.writeLock().lock();
@@ -538,7 +539,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                     }
                 }
             } finally {
-                lastCleanup = now;
+                cleanupTimer.reset();
                 lock.writeLock().unlock();
             }
         }

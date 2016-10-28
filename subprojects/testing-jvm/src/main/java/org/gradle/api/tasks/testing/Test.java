@@ -277,8 +277,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
-    // TODO:LPTR This should be handled as a directory
-    @Input
+    @Internal
     public File getWorkingDir() {
         return forkOptions.getWorkingDir();
     }

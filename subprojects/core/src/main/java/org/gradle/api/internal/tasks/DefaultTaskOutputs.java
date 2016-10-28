@@ -28,6 +28,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
@@ -329,6 +331,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return DefaultTaskOutputs.this;
         }
 
+        public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+            return GenericFileCollectionSnapshotter.class;
+        }
+
         @Override
         public void upToDateWhen(Closure upToDateClosure) {
             getTaskOutputs("upToDateWhen(Closure)").upToDateWhen(upToDateClosure);
@@ -493,6 +499,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
             return parentProperty.getSnapshotNormalizationStrategy();
+        }
+
+        @Override
+        public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+            return GenericFileCollectionSnapshotter.class;
         }
 
         @Override

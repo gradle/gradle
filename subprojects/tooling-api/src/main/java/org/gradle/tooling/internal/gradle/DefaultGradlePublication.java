@@ -19,10 +19,12 @@ package org.gradle.tooling.internal.gradle;
 import com.google.common.base.Objects;
 import org.gradle.tooling.model.GradleModuleVersion;
 
+import java.io.File;
 import java.io.Serializable;
 
-public class DefaultGradlePublication implements Serializable {
+public class DefaultGradlePublication implements Serializable, GradleProjectIdentity {
     private GradleModuleVersion id;
+    private DefaultProjectIdentifier projectIdentifier;
 
     public GradleModuleVersion getId() {
         return id;
@@ -30,6 +32,25 @@ public class DefaultGradlePublication implements Serializable {
 
     public DefaultGradlePublication setId(GradleModuleVersion id) {
         this.id = id;
+        return this;
+    }
+
+    public DefaultProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
+    }
+
+    @Override
+    public String getProjectPath() {
+        return projectIdentifier.getProjectPath();
+    }
+
+    @Override
+    public File getRootDir() {
+        return projectIdentifier.getBuildIdentifier().getRootDir();
+    }
+
+    public DefaultGradlePublication setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
         return this;
     }
 

@@ -29,6 +29,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         this.fileAccess = fileAccess;
     }
 
+    @Override
     public V get(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
         try {
@@ -42,6 +43,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         }
     }
 
+    @Override
     public void put(final K key, final V value) {
         final PersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
@@ -53,6 +55,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         });
     }
 
+    @Override
     public void remove(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
@@ -64,13 +67,12 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         });
     }
 
-    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
+    @Override
+    public void afterLockAcquire(FileLock.State currentCacheState) {
     }
 
-    public void onEndWork(FileLock.State currentCacheState) {
-    }
-
-    public void close() {
+    @Override
+    public void finishWork() {
         if (cache != null) {
             try {
                 fileAccess.writeFile(new Runnable() {
@@ -82,6 +84,10 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
                 cache = null;
             }
         }
+    }
+
+    @Override
+    public void beforeLockRelease(FileLock.State currentCacheState) {
     }
 
     private PersistentIndexedCache<K, V> getCache() {

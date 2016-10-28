@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.slf4j
 
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
 

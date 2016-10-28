@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
-import org.gradle.cache.CacheRepository;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetaData;
+import org.gradle.cache.internal.CacheScopeMapping;
 
 public class DependencyManagementGradleUserHomeScopeServices {
-    CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {
-        return new DefaultCacheLockingManager(cacheRepository);
+    DefaultArtifactCacheMetaData createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
+        return new DefaultArtifactCacheMetaData(cacheScopeMapping);
     }
 }

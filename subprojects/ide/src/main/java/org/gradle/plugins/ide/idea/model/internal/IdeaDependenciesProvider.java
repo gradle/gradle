@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
+import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -91,7 +91,7 @@ public class IdeaDependenciesProvider {
         scopeMappings.put(GeneratedIdeaScope.COMPILE_CLASSPATH,
                 Collections.singletonList(new IdeaScopeMappingRule("compileClasspath")));
 
-        moduleDependencyBuilder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry));
+        moduleDependencyBuilder = new ModuleDependencyBuilder(CompositeBuildIdeProjectResolver.from(serviceRegistry));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {

@@ -17,13 +17,15 @@
 package org.gradle.performance.fixture;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class CompositeDataCollector implements DataCollector {
+public class CompositeDataCollector implements DataCollector, Stoppable {
     private final List<DataCollector> collectors;
 
     public CompositeDataCollector(DataCollector... collectors) {
@@ -52,5 +54,10 @@ public class CompositeDataCollector implements DataCollector {
         for (DataCollector collector : collectors) {
             collector.collect(invocationInfo, operation);
         }
+    }
+
+    @Override
+    public void stop() {
+        CompositeStoppable.stoppable(collectors).stop();
     }
 }

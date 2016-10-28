@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,60 +16,24 @@
 
 package org.gradle.util;
 
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
-
-public class Clock {
-    private long start;
-    private TimeProvider timeProvider;
-
-    private static final long MS_PER_MINUTE = 60000;
-    private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
-
+/**
+ * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.Clock`.
+ */
+@Deprecated
+public class Clock extends org.gradle.internal.time.Clock {
     public Clock() {
-        this(new TrueTimeProvider());
+        super();
     }
 
-    public Clock(long start) {
-        this(new TrueTimeProvider(), start);
-    }
-
-    protected Clock(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
-        reset();
-    }
-
-    protected Clock(TimeProvider timeProvider, long start) {
-        this.timeProvider = timeProvider;
-        this.start = start;
+    public Clock(long startTime) {
+        super(startTime);
     }
 
     public String getTime() {
-        long timeInMs = getTimeInMs();
-        return prettyTime(timeInMs);
+        return getElapsed();
     }
 
     public long getTimeInMs() {
-        return Math.max(timeProvider.getCurrentTime() - start, 0);
-    }
-
-    public void reset() {
-        start = timeProvider.getCurrentTime();
-    }
-
-    public long getStartTime() {
-        return start;
-    }
-
-    public static String prettyTime(long timeInMs) {
-        StringBuilder result = new StringBuilder();
-        if (timeInMs > MS_PER_HOUR) {
-            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
-        }
-        if (timeInMs > MS_PER_MINUTE) {
-            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
-        }
-        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
-        return result.toString();
+        return getElapsedMillis();
     }
 }

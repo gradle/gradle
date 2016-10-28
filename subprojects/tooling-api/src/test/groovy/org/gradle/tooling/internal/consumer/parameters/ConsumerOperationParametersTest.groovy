@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.consumer.parameters
 import com.google.common.collect.Sets
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
+import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable

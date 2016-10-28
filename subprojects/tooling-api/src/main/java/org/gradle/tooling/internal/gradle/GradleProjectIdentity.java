@@ -16,6 +16,6 @@
 
 package org.gradle.tooling.internal.gradle;
 
-public interface GradleProjectIdentity {
-    String getPath();
+public interface GradleProjectIdentity extends GradleBuildIdentity {
+    String getProjectPath();
 }

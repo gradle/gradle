@@ -19,13 +19,14 @@ Make task paths/names from within a composite build make sense from the console 
 TBD
 
 #### Test Cases
+
 - Tasks from root composite look "normal"
 - Tasks from participant have the participants path tacked on (as in a multi-project build)
 - Error messages when a task fails is "composite-aware"
 
 ### M8.X: User can provide a name for overlapping composite builds
 
-Unify the composite build namespace with the subproject namespace of the root composite build.
+Unify the composite build namespace with the subproject namespace of the root composite build.  Subprojects named `buildSrc` emit a deprecation warning.
 
 #### Implementation 
 
@@ -43,6 +44,7 @@ Unify the composite build namespace with the subproject namespace of the root co
 - When an included build and a subproject have overlapping names, after giving the included build a unique name, the build is successful.
 - When an included build and a subproject have overlapping names, after giving the subproject a unique path, the build is successful.
 - Changing the included build name should affect the console output.
+- Subprojects named `buildSrc` emit a deprecation warning.
 
 ### M8.X: User can use participant name to select tasks from the command-line
 
@@ -90,31 +92,27 @@ Enhance `gradle tasks` to also list included builds tasks (if this doesn't autom
 
 Allow someone to use this from the command-line and TAPI.
 
-Enhance the "stringy" form of `dependsOn` to allow `::` to mean something similar to an unqualified task name from the command-line.
+`dependsOn` will not allow `::`.
 
 Update `gradle tasks` to mention this.
 
 #### Test Cases
+
 - When `:build`, `:sub:build` and `:sub:x:build` exist:
     - `gradle ::build` executes all three.
     - `gradle :sub::build` executes `:sub:build` and `:sub:x:build`
     - `gradle :sub:x::build` executes `:sub:x:build`
     - `gradle ::sub:build` and `gradle :sub::x:build` fails with a useful error message.
-    - `something.dependsOn "::build"` from the root project should execute all three.
-    - `something.dependsOn "::build"` from the `:sub` project should execute `:sub:build` and `:sub:x:build`
-    - `something.dependsOn "::build"` from the `:sub:x` project should execute `:sub:x:build`
-    - `build.dependsOn "::build"` should fail (this doesn't have to be better than `build.dependsOn "build"`)
-    - `something.dependsOn "::sub:build"` and `something.dependsOn ":sub::x:build"` fails with a useful error message.
 - When `:build` does not exist but `:sub:build` and `:sub:x:build` exist:
     - `gradle ::build` executes `:sub:build` and `:sub:x:build`
-    - `something.dependsOn "::build"` from the root project should execute `:sub:build` and `:sub:x:build`
 - When doing `gradle build -x ::test` should exclude all tasks named "test" from execution.
 - `gradle ::doesNotExist` should fail with a useful error message
 - `gradle ::createdByRule` should not fail when "createdByRule" is a task created by a Task rule in a subproject.
 - For composite included builds:
-    - `gradle ::build` and `gradle build` executes `:build` and `:x:build` in `A` and the root composite build.
+    - `gradle build` executes `:build` and `:x:build` in `A` and the root composite build.
     - `gradle :A::build` executes `:build` and `:x:build` in `A`
     - `gradle :A::doesNotExist` provides a useful error message
+    - `gradle ::build` executes build in the root composite build only. 
 
 #### Questions
 - Is expanding this to `dependsOn` necessary? Configuration cost/ordering might get complicated.
@@ -134,7 +132,7 @@ something.dependsOn subprojects.collect { tasks["build"] }
 
 A user may want to (from the root directory):
 1. Run a task in a project.
-    _Use case_: Build my project.
+    - _Use case_: Build my project.
     - `gradle <unqualified task name>`
     - `gradle :<task path>`
 
@@ -143,34 +141,32 @@ Behavior appears identical to the user with a task path and with an unqualified 
 ### Multi-project build (no change in behavior)
 
 A user may want to (from the root directory):
-
 1. Run a task in a project.
     - _Use case_: Build my single project in a huge multi-project build.
     - When defined in the root and subproject: 
-        - `gradle :<task path>`
-        - `gradle -p projectDir <unqualified task name>` 
-        - `gradle -p projectDir :<task path>`
+    - `gradle :<task path>`
+    - `gradle -p projectDir <unqualified task name>` 
+    - `gradle -p projectDir :<task path>`
     - When defined _only_ in the project:
-        - All of the above 
-        - `gradle <unqualified task name>`
+    - All of the above 
+    - `gradle <unqualified task name>`
 2. Run a task in the root project.
     - _Use case_: Generate something that's build-specific.
     - When defined in the root and subproject: 
-        - `gradle :<task path>` 
+    - `gradle :<task path>` 
     - When defined _only_ in the root: 
-        - All of the above 
-        - `gradle <unqualified task name>` 
-3. Run a task with an unqualified name in all projects (does not include `buildSrc`).
+    - All of the above 
+    - `gradle <unqualified task name>` 
+3. Run a task selector (does not include `buildSrc`).
     - _Use case_: Build everything and let Gradle handle the dependencies/parallelization.
     - `gradle <unqualified task name>`
-4. Run a task with an unqualified name in all projects under a subproject (does not include `buildSrc`).
+4. Run a task selector in a subproject (does not include `buildSrc`).
     - _Use case_: Build all of my "web" projects that are organized under `:web:*`
     - `gradle -p projectDir <unqualified task name>`
 
 ### Single-project build with `buildSrc` (no change in behavior)
 
 A user would want to:
-
 1. Run a task in a project. 
     - _Use case_: Build my project.
     - `gradle <unqualified task name>`
@@ -189,8 +185,8 @@ A user would want to:
 
 1. Run a task in a project. (same as above)
 2. Run a task in the root project. (same as above)
-3. Run a task with an unqualified name in all projects (does not include `buildSrc`). (same as above)
-4. Run a task with an unqualified name in all projects under a subproject (does not include `buildSrc`). (same as above)
+3. Run a task selector (does not include `buildSrc`). (same as above)
+4. Run a task selector in a subproject (does not include `buildSrc`). (same as above)
 4. Run task in `buildSrc` only. 
     - `gradle -p buildSrc <unqualified task name>` 
     - `gradle -p buildSrc :<task path>` 
@@ -254,10 +250,10 @@ A user would want to:
 3. Run a task in the root project of `A/`.
     - _Use case_: Generate something specific to the `A/` build.
     - `gradle :A:generate` (NEW: As above)
-4. Run a task with an unqualified name in all projects in `A/`.
+4. Run a task selector in  `A/`.
     - _Use case_: Build everything and let Gradle handle the dependencies/parallelization.
     - `gradle :A::build` (NEW: Treat :: as wildcard to mean "execute task in this project and all subprojects")`
-4. Run a task with an unqualified name in all projects under a subproject in `A/`.
+4. Run a task selector in a subproject of `A/`.
     - _Use case_: Build all of my "web" projects that are organized under `:web:*`
     - `gradle :A:web::build` (NEW: Treat :: as wildcard to mean "execute task in this project and all subprojects")`
 5. Run a task that is defined in the root composite build and the `A/` participant.

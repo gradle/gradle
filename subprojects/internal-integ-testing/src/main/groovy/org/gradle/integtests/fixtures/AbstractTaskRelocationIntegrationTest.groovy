@@ -42,7 +42,7 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
         moveFilesAround()
         succeeds taskName
         then:
-        skippedTasks.contains taskName
+        skippedTasks.contains(taskName)
 
         when:
         removeResults()
@@ -50,7 +50,7 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
         def movedResults = extractResults()
         then:
         nonSkippedTasks.contains taskName
-        originalResults == movedResults
+        assertResultsEqual originalResults, movedResults
     }
 
     abstract protected String getTaskName()
@@ -65,4 +65,8 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
     }
 
     abstract protected def extractResults()
+
+    protected void assertResultsEqual(def originalResult, def movedResult) {
+        assert movedResult == originalResult
+    }
 }

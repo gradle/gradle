@@ -75,6 +75,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
         writeShortInterface();
         writeTestClass();
 
+        executer.expectDeprecationWarning()
         executer.withTasks("classes").run();
 
         // file system time stamp may not see change without this wait
@@ -82,6 +83,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
 
         // Update interface, compile should fail because depend deletes old class
         writeLongInterface();
+        executer.expectDeprecationWarning()
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
 

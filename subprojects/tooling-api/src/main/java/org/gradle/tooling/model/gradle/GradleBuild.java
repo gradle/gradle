@@ -45,9 +45,17 @@ public interface GradleBuild extends Model, BuildModel {
     BasicGradleProject getRootProject();
 
     /**
-     * Returns the set of all projects for this build. Will include the root project and any ancestors.
+     * Returns the set of all projects for this build.
      *
      * @return The set of all projects.
      */
     DomainObjectSet<? extends BasicGradleProject> getProjects();
+
+    /**
+     * Returns the builds that were included into this one.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    DomainObjectSet<? extends GradleBuild> getIncludedBuilds();
 }

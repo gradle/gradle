@@ -116,7 +116,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
     /**
      * Collection of execution data files to analyze.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     @InputFiles
     public FileCollection getExecutionData() {
         return executionData;

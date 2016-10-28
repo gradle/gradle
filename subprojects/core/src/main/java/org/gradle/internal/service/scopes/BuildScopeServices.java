@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -39,6 +38,7 @@ import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -119,8 +119,8 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -259,7 +259,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler,
+    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,
+                                                               FileCacheBackedScriptClassCompiler scriptCompiler,
                                                                CrossBuildInMemoryCachingScriptClassCache cache) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
@@ -274,7 +275,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         CacheRepository cacheRepository, final StartParameter startParameter,
         ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
-        FileSnapshotter snapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        FileHasher hasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -285,7 +286,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptCacheInvalidator,
             new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
             progressLoggerFactory,
-            snapshotter,
+            hasher,
             classLoaderCache,
             classLoaderHierarchyHasher);
     }

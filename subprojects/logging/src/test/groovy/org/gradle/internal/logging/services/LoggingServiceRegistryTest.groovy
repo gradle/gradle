@@ -33,6 +33,7 @@ import org.junit.Rule
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
+import java.util.logging.Level
 import java.util.logging.Logger
 
 class LoggingServiceRegistryTest extends Specification {
@@ -166,6 +167,36 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
     }
 
+    def configuresJavaUtilLoggingAndRestoresSettingsWhenStopped() {
+        given:
+        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
+        def rootLogger = Logger.getLogger("")
+        def logger = Logger.getLogger("category")
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+
+        when:
+        rootLogger.level = Level.OFF
+        loggingManager.levelInternal = LogLevel.WARN
+
+        then:
+        rootLogger.level == Level.OFF
+        logger.level == null
+
+        when:
+        loggingManager.start()
+
+        then:
+        rootLogger.level != Level.OFF
+        logger.level == null
+
+        when:
+        loggingManager.stop()
+
+        then:
+        rootLogger.level == Level.OFF
+        logger.level == null
+    }
+
     def consumesFromSystemOutAndErrWhenStarted() {
         StandardOutputListener listener = Mock()
 
@@ -205,6 +236,47 @@ class LoggingServiceRegistryTest extends Specification {
         then:
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
+    }
+
+    def canChangeAndRestoreSystemOutputAndErrorCaptureLevels() {
+        def listener = Mock(StandardOutputListener)
+
+        given:
+        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.captureStandardError(LogLevel.WARN)
+        loggingManager.captureStandardOutput(LogLevel.INFO)
+        loggingManager.levelInternal = LogLevel.INFO
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
+        loggingManager.start()
+
+        when:
+        def nestedManager = registry.newInstance(LoggingManagerInternal)
+        nestedManager.captureStandardError(LogLevel.INFO)
+        nestedManager.captureStandardOutput(LogLevel.DEBUG)
+        nestedManager.start()
+
+        System.out.println("info")
+        System.err.println("error")
+
+        then:
+        1 * listener.onOutput("error")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+        0 * listener._
+
+        when:
+        nestedManager.stop()
+
+        System.out.println("info")
+        System.err.println("error")
+
+        then:
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+        1 * listener.onOutput("error")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+        0 * listener._
     }
 
     def buffersLinesWrittenToSystemOutAndErr() {
@@ -356,15 +428,19 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
         loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
         loggingManager.setLevelInternal(LogLevel.INFO)
         loggingManager.start()
 
         when:
         def logger = LoggerFactory.getLogger("category")
         logger.info("info")
+        logger.error("error")
 
         then:
         1 * listener.onOutput("info")
+        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput("error")
         1 * listener.onOutput(TextUtil.platformLineSeparator)
         0 * listener._
 
@@ -374,35 +450,46 @@ class LoggingServiceRegistryTest extends Specification {
     }
 
     def doesNotConsumeJavaUtilLoggingWhenEmbedded() {
+        def listener = Mock(StandardOutputListener)
+
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
         loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         def logger = Logger.getLogger("category")
 
         when:
+        logger.info("info")
         logger.warning("warning")
         logger.severe("error")
 
         then:
+        0 * listener._
+
+        and:
         outputs.stdOut == ''
         outputs.stdErr == ''
     }
 
     def canEnableConsumingJavaUtilLoggingWhenEmbedded() {
-        StandardOutputListener listener = Mock()
+        def listener = Mock(StandardOutputListener)
 
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def logger = Logger.getLogger("category")
         def loggingManager = registry.newInstance(LoggingManagerInternal)
         loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
         loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
 
         when:
+        logger.severe("before")
         logger.warning("before")
+        logger.info("before")
 
         then:
         0 * listener._
@@ -411,18 +498,54 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.captureSystemSources()
         logger.info("ignored")
         logger.warning("warning")
+        logger.severe("error")
 
         then:
         1 * listener.onOutput('warning')
+        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput('error')
         1 * listener.onOutput(TextUtil.platformLineSeparator)
         0 * listener._
 
         when:
         loggingManager.stop()
+        logger.severe("after")
         logger.warning("after")
+        logger.info("after")
 
         then:
         0 * listener._
+    }
+
+    def restoresJavaUtilLoggingSettingsWhenEmbeddedAndStopped() {
+        given:
+        def registry = LoggingServiceRegistry.newEmbeddableLogging()
+        def rootLogger = Logger.getLogger("")
+        def logger = Logger.getLogger("category")
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+
+        when:
+        rootLogger.level = Level.OFF
+        loggingManager.levelInternal = LogLevel.WARN
+        loggingManager.captureSystemSources()
+
+        then:
+        rootLogger.level == Level.OFF
+        logger.level == null
+
+        when:
+        loggingManager.start()
+
+        then:
+        rootLogger.level != Level.OFF
+        logger.level == null
+
+        when:
+        loggingManager.stop()
+
+        then:
+        rootLogger.level == Level.OFF
+        logger.level == null
     }
 
     def doesNotConsumeFromSystemOutAndErrWhenEmbedded() {

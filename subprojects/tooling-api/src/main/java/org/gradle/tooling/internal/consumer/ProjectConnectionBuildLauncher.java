@@ -22,6 +22,5 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 public class ProjectConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
     public ProjectConnectionBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(connection, parameters);
-        operationParamsBuilder.setRootDirectory(parameters.getProjectDir());
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;

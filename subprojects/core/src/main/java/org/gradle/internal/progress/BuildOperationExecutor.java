@@ -27,7 +27,7 @@ import org.gradle.internal.Factory;
  *
  * <ul>
  *     <p>Fires events via {@link InternalBuildListener}. For example, this means that notification of build operation
- *     execution can be received by tooling AIP clients.</p>
+ *     execution can be received by tooling API clients.</p>
  *     <p>Generates progress logging events.</p>
  * </ul>
  *

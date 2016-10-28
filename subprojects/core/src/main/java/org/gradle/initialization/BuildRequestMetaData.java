@@ -29,5 +29,6 @@ public interface BuildRequestMetaData {
     /**
      * Returns a clock measuring the time since the request was made by the user of the client.
      */
+    @Deprecated
     Clock getBuildTimeClock();
 }

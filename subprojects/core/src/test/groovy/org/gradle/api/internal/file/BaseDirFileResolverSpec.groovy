@@ -192,6 +192,14 @@ The following types/formats are supported:
   - A URI or URL instance.""")
     }
 
+    def "normalizes null-returning closure to null"() {
+        def ancestor = new File(tmpDir.testDirectory, "test")
+        def baseDir = new File(ancestor, "base")
+
+        expect:
+        normalize({ null }, baseDir) == null
+    }
+
     def createLink(File link, File target) {
         createLink(link, target.absolutePath)
     }

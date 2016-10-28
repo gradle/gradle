@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -84,7 +84,7 @@ public class Groovydoc extends SourceTask {
 
     private TextResource overview;
 
-    private Set<Link> links = new HashSet<Link>();
+    private Set<Link> links = new LinkedHashSet<Link>();
 
     boolean includePrivate;
 

@@ -23,7 +23,7 @@ import com.google.common.hash.Hashing
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.hash.Hasher
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
@@ -37,7 +37,7 @@ import spock.lang.Subject
 class DefaultJarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def hasher = Mock(Hasher)
+    def hasher = Mock(FileHasher)
 
     @Subject snapshotter = new DefaultJarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer))
 

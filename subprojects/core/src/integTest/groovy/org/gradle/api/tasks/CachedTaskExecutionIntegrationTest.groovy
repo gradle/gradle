@@ -17,12 +17,12 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.LocalTaskCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 
-class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
     public static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
                 public static void main(String... args) {
@@ -38,12 +38,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-    File cacheDir
-
     def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
-
         setupProjectInDirectory(testDirectory)
     }
 
@@ -75,17 +70,45 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        succeedsWithCache "jar"
+        withTaskCache().succeeds "jar"
         then:
         skippedTasks.empty
 
         expect:
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
 
         when:
-        succeedsWithCache "jar"
+        withTaskCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    // Note: this test only actually tests millisecond-precision when:
+    //
+    //   a) it is ran on a file system with finer-than-a-second time precision
+    //      (only Ext4 and NTFS at the time of writing),
+    //   b) the current Java implementation actually supports
+    //      finer-than-a-second precision timestamps via File.lastModified()
+    //      (only Windows Java 8 at the time of writing).
+    //
+    // Even when finer-than-a-millisecond precision would be available via
+    // Files.getLastModifiedTime(), we still restore only millisecond precision
+    // dates.
+    def "restored cached results match original timestamp with millisecond precision"() {
+        settingsFile << "rootProject.name = 'test'"
+        withTaskCache().succeeds "jar"
+        def originalModificationTime = file("build/libs/test.jar").assertIsFile().lastModified()
+
+        when:
+        // We really need to sleep here, and can't use the `makeOlder()` trick,
+        // because the results are already cached with the original timestamp
+        sleep(1000)
+        withTaskCache().succeeds "clean"
+        withTaskCache().succeeds "jar"
+
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
+        file("build/libs/test.jar").lastModified() == originalModificationTime
     }
 
     def "cached tasks are executed with --rerun-tasks"() {
@@ -93,7 +116,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         cacheDir.listFiles() as List == []
 
         when:
-        succeedsWithCache "jar"
+        withTaskCache().succeeds "jar"
         def originalCacheContents = (cacheDir.listFiles() as List).sort()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
@@ -101,10 +124,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         originalCacheContents.size() > 0
 
         expect:
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
 
         when:
-        succeedsWithCache "jar", "--rerun-tasks"
+        withTaskCache().succeeds "jar", "--rerun-tasks"
         def updatedCacheContents = (cacheDir.listFiles() as List).sort()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
@@ -117,15 +140,15 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task results don't get stored when pushing is disabled"() {
         when:
-        succeedsWithCache "jar", "-Dorg.gradle.cache.tasks.push=false"
+        withTaskCache().succeeds "jar", "-Dorg.gradle.cache.tasks.push=false"
         then:
         skippedTasks.empty
 
         expect:
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
 
         when:
-        succeedsWithCache "jar"
+        withTaskCache().succeeds "jar"
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
     }
@@ -135,7 +158,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         cacheDir.listFiles() as List == []
 
         when:
-        succeedsWithCache "jar"
+        withTaskCache().succeeds "jar"
         def originalCacheContents = (cacheDir.listFiles() as List).sort()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
@@ -143,10 +166,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         originalCacheContents.size() > 0
 
         expect:
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
 
         when:
-        succeedsWithCache "jar", "-Dorg.gradle.cache.tasks.pull=false"
+        withTaskCache().succeeds "jar", "-Dorg.gradle.cache.tasks.pull=false"
         def updatedCacheContents = (cacheDir.listFiles() as List).sort()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
@@ -157,141 +180,30 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "buildSrc is loaded from cache"() {
-        file("buildSrc/src/main/groovy/MyTask.groovy") << """
-            import org.gradle.api.*
-
-            class MyTask extends DefaultTask {}
-        """
-        when:
-        succeedsWithCache "jar"
-        then:
-        skippedTasks.empty
-
-        expect:
-        succeedsWithCache "clean"
-        file("buildSrc/build").deleteDir()
-
-        when:
-        succeedsWithCache "jar"
-        then:
-        output.contains ":buildSrc:compileGroovy FROM-CACHE"
-        output.contains ":buildSrc:jar FROM-CACHE"
-    }
-
-    def "tasks stay cached after buildSrc is rebuilt"() {
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile File inputFile
-                @OutputFile File outputFile
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text
-                }
-            }
-        """
-        file("input.txt") << "input"
-        buildFile << """
-            task customTask(type: CustomTask) {
-                inputFile = file "input.txt"
-                outputFile = file "build/output.txt"
-            }
-        """
-        when:
-        succeedsWithCache "jar", "customTask"
-        then:
-        skippedTasks.empty
-
-        when:
-        file("buildSrc/build").deleteDir()
-        file("buildSrc/.gradle").deleteDir()
-        // Run this without cache, so buildSrc gets rebuilt
-        succeeds "clean"
-
-        succeedsWithCache "jar", "customTask"
-        then:
-        skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
-    }
-
-    def "changing custom task implementation in buildSrc doesn't invalidate built-in task"() {
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile File inputFile
-                @OutputFile File outputFile
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text
-                }
-            }
-        """
-        file("buildSrc/src/main/groovy/CustomTask.groovy").makeOlder()
-        file("input.txt") << "input"
-        buildFile << """
-            task customTask(type: CustomTask) {
-                inputFile = file "input.txt"
-                outputFile = file "build/output.txt"
-            }
-        """
-        when:
-        succeedsWithCache "jar", "customTask"
-        then:
-        skippedTasks.empty
-
-        when:
-        file("buildSrc/src/main/groovy/CustomTask.groovy").text = """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile File inputFile
-                @OutputFile File outputFile
-                @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = inputFile.text + ": modified"
-                }
-            }
-        """
-
-        run "clean"
-        succeedsWithCache "jar", "customTask"
-        then:
-        skippedTasks.containsAll ":compileJava", ":jar"
-        nonSkippedTasks.contains ":customTask"
-    }
-
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
             mainClassName = "Hello"
         """
-        runWithCache "run"
-        runWithCache "clean"
+        withTaskCache().run "run"
+        withTaskCache().run "clean"
         expect:
-        succeedsWithCache "run"
+        withTaskCache().succeeds "run"
     }
 
     def "tasks get cached when source code changes without changing the compiled output"() {
         when:
-        succeedsWithCache "assemble"
+        withTaskCache().succeeds "assemble"
         then:
         skippedTasks.empty
 
         file("src/main/java/Hello.java") << """
             // Change to source file without compiled result change
         """
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
 
         when:
-        succeedsWithCache "assemble"
+        withTaskCache().succeeds "assemble"
         then:
         nonSkippedTasks.contains ":compileJava"
         skippedTasks.contains ":jar"
@@ -299,17 +211,17 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "tasks get cached when source code changes back to previous state"() {
         expect:
-        succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withTaskCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
-        succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withTaskCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        succeedsWithCache "jar"
+        withTaskCache().succeeds "jar"
         result.assertTaskSkipped ":compileJava"
         result.assertTaskSkipped ":jar"
     }
@@ -326,27 +238,27 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeedsWithCache "assemble"
+        withTaskCache().succeeds "assemble"
         skippedTasks.empty
         file("build/libs/test.jar").isFile()
 
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
         !file("build/libs/test.jar").isFile()
 
         file("toggle.txt").touch()
 
-        succeedsWithCache "assemble"
+        withTaskCache().succeeds "assemble"
         skippedTasks.contains ":jar"
         !file("build/libs/test.jar").isFile()
         file("build/other-jar/other-jar.jar").isFile()
     }
 
     def "clean doesn't get cached"() {
-        runWithCache "assemble"
-        runWithCache "clean"
-        runWithCache "assemble"
+        withTaskCache().run "assemble"
+        withTaskCache().run "clean"
+        withTaskCache().run "assemble"
         when:
-        succeedsWithCache "clean"
+        withTaskCache().succeeds "clean"
         then:
         nonSkippedTasks.contains ":clean"
     }
@@ -358,7 +270,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.inDirectory(remoteProjectDir)
-        succeedsWithCache "compileJava"
+        withTaskCache().succeeds "compileJava"
         then:
         skippedTasks.empty
         remoteProjectDir.file("build/classes/main/Hello.class").exists()
@@ -367,7 +279,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         remoteProjectDir.deleteDir()
 
         when:
-        succeedsWithCache "compileJava"
+        withTaskCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
         file("build/classes/main/Hello.class").exists()
@@ -379,7 +291,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.inDirectory(remoteProjectDir)
-        succeedsWithCache "compileJava"
+        withTaskCache().succeeds "compileJava"
         then:
         skippedTasks.empty
         remoteProjectDir.file("build/classes/main/Hello.class").exists()
@@ -387,96 +299,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         remoteProjectDir.deleteDir()
 
         when:
-        succeedsWithCache "compileJava"
+        withTaskCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
         file("build/classes/main/Hello.class").exists()
-    }
-
-    def "cacheable task with cache disabled doesn't get cached"() {
-        buildFile << """
-            compileJava.outputs.cacheIf { false }
-        """
-
-        runWithCache "compileJava"
-        runWithCache "clean"
-
-        when:
-        succeedsWithCache "compileJava"
-        then:
-        // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
-        nonSkippedTasks.contains ":compileJava"
-    }
-
-    def "cacheable task with multiple outputs doesn't get cached"() {
-        buildFile << """
-            compileJava.outputs.files files("output1.txt", "output2.txt")
-            compileJava.doLast {
-                file("output1.txt") << "data"
-                file("output2.txt") << "data"
-            }
-        """
-
-        runWithCache "compileJava"
-        runWithCache "clean"
-
-        when:
-        succeedsWithCache "compileJava", "--info"
-        then:
-        // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
-        nonSkippedTasks.contains ":compileJava"
-        output.contains "Not caching task ':compileJava' because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
-    }
-
-    def "non-cacheable task with cache enabled gets cached"() {
-        file("input.txt") << "data"
-        buildFile << """
-            class NonCacheableTask extends DefaultTask {
-                @InputFile inputFile
-                @OutputFile outputFile
-
-                @TaskAction copy() {
-                    project.mkdir outputFile.parentFile
-                    outputFile.text = inputFile.text
-                }
-            }
-            task customTask(type: NonCacheableTask) {
-                inputFile = file("input.txt")
-                outputFile = file("\$buildDir/output.txt")
-                outputs.cacheIf { true }
-            }
-            compileJava.dependsOn customTask
-        """
-
-        when:
-        runWithCache "jar"
-        then:
-        nonSkippedTasks.contains ":customTask"
-
-        when:
-        runWithCache "clean"
-        succeedsWithCache "jar"
-        then:
-        skippedTasks.contains ":customTask"
-    }
-
-    def "ad hoc tasks are not cacheable by default"() {
-        given:
-        file("input.txt") << "data"
-        buildFile << adHocTaskWithInputs()
-
-        expect:
-        taskIsNotCached ':adHocTask'
-    }
-
-    def "ad hoc tasks are cached when explicitly requested"() {
-        given:
-        file("input.txt") << "data"
-        buildFile << adHocTaskWithInputs()
-        buildFile << 'adHocTask { outputs.cacheIf { true } }'
-
-        expect:
-        taskIsCached ':adHocTask'
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -488,19 +314,19 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        runWithCache 'clean', 'run'
+        withTaskCache().run 'clean', 'run'
 
         then:
         nonSkippedTasks.contains ':compileJava'
 
         when:
-        runWithCache 'clean', 'run'
+        withTaskCache().run 'clean', 'run'
 
         then:
         skippedTasks.contains ':compileJava'
 
         when:
-        runWithCache 'clean', 'run'
+        withTaskCache().run 'clean', 'run'
 
         then:
         skippedTasks.contains ':compileJava'
@@ -515,9 +341,17 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.requireGradleDistribution()
 
         file("input.txt") << "data"
-        buildFile << adHocTaskWithInputs()
         buildFile << """
-            adHocTask { outputs.cacheIf { true } }
+            task adHocTask {
+                def outputFile = file("\$buildDir/output.txt")
+                inputs.file(file("input.txt"))
+                outputs.file(outputFile)
+                doLast {
+                    project.mkdir outputFile.parentFile
+                    outputFile.text = file("input.txt").text
+                }
+                outputs.cacheIf { true }
+            }
 
             task executedTask {
                 doLast {
@@ -527,7 +361,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        runWithCache 'adHocTask', 'executedTask', 'compileJava'
+        withTaskCache().run 'adHocTask', 'executedTask', 'compileJava'
 
         then:
         output.contains """
@@ -538,7 +372,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         assert file('build/output.txt').delete()
-        runWithCache 'adHocTask', 'executedTask', 'compileJava'
+        withTaskCache().run 'adHocTask', 'executedTask', 'compileJava'
 
         then:
         output.contains """
@@ -549,50 +383,24 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    String adHocTaskWithInputs() {
-        """
-        task adHocTask {
-            def outputFile = file("\$buildDir/output.txt")
-            inputs.file(file("input.txt"))
-            outputs.file(outputFile)
-            doLast {
-                project.mkdir outputFile.parentFile
-                outputFile.text = file("input.txt").text
-            }
-        }
-        """.stripIndent()
-    }
+    def "previous outputs are cleared before task is loaded from cache"() {
+        when:
+        withTaskCache().succeeds "jar"
+        then:
+        skippedTasks.empty
 
-    void taskIsNotCached(String task) {
-        runWithCache task
-        assert nonSkippedTasks.contains(task)
-        runWithCache 'clean'
+        when:
+        assert file("build/classes/main/Hello.class").delete()
+        assert file("build/classes/main/Hi.class") << "A fake class that somehow got in the way"
+        withTaskCache().succeeds "compileJava"
+        then:
+        skippedTasks.contains ":compileJava"
+        file("build/classes/main/Hello.class").exists()
+        !file("build/classes/main/Hi.class").exists()
 
-        runWithCache task
-        assert nonSkippedTasks.contains(task)
-    }
-
-    void taskIsCached(String task) {
-        runWithCache task
-        assert nonSkippedTasks.contains(task)
-        runWithCache 'clean'
-
-        runWithCache task
-        assert skippedTasks.contains(task)
-    }
-
-    def runWithCache(String... tasks) {
-        enableCache()
-        run tasks
-    }
-
-    def succeedsWithCache(String... tasks) {
-        enableCache()
-        succeeds tasks
-    }
-
-    private GradleExecuter enableCache() {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
+        when:
+        withTaskCache().succeeds "jar"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
     }
 }

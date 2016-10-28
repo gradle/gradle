@@ -5,35 +5,6 @@
  */
 apply plugin: 'java'
 
-class CheckstyleExtension {
-    boolean ignoreFailures
-}
-
-class CustomExtension {
-    Closure<?> action = { println "" }
-    String value = "."
-}
-
-class FakeCheckstylePlugin implements Plugin {
-
-    void apply(project) {
-        project.extensions.create("checkstyle", CheckstyleExtension)
-
-        project.checkstyle {
-            ignoreFailures = true
-        }
-
-        project.tasks.create("checkstyleMain", Checkstyle)
-        project.tasks.create("checkstyleTest", Checkstyle)
-
-        project.tasks.withType(Checkstyle) {
-            ignoreFailures = project.checkstyle.ignoreFailures
-        }
-
-        project.build.dependsOn project.tasks.withType(Checkstyle)
-    }
-}
-
 apply plugin: FakeCheckstylePlugin
 
 extensions.create("custom", CustomExtension)
@@ -67,15 +38,3 @@ tasks.withType(MyTaskClass).all {
 }
 
 
-class MyTaskClass extends DefaultTask {
-
-    @InputFiles
-    FileCollection input
-
-    @OutputDirectory
-    File output
-
-    @Input
-    boolean flag
-
-}

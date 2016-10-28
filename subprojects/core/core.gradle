@@ -90,27 +90,9 @@ task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt)
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
 
+import org.gradle.build.PluginsManifest
 task pluginsManifest(type: PluginsManifest)
+
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
-class PluginsManifest extends DefaultTask {
-    @OutputFile
-    File getPropertiesFile() {
-        return new File(project.generatedResourcesDir, "gradle-plugins.properties")
-    }
-
-    @Input
-    Properties getPluginProperties() {
-        def properties = new Properties()
-        properties.plugins = project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
-        return properties
-    }
-
-    @TaskAction
-    def generate() {
-        org.gradle.build.ReproduciblePropertiesWriter.store(pluginProperties, propertiesFile)
-    }
-}
-
 verifyTestFilesCleanup.errorWhenNotEmpty = false
-

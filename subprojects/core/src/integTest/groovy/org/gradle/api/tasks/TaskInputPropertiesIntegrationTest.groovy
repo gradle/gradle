@@ -38,7 +38,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasCause("Could not add entry ':foo' to cache taskArtifacts.bin")
+        then: failure.assertHasDescription("Could not add entry ':foo' to cache taskArtifacts.bin")
+        then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
@@ -100,9 +101,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
 
         // Keep the same files, but move one of them to the other property
-        buildFile.delete()
         buildFile << """
-            task test(type: TaskWithTwoFileCollectionInputs) {
+            test {
                 inputs1 = files("input1.txt")
                 inputs2 = files("input2.txt", "input3.txt")
             }

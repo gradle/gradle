@@ -17,8 +17,8 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.util.GFileUtils;
@@ -76,6 +76,7 @@ public class BuildExperimentRunner {
         InvocationSpec invocationSpec = experiment.getInvocation();
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
+            honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
             File workingDirectory = invocation.getWorkingDirectory();
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
@@ -91,6 +92,7 @@ public class BuildExperimentRunner {
                 performMeasurements(session, experiment, results, workingDirectory);
             } finally {
                 session.cleanup();
+                CompositeStoppable.stoppable(dataCollector).stop();
             }
         }
     }
@@ -113,13 +115,13 @@ public class BuildExperimentRunner {
         GFileUtils.copyDirectory(templateDir, workingDir);
     }
 
-    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> void performMeasurements(final InvocationExecutorProvider<T> session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
+    protected void performMeasurements(final InvocationExecutorProvider session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
         doWarmup(experiment, projectDir, session);
         waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
         doMeasure(experiment, results, projectDir, session);
     }
 
-    private <S extends InvocationSpec, T extends InvocationCustomizer<S>> void doMeasure(BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir, InvocationExecutorProvider<T> session) {
+    private void doMeasure(BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir, InvocationExecutorProvider session) {
         int invocationCount = invocationsForExperiment(experiment);
         for (int i = 0; i < invocationCount; i++) {
             if (i > 0) {
@@ -133,22 +135,25 @@ public class BuildExperimentRunner {
     }
 
     @SuppressWarnings("unchecked")
-    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> T createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
+    protected InvocationCustomizer createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
         if (info.getBuildExperimentSpec() instanceof GradleBuildExperimentSpec) {
-            return Cast.uncheckedCast(new GradleInvocationCustomizer() {
+            return new InvocationCustomizer() {
                 @Override
-                public GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
+                public <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo info, T invocationSpec) {
                     final List<String> iterationInfoArguments = createIterationInfoArguments(info.getPhase(), info.getIterationNumber(), info.getIterationMax());
-                    GradleInvocationSpec gradleInvocationSpec = invocationSpec.withAdditionalArgs(iterationInfoArguments);
+                    GradleInvocationSpec gradleInvocationSpec = ((GradleInvocationSpec) invocationSpec).withAdditionalArgs(iterationInfoArguments);
                     System.out.println("Run Gradle using JVM opts: " + gradleInvocationSpec.getJvmOpts());
-                    return gradleInvocationSpec;
+                    if(info.getBuildExperimentSpec().getInvocationCustomizer() != null) {
+                        gradleInvocationSpec = info.getBuildExperimentSpec().getInvocationCustomizer().customize(info, gradleInvocationSpec);
+                    }
+                    return (T) gradleInvocationSpec;
                 }
-            });
+            };
         }
         return null;
     }
 
-    private <S extends InvocationSpec, T extends InvocationCustomizer<S>> void doWarmup(BuildExperimentSpec experiment, File projectDir, InvocationExecutorProvider<T> session) {
+    private void doWarmup(BuildExperimentSpec experiment, File projectDir, InvocationExecutorProvider session) {
         int warmUpCount = warmupsForExperiment(experiment);
         for (int i = 0; i < warmUpCount; i++) {
             System.out.println();
@@ -222,12 +227,12 @@ public class BuildExperimentRunner {
         }
     }
 
-    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> void runOnce(
-        final InvocationExecutorProvider<T> session,
+    protected void runOnce(
+            final InvocationExecutorProvider session,
         final MeasuredOperationList results,
         final BuildExperimentInvocationInfo invocationInfo) {
         BuildExperimentSpec experiment = invocationInfo.getBuildExperimentSpec();
-        final Runnable runner = session.runner(Cast.<T>uncheckedCast(this.<S, T>createInvocationCustomizer(invocationInfo)));
+        final Runnable runner = session.runner(invocationInfo, wrapInvocationCustomizer(invocationInfo, createInvocationCustomizer(invocationInfo)));
 
         if (experiment.getListener() != null) {
             experiment.getListener().beforeInvocation(invocationInfo);
@@ -259,6 +264,24 @@ public class BuildExperimentRunner {
             } else {
                 LOGGER.error("Discarding invalid operation record {}", operation);
             }
+        }
+    }
+
+    private InvocationCustomizer wrapInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
+        final InvocationCustomizer experimentSpecificCustomizer = invocationInfo.getBuildExperimentSpec().getInvocationCustomizer();
+        if (experimentSpecificCustomizer != null) {
+            if (invocationCustomizer != null) {
+                return new InvocationCustomizer() {
+                    @Override
+                    public <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo info, T invocationSpec) {
+                        return experimentSpecificCustomizer.customize(info, invocationCustomizer.customize(info, invocationSpec));
+                    }
+                };
+            } else {
+                return experimentSpecificCustomizer;
+            }
+        } else {
+            return invocationCustomizer;
         }
     }
 

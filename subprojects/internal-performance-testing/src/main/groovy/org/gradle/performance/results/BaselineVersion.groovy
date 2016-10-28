@@ -26,11 +26,9 @@ import static PrettyCalculator.toMillis
 
 @CompileStatic
 class BaselineVersion implements VersionResults {
-    // To give us < 0.3% odds of a falsely identified regression.
+    // Multiply standard error of mean by this factor to reduce the number of a falsely identified regressions.
     // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
-    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3.0")
-    // We want to ignore regressions of less than 2% over the baseline.
-    static final BigDecimal MINIMUM_REGRESSION_PERCENTAGE = new BigDecimal("0.02")
+    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("5.0")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
@@ -94,9 +92,8 @@ class BaselineVersion implements VersionResults {
     }
 
     Amount<Duration> getMaxExecutionTimeRegression() {
-        def allowedPercentageRegression = results.totalTime.average * MINIMUM_REGRESSION_PERCENTAGE
         def allowedStatisticalRegression = results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
-        (allowedStatisticalRegression > allowedPercentageRegression) ? allowedStatisticalRegression : allowedPercentageRegression
+        allowedStatisticalRegression
     }
 
     Amount<DataAmount> getMaxMemoryRegression() {

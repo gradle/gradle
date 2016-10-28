@@ -20,14 +20,14 @@ import spock.lang.Specification
 class DefaultGradleProjectTest extends Specification {
 
     def "allows finding descendant by path"() {
-        def root = new DefaultGradleProject().setPath(":")
+        def root = new DefaultGradleProject().setProjectIdentifier(new DefaultProjectIdentifier(new File("."), ":"))
 
-        def child1 = new DefaultGradleProject().setPath(":child1")
-        def child11 = new DefaultGradleProject().setPath(":child1:child11")
-        def child12 = new DefaultGradleProject().setPath(":child1:child12")
+        def child1 = new DefaultGradleProject().setProjectIdentifier(new DefaultProjectIdentifier(new File("."), ":child1"))
+        def child11 = new DefaultGradleProject().setProjectIdentifier(new DefaultProjectIdentifier(new File("."), ":child1:child11"))
+        def child12 = new DefaultGradleProject().setProjectIdentifier(new DefaultProjectIdentifier(new File("."), ":child1:child12"))
 
-        def child2 = new DefaultGradleProject().setPath(":child2")
-        def child21 = new DefaultGradleProject().setPath(":child2:child21")
+        def child2 = new DefaultGradleProject().setProjectIdentifier(new DefaultProjectIdentifier(new File("."), ":child2"))
+        def child21 = new DefaultGradleProject().setProjectIdentifier(new DefaultProjectIdentifier(new File("."), ":child2:child21"))
 
         root.children = [child1, child2]
         child1.children = [child11, child12]

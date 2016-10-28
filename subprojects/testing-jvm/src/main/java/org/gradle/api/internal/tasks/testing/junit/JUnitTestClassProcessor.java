@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;

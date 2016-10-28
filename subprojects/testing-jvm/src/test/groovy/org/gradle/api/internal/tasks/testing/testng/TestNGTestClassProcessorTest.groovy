@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

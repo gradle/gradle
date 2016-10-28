@@ -34,34 +34,54 @@ import java.util.Date;
  */
 public class MeasurementPlugin implements Plugin<Project> {
 
+    private final static boolean DISABLED = Boolean.getBoolean("org.gradle.performance.measurement.disabled");
+
     @Override
     public void apply(Project project) {
+        if (DISABLED) {
+            return;
+        }
+
         Gradle gradle = project.getGradle();
 
         final PerformanceCounterMeasurement performanceCounterMeasurement = new PerformanceCounterMeasurement(project.getRootProject().getBuildDir());
         performanceCounterMeasurement.recordStart();
 
-        gradle.addBuildListener(new BuildAdapter() {
+        final BuildAdapter performMeasurements = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
-                BuildEventTimeStamps.buildFinished(result);
-                performanceCounterMeasurement.recordFinish();
-                Project rootProject = result.getGradle().getRootProject();
-                Logger logger = rootProject.getLogger();
-                JavaFlightRecorderControl.handle(rootProject, logger);
-                HeapDumper.handle(rootProject, logger);
-                new HeapMeasurement().handle(rootProject, logger);
-                ExternalResources.printAndResetStats();
+                long startTimeNanos = System.nanoTime();
+                doMeasurements(result, performanceCounterMeasurement);
+                long measurementTimeNanos = Math.max(System.nanoTime() - startTimeNanos, 0);
+                BuildEventTimeStamps.appendMeasurementTime(result.getGradle().getRootProject(), measurementTimeNanos);
             }
 
-        });
+        };
 
+        gradle.addBuildListener(performMeasurements);
         gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
             @Override
             public void graphPopulated(TaskExecutionGraph graph) {
                 BuildEventTimeStamps.configurationEvaluated();
             }
         });
+    }
+
+    private void doMeasurements(BuildResult result, PerformanceCounterMeasurement performanceCounterMeasurement) {
+        BuildEventTimeStamps.buildFinished(result);
+
+        performanceCounterMeasurement.recordFinish();
+
+        Project rootProject = result.getGradle().getRootProject();
+        Logger logger = rootProject.getLogger();
+
+        JavaFlightRecorderControl.handle(rootProject, logger);
+
+        HeapDumper.handle(rootProject, logger);
+
+        new HeapMeasurement().handle(rootProject, logger);
+
+        ExternalResources.printAndResetStats();
     }
 
     static File createFileName(Project project, File targetDirectory, String prefix, String suffix) {

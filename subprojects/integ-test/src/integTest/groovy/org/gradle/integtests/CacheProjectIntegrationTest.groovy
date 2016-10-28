@@ -17,8 +17,8 @@
 package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.hash.DefaultHasher
-import org.gradle.api.internal.hash.Hasher
+import org.gradle.api.internal.hash.DefaultFileHasher
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -34,7 +34,7 @@ import static org.junit.Assert.assertEquals
 public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    final Hasher fileHasher = new DefaultHasher()
+    final FileHasher fileHasher = new DefaultFileHasher()
 
     @Rule public final HttpServer server = new HttpServer()
 
@@ -86,7 +86,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        def hash = HashUtil.createCompactMD5FromHash(fileHasher.hash(buildFile).asBytes())
+        def hash = HashUtil.compactStringFor(fileHasher.hash(buildFile))
         String dirName = userHomeDir.file("caches/$version/scripts/$hash/proj").list()[0]
         String baseDir = "caches/$version/scripts/$hash/proj/$dirName"
         propertiesFile = userHomeDir.file("$baseDir/cache.properties")

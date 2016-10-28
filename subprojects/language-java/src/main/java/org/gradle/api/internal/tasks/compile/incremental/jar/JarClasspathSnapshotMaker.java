@@ -18,7 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 import java.io.File;
 
@@ -41,9 +42,9 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
     @Override
     public void storeJarSnapshots(Iterable<File> classpath) {
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         classpathSnapshotStore.put(jarClasspathSnapshot.getData());
-        LOG.info("Written jar classpath snapshot for incremental compilation in {}.", clock.getTime());
+        LOG.info("Written jar classpath snapshot for incremental compilation in {}.", clock.getElapsed());
     }
 
     @Override
@@ -56,13 +57,13 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
         if (jarClasspathSnapshot != null) {
             return;
         }
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
 
         jarClasspathSnapshot = classpathSnapshotFactory.createSnapshot(jarArchives);
         int duplicatesCount = jarClasspathSnapshot.getData().getDuplicateClasses().size();
         String duplicateClassesMessage = duplicatesCount == 0? "" : ". " + duplicatesCount + " duplicate classes found in classpath (see all with --debug)";
-        LOG.info("Created jar classpath snapshot for incremental compilation in {}{}.", clock.getTime(), duplicateClassesMessage);
+        LOG.info("Created jar classpath snapshot for incremental compilation in {}{}.", clock.getElapsed(), duplicateClassesMessage);
         LOG.debug("While calculating jar classpath snapshot {} duplicate classes were found: {}.", duplicatesCount, jarClasspathSnapshot.getData().getDuplicateClasses());
     }
 }

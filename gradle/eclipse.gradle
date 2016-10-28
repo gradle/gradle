@@ -13,10 +13,14 @@ allprojects {
                     classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
                     // Remove references to other project's binaries
                     classpath.entries.removeAll { it.path.contains("/subprojects") && it.kind == 'lib' }
+                    // Add needed resources for running gradle as a non daemon java application
+                    classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder("build/generated-resources/main", null))
                 }
             }
             jdt {
-                javaRuntimeName = 'JavaSE-1.7'
+                sourceCompatibility = '1.8'
+                targetCompatibility = '1.8'
+                javaRuntimeName = 'JavaSE-1.8'
                 file.withProperties { properties ->
                     // Eclipse's view of projects treat circular dependencies as errors by default
                     properties["org.eclipse.jdt.core.circularClasspath"] = "warning"

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
@@ -42,7 +43,9 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.getFilesStrict(dependencySpec);
+        Set<File> files = new LinkedHashSet<File>();
+        configuration.collectFiles(dependencySpec, files);
+        return files;
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {

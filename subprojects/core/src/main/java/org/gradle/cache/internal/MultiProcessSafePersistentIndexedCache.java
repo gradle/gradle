@@ -17,12 +17,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.PersistentIndexedCache;
 
-import java.io.Closeable;
-
-public interface MultiProcessSafePersistentIndexedCache<K, V> extends
-        PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
-    /**
-     * Note: this method is called before {@link UnitOfWorkParticipant#onEndWork(org.gradle.cache.internal.FileLock.State)}.
-     */
-    void close(); //so that we don't have to handle IOException (do we need this?)
+/**
+ * A {@link PersistentIndexedCache} implementation that is aware of file locking.
+ */
+public interface MultiProcessSafePersistentIndexedCache<K, V> extends PersistentIndexedCache<K, V>, UnitOfWorkParticipant {
 }

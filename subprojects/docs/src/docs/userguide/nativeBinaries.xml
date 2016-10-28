@@ -75,7 +75,7 @@
                 <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010/2012/2013.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cygwin 32</ulink></td><td>Windows XP and later.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later. <ulink url="http://mingw-w64.sourceforge.net">Mingw-w64</ulink> is currently not supported.</td>
@@ -95,7 +95,7 @@
                 <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink> from Macports</td><td></td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 64</ulink></td><td>Windows XP and later.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cygwin 64</ulink></td><td>Windows XP and later.</td>
             </tr>
             <tr>
                 <td>UNIX-like</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
@@ -162,7 +162,7 @@
         <para>
             In many cases, more than one binary can be produced for a component.
             These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
-            provided, or additional source files provided. Each native binary produced for a component is referred to as <firstterm>variant</firstterm>.
+            provided, or additional source files provided. Each native binary produced for a component is referred to as a <firstterm>variant</firstterm>.
             Binary variants are discussed in detail below.
         </para>
     </section>

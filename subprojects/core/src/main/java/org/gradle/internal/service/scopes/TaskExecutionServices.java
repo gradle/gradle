@@ -25,21 +25,27 @@ import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateR
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.hash.DefaultFileHasher;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.cache.GZipTaskOutputPacker;
+import org.gradle.api.internal.tasks.cache.OutputPreparingTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TarTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
@@ -72,6 +78,9 @@ import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+
+import java.util.List;
 
 public class TaskExecutionServices {
 
@@ -126,22 +135,34 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryTaskArtifactCache);
     }
 
-    CachingFileSnapshotter createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
-        return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
+    CachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
+        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner);
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
-        DefaultFileCollectionSnapshotter snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, stringInterner, fileSystem, directoryFileTreeFactory);
+    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultGenericFileCollectionSnapshotter snapshotter = new DefaultGenericFileCollectionSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
         listenerManager.addListener(snapshotter);
         return snapshotter;
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        OutputFilesCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter);
+    ClasspathSnapshotter createClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
+        listenerManager.addListener(snapshotter);
+        return snapshotter;
+    }
+
+    FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {
+        List<FileCollectionSnapshotter> snapshotters = serviceRegistry.getAll(FileCollectionSnapshotter.class);
+        return new DefaultFileCollectionSnapshotterRegistry(snapshotters);
+    }
+
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry) {
+        OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        fileCollectionSnapshotter.registerSerializers(serializerRegistry);
-        outputFilesSnapshotter.registerSerializers(serializerRegistry);
+        for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
+            snapshotter.registerSerializers(serializerRegistry);
+        }
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
             new CacheBackedFileSnapshotRepository(cacheAccess,
@@ -156,7 +177,7 @@ public class TaskExecutionServices {
                 taskHistoryRepository,
                 instantiator,
                 outputFilesSnapshotter,
-                fileCollectionSnapshotter,
+                fileCollectionSnapshotterRegistry,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher
             )
@@ -177,8 +198,10 @@ public class TaskExecutionServices {
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
-        return new GZipTaskOutputPacker(
-            new TarTaskOutputPacker(fileSystem)
+        return new OutputPreparingTaskOutputPacker(
+            new GZipTaskOutputPacker(
+                new TarTaskOutputPacker(fileSystem)
+            )
         );
     }
 }

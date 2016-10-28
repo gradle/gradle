@@ -32,7 +32,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
-                dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
             }
         """
@@ -204,7 +203,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
-                dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
                 classpath = files('${dependencies.join("', '")}')
             }

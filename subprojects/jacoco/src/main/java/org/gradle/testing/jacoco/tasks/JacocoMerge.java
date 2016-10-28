@@ -21,8 +21,11 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.jacoco.AntJacocoMerge;
@@ -34,6 +37,7 @@ import java.io.File;
 /**
  * Task to merge multiple execution data files into one.
  */
+@CacheableTask
 @Incubating
 public class JacocoMerge extends JacocoBase {
 
@@ -43,6 +47,7 @@ public class JacocoMerge extends JacocoBase {
     /**
      * Collection of execution data files to merge.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getExecutionData() {
         return executionData;

@@ -19,6 +19,19 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 public interface ConfigurationResolver {
-    void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
+    /**
+     * Traverses enough of the graph to calculate the build dependencies of the given configuration. All failures are packaged in the result.
+     */
+    void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result);
+
+    /**
+     * Traverses the full dependency graph of the given configuration. All failures are packaged in the result.
+     */
+    void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
+
+    /**
+     * Calculates the artifacts to include in the result for the given configuration. All failures are packaged in the result.
+     * Must be called using the same result instance as was passed to {@link #resolveGraph(ConfigurationInternal, ResolverResults)}.
+     */
     void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
 }

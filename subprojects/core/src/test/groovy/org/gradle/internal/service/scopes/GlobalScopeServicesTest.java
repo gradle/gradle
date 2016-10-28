@@ -43,6 +43,8 @@ import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
@@ -204,4 +206,8 @@ public class GlobalScopeServicesTest {
         assertThat(registry().get(ClassLoaderCache.class), instanceOf(DefaultClassLoaderCache.class));
     }
 
+    @Test
+    public void providesATimeProvider() throws Exception {
+        assertThat(registry().get(TimeProvider.class), instanceOf(TrueTimeProvider.class));
+    }
 }

@@ -26,5 +26,5 @@ public interface ResolvedGraphResults {
 
     Set<UnresolvedDependency> getUnresolvedDependencies();
 
-    ModuleDependency getModuleDependency(long id);
+    ModuleDependency getModuleDependency(long nodeId);
 }

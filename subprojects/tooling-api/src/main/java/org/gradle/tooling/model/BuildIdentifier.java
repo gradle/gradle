@@ -18,6 +18,8 @@ package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 
+import java.io.File;
+
 /**
  * Identifies a Gradle build.
  * <p>
@@ -27,5 +29,12 @@ import org.gradle.api.Incubating;
  * @since 2.13
  */
 @Incubating
-public interface BuildIdentifier {
+public interface BuildIdentifier extends Model {
+    /**
+     * The root directory of this build
+     *
+     * @return the root dir, never null
+     * @since 3.3
+     */
+    File getRootDir();
 }

@@ -118,20 +118,6 @@ class BuildInvocationsBuilderTest extends Specification {
         grandChild2OfChild | ['t4']                   | ['t4',]       | []                 | []
     }
 
-    def "BuildInvocations model is created for root project if implicitProject flag is set"() {
-        given:
-        def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
-
-        when:
-        def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", child, true)
-
-        then:
-        model.taskSelectors*.name as Set == ['t1', 't2', 't3', 't4'] as Set
-        model.taskSelectors.each { it ->
-            assert it.projectPath == ':'
-        }
-    }
-
     def "TaskSelector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())

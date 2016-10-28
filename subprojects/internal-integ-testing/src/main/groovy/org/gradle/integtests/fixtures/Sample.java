@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.Nullable;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -35,6 +36,7 @@ public class Sample implements MethodRule {
     private final String defaultSampleName;
     private final String testSampleDirName;
 
+    private String sampleName;
     private TestFile sampleDir;
     private TestDirectoryProvider testDirectoryProvider;
 
@@ -53,13 +55,7 @@ public class Sample implements MethodRule {
     }
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
-        final String sampleName = getSampleName(method);
-        if (testSampleDirName != null) {
-            sampleDir = testDirectoryProvider.getTestDirectory().file(testSampleDirName);
-        } else {
-            sampleDir = sampleName == null ? null : testDirectoryProvider.getTestDirectory().file(sampleName);
-        }
-
+        sampleName = getSampleName(method);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -67,7 +63,7 @@ public class Sample implements MethodRule {
                     String hintForMissingSample = String.format("If '%s' is a new sample, try running 'gradle intTestImage'.", sampleName);
                     TestFile srcDir = new IntegrationTestBuildContext().getSamplesDir().file(sampleName).assertIsDir(hintForMissingSample);
                     logger.debug("Copying sample '{}' to test directory.", sampleName);
-                    srcDir.copyTo(sampleDir);
+                    srcDir.copyTo(getDir());
                 } else {
                     logger.debug("No sample specified for this test, skipping.");
                 }
@@ -77,17 +73,31 @@ public class Sample implements MethodRule {
     }
 
     private String getSampleName(FrameworkMethod method) {
-        String sampleName;
         UsesSample annotation = method.getAnnotation(UsesSample.class);
-        if (annotation == null) {
-            sampleName = defaultSampleName;
-        } else {
-            sampleName = annotation.value();
-        }
-        return sampleName;
+        return annotation != null
+            ? annotation.value()
+            : defaultSampleName;
     }
 
     public TestFile getDir() {
+        if (sampleDir == null) {
+            sampleDir = computeSampleDir();
+        }
         return sampleDir;
+    }
+
+    @Nullable
+    private TestFile computeSampleDir() {
+        if (testSampleDirName != null) {
+            return testFile(testSampleDirName);
+        }
+        if (sampleName != null) {
+            return testFile(sampleName);
+        }
+        return null;
+    }
+
+    private TestFile testFile(String testSampleDirName) {
+        return testDirectoryProvider.getTestDirectory().file(testSampleDirName);
     }
 }

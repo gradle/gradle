@@ -31,6 +31,11 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
         this(new GradleLauncherMetaData(), startTime);
     }
 
+    public DefaultBuildRequestMetaData(BuildClientMetaData buildClientMetaData) {
+        this.clientMetaData = buildClientMetaData;
+        this.clock = new Clock();
+    }
+
     public BuildClientMetaData getClient() {
         return clientMetaData;
     }

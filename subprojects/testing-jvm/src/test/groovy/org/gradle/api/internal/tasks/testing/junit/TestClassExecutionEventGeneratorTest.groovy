@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit
 
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.id.IdGenerator
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import spock.lang.Specification
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal

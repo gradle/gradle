@@ -24,7 +24,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
     final Factory<BTreePersistentIndexedCache<String, String>> factory = Mock()
     final cache = new DefaultMultiProcessSafePersistentIndexedCache<String, String>(factory, fileAccess)
     final BTreePersistentIndexedCache<String, String> backingCache = Mock()
-    
+
     def "opens cache on first access"() {
         when:
         cache.get("value")
@@ -81,7 +81,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cacheOpened()
 
         when:
-        cache.close()
+        cache.finishWork()
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
@@ -94,7 +94,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cacheOpened()
 
         when:
-        cache.close()
+        cache.finishWork()
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
@@ -104,7 +104,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
 
     def "does nothing on close when cache is not open"() {
         when:
-        cache.close()
+        cache.finishWork()
 
         then:
         0 * _._
@@ -114,7 +114,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cacheOpened()
 
         when:
-        cache.close()
+        cache.finishWork()
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
@@ -122,7 +122,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         0 * _._
 
         when:
-        cache.close()
+        cache.finishWork()
 
         then:
         0 * _._
@@ -131,7 +131,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
     def cacheOpened() {
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * factory.create() >> backingCache
-        
+
         cache.get("something")
     }
 }

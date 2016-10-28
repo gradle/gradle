@@ -24,11 +24,15 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
-import java.util.Date;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,11 +50,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
+    private final TimeProvider timeProvider = new TrueTimeProvider();
     private final Condition condition = lock.newCondition();
     private final long cancelTimeoutMs;
 
     private State state = State.Idle;
-    private long lastActivityAt = -1;
+    private final Timer idleTimer;
     private String currentCommandExecution;
     private Object result;
     private String stopReason;
@@ -71,7 +76,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         this.onFinishCommand = onFinishCommand;
         this.onCancelCommand = onCancelCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
-        updateActivityTimestamp();
+        idleTimer = Timers.startTimer();
         updateCancellationToken();
     }
 
@@ -242,8 +247,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void cancelNow() {
-        long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
-        Date expiry = new Date(waitUntil);
+        CountdownTimer timer = Timers.startTimer(cancelTimeoutMs);
 
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
@@ -254,7 +258,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
         lock.lock();
         try {
-            while (System.currentTimeMillis() < waitUntil) {
+            while (!timer.hasExpired()) {
                 try {
                     switch (state) {
                         case Idle:
@@ -264,7 +268,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                         case Canceled:
                         case StopRequested:
                             LOGGER.debug("Cancel: daemon is busy, sleeping until state changes.");
-                            condition.awaitUntil(expiry);
+                            condition.awaitUntil(timer.getExpiryTime());
                             break;
                         case Broken:
                             throw new IllegalStateException("This daemon is in a broken state.");
@@ -420,23 +424,22 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void updateActivityTimestamp() {
-        long now = System.currentTimeMillis();
-        LOGGER.debug("updating lastActivityAt to {}", now);
-        lastActivityAt = now;
+        LOGGER.debug("resetting idle timer");
+        idleTimer.reset();
     }
 
     private double getIdleMinutes() {
         lock.lock();
         try {
-            return (System.currentTimeMillis() - lastActivityAt) / 1000 / 60;
+            return idleTimer.getElapsedMillis() / 1000 / 60;
         } finally {
             lock.unlock();
         }
     }
 
-    public long getIdleMillis(long currentTimeMillis) {
+    public long getIdleMillis() {
         if (state == State.Idle) {
-            return currentTimeMillis - lastActivityAt;
+            return idleTimer.getElapsedMillis();
         } else {
             return 0L;
         }

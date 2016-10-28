@@ -111,6 +111,9 @@ ext.performanceReportTasks = tasks.withType(PerformanceReport)
 performanceReportTasks.all(withPerformanceDb)
 
 task performanceReport(type: PerformanceReport) {
+    //jvmArgs '-Xverify:none', '-XX:+UnlockCommercialFeatures', '-XX:+FlightRecorder', '-XX:+UnlockDiagnosticVMOptions', '-XX:+DebugNonSafepoints', '-XX:FlightRecorderOptions=stackdepth=1024,disk=true,dumponexit=true,defaultrecording=true'
+    minHeapSize = '1g'
+    maxHeapSize = '2g'
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
@@ -123,7 +126,7 @@ performanceTestTasks.all { PerformanceTest task ->
     withPerformanceDb(task)
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
-    dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    dependsOn( prepareSamples, { project(':toolingApi').publishLocalArchives }, ':distributions:binZip')
     finalizedBy performanceReport
 
     project.task("clean${task.name.capitalize()}", type: Delete) {

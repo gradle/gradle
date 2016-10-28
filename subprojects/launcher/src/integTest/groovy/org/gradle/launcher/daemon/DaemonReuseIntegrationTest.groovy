@@ -115,7 +115,9 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
             task block {
                 doLast {
                     new URL("${getUrl('started')}").text
-                    java.util.concurrent.locks.LockSupport.park()
+
+                    // Block indefinitely for the daemon to appear busy
+                    new java.util.concurrent.Semaphore(0).acquireUninterruptibly()
                 }
             }
         """
@@ -152,7 +154,9 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
             task block {
                 doLast {
                     new URL("${getUrl('started')}\$buildNum").text
-                    java.util.concurrent.locks.LockSupport.park()
+
+                    // Block indefinitely for the daemon to appear busy
+                    new java.util.concurrent.Semaphore(0).acquireUninterruptibly()
                 }
             }
         """

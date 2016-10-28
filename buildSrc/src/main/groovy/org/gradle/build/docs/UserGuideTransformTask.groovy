@@ -36,6 +36,8 @@ import org.w3c.dom.Element
  * <li>A directory containing the snippets for the samples to be included in the document, as produced by {@link ExtractSnippetsTask}.</li>
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
+ *
+ * TODO: This task is not cacheable yet because samples.xml is not an output and is written multiple times by different tasks.
  */
 public class UserGuideTransformTask extends DefaultTask {
     @Input
@@ -45,16 +47,23 @@ public class UserGuideTransformTask extends DefaultTask {
     def dsldocUrl
     def websiteUrl
 
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File sourceFile
+
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File linksFile
+
     @OutputFile
     File destFile
+
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     File snippetsDir
+
     @Input
-    Set<String> tags = new HashSet()
+    Set<String> tags = new LinkedHashSet()
 
     final SampleElementValidator validator = new SampleElementValidator();
 

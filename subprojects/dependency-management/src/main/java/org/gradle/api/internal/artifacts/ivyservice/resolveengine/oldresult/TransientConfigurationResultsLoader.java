@@ -41,13 +41,13 @@ public class TransientConfigurationResultsLoader implements Factory<TransientCon
 
     private class ContentMapping implements ResolvedContentsMapping {
         @Override
-        public Set<ResolvedArtifact> getArtifacts(long id) {
-            return artifactResults.getArtifacts(id);
+        public Set<ResolvedArtifact> getArtifacts(long artifactSetId) {
+            return artifactResults.getArtifacts(artifactSetId);
         }
 
         @Override
-        public ModuleDependency getModuleDependency(long id) {
-            return graphResults.getModuleDependency(id);
+        public ModuleDependency getModuleDependency(long nodeId) {
+            return graphResults.getModuleDependency(nodeId);
         }
     }
 }

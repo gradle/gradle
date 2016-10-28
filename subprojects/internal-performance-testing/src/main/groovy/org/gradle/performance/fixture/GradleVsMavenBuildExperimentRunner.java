@@ -18,7 +18,6 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.internal.Cast;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -48,11 +47,11 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
 
     private void runMavenExperiment(MeasuredOperationList results, MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
-        performMeasurements(new InvocationExecutorProvider<InvocationCustomizer<MavenInvocationSpec>>() {
-            public Runnable runner(final InvocationCustomizer<MavenInvocationSpec> invocationCustomizer) {
+        performMeasurements(new InvocationExecutorProvider() {
+            public Runnable runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
                 return new Runnable() {
                     public void run() {
-                        ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(buildSpec));
+                        ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(invocationInfo, buildSpec));
                         System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
                         mavenInvocation.execute();
                     }
@@ -62,16 +61,16 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
     }
 
     @Override
-    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> T createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
+    protected InvocationCustomizer createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
         if (info.getBuildExperimentSpec() instanceof MavenBuildExperimentSpec) {
-            return Cast.uncheckedCast(new InvocationCustomizer<MavenInvocationSpec>() {
-                public MavenInvocationSpec customize(MavenInvocationSpec invocationSpec) {
+            return new InvocationCustomizer() {
+                public InvocationSpec customize(BuildExperimentInvocationInfo info, InvocationSpec invocationSpec) {
                     final List<String> iterationInfoArguments = createIterationInfoArguments(info.getPhase(), info.getIterationNumber(), info.getIterationMax());
-                    return invocationSpec.withBuilder().args(iterationInfoArguments).build();
+                    return ((MavenInvocationSpec) invocationSpec).withBuilder().args(iterationInfoArguments).build();
                 }
-            });
+            };
         }
-        return Cast.uncheckedCast(super.<S, T>createInvocationCustomizer(info));
+        return createInvocationCustomizer(info);
     }
 
     private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec) {

@@ -46,7 +46,6 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("$classesDir")
-                dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
                 classpath = files()
             }

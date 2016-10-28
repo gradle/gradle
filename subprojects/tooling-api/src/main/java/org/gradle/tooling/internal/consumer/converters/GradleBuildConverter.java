@@ -16,9 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.PartialBasicGradleProject;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,8 +55,9 @@ public class GradleBuildConverter {
 
     private PartialBasicGradleProject toPartialGradleProject(GradleProject childProject) {
         PartialBasicGradleProject basicGradleProject = new PartialBasicGradleProject();
-        basicGradleProject.setPath(childProject.getPath());
         basicGradleProject.setName(childProject.getName());
+        ProjectIdentifier id = childProject.getProjectIdentifier();
+        basicGradleProject.setProjectIdentifier(new DefaultProjectIdentifier(id.getBuildIdentifier().getRootDir(), id.getProjectPath()));
         return basicGradleProject;
     }
 }

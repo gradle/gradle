@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
 
+@CacheableTask
 class Docbook2Xhtml extends SourceTask {
     @Classpath
     FileCollection classpath
@@ -36,7 +37,14 @@ class Docbook2Xhtml extends SourceTask {
     @InputDirectory
     File stylesheetsDir
 
+    @Internal
     String stylesheetName
+
+    @PathSensitive(PathSensitivity.NONE)
+    @InputFile
+    File getStylesheetFile() {
+        new File(stylesheetsDir, stylesheetName)
+    }
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
@@ -67,7 +75,7 @@ class Docbook2Xhtml extends SourceTask {
             }
             project.javaexec {
                 main = XslTransformer.name
-                args new File(stylesheetsDir, stylesheetName).absolutePath
+                args stylesheetFile.absolutePath
                 args fvd.file.absolutePath
                 args result.absolutePath
                 args destDir ?: ""

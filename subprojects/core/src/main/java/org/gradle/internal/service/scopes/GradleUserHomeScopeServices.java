@@ -16,8 +16,13 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
+import org.gradle.internal.file.JarCache;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -36,5 +41,9 @@ public class GradleUserHomeScopeServices {
         for (GradleUserHomeScopePluginServices plugin : globalServices.getAll(GradleUserHomeScopePluginServices.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, ServiceRegistry serviceRegistry) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(), serviceRegistry.getAll(CachedJarFileStore.class));
     }
 }

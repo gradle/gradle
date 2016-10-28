@@ -19,12 +19,13 @@ package org.gradle.tooling.internal.gradle;
 import com.google.common.collect.Sets;
 import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 
+import java.io.Serializable;
 import java.util.SortedSet;
 
 /**
  * A consumer-side implementation of {@link org.gradle.tooling.model.Task}.
  */
-public class ConsumerProvidedTask implements TaskListingLaunchable {
+public class ConsumerProvidedTask implements TaskListingLaunchable, Serializable {
 
     private String path;
     private String name;

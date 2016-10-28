@@ -32,8 +32,16 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
         final Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
         final Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previous.entrySet().iterator();
         return new AbstractIterator<TaskStateChange>() {
+            private TaskStateChange remaining;
+
             @Override
             protected TaskStateChange computeNext() {
+                if (remaining != null) {
+                    TaskStateChange next = this.remaining;
+                    remaining = null;
+                    return next;
+                }
+
                 while (true) {
                     if (currentEntries.hasNext()) {
                         Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
@@ -51,7 +59,9 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                                     return new FileChange(absolutePath, ChangeType.MODIFIED, fileType);
                                 }
                             } else {
-                                return new FileChange(absolutePath, ChangeType.REPLACED, fileType);
+                                String otherAbsolutePath = other.getKey();
+                                remaining = new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                                return new FileChange(otherAbsolutePath, ChangeType.REMOVED, fileType);
                             }
                         } else {
                             return new FileChange(absolutePath, ChangeType.ADDED, fileType);

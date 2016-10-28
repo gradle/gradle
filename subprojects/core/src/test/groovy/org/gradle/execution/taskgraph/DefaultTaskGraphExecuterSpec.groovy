@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
-import org.gradle.internal.TimeProvider
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor

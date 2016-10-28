@@ -25,11 +25,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
-import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +39,7 @@ import java.util.Set;
 
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
-public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
+public class BuildInvocationsBuilder implements ToolingModelBuilder {
 
     private final ProjectTaskLister taskLister;
     private final TaskNameComparator taskNameComparator;
@@ -54,17 +55,13 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     }
 
     @Override
-    public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
-        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
-    }
-
-    @Override
     @SuppressWarnings("StringEquality")
     public DefaultBuildInvocations buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
 
+        DefaultProjectIdentifier projectIdentifier = getProjectIdentifier(project);
         // construct task selectors
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         Map<String, LaunchableGradleTaskSelector> selectorsByName = Maps.newTreeMap(Ordering.natural());
@@ -75,7 +72,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             selectors.add(selector.
                     setName(selectorName).
                     setTaskName(selectorName).
-                    setProjectPath(project.getPath()).
+                    setProjectIdentifier(projectIdentifier).
                     setDisplayName(selectorName + " in " + project + " and subprojects.").
                     setPublic(visibleTasks.contains(selectorName)));
         }
@@ -84,7 +81,14 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         List<LaunchableGradleTask> projectTasks = tasks(project);
 
         // construct build invocations from task selectors and project tasks
-        return new DefaultBuildInvocations().setSelectors(selectors).setTasks(projectTasks);
+        return new DefaultBuildInvocations()
+            .setSelectors(selectors)
+            .setTasks(projectTasks)
+            .setProjectIdentifier(projectIdentifier);
+    }
+
+    private DefaultProjectIdentifier getProjectIdentifier(Project project) {
+        return new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
     }
 
     // build tasks without project reference
@@ -107,12 +111,12 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             // this way, for each task selector, its description will be the one from the selected task with the 'smallest' path
             if (!taskSelectors.containsKey(task.getName())) {
                 LaunchableGradleTaskSelector taskSelector = new LaunchableGradleTaskSelector().
-                        setDescription(task.getDescription()).setProjectPath(task.getPath());
+                        setDescription(task.getDescription()).setPath(task.getPath());
                 taskSelectors.put(task.getName(), taskSelector);
             } else {
                 LaunchableGradleTaskSelector taskSelector = taskSelectors.get(task.getName());
                 if (hasPathWithLowerOrdering(task, taskSelector)) {
-                    taskSelector.setDescription(task.getDescription()).setProjectPath(task.getPath());
+                    taskSelector.setDescription(task.getDescription()).setPath(task.getPath());
                 }
             }
 
@@ -124,7 +128,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     }
 
     private boolean hasPathWithLowerOrdering(Task task, LaunchableGradleTaskSelector referenceTaskSelector) {
-        return taskNameComparator.compare(task.getPath(), referenceTaskSelector.getProjectPath()) < 0;
+        return taskNameComparator.compare(task.getPath(), referenceTaskSelector.getPath()) < 0;
     }
 
 }

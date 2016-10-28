@@ -31,7 +31,7 @@ import org.gradle.tooling.model.ProjectModel;
 public interface ProjectPublications extends Model, ProjectModel {
 
     /**
-     * Returns the identifier for the Gradle project that these invocations originate from.
+     * Returns the identifier for the Gradle project that these publications originate from.
      *
      * @since 2.13
      */

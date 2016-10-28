@@ -22,6 +22,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -84,6 +86,7 @@ public interface TextResource extends Buildable {
      *
      * @return the input files registered when this resource is used as task input
      */
+    @PathSensitive(PathSensitivity.NONE)
     @InputFiles
     @Optional
     FileCollection getInputFiles();
@@ -92,4 +95,3 @@ public interface TextResource extends Buildable {
     @Override
     TaskDependency getBuildDependencies();
 }
-

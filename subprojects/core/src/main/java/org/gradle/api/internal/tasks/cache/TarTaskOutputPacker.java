@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.tar.TarEntry;
@@ -45,16 +46,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Packages task output to a POSIX TAR file.
+ * Packages task output to a POSIX TAR file. Because Ant's TAR implementation
+ * supports only 1 second precision for file modification times, we encode the
+ * fractional nanoseconds into the group ID of the file.
  */
-@SuppressWarnings("OctalInteger")
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
+    private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
@@ -66,14 +70,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
-        TarOutputStream outputStream = new TarOutputStream(output, "utf-8");
+        Closer closer = Closer.create();
+        TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
         outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
         outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
         outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
             pack(taskOutputs, outputStream);
+        } catch (Throwable ex) {
+            throw closer.rethrow(ex);
         } finally {
-            outputStream.close();
+            closer.close();
         }
     }
 
@@ -82,7 +89,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             try {
                 packProperty((CacheableTaskOutputFilePropertySpec) spec, outputStream);
             } catch (Exception ex) {
-                throw new GradleException(String.format("Could not pack property '%s'", spec.getPropertyName()), ex);
+                throw new GradleException(String.format("Could not pack property '%s': %s", spec.getPropertyName(), ex.getMessage()), ex);
             }
         }
     }
@@ -90,51 +97,82 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final TarOutputStream outputStream) throws IOException {
         final String propertyName = propertySpec.getPropertyName();
         File outputFile = propertySpec.getOutputFile();
+        if (outputFile == null) {
+            return;
+        }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                final String propertyRoot = "property-" + propertyName + "/";
-                outputStream.putNextEntry(new TarEntry(propertyRoot));
-                FileVisitor visitor = new FileVisitor() {
-                    @Override
-                    public void visitDir(FileVisitDetails dirDetails) {
-                        String path = dirDetails.getRelativePath().getPathString();
-                        try {
-                            TarEntry entry = new TarEntry(propertyRoot + path + "/");
-                            entry.setModTime(dirDetails.getLastModified());
-                            entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
-                            outputStream.putNextEntry(entry);
-                            outputStream.closeEntry();
-                        } catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
-                    }
-
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        String path = fileDetails.getRelativePath().getPathString();
-                        storeFileEntry(fileDetails.getFile(), propertyRoot + path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
-                    }
-                };
-                directoryWalkerFactory.create().walkDir(outputFile, RelativePath.EMPTY_PARENT_DIRECTORY, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
+                storeDirectoryProperty(propertyName, outputFile, outputStream);
                 break;
             case FILE:
-                String path = "property-" + propertyName;
-                storeFileEntry(outputFile, path, outputFile.lastModified(), outputFile.length(), fileSystem.getUnixMode(outputFile), outputStream);
+                storeFileProperty(propertyName, outputFile, outputStream);
                 break;
             default:
                 throw new AssertionError();
         }
     }
 
+    private void storeDirectoryProperty(String propertyName, File directory, final TarOutputStream outputStream) throws IOException {
+        if (!directory.exists()) {
+            return;
+        }
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
+        }
+        final String propertyRoot = "property-" + propertyName + "/";
+        outputStream.putNextEntry(new TarEntry(propertyRoot));
+        outputStream.closeEntry();
+        FileVisitor visitor = new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                storeDirectoryEntry(dirDetails, propertyRoot, outputStream);
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                String path = propertyRoot + fileDetails.getRelativePath().getPathString();
+                storeFileEntry(fileDetails.getFile(), path, fileDetails.getLastModified(), fileDetails.getSize(), fileDetails.getMode(), outputStream);
+            }
+        };
+        directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_ROOT, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
+    }
+
+    private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) {
+        if (!file.exists()) {
+            return;
+        }
+        if (!file.isFile()) {
+            throw new IllegalArgumentException(String.format("Expected '%s' to be a file", file));
+        }
+        String path = "property-" + propertyName;
+        storeFileEntry(file, path, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
+    }
+
+    private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) {
+        String path = dirDetails.getRelativePath().getPathString();
+        try {
+            TarEntry entry = new TarEntry(propertyRoot + path + "/");
+            storeModificationTime(entry, dirDetails.getLastModified());
+            entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+            outputStream.putNextEntry(entry);
+            outputStream.closeEntry();
+        } catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
     private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) {
         try {
             TarEntry entry = new TarEntry(path);
-            entry.setModTime(lastModified);
+            storeModificationTime(entry, lastModified);
             entry.setSize(size);
             entry.setMode(UnixStat.FILE_FLAG | mode);
             outputStream.putNextEntry(entry);
-            Files.copy(file, outputStream);
-            outputStream.closeEntry();
+            try {
+                Files.copy(file, outputStream);
+            } finally {
+                outputStream.closeEntry();
+            }
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }
@@ -142,11 +180,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     @Override
     public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+        Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
             unpack(taskOutputs, tarInput);
+        } catch (Throwable ex) {
+            throw closer.rethrow(ex);
         } finally {
-            tarInput.close();
+            closer.close();
         }
     }
 
@@ -162,8 +203,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             String name = entry.getName();
             Matcher matcher = PROPERTY_PATH.matcher(name);
             if (!matcher.matches()) {
-                // TODO:LPTR What to do here?
-                continue;
+                throw new IllegalStateException("Cached result format error, invalid contents: " + name);
             }
             String propertyName = matcher.group(1);
             CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
@@ -171,12 +211,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
             }
 
+            File specRoot = propertySpec.getOutputFile();
             String path = matcher.group(2);
             File outputFile;
             if (Strings.isNullOrEmpty(path)) {
-                outputFile = propertySpec.getOutputFile();
+                outputFile = specRoot;
             } else {
-                outputFile = new File(propertySpec.getOutputFile(), path);
+                outputFile = new File(specRoot, path);
             }
             if (entry.isDirectory()) {
                 if (propertySpec.getOutputType() != OutputType.DIRECTORY) {
@@ -184,12 +225,33 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 }
                 FileUtils.forceMkdir(outputFile);
             } else {
-                // TODO:LPTR Can we save on doing this?
-                Files.createParentDirs(outputFile);
                 Files.asByteSink(outputFile).writeFrom(tarInput);
             }
+            //noinspection OctalInteger
             fileSystem.chmod(outputFile, entry.getMode() & 0777);
-            outputFile.setLastModified(entry.getModTime().getTime());
+            long lastModified = getModificationTime(entry);
+            if (!outputFile.setLastModified(lastModified)) {
+                throw new IOException(String.format("Could not set modification time for '%s'", outputFile));
+            }
         }
+    }
+
+    private static void storeModificationTime(TarEntry entry, long lastModified) {
+        // This will be divided by 1000 internally
+        entry.setModTime(lastModified);
+        // Store excess nanoseconds in group ID
+        long excessNanos = TimeUnit.MILLISECONDS.toNanos(lastModified % 1000);
+        // Store excess nanos as negative number to distinguish real group IDs
+        entry.setGroupId(-excessNanos);
+    }
+
+    private static long getModificationTime(TarEntry entry) {
+        long lastModified = entry.getModTime().getTime();
+        long excessNanos = -entry.getLongGroupId();
+        if (excessNanos < 0 || excessNanos >= NANOS_PER_SECOND) {
+            throw new IllegalStateException("Invalid excess nanos: " + excessNanos);
+        }
+        lastModified += TimeUnit.NANOSECONDS.toMillis(excessNanos);
+        return lastModified;
     }
 }

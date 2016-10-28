@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Reuses the services for the most recent Gradle user home dir. Could instead cache several most recent and clean these up on memory pressure, however in practise there is only a single user home dir associated with a given build process.
  */
 public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHomeScopeServiceRegistry, Closeable {
+    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
     private final ServiceRegistry sharedServices;
     private final Object provider;
     private final Lock lock = new ReentrantLock();
@@ -59,10 +60,6 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
             lock.unlock();
         }
         stoppable.stop();
-    }
-
-    public void releaseAll() {
-        close();
     }
 
     @Override
@@ -115,7 +112,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                         break;
                     }
                     services.count--;
-                    if (services.count == 0 && servicesForHomeDir.size() > 1) {
+                    if (services.count == 0 && (servicesForHomeDir.size() > 1 || System.getProperty(REUSE_USER_HOME_SERVICES, "true").equals("false"))) {
                         // Other home dir in use, close these. Otherwise, keep the services for next time
                         CompositeStoppable.stoppable(services.registry).stop();
                         servicesForHomeDir.remove(entry.getKey());

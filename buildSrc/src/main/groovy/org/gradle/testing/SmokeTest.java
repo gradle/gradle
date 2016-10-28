@@ -16,11 +16,8 @@
 
 package org.gradle.testing;
 
-import org.gradle.api.tasks.CacheableTask;
-
 /**
  * A test that verifies Gradle can be used with popular third party plugins.
  */
-@CacheableTask
 public class SmokeTest extends DistributionTest {
 }

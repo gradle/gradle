@@ -94,25 +94,25 @@ public class GradlePluginLord {
         /**
          * Notification that we're about to reload the projects and tasks.
          */
-        public void startingProjectsAndTasksReload();
+        void startingProjectsAndTasksReload();
 
         /**
          * Notification that the projects and tasks have been reloaded. You may want to repopulate or update your views.
          *
          * @param wasSuccessful true if they were successfully reloaded. False if an error occurred so we no longer can show the projects and tasks (probably an error in a .gradle file).
          */
-        public void projectsAndTasksReloaded(boolean wasSuccessful);
+        void projectsAndTasksReloaded(boolean wasSuccessful);
     }
 
     public interface RequestObserver {
-        public void executionRequestAdded(ExecutionRequest request);
+        void executionRequestAdded(ExecutionRequest request);
 
-        public void refreshRequestAdded(RefreshTaskListRequest request);
+        void refreshRequestAdded(RefreshTaskListRequest request);
 
         /**
          * Notification that a command is about to be executed. This is mostly useful for IDE's that may need to save their files.
          */
-        public void aboutToExecuteRequest(Request request);
+        void aboutToExecuteRequest(Request request);
 
         /**
          * Notification that the command has completed execution.
@@ -121,7 +121,7 @@ public class GradlePluginLord {
          * @param result the result of the command
          * @param output the output from gradle executing the command
          */
-        public void requestExecutionComplete(Request request, int result, String output);
+        void requestExecutionComplete(Request request, int result, String output);
     }
 
     public interface SettingsObserver {
@@ -130,7 +130,7 @@ public class GradlePluginLord {
          * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home directory, etc. This is useful for UIs that need to update their UIs when this
          * is changed by other means.
          */
-        public void settingsChanged();
+        void settingsChanged();
     }
 
     public GradlePluginLord() {
@@ -562,29 +562,27 @@ public class GradlePluginLord {
             formatter.format("Use the stack trace options to get more details.");
         }
 
-        if (failure != null) {
-            formatter.format("%n");
+        formatter.format("%n");
 
-            if (failure instanceof LocationAwareException) {
-                LocationAwareException scriptException = (LocationAwareException) failure;
-                formatter.format("%s%n%n", scriptException.getLocation());
-                formatter.format("%s", scriptException.getCause().getMessage());
+        if (failure instanceof LocationAwareException) {
+            LocationAwareException scriptException = (LocationAwareException) failure;
+            formatter.format("%s%n%n", scriptException.getLocation());
+            formatter.format("%s", scriptException.getCause().getMessage());
 
-                for (Throwable cause : scriptException.getReportableCauses()) {
-                    formatter.format("%nCause: %s", getMessage(cause));
-                }
-            } else {
-                formatter.format("%s", getMessage(failure));
+            for (Throwable cause : scriptException.getReportableCauses()) {
+                formatter.format("%nCause: %s", getMessage(cause));
+            }
+        } else {
+            formatter.format("%s", getMessage(failure));
+        }
+
+        if (stackTraceLevel != ShowStacktrace.INTERNAL_EXCEPTIONS) {
+            formatter.format("%n%nException is:\n");
+            if (stackTraceLevel == ShowStacktrace.ALWAYS_FULL) {
+                return formatter.toString() + getStackTraceAsText(failure);
             }
 
-            if (stackTraceLevel != ShowStacktrace.INTERNAL_EXCEPTIONS) {
-                formatter.format("%n%nException is:\n");
-                if (stackTraceLevel == ShowStacktrace.ALWAYS_FULL) {
-                    return formatter.toString() + getStackTraceAsText(failure);
-                }
-
-                return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
-            }
+            return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
         }
 
         return formatter.toString();

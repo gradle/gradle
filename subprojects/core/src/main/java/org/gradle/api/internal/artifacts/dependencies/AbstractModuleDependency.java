@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
@@ -50,6 +51,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public String getConfiguration() {
+        DeprecationLogger.nagUserOfDeprecated("ModuleDependency#getConfiguration()", "Use ModuleDependency#getTargetConfiguration() instead");
         return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
 

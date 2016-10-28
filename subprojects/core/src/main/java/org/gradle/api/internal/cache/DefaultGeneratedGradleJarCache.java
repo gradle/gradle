@@ -23,7 +23,6 @@ import org.gradle.cache.internal.FileLockManager;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -57,7 +56,7 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         cache.close();
     }
 

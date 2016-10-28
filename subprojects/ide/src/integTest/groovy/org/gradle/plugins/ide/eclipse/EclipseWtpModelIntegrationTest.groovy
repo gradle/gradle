@@ -131,14 +131,8 @@ configurations.all {
 }
         """
 
-        //when
-        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        def classpath = getFile([:], '.classpath').text
-
-        //then
-        assert classpath.contains('foo-1.0.jar')
-        assert classpath.contains('baz-2.0.jar') //forced version
-        assert !classpath.contains('bar') //excluded
+        def classpath = getClasspath()
+        classpath.assertHasLibs('foo-1.0.jar', 'baz-2.0.jar')
     }
 
     @Test

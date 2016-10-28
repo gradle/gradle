@@ -40,6 +40,7 @@ import spock.lang.Timeout
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
+    public static final String BUILD_CANCELLED = "Build cancelled."
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     TestOutputStream stderr = new TestOutputStream()
@@ -154,29 +155,32 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
-        boolean success
-        long pollingStartMillis = System.currentTimeMillis()
+        ExecutionOutput executionOutput = waitUntilOutputContains WAITING_MESSAGE
+        result = executionOutput.stdout.contains("BUILD SUCCESSFUL") ?
+                    new OutputScrapingExecutionResult(executionOutput.stdout, executionOutput.stderr) :
+                    new OutputScrapingExecutionFailure(executionOutput.stdout, executionOutput.stderr)
+    }
+
+    private ExecutionOutput waitUntilOutputContains(String expectedMessage) {
+        boolean success = false
         long pollingStartNanos = System.nanoTime()
         try {
             ConcurrentTestUtil.poll(buildTimeout, 0.5) {
                 def out = stdout.toString()
-                assert out.contains(WAITING_MESSAGE)
+                assert out.contains(expectedMessage)
             }
             success = true
         } finally {
             if (!success) {
-                println "Polling lasted ${System.currentTimeMillis() - pollingStartMillis} ms measured with walltime clock"
                 println "Polling lasted ${(long) ((System.nanoTime() - pollingStartNanos) / 1000000L)} ms measured with monotonic clock"
                 requestJstackForBuildProcess()
             }
         }
 
-        def out = stdout.toString()
+        def executionOutput = new ExecutionOutput(stdout.toString(), stderr.toString())
         stdout.reset()
-        def err = stderr.toString()
         stderr.reset()
-
-        result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+        return executionOutput
     }
 
     def requestJstackForBuildProcess() {
@@ -220,6 +224,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     boolean cancel() {
         cancellationTokenSource.cancel()
+        waitUntilOutputContains BUILD_CANCELLED
         true
     }
 
@@ -235,4 +240,13 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         sleep(waitMillis)
     }
 
+    class ExecutionOutput {
+        String stdout
+        String stderr
+
+        ExecutionOutput(String stdout, String stderr) {
+            this.stdout = stdout
+            this.stderr = stderr
+        }
+    }
 }

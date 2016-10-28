@@ -41,8 +41,8 @@ public class GenerateDefaultImportsTask extends DefaultTask {
     private File metaDataFile;
     private File importsDestFile;
     private File mappingDestFile;
-    private Set<String> excludePatterns = new HashSet<String>();
-    private Set<String> extraPackages = new HashSet<String>();
+    private Set<String> excludePatterns = new LinkedHashSet<String>();
+    private Set<String> extraPackages = new LinkedHashSet<String>();
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
@@ -88,6 +88,7 @@ public class GenerateDefaultImportsTask extends DefaultTask {
         excludePatterns.add(name);
     }
 
+    @Input
     public Set<String> getExtraPackages() {
         return extraPackages;
     }

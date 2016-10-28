@@ -16,12 +16,14 @@
 
 package org.gradle.performance.results
 
+import groovy.transform.CompileStatic
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 
 import java.math.RoundingMode
 
+@CompileStatic
 class PrettyCalculator {
 
     static String toBytes(Amount<DataAmount> bytes) {
@@ -34,7 +36,7 @@ class PrettyCalculator {
 
     static <Q> Number percentChange(Amount<Q> current, Amount<Q> previous) {
         if (previous == Amount.valueOf(0, previous.getUnits())) {
-            return 100
+            return 100 as Integer
         }
         BigDecimal result = (current - previous) / previous * 100
         return result.setScale(2, RoundingMode.HALF_UP)

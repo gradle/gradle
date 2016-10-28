@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * Compares task names to create ordering for selector launching.
  */
-public class TaskNameComparator implements Comparator<String> {
+public class TaskNameComparator implements Comparator<String>, Serializable {
     public int compare(String taskName1, String taskName2) {
         int depthDiff = getDepth(taskName1) - getDepth(taskName2);
         if (depthDiff != 0) {

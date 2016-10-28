@@ -25,7 +25,8 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnal
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 public class ClassSetAnalysisUpdater {
 
@@ -42,12 +43,12 @@ public class ClassSetAnalysisUpdater {
     }
 
     public void updateAnalysis(JavaCompileSpec spec) {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
         ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer);
         tree.visit(analyzer);
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
-        LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getTime());
+        LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
     }
 }

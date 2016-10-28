@@ -37,7 +37,6 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
         this.modelType = modelType;
         this.connection = connection;
         operationParamsBuilder.setEntryPoint("ModelBuilder API");
-        operationParamsBuilder.setRootDirectory(parameters.getProjectDir());
     }
 
     @Override

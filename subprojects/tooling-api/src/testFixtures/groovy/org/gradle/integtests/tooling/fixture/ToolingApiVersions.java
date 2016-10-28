@@ -16,9 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.util.GradleVersion;
-
 /**
  * Values are intended to be used with {@link ToolingApiVersion}.
  */
@@ -29,12 +26,4 @@ public class ToolingApiVersions {
 
     public static final String SUPPORTS_CANCELLATION = ">=2.1";
     public static final String SUPPORTS_RICH_PROGRESS_EVENTS = ">=2.5";
-    public static final String SUPPORTS_COMPOSITE_BUILD = ">=2.13";
-    public static final String SUPPORTS_INTEGRATED_COMPOSITE = ">=2.14";
-
-    public static boolean supportsIntegratedComposite(GradleVersion toolingDistribution, GradleVersion targetDistribution) {
-        Spec<GradleVersion> gradleVersionSpec = GradleVersionSpec.toSpec(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE);
-
-        return gradleVersionSpec.isSatisfiedBy(toolingDistribution) && gradleVersionSpec.isSatisfiedBy(targetDistribution);
-    }
 }

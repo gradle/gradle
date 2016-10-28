@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.internal.TimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 public class SuiteTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor processor;

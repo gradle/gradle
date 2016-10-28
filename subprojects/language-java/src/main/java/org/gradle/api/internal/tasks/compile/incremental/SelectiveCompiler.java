@@ -26,7 +26,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.util.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 
 class SelectiveCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
@@ -49,18 +50,18 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        Clock clock = new Clock();
+        Timer clock = Timers.startTimer();
         JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getClasspath());
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
-            LOG.lifecycle("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getTime());
+            LOG.lifecycle("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
             return cleaningCompiler.execute(spec);
         }
 
         incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec.getClassNames());
         if (spec.getSource().isEmpty()) {
-            LOG.lifecycle("None of the classes needs to be compiled! Analysis took {}. ", clock.getTime());
+            LOG.lifecycle("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary();
         }
 
@@ -68,7 +69,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
             //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.lifecycle("Incremental compilation of {} classes completed in {}.", recompilationSpec.getClassNames().size(), clock.getTime());
+            LOG.lifecycle("Incremental compilation of {} classes completed in {}.", recompilationSpec.getClassNames().size(), clock.getElapsed());
         }
     }
 }

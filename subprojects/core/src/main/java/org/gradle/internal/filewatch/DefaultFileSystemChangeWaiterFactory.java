@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,11 +32,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
+    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
+
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-        this(fileWatcherFactory, 250L);
+        this(fileWatcherFactory, getDefaultQuietPeriod());
+    }
+
+    private static long getDefaultQuietPeriod() {
+        return Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
     }
 
     public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
@@ -187,11 +192,6 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         @Override
         public boolean isWatching() {
             return watching;
-        }
-
-        @Override
-        public void ignoreDirectory(File directory) {
-            watcher.ignoreDirectory(directory);
         }
 
         @Override

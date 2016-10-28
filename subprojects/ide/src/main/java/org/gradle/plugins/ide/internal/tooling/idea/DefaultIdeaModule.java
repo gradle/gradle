@@ -17,9 +17,11 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,11 +97,6 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
         return this;
     }
 
-    @Override
-    public String getPath() {
-        return gradleProject.getPath();
-    }
-
     public IdeaCompilerOutput getCompilerOutput() {
         return compilerOutput;
     }
@@ -116,6 +113,20 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     public DefaultIdeaModule setJavaLanguageSettings(DefaultIdeaJavaLanguageSettings javaLanguageSettings) {
         this.javaLanguageSettings = javaLanguageSettings;
         return this;
+    }
+
+    public DefaultProjectIdentifier getProjectIdentifier() {
+        return gradleProject.getProjectIdentifier();
+    }
+
+    @Override
+    public String getProjectPath() {
+        return getProjectIdentifier().getProjectPath();
+    }
+
+    @Override
+    public File getRootDir() {
+        return getProjectIdentifier().getBuildIdentifier().getRootDir();
     }
 
     @Override
