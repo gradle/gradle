@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
@@ -131,6 +132,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Map<String, String> attributes;
     private boolean isConsumeOrPublishAllowed = true;
     private boolean isQueryOrResolveAllowed = true;
+    private final ConfigurationAttributesMatchingStrategy attributeMatchingStrategy = new DefaultConfigurationAttributesMatchingStrategy();
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -791,6 +793,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
         validateMutation(MutationType.ROLE);
         isQueryOrResolveAllowed = queryOrResolveAllowed;
+    }
+
+    @Override
+    public ConfigurationAttributesMatchingStrategy getAttributeMatchingStrategy() {
+        return attributeMatchingStrategy;
     }
 
     /**

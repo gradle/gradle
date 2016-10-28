@@ -48,6 +48,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             configuration.isVisible(),
             configuration.isTransitive(),
             configuration.getAttributes(),
+            configuration.getAttributeMatchingStrategy(),
             configuration.isConsumeOrPublishAllowed(),
             configuration.isQueryOrResolveAllowed());
     }

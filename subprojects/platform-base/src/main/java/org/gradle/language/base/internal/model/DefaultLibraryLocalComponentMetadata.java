@@ -82,8 +82,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 true,
                 true,
                 null,
-                true,
-                false);
+                null,
+                true, false);
         }
         return metaData;
     }

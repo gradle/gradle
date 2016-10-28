@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -78,9 +79,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allFiles.put(configuration, files);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, ConfigurationAttributesMatchingStrategy attributesMatchingStrategy, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, isConsumeOrPublishAllowed, isQueryOrResolveAllowed);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, attributesMatchingStrategy, isConsumeOrPublishAllowed, isQueryOrResolveAllowed);
         allConfigurations.put(name, conf);
     }
 
@@ -150,6 +151,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
         private final Map<String, String> attributes;
+        private final ConfigurationAttributesMatchingStrategy attributesMatchingStrategy;
         private final boolean isConsumeOrPublishAllowed;
         private final boolean isQueryOrResolveAllowed;
 
@@ -165,7 +167,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                   Set<String> extendsFrom,
                                                   Set<String> hierarchy,
                                                   Map<String, String> attributes,
-                                                  boolean isConsumeOrPublishAllowed,
+                                                  ConfigurationAttributesMatchingStrategy attributesMatchingStrategy, boolean isConsumeOrPublishAllowed,
                                                   boolean isQueryOrResolveAllowed) {
             this.name = name;
             this.description = description;
@@ -174,6 +176,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
             this.attributes = attributes;
+            this.attributesMatchingStrategy = attributesMatchingStrategy;
             this.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
             this.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
         }
@@ -225,6 +228,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         @Override
         public Map<String, String> getAttributes() {
             return attributes;
+        }
+
+        @Override
+        public ConfigurationAttributesMatchingStrategy getAttributeMatchingStrategy() {
+            return attributesMatchingStrategy;
         }
 
         @Override

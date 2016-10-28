@@ -476,4 +476,7 @@ public interface Configuration extends FileCollection {
     @Incubating
     boolean isQueryOrResolveAllowed();
 
+    @Incubating
+    ConfigurationAttributesMatchingStrategy getAttributeMatchingStrategy();
+
 }
