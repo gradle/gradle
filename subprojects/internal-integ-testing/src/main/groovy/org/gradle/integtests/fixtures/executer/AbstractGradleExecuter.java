@@ -86,6 +86,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
@@ -137,6 +138,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
+    private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
@@ -185,6 +187,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         expectedDeprecationWarnings = 0;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
+        debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -308,6 +311,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.startBuildProcessInDebugger(debug);
+        executer.startLauncherInDebugger(debugLauncher);
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
 
@@ -416,6 +420,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             String key = entry.getKey();
             String value = entry.getValue();
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
+        }
+        if (isDebugLauncher()) {
+            gradleInvocation.implicitLauncherJvmArgs.addAll(DEBUG_ARGS);
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
@@ -994,6 +1001,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter startBuildProcessInDebugger(boolean flag) {
         debug = flag;
         return this;
+    }
+
+    @Override
+    public GradleExecuter startLauncherInDebugger(boolean flag) {
+        debugLauncher = flag;
+        return this;
+    }
+
+    @Override
+    public boolean isDebugLauncher() {
+        return debugLauncher;
     }
 
     public GradleExecuter withProfiler(String args) {
