@@ -56,8 +56,12 @@ import java.util.Set;
  * </pre>
  * <p>
  * The report is generated in the <code>build/reports/project/dependencies</code> directory by default.
- * This can also be changed by setting the <code>outputDirectory</code>
- * property.
+ * This can also be changed by setting the <code>reports.html.destination</code> property:
+ * <pre>
+ * htmlDependencyReport {
+ *     reports.html.destination = file("build/reports/project/dependencies")
+ * }
+ * </pre>
  */
 @Incubating
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
