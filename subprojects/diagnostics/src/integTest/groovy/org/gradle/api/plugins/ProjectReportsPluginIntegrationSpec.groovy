@@ -62,6 +62,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         outputContains("See the report at:")
 
         where:
-        task << ["taskReport", "propertyReport", "dependencyReport"]
+        task << ["taskReport", "propertyReport", "dependencyReport", "htmlDependencyReport"]
     }
 }
