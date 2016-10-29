@@ -110,7 +110,7 @@ class RuntimeShadedJarCreator {
 
     private File tempFileFor(File outputJar) {
         try {
-            final File tmpFile = File.createTempFile(outputJar.getName(), ".tmp", new File(System.getProperty("java.io.tmpdir")));
+            final File tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
             tmpFile.deleteOnExit();
             return tmpFile;
         } catch (IOException e) {
