@@ -85,6 +85,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
@@ -136,6 +137,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
+    private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
@@ -144,6 +146,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
+
+    private TestFile uniqueTmpDir;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -184,6 +188,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         expectedDeprecationWarnings = 0;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
+        debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -307,6 +312,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.startBuildProcessInDebugger(debug);
+        executer.startLauncherInDebugger(debugLauncher);
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
 
@@ -415,6 +421,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             String key = entry.getKey();
             String value = entry.getValue();
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
+        }
+        if (isDebugLauncher()) {
+            gradleInvocation.implicitLauncherJvmArgs.addAll(DEBUG_ARGS);
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
@@ -624,8 +633,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
+        cleanupDaemons();
+        cleanupTmpDir();
+    }
+
+    protected void cleanupDaemons() {
         for (File baseDir : customDaemonBaseDirs) {
-            new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+            try {
+                new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+            } catch (Exception e) {
+                getLogger().warn("Problem killing daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
+            }
+
+            // remove daemon registry just in case the daemon registry directory gets reused
+            new File(baseDir, "registry.bin").delete();
+            new File(baseDir, "registry.bin.lock").delete();
         }
     }
 
@@ -751,7 +773,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (!noExplicitTmpDir) {
-            String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
+            if (uniqueTmpDir == null) {
+                uniqueTmpDir = createUniqueTmpDir().createDir();
+            }
+            String tmpDirPath = uniqueTmpDir.getAbsolutePath();
             if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
@@ -947,8 +972,24 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    protected TestFile getDefaultTmpDir() {
-        return buildContext.getTmpDir().createDir();
+    protected TestFile createUniqueTmpDir() {
+        return buildContext.createUniqueTmpDir();
+    }
+
+    protected void cleanupTmpDir() {
+        if (uniqueTmpDir != null) {
+            if (uniqueTmpDir.exists()) {
+                try {
+                    uniqueTmpDir.deleteDir();
+                } catch (Exception e) {
+                    getLogger().warn("Problem cleaning up temp directory " + uniqueTmpDir, e);
+                } finally {
+                    uniqueTmpDir = null;
+                }
+            } else {
+                uniqueTmpDir = null;
+            }
+        }
     }
 
     public GradleExecuter noExtraLogging() {
@@ -973,6 +1014,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter startBuildProcessInDebugger(boolean flag) {
         debug = flag;
         return this;
+    }
+
+    @Override
+    public GradleExecuter startLauncherInDebugger(boolean flag) {
+        debugLauncher = flag;
+        return this;
+    }
+
+    @Override
+    public boolean isDebugLauncher() {
+        return debugLauncher;
     }
 
     public GradleExecuter withProfiler(String args) {
@@ -1023,4 +1075,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
     }
 
+    @Override
+    public void stop() {
+        cleanup();
+    }
 }

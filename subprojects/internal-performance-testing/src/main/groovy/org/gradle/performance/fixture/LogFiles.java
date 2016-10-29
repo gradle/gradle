@@ -25,7 +25,9 @@ import java.io.IOException;
 public class LogFiles {
     public static File createTempLogFile(String prefix, String postfix) {
         try {
-            // see comment in org.gradle.integtests.fixtures.executer.InProcessGradleExecuter.getDefaultTmpDir() to find out why directory is passed explicitly
+            // The directory is passed as an argument since File.createTempFile sets the location
+            // of the temp directory to a static variable on the first call unless a directory is passed to the call.
+            // Some tests change java.io.tmpdir and this is to ensure that the current value of java.io.tmpdir gets used here.
             return File.createTempFile(prefix, postfix, new File(System.getProperty("java.io.tmpdir")));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

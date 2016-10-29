@@ -20,12 +20,12 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.util.UUID;
 
 /**
  * Provides values that are set during the build, or defaulted when not running in a build context (e.g. IDE).
  */
 public class IntegrationTestBuildContext {
-
     public TestFile getGradleHomeDir() {
         return file("integTest.gradleHomeDir", null);
     }
@@ -58,8 +58,16 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
-    public TestFile getTmpDir() {
-        return file("integTest.tmpDir", "build/tmp");
+    /**
+     * Returns unique temp directory
+     */
+    public final TestFile createUniqueTmpDir() {
+        String uniquePart = UUID.randomUUID().toString();
+        return getTmpBaseDir().file(uniquePart);
+    }
+
+    protected TestFile getTmpBaseDir() {
+        return file("integTest.tmpDir", new File(System.getProperty("java.io.tmpdir"), "integTestBuildTmp-" + System.getProperty("user.name")).getAbsolutePath());
     }
 
     public TestFile getNativeServicesDir() {

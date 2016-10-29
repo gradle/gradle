@@ -16,6 +16,8 @@
 
 package org.gradle.integtests
 
+import groovy.transform.NotYetImplemented
+import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -476,76 +478,40 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue("GRADLE-3575")
-    def "multiple finalizer tasks point to the same task"() {
-        buildFile << """
-            task a {
-                dependsOn 'c', 'g'
-            }
-
-            task c {
-                dependsOn 'd'
-            }
-
-            task d {
-                dependsOn 'f'
-                finalizedBy 'e'
-            }
-
-            task e {
-                finalizedBy 'h'
-            }
-
-            task f {
-                finalizedBy 'h'
-            }
-
-            task g {
-                dependsOn 'd'
-            }
-
-            task h
-        """
-
-        when:
-        succeeds 'a'
-
-        then:
-        executedTasks == [':f', ':d', ':e', ':h', ':c', ':g', ':a']
-    }
-
-    @Issue("GRADLE-3575")
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
-            task a {
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
                 dependsOn 'c', 'g'
             }
 
-            task b {
+            task b(type: NotParallel) {
                 dependsOn 'd'
                 finalizedBy 'e'
             }
 
-            task c {
+            task c(type: NotParallel) {
                 dependsOn 'd'
             }
 
-            task d {
+            task d(type: NotParallel) {
                 dependsOn 'f'
             }
 
-            task e {
+            task e(type: NotParallel) {
                 finalizedBy 'h'
             }
 
-            task f {
+            task f(type: NotParallel) {
                 finalizedBy 'h'
             }
 
-            task g {
+            task g(type: NotParallel) {
                 dependsOn 'd'
             }
 
-            task h
+            task h(type: NotParallel)
         """
 
         when:
@@ -571,6 +537,61 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
+    }
+
+    @Ignore("Re-enable once serious effort have been put to fix this issue")
+    @NotYetImplemented
+    @Issue("gradle/gradle#769")
+    def "execution succeed in presence of long dependency chain"() {
+        def count = 9000
+        buildFile << """
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
+                finalizedBy 'f'
+            }
+
+            task f(type: NotParallel) {
+                dependsOn "d_0"
+            }
+
+            def nextIndex
+            ${count}.times {
+                nextIndex = it + 1
+                task "d_\$it"(type: NotParallel) { task ->
+                    dependsOn "d_\$nextIndex"
+                }
+            }
+            task "d_\$nextIndex"(type: NotParallel)
+        """
+
+        when:
+        succeeds 'a'
+
+        then:
+        executedTasks.size == count+3
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#767")
+    def "detect a cycle when a task finalized itself"() {
+        buildFile << """
+            class NotParallel extends DefaultTask {}
+
+            task a(type: NotParallel) {
+                finalizedBy "b"
+            }
+
+            task b(type: NotParallel) {
+                finalizedBy "b"
+            }
+        """
+
+        when:
+        fails 'a'
+
+        then:
+        thrown(CircularReferenceException)
     }
 
 }

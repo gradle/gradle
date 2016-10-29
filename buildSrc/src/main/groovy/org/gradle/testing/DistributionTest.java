@@ -16,10 +16,16 @@
 
 package org.gradle.testing;
 
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.os.OperatingSystem;
 
 /**
  * Base class for all tests that check the end-to-end behavior of a Gradle distribution.
  */
 public class DistributionTest extends Test {
+    @Input
+    String getOperatingSystem() {
+        return OperatingSystem.current().toString();
+    }
 }

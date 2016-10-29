@@ -22,5 +22,5 @@ import org.gradle.internal.classpath.ClassPath;
  * Creates snapshots of classpaths.
  */
 public interface ClassPathSnapshotter {
-     ClassPathSnapshot snapshot(ClassPath classPath);
+    ClassPathSnapshot snapshot(ClassPath classPath);
 }

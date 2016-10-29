@@ -41,7 +41,7 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "many empty projects help (daemon)"
         runner.testProject = "bigEmpty"
         runner.tasksToRun = ['help']
-        runner.targetVersions = ['3.3-20161026000020+0000', 'last']
+        runner.targetVersions = ['3.3-20161028000018+0000', 'last']
         runner.useDaemon = true
 
         when:

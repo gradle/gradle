@@ -54,6 +54,8 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
+    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Consider configuring the spec during configuration time, or using a separate task to do the configuration";
+
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
@@ -62,74 +64,75 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         rootSpec.addChildSpecListener(new CopySpecInternal.CopySpecListener() {
             @Override
             public void childSpecAdded(CopySpecInternal.CopySpecAddress path, final CopySpecInternal spec) {
+                if (getState().getExecuting()) {
+                    if (getOutputs().isCacheEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
+                        throw new GradleException("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled. "
+                            + CONFIGURE_SPEC_DURING_CONFIGURATION + ".");
+                    }
+                    DeprecationLogger.nagUserOfDeprecated(
+                        "Configuring child specs of a copy task at execution time of the task",
+                        CONFIGURE_SPEC_DURING_CONFIGURATION
+                    );
+                    return;
+                }
+
                 StringBuilder specPropertyNameBuilder = new StringBuilder("rootSpec");
                 CopySpecResolver parentResolver = path.unroll(specPropertyNameBuilder);
                 final CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
                 String specPropertyName = specPropertyNameBuilder.toString();
 
-                if (!getState().getExecuting()) {
-                    getInputs().files(new Callable<FileTree>() {
-                        @Override
-                        public FileTree call() throws Exception {
-                            return resolver.getSource();
-                        }
-                    })
-                        .withPropertyName(specPropertyName)
-                        .withPathSensitivity(PathSensitivity.RELATIVE)
-                        .skipWhenEmpty();
-
-                    getInputs().property(specPropertyName + ".destPath", new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return resolver.getDestPath().getPathString();
-                        }
-                    });
-                    getInputs().property(specPropertyName + ".caseSensitive", new Callable<Boolean>() {
-                        @Override
-                        public Boolean call() throws Exception {
-                            return spec.isCaseSensitive();
-                        }
-                    });
-                    getInputs().property(specPropertyName + ".includeEmptyDirs", new Callable<Boolean>() {
-                        @Override
-                        public Boolean call() throws Exception {
-                            return spec.getIncludeEmptyDirs();
-                        }
-                    });
-                    getInputs().property(specPropertyName + ".duplicatesStrategy", new Callable<DuplicatesStrategy>() {
-                        @Override
-                        public DuplicatesStrategy call() throws Exception {
-                            return spec.getDuplicatesStrategy();
-                        }
-                    });
-                    getInputs().property(specPropertyName + ".dirMode", new Callable<Integer>() {
-                        @Override
-                        public Integer call() throws Exception {
-                            return spec.getDirMode();
-                        }
-                    });
-                    getInputs().property(specPropertyName + ".fileMode", new Callable<Integer>() {
-                        @Override
-                        public Integer call() throws Exception {
-                            return spec.getFileMode();
-                        }
-                    });
-                    getInputs().property(specPropertyName + ".filteringCharset", new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return spec.getFilteringCharset();
-                        }
-                    });
-                } else {
-                    if (getOutputs().isCacheEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
-                        throw new GradleException("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled.");
-                    } else {
-                        DeprecationLogger.nagUserOfDeprecated(
-                            "Configuring child specs of a copy task at execution time of the task",
-                            "Doing this leads to incorrect up to date checks"
-                        );
+                getInputs().files(new Callable<FileTree>() {
+                    @Override
+                    public FileTree call() throws Exception {
+                        return resolver.getSource();
                     }
-                }
+                })
+                    .withPropertyName(specPropertyName)
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+                    .skipWhenEmpty();
+
+                getInputs().property(specPropertyName + ".destPath", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return resolver.getDestPath().getPathString();
+                    }
+                });
+                getInputs().property(specPropertyName + ".caseSensitive", new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return spec.isCaseSensitive();
+                    }
+                });
+                getInputs().property(specPropertyName + ".includeEmptyDirs", new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return spec.getIncludeEmptyDirs();
+                    }
+                });
+                getInputs().property(specPropertyName + ".duplicatesStrategy", new Callable<DuplicatesStrategy>() {
+                    @Override
+                    public DuplicatesStrategy call() throws Exception {
+                        return spec.getDuplicatesStrategy();
+                    }
+                });
+                getInputs().property(specPropertyName + ".dirMode", new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        return spec.getDirMode();
+                    }
+                });
+                getInputs().property(specPropertyName + ".fileMode", new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        return spec.getFileMode();
+                    }
+                });
+                getInputs().property(specPropertyName + ".filteringCharset", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return spec.getFilteringCharset();
+                    }
+                });
             }
         });
         this.getOutputs().doNotCacheIf(new Spec<Task>() {
