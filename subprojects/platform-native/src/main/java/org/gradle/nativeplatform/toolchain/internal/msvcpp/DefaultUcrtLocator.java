@@ -104,6 +104,8 @@ public class DefaultUcrtLocator implements UcrtLocator {
                 }
             } catch (MissingRegistryEntryException e) {
                 // Ignore the version if the string cannot be read
+            } catch (NativeIntegrationUnavailableException e) {
+                // Ignore when Windows Registry is not available as on Linux for exemple
             }
         }
     }
