@@ -53,5 +53,5 @@ public interface NextMajorVersionDeprecationNagger {
 
     void nagUserOfReplacedTask(String taskName, String replacement);
 
-    void nagUserOfReplacedTaskType(String taskName, String replacement);
+    void nagUserOfReplacedTaskType(String taskType, String replacement);
 }

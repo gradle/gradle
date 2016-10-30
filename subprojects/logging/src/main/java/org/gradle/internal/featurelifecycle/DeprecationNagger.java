@@ -55,5 +55,5 @@ public interface DeprecationNagger extends NextMajorVersionDeprecationNagger {
 
     void nagUserOfReplacedTask(String taskName, String replacement, GradleVersion gradleVersion);
 
-    void nagUserOfReplacedTaskType(String taskName, String replacement, GradleVersion gradleVersion);
+    void nagUserOfReplacedTaskType(String taskType, String replacement, GradleVersion gradleVersion);
 }
