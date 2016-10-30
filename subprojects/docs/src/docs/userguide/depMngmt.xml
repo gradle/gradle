@@ -689,16 +689,12 @@
 
         <section id="sub:maven_central">
             <title>Maven central repository</title>
-            <para>To add the central Maven 2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply add this to your build script:
+            <para>To add the central Maven 2 repository (<ulink url='https://repo1.maven.org/maven2'/>) simply add this to your build script:
             </para>
             <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-central"/>
             </sample>
             <para>Now Gradle will look for your dependencies in this repository.</para>
-            <para>
-                <emphasis>Warning:</emphasis> Be aware that the central Maven 2 repository is HTTP only and
-                HTTPS is not supported. If you need a public HTTPS enabled central repository, you can use the <ulink url='http://jcenter.bintray.com'>JCenter</ulink> public repository (see <xref linkend="sub:maven_jcenter"/>).
-            </para>
         </section>
 
         <section id="sub:maven_jcenter">
