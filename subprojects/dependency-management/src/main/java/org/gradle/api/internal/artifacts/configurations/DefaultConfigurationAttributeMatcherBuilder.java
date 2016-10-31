@@ -15,57 +15,53 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.base.Function;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 
 import java.util.Comparator;
 
-public class ConfigurationAttributeMatcherBuilder {
+public class DefaultConfigurationAttributeMatcherBuilder implements ConfigurationAttributesMatchingStrategy.ConfigurationAttributeMatcherBuilder {
     private static final StrictAttributeValueMatch STRICT_ATTRIBUTE_VALUE_MATCH = new StrictAttributeValueMatch();
-    private static final Function<String, String> NO_DEFAULT_VALUE = new Function<String, String>() {
+    private static final Transformer<String, String> NO_DEFAULT_VALUE = new Transformer<String, String>() {
         @Override
-        public String apply(String input) {
+        public String transform(String input) {
             return null;
         }
     };
 
     private Comparator<String> comparator = STRICT_ATTRIBUTE_VALUE_MATCH;
-    private Function<String, String> defaultValueBuilder = NO_DEFAULT_VALUE;
+    private Transformer<String, String> defaultValueBuilder = NO_DEFAULT_VALUE;
 
-    private ConfigurationAttributeMatcherBuilder() {
+    private DefaultConfigurationAttributeMatcherBuilder() {
     }
 
-    public static ConfigurationAttributeMatcherBuilder newBuilder() {
-        return new ConfigurationAttributeMatcherBuilder();
+    public static DefaultConfigurationAttributeMatcherBuilder newBuilder() {
+        return new DefaultConfigurationAttributeMatcherBuilder();
     }
 
-    ConfigurationAttributeMatcher build() {
+    @Override
+    public ConfigurationAttributeMatcher build() {
         return new ConstructedMatcher(comparator, defaultValueBuilder);
     }
 
-    /**
-     * A {@link Comparator} and a {@link ConfigurationAttributeMatcher} have slightly different semantics with regards to matching strings.
-     * This method adapts a comparator to a configuration attribute matcher, expecting the comparator to break the contract of comparators
-     * but respect the semantics of attribute matchers. In particular, attribute matchers are expected to return 0 for "match", "-1" for
-     * no match and any positive distance for matches which are not perfect.
-     * @param comparator sets the attribute value comparator.
-     * @return this builder
-     */
-    public ConfigurationAttributeMatcherBuilder withComparator(Comparator<String> comparator) {
+    @Override
+    public DefaultConfigurationAttributeMatcherBuilder withComparator(Comparator<String> comparator) {
         this.comparator = comparator;
         return this;
     }
 
-    public ConfigurationAttributeMatcherBuilder withDefaultValue(Function<String, String> defaultValueBuilder) {
+    @Override
+    public DefaultConfigurationAttributeMatcherBuilder withDefaultValue(Transformer<String, String> defaultValueBuilder) {
         this.defaultValueBuilder = defaultValueBuilder;
         return this;
     }
 
     private static class ConstructedMatcher implements ConfigurationAttributeMatcher {
         private final Comparator<String> comparator;
-        private final Function<String, String> defaultValue;
+        private final Transformer<String, String> defaultValue;
 
-        private ConstructedMatcher(Comparator<String> comparator, Function<String, String> defaultValue) {
+        private ConstructedMatcher(Comparator<String> comparator, Transformer<String, String> defaultValue) {
             this.comparator = comparator;
             this.defaultValue = defaultValue;
         }
@@ -77,7 +73,7 @@ public class ConfigurationAttributeMatcherBuilder {
 
         @Override
         public String defaultValue(String requestedValue) {
-            return defaultValue.apply(requestedValue);
+            return defaultValue.transform(requestedValue);
         }
     }
 

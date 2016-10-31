@@ -15,7 +15,11 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
+
+import java.util.Comparator;
 
 /**
  * A configuration matching strategy determines how configuration attributes are matched from a
@@ -37,4 +41,41 @@ public interface ConfigurationAttributesMatchingStrategy {
      * @param matcher the matcher for this attribute
      */
     void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher);
+
+    /**
+     * Configures an attribute matcher using a convenient builder.
+     * @param attributeName the name of the attribute to configure a matcher for.
+     * @param configureAction the matcher configuration
+     */
+    void attributeMatcher(String attributeName, Action<? super ConfigurationAttributeMatcherBuilder> configureAction);
+
+    /**
+     * A configuration attribute matcher builder is responsible for configuring a matcher.
+     */
+    interface ConfigurationAttributeMatcherBuilder {
+
+        /**
+         * A {@link Comparator} and a {@link ConfigurationAttributeMatcher} have slightly different semantics with regards to matching strings.
+         * This method adapts a comparator to a configuration attribute matcher, expecting the comparator to break the contract of comparators
+         * but respect the semantics of attribute matchers. In particular, attribute matchers are expected to return 0 for "match", "-1" for
+         * no match and any positive distance for matches which are not perfect.
+         * @param comparator sets the attribute value comparator.
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder withComparator(Comparator<String> comparator);
+
+        /**
+         * Sets the function which computes the default value of an attribute in case it is missing.
+         * @param defaultValueBuilder the value builder
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder withDefaultValue(Transformer<String, String> defaultValueBuilder);
+
+        /**
+         * Builds the matcher.
+         * @return implementations are expected to return an immutable matcher.
+         */
+        ConfigurationAttributeMatcher build();
+
+    }
 }

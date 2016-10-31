@@ -16,16 +16,20 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 
 import java.util.Map;
 
 public class DefaultConfigurationAttributesMatchingStrategy implements ConfigurationAttributesMatchingStrategy {
-    private final static ConfigurationAttributeMatcher DEFAULT_MATCHER = ConfigurationAttributeMatcherBuilder.newBuilder()
+    private final static ConfigurationAttributeMatcher DEFAULT_MATCHER = DefaultConfigurationAttributeMatcherBuilder.newBuilder()
         .build();
 
     private final Map<String, ConfigurationAttributeMatcher> matchers = Maps.newHashMap();
+
+    public DefaultConfigurationAttributesMatchingStrategy() {
+    }
 
     @Override
     public ConfigurationAttributeMatcher getAttributeMatcher(String attributeName) {
@@ -39,6 +43,13 @@ public class DefaultConfigurationAttributesMatchingStrategy implements Configura
     @Override
     public void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher) {
         matchers.put(attributeName, matcher);
+    }
+
+    @Override
+    public void attributeMatcher(String attributeName, Action<? super ConfigurationAttributeMatcherBuilder> configureAction) {
+        DefaultConfigurationAttributeMatcherBuilder builder = DefaultConfigurationAttributeMatcherBuilder.newBuilder();
+        configureAction.execute(builder);
+        setAttributeMatcher(attributeName, builder.build());
     }
 
 }

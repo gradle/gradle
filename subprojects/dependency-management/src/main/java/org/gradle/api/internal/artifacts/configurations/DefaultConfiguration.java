@@ -132,7 +132,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Map<String, String> attributes;
     private boolean isConsumeOrPublishAllowed = true;
     private boolean isQueryOrResolveAllowed = true;
-    private final ConfigurationAttributesMatchingStrategy attributeMatchingStrategy = new DefaultConfigurationAttributesMatchingStrategy();
+    private final ConfigurationAttributesMatchingStrategy attributeMatchingStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -141,7 +141,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                FileCollectionFactory fileCollectionFactory, ComponentIdentifierFactory componentIdentifierFactory) {
+                                FileCollectionFactory fileCollectionFactory, ComponentIdentifierFactory componentIdentifierFactory,
+                                ConfigurationAttributesMatchingStrategy attributeMatchingStrategy) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -156,6 +157,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.componentIdentifierFactory = componentIdentifierFactory;
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        this.attributeMatchingStrategy = attributeMatchingStrategy;
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -544,7 +546,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, attributeMatchingStrategy);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
