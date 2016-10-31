@@ -163,6 +163,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         this.buildContext = buildContext;
         gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         daemonBaseDir = buildContext.getDaemonBaseDir();
+        buildContext.configure(this);
     }
 
     protected Logger getLogger() {
