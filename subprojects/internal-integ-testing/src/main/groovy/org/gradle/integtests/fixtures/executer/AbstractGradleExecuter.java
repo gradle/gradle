@@ -641,6 +641,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             } catch (Exception e) {
                 getLogger().warn("Problem killing daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
             }
+
+            // remove daemon registry just in case the daemon registry directory gets reused
+            new File(baseDir, "registry.bin").delete();
+            new File(baseDir, "registry.bin.lock").delete();
         }
     }
 
