@@ -18,7 +18,6 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 
 import java.io.File;
@@ -26,9 +25,9 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateFile;
 import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateFile;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
@@ -48,7 +47,7 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
         task.getOutputs().file(futureValue)
             .withPropertyName(context.getName())
             .withPathSensitivity(getPathSensitivity(context))
-            .optional(context.isAnnotationPresent(Optional.class));
+            .optional(context.getOptional());
 
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
