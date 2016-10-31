@@ -128,6 +128,23 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
+    def "can ignore maximum number of violations"() {
+        badCode()
+        buildFile << """
+            checkstyle {
+                maxAllowedViolations = 2
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+    }
+
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:

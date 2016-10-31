@@ -99,6 +99,12 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
                 return extension.isShowViolations();
             }
         });
+        taskMapping.map("maxAllowedViolations", new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return extension.getMaxAllowedViolations();
+            }
+        });
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
