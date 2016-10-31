@@ -17,10 +17,24 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+/**
+ * A configuration matching strategy determines how configuration attributes are matched from a
+ * source configuration to a target configuration. The strategy allows defining how attributes
+ * are matched per attribute name. Strategies are attached to a {@link Configuration}.
+ */
 @Incubating
 public interface ConfigurationAttributesMatchingStrategy {
+    /**
+     * Returns the attribute matcher for a specific attribute name.
+     * @param attributeName the name of the attribute
+     * @return the matcher for this attribute. Must never be null.
+     */
     ConfigurationAttributeMatcher getAttributeMatcher(String attributeName);
+
+    /**
+     * Sets the attribute matcher for a particular attribute.
+     * @param attributeName the name of the attribute.
+     * @param matcher the matcher for this attribute
+     */
     void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher);
-    void optional(String attributeName);
-    void required(String attributeName);
 }

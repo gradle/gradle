@@ -33,9 +33,9 @@ import spock.lang.Unroll
 class LocalComponentDependencyMetadataTest extends Specification {
 
     private static final Map<String, Closure<Integer>> C = [
-        'EXACT_MATCH': { a, b -> a <=> b },
+        EXACT_MATCH: { a, b -> a == b ? 0 : -1 },
         NEVER_MATCH: { a, b -> -1 },
-        'PREFIX_MATCH': { a, b -> b.startsWith(a) ? 0 : -1 }
+        PREFIX_MATCH: { a, b -> b.startsWith(a) ? 0 : -1 }
     ]
 
     def "returns this when same version requested"() {
@@ -73,13 +73,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent) == [toConfig] as Set
     }
 
-    @Unroll("selects configuration '#expected' from target component when all attributes are required (#comparator)")
+    @Unroll("selects configuration '#expected' from target component when all attributes are required (#comparator, #description)")
     def "selects the target configuration from target component which matches the attributes when all attributes are required"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def strategy = Mock(ConfigurationAttributesMatchingStrategy) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
-                    isRequired() >> true
                     score(_, _) >> { a, b -> C[comparator](a, b) }
                 }
             }
@@ -98,12 +97,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
-            getAttributes() >> [key: 'something']
+            getAttributes() >> [platform: 'java7']
             isConsumeOrPublishAllowed() >> true
         }
         def toBarConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'bar'
-            getAttributes() >> [key: 'something else']
+            getAttributes() >> [platform: 'java8']
             isConsumeOrPublishAllowed() >> true
         }
 
@@ -128,101 +127,31 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
 
         where:
-        queryAttributes                 | comparator     | expected
-        [key: 'something']              | 'EXACT_MATCH'  | 'foo'
-        [key: 'something else']         | 'EXACT_MATCH'  | 'bar'
-        [key: 'other']                  | 'EXACT_MATCH'  | 'default'
-        [key: 'something', extra: 'no'] | 'EXACT_MATCH'  | 'default'
-        [key: 'something']              | 'NEVER_MATCH'  | 'default'
-        [key: 'something else']         | 'NEVER_MATCH'  | 'default'
-        [key: 'other']                  | 'NEVER_MATCH'  | 'default'
-        [key: 'something', extra: 'no'] | 'NEVER_MATCH'  | 'default'
-        [key: 'something']              | 'PREFIX_MATCH' | null
-        [key: 'something else']         | 'PREFIX_MATCH' | 'bar'
-        [key: 'other']                  | 'PREFIX_MATCH' | 'default'
-        [key: 'something', extra: 'no'] | 'PREFIX_MATCH' | 'default'
+        queryAttributes                     | comparator     | expected  | description
+        [platform: 'java7']                 | 'EXACT_MATCH'  | 'foo'     | 'exact match on platform'
+        [platform: 'java8']                 | 'EXACT_MATCH'  | 'bar'     | 'exact match on platform'
+        [platform: 'native']                | 'EXACT_MATCH'  | 'default' | 'no match, fallback to default'
+        [platform: 'java7', flavor: 'free'] | 'EXACT_MATCH'  | 'default' | 'flavor required and no match, fallback to default'
+        [platform: 'java7']                 | 'NEVER_MATCH'  | 'default' | 'never match, fallback to default'
+        [platform: 'java8']                 | 'NEVER_MATCH'  | 'default' | 'never match, fallback to default'
+        [platform: 'native']                | 'NEVER_MATCH'  | 'default' | 'never match, fallback to default'
+        [platform: 'java7', flavor: 'free'] | 'NEVER_MATCH'  | 'default' | 'never match, fallback to default'
+        [platform: 'java']                  | 'PREFIX_MATCH' | null      | 'both configurations match'
+        [platform: 'java8']                 | 'PREFIX_MATCH' | 'bar'     | 'prefix match'
+        [platform: 'native']                | 'PREFIX_MATCH' | 'default' | 'no match, fallback to default'
+        [platform: 'java7', flavor: 'free'] | 'PREFIX_MATCH' | 'default' | 'no match, fallback to default'
     }
 
-    @Unroll("selects configuration '#expected' from target component when all attributes are optional (#comparator)")
-    def "selects the target configuration from target component which matches the attributes when all attributes are optional"() {
+    @Unroll("selects configuration '#expected' from target component with exact matching strategy (#description)")
+    def "selects the target configuration from target component with exact matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def strategy = Mock(ConfigurationAttributesMatchingStrategy) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
-                    isRequired() >> false
-                    score(_, _) >> { a, b -> C[comparator](a, b) }
-                }
-            }
-        }
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-        }
-        def fromConfig = Stub(LocalConfigurationMetadata) {
-            getAttributes() >> queryAttributes
-            getAttributeMatchingStrategy() >> strategy
-        }
-        fromConfig.hierarchy >> ["from"]
-        def defaultConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'default'
-        }
-        def toFooConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'foo'
-            getAttributes() >> [key: 'something']
-            isConsumeOrPublishAllowed() >> true
-        }
-        def toBarConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'bar'
-            getAttributes() >> [key: 'something else']
-            isConsumeOrPublishAllowed() >> true
-        }
-
-        given:
-        toComponent.getConfiguration("default") >> defaultConfig
-        toComponent.getConfiguration("foo") >> toFooConfig
-        toComponent.getConfiguration("bar") >> toBarConfig
-
-        expect:
-        try {
-            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent)*.name as Set
-            if (expected == null && result) {
-                throw new AssertionError("Expected an ambiguous result, but got $result")
-            }
-            assert result == [expected] as Set
-        } catch (IllegalArgumentException e) {
-            if (expected == null) {
-                assert e.message.startsWith('Cannot choose between the following configurations: [bar, foo]')
-            } else {
-                throw e
-            }
-        }
-
-        where:
-        queryAttributes                 | comparator     | expected
-        [key: 'something']              | 'EXACT_MATCH'  | 'foo'
-        [key: 'something else']         | 'EXACT_MATCH'  | 'bar'
-        [key: 'other']                  | 'EXACT_MATCH'  | 'default'
-        [key: 'something', extra: 'no'] | 'EXACT_MATCH'  | 'default'
-        [key: 'something']              | 'NEVER_MATCH'  | 'default'
-        [key: 'something else']         | 'NEVER_MATCH'  | 'default'
-        [key: 'other']                  | 'NEVER_MATCH'  | 'default'
-        [key: 'something', extra: 'no'] | 'NEVER_MATCH'  | 'default'
-        [key: 'something']              | 'PREFIX_MATCH' | null
-        [key: 'something else']         | 'PREFIX_MATCH' | 'bar'
-        [key: 'other']                  | 'PREFIX_MATCH' | 'default'
-        [key: 'something', extra: 'no'] | 'PREFIX_MATCH' | 'default'
-    }
-
-    @Unroll("selects configuration '#expected' from target component when one attribute is optional (#comparator)")
-    def "selects the target configuration from target component which matches the attributes when one attribute is optional"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategy) {
-            getAttributeMatcher(_) >> { attr ->
-                Mock(ConfigurationAttributeMatcher) {
-                    isRequired() >> {
-                        attr[0] == 'key'
+                    score(_, _) >> { a, b -> C.EXACT_MATCH(a, b) }
+                    defaultValue(_) >> { args ->
+                        args[0]
                     }
-                    score(_, _) >> { a, b -> C[comparator](a, b) }
                 }
             }
         }
@@ -240,12 +169,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
-            getAttributes() >> [key: 'something']
+            getAttributes() >> fooAttributes
             isConsumeOrPublishAllowed() >> true
         }
         def toBarConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'bar'
-            getAttributes() >> [key: 'something else']
+            getAttributes() >> barAttributes
             isConsumeOrPublishAllowed() >> true
         }
 
@@ -270,19 +199,15 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
 
         where:
-        queryAttributes                 | comparator     | expected
-        [key: 'something']              | 'EXACT_MATCH'  | 'foo'
-        [key: 'something else']         | 'EXACT_MATCH'  | 'bar'
-        [key: 'other']                  | 'EXACT_MATCH'  | 'default'
-        [key: 'something', extra: 'no'] | 'EXACT_MATCH'  | 'foo'
-        [key: 'something']              | 'NEVER_MATCH'  | 'default'
-        [key: 'something else']         | 'NEVER_MATCH'  | 'default'
-        [key: 'other']                  | 'NEVER_MATCH'  | 'default'
-        [key: 'something', extra: 'no'] | 'NEVER_MATCH'  | 'default'
-        [key: 'something']              | 'PREFIX_MATCH' | null
-        [key: 'something else']         | 'PREFIX_MATCH' | 'bar'
-        [key: 'other']                  | 'PREFIX_MATCH' | 'default'
-        [key: 'something', extra: 'no'] | 'PREFIX_MATCH' | 'default' // or should it be null?
+        queryAttributes                     | fooAttributes                       | barAttributes                       | expected  | description
+        [platform: 'java7']                 | [platform: 'java7']                 | [:]                                 | 'foo'     | 'exact match is found'
+        [platform: 'java8']                 | [platform: 'java7']                 | [platform: 'java8']                 | 'bar'     | 'exact match is found'
+        [platform: 'native']                | [platform: 'java7']                 | [:]                                 | 'default' | 'falls back on default'
+        [platform: 'native']                | [platform: 'java7']                 | [platform: 'java8']                 | 'default' | 'falls back on default'
+        [platform: 'java7', flavor: 'free'] | [platform: 'java7', flavor: 'paid'] | [platform: 'java7', flavor: 'free'] | 'bar'     | 'match on all attributes'
+        [platform: 'java7', flavor: 'free'] | [platform: 'java7']                 | [platform: 'java7', flavor: 'free'] | null      | 'ambiguous because of default value'
+        [platform: 'java7', flavor: 'free'] | [platform: 'java7']                 | [platform: 'java8']                 | 'foo'     | 'partial match'
+
     }
 
     def "fails to select target configuration when not present in the target component"() {

@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -30,42 +30,23 @@ import java.util.Set;
 public abstract class ConfigurationAttributeMatchingStrategies {
     public static <T> List<T> findBestMatches(final ConfigurationAttributesMatchingStrategy strategy, Map<String, String> sourceAttributes, Map<T, Map<String, String>> candidates) {
         Set<String> sourceAttributeNames = sourceAttributes.keySet();
-        int attributeCount = sourceAttributeNames.size();
-        List<String> requiredAttributes = new ArrayList<String>(attributeCount);
-        List<String> optionalAttributes = new ArrayList<String>(attributeCount);
-        for (String name : sourceAttributeNames) {
-            if (strategy.getAttributeMatcher(name).isRequired()) {
-                requiredAttributes.add(name);
-            } else {
-                optionalAttributes.add(name);
-            }
-        }
-
-        Map<T, MatchDetails> remainingCandidates = new LinkedHashMap<T, MatchDetails>(candidates.size());
+        Map<T, MatchDetails> remainingCandidatesAfterRequired = new LinkedHashMap<T, MatchDetails>(candidates.size());
         for (Map.Entry<T, Map<String, String>> entry : candidates.entrySet()) {
-            remainingCandidates.put(entry.getKey(), new MatchDetails(entry.getValue()));
+            remainingCandidatesAfterRequired.put(entry.getKey(), new MatchDetails(entry.getValue()));
         }
 
-        filterCandidates(strategy, sourceAttributes, remainingCandidates, requiredAttributes);
-        List<T> singleMatch = findBestMatch(remainingCandidates);
-        if (singleMatch!=null) {
+        filterCandidates(strategy, sourceAttributes, remainingCandidatesAfterRequired, sourceAttributeNames);
+        List<T> singleMatch = findBestMatch(remainingCandidatesAfterRequired);
+        if (singleMatch != null) {
             return singleMatch;
         }
-
-        // at this point the list contains all configurations that match exactly or partially all required attributes
-        filterCandidates(strategy, sourceAttributes, remainingCandidates, optionalAttributes);
-        singleMatch = findBestMatch(remainingCandidates);
-        if (singleMatch!=null) {
-            return singleMatch;
+        if (remainingCandidatesAfterRequired.isEmpty()) {
+            return Collections.emptyList();
         }
-
-        return ImmutableList.copyOf(remainingCandidates.keySet());
+        return ImmutableList.copyOf(remainingCandidatesAfterRequired.keySet());
     }
 
     private static <T> List<T> findBestMatch(Map<T, MatchDetails> remainingCandidates) {
-        if (remainingCandidates.isEmpty()) {
-            return Collections.emptyList();
-        }
         if (remainingCandidates.size() == 1) {
             return Collections.singletonList(remainingCandidates.keySet().iterator().next());
         }
@@ -82,25 +63,28 @@ public abstract class ConfigurationAttributeMatchingStrategies {
                 bestCount++;
             }
         }
-        if (bestCount==1) {
+        if (bestCount == 1) {
             return Collections.singletonList(best);
         }
         return null;
     }
 
-    private static <T> void filterCandidates(ConfigurationAttributesMatchingStrategy strategy, Map<String, String> sourceAttributes, Map<T, MatchDetails> candidates, List<String> requiredAttributes) {
+    private static <T> void filterCandidates(ConfigurationAttributesMatchingStrategy strategy, Map<String, String> sourceAttributes, Map<T, MatchDetails> candidates, Collection<String> requiredAttributes) {
         for (String requiredAttribute : requiredAttributes) {
             String requestedValue = sourceAttributes.get(requiredAttribute);
-            for (Iterator<Map.Entry<T, MatchDetails>> it = candidates.entrySet().iterator(); it.hasNext(); ) {
+            Iterator<Map.Entry<T, MatchDetails>> it = candidates.entrySet().iterator();
+            while (it.hasNext()) {
                 Map.Entry<T, MatchDetails> entry = it.next();
                 MatchDetails details = entry.getValue();
                 Map<String, String> candidateAttributes = details.attributes;
-                if (!candidateAttributes.containsKey(requiredAttribute)) {
+                boolean hasAttribute = candidateAttributes.containsKey(requiredAttribute);
+                ConfigurationAttributeMatcher matcher = strategy.getAttributeMatcher(requiredAttribute);
+                String defaultValue = matcher.defaultValue(requestedValue);
+                if (!hasAttribute && defaultValue == null) {
                     it.remove();
                 } else {
-                    ConfigurationAttributeMatcher matcher = strategy.getAttributeMatcher(requiredAttribute);
-                    int cmp = matcher.score(requestedValue, candidateAttributes.get(requiredAttribute));
-                    if (cmp<0) {
+                    int cmp = matcher.score(requestedValue, hasAttribute ? candidateAttributes.get(requiredAttribute) : defaultValue);
+                    if (cmp < 0) {
                         it.remove();
                     }
                     details.score += cmp;

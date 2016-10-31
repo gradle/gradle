@@ -22,11 +22,7 @@ import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
 import java.util.Map;
 
 public class DefaultConfigurationAttributesMatchingStrategy implements ConfigurationAttributesMatchingStrategy {
-    private final static ConfigurationAttributeMatcher REQUIRED = ConfigurationAttributeMatcherBuilder.newBuilder()
-        .required()
-        .build();
-
-    private final static ConfigurationAttributeMatcher OPTIONAL = ConfigurationAttributeMatcherBuilder.newBuilder()
+    private final static ConfigurationAttributeMatcher DEFAULT_MATCHER = ConfigurationAttributeMatcherBuilder.newBuilder()
         .build();
 
     private final Map<String, ConfigurationAttributeMatcher> matchers = Maps.newHashMap();
@@ -37,22 +33,12 @@ public class DefaultConfigurationAttributesMatchingStrategy implements Configura
         if (attributeMatcher != null) {
             return attributeMatcher;
         }
-        return REQUIRED;
+        return DEFAULT_MATCHER;
     }
 
     @Override
     public void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher) {
         matchers.put(attributeName, matcher);
-    }
-
-    @Override
-    public void optional(String attributeName) {
-        setAttributeMatcher(attributeName,  OPTIONAL);
-    }
-
-    @Override
-    public void required(String attributeName) {
-        setAttributeMatcher(attributeName, REQUIRED);
     }
 
 }
