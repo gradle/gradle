@@ -16,6 +16,25 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-public class PerformanceTestBuildContext extends IntegrationTestBuildContext {
+import org.gradle.test.fixtures.file.TestFile;
 
+import java.io.File;
+import java.util.UUID;
+
+public class PerformanceTestBuildContext extends IntegrationTestBuildContext {
+    @Override
+    public TestFile getTmpDir() {
+        String uniquePart = UUID.randomUUID().toString();
+        return getTmpBaseDir().file(uniquePart);
+    }
+
+    private TestFile getTmpBaseDir() {
+        return file("integTest.tmpDir", new File(System.getProperty("java.io.tmpdir"), "integTestBuildTmp-" + System.getProperty("user.name")).getAbsolutePath());
+    }
+
+    @Override
+    public void configure(GradleExecuter gradleExecuter) {
+        super.configure(gradleExecuter);
+        gradleExecuter.withCleanupTempDirectory(true);
+    }
 }
