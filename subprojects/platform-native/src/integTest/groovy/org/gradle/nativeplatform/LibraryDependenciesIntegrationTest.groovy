@@ -252,6 +252,7 @@ project(":lib") {
 
         when:
         executer.withArgument('--configure-on-demand')
+        executer.expectIncubationWarning()
         succeeds ":exe:installMainExecutable"
 
         then:
