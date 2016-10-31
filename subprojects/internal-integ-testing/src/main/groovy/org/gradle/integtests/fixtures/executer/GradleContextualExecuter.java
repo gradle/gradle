@@ -68,6 +68,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter().executeParallel;
     }
 
+    private GradleExecuter gradleExecuter;
+
     public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
         this.executerType = getSystemPropertyExecuter();
@@ -78,7 +80,11 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
 
-        GradleExecuter gradleExecuter = createExecuter(executerType);
+        if (gradleExecuter == null) {
+            gradleExecuter = createExecuter(executerType);
+        } else {
+            gradleExecuter.reset();
+        }
         configureExecuter(gradleExecuter);
         try {
             gradleExecuter.assertCanExecute();
@@ -113,4 +119,19 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         }
     }
 
+    @Override
+    public void cleanup() {
+        if (gradleExecuter != null) {
+            gradleExecuter.stop();
+        }
+        super.cleanup();
+    }
+
+    @Override
+    public GradleExecuter reset() {
+        if (gradleExecuter != null) {
+            gradleExecuter.reset();
+        }
+        return super.reset();
+    }
 }

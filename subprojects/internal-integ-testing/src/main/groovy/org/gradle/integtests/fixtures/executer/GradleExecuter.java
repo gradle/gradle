@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public interface GradleExecuter {
+public interface GradleExecuter extends Stoppable {
     /**
      * Sets the working directory to use. Defaults to the test's temporary directory.
      */
@@ -382,4 +383,14 @@ public interface GradleExecuter {
     GradleExecuter startLauncherInDebugger(boolean debugLauncher);
 
     boolean isDebugLauncher();
+
+    /**
+     * Clears previous settings so that instance can be reused
+     */
+    GradleExecuter reset();
+
+    /**
+     * Returns true if this executer uses a daemon
+     */
+    boolean isUseDaemon();
 }

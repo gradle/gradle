@@ -27,6 +27,9 @@ class GradleExecuterBackedSession implements GradleSession {
 
     private final TestDirectoryProvider testDirectoryProvider
 
+    private GradleExecuter executer
+    private GradleExecuter executerForStopping
+
     GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
@@ -39,7 +42,7 @@ class GradleExecuterBackedSession implements GradleSession {
 
 
     Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
-        def runner = createExecuter(invocationInfo, invocationCustomizer, true)
+        def runner = createExecuter(invocationInfo, invocationCustomizer)
         return {
             if (invocation.expectFailure) {
                 runner.runWithFailure()
@@ -51,13 +54,35 @@ class GradleExecuterBackedSession implements GradleSession {
 
     @Override
     void cleanup() {
-        createExecuter(null, null, false).withTasks().withArgument("--stop").run()
+        if (executerForStopping != null) {
+            try {
+                if (executerForStopping.isUseDaemon()) {
+                    executerForStopping.withTasks().withArguments(['--stop'])
+                    executerForStopping.run()
+                    executerForStopping.stop()
+                }
+                executerForStopping = null
+            } finally {
+                executer?.stop()
+                executer = null
+            }
+        }
     }
 
-    private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
+    private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
-        def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
+        if (executer == null) {
+            def createNewExecuter = {
+                invocation.gradleDistribution.executer(testDirectoryProvider)
+            }
+            executer = createNewExecuter()
+            executerForStopping = createNewExecuter()
+        } else {
+            executer.reset()
+        }
+
+        executer.
             requireOwnGradleUserHomeDir().
             requireGradleDistribution().
             requireIsolatedDaemons().
@@ -67,16 +92,19 @@ class GradleExecuterBackedSession implements GradleSession {
             inDirectory(invocation.workingDirectory).
             withTasks(invocation.tasksToRun)
 
-        if (withGradleOpts) {
-            executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
-            executer.withBuildJvmOpts(invocation.jvmOpts)
-        }
+
+        executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
+        executer.withBuildJvmOpts(invocation.jvmOpts)
 
         invocation.args.each { executer.withArgument(it) }
 
         if (invocation.useDaemon) {
             executer.requireDaemon()
         }
+
+        // must make a copy of argument for executer to use for stopping since arguments must match when stopping the daemons
+        // executer instance's reset method gets called after execution and the arguments aren't preserved there
+        executer.copyTo(executerForStopping)
 
         executer
     }
