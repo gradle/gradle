@@ -147,6 +147,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
 
+    private TestFile tmpDir;
+    private boolean cleanTempDirOnShutdown;
+
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
     }
@@ -640,6 +643,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     public void cleanup() {
         cleanupDaemons();
+        cleanupTmpDir();
     }
 
     protected void cleanupDaemons() {
@@ -653,6 +657,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             // remove daemon registry just in case the daemon registry directory gets reused
             new File(baseDir, "registry.bin").delete();
             new File(baseDir, "registry.bin.lock").delete();
+        }
+    }
+
+    protected void cleanupTmpDir() {
+        if (cleanTempDirOnShutdown && tmpDir != null) {
+            if (tmpDir.exists()) {
+                try {
+                    tmpDir.deleteDir();
+                } catch (Exception e) {
+                    getLogger().warn("Problem cleaning up temp directory " + tmpDir, e);
+                } finally {
+                    tmpDir = null;
+                }
+            } else {
+                tmpDir = null;
+            }
         }
     }
 
@@ -778,7 +798,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (!noExplicitTmpDir) {
-            String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
+            if (tmpDir == null) {
+                tmpDir = getDefaultTmpDir();
+            }
+            String tmpDirPath = tmpDir.createDir().getAbsolutePath();
             if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
@@ -1038,6 +1061,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter withFullDeprecationStackTraceDisabled() {
         fullDeprecationStackTrace = false;
+        return this;
+    }
+
+    public GradleExecuter withCleanupTempDirectory(boolean flag) {
+        cleanTempDirOnShutdown = flag;
         return this;
     }
 

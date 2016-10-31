@@ -390,6 +390,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter reset();
 
     /**
+     * Sets flag to cleanup temp directory on shutdown of the executer
+     */
+    GradleExecuter withCleanupTempDirectory(boolean flag);
+    
+    /**
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
