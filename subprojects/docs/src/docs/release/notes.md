@@ -98,6 +98,7 @@ We would like to thank the following community members for making contributions 
 
  - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
  - [Francis Andre](https://github.com/zosrothko) - Import Gradle production source into Eclipse without compile errors
+ - [David Illsley](https://github.com/davidillsley) - Update docs to indicate use of HTTPS maven central (#774)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
