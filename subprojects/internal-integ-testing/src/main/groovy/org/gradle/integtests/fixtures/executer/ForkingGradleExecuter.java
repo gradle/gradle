@@ -48,6 +48,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         super(distribution, testDirectoryProvider, version);
     }
 
+    public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, gradleVersion, buildContext);
+    }
+
     public void assertCanExecute() throws AssertionError {
         if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             Map<String, String> environmentVars = buildInvocation().environmentVars;

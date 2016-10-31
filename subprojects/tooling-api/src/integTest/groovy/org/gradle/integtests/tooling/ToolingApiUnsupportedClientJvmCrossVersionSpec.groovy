@@ -70,7 +70,7 @@ public class TestClient {
     }
 }
 """
-        targetDist.executer(temporaryFolder).inDirectory(projectDir).withTasks("installDist").requireGradleDistribution().run()
+        targetDist.executer(temporaryFolder, getBuildContext()).inDirectory(projectDir).withTasks("installDist").requireGradleDistribution().run()
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })

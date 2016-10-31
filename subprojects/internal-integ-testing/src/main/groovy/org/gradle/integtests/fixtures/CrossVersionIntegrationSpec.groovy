@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -70,7 +71,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     }
 
     GradleExecuter version(GradleDistribution dist) {
-        def executer = dist.executer(temporaryFolder)
+        def executer = dist.executer(temporaryFolder, IntegrationTestBuildContext.INSTANCE)
         if (gradleUserHomeDir) {
             executer.withGradleUserHomeDir(gradleUserHomeDir)
         }

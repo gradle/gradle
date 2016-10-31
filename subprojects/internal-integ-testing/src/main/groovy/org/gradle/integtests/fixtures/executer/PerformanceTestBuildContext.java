@@ -16,16 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-public abstract class AbstractUnderDevelopmentGradleDistribution extends DefaultGradleDistribution {
-    protected AbstractUnderDevelopmentGradleDistribution() {
-        this(IntegrationTestBuildContext.INSTANCE);
-    }
+public class PerformanceTestBuildContext extends IntegrationTestBuildContext {
 
-    protected AbstractUnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
-        super(
-                buildContext.getVersion(),
-                buildContext.getGradleHomeDir(),
-                buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", buildContext.getVersion().getVersion()))
-        );
-    }
 }

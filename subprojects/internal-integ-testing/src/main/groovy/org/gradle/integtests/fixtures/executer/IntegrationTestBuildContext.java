@@ -26,6 +26,8 @@ import java.io.File;
  */
 public class IntegrationTestBuildContext {
 
+    public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
+
     public TestFile getGradleHomeDir() {
         return file("integTest.gradleHomeDir", null);
     }
@@ -92,7 +94,7 @@ public class IntegrationTestBuildContext {
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
-    private static TestFile file(String propertyName, String defaultFile) {
+    protected static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
             throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",

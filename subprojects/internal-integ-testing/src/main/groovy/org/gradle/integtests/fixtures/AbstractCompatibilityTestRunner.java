@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
@@ -38,7 +39,8 @@ import static org.gradle.util.CollectionUtils.*;
 public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
 
     private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
-    protected final GradleDistribution current = new UnderDevelopmentGradleDistribution();
+    protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
+    protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
     protected final List<GradleDistribution> previous;
     protected final boolean implicitVersion;
 
@@ -51,7 +53,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         validateTestName(target);
 
         previous = new ArrayList<GradleDistribution>();
-        final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions();
+        final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
         if (versionStr.equals("latest")) {
             implicitVersion = true;
             addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentFinalRelease());

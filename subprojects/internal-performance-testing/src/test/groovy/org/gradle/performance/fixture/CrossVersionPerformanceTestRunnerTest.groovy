@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
@@ -44,7 +45,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         'org.gradle.performance.db.url': "jdbc:h2:${tmpDir.testDirectory}"
     )
 
-    final buildContext = new IntegrationTestBuildContext();
+    final buildContext = IntegrationTestBuildContext.INSTANCE;
     final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(ReporterAndStore)
     final testProjectLocator = Stub(TestProjectLocator)
@@ -416,7 +417,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases)
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, new PerformanceTestBuildContext())
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory

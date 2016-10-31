@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
-    public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
-        super(distribution, testDirectoryProvider);
+    public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
     @Override

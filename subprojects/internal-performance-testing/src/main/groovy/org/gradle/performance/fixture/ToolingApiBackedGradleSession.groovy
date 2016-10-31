@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
@@ -35,7 +36,7 @@ class ToolingApiBackedGradleSession implements GradleSession {
     ToolingApiBackedGradleSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
-        this.executerBackedSession = new GradleExecuterBackedSession(invocation, testDirectoryProvider)
+        this.executerBackedSession = new GradleExecuterBackedSession(invocation, testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
     }
 
     @Override

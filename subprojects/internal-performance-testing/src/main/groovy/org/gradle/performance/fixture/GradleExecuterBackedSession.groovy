@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 @CompileStatic
@@ -27,12 +28,15 @@ class GradleExecuterBackedSession implements GradleSession {
 
     private final TestDirectoryProvider testDirectoryProvider
 
+    private final IntegrationTestBuildContext integrationTestBuildContext
+
     private GradleExecuter executer
     private GradleExecuter executerForStopping
 
-    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
+    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext integrationTestBuildContext) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
+        this.integrationTestBuildContext = integrationTestBuildContext
     }
 
     @Override
@@ -74,7 +78,7 @@ class GradleExecuterBackedSession implements GradleSession {
 
         if (executer == null) {
             def createNewExecuter = {
-                invocation.gradleDistribution.executer(testDirectoryProvider)
+                invocation.gradleDistribution.executer(testDirectoryProvider, integrationTestBuildContext)
             }
             executer = createNewExecuter()
             executerForStopping = createNewExecuter()

@@ -42,7 +42,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     GradleDistribution current
-    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    final IntegrationTestBuildContext buildContext
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
@@ -64,10 +64,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     InvocationCustomizer invocationCustomizer
     GradleExecuterDecorator executerDecorator
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
+        this.buildContext = buildContext
     }
 
     CrossVersionPerformanceResults run(Flakiness flakiness = Flakiness.not_flaky) {

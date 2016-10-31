@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -35,8 +36,13 @@ import java.io.File;
 public abstract class AbstractIntegrationTest {
     @Rule
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
-    public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution();
-    public final GradleContextualExecuter executer = new GradleContextualExecuter(distribution, testDirectoryProvider);
+
+    public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
+    public final GradleContextualExecuter executer = new GradleContextualExecuter(distribution, testDirectoryProvider, getBuildContext());
+
+    public IntegrationTestBuildContext getBuildContext() {
+        return IntegrationTestBuildContext.INSTANCE;
+    }
 
 //    @Rule
     public final M2Installation m2 = new M2Installation(testDirectoryProvider);
@@ -90,7 +96,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        GradleExecuter gradleExecuter = getDistribution().executer(testDirectoryProvider);
+        GradleExecuter gradleExecuter = getDistribution().executer(testDirectoryProvider, getBuildContext());
         gradleExecuter.withGradleUserHomeDir(getExecuter().getGradleUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDirectory().file("artifacts"));
     }

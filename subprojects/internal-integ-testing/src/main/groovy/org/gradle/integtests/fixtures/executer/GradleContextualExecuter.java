@@ -70,10 +70,12 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private GradleExecuter gradleExecuter;
 
-    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
-        super(distribution, testDirectoryProvider);
+    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, buildContext);
         this.executerType = getSystemPropertyExecuter();
     }
+
+
 
     protected GradleExecuter configureExecuter() {
         if (!getClass().desiredAssertionStatus()) {
@@ -107,13 +109,13 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private GradleExecuter createExecuter(Executer executerType) {
         switch (executerType) {
             case embedded:
-                return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case daemon:
-                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case parallel:
-                return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case forking:
-                return new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }

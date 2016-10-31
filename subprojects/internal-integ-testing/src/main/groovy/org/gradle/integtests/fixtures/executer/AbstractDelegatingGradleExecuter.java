@@ -16,11 +16,12 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.util.GradleVersion;
 
 public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExecuter {
 
-    protected AbstractDelegatingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
-        super(distribution, testDirectoryProvider);
+    protected AbstractDelegatingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, GradleVersion.current(), buildContext);
     }
 
     @Override

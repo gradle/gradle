@@ -94,7 +94,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private final Logger logger;
 
-    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    protected final IntegrationTestBuildContext buildContext;
 
     private final Set<File> customDaemonBaseDirs = new HashSet<File>();
     private final List<String> args = new ArrayList<String>();
@@ -108,7 +108,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
-    private TestFile gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+    private TestFile gradleUserHomeDir;
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
@@ -119,7 +119,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 120;
     private boolean requireDaemon;
-    private File daemonBaseDir = buildContext.getDaemonBaseDir();
+    private File daemonBaseDir;
     private final List<String> buildJvmOpts = new ArrayList<String>();
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
@@ -133,7 +133,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final Set<Action<? super GradleExecuter>> afterExecute = new LinkedHashSet<Action<? super GradleExecuter>>();
 
     private final TestDirectoryProvider testDirectoryProvider;
-    private final GradleVersion gradleVersion;
+    protected final GradleVersion gradleVersion;
     private final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
@@ -152,10 +152,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion) {
+        this(distribution, testDirectoryProvider, gradleVersion, IntegrationTestBuildContext.INSTANCE);
+    }
+
+    protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
         this.gradleVersion = gradleVersion;
         logger = Logging.getLogger(getClass());
+        this.buildContext = buildContext;
+        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+        daemonBaseDir = buildContext.getDaemonBaseDir();
     }
 
     protected Logger getLogger() {

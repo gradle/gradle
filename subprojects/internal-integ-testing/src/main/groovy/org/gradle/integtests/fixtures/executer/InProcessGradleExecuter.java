@@ -59,6 +59,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -98,6 +99,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
+    }
+
+    public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
     @Override

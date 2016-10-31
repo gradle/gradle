@@ -48,8 +48,8 @@ public class ExecuterDecoratingGradleDistribution implements GradleDistribution 
     }
 
     @Override
-    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
-        return decorateExecuter(distribution.executer(testDirectoryProvider));
+    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        return decorateExecuter(distribution.executer(testDirectoryProvider, buildContext));
     }
 
     @Override

@@ -20,5 +20,9 @@ public class ForkingUnderDevelopmentGradleDistribution extends AbstractUnderDeve
     public ForkingUnderDevelopmentGradleDistribution() {
         super();
     }
+
+    public ForkingUnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
+        super(buildContext);
+    }
 }
 
