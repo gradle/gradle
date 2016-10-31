@@ -34,6 +34,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
+    private int maxAllowedViolations;
     private boolean showViolations = true;
 
     public CheckstyleExtension(Project project) {
@@ -77,6 +78,22 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
+    }
+
+    /**
+     * The maximum number of violations that are tolerated before breaking the build
+     * or setting the failure property. Defaults to <tt>0</tt>.
+     * <p>
+     * Example: maxAllowedViolations = 42
+     *
+     * @return the maximum number of violations allowed
+     */
+    public int getMaxAllowedViolations() {
+        return maxAllowedViolations;
+    }
+
+    public void setMaxAllowedViolations(int maxAllowedViolations) {
+        this.maxAllowedViolations = maxAllowedViolations;
     }
 
     /**

@@ -29,6 +29,10 @@
                 <td><literal>project.checkstyle.showViolations</literal></td>
             </tr>
             <tr>
+                <td>maxAllowedViolations</td>
+                <td><literal>project.checkstyle.maxAllowedViolations</literal></td>
+            </tr>
+            <tr>
                 <td>configProperties</td>
                 <td><literal>project.checkstyle.configProperties</literal></td>
             </tr>
