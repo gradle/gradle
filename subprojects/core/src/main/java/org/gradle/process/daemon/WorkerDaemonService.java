@@ -16,28 +16,13 @@
 
 package org.gradle.process.daemon;
 
-import org.gradle.process.JavaForkOptions;
-
-import java.io.File;
-
 public interface WorkerDaemonService {
     /**
-     * Returns a new {@link JavaForkOptions} suitable for use when requesting a daemon.
+     * Creates a {@link WorkerDaemonExecutor} for a Runnable that will execute in a daemon process.  The produced runnable
+     * will execute in an idle daemon if one is available that meets the requirements set on the builder, otherwise a new daemon
+     * will be started.
      *
-     * @return a new {@link JavaForkOptions} object
+     * @return A {@link WorkerDaemonExecutor} that builds a daemon Runnable.
      */
-    JavaForkOptions newForkOptions();
-
-    /**
-     * Creates a new Runnable object that executes the provided class in a daemon process with the given process requirements.
-     * If an idle daemon is available that meets those requirements, it will be used in preference over starting a new daemon.
-     *
-     * @param forkOptions - The process related options to use when starting the daemon process
-     * @param classpath - The classpath to make available in the daemon process
-     * @param sharedPackages - The packages to make visible to the provided class in the daemon process
-     * @param runnableClass - The class to run in the daemon
-     * @param params - Any initialization parameters that should be provided when creating an instance of the provided class
-     * @return - A new Runnable that acquires (or starts) a daemon and executes the provided class when run
-     */
-    Runnable daemonRunnable(JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages, Class<? extends Runnable> runnableClass, Object... params);
+    WorkerDaemonExecutor daemonRunnable(Class<? extends Runnable> runnableClass);
 }
