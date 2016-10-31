@@ -59,6 +59,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
+import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
@@ -216,6 +217,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
+            resetTempDirLocation();
             processEnvironment.maybeSetProcessDir(originalUserDir);
             for (String envVar : changedEnvVars) {
                 String oldValue = originalEnv.get(envVar);
@@ -230,6 +232,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
+    private void resetTempDirLocation() {
+        SetSystemProperties.resetTempDirLocation();
+    }
+
     private BuildResult executeBuild(GradleInvocation invocation, StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
@@ -239,6 +245,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
+        resetTempDirLocation();
 
         // TODO: Fix tests that rely on this being set before we process arguments like this...
         StartParameter startParameter = new StartParameter();
