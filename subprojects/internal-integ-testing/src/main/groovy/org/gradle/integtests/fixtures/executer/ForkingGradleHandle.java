@@ -16,43 +16,38 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.io.output.CloseShieldOutputStream;
-import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
 import org.gradle.util.TextUtil;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedOutputStream;
-import java.io.UnsupportedEncodingException;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
 
-    final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
-    final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+    private final OutputCapturer standardOutputCapturer;
+    private final OutputCapturer errorOutputCapturer;
     private final Action<ExecutionResult> resultAssertion;
     private final PipedOutputStream stdinPipe;
     private final boolean isDaemon;
 
     private ExecHandle execHandle;
-    private final String outputEncoding;
     private final DurationMeasurement durationMeasurement;
 
     public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
         this.execHandleFactory = execHandleFactory;
-        this.outputEncoding = outputEncoding;
         this.isDaemon = isDaemon;
         this.stdinPipe = stdinPipe;
         this.durationMeasurement = durationMeasurement;
+        this.standardOutputCapturer = new OutputCapturer(System.out, outputEncoding);
+        this.errorOutputCapturer = new OutputCapturer(System.err, outputEncoding);
     }
 
     @Override
@@ -61,19 +56,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     public String getStandardOutput() {
-        try {
-            return standardOutput.toString(outputEncoding);
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return standardOutputCapturer.getOutputAsString();
     }
 
     public String getErrorOutput() {
-        try {
-            return errorOutput.toString(outputEncoding);
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return errorOutputCapturer.getOutputAsString();
     }
 
     public GradleHandle start() {
@@ -82,8 +69,10 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         }
 
         AbstractExecHandleBuilder execBuilder = execHandleFactory.create();
-        execBuilder.setStandardOutput(new CloseShieldOutputStream(new TeeOutputStream(System.out, standardOutput)));
-        execBuilder.setErrorOutput(new CloseShieldOutputStream(new TeeOutputStream(System.err, errorOutput)));
+        standardOutputCapturer.reset();
+        execBuilder.setStandardOutput(standardOutputCapturer.getOutputStream());
+        errorOutputCapturer.reset();
+        execBuilder.setErrorOutput(errorOutputCapturer.getOutputStream());
         execHandle = execBuilder.build();
 
         System.out.println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
