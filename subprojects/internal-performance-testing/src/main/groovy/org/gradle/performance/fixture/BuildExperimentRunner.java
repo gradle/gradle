@@ -37,7 +37,6 @@ public class BuildExperimentRunner {
 
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
-    private final OperationTimer timer = new OperationTimer();
     private final HonestProfilerCollector honestProfiler;
 
     public enum Phase {
@@ -47,10 +46,6 @@ public class BuildExperimentRunner {
 
     protected DataCollector getDataCollector() {
         return dataCollector;
-    }
-
-    protected OperationTimer getTimer() {
-        return timer;
     }
 
     public BuildExperimentRunner(GradleSessionProvider executerProvider) {
@@ -232,18 +227,14 @@ public class BuildExperimentRunner {
         final MeasuredOperationList results,
         final BuildExperimentInvocationInfo invocationInfo) {
         BuildExperimentSpec experiment = invocationInfo.getBuildExperimentSpec();
-        final Runnable runner = session.runner(invocationInfo, wrapInvocationCustomizer(invocationInfo, createInvocationCustomizer(invocationInfo)));
+        final Action<MeasuredOperation> runner = session.runner(invocationInfo, wrapInvocationCustomizer(invocationInfo, createInvocationCustomizer(invocationInfo)));
 
         if (experiment.getListener() != null) {
             experiment.getListener().beforeInvocation(invocationInfo);
         }
 
-        MeasuredOperation operation = timer.measure(new Action<MeasuredOperation>() {
-            @Override
-            public void execute(MeasuredOperation measuredOperation) {
-                runner.run();
-            }
-        });
+        MeasuredOperation operation = new MeasuredOperation();
+        runner.execute(operation);
 
         final AtomicBoolean omitMeasurement = new AtomicBoolean();
         if (experiment.getListener() != null) {

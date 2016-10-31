@@ -17,7 +17,9 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
@@ -53,7 +55,7 @@ class ToolingApiBackedGradleSession implements GradleSession {
     }
 
 
-    Runnable runner(final BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+    Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
         BuildLauncher buildLauncher = projectConnection.newBuild()
@@ -63,7 +65,14 @@ class ToolingApiBackedGradleSession implements GradleSession {
             .setStandardOutput(System.out)
             .setStandardError(System.err)
 
-        return { buildLauncher.run() }
+        return { MeasuredOperation measuredOperation ->
+            DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
+                @Override
+                void run() {
+                    buildLauncher.run()
+                }
+            })
+        } as Action<MeasuredOperation>
     }
 
     @Override

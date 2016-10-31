@@ -17,8 +17,10 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 @CompileStatic
@@ -44,16 +46,21 @@ class GradleExecuterBackedSession implements GradleSession {
         cleanup()
     }
 
-
-    Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+    Action<MeasuredOperation> runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def runner = createExecuter(invocationInfo, invocationCustomizer)
-        return {
-            if (invocation.expectFailure) {
-                runner.runWithFailure()
-            } else {
-                runner.run()
+        return { MeasuredOperation measuredOperation ->
+            runner.withDurationMeasurement(new DurationMeasurementImpl(measuredOperation))
+            try {
+                if (invocation.expectFailure) {
+                    runner.runWithFailure()
+                } else {
+                    runner.run()
+                }
+            } catch (Exception e) {
+                measuredOperation.setException(e)
+                throw e
             }
-        }
+        } as Action<MeasuredOperation>
     }
 
     @Override

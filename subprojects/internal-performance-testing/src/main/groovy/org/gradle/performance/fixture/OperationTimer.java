@@ -17,25 +17,17 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
-import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
-import org.joda.time.DateTime;
 
 public class OperationTimer {
-    public MeasuredOperation measure(Action<? super MeasuredOperation> action) {
-        MeasuredOperation result = new MeasuredOperation();
-        DateTime start = DateTime.now();
-        long startNanos = System.nanoTime();
-        try {
-            action.execute(result);
-        } catch (Exception e) {
-            result.setException(e);
-        }
-        DateTime end = DateTime.now();
-        long endNanos = System.nanoTime();
-        result.setStart(start);
-        result.setEnd(end);
-        result.setTotalTime(Duration.millis((endNanos - startNanos) / 1000000L));
+    public MeasuredOperation measure(final Action<? super MeasuredOperation> action) {
+        final MeasuredOperation result = new MeasuredOperation();
+        DurationMeasurementImpl.measure(result, new Runnable() {
+            @Override
+            public void run() {
+                action.execute(result);
+            }
+        });
         return result;
     }
 }

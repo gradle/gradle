@@ -395,7 +395,13 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withCleanupTempDirectory(boolean flag);
     
     /**
+     * Measures the duration of the execution
+     */
+    GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement);
+    
+    /**
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
+
 }

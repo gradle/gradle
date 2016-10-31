@@ -149,6 +149,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private TestFile tmpDir;
     private boolean cleanTempDirOnShutdown;
+    private DurationMeasurement durationMeasurement;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -201,6 +202,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        durationMeasurement = null;
         return this;
     }
 
@@ -327,6 +329,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
+        }
+
+        if (durationMeasurement != null) {
+            executer.withDurationMeasurement(durationMeasurement);
         }
 
         return executer;
@@ -1092,5 +1098,27 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public void stop() {
         cleanup();
+    }
+
+    @Override
+    public GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement) {
+        this.durationMeasurement = durationMeasurement;
+        return this;
+    }
+
+    protected void startMeasurement() {
+        if (durationMeasurement != null) {
+            durationMeasurement.start();
+        }
+    }
+
+    protected void stopMeasurement() {
+        if (durationMeasurement != null) {
+            durationMeasurement.stop();
+        }
+    }
+
+    protected DurationMeasurement getDurationMeasurement() {
+        return durationMeasurement;
     }
 }

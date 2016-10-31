@@ -44,13 +44,15 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
     private ExecHandle execHandle;
     private final String outputEncoding;
+    private final DurationMeasurement durationMeasurement;
 
-    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
         this.execHandleFactory = execHandleFactory;
         this.outputEncoding = outputEncoding;
         this.isDaemon = isDaemon;
         this.stdinPipe = stdinPipe;
+        this.durationMeasurement = durationMeasurement;
     }
 
     @Override
@@ -94,7 +96,9 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         System.out.println(String.format("    GRADLE_OPTS: %s", execHandle.getEnvironment().get("GRADLE_OPTS")));
 
         execHandle.start();
-
+        if (durationMeasurement != null) {
+            durationMeasurement.start();
+        }
         return this;
     }
 
@@ -166,6 +170,9 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     protected ExecutionResult waitForStop(boolean expectFailure) {
         ExecHandle execHandle = getExecHandle();
         ExecResult execResult = execHandle.waitForFinish();
+        if (durationMeasurement != null) {
+            durationMeasurement.stop();
+        }
         execResult.rethrowFailure(); // nop if all ok
 
         String output = getStandardOutput();
@@ -175,7 +182,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         if (didFail != expectFailure) {
             String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%n-----%nError:%n%s%n-----%n",
                 expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error);
-            throw new UnexpectedBuildFailure(message);
+            final UnexpectedBuildFailure unexpectedBuildFailure = new UnexpectedBuildFailure(message);
+            if (durationMeasurement != null) {
+                durationMeasurement.fail(unexpectedBuildFailure);
+            }
+            throw unexpectedBuildFailure;
         }
 
         ExecutionResult executionResult = expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);

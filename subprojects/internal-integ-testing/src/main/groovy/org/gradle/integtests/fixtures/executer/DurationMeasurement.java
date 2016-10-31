@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.performance.fixture;
 
-import org.gradle.api.Action;
-import org.gradle.performance.measure.MeasuredOperation;
+package org.gradle.integtests.fixtures.executer;
 
-public interface InvocationExecutorProvider {
-    Action<MeasuredOperation> runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer);
+public interface DurationMeasurement {
+    void start();
+    void stop();
+    void fail(Exception e);
 }
