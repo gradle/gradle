@@ -98,7 +98,8 @@ class GradleExecuterBackedSession implements GradleSession {
             withReuseUserHomeServices(true).
             requireGradleDistribution().
             requireIsolatedDaemons().
-            expectDeprecationWarning().
+            noDeprecationChecks().
+            withFullDeprecationStackTraceDisabled().
             withStackTraceChecksDisabled().
             withArgument('-u').
             inDirectory(invocation.workingDirectory).
