@@ -233,9 +233,3 @@ configure<ArtifactoryPluginConvention> {
 fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:${extra["kotlinVersion"]}"
 
 operator fun Regex.contains(s: String) = matches(s)
-
-fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
-    object : groovy.lang.Closure<Unit>(this, null) {
-        fun doCall() = (delegate as T).action()
-    }
-
