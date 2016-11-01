@@ -165,8 +165,7 @@ task<integration.Benchmark>("benchmark") {
 //
 //     check-hello-kotlin
 //
-tasks.addRule("Pattern: check-<SAMPLE>", closureOf<String> {
-    val taskName = this
+tasks.addRule("Pattern: check-<SAMPLE>") { taskName ->
     if (taskName.startsWith("check-")) {
         val checkSample = task<integration.CheckSample>("$taskName-task") {
             dependsOn(customInstallation)
@@ -175,7 +174,7 @@ tasks.addRule("Pattern: check-<SAMPLE>", closureOf<String> {
         }
         task(taskName).dependsOn(checkSample)
     }
-})
+}
 
 val checkSamples = task("checkSamples") {
     description = "Checks all samples"
