@@ -164,6 +164,25 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    public void "java PID equals script PID"() {
+        given:
+        succeeds('installDist')
+        def binFile = file('build/install/sample/bin/sample')
+        binFile.text = """echo Script PID: \$\$
+
+$binFile.text
+"""
+
+        when:
+        ExecutionResult result = runViaUnixStartScript()
+        def pids = result.output.findAll(/PID: \d+/)
+
+        then:
+        assert pids.size() == 2
+        assert pids[0] == pids[1]
+    }
+
     @Requires(TestPrecondition.WINDOWS)
     def "can execute generated Windows start script"() {
         when:
@@ -276,6 +295,7 @@ package org.gradle.test;
 public class Main {
     public static void main(String[] args) {
         System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
+        System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         System.out.println("Hello World!");
     }
 }
