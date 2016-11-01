@@ -41,7 +41,7 @@ public abstract class TaskExecution {
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
-    private ImmutableSet<String> cacheableOutputProperties;
+    private Iterable<String> cacheableOutputProperties;
     private ImmutableSet<String> declaredOutputFilePaths;
 
     /**
@@ -51,11 +51,11 @@ public abstract class TaskExecution {
      * cacheable, it returns an empty collection.
      */
     public ImmutableSet<String> getCacheableOutputProperties() {
-        return cacheableOutputProperties;
+        return ImmutableSet.copyOf(cacheableOutputProperties);
     }
 
-    public void setCacheableOutputProperties(Collection<String> cacheableOutputProperties) {
-        this.cacheableOutputProperties = ImmutableSet.copyOf(cacheableOutputProperties);
+    public void setCacheableOutputProperties(Iterable<String> cacheableOutputProperties) {
+        this.cacheableOutputProperties = cacheableOutputProperties;
     }
 
     /**

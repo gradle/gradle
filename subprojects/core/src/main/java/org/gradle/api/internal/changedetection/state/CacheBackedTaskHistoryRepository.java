@@ -15,10 +15,13 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
@@ -140,18 +143,25 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
     }
 
-    private static ImmutableSet<String> getCacheableOutputProperties(TaskInternal task) {
-        ImmutableSet.Builder<String> cacheableOutputProperties = ImmutableSet.builder();
-        for (TaskOutputFilePropertySpec propertySpec : task.getOutputs().getFileProperties()) {
-            if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
-                continue;
+    private Iterable<String> getCacheableOutputProperties(TaskInternal task) {
+        Iterable<TaskOutputFilePropertySpec> cacheable = Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
+            @Override
+            public boolean apply(TaskOutputFilePropertySpec propertySpec) {
+                if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
+                    return false;
+                }
+                if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() == null) {
+                    return false;
+                }
+                return true;
             }
-            if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() == null) {
-                continue;
+        });
+        return Iterables.transform(cacheable, new Function<TaskOutputFilePropertySpec, String>() {
+            @Override
+            public String apply(TaskOutputFilePropertySpec propertySpec) {
+                return propertySpec.getPropertyName();
             }
-            cacheableOutputProperties.add(propertySpec.getPropertyName());
-        }
-        return cacheableOutputProperties.build();
+        });
     }
 
     private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
