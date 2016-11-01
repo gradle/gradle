@@ -67,7 +67,8 @@ dependencies {
 val sourceSets = the<JavaPluginConvention>().sourceSets
 val mainSourceSet = sourceSets.getByName("main")!!
 
-tasks.withType<Jar> {
+val jar = tasks.getByName("jar") as Jar
+jar.apply {
     from(mainSourceSet.allSource)
     manifest.attributes.apply {
         put("Implementation-Title", "Gradle Script Kotlin")
@@ -146,7 +147,7 @@ val customInstallation = task<Copy>("customInstallation") {
     description = "Copies latest gradle-script-kotlin snapshot over the custom installation."
     dependsOn(copyCurrentDistro)
     from(configurations.compile)
-    from(tasks.getByName("jar"))
+    from(jar)
     into("$customInstallationDir/lib")
 }
 val test = tasks.getByName("test")
