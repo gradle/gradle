@@ -175,11 +175,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
             }
             def releasedVersion = findRelease(releases, version)
+            def versionObject = GradleVersion.version(version)
             if (releasedVersion) {
                 baselineVersions.add(releasedVersion.version.version)
-            } else if (GradleVersion.version(version).snapshot) {
+            } else if (versionObject.snapshot || isRcVersion(versionObject)) {
                 // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
                 // blindly add it to the list and trust the test author
+                // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
                 addMostRecentFinalRelease = false
                 baselineVersions.add(version)
             } else {
@@ -193,6 +195,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         baselineVersions
+    }
+
+    private static boolean isRcVersion(GradleVersion versionObject) {
+        // there is no public API for checking for RC version, this is an internal way
+        versionObject.stage.stage == 3
     }
 
     private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
