@@ -400,8 +400,14 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement);
     
     /**
+     * Passes -Dorg.gradle.internal.reuse.user.home.services=false to build unless this flag is set to true
+     *
+     * @see org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
+     */
+    GradleExecuter withReuseUserHomeServices(boolean reuseUserHomeServices);
+    
+    /**
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
-
 }
