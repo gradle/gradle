@@ -63,6 +63,7 @@ public class FindBugsExtension extends CodeQualityExtension {
     private TextResource excludeFilterConfig;
     private TextResource excludeBugsFilterConfig;
     private Collection<String> extraArgs;
+    private Collection<String> jvmArgs;
 
     public FindBugsExtension(Project project) {
         this.project = project;
@@ -237,5 +238,20 @@ public class FindBugsExtension extends CodeQualityExtension {
 
     public void setExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 3.2
+     */
+    public Collection<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    public void setJvmArgs(Collection<String> jvmArgs) {
+        this.jvmArgs = jvmArgs;
     }
 }

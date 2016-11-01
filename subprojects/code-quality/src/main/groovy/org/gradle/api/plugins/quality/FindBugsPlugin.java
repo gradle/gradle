@@ -155,6 +155,12 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 return extension.getExtraArgs();
             }
         });
+        taskMapping.map("jvmArgs", new Callable<Collection<String>>() {
+            @Override
+            public Collection<String> call() {
+                return extension.getJvmArgs();
+            }
+        });
     }
 
     private void configureReportsConventionMapping(FindBugs task, final String baseName) {
