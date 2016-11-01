@@ -66,7 +66,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
 
     @Override
     public String toString() {
-        return propertyName;
+        return String.format("%s: %s", propertyName, type);
     }
 
     public String getName() {

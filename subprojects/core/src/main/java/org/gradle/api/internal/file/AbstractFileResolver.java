@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -79,9 +80,8 @@ public abstract class AbstractFileResolver implements FileResolver {
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 
-        if (file != null) {
-            file = fileNormaliser.normalise(file);
-        }
+        file = fileNormaliser.normalise(file);
+
         validate(file, validation);
 
         return file;
@@ -111,6 +111,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         return (URI) converted;
     }
 
+    @Nullable
     protected File convertObjectToFile(Object path) {
         Object object = unpack(path);
         if (object == null) {

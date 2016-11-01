@@ -39,9 +39,9 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         testProject       | targetVersions
-        "small"           | ['3.3-20161026000020+0000']
-        "multi"           | ['3.3-20161026000020+0000']
-        "lotDependencies" | ['3.3-20161026000020+0000']
-        "bigOldJava"      | ['3.3-20161026000020+0000']
+        "small"           | ['3.3-20161028000018+0000']
+        "multi"           | ['3.3-20161028000018+0000']
+        "lotDependencies" | ['3.3-20161028000018+0000']
+        "bigOldJava"      | ['3.3-20161028000018+0000']
     }
 }

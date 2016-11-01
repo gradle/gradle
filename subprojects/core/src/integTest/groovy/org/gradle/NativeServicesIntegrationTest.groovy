@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer.VERSIONED_STORAGE_DIR_NAME
+import static org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer.JANSI_LIBRARY_PATH_SYS_PROP
 
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,7 +31,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     def libraryFactory = new JansiLibraryFactory()
     def nativeDir = new File(executer.gradleUserHomeDir, 'native')
-    def jansiDir = new File(nativeDir, VERSIONED_STORAGE_DIR_NAME)
+    def jansiDir = libraryFactory.makeVersionSpecificDir(nativeDir)
     def library = new File(jansiDir, libraryFactory.create().path)
 
     def setup() {
@@ -69,6 +69,49 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         library.exists()
         assertNoFilesInTmp()
         lastModified == library.lastModified()
+    }
+
+    @Issue("GRADLE-3573")
+    def "test workers use a different version of Jansi than initialized by Gradle's native services"() {
+        given:
+        def jansiVersion = '1.11'
+
+        buildFile << """
+            apply plugin: 'java'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                testCompile 'org.fusesource.jansi:jansi:$jansiVersion'
+                testCompile 'junit:junit:4.12'
+            }
+        """
+
+        file('src/test/java/org/gradle/JansiTest.java') << """
+            package org.gradle;
+
+            import org.fusesource.jansi.Ansi;
+
+            import org.junit.Test;
+            import static org.junit.Assert.assertNull;
+            import static org.junit.Assert.assertEquals;
+
+            public class JansiTest {
+                @Test
+                public void canUseCustomJansiVersion() {
+                    assertNull(System.getProperty("${JANSI_LIBRARY_PATH_SYS_PROP}"));
+                    assertEquals(Ansi.class.getPackage().getImplementationVersion(), "$jansiVersion");
+                }
+            }
+        """
+
+        when:
+        succeeds('test')
+
+        then:
+        executedAndNotSkipped(':test')
     }
 
     private void assertNoFilesInTmp() {

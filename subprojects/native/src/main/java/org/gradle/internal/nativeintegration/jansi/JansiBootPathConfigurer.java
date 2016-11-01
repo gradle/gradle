@@ -26,8 +26,6 @@ import java.io.InputStream;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
-    private static final String JANSI_LIBRARY_VERSION = "1.14";
-    private static final String VERSIONED_STORAGE_DIR_NAME = "jansi/" + JANSI_LIBRARY_VERSION;
     private final JansiLibraryFactory factory = new JansiLibraryFactory();
 
     /**
@@ -44,7 +42,7 @@ public class JansiBootPathConfigurer {
         JansiLibrary jansiLibrary = factory.create();
 
         if (jansiLibrary != null) {
-            File jansiDir = new File(storageDir, VERSIONED_STORAGE_DIR_NAME);
+            File jansiDir = factory.makeVersionSpecificDir(storageDir);
             File libFile = new File(jansiDir, jansiLibrary.getPath());
             libFile.getParentFile().mkdirs();
 

@@ -180,9 +180,9 @@ public class BuildExperimentRunner {
             return experiment.getInvocationCount();
         }
         if (usesDaemon(experiment)) {
-            return 20;
+            return 10;
         } else {
-            return 40;
+            return 14;
         }
     }
 
@@ -197,7 +197,7 @@ public class BuildExperimentRunner {
         if (usesDaemon(experiment)) {
             return 10;
         } else {
-            return 1;
+            return 4;
         }
     }
 

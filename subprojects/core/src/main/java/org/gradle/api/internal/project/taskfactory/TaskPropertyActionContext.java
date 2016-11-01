@@ -52,6 +52,11 @@ public interface TaskPropertyActionContext {
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
     /**
+     * @return Is this an optional property (value may be null)?
+     */
+    boolean getOptional();
+
+    /**
      * Sets whether the property allows null values.
      */
     void setOptional(boolean optional);

@@ -64,7 +64,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
-    public static synchronized void initialize(File userHomeDir) {
+    public static void initialize(File userHomeDir) {
+        initialize(userHomeDir, true);
+    }
+
+    public static synchronized void initialize(File userHomeDir, boolean initializeJansi) {
         if (!initialized) {
             nativeBaseDir = getNativeServicesDir(userHomeDir);
             if (useNativePlatform) {
@@ -82,15 +86,13 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     }
                 }
             }
-            initializeJansi(nativeBaseDir);
+            if (initializeJansi) {
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+            }
             initialized = true;
 
             LOGGER.info("Initialized native services in: " + nativeBaseDir);
         }
-    }
-
-    private static void initializeJansi(File nativeBaseDir) {
-        JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
     }
 
     public static File getNativeServicesDir(File userHomeDir) {

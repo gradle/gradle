@@ -82,7 +82,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         // Loading this classes messes with the standard streams.
         // Do it now so that we can replace them
         //noinspection GroovyUnusedAssignment
-        assert InProcessGradleExecuter.class
+        InProcessGradleExecuter.COMMON_TMP
 
         // The Gradle test fixtures implicitly forward the output from executed builds (see ForkingGradleHandle)
         // The builds have a lot of output, and this freaks TeamCity out.
