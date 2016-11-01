@@ -63,7 +63,11 @@ abstract class CheckstyleInvoker {
                 }
 
                 configProperties.each { key, value ->
-                    property(key: key, value: value.toString())
+                    if (value in File) {
+                        property(key: key, file: value.toString())
+                    } else {
+                        property(key: key, value: value.toString())
+                    }
                 }
             }
 

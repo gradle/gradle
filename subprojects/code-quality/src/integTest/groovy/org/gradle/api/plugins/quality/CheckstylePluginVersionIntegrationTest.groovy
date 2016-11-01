@@ -204,6 +204,23 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
+    def "can configure file properties"() {
+        given:
+        goodCode()
+        buildFile << '''
+            checkstyleMain {
+                configProperties = ['checkstyle.cache.file': file("${buildDir}/checkstyle-main.cache")]
+            }
+        '''
+
+        when:
+        succeeds 'checkstyleMain'
+
+        then:
+        file("build/reports/checkstyle/main.xml").exists()
+        file("build/checkstyle-main.cache").exists()
+    }
+
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
