@@ -28,12 +28,21 @@ import groovy.lang.Closure
  */
 fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
     KotlinClosure(action, this, this)
+
+/**
+ * Adapts a Kotlin function to a Groovy [Closure] that operates on the
+ * configured Closure delegate.
+ *
+ * @param T the expected type of the delegate argument to the closure.
  * @param function the function to be adapted.
  *
  * @see KotlinClosure
  */
-fun <T : Any> closureOf(function: T.() -> Unit): Closure<Any?> =
-    KotlinClosure(function)
+fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
+    object : groovy.lang.Closure<Unit>(this, this) {
+        @Suppress("unused") // to be called dynamically by Groovy
+        fun doCall() = (delegate as T).action()
+    }
 
 /**
  * Adapts a Kotlin function to a single argument Groovy [Closure].
