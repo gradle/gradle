@@ -462,6 +462,39 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         failure.assertHasDescription "Execution failed for task ':findbugsMain'."
     }
 
+    def "valid jvm args"() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << """
+            findbugsMain {
+                jvmArgs '-Xdebug'
+            }
+        """
+
+        expect:
+        succeeds("check")
+    }
+
+    def "fails when given invalid jvmArgs"() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << """
+            findbugsMain {
+                jvmArgs '-XInvalid'
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':findbugsMain'.")
+        failure.assertHasCause("Failed to run Gradle FindBugs Worker")
+        failure.assertThatCause(Matchers.matchesRegexp("Process 'Gradle FindBugs Worker [0-9]+' finished with non-zero exit value 1"))
+    }
+
     private static boolean containsXmlMessages(File xmlReportFile) {
         new XmlSlurper().parseText(xmlReportFile.text).BugInstance.children().collect { it.name() }.containsAll(['ShortMessage', 'LongMessage'])
     }

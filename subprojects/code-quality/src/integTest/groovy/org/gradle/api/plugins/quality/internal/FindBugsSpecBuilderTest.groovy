@@ -269,4 +269,12 @@ class FindBugsSpecBuilderTest extends Specification {
         then:
         args.containsAll([ "abc", "def" ])
     }
+
+    def "with JVM args"() {
+        when:
+        def jvmArgs = builder.withJvmArgs([ '-Dabc', '-Ddef' ]).build().jvmArgs
+
+        then:
+        jvmArgs.containsAll([ "-Dabc", "-Ddef" ])
+    }
 }
