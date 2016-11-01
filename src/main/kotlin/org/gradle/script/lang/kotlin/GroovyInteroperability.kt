@@ -22,6 +22,12 @@ import groovy.lang.Closure
  * Adapts a Kotlin function to a single argument Groovy [Closure].
  *
  * @param T the expected type of the single argument to the closure.
+ * @param action the function to be adapted.
+ *
+ * @see KotlinClosure
+ */
+fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
+    KotlinClosure(action, this, this)
  * @param function the function to be adapted.
  *
  * @see KotlinClosure
