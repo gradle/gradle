@@ -569,7 +569,8 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a'
 
         then:
-        executedTasks.size == count+3
+
+        executedTasks == [':a'] + (count..0).collect{ ":d_$it" } + [':f']
     }
 
     @NotYetImplemented
