@@ -17,7 +17,6 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.integtests.fixtures.executer.DurationMeasurement;
-import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.joda.time.DateTime;
@@ -46,23 +45,11 @@ public class DurationMeasurementImpl implements DurationMeasurement {
         measuredOperation.setTotalTime(Duration.millis((endNanos - startNanos) / 1000000L));
     }
 
-    @Override
-    public void fail(Exception e) {
-        measuredOperation.setException(e);
-    }
-
-    public MeasuredOperation getMeasuredOperation() {
-        return measuredOperation;
-    }
-
     public static void measure(MeasuredOperation measuredOperation, Runnable runnable) {
         DurationMeasurementImpl durationMeasurement = new DurationMeasurementImpl(measuredOperation);
         durationMeasurement.start();
         try {
             runnable.run();
-        } catch (Exception e) {
-            durationMeasurement.fail(e);
-            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             durationMeasurement.stop();
         }

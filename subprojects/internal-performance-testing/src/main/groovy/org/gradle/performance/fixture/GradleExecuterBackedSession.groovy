@@ -58,7 +58,6 @@ class GradleExecuterBackedSession implements GradleSession {
                 }
             } catch (Exception e) {
                 measuredOperation.setException(e)
-                throw e
             }
         } as Action<MeasuredOperation>
     }

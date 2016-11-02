@@ -19,5 +19,4 @@ package org.gradle.integtests.fixtures.executer;
 public interface DurationMeasurement {
     void start();
     void stop();
-    void fail(Exception e);
 }
