@@ -159,19 +159,6 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return mustSuccessors;
     }
 
-    /**
-     * A subset of {@link #getMustSuccessors()} that only includes tasks that are finalized by this task.
-     */
-    TreeSet<TaskInfo> getFinalizerSuccessors() {
-        final TreeSet<TaskInfo> finalizedBy = new TreeSet<TaskInfo>();
-        for (TaskInfo mustSuccessor : mustSuccessors) {
-            if (mustSuccessor.getFinalizers().contains(this)) {
-                finalizedBy.add(mustSuccessor);
-            }
-        }
-        return finalizedBy;
-    }
-
     public TreeSet<TaskInfo> getFinalizers() {
         return finalizers;
     }
