@@ -1344,6 +1344,28 @@ class DefaultConfigurationSpec extends Specification {
         thrown(InvalidUserDataException)
     }
 
+    def "Cannot set attribute value to null"() {
+        def conf = conf("conf")
+
+        when:
+        conf.attribute('foo', null)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Null attribute values are not allowed.'
+    }
+
+    def "Cannot set attribute value to null using map shortcut notation"() {
+        def conf = conf("conf")
+
+        when:
+        conf.attributes(foo: 'bar', bar: null)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Null attribute values are not allowed.'
+    }
+
     def dumpString() {
         when:
         def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");

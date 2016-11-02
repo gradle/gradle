@@ -743,14 +743,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Configuration attribute(String key, String value) {
         validateMutation(MutationType.ATTRIBUTES);
+        assertAttributeValueIsNotNull(value);
         ensureAttributes();
         attributes.put(key, value);
         return this;
     }
 
+    private void assertAttributeValueIsNotNull(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Null attribute values are not allowed.");
+        }
+    }
+
     @Override
     public Configuration attributes(Map<String, String> attributes) {
         validateMutation(MutationType.ATTRIBUTES);
+        for (String value : attributes.values()) {
+            assertAttributeValueIsNotNull(value);
+        }
         ensureAttributes();
         this.attributes.putAll(attributes);
         return this;
