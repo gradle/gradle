@@ -65,6 +65,8 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
     @NotYetImplemented
     @Issue("GRADLE-3578")
     def "java compiler uses a different version of Jansi than initialized by Gradle's native services"() {
+        requireGradleDistribution()
+
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
@@ -87,7 +89,6 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             public class MyClass {}
         """
 
-        requireGradleDistribution()
         succeeds 'compileJava'
 
         then:
@@ -95,6 +96,8 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "groovy compiler uses a different version of Jansi than initialized by Gradle's native services"() {
+        requireGradleDistribution()
+
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
@@ -124,7 +127,6 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             class MyClass {}
         """
 
-        requireGradleDistribution()
         succeeds 'compileGroovy'
 
         then:
