@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
-import org.gradle.process.daemon.DaemonForkOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -56,7 +55,7 @@ public class WorkerDaemonStarter {
         WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, worker);
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
-        
+
         return client;
     }
 }

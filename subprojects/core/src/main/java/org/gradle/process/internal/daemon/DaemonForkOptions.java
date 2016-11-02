@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.daemon;
+package org.gradle.process.internal.daemon;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
