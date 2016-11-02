@@ -23,7 +23,7 @@ import spock.lang.Ignore
 
 class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can create and use a daemon runnable"() {
+    def "can create and use a daemon runnable defined in buildSrc"() {
         def outputFileDir = file("build/worker")
         def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
         def list = [ 1, 2, 3 ]
@@ -67,8 +67,10 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void executeTask() {
-                    project.daemons.daemonRunnable()
-                        .forkOptions { it.workingDir(project.projectDir) }
+                    project.workerDaemons.daemonRunnable()
+                        .forkOptions {
+                            it.workingDir(project.projectDir)
+                        }
                         .implementationClass(MyRunnable.class)
                         .params(list.collect { it as String }, new File("${outputFileDirPath}"))
                         .execute()
@@ -89,20 +91,26 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Ignore
     def "can create and use a daemon runnable defined in build script"() {
         def outputFileDir = file("build/worker")
         def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
         def list = [ 1, 2, 3 ]
 
+        file("buildSrc/src/main/groovy/Foo.groovy") << """
+            class Foo implements Serializable {
+            }
+        """
+
         buildFile << """
             class MyRunnable implements Runnable {
                 private final List<String> files;
                 private File outputDir;
+                private Foo foo;
 
-                public MyRunnable(List<String> files, File outputDir) {
+                public MyRunnable(List<String> files, File outputDir, Foo foo) {
                     this.files = files;
                     this.outputDir = outputDir;
+                    this.foo = foo;
                 }
 
                 public void run() {
@@ -124,10 +132,12 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void executeTask() {
-                    project.daemons.daemonRunnable()
-                        .forkOptions { it.workingDir(project.projectDir) }
+                    project.workerDaemons.daemonRunnable()
+                        .forkOptions {
+                            it.workingDir(project.projectDir)
+                        }
                         .implementationClass(MyRunnable.class)
-                        .params(list.collect { it as String }, new File("${outputFileDirPath}"))
+                        .params(list.collect { it as String }, new File("${outputFileDirPath}"), new Foo())
                         .execute()
                 }
             }

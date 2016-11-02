@@ -35,6 +35,7 @@ import java.util.Set;
 public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy {
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
+    public static final String DEFAULT_PACKAGE = "DEFAULT";
     private final Set<String> packageNames = new HashSet<String>();
     private final Set<String> packagePrefixes = new HashSet<String>();
     private final Set<String> resourcePrefixes = new HashSet<String>();
@@ -76,7 +77,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             // ignore
         }
 
-        if (!classAllowed(name)) {
+        if (!(classAllowed(name))) {
             throw new ClassNotFoundException(name + " not found.");
         }
 
@@ -174,8 +175,16 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             if (className.startsWith(packagePrefix)) {
                 return true;
             }
+
+            if (packagePrefix.startsWith(DEFAULT_PACKAGE) && isInDefaultPackage(className)) {
+                return true;
+            }
         }
         return false;
+    }
+
+    private boolean isInDefaultPackage(String className) {
+        return !className.contains(".");
     }
 
     public static class Spec extends ClassLoaderSpec {

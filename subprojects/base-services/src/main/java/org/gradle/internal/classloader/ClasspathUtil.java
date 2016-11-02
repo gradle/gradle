@@ -68,10 +68,12 @@ public class ClasspathUtil {
                     return new File(location);
                 }
             }
-            String resourceName = targetClass.getName().replace('.', '/') + ".class";
-            URL resource = targetClass.getClassLoader().getResource(resourceName);
-            if (resource != null) {
-                return getClasspathForResource(resource, resourceName);
+            if (targetClass.getClassLoader() != null) {
+                String resourceName = targetClass.getName().replace('.', '/') + ".class";
+                URL resource = targetClass.getClassLoader().getResource(resourceName);
+                if (resource != null) {
+                    return getClasspathForResource(resource, resourceName);
+                }
             }
             throw new GradleException(String.format("Cannot determine classpath for class %s.", targetClass.getName()));
         } catch (URISyntaxException e) {

@@ -17,12 +17,14 @@
 package org.gradle.process.internal.daemon;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.daemon.DaemonForkOptions;
 import org.gradle.process.daemon.WorkerDaemonExecutor;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.GUtil;
@@ -100,38 +102,41 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     }
 
     static DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages) {
-        ImmutableList.Builder<File> classpathBuilder = ImmutableList.builder();
-        ImmutableList.Builder<String> sharedPackagesBuilder = ImmutableList.builder();
+        ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
+        ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
         if (classpath != null) {
             classpathBuilder.addAll(classpath);
         }
 
-        classpathBuilder.add(ClasspathUtil.getClasspathForClass(Action.class));
-        classpathBuilder.add(ClasspathUtil.getClasspathForClass(actionClass));
-
         if (sharedPackages != null) {
             sharedPackagesBuilder.addAll(sharedPackages);
         }
 
-        if (actionClass.getPackage() != null) {
-            sharedPackagesBuilder.add(actionClass.getPackage().getName());
-        }
-
-        sharedPackagesBuilder.add("org.gradle.api");
+        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder);
 
         for (Class<?> paramClass : paramClasses) {
-            if (paramClass.getClassLoader() != null) {
-                classpathBuilder.add(ClasspathUtil.getClasspathForClass(paramClass));
-            }
-            if (paramClass.getPackage() != null) {
-                sharedPackagesBuilder.add(paramClass.getPackage().getName());
-            }
+            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder);
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
         Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
 
         return new DaemonForkOptions(forkOptions.getMinHeapSize(), forkOptions.getMaxHeapSize(), forkOptions.getAllJvmArgs(), daemonClasspath, daemonSharedPackages);
+    }
+
+    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder) {
+        if (visibleClass.getClassLoader() != null) {
+            classpathBuilder.add(ClasspathUtil.getClasspathForClass(visibleClass));
+        }
+        if (GroovyObject.class.isAssignableFrom(visibleClass)) {
+            classpathBuilder.add(ClasspathUtil.getClasspathForClass(GroovyObject.class));
+        }
+
+        if (visibleClass.getPackage() != null) {
+            sharedPackagesBuilder.add(visibleClass.getPackage().getName());
+        } else {
+            sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
+        }
     }
 }

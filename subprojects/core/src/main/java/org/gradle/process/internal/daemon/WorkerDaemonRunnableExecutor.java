@@ -19,7 +19,6 @@ package org.gradle.process.internal.daemon;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.process.daemon.DaemonForkOptions;
 import org.gradle.util.CollectionUtils;
 
 public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<Runnable> {

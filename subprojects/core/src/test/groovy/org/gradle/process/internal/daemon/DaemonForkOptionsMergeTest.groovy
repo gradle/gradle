@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.daemon
 
-import org.gradle.process.daemon.DaemonForkOptions
 import spock.lang.Specification
 
 class DaemonForkOptionsMergeTest extends Specification {
