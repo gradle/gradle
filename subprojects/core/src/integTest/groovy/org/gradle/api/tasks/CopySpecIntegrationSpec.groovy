@@ -16,9 +16,11 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
@@ -165,5 +167,30 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         !file('dest/one/ignore/matchedbad.file').exists()
         !file('dest/two/ignore/matchedbad.file').exists()
         file('dest/one/matchedone.a').exists()
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#789")
+    def "can copy files with supplementary characters or surrogate pairs in file names"() {
+        given:
+        buildScript """
+            task(copy, type: Copy) {
+                from 'src'
+                into 'dest'
+            }
+        """.stripIndent()
+
+        and:
+        file('src/アンドリューは本当に凄いですawesomeだと思います.txt') << 'some content'
+        file('src/𩸽.txt') << 'some content'
+        file('src/😀.txt') << 'some content'
+
+        when:
+        succeeds 'copy'
+
+        then:
+        file('dest/アンドリューは本当に凄いですawesomeだと思います.txt').exists()
+        file('dest/𩸽.txt').exists()
+        file('dest/😀.txt').exists()
     }
 }
