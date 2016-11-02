@@ -48,6 +48,9 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Input @Optional
     String coordinatorBuildId
 
+    @Input @Optional
+    String branchName
+
     @Input
     String buildTypeId
 
@@ -138,7 +141,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario, String lastChangeId) {
         def buildRequest = """
-                <build>
+                <build${branchName ? " branchName=\"${branchName}\"" : ""}>
                     <buildType id="${buildTypeId}"/>
                     <properties>
                         <property name="scenario" value="${scenario.id}"/>

@@ -192,6 +192,7 @@ tasks.withType(DistributedPerformanceTest) {
     buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
     workerTestTaskName = project.findProperty("org.gradle.performance.workerTestTaskName")?:'fullPerformanceTest'
     coordinatorBuildId = project.findProperty("org.gradle.performance.coordinatorBuildId")
+    branchName = project.findProperty("org.gradle.performance.branchName")
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
     teamCityPassword = project.findProperty("teamCityPassword")
