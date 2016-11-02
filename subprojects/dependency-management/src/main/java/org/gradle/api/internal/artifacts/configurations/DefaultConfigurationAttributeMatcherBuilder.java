@@ -20,16 +20,9 @@ import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
 import org.gradle.api.artifacts.ConfigurationAttributeScorer;
 
 public class DefaultConfigurationAttributeMatcherBuilder implements ConfigurationAttributesMatchingStrategyInternal.ConfigurationAttributeMatcherBuilderInternal {
-    private static final StrictAttributeValueMatch STRICT_ATTRIBUTE_VALUE_MATCH = new StrictAttributeValueMatch();
-    private static final Transformer<String, String> NO_DEFAULT_VALUE = new Transformer<String, String>() {
-        @Override
-        public String transform(String input) {
-            return null;
-        }
-    };
 
-    private ConfigurationAttributeScorer scorer = STRICT_ATTRIBUTE_VALUE_MATCH;
-    private Transformer<String, String> defaultValueBuilder = NO_DEFAULT_VALUE;
+    private ConfigurationAttributeScorer scorer = ConfigurationAttributeMatcher.STRICT_ATTRIBUTE_VALUE_MATCH;
+    private Transformer<String, String> defaultValueBuilder = ConfigurationAttributeMatcher.NO_DEFAULT;
 
     private DefaultConfigurationAttributeMatcherBuilder() {
     }
@@ -74,11 +67,4 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
         }
     }
 
-    private static class StrictAttributeValueMatch implements ConfigurationAttributeScorer {
-        @Override
-        public int score(String requested, String provided) {
-            return (requested==null && provided==null)
-                || (requested!=null && requested.equals(provided)) ? 0 : -1;
-        }
-    }
 }

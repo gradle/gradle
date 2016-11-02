@@ -22,8 +22,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -132,7 +132,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Map<String, String> attributes;
     private boolean isConsumeOrPublishAllowed = true;
     private boolean isQueryOrResolveAllowed = true;
-    private final ConfigurationAttributesMatchingStrategy attributeMatchingStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -141,8 +140,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                FileCollectionFactory fileCollectionFactory, ComponentIdentifierFactory componentIdentifierFactory,
-                                ConfigurationAttributesMatchingStrategy attributeMatchingStrategy) {
+                                FileCollectionFactory fileCollectionFactory, ComponentIdentifierFactory componentIdentifierFactory) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -157,7 +155,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.componentIdentifierFactory = componentIdentifierFactory;
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        this.attributeMatchingStrategy = attributeMatchingStrategy;
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -546,7 +543,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, attributeMatchingStrategy);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -795,11 +792,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
         validateMutation(MutationType.ROLE);
         isQueryOrResolveAllowed = queryOrResolveAllowed;
-    }
-
-    @Override
-    public ConfigurationAttributesMatchingStrategy getAttributeMatchingStrategy() {
-        return attributeMatchingStrategy;
     }
 
     /**

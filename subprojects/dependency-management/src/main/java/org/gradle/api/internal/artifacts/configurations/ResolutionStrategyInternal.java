@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
@@ -77,4 +78,9 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * Sets the validator to invoke before mutation. Any exception thrown by the action will veto the mutation.
      */
     void setMutationValidator(MutationValidator action);
+
+    /**
+     * Returns the attributes matching strategy
+     */
+    ConfigurationAttributesMatchingStrategy getAttributesMatchingStrategy();
 }

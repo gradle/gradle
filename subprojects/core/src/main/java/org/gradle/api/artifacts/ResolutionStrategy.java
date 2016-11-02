@@ -285,4 +285,32 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
+
+    /**
+     * Configures the configuration attributes matching strategy. The action receives an instance of {@link ConfigurationAttributesMatchingStrategy} which
+     * can be used to configure how configuration attributes are matched during dependency resolution.
+     * <p/>
+     * Examples:
+     * <pre autoTested=''>
+     * // configure matching strategy
+     * configurations.all {
+     *   resolutionStrategy.attributeMatching {
+     *      // configures matching of "flavor" with a case insensitive matching strategy
+     *      matcher('flavor') {
+     *          withScorer ConfigurationAttributeMatcher.CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH
+     *      }
+     *
+     *      // configures matching of "buildType" with a default value provider
+     *      matcher('buildType') {
+     *          withDefaultValue ConfigurationAttributeMatcher.ALWAYS_PROVIDE
+     *      }
+     *
+     *   }
+     * }
+     * </pre>
+     * @param action the configuration action
+     * @return this {@link ResolutionStrategy} instance
+     */
+    @Incubating
+    ResolutionStrategy attributesMatching(Action<? super ConfigurationAttributesMatchingStrategy> action);
 }

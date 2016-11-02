@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
 
 /**
  * A configuration attribute matcher is responsible for telling if an attribute from a source configuration
@@ -31,10 +32,43 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ConfigurationAttributeMatcher extends ConfigurationAttributeScorer {
 
+    Transformer<String, String> NO_DEFAULT = new Transformer<String, String>() {
+        @Override
+        public String transform(String requested) {
+            return null;
+        }
+    };
+
+    Transformer<String, String> ALWAYS_PROVIDE = new Transformer<String, String>() {
+        @Override
+        public String transform(String requested) {
+            return requested;
+        }
+    };
+
+    ConfigurationAttributeScorer STRICT_ATTRIBUTE_VALUE_MATCH = new StringAttributeValueMatch(true);
+    ConfigurationAttributeScorer CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH = new StringAttributeValueMatch(false);
+
+
     /**
      * Returns a default value for a missing attribute in the target configuration.
      * @param requestedValue the value which has been requested
      * @return a value that will be used to compare a score, or <code>null</code> if this attribute must absolutely be found.
      */
     String defaultValue(String requestedValue);
+
+    class StringAttributeValueMatch implements ConfigurationAttributeScorer {
+        private final boolean caseSensitive;
+
+        public StringAttributeValueMatch(boolean caseSensitive) {
+            this.caseSensitive = caseSensitive;
+        }
+
+        @Override
+        public int score(String requested, String provided) {
+            return (requested==null && provided==null)
+                || (requested!=null &&
+                ((caseSensitive && requested.equals(provided)) || ((!caseSensitive && requested.equalsIgnoreCase(provided))))) ? 0 : -1;
+        }
+    }
 }
