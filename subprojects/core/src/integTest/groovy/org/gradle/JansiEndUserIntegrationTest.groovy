@@ -66,95 +66,18 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3578")
     def "java compiler uses a different version of Jansi than initialized by Gradle's native services"() {
         when:
-        def processorGroup = 'org.gradle'
-        def processorName = 'processor'
-        def processorVersion = '1.0'
-
-        def processorBuildFile = file("$processorName/build.gradle")
-        processorBuildFile << basicJavaProject()
-        processorBuildFile << """
-            apply plugin: 'maven-publish'
-
-            group = '$processorGroup'
-            version = '$processorVersion'
-            sourceCompatibility = '1.6'
-
-            dependencies {
-                compile 'org.fusesource.jansi:jansi:$JANSI_VERSION'
-            }
-
-            publishing {
-               publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                }
-
-                repositories {
-                    maven {
-                        url "\$buildDir/repo"
-                    }
-                }
-            }
-        """
-
-        file("$processorName/src/main/java/org/gradle/MyProcessor.java") << """
-            package org.gradle;
-
-            import javax.annotation.processing.*;
-            import javax.lang.model.SourceVersion;
-            import javax.lang.model.element.TypeElement;
-            import java.util.Set;
-            import java.io.PrintStream;
-
-            import org.fusesource.jansi.AnsiConsole;
-
-            @SupportedAnnotationTypes({"org.gradle.Custom"})
-            @SupportedSourceVersion(SourceVersion.RELEASE_6)
-            public class MyProcessor extends AbstractProcessor {
-                @Override
-                public synchronized void init(ProcessingEnvironment processingEnv) {
-                    super.init(processingEnv);
-                    PrintStream console = AnsiConsole.out();
-                    console.println("Hello World");
-                    console.flush();
-                }
-
-                @Override
-                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-                    return false;
-                }
-            }
-        """
-
-        file("$processorName/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << 'org.gradle.MyProcessor'
-
-        inDirectory(processorName).withTasks('publish').run()
+        AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
+        annotationProcessorPublisher.writeSourceFiles()
+        inDirectory(annotationProcessorPublisher.projectDir).withTasks('publish').run()
 
         then:
-        String repoArtifactDir = "$processorName/build/repo/${processorGroup.replaceAll('\\.', '/')}/$processorName/$processorVersion"
-        file("$repoArtifactDir/${processorName}-${processorVersion}.jar").isFile()
-        file("$repoArtifactDir/${processorName}-${processorVersion}.pom").isFile()
+        annotationProcessorPublisher.publishedJarFile.isFile()
+        annotationProcessorPublisher.publishedPomFile.isFile()
 
         when:
         buildFile << basicJavaProject()
+        buildFile << annotationProcessorDependency(annotationProcessorPublisher.repoDir, annotationProcessorPublisher.dependencyCoordinates)
         buildFile << """
-            sourceCompatibility = '1.6'
-
-            repositories {
-                maven {
-                    url '${file("$processorName/build/repo")}'
-                }
-            }
-
-            configurations {
-                customAnnotation
-            }
-
-            dependencies {
-                customAnnotation '$processorGroup:$processorName:$processorVersion'
-            }
-
             compileJava {
                 options.compilerArgs += ['-processorpath', configurations.customAnnotation.asPath]
             }
@@ -171,6 +94,44 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         outputContains('Hello World')
     }
 
+    def "groovy compiler uses a different version of Jansi than initialized by Gradle's native services"() {
+        when:
+        AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
+        annotationProcessorPublisher.writeSourceFiles()
+        inDirectory(annotationProcessorPublisher.projectDir).withTasks('publish').run()
+
+        then:
+        annotationProcessorPublisher.publishedJarFile.isFile()
+        annotationProcessorPublisher.publishedPomFile.isFile()
+
+        when:
+        buildFile << basicJavaProject()
+        buildFile << annotationProcessorDependency(annotationProcessorPublisher.repoDir, annotationProcessorPublisher.dependencyCoordinates)
+        buildFile << """
+            apply plugin: 'groovy'
+
+            dependencies {
+                compile localGroovy()
+            }
+
+            compileGroovy {
+                groovyOptions.javaAnnotationProcessing = true
+                options.compilerArgs += ['-processorpath', configurations.customAnnotation.asPath]
+            }
+        """
+
+        file('src/main/groovy/MyClass.groovy') << """
+            class MyClass {}
+        """
+
+        requireGradleDistribution()
+        succeeds 'compileGroovy'
+
+        then:
+        noExceptionThrown()
+        outputContains('Hello World')
+    }
+
     static String basicJavaProject() {
         """
             apply plugin: 'java'
@@ -179,5 +140,126 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
                 mavenCentral()
             }
         """
+    }
+
+    static String annotationProcessorDependency(File repoDir, String processorDependency) {
+        """
+            sourceCompatibility = '1.6'
+
+            repositories {
+                maven {
+                    url '$repoDir'
+                }
+            }
+
+            configurations {
+                customAnnotation
+            }
+
+            dependencies {
+                customAnnotation '$processorDependency'
+            }
+        """
+    }
+
+    private class AnnotationProcessorPublisher {
+        private final String group = 'org.gradle'
+        private final String name = 'processor'
+        private final String version = '1.0'
+
+        String getProjectDir() {
+            name
+        }
+
+        String getDependencyCoordinates() {
+            "$group:$name:$version"
+        }
+
+        File getRepoDir() {
+            file("$name/build/repo")
+        }
+
+        File getPublishedJarFile() {
+            new File(getArtifactPublishDir(), "${name}-${version}.jar")
+        }
+
+        File getPublishedPomFile() {
+            new File(getArtifactPublishDir(), "${name}-${version}.pom")
+        }
+
+        private File getArtifactPublishDir() {
+            file("$name/build/repo/${group.replaceAll('\\.', '/')}/$name/$version")
+        }
+
+        void writeSourceFiles() {
+            writeBuildFile()
+            writeProcessorSourceFile()
+            writeMetaInfService()
+        }
+
+        private void writeBuildFile() {
+            def processorBuildFile = file("$name/build.gradle")
+            processorBuildFile << basicJavaProject()
+            processorBuildFile << """
+                apply plugin: 'maven-publish'
+
+                group = '$group'
+                version = '$version'
+                sourceCompatibility = '1.6'
+
+                dependencies {
+                    compile 'org.fusesource.jansi:jansi:$JANSI_VERSION'
+                }
+
+                publishing {
+                   publications {
+                        mavenJava(MavenPublication) {
+                            from components.java
+                        }
+                    }
+
+                    repositories {
+                        maven {
+                            url "\$buildDir/repo"
+                        }
+                    }
+                }
+            """
+        }
+
+        private void writeProcessorSourceFile() {
+            file("$name/src/main/java/org/gradle/MyProcessor.java") << """
+                package org.gradle;
+
+                import javax.annotation.processing.*;
+                import javax.lang.model.SourceVersion;
+                import javax.lang.model.element.TypeElement;
+                import java.util.Set;
+                import java.io.PrintStream;
+
+                import org.fusesource.jansi.AnsiConsole;
+
+                @SupportedAnnotationTypes({"org.gradle.Custom"})
+                @SupportedSourceVersion(SourceVersion.RELEASE_6)
+                public class MyProcessor extends AbstractProcessor {
+                    @Override
+                    public synchronized void init(ProcessingEnvironment processingEnv) {
+                        super.init(processingEnv);
+                        PrintStream console = AnsiConsole.out();
+                        console.println("Hello World");
+                        console.flush();
+                    }
+
+                    @Override
+                    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                        return false;
+                    }
+                }
+            """
+        }
+
+        private void writeMetaInfService() {
+            file("$name/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << 'org.gradle.MyProcessor'
+        }
     }
 }
