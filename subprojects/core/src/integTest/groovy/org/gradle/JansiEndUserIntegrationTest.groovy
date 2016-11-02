@@ -150,7 +150,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
             repositories {
                 maven {
-                    url '$repoDir'
+                    url '${repoDir.toURI()}'
                 }
             }
 
