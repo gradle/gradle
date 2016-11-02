@@ -42,7 +42,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can have case insensitive match"() {
         when:
         def matcher = builder
-            .withScorer(ConfigurationAttributeMatcher.CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH)
+            .setScorer(ConfigurationAttributeMatcher.CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH)
             .build()
 
         then:
@@ -60,7 +60,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can have provide default value"() {
         when:
         def matcher = builder
-            .withDefaultValue(provider)
+            .setDefaultValue(provider)
             .build()
 
         then:

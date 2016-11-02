@@ -47,14 +47,14 @@ public interface ConfigurationAttributesMatchingStrategy {
          * @param comparator sets the attribute scorer.
          * @return this builder
          */
-        ConfigurationAttributeMatcherBuilder withScorer(ConfigurationAttributeScorer comparator);
+        ConfigurationAttributeMatcherBuilder setScorer(ConfigurationAttributeScorer comparator);
 
         /**
          * Sets the function which computes the default value of an attribute in case it is missing.
          * @param defaultValueBuilder the value builder
          * @return this builder
          */
-        ConfigurationAttributeMatcherBuilder withDefaultValue(Transformer<String, String> defaultValueBuilder);
+        ConfigurationAttributeMatcherBuilder setDefaultValue(Transformer<String, String> defaultValueBuilder);
 
     }
 }

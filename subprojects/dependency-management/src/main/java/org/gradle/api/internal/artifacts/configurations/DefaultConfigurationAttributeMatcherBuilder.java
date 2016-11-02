@@ -36,13 +36,13 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
     }
 
     @Override
-    public DefaultConfigurationAttributeMatcherBuilder withScorer(ConfigurationAttributeScorer comparator) {
+    public DefaultConfigurationAttributeMatcherBuilder setScorer(ConfigurationAttributeScorer comparator) {
         this.scorer = comparator;
         return this;
     }
 
     @Override
-    public DefaultConfigurationAttributeMatcherBuilder withDefaultValue(Transformer<String, String> defaultValueBuilder) {
+    public DefaultConfigurationAttributeMatcherBuilder setDefaultValue(Transformer<String, String> defaultValueBuilder) {
         this.defaultValueBuilder = defaultValueBuilder;
         return this;
     }
