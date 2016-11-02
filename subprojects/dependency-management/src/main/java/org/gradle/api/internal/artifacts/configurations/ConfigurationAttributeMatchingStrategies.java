@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
 import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -88,7 +89,28 @@ public abstract class ConfigurationAttributeMatchingStrategies {
                         it.remove();
                     }
                     details.score += cmp;
+                    if (!hasAttribute) {
+                        details.partial = true;
+                    }
                 }
+            }
+        }
+        if (candidates.isEmpty()) {
+            return;
+        }
+        // we need to remove partial matches from the result set if and only if exact matches were found
+        List<Map.Entry<T, MatchDetails>> exactMatches = new ArrayList<Map.Entry<T, MatchDetails>>(candidates.size());
+        List<Map.Entry<T, MatchDetails>> partialMatches = new ArrayList<Map.Entry<T, MatchDetails>>(candidates.size());
+        for (Map.Entry<T, MatchDetails> entry : candidates.entrySet()) {
+            if (entry.getValue().partial) {
+                partialMatches.add(entry);
+            } else {
+                exactMatches.add(entry);
+            }
+        }
+        if (!exactMatches.isEmpty()) {
+            for (Map.Entry<T, MatchDetails> match : partialMatches) {
+                candidates.remove(match.getKey());
             }
         }
     }
@@ -96,6 +118,7 @@ public abstract class ConfigurationAttributeMatchingStrategies {
     private static class MatchDetails {
         final Map<String, String> attributes;
         int score;
+        boolean partial = false;
 
         private MatchDetails(Map<String, String> attributes) {
             this.attributes = attributes;
