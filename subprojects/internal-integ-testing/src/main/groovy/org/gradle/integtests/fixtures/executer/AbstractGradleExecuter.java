@@ -96,7 +96,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected final IntegrationTestBuildContext buildContext;
 
-    private final Set<File> customDaemonBaseDirs = new HashSet<File>();
+    private final Set<File> isolatedDaemonBaseDirs = new HashSet<File>();
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
@@ -652,16 +652,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
-        cleanupDaemons();
+        cleanupIsolatedDaemons();
         cleanupTmpDir();
     }
 
-    protected void cleanupDaemons() {
-        for (File baseDir : customDaemonBaseDirs) {
+    protected void cleanupIsolatedDaemons() {
+        for (File baseDir : isolatedDaemonBaseDirs) {
             try {
                 new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
             } catch (Exception e) {
-                getLogger().warn("Problem killing daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
+                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
             }
 
             // remove daemon registry just in case the daemon registry directory gets reused
@@ -884,7 +884,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private void collectStateBeforeExecution() {
         if (!isSharedDaemons()) {
-            customDaemonBaseDirs.add(daemonBaseDir);
+            isolatedDaemonBaseDirs.add(daemonBaseDir);
         }
     }
 
