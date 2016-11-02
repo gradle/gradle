@@ -192,5 +192,6 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/アンドリューは本当に凄いですawesomeだと思います.txt').exists()
         file('dest/𩸽.txt').exists()
         file('dest/😀.txt').exists()
+        false // TODO This test can pass on Windows with proper locale, this force the test to fail, remove once fixed
     }
 }
