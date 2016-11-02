@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
@@ -39,31 +38,19 @@ public class JansiBootPathConfigurer {
      *
      * @param storageDir where to store the Jansi library
      */
-    public void configure(File storageDir) throws IOException {
+    public void configure(File storageDir) {
         JansiStorage jansiStorage = locator.locate(storageDir);
 
         if (jansiStorage != null) {
             File libFile = jansiStorage.getTargetLibFile();
-            File lockFile = new File(libFile.getParentFile(), libFile.getName() + ".lock");
-            lockFile.getParentFile().mkdirs();
-            lockFile.createNewFile();
-            RandomAccessFile lockFileAccess = new RandomAccessFile(lockFile, "rw");
+            libFile.getParentFile().mkdirs();
 
-            try {
-                lockFileAccess.getChannel().lock();
+            if (!libFile.exists()) {
+                InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
 
-                if (lockFile.length() == 0 || !lockFileAccess.readBoolean()) {
-                    InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
-
-                    if (libraryInputStream != null) {
-                        copyLibrary(libraryInputStream, libFile);
-                    }
-
-                    lockFileAccess.seek(0);
-                    lockFileAccess.writeBoolean(true);
+                if (libraryInputStream != null) {
+                    copyLibrary(libraryInputStream, libFile);
                 }
-            } finally {
-                lockFileAccess.close();
             }
 
             System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());

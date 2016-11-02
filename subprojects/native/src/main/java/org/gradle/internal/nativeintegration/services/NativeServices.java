@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -88,11 +87,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 }
             }
             if (initializeJansi) {
-                try {
-                    JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-                } catch (IOException e) {
-                    throw new NativeException("Unable to initialize Jansi", e);
-                }
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
             }
             initialized = true;
 
