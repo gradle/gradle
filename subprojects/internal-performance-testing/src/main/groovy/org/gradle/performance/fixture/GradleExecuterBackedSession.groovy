@@ -103,14 +103,19 @@ class GradleExecuterBackedSession implements GradleSession {
             inDirectory(invocation.workingDirectory).
             withTasks(invocation.tasksToRun)
 
-
-        executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
         executer.withBuildJvmOpts(invocation.jvmOpts)
 
         invocation.args.each { executer.withArgument(it) }
 
         if (invocation.useDaemon) {
             executer.requireDaemon()
+        }
+
+        if (executer.isUseDaemon()) {
+            executer.withCommandLineGradleOpts(PerformanceTestJvmOptions.createDaemonClientJvmOptions())
+        } else {
+            // optimize for fast startup time when there is no daemon
+            executer.withBuildJvmOpts(['-Xverify:none'])
         }
 
         // must make a copy of argument for executer to use for stopping since arguments must match when stopping the daemons
