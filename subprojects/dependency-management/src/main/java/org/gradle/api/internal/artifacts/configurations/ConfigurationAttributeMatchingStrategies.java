@@ -37,14 +37,7 @@ public abstract class ConfigurationAttributeMatchingStrategies {
         }
 
         filterCandidates((ConfigurationAttributesMatchingStrategyInternal) strategy, sourceAttributes, remainingCandidatesAfterRequired, sourceAttributeNames);
-        List<T> singleMatch = findBestMatch(remainingCandidatesAfterRequired);
-        if (singleMatch != null) {
-            return singleMatch;
-        }
-        if (remainingCandidatesAfterRequired.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return ImmutableList.copyOf(remainingCandidatesAfterRequired.keySet());
+        return findBestMatch(remainingCandidatesAfterRequired);
     }
 
     private static <T> List<T> findBestMatch(Map<T, MatchDetails> remainingCandidates) {
@@ -52,22 +45,20 @@ public abstract class ConfigurationAttributeMatchingStrategies {
             return Collections.singletonList(remainingCandidates.keySet().iterator().next());
         }
         int bestScore = Integer.MAX_VALUE;
-        int bestCount = 0;
-        T best = null;
         for (Map.Entry<T, MatchDetails> entry : remainingCandidates.entrySet()) {
             int score = entry.getValue().score;
             if (score < bestScore) {
                 bestScore = score;
-                best = entry.getKey();
-                bestCount = 1;
-            } else if (score == bestScore) {
-                bestCount++;
             }
         }
-        if (bestCount == 1) {
-            return Collections.singletonList(best);
+        Iterator<Map.Entry<T, MatchDetails>> it = remainingCandidates.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<T, MatchDetails> next = it.next();
+            if (next.getValue().score>bestScore) {
+                it.remove();
+            }
         }
-        return null;
+        return ImmutableList.copyOf(remainingCandidates.keySet());
     }
 
     private static <T> void filterCandidates(ConfigurationAttributesMatchingStrategyInternal strategy, Map<String, String> sourceAttributes, Map<T, MatchDetails> candidates, Collection<String> requiredAttributes) {
