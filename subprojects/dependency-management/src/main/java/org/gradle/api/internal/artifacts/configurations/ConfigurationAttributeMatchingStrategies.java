@@ -118,7 +118,7 @@ public abstract class ConfigurationAttributeMatchingStrategies {
     private static class MatchDetails {
         final Map<String, String> attributes;
         int score;
-        boolean partial = false;
+        boolean partial;
 
         private MatchDetails(Map<String, String> attributes) {
             this.attributes = attributes;
