@@ -130,8 +130,55 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'compileGroovy'
 
         then:
-        noExceptionThrown()
         outputContains('Hello World')
+    }
+
+    def "kotlin compiler bundles different version of Jansi than initialized by Gradle's native services"() {
+        given:
+        def kotlinVersion = '1.0.4'
+
+        buildFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion'
+                }
+            }
+
+            apply plugin: 'kotlin'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile 'org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion'
+            }
+        """
+
+        when:
+        file('src/main/kotlin/MyClass.kt') << """
+            class MyClass {}
+        """
+
+        succeeds 'compileKotlin'
+
+        then:
+        executedAndNotSkipped(':compileKotlin')
+
+        when:
+        file('src/main/kotlin/FailingClass.kt') << """
+            class FailingClass { < }
+        """
+
+        def result = fails 'compileKotlin'
+
+        then:
+        executedAndNotSkipped(':compileKotlin')
+        result.error.contains('> Compilation error. See log for more details')
+        result.error.contains('FailingClass.kt: (2, 34): Expecting member declaration')
     }
 
     static String basicJavaProject() {
