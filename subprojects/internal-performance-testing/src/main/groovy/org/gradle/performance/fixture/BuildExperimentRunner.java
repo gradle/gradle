@@ -206,18 +206,18 @@ public class BuildExperimentRunner {
         return false;
     }
 
-    // the JIT compiler seems to wait for idle period before compiling
+    // the JIT compiler queues up C1/C2 JIT compilations
+    // An idle period is needed to make it more likely that the JIT compilation queues have been drained before
+    // the next measurement round starts
+    // This idle period is needed for both non-daemon and daemon tests
     protected void waitForMillis(BuildExperimentSpec experiment, long sleepTimeMillis) {
-        InvocationSpec invocation = experiment.getInvocation();
-        if (invocation instanceof GradleInvocationSpec) {
-            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon() && sleepTimeMillis > 0L) {
-                System.out.println();
-                System.out.println(String.format("Waiting %d ms", sleepTimeMillis));
-                try {
-                    Thread.sleep(sleepTimeMillis);
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        if (sleepTimeMillis > 0L) {
+            System.out.println();
+            System.out.println(String.format("Waiting %d ms to let JIT compilation queues to drain before measuring...", sleepTimeMillis));
+            try {
+                Thread.sleep(sleepTimeMillis);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }
