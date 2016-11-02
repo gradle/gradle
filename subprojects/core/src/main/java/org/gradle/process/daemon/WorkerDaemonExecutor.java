@@ -22,6 +22,11 @@ import org.gradle.process.JavaForkOptions;
 import java.io.File;
 import java.io.Serializable;
 
+/**
+ * Worker Daemon Executor.
+ *
+ * @param <T> Type of the action
+ */
 public interface WorkerDaemonExecutor<T> {
     /**
      * Adds a set of files to the classpath associated with the daemon process.

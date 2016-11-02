@@ -18,7 +18,6 @@ package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 
 class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
