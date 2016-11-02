@@ -16,8 +16,8 @@
 
 package org.gradle
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer.JANSI_LIBRARY_PATH_SYS_PROP
@@ -62,7 +62,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
     }
 
-    @NotYetImplemented
+    @Ignore
     @Issue("GRADLE-3578")
     def "java compiler uses a different version of Jansi than initialized by Gradle's native services"() {
         requireGradleDistribution()
