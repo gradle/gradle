@@ -145,6 +145,12 @@ performanceTestTasks.all { PerformanceTest task ->
     jvmArgs '-XX:+AlwaysPreTouch', '-XX:BiasedLockingStartupDelay=0', '-XX:CICompilerCount=2', '-Dsun.io.useCanonCaches=false'
     environment 'MALLOC_ARENA_MAX', '2' // see https://devcenter.heroku.com/articles/tuning-glibc-memory-behavior#what-value-to-choose-for-malloc_arena_max
 
+    // Retain the tmpdir in running performance tests
+    // In CI, the build has java.io.tmpdir set to TeamCity agent's
+    // temp/buildTmp directory that gets cleaned up after the build
+    // completes.
+    systemProperty 'java.io.tmpdir', System.getProperty('java.io.tmpdir')
+
     doFirst {
         // Some performance builds generate a lot of output,
         // that is buffered until the test finishes via GradleExecuter.
