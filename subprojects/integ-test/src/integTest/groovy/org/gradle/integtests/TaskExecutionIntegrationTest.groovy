@@ -539,6 +539,38 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
     }
 
+    @Issue("gradle/gradle#783")
+    def "executes finalizer task as soon as possible after finalized task"() {
+        buildFile << """
+            project("a") {
+                task jar {
+                  dependsOn "compileJava"
+                }
+                task compileJava {
+                  dependsOn ":b:jar"
+                  finalizedBy "compileFinalizer"
+                }
+                task compileFinalizer
+            }
+
+            project("b") {
+                task jar
+            }
+
+            task build {
+              dependsOn ":a:jar"
+              dependsOn ":b:jar"
+            }
+        """
+        settingsFile << "include 'a', 'b'"
+
+        when:
+        succeeds ':build'
+
+        then:
+        executedTasks == [':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build']
+}
+
     @Ignore("Re-enable once serious effort have been put to fix this issue")
     @NotYetImplemented
     @Issue("gradle/gradle#769")

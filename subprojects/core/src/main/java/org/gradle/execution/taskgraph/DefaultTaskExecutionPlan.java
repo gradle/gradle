@@ -375,15 +375,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     /**
      * Given a finalizer task, determine where in the current node queue that it should be inserted.
-     * The finalizer should be inserted after any of it's successors, and their successors, recursively.
+     * The finalizer should be inserted after any of it's preceding tasks.
      */
     private int finalizerTaskPosition(TaskInfo finalizer, final List<TaskInfoInVisitingSegment> nodeQueue) {
         if (nodeQueue.size() == 0) {
             return 0;
         }
 
-        Set<TaskInfo> dependsOnTasks = getAllSuccessorsRecursively(finalizer);
-        Set<Integer> dependsOnTaskIndexes = CollectionUtils.collect(dependsOnTasks, new Transformer<Integer, TaskInfo>() {
+        Set<TaskInfo> precedingTasks = getAllPrecedingTasks(finalizer);
+        Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, TaskInfo>() {
             public Integer transform(final TaskInfo dependsOnTask) {
                 return Iterables.indexOf(nodeQueue, new Predicate<TaskInfoInVisitingSegment>() {
                     public boolean apply(TaskInfoInVisitingSegment taskInfoInVisitingSegment) {
@@ -392,26 +392,28 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 });
             }
         });
-        return Collections.max(dependsOnTaskIndexes) + 1;
+        return Collections.max(precedingTaskIndices) + 1;
     }
 
-    private Set<TaskInfo> getAllSuccessorsRecursively(TaskInfo finalizer) {
-        Set<TaskInfo> dependsOnTasks = new HashSet<TaskInfo>();
-        Stack<TaskInfo> processingTasks = new Stack<TaskInfo>();
+    private Set<TaskInfo> getAllPrecedingTasks(TaskInfo finalizer) {
+        Set<TaskInfo> precedingTasks = new HashSet<TaskInfo>();
+        Stack<TaskInfo> candidateTasks = new Stack<TaskInfo>();
 
-        processingTasks.addAll(finalizer.getDependencySuccessors());
-        processingTasks.addAll(finalizer.getMustSuccessors());
-        processingTasks.addAll(finalizer.getShouldSuccessors());
-        while (!processingTasks.isEmpty()) {
-            TaskInfo task = processingTasks.pop();
-            if (dependsOnTasks.add(task)) {
-                processingTasks.addAll(task.getDependencySuccessors());
-                processingTasks.addAll(task.getMustSuccessors());
-                processingTasks.addAll(task.getShouldSuccessors());
+        // Consider every task that must run before the finalizer
+        candidateTasks.addAll(finalizer.getDependencySuccessors());
+        candidateTasks.addAll(finalizer.getMustSuccessors());
+        candidateTasks.addAll(finalizer.getShouldSuccessors());
+
+        // For each candidate task, add it to the preceding tasks.
+        while (!candidateTasks.isEmpty()) {
+            TaskInfo precedingTask = candidateTasks.pop();
+            if (precedingTasks.add(precedingTask)) {
+                // Any task that the preceding task must run after is also a preceding task.
+                candidateTasks.addAll(precedingTask.getMustSuccessors());
             }
         }
 
-        return dependsOnTasks;
+        return precedingTasks;
     }
 
     private void onOrderingCycle() {
