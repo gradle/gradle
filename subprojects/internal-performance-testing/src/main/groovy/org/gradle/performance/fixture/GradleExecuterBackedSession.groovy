@@ -115,7 +115,8 @@ class GradleExecuterBackedSession implements GradleSession {
             executer.withCommandLineGradleOpts(PerformanceTestJvmOptions.createDaemonClientJvmOptions())
         } else {
             // optimize for fast startup time when there is no daemon
-            executer.withBuildJvmOpts(['-Xverify:none'])
+            // also enable Class Data Sharing (cds) when it's a non-daemon JVM
+            executer.withBuildJvmOpts(['-Xverify:none', '-Xshare:auto'])
         }
 
         // must make a copy of argument for executer to use for stopping since arguments must match when stopping the daemons

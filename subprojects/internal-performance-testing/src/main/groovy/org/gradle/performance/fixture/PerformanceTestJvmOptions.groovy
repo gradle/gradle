@@ -47,6 +47,6 @@ class PerformanceTestJvmOptions {
 
     // JVM options for daemon client (launcher)
     static List<String> createDaemonClientJvmOptions() {
-        commonJvmOptions(['-Xms512m', '-Xmx512m', '-Xverify:none'])
+        commonJvmOptions(['-Xms512m', '-Xmx512m', '-Xverify:none', '-Xshare:auto'])
     }
 }
