@@ -216,7 +216,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         [platform: 'native']                | [platform: 'java7']                 | [:]                                 | 'default' | 'falls back on default'
         [platform: 'native']                | [platform: 'java7']                 | [platform: 'java8']                 | 'default' | 'falls back on default'
         [platform: 'java7', flavor: 'free'] | [platform: 'java7', flavor: 'paid'] | [platform: 'java7', flavor: 'free'] | 'bar'     | 'match on all attributes'
-        [platform: 'java7', flavor: 'free'] | [platform: 'java7']                 | [platform: 'java7', flavor: 'free'] | null      | 'ambiguous because of default value'
+        [platform: 'java7', flavor: 'free'] | [platform: 'java7']                 | [platform: 'java7', flavor: 'free'] | 'bar'     | 'prefer exact match over partial matches'
         [platform: 'java7', flavor: 'free'] | [platform: 'java7']                 | [platform: 'java8']                 | 'foo'     | 'partial match'
 
     }
