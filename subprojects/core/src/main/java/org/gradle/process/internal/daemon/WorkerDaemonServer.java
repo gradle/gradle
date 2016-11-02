@@ -17,7 +17,6 @@ package org.gradle.process.internal.daemon;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.WorkResult;
 
 public class WorkerDaemonServer implements WorkerDaemonProtocol {
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonServer.class);

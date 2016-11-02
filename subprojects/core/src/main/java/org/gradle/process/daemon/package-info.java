@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.daemon;
-
 /**
- * Worker Daemon Service.
+ * Worker Daemons.
  */
-public interface WorkerDaemonService {
-    /**
-     * Creates a {@link WorkerDaemonExecutor} for a Runnable that will execute in a daemon process.  The produced runnable
-     * will execute in an idle daemon if one is available that meets the requirements set on the builder, otherwise a new daemon
-     * will be started.
-     *
-     * @return A {@link WorkerDaemonExecutor} that builds a daemon Runnable.
-     */
-    WorkerDaemonExecutor daemonRunnable(Class<? extends Runnable> runnableClass);
-}
+package org.gradle.process.daemon;

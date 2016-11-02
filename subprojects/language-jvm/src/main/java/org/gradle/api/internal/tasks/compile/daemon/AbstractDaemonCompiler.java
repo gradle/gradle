@@ -15,8 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.daemon.DaemonForkOptions;
@@ -24,8 +27,13 @@ import org.gradle.process.internal.daemon.WorkerDaemonAction;
 import org.gradle.process.internal.daemon.WorkerDaemonResult;
 import org.gradle.process.internal.daemon.WorkerDaemon;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
@@ -44,13 +52,28 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     @Override
     public WorkResult execute(T spec) {
-        DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
+        DaemonForkOptions daemonForkOptions = getCommonOptions().mergeWith(toDaemonOptions(spec));
         WorkerDaemon daemon = compilerDaemonFactory.getDaemon(daemonWorkingDir, daemonForkOptions);
         WorkerDaemonResult result = daemon.execute(adapter(delegate), spec);
         if (result.isSuccess()) {
             return result;
         }
         throw UncheckedException.throwAsUncheckedException(result.getException());
+    }
+
+    private DaemonForkOptions getCommonOptions() {
+        List<File> adapterClasspath = CollectionUtils.collect(ClasspathUtil.getClasspath(CompilerWorkerAdapter.class.getClassLoader()),
+            new Transformer<File, URL>() {
+                @Override
+                public File transform(URL url) {
+                    try {
+                        return new File(url.toURI());
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedException(e);
+                    }
+                }
+            });
+        return new DaemonForkOptions(null, null, Collections.<String>emptySet(), adapterClasspath, Sets.newHashSet("org.gradle"));
     }
 
     private CompilerWorkerAdapter<T> adapter(Compiler<T> compiler) {
