@@ -1320,6 +1320,66 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
     }
 
+    def "Library project with flavors depends on a library project that does not (case insensitive)"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            import static org.gradle.api.artifacts.ConfigurationAttributeMatcher.*
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeDebug.resolutionStrategy.attributesMatching {
+                        matcher('flavor') {
+                            defaultValue = ALWAYS_PROVIDE
+                        }
+                        matcher('buildType') {
+                            scorer = CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH
+                        }
+                    }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'DEbUG') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(buildType: 'reLEAse') // no match on `buildType`
+                    }
+                }
+
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+    }
+
     def "Library project without flavors depends on a library project with flavors"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
