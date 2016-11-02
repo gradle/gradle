@@ -35,7 +35,7 @@ public abstract class ConfigurationAttributeMatchingStrategies {
             remainingCandidatesAfterRequired.put(entry.getKey(), new MatchDetails(entry.getValue()));
         }
 
-        filterCandidates(strategy, sourceAttributes, remainingCandidatesAfterRequired, sourceAttributeNames);
+        filterCandidates((ConfigurationAttributesMatchingStrategyInternal) strategy, sourceAttributes, remainingCandidatesAfterRequired, sourceAttributeNames);
         List<T> singleMatch = findBestMatch(remainingCandidatesAfterRequired);
         if (singleMatch != null) {
             return singleMatch;
@@ -69,7 +69,7 @@ public abstract class ConfigurationAttributeMatchingStrategies {
         return null;
     }
 
-    private static <T> void filterCandidates(ConfigurationAttributesMatchingStrategy strategy, Map<String, String> sourceAttributes, Map<T, MatchDetails> candidates, Collection<String> requiredAttributes) {
+    private static <T> void filterCandidates(ConfigurationAttributesMatchingStrategyInternal strategy, Map<String, String> sourceAttributes, Map<T, MatchDetails> candidates, Collection<String> requiredAttributes) {
         for (String requiredAttribute : requiredAttributes) {
             String requestedValue = sourceAttributes.get(requiredAttribute);
             Iterator<Map.Entry<T, MatchDetails>> it = candidates.entrySet().iterator();

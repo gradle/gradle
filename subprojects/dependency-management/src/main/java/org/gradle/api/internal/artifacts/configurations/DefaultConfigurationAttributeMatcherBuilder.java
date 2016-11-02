@@ -17,11 +17,9 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
+import org.gradle.api.artifacts.ConfigurationAttributeScorer;
 
-import java.util.Comparator;
-
-public class DefaultConfigurationAttributeMatcherBuilder implements ConfigurationAttributesMatchingStrategy.ConfigurationAttributeMatcherBuilder {
+public class DefaultConfigurationAttributeMatcherBuilder implements ConfigurationAttributesMatchingStrategyInternal.ConfigurationAttributeMatcherBuilderInternal {
     private static final StrictAttributeValueMatch STRICT_ATTRIBUTE_VALUE_MATCH = new StrictAttributeValueMatch();
     private static final Transformer<String, String> NO_DEFAULT_VALUE = new Transformer<String, String>() {
         @Override
@@ -30,7 +28,7 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
         }
     };
 
-    private Comparator<String> comparator = STRICT_ATTRIBUTE_VALUE_MATCH;
+    private ConfigurationAttributeScorer scorer = STRICT_ATTRIBUTE_VALUE_MATCH;
     private Transformer<String, String> defaultValueBuilder = NO_DEFAULT_VALUE;
 
     private DefaultConfigurationAttributeMatcherBuilder() {
@@ -40,14 +38,13 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
         return new DefaultConfigurationAttributeMatcherBuilder();
     }
 
-    @Override
     public ConfigurationAttributeMatcher build() {
-        return new ConstructedMatcher(comparator, defaultValueBuilder);
+        return new ConstructedMatcher(scorer, defaultValueBuilder);
     }
 
     @Override
-    public DefaultConfigurationAttributeMatcherBuilder withComparator(Comparator<String> comparator) {
-        this.comparator = comparator;
+    public DefaultConfigurationAttributeMatcherBuilder withScorer(ConfigurationAttributeScorer comparator) {
+        this.scorer = comparator;
         return this;
     }
 
@@ -58,17 +55,17 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
     }
 
     private static class ConstructedMatcher implements ConfigurationAttributeMatcher {
-        private final Comparator<String> comparator;
+        private final ConfigurationAttributeScorer scorer;
         private final Transformer<String, String> defaultValue;
 
-        private ConstructedMatcher(Comparator<String> comparator, Transformer<String, String> defaultValue) {
-            this.comparator = comparator;
+        private ConstructedMatcher(ConfigurationAttributeScorer scorer, Transformer<String, String> defaultValue) {
+            this.scorer = scorer;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public int score(String requestedValue, String attributeValue) {
-            return comparator.compare(requestedValue, attributeValue);
+            return scorer.score(requestedValue, attributeValue);
         }
 
         @Override
@@ -77,9 +74,9 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
         }
     }
 
-    private static class StrictAttributeValueMatch implements Comparator<String> {
+    private static class StrictAttributeValueMatch implements ConfigurationAttributeScorer {
         @Override
-        public int compare(String requested, String provided) {
+        public int score(String requested, String provided) {
             return (requested==null && provided==null)
                 || (requested!=null && requested.equals(provided)) ? 0 : -1;
         }

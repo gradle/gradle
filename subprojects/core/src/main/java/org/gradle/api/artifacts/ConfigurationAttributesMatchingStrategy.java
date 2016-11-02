@@ -18,8 +18,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
-
-import java.util.Comparator;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A configuration matching strategy determines how configuration attributes are matched from a
@@ -27,42 +26,28 @@ import java.util.Comparator;
  * are matched per attribute name. Strategies are attached to a {@link Configuration}.
  */
 @Incubating
+@HasInternalProtocol
 public interface ConfigurationAttributesMatchingStrategy {
-    /**
-     * Returns the attribute matcher for a specific attribute name.
-     * @param attributeName the name of the attribute
-     * @return the matcher for this attribute. Must never be null.
-     */
-    ConfigurationAttributeMatcher getAttributeMatcher(String attributeName);
-
-    /**
-     * Sets the attribute matcher for a particular attribute.
-     * @param attributeName the name of the attribute.
-     * @param matcher the matcher for this attribute
-     */
-    void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher);
 
     /**
      * Configures an attribute matcher using a convenient builder.
      * @param attributeName the name of the attribute to configure a matcher for.
      * @param configureAction the matcher configuration
      */
-    void attributeMatcher(String attributeName, Action<? super ConfigurationAttributeMatcherBuilder> configureAction);
+    void matcher(String attributeName, Action<? super ConfigurationAttributeMatcherBuilder> configureAction);
 
     /**
      * A configuration attribute matcher builder is responsible for configuring a matcher.
      */
+    @HasInternalProtocol
     interface ConfigurationAttributeMatcherBuilder {
 
         /**
-         * A {@link Comparator} and a {@link ConfigurationAttributeMatcher} have slightly different semantics with regards to matching strings.
-         * This method adapts a comparator to a configuration attribute matcher, expecting the comparator to break the contract of comparators
-         * but respect the semantics of attribute matchers. In particular, attribute matchers are expected to return 0 for "match", "-1" for
-         * no match and any positive distance for matches which are not perfect.
-         * @param comparator sets the attribute value comparator.
+         * This method adapts a scorer to a configuration attribute matcher.
+         * @param comparator sets the attribute scorer.
          * @return this builder
          */
-        ConfigurationAttributeMatcherBuilder withComparator(Comparator<String> comparator);
+        ConfigurationAttributeMatcherBuilder withScorer(ConfigurationAttributeScorer comparator);
 
         /**
          * Sets the function which computes the default value of an attribute in case it is missing.
@@ -70,12 +55,6 @@ public interface ConfigurationAttributesMatchingStrategy {
          * @return this builder
          */
         ConfigurationAttributeMatcherBuilder withDefaultValue(Transformer<String, String> defaultValueBuilder);
-
-        /**
-         * Builds the matcher.
-         * @return implementations are expected to return an immutable matcher.
-         */
-        ConfigurationAttributeMatcher build();
 
     }
 }

@@ -17,12 +17,12 @@
 package org.gradle.internal.component.model
 
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -87,7 +87,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     @Unroll("selects configuration '#expected' from target component when all attributes are required (#comparator, #description)")
     def "selects the target configuration from target component which matches the attributes when all attributes are required"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategy) {
+        def strategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
                     score(_, _) >> { a, b -> C[comparator](a, b) }
@@ -156,7 +156,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     @Unroll("selects configuration '#expected' from target component with exact matching strategy (#description)")
     def "selects the target configuration from target component with exact matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategy) {
+        def strategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
                     score(_, _) >> { a, b -> C.EXACT_MATCH(a, b) }
@@ -225,7 +225,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#description)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategy) {
+        def strategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
                     score(_, _) >> { a, b -> C.JAVA_MATCH(a, b) }

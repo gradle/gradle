@@ -29,19 +29,7 @@ import org.gradle.api.Incubating;
  * optional attributes or partial matches strategies.
  */
 @Incubating
-public interface ConfigurationAttributeMatcher {
-    /**
-     * Compares a requested attribute value to the candidate attribute value. There are 3 possible outcomes:
-     * <ul>
-     *     <li>if attribute values match strictly, then this method must return 0.</li>
-     *     <li>if attribute values don't match, then this method must return -1.</li>
-     *     <li>if attributes do not strictly match, but a compatibility is found, then return a score greater than 0. The closer to 0, the closer to a match we are.</li>
-     * </ul>
-     * @param requestedValue the value from the source configuration
-     * @param attributeValue the value from the target configuration, or the default value if not found
-     * @return a score for the match
-     */
-    int score(String requestedValue, String attributeValue);
+public interface ConfigurationAttributeMatcher extends ConfigurationAttributeScorer {
 
     /**
      * Returns a default value for a missing attribute in the target configuration.
