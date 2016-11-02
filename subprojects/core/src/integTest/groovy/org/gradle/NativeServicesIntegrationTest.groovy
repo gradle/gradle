@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory
+import org.gradle.internal.nativeintegration.jansi.JansiStorageLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
@@ -27,12 +27,17 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def libraryFactory = new JansiLibraryFactory()
+    def jansiLibraryLocator = new JansiStorageLocator()
     def nativeDir = new File(executer.gradleUserHomeDir, 'native')
-    def jansiDir = libraryFactory.makeVersionSpecificDir(nativeDir)
-    def library = new File(jansiDir, libraryFactory.create().path)
+    def jansiStorageSourceTarget
+    def jansiDir
+    def library
 
     def setup() {
+        jansiStorageSourceTarget = jansiLibraryLocator.locate(nativeDir)
+        jansiDir = jansiLibraryLocator.makeVersionSpecificDir(nativeDir)
+        library = new File(jansiDir, jansiStorageSourceTarget.jansiLibrary.path)
+
         executer.requireGradleDistribution().withNoExplicitTmpDir()
     }
 

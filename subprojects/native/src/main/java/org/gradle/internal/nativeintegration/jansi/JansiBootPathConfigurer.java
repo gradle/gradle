@@ -23,10 +23,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
-    private final JansiLibraryFactory factory = new JansiLibraryFactory();
+    private final JansiStorageLocator locator = new JansiStorageLocator();
 
     /**
      * Attempts to find the Jansi library and copies it to a specified folder.
@@ -38,20 +39,31 @@ public class JansiBootPathConfigurer {
      *
      * @param storageDir where to store the Jansi library
      */
-    public void configure(File storageDir) {
-        JansiLibrary jansiLibrary = factory.create();
+    public void configure(File storageDir) throws IOException {
+        JansiStorage jansiStorage = locator.locate(storageDir);
 
-        if (jansiLibrary != null) {
-            File jansiDir = factory.makeVersionSpecificDir(storageDir);
-            File libFile = new File(jansiDir, jansiLibrary.getPath());
-            libFile.getParentFile().mkdirs();
+        if (jansiStorage != null) {
+            File libFile = jansiStorage.getTargetLibFile();
+            File lockFile = new File(libFile.getParentFile(), libFile.getName() + ".lock");
+            lockFile.getParentFile().mkdirs();
+            lockFile.createNewFile();
+            RandomAccessFile lockFileAccess = new RandomAccessFile(lockFile, "rw");
 
-            if (!libFile.exists()) {
-                InputStream libraryInputStream = getClass().getResourceAsStream(jansiLibrary.getResourcePath());
+            try {
+                lockFileAccess.getChannel().lock();
 
-                if (libraryInputStream != null) {
-                    copyLibrary(libraryInputStream, libFile);
+                if (lockFile.length() == 0 || !lockFileAccess.readBoolean()) {
+                    InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
+
+                    if (libraryInputStream != null) {
+                        copyLibrary(libraryInputStream, libFile);
+                    }
+
+                    lockFileAccess.seek(0);
+                    lockFileAccess.writeBoolean(true);
                 }
+            } finally {
+                lockFileAccess.close();
             }
 
             System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());
