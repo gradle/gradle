@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -340,5 +341,51 @@ apply from:'scriptPlugin.gradle'
 
         where:
         [flushCaches, taskType] << [[false, true], ['DefaultTask', 'org.gradle.MyTask', 'MyBuildScriptTask', 'MyScriptPluginTask']].combinations()
+    }
+
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#784")
+    def "can use a custom Serializable type from build script as input property in a never up-to-date custom Task"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+
+            println "Flushing InMemoryTaskArtifactCache"
+            gradle.taskGraph.whenReady {
+                gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
+            }
+
+            enum FooType { FOO }
+
+            class MyTask extends DefaultTask {
+                @Input
+                FooType foo
+
+                MyTask() {
+                    outputs.upToDateWhen {
+                        false
+                    }
+                }
+            }
+
+            task neverUpToDate(type: MyTask) {
+                foo = FooType.FOO
+            }
+"""
+
+        when:
+        succeeds 'neverUpToDate'
+
+        then:
+        executedTasks == [':neverUpToDate']
+        skippedTasks.empty
+
+        when:
+        succeeds 'neverUpToDate'
+
+        then:
+        executedTasks == [':neverUpToDate']
+        skippedTasks.empty
     }
 }
