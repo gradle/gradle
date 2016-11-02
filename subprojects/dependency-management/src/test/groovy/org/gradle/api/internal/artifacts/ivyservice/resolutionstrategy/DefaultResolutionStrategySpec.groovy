@@ -15,11 +15,13 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
+
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy
+import org.gradle.api.artifacts.ConfigurationAttributeMatcher
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
@@ -39,7 +41,7 @@ public class DefaultResolutionStrategySpec extends Specification {
     def cachePolicy = Mock(DefaultCachePolicy)
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
-    def attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategy)
+    def attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategyInternal)
     def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, attributesMatchingStrategy)
 
     def "allows setting forced modules"() {
@@ -67,7 +69,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.force 'org.foo:bar:1.0'
 
         when:
-        strategy.forcedModules = ['hello:world:1.0', [group:'g', name:'n', version:'1']]
+        strategy.forcedModules = ['hello:world:1.0', [group: 'g', name: 'n', version: '1']]
 
         then:
         def versions = strategy.forcedModules as List
@@ -143,6 +145,14 @@ public class DefaultResolutionStrategySpec extends Specification {
         def newDependencySubstitutions = Mock(DependencySubstitutionsInternal)
         dependencySubstitutions.copy() >> newDependencySubstitutions
 
+        def matchers = [foo: Mock(ConfigurationAttributeMatcher)]
+
+        attributesMatchingStrategy.copy() >> {
+            Mock(ConfigurationAttributesMatchingStrategyInternal) {
+                getAttributeMatcher(_) >> { args -> matchers[args[0]] }
+            }
+        }
+
         strategy.failOnVersionConflict()
         strategy.force("org:foo:1.0")
         strategy.componentSelection.addRule(new NoInputsRuleAction<ComponentSelection>({}))
@@ -160,6 +170,8 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         strategy.dependencySubstitution == dependencySubstitutions
         copy.dependencySubstitution == newDependencySubstitutions
+
+        copy.attributesMatchingStrategy.getAttributeMatcher('foo') != null
     }
 
     def "configures changing modules cache with jdk5+ units"() {
@@ -198,29 +210,41 @@ public class DefaultResolutionStrategySpec extends Specification {
         def validator = Mock(MutationValidator)
         strategy.setMutationValidator(validator)
 
-        when: strategy.failOnVersionConflict()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnVersionConflict()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.force("org.utils:api:1.3")
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.force("org.utils:api:1.3")
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.forcedModules = ["org.utils:api:1.4"]
-        then: (1.._) * validator.validateMutation(STRATEGY)
+        when:
+        strategy.forcedModules = ["org.utils:api:1.4"]
+        then:
+        (1.._) * validator.validateMutation(STRATEGY)
 
         // DependencySubstitutionsInternal.allWithDependencyResolveDetails() will call back to validateMutation() instead
-        when: strategy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.eachDependency(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.componentSelection.all(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.componentSelection.all(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
+        when:
+        strategy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
             void execute(ComponentSelectionRules componentSelectionRules) {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 1 * validator.validateMutation(STRATEGY)
+        then:
+        1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutation is not checked for copy"() {
@@ -231,24 +255,34 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.setMutationValidator(validator)
         def copy = strategy.copy()
 
-        when: copy.failOnVersionConflict()
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.failOnVersionConflict()
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.force("org.utils:api:1.3")
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.force("org.utils:api:1.3")
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.forcedModules = ["org.utils:api:1.4"]
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.forcedModules = ["org.utils:api:1.4"]
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.componentSelection.all(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.componentSelection.all(Actions.doNothing())
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.componentSelection(new Action<ComponentSelectionRules>() {
+        when:
+        copy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
             void execute(ComponentSelectionRules componentSelectionRules) {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 0 * validator.validateMutation(_)
+        then:
+        0 * validator.validateMutation(_)
     }
 }

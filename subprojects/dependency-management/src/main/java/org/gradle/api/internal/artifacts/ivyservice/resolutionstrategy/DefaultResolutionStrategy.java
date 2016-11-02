@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -57,18 +58,18 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
-    private final ConfigurationAttributesMatchingStrategy attributesMatchingStrategy;
+    private final ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
-    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory, ConfigurationAttributesMatchingStrategy attributesMatchingStrategy) {
+    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
         this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory), globalDependencySubstitutionRules, attributesMatchingStrategy);
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, ConfigurationAttributesMatchingStrategy attributesMatchingStrategy) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
@@ -200,7 +201,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, attributesMatchingStrategy);
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, attributesMatchingStrategy.copy());
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();

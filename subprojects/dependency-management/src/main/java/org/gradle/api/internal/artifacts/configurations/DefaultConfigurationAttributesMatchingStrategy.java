@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
 
 import java.util.Map;
@@ -42,6 +43,19 @@ public class DefaultConfigurationAttributesMatchingStrategy implements Configura
     @Override
     public void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher) {
         matchers.put(attributeName, matcher);
+    }
+
+    @Override
+    public ConfigurationAttributesMatchingStrategyInternal copy() {
+        DefaultConfigurationAttributesMatchingStrategy attributesMatchingStrategy;
+        try {
+            // We use reflection because the strategy might have been decorated
+            attributesMatchingStrategy = this.getClass().newInstance();
+            attributesMatchingStrategy.matchers.putAll(matchers);
+        } catch (Exception e) {
+            throw new GradleException("Unable to create a new instance of " + this.getClass(), e);
+        }
+        return attributesMatchingStrategy;
     }
 
     @Override

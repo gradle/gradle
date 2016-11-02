@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -54,11 +53,11 @@ public class DefaultConfigurationContainerSpec extends Specification {
     def "adds and gets"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory, attributesMatchingStrategy) }
         1 * instantiator.newInstance(DefaultConfigurationAttributesMatchingStrategy) >> { new DefaultConfigurationAttributesMatchingStrategy() }
+        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory, _) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory, _ as ConfigurationAttributesMatchingStrategyInternal) }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
-                projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory, _ as ConfigurationAttributesMatchingStrategy) >> conf
+                projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory) >> conf
 
         when:
         def compile = configurationContainer.create("compile")
@@ -76,11 +75,11 @@ public class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory, attributesMatchingStrategy) }
         1 * instantiator.newInstance(DefaultConfigurationAttributesMatchingStrategy) >> { new DefaultConfigurationAttributesMatchingStrategy() }
+        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory, _) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory, _ as ConfigurationAttributesMatchingStrategyInternal) }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
-                projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory, _ as ConfigurationAttributesMatchingStrategy) >> conf
+                projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory) >> conf
 
         when:
         def compile = configurationContainer.create("compile") {

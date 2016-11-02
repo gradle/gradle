@@ -33,11 +33,12 @@ public interface ConfigurationAttributesMatchingStrategyInternal extends Configu
      */
     void setAttributeMatcher(String attributeName, ConfigurationAttributeMatcher matcher);
 
-    interface ConfigurationAttributeMatcherBuilderInternal extends ConfigurationAttributesMatchingStrategy.ConfigurationAttributeMatcherBuilder {
+    ConfigurationAttributesMatchingStrategyInternal copy();
 
+    interface ConfigurationAttributeMatcherBuilderInternal extends ConfigurationAttributesMatchingStrategy.ConfigurationAttributeMatcherBuilder {
         /**
          * Builds the matcher.
-         * @return implementations are expected to return an immutable matcher.
+         * @return implementations are required to return an immutable matcher.
          */
         ConfigurationAttributeMatcher build();
     }

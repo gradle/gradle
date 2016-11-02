@@ -17,6 +17,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.StringAttributeValueMatch;
 
 /**
  * A configuration attribute matcher is responsible for telling if an attribute from a source configuration
@@ -57,18 +58,4 @@ public interface ConfigurationAttributeMatcher extends ConfigurationAttributeSco
      */
     String defaultValue(String requestedValue);
 
-    class StringAttributeValueMatch implements ConfigurationAttributeScorer {
-        private final boolean caseSensitive;
-
-        public StringAttributeValueMatch(boolean caseSensitive) {
-            this.caseSensitive = caseSensitive;
-        }
-
-        @Override
-        public int score(String requested, String provided) {
-            return (requested==null && provided==null)
-                || (requested!=null &&
-                ((caseSensitive && requested.equals(provided)) || ((!caseSensitive && requested.equalsIgnoreCase(provided))))) ? 0 : -1;
-        }
-    }
 }
