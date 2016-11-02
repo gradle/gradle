@@ -42,6 +42,21 @@ class PerformanceTestJvmOptions {
         jvmOptions << '-XX:BiasedLockingStartupDelay=0' // start using biased locking when the JVM starts up
         jvmOptions << '-XX:CICompilerCount=2' // limit number of JIT compiler threads to reduce jitter
         jvmOptions << '-Dsun.io.useCanonCaches=false' // disable JVM file canonicalization cache since the caching might cause jitter in tests
+
+        if (JavaVersion.current().isJava8Compatible()) {
+            // settings to reduce malloc calls and to reduce native memory fragmentation
+
+            // code cache allocation settings
+            jvmOptions << '-XX:InitialCodeCacheSize=64m'
+            jvmOptions << '-XX:CodeCacheExpansionSize=4m'
+            jvmOptions << '-XX:ReservedCodeCacheSize=256m' // specifying this setting is required if InitialCodeCacheSize is set
+
+            // metaspace allocation settings
+            jvmOptions << '-XX:MetaspaceSize=64m'
+            jvmOptions << '-XX:MinMetaspaceExpansion=4m'
+            jvmOptions << '-XX:MaxMetaspaceExpansion=32m'
+        }
+
         return jvmOptions
     }
 
