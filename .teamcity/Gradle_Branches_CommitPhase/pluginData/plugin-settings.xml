@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+  <webhooks enabled="true">
+    <webhook url="https://hooks.slack.com/services/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" enabled="false" format="tailoredjson">
+      <states>
+        <state type="responsibilityChanged" enabled="false" />
+        <state type="buildBroken" enabled="false" />
+        <state type="buildFixed" enabled="false" />
+        <state type="buildInterrupted" enabled="false" />
+        <state type="buildFinished" enabled="true" />
+        <state type="beforeBuildFinish" enabled="false" />
+        <state type="buildFailed" enabled="true" />
+        <state type="buildSuccessful" enabled="false" />
+        <state type="buildStarted" enabled="false" />
+      </states>
+      <build-types enabled-for-all="true" enabled-for-subprojects="true" />
+    </webhook>
+  </webhooks>
+</settings>
+
