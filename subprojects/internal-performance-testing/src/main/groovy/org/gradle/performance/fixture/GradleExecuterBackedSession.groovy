@@ -82,12 +82,11 @@ class GradleExecuterBackedSession implements GradleSession {
     private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
+        def createNewExecuter = {
+            invocation.gradleDistribution.executer(testDirectoryProvider, integrationTestBuildContext)
+        }
         if (executer == null) {
-            def createNewExecuter = {
-                invocation.gradleDistribution.executer(testDirectoryProvider, integrationTestBuildContext)
-            }
             executer = createNewExecuter()
-            executerForStopping = createNewExecuter()
         } else {
             executer.reset()
         }
@@ -121,7 +120,10 @@ class GradleExecuterBackedSession implements GradleSession {
 
         // must make a copy of argument for executer to use for stopping since arguments must match when stopping the daemons
         // executer instance's reset method gets called after execution and the arguments aren't preserved there
-        executer.copyTo(executerForStopping)
+        if (executerForStopping == null) {
+            executerForStopping = createNewExecuter()
+            executer.copyTo(executerForStopping)
+        }
 
         executer
     }
