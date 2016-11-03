@@ -51,7 +51,7 @@ class ModuleDependencyBuilderTest extends Specification {
     def "builds dependency for project"() {
         given:
         def imlArtifact = Stub(LocalComponentArtifactMetadata) {
-            getName() >> DefaultIvyArtifactName.of("foo", "iml", "iml", null)
+            getName() >> new DefaultIvyArtifactName("foo", "iml", "iml", null)
         }
 
         when:

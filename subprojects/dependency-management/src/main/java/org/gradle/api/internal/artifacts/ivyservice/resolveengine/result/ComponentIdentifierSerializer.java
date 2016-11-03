@@ -38,11 +38,11 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
 
         if (Implementation.BUILD.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            return DefaultProjectComponentIdentifier.of(buildIdentifier, decoder.readString());
+            return new DefaultProjectComponentIdentifier(buildIdentifier, decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return DefaultModuleComponentIdentifier.of(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return DefaultLibraryBinaryIdentifier.of(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
         throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);

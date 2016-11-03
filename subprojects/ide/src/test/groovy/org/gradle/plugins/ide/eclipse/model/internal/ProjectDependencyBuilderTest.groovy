@@ -50,7 +50,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
     def "should create dependency using eclipse projectName"() {
         given:
         def projectArtifact = Stub(LocalComponentArtifactMetadata) {
-            getName() >> DefaultIvyArtifactName.of("foo", "eclipse.project", "project", null)
+            getName() >> new DefaultIvyArtifactName("foo", "eclipse.project", "project", null)
         }
         localComponentRegistry.getAdditionalArtifacts(_) >> [projectArtifact]
 

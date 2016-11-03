@@ -220,6 +220,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def artifactName() {
-        return DefaultIvyArtifactName.of("artifact", "type", "ext")
+        return new DefaultIvyArtifactName("artifact", "type", "ext")
     }
 }
