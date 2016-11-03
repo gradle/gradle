@@ -410,4 +410,10 @@ public interface GradleExecuter extends Stoppable {
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
+
+    /**
+     * Sets flag for output capturing, defaults to true
+     *
+     */
+    GradleExecuter withOutputCapturing(boolean flag);
 }

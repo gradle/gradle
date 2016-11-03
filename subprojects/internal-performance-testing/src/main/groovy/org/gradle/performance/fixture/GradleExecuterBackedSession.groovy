@@ -100,7 +100,8 @@ class GradleExecuterBackedSession implements GradleSession {
             withStackTraceChecksDisabled().
             withArgument('-u').
             inDirectory(invocation.workingDirectory).
-            withTasks(invocation.tasksToRun)
+            withTasks(invocation.tasksToRun).
+            withOutputCapturing(false)
 
         executer.withBuildJvmOpts(invocation.jvmOpts)
 

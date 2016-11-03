@@ -170,7 +170,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle doStart() {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement(), isOutputCapturingEnabled()).start();
     }
 
     private Factory<JavaExecHandleBuilder> getJavaExecBuilder() {

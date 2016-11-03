@@ -151,6 +151,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean cleanTempDirOnShutdown;
     private DurationMeasurement durationMeasurement;
     private boolean reuseUserHomeServices;
+    private boolean outputCapturingEnabled = true;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -1129,6 +1130,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withReuseUserHomeServices(boolean flag) {
         this.reuseUserHomeServices = flag;
+        return this;
+    }
+
+    protected boolean isOutputCapturingEnabled() {
+        return outputCapturingEnabled;
+    }
+
+    @Override
+    public GradleExecuter withOutputCapturing(boolean flag) {
+        this.outputCapturingEnabled = flag;
         return this;
     }
 }
