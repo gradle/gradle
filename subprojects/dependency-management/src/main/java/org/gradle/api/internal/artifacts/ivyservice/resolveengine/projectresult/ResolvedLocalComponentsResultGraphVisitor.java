@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -44,14 +45,30 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
         if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
             builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration());
         }
-        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
-        if (resolvedConfiguration != root && configurationMetadata instanceof LocalConfigurationMetadata) {
-            builder.localComponentResolved(componentId, ((LocalConfigurationMetadata) configurationMetadata).getDirectBuildDependencies());
-        }
     }
 
     @Override
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        if (resolvedConfiguration == root) {
+            return;
+        }
+        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
+        if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
+            return;
+        }
+        LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
+
+        for (DependencyGraphEdge edge : resolvedConfiguration.getIncomingEdges()) {
+            if (edge.getFrom().getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
+                // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
+                ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) edge.getFrom().getOwner().getComponentId();
+                if (!incomingId.getBuild().isCurrentBuild()) {
+                    continue;
+                }
+            }
+            builder.localComponentResolved(resolvedConfiguration.getOwner().getComponentId(), localConfigurationMetadata.getDirectBuildDependencies());
+            break;
+        }
     }
 
     @Override

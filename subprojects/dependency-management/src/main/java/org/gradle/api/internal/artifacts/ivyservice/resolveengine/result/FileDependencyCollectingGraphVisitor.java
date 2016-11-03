@@ -54,6 +54,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
 
     @Override
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        // If this node has an incoming transitive dependency, then include its file dependencies in the result. Otherwise ignore
         ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
         if (configurationMetadata instanceof LocalConfigurationMetadata) {
             LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;

@@ -19,12 +19,10 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
-import spock.lang.Ignore
 
 /**
  * Tests for resolving dependency cycles in a composite build.
  */
-@Ignore
 class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
     BuildTestFile buildC
@@ -142,6 +140,47 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'")
     }
 
+    // Not actually a cycle, just documenting behaviour
+    def "dependency cycle between different projects of included builds"() {
+        given:
+        dependency "org.test:b1:1.0"
+        buildB.buildFile << """
+project(':b1') {
+    dependencies { 
+        compile "org.test:buildC:1.0"
+    }
+}
+"""
+        dependency buildC, "org.test:b2:1.0"
+
+        when:
+        resolve.withoutBuildingArtifacts()
+        resolveSucceeds(":checkDeps")
+
+        then:
+        checkGraph {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
+                compositeSubstitute()
+                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                    compositeSubstitute()
+                    edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:1.0") {
+                        compositeSubstitute()
+                    }
+                }
+            }
+        }
+
+        when:
+        resolveFails(":resolveArtifacts")
+
+        then:
+        failure
+            .assertHasDescription("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Could not download b2.jar (project :buildB:b2)")
+            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+    }
+
     def "compile-only dependency cycle between included builds"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -225,7 +264,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
             .assertHasCause("Circular dependency between the following tasks:")
     }
 
-    protected void resolveSucceeds  (String task) {
+    protected void resolveSucceeds(String task) {
         resolve.prepare()
         super.execute(buildA, task, arguments)
     }
