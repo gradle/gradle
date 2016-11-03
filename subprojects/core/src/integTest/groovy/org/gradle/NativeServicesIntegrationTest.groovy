@@ -29,13 +29,11 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     def jansiLibraryLocator = new JansiStorageLocator()
     def nativeDir = new File(executer.gradleUserHomeDir, 'native')
-    def jansiStorageSourceTarget
-    def jansiDir
     def library
 
     def setup() {
-        jansiStorageSourceTarget = jansiLibraryLocator.locate(nativeDir)
-        jansiDir = jansiLibraryLocator.makeVersionSpecificDir(nativeDir)
+        def jansiStorageSourceTarget = jansiLibraryLocator.locate(nativeDir)
+        def jansiDir = jansiLibraryLocator.makeVersionSpecificDir(nativeDir)
         library = new File(jansiDir, jansiStorageSourceTarget.jansiLibrary.path)
 
         executer.requireGradleDistribution().withNoExplicitTmpDir()
