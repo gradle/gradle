@@ -24,7 +24,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskSuccessResult
-import org.gradle.util.CollectionUtils
 
 class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -88,7 +87,8 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private TaskSuccessResult cacheableTaskResult(ProgressEvents events) {
-        (TaskSuccessResult)CollectionUtils.single(events.operations).result
+        events.operations.size() == 1
+        (TaskSuccessResult)events.operations[0].result
     }
 
     private void runCacheableBuild(ProgressListener pullFromCacheResults) {
