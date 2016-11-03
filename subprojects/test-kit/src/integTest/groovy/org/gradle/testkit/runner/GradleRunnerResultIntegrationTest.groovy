@@ -47,6 +47,7 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
         result.taskPaths(SUCCESS) == []
         result.taskPaths(SKIPPED) == [':byeWorld']
         result.taskPaths(UP_TO_DATE) == [':helloWorld']
+        result.taskPaths(FROM_CACHE).empty
         result.taskPaths(FAILED).empty
     }
 
