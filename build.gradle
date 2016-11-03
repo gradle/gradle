@@ -176,7 +176,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'taskCacheHttp'
+        'resourcesSftp', 'resourcesGcs', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'taskCacheHttp'
     ].collect {
         project(it)
     }

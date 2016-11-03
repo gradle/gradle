@@ -178,6 +178,13 @@ libraries.awsS3 = [
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
 ] + libraries.commons_httpclient + libraries.joda
 
+libraries.gcs = [
+        dependencies.create('com.google.apis:google-api-services-storage:v1-rev78-1.22.0') { exclude group: 'commons-logging', module: 'commons-logging' } ,
+        "com.fasterxml.jackson.core:jackson-core:${versions.jackson}@jar",
+        "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
+        "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
+] + libraries.commons_httpclient + libraries.joda
+
 allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { details ->
