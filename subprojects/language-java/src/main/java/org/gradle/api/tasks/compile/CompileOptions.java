@@ -30,6 +30,9 @@ import org.gradle.util.SingleMessageLogger;
 import java.util.List;
 import java.util.Map;
 
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileObject;
+
 /**
  * Main options for Java compilation.
  */
@@ -72,6 +75,8 @@ public class CompileOptions extends AbstractOptions {
     private boolean incremental;
 
     private FileCollection sourcepath;
+
+    private DiagnosticListener<? super JavaFileObject> diagnosticListener;
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
@@ -444,6 +449,34 @@ public class CompileOptions extends AbstractOptions {
     @Incubating
     public void setSourcepath(FileCollection sourcepath) {
         this.sourcepath = sourcepath;
+    }
+
+    /**
+     * A diagnostic listener to attach to the compilation task.
+     * <p>
+     * The default value for the diagnostic listener is {@code null}, which indicates that the compiler's default error reporting method will be used.
+     * Note that this parameter is ONLY supported for the in-process Java compiler; the command-line compiler does not expose any way to declare a listener.
+     * Accordingly, this parameter will be ignored entirely when {@link #isFork} is true.
+     * <p>
+     * @return the diagnostic listener
+     * @see #setDiagnosticListener(DiagnosticListener)
+     */
+    @Input
+    @Optional
+    @Incubating
+    public DiagnosticListener<? super JavaFileObject> getDiagnosticListener() {
+        return diagnosticListener;
+    }
+
+    /**
+     * Sets a diagnostic listener to be passed to the Java compiler.
+     *
+     * @param diagnosticListener a diagnostic listener; if {@code null},
+     * use the compiler's default method for reporting diagnostics
+     */
+    @Incubating
+    public void setDiagnosticListener(DiagnosticListener<? super JavaFileObject> diagnosticListener) {
+        this.diagnosticListener = diagnosticListener;
     }
 }
 

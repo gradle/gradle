@@ -57,6 +57,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         CompileOptions compileOptions = spec.getCompileOptions();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
         Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
-        return compiler.getTask(null, null, null, options, null, compilationUnits);
+        return compiler.getTask(null, null, compileOptions.getDiagnosticListener(), options, null, compilationUnits);
     }
 }
