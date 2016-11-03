@@ -102,7 +102,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
         when:
         def matcher = builder
             .required()
-            .matchStrictly()
+            .strict()
             .build()
 
         then:

@@ -84,7 +84,7 @@ public interface ConfigurationAttributesMatchingStrategy {
          * required and provided attribute values are strictly equal. This is the default behavior.
          * @return this builder
          */
-        ConfigurationAttributeMatcherBuilder matchStrictly();
+        ConfigurationAttributeMatcherBuilder strict();
 
         /**
          * Sets the default value to a constant, independent of the requested value. As a consequence, some
