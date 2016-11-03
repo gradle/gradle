@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
@@ -40,22 +39,6 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
         1 * handler.add('conf', 'art')
     }
 
-    void "configure artifacts handler with action"() {
-        def handler = Mock(ArtifactHandler)
-        project.artifactHandler = handler
-
-        when:
-        project.artifacts(new Action<ArtifactHandler>() {
-            @Override
-            void execute(ArtifactHandler artifactHandler) {
-                artifactHandler.add('conf', 'art')
-            }
-        })
-
-        then:
-        1 * handler.add('conf', 'art')
-    }
-
     void "delegates to dependency handler"() {
         def handler = Mock(DependencyHandler)
         project.dependencyHandler = handler
@@ -64,22 +47,6 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
         project.dependencies {
             add('conf', 'dep')
         }
-
-        then:
-        1 * handler.add('conf', 'dep')
-    }
-
-    void "configures dependency handler with action"() {
-        def handler = Mock(DependencyHandler)
-        project.dependencyHandler = handler
-
-        when:
-        project.dependencies(new Action<DependencyHandler>() {
-            @Override
-            void execute(DependencyHandler dependencyHandler) {
-                dependencyHandler.add('conf', 'dep')
-            }
-        })
 
         then:
         1 * handler.add('conf', 'dep')
@@ -95,18 +62,6 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * container.configure(cl)
-    }
-
-    void "configures configuration container with action"() {
-        Action<ConfigurationContainer> cl = Mock(Action)
-        def container = Mock(ConfigurationContainer)
-        project.configurationContainer = container
-
-        when:
-        project.configurations cl
-
-        then:
-        1 * cl.execute(container)
     }
 
     def "provides all tasks recursively"() {
