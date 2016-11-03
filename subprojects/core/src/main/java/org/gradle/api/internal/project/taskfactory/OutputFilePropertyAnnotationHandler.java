@@ -47,7 +47,7 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
         task.getOutputs().file(futureValue)
             .withPropertyName(context.getName())
             .withPathSensitivity(getPathSensitivity(context))
-            .optional(context.getOptional());
+            .optional(context.isOptional());
 
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {

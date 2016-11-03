@@ -54,7 +54,7 @@ public interface TaskPropertyActionContext {
     /**
      * @return Is this an optional property (value may be null)?
      */
-    boolean getOptional();
+    boolean isOptional();
 
     /**
      * Sets whether the property allows null values.

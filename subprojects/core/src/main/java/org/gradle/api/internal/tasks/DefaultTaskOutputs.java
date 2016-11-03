@@ -44,7 +44,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -403,25 +403,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         public File getOutputFile() {
-            Object unpackedOutput = unpack(path);
-            if (!isOptional() || unpackedOutput!=null) {
-                return resolver.resolve(path);
+            Object unpackedOutput = FileUtils.unpack(path);
+            if (unpackedOutput == null && isOptional()) {
+                return null;
             }
-            return null;
-        }
-
-        private Object unpack(Object path) {
-            Object current = path;
-            while (current != null) {
-                if (current instanceof Callable) {
-                    current = uncheckedCall((Callable) current);
-                } else if (current instanceof Factory) {
-                    return ((Factory) current).create();
-                } else {
-                    return current;
-                }
-            }
-            return null;
+            return resolver.resolve(path);
         }
 
         @Override

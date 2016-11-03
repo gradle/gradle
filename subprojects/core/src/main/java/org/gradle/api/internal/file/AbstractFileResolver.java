@@ -25,6 +25,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -34,9 +35,6 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private final FileSystem fileSystem;
@@ -103,7 +101,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     protected abstract File doResolve(Object path);
 
     protected URI convertObjectToURI(Object path) {
-        Object object = unpack(path);
+        Object object = FileUtils.unpack(path);
         Object converted = fileNotationParser.parseNotation(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
@@ -113,7 +111,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Nullable
     protected File convertObjectToFile(Object path) {
-        Object object = unpack(path);
+        Object object = FileUtils.unpack(path);
         if (object == null) {
             return null;
         }
@@ -122,20 +120,6 @@ public abstract class AbstractFileResolver implements FileResolver {
             return (File) converted;
         }
         throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
-    }
-
-    private Object unpack(Object path) {
-        Object current = path;
-        while (current != null) {
-            if (current instanceof Callable) {
-                current = uncheckedCall((Callable) current);
-            } else if (current instanceof Factory) {
-                return ((Factory) current).create();
-            } else {
-                return current;
-            }
-        }
-        return null;
     }
 
     protected void validate(File file, PathValidation validation) {
