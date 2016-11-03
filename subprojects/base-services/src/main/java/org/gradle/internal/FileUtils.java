@@ -17,7 +17,6 @@
 package org.gradle.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
@@ -26,9 +25,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
@@ -122,22 +118,4 @@ public class FileUtils {
         }
     }
 
-    /**
-     * Successively unpacks a path that may be deferred by a Callable or Factory
-     * until it's resolved to null or something other than a Callable or Factory.
-     */
-    @Nullable
-    public static Object unpack(Object path) {
-        Object current = path;
-        while (current != null) {
-            if (current instanceof Callable) {
-                current = uncheckedCall((Callable) current);
-            } else if (current instanceof Factory) {
-                return ((Factory) current).create();
-            } else {
-                return current;
-            }
-        }
-        return null;
-    }
 }

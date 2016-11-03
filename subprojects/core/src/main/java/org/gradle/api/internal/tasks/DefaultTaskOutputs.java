@@ -44,8 +44,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.internal.FileUtils;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -403,7 +403,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         public File getOutputFile() {
-            Object unpackedOutput = FileUtils.unpack(path);
+            Object unpackedOutput = GFileUtils.unpack(path);
             if (unpackedOutput == null && isOptional()) {
                 return null;
             }
