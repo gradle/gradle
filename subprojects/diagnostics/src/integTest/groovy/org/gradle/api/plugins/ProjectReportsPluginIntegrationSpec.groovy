@@ -64,4 +64,38 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         where:
         task << ["taskReport", "propertyReport", "dependencyReport", "htmlDependencyReport"]
     }
+
+    @Unroll
+    def "given no output file, does not print link to default #task"(String task) {
+        given:
+        buildFile << """
+            ${task} {
+                outputFile = null
+            }
+        """
+
+        when:
+        succeeds(task)
+
+        then:
+        !result.getOutput().contains("See the report at:")
+
+        where:
+        task << ["taskReport", "propertyReport", "dependencyReport"]
+    }
+
+    def "given no HTML report, does not print link to default HTML dependency report"() {
+        given:
+        buildFile << """
+            htmlDependencyReport {
+                reports.html.enabled = false
+            }
+        """
+
+        when:
+        succeeds("htmlDependencyReport")
+
+        then:
+        !result.getOutput().contains("See the report at:")
+    }
 }
