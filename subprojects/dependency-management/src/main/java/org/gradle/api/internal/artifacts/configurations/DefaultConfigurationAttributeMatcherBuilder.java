@@ -96,7 +96,7 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
     }
 
     @Override
-    public DefaultConfigurationAttributeMatcherBuilder constantDefaultValue(final String value) {
+    public DefaultConfigurationAttributeMatcherBuilder setDefaultValue(final String value) {
         setDefaultValue(new Transformer<String, String>() {
             @Override
             public String transform(String ignored) {

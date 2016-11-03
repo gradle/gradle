@@ -98,7 +98,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can return constant"() {
         when:
         def matcher = builder
-            .constantDefaultValue('blah')
+            .setDefaultValue('blah')
             .build()
 
         then:

@@ -84,6 +84,6 @@ public interface ConfigurationAttributesMatchingStrategy {
          * @param value the constant value to use as the default value when no attribute is found
          * @return this builder
          */
-        ConfigurationAttributeMatcherBuilder constantDefaultValue(String value);
+        ConfigurationAttributeMatcherBuilder setDefaultValue(String value);
     }
 }
