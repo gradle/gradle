@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskSuccessResult
 
 class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
@@ -91,7 +90,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         (TaskSuccessResult)events.operations[0].result
     }
 
-    private void runCacheableBuild(ProgressListener pullFromCacheResults) {
+    private void runCacheableBuild(pullFromCacheResults) {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('cacheable').addProgressListener(pullFromCacheResults, EnumSet.of(OperationType.TASK)).run()
