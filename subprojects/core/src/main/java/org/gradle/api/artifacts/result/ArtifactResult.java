@@ -25,5 +25,8 @@ import org.gradle.api.component.Artifact;
  */
 @Incubating
 public interface ArtifactResult {
+    /**
+     * Returns the type of this artifact.
+     */
     Class<? extends Artifact> getType();
 }

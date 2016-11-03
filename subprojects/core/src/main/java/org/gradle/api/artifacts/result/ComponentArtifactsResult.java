@@ -28,7 +28,7 @@ import java.util.Set;
 @Incubating
 public interface ComponentArtifactsResult extends ComponentResult {
     /**
-     * <p>Returns the component artifacts of the specified type. Includes resolved and unresolved artifacts (if any).
+     * <p>Returns the artifacts of the specified type that belong to this component. Includes resolved and unresolved artifacts (if any).
      *
      * <p>The elements of the returned collection are declared as {@link ArtifactResult}, however the artifact instances will also implement one of the
      * following instances:</p>
