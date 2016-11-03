@@ -34,6 +34,7 @@ public class BuildExperimentRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
     public static final String HEAP_DUMP_PROPERTY = "org.gradle.performance.heapdump";
+    private static final File OS_PREPARE_SCRIPT = new File(System.getProperty("org.gradle.performance.os_prepare_script", "/usr/local/bin/gradle_perf_test_prepare_next.sh"));
 
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
@@ -111,9 +112,35 @@ public class BuildExperimentRunner {
     }
 
     protected void performMeasurements(final InvocationExecutorProvider session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
+        prepareNextExperiment(experiment, projectDir);
         doWarmup(experiment, projectDir, session);
         waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
         doMeasure(experiment, results, projectDir, session);
+    }
+
+    protected void prepareNextExperiment(BuildExperimentSpec experiment, File projectDir) {
+        runOsPrepareNextTestScript();
+    }
+
+    // the preparation script can prepare the OS for a next measurement round by flushing OS caches
+    private void runOsPrepareNextTestScript() {
+        if (OS_PREPARE_SCRIPT.exists()) {
+            try {
+                String scriptPath = OS_PREPARE_SCRIPT.getPath();
+                System.out.println("Running " + scriptPath);
+                ProcessBuilder processBuilder = new ProcessBuilder().command(scriptPath);
+                processBuilder.inheritIO();
+                Process process = processBuilder.start();
+                int exitCode = process.waitFor();
+                if (exitCode == 0) {
+                    System.out.println("Done.");
+                } else {
+                    System.out.println("Failed with error code " + exitCode);
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Problem running preparation script " + OS_PREPARE_SCRIPT, e);
+            }
+        }
     }
 
     private void doMeasure(BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir, InvocationExecutorProvider session) {
