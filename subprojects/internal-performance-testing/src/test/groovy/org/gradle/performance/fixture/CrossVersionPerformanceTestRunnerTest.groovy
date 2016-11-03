@@ -45,13 +45,13 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         'org.gradle.performance.db.url': "jdbc:h2:${tmpDir.testDirectory}"
     )
 
-    final buildContext = IntegrationTestBuildContext.INSTANCE;
+    final buildContext = IntegrationTestBuildContext.INSTANCE
     final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(ReporterAndStore)
     final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
-    final currentVersionBase = GradleVersion.current().baseVersion.version
+    final currentBaseVersion = GradleVersion.current().baseVersion.version
 
     def setup() {
         releases.all >> [
@@ -178,7 +178,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         when:
         System.setProperty('org.gradle.performance.baselines', 'defaults')
-        def results = runner.run()
+        runner.run()
 
         then:
         thrown(IllegalArgumentException)
@@ -207,7 +207,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     def "ignores baseline version if it has the same base as the version under test"() {
         given:
         def runner = runner()
-        runner.targetVersions = ['1.0', currentVersionBase, MOST_RECENT_RELEASE, 'last']
+        runner.targetVersions = ['1.0', currentBaseVersion, MOST_RECENT_RELEASE, 'last']
 
         when:
         def results = runner.run()

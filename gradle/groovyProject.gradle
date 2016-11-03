@@ -47,10 +47,10 @@ testTasks.all { task ->
 }
 
 jarTasks.all { jar ->
-    jar.version = versionBase
+    jar.version = baseVersion
     jar.manifest.mainAttributes(
         (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): versionBase
+        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): baseVersion
     )
 }
 
