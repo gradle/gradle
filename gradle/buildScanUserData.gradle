@@ -64,6 +64,16 @@ if (plugins.hasPlugin("com.gradle.build-scan")) {
         buildScan.link "Source", "https://github.com/gradle/gradle/commit/" + commitId
     }
 
+    try {
+        def branchName = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+        if (branchName && branchName != 'HEAD') {
+            buildScan.tag branchName
+            buildScan.value "Git Branch Name", branchName
+        }
+    } catch (ignore) {
+        // ignore
+    }
+
     // Capture reports from Reporting tasks
     if (System.getenv("CI")) {
         def capturedReportingTypes = ['html'] // can add xml, text, junitXml if wanted
