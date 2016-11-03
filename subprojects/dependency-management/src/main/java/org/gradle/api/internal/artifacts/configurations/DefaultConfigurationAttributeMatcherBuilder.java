@@ -84,7 +84,7 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
     }
 
     @Override
-    public DefaultConfigurationAttributeMatcherBuilder matchAlways() {
+    public DefaultConfigurationAttributeMatcherBuilder optional() {
         setDefaultValue(AUTO_DEFAULT);
         return this;
     }

@@ -65,10 +65,10 @@ public interface ConfigurationAttributesMatchingStrategy {
 
         /**
          * Sets the default value provider to always return the value which is requested. As a consequence,
-         * the scorer will always match.
+         * the scorer should always match when an attribute is missing in a candidate configuration.
          * @return this builder
          */
-        ConfigurationAttributeMatcherBuilder matchAlways();
+        ConfigurationAttributeMatcherBuilder optional();
 
         /**
          * Sets the default value to a constant, independent of the requested value. As a consequence, some

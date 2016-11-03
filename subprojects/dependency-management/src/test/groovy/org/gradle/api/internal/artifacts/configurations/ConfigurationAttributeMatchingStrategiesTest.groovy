@@ -46,7 +46,7 @@ class ConfigurationAttributeMatchingStrategiesTest extends Specification {
         given:
         def strategy = new DefaultConfigurationAttributesMatchingStrategy()
         strategy.matcher('b') {
-            it.matchAlways()
+            it.optional()
         }
         when:
         def bestMatches = ConfigurationAttributeMatchingStrategies.findBestMatches(strategy, source, candidates)

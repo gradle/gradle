@@ -302,7 +302,7 @@ public interface ResolutionStrategy {
      *
      *      // configures matching of "buildType" with a default value provider
      *      matcher('buildType') {
-     *          matchAlways()
+     *          optional()
      *      }
      *
      *   }

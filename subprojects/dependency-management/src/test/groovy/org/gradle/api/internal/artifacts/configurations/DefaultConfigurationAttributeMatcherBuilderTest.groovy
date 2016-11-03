@@ -87,7 +87,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can match always with DSL shortcut"() {
         when:
         def matcher = builder
-            .matchAlways()
+            .optional()
             .build()
 
         then:
