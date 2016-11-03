@@ -67,7 +67,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
@@ -932,7 +931,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                             Warning warning = expectedDeprecationWarnings.remove(0);
                             i = i + warning.getLineCount();
                             // skip over stack trace
-                            while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            while (i < lines.size() && isStackTraceElement(lines.get(i))) {
                                 i++;
                             }
                         }
@@ -944,11 +943,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                             Warning warning = expectedIncubationWarnings.remove(0);
                             i = i + warning.getLineCount();
                             // skip over stack trace
-                            while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            while (i < lines.size() && isStackTraceElement(lines.get(i))) {
                                 i++;
                             }
                         }
-                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
+                    } else if (!expectStackTraces && isStackTraceElement(line) && i < lines.size() - 1 && isStackTraceElement(lines.get(i + 1))) {
                         // 2 or more lines that look like stack trace elements
                         throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else {
@@ -1078,6 +1077,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> launcherJvmArgs = new ArrayList<String>();
         // Implicit JVM args that should be used to fork a JVM
         final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
+    }
+
+    // can't handle <init>
+    //static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\.[\\w$_ =\\+\'-]+\\(.+?\\)");
+
+    static boolean isStackTraceElement(String line) {
+        return line != null && line.startsWith("\tat ");
     }
 
     private static class Warning {
