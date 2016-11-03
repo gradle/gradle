@@ -57,22 +57,6 @@ fi"""
         }
     }
 
-    triggers {
-        vcs {
-            quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-            quietPeriod = 90
-            triggerRules = """-:design-docs
--:.teamcity
--:.github
--:README.md
--:LICENSE"""
-            branchFilter = """+:*
--:<default>
--:*-noci
--:*-no-ci"""
-        }
-    }
-
     dependencies {
         dependency(Gradle_Branches_Checkpoints.buildTypes.Gradle_Branches_Checkpoints_Stage4BranchCoverage) {
             snapshot {
