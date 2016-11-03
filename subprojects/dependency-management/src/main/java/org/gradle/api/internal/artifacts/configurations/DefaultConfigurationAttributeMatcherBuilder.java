@@ -84,6 +84,18 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
     }
 
     @Override
+    public DefaultConfigurationAttributeMatcherBuilder matchStrictly() {
+        setScorer(STRICT_MATCH);
+        return this;
+    }
+
+    @Override
+    public DefaultConfigurationAttributeMatcherBuilder required() {
+        setDefaultValue(NO_DEFAULT);
+        return this;
+    }
+
+    @Override
     public DefaultConfigurationAttributeMatcherBuilder optional() {
         setDefaultValue(AUTO_DEFAULT);
         return this;

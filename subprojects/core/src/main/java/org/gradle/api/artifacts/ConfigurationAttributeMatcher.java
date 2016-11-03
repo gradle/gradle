@@ -16,8 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.StringAttributeValueMatch;
 
 /**
  * A configuration attribute matcher is responsible for telling if an attribute from a source configuration
@@ -36,6 +34,7 @@ public interface ConfigurationAttributeMatcher extends ConfigurationAttributeSco
 
     /**
      * Returns a default value for a missing attribute in the target configuration.
+     *
      * @param requestedValue the value which has been requested
      * @return a value that will be used to compare a score, or <code>null</code> if this attribute must absolutely be found.
      */

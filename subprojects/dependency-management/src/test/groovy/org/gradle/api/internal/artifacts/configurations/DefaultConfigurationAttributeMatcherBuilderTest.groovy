@@ -59,7 +59,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can have case insensitive match with DSL shortcut"() {
         when:
         def matcher = builder
-            .ignoreCase()
+            .setScorer(DefaultConfigurationAttributeMatcherBuilder.STRICT_CASE_INSENSITIVE)
             .build()
 
         then:
@@ -93,6 +93,22 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
         then:
         matcher.score('foo', null) == -1
         matcher.defaultValue('foo') == 'foo'
+    }
+
+    def "can come back to the default behavior using DSL shortcut"() {
+        def builder = this.builder
+            .optional()
+            .setScorer({ a,b -> -1 })
+        when:
+        def matcher = builder
+            .required()
+            .matchStrictly()
+            .build()
+
+        then:
+        matcher.score('foo', 'foo') == 0
+        matcher.score('foo', null) == -1
+        matcher.defaultValue('foo') == null
     }
 
     def "can return constant"() {

@@ -71,6 +71,22 @@ public interface ConfigurationAttributesMatchingStrategy {
         ConfigurationAttributeMatcherBuilder optional();
 
         /**
+         * Sets the default value provider to always return <code>null</code>. As a consequence,
+         * the scorer should never match when an attribute is missing in a candidate configuration.
+         * This is the default behavior.
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder required();
+
+        /**
+         * Sets the scoring strategy to exact match. The required attribute value will be compared to the
+         * value provided by the candidate configuration, and a match will be found if and only if the
+         * required and provided attribute values are strictly equal. This is the default behavior.
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder matchStrictly();
+
+        /**
          * Sets the default value to a constant, independent of the requested value. As a consequence, some
          * configuration attributes will match, some will not, depending on the scorer implementation. This
          * can be used to implement <i>reasonable fallback</i> values which do not match exactly but at some
