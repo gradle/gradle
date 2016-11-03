@@ -1052,7 +1052,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':c:fooJar'
     }
 
-    def "two configuratios can have the same attributes but for different roles"() {
+    def "two configurations can have the same attributes but for different roles"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << '''
@@ -1060,8 +1060,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.forQueryingOrResolvingOnly()
-                    compileFreeRelease.forQueryingOrResolvingOnly()
+                    compileFreeDebug.consumeOrPublishAllowed = false
+                    compileFreeRelease.consumeOrPublishAllowed = false
                 }
                 dependencies {
                     compileFreeDebug project(':b')
@@ -1083,8 +1083,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     // configurations used when resolving
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.forQueryingOrResolvingOnly()
-                    compileFreeRelease.forQueryingOrResolvingOnly()
+                    compileFreeDebug.consumeOrPublishAllowed = false
+                    compileFreeRelease.consumeOrPublishAllowed = false
                     // configurations used when selecting dependencies
                     _compileFreeDebug {
                         attributes(buildType: 'debug', flavor: 'free')
@@ -1129,7 +1129,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         configurations {
             internal {
-                $role
+                $code
             }
         }
         dependencies {
@@ -1151,7 +1151,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
 
         where:
-        role << ['forConsumingOrPublishingOnly()', 'asBucket()']
+        role                      | code
+        'consume or publish only' | 'queryOrResolveAllowed = false'
+        'bucket'                  | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
+
     }
 
     @Unroll("cannot resolve a configuration with role #role at configuration time")
@@ -1161,7 +1164,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
 
         configurations {
             internal {
-                $role
+                $code
             }
         }
         dependencies {
@@ -1180,7 +1183,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
 
         where:
-        role << ['forConsumingOrPublishingOnly()', 'asBucket()']
+        role                      | code
+        'consume or publish only' | 'queryOrResolveAllowed = false'
+        'bucket'                  | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
+
     }
 
     @Unroll("cannot resolve a configuration with role #role using #method")
@@ -1214,12 +1220,12 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         where:
         [method, role] << [
             ['getResolvedConfiguration()', 'getBuildDependencies()', 'getIncoming().getFiles()', 'getIncoming().getResolutionResult()', 'getResolvedConfiguration()'],
-            ['forConsumingOrPublishingOnly()', 'asBucket()']
+            ['queryOrResolveAllowed = false', 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false']
         ].combinations()
     }
 
     @Unroll("cannot add a dependency on a configuration role #role")
-    def "cannot add a dependency on a configuration not meant to be resolvable"() {
+    def "cannot add a dependency on a configuration not meant to be consumed or published"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -1238,7 +1244,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         project(':b') {
             configurations {
                 internal {
-                    $role
+                    $code
                 }
             }
         }
@@ -1252,6 +1258,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause "Configuration 'internal' cannot be used in a project dependency"
 
         where:
-        role << ['forQueryingOrResolvingOnly()', 'asBucket()']
+        role                    | code
+        'query or resolve only' | 'consumeOrPublishAllowed = false'
+        'bucket'                | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
     }
 }

@@ -791,24 +791,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         isQueryOrResolveAllowed = queryOrResolveAllowed;
     }
 
-    @Override
-    public void forConsumingOrPublishingOnly() {
-        setConsumeOrPublishAllowed(true);
-        setQueryOrResolveAllowed(false);
-    }
-
-    @Override
-    public void forQueryingOrResolvingOnly() {
-        setConsumeOrPublishAllowed(false);
-        setQueryOrResolveAllowed(true);
-    }
-
-    @Override
-    public void asBucket() {
-        setConsumeOrPublishAllowed(false);
-        setQueryOrResolveAllowed(false);
-    }
-
     /**
      * Print a formatted representation of a Configuration
      */
