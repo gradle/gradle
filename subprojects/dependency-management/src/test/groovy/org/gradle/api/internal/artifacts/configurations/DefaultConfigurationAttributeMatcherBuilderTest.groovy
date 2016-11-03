@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.artifacts.ConfigurationAttributeMatcher
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -42,7 +41,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can have case insensitive match"() {
         when:
         def matcher = builder
-            .setScorer(ConfigurationAttributeMatcher.STRICT_CASE_INSENSITIVE)
+            .setScorer(DefaultConfigurationAttributeMatcherBuilder.STRICT_CASE_INSENSITIVE)
             .build()
 
         then:
@@ -77,7 +76,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can match always"() {
         when:
         def matcher = builder
-            .setDefaultValue(ConfigurationAttributeMatcher.AUTO_DEFAULT)
+            .setDefaultValue(DefaultConfigurationAttributeMatcherBuilder.AUTO_DEFAULT)
             .build()
 
         then:
@@ -119,8 +118,8 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
         matcher.defaultValue(requested) == defaultValue
 
         where:
-        requested | provider                                   | defaultValue
-        'foo'     | ConfigurationAttributeMatcher.AUTO_DEFAULT | 'foo'
-        'foo'     | ConfigurationAttributeMatcher.NO_DEFAULT   | null
+        requested | provider                                                 | defaultValue
+        'foo'     | DefaultConfigurationAttributeMatcherBuilder.AUTO_DEFAULT | 'foo'
+        'foo'     | DefaultConfigurationAttributeMatcherBuilder.NO_DEFAULT   | null
     }
 }

@@ -33,23 +33,6 @@ import org.gradle.api.internal.artifacts.StringAttributeValueMatch;
 @Incubating
 public interface ConfigurationAttributeMatcher extends ConfigurationAttributeScorer {
 
-    Transformer<String, String> NO_DEFAULT = new Transformer<String, String>() {
-        @Override
-        public String transform(String requested) {
-            return null;
-        }
-    };
-
-    Transformer<String, String> AUTO_DEFAULT = new Transformer<String, String>() {
-        @Override
-        public String transform(String requested) {
-            return requested;
-        }
-    };
-
-    ConfigurationAttributeScorer STRICT_MATCH = new StringAttributeValueMatch(true);
-    ConfigurationAttributeScorer STRICT_CASE_INSENSITIVE = new StringAttributeValueMatch(false);
-
 
     /**
      * Returns a default value for a missing attribute in the target configuration.

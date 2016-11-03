@@ -18,11 +18,27 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationAttributeMatcher;
 import org.gradle.api.artifacts.ConfigurationAttributeScorer;
+import org.gradle.api.internal.artifacts.StringAttributeValueMatch;
 
 public class DefaultConfigurationAttributeMatcherBuilder implements ConfigurationAttributesMatchingStrategyInternal.ConfigurationAttributeMatcherBuilderInternal {
 
-    private ConfigurationAttributeScorer scorer = ConfigurationAttributeMatcher.STRICT_MATCH;
-    private Transformer<String, String> defaultValueBuilder = ConfigurationAttributeMatcher.NO_DEFAULT;
+    static final ConfigurationAttributeScorer STRICT_MATCH = new StringAttributeValueMatch(true);
+    static final Transformer<String, String> AUTO_DEFAULT = new Transformer<String, String>() {
+        @Override
+        public String transform(String requested) {
+            return requested;
+        }
+    };
+    static final ConfigurationAttributeScorer STRICT_CASE_INSENSITIVE = new StringAttributeValueMatch(false);
+    static final Transformer<String, String> NO_DEFAULT = new Transformer<String, String>() {
+        @Override
+        public String transform(String requested) {
+            return null;
+        }
+    };
+
+    private ConfigurationAttributeScorer scorer = STRICT_MATCH;
+    private Transformer<String, String> defaultValueBuilder = NO_DEFAULT;
 
     private DefaultConfigurationAttributeMatcherBuilder() {
     }
@@ -69,13 +85,13 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
 
     @Override
     public DefaultConfigurationAttributeMatcherBuilder ignoreCase() {
-        setScorer(ConfigurationAttributeMatcher.STRICT_CASE_INSENSITIVE);
+        setScorer(STRICT_CASE_INSENSITIVE);
         return this;
     }
 
     @Override
     public DefaultConfigurationAttributeMatcherBuilder matchAlways() {
-        setDefaultValue(ConfigurationAttributeMatcher.AUTO_DEFAULT);
+        setDefaultValue(AUTO_DEFAULT);
         return this;
     }
 
