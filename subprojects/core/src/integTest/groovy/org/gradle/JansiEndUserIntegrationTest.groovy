@@ -17,10 +17,12 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
 import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer.JANSI_LIBRARY_PATH_SYS_PROP
+import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
 class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
@@ -133,6 +135,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         outputContains('Hello World')
     }
 
+    @Requires(JDK8_OR_EARLIER)
     def "kotlin compiler bundles different version of Jansi than initialized by Gradle's native services"() {
         given:
         def kotlinVersion = '1.0.4'
