@@ -26,7 +26,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
     @Unroll("Builds '#testProject' calling #tasks (daemon) with local cache")
     def "build with cache"() {
         given:
-        runner.testId = "Enterprise Java $testProject ${tasks.join(' ')} (daemon, cached)"
+        runner.testId = "cached Java $testProject ${tasks.join(' ')} (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.useDaemon = true
