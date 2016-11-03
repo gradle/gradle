@@ -216,8 +216,8 @@
             For all the details of dependency resolution, see <xref linkend="dependency_management"/>, and for artifact publication see <xref linkend="artifact_management"/>.
         </para>
         <para>
-            If you are interested in the DSL elements mentioned here, have a look at <apilink class="org.gradle.api.Project" method="configurations"/>,
-            <apilink class="org.gradle.api.Project" method="repositories"/> and <apilink class="org.gradle.api.Project" method="dependencies"/>.
+            If you are interested in the DSL elements mentioned here, have a look at <apilink class="org.gradle.api.Project" method="configurations(org.gradle.api.Action)"/>,
+            <apilink class="org.gradle.api.Project" method="repositories(org.gradle.api.Action)"/> and <apilink class="org.gradle.api.Project" method="dependencies(org.gradle.api.Action)"/>.
         </para>
         <para>Otherwise, continue on to some of the other <link linkend="tutorials">tutorials</link>.</para>
     </section>

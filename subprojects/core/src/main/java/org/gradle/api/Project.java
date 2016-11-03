@@ -474,6 +474,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
+     * action is executed to configure the task. A map of creation options can be passed to this method to control how
+     * the task is created. See {@link #task(java.util.Map, String)} for the available options.</p>
+     *
+     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
+     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
+     *
+     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
+     * to true, an exception is thrown.</p>
+     *
+     * @param args The task creation options.
+     * @param name The name of the task to be created
+     * @param configureAction The action to use to configure the created task.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     */
+    Task task(Map<String, ?> args, String name, Action<? super Task> configureAction);
+
+    /**
+     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
      * closure is executed to configure the task.</p> <p/> <p>After the task is added to the project, it is made
      * available as a property of the project, so that you can reference the task by name in your build file.  See <a
      * href="#properties">here</a> for more details</p>
@@ -484,6 +503,19 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     Task task(String name, Closure configureClosure);
+
+    /**
+     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
+     * action is executed to configure the task.</p> <p/> <p>After the task is added to the project, it is made
+     * available as a property of the project, so that you can reference the task by name in your build file.  See <a
+     * href="#properties">here</a> for more details</p>
+     *
+     * @param name The name of the task to be created
+     * @param configureAction The action to use to configure the created task.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     */
+    Task task(String name, Action<? super Task> configureAction);
 
     /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
@@ -558,6 +590,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws UnknownProjectException If no project with the given path exists.
      */
     Project project(String path, Closure configureClosure);
+
+    /**
+     * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
+     * interpreted relative to this project.</p>
+     *
+     * @param path The path.
+     * @param configureAction The action to use to configure the project.
+     * @return The project with the given path. Never returns null.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    Project project(String path, Action<Project> configureAction);
 
     /**
      * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
@@ -705,6 +748,24 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
     /**
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
+     * #files(Object...)}. The file collection is configured using the given action. Example:</p>
+     * <pre>
+     * files "$buildDir/classes" {
+     *     builtBy 'compile'
+     * }
+     * </pre>
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
+     * @param configureAction The action to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileCollection files(Object paths, Action<ConfigurableFileCollection> configureAction);
+
+    /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}.</p>
      *
@@ -752,6 +813,32 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as per {@link #file(Object)}. The action will be used to configure the new file tree.
+     * Example:</p>
+     *
+     * <pre autoTested=''>
+     * def myTree = fileTree('src') {
+     *    exclude '**&#47;.data/**'
+     *    builtBy 'someTask'
+     * }
+     *
+     * task copy(type: Copy) {
+     *    from myTree
+     * }
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
+     * @param configureAction Action to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Action<ConfigurableFileTree> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
@@ -986,6 +1073,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     AntBuilder ant(Closure configureClosure);
 
     /**
+     * Executes the given action against the {@link AntBuilder} for this project.
+     * You can use this in your build script to execute ant task.
+     * See example in javadoc for {@link #getAnt()}.
+     *
+     * @param action Action to execute against the {@link AntBuilder}
+     * @return The {@link AntBuilder}, never returns null
+     */
+    AntBuilder ant(Action<AntBuilder> action);
+
+    /**
      * Returns the configurations of this project.
      *
      * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
@@ -1005,6 +1102,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the dependency configurations.
      */
     void configurations(Closure configureClosure);
+
+    /**
+     * Configures the dependency configurations for this project.
+     *
+     * This method executes the given action against the {@link ConfigurationContainer} for this project.
+     *
+     * @param action Action to configure the dependency configurations for this project
+     */
+    void configurations(Action<ConfigurationContainer> action);
 
     /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
@@ -1039,6 +1145,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the published artifacts.
      */
     void artifacts(Closure configureClosure);
+
+    /**
+     * Configures the published artifacts for this project.
+     *
+     * This method executes the given action against the {@link ArtifactHandler} for this project.
+     *
+     * @param action Action to configure the published artifacts for this project
+     */
+    void artifacts(Action<ArtifactHandler> action);
 
     /**
      * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
@@ -1310,6 +1425,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void repositories(Closure configureClosure);
 
     /**
+     * Configures the repositories for this project.
+     *
+     * This method executes the given action against the {@link RepositoryHandler} for this project.
+     *
+     * @param action Action to configure the repositories for this project
+     */
+    void repositories(Action<RepositoryHandler> action);
+
+    /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
      * new dependencies. For accessing already declared dependencies, the configurations can be used.
      *
@@ -1335,6 +1459,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void dependencies(Closure configureClosure);
 
     /**
+     * Configures the dependencies for this project.
+     *
+     * This method executes the given action against the {@link DependencyHandler} for this project.
+     *
+     * @param action Action to configure the dependencies for this project
+     */
+    void dependencies(Action<DependencyHandler> action);
+
+    /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
      * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
@@ -1351,6 +1484,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the build script classpath.
      */
     void buildscript(Closure configureClosure);
+
+    /**
+     * Configures the build script classpath for this project.
+     *
+     * The given action is executed against this project's {@link ScriptHandler}.
+     *
+     * @param action Action to configure the build script classpath
+     */
+    void buildscript(Action<ScriptHandler> action);
 
     /**
      * Copies the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to

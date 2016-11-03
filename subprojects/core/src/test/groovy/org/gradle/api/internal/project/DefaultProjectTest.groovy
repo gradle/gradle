@@ -551,6 +551,18 @@ class DefaultProjectTest {
     }
 
     @Test
+    void testGetProjectWithAction() {
+        String newPropValue = 'someValue'
+        assert child1.is(project.project("child1", new Action<Project>() {
+            @Override
+            void execute(Project project) {
+                project.ext.newProp = newPropValue
+            }
+        }))
+        assertEquals(child1.newProp, newPropValue)
+    }
+
+    @Test
     void testMethodMissing() {
         boolean closureCalled = false
         Closure testConfigureClosure = { closureCalled = true }
@@ -729,6 +741,17 @@ def scriptMethod(Closure closure) {
     void testAnt() {
         Closure configureClosure = { fileset(dir: 'dir', id: 'fileset') }
         project.ant(configureClosure)
+        assertThat(project.ant.project.getReference('fileset'), instanceOf(FileSet))
+    }
+
+    @Test
+    void testAntWithAction() {
+        project.ant(new Action<AntBuilder>() {
+            @Override
+            void execute(AntBuilder antBuilder) {
+                antBuilder.fileset(dir: 'dir', id: 'fileset')
+            }
+        })
         assertThat(project.ant.project.getReference('fileset'), instanceOf(FileSet))
     }
 
