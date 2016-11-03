@@ -476,28 +476,4 @@ public interface Configuration extends FileCollection {
     @Incubating
     boolean isQueryOrResolveAllowed();
 
-    /**
-     * Short-hand notation to tell that this configuration can be consumed or published, but not queried or resolved.
-     * This sets {@link #isConsumeOrPublishAllowed()} to true and {@link #isQueryOrResolveAllowed()} to false.
-     */
-    @Incubating
-    void forConsumingOrPublishingOnly();
-
-    /**
-     * Short-hand notation to tell that this configuration can be queried or resolved, but not consumed or published.
-     * This sets {@link #isConsumeOrPublishAllowed()} to false and {@link #isQueryOrResolveAllowed()} to true.
-     */
-    @Incubating
-    void forQueryingOrResolvingOnly();
-
-
-    /**
-     * Short-hand notation to tell that this configuration acts as a bucket of dependencies and is not meant to
-     * be queried, resolved, consumed or published directly.
-     * This typically includes the case where you define a parent configuration where the user would declare its dependencies
-     * but only child configurations are supposed to be used for resolution.
-     * This sets {@link #isConsumeOrPublishAllowed()} to false and {@link #isQueryOrResolveAllowed()} to false.
-     */
-    @Incubating
-    void asBucket();
 }

@@ -115,23 +115,6 @@ class DefaultConfigurationSpec extends Specification {
         !configuration.transitive
     }
 
-    def "can set the configuration role using short-hand notation"() {
-        when:
-        def configuration = conf("name", "path")
-        configuration.forConsumingOrPublishingOnly()
-
-        then:
-        configuration.consumeOrPublishAllowed
-        !configuration.queryOrResolveAllowed
-
-        when:
-        configuration.forQueryingOrResolvingOnly()
-
-        then:
-        !configuration.consumeOrPublishAllowed
-        configuration.queryOrResolveAllowed
-    }
-
     def excludes() {
         def excludeArgs1 = [group: "aGroup"]
         def excludeArgs2 = [module: "aModule"]

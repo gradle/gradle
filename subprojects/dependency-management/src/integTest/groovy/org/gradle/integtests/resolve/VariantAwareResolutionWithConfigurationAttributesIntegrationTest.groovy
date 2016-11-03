@@ -39,18 +39,19 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
-                        p.configurations.compile.asBucket()
+                        p.configurations.compile.queryOrResolveAllowed = false
+                        p.configurations.compile.consumeOrPublishAllowed = false
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
                                     extendsFrom p.configurations.compile
-                                    forConsumingOrPublishingOnly()
+                                    queryOrResolveAllowed = false
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
                                     extendsFrom p.configurations.compile
-                                    forQueryingOrResolvingOnly()
+                                    consumeOrPublishAllowed = false
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
