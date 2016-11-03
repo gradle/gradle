@@ -232,6 +232,6 @@ Known issues are problems that were discovered post release that are directly re
 
 [Issue #778](https://github.com/gradle/gradle/issues/778) reported a failed build with a crashed daemon JVM if a Java annotation processor is used that embeds an older version of Jansi than the one bundled with Gradle. As a workaround you can execute the Java compiler in a forked process.
 
-    compileJava { 
+    tasks.withType(JavaCompile) { 
         options.fork = true 
     }
