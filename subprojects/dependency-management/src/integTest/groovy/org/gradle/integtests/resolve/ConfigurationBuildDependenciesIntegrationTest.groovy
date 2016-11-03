@@ -85,13 +85,20 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     }
 
     @Unroll
-    def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
+    def "builds correct artifacts when there is a project cycle in dependency graph - fluid: #fluid"() {
         makeFluid(fluid)
+
+        // A graph from root compile -> child default -> root default, so not an actual cycle here
+        // Graph includes artifact and file dependencies on each node, should build all of them
         buildFile << """
             allprojects { 
                 task jar 
+                task lib
                 artifacts {
                     compile file: file("\${project.name}.jar"), builtBy: jar
+                }
+                dependencies {
+                    compile files("\${project.name}-lib.jar") { builtBy lib }
                 }
             }
             dependencies {
@@ -99,7 +106,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             }
             project(':child') {
                 dependencies {
-                    compile project(':')
+                    compile project(':') // references 'default' not 'compile' so there is not _actually_ a cycle here
                 }
             }
 """
@@ -108,7 +115,44 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run("useCompileConfiguration")
 
         then:
-        result.assertTasksExecuted(":jar", ":child:jar", ":useCompileConfiguration")
+        result.assertTasksExecuted(":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration")
+
+        where:
+        fluid << [true, false]
+    }
+
+    @Unroll
+    def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
+        makeFluid(fluid)
+
+        // A graph from root compile -> child default -> root compile
+        // Graph includes artifact and file dependencies on each node, should build all of them
+        buildFile << """
+            allprojects { 
+                task jar 
+                task lib
+                artifacts {
+                    compile file: file("\${project.name}.jar"), builtBy: jar
+                }
+                dependencies {
+                    compile files("\${project.name}-lib.jar") { builtBy lib }
+                }
+            }
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                dependencies {
+                    compile project(path: ':', configuration: 'compile')
+                }
+            }
+"""
+
+        when:
+        run("useCompileConfiguration")
+
+        then:
+        result.assertTasksExecuted(":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration")
 
         where:
         fluid << [true, false]

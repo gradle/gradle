@@ -81,14 +81,15 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
+        FileDependencyCollectingGraphVisitor filesBuilder = new FileDependencyCollectingGraphVisitor();
         DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, new Spec<DependencyMetadata>() {
             @Override
             public boolean isSatisfiedBy(DependencyMetadata element) {
                 return element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
             }
-        }, projectModelVisitor, new CompositeDependencyArtifactsVisitor());
-        result.resolved(localComponentsResultBuilder.complete());
+        }, new CompositeDependencyGraphVisitor(projectModelVisitor, filesBuilder), new CompositeDependencyArtifactsVisitor());
+        result.resolved(localComponentsResultBuilder.complete(), filesBuilder);
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -116,7 +117,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor);
 
-        results.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
+        results.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete(), filesBuilder);
 
         results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsBuilder, filesBuilder, oldTransientModelBuilder));
     }

@@ -195,9 +195,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                     taskDependency.add(artifact);
                 }
             }
-            for (LocalFileDependencyMetadata fileCollection : getFiles()) {
-                taskDependency.add(fileCollection.getFiles());
-            }
             return taskDependency;
         }
 

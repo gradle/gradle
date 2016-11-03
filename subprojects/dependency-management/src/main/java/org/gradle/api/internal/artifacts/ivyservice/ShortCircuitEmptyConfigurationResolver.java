@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedLocalComponentsResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -73,7 +74,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
         ResolvedLocalComponentsResult emptyProjectResult = new DefaultResolvedLocalComponentsResultBuilder(false).complete();
-        results.resolved(emptyResult, emptyProjectResult);
+        results.resolved(emptyResult, emptyProjectResult, new FileDependencyCollectingGraphVisitor());
     }
 
     @Override

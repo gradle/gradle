@@ -163,4 +163,45 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         }
     }
 
+    def "files referenced by file dependency are not included or built when referenced by a non-transitive dependency"() {
+        settingsFile << "include 'sub'; rootProject.name='main'"
+        buildFile << '''
+            allprojects {
+                configurations { compile }
+                task jar {
+                    def outputFile = file("${project.name}.jar")
+                    outputs.file outputFile
+                    doLast { 
+                        outputFile.text = 'content' 
+                    } 
+                }
+            }
+            dependencies { 
+                compile project(path: ':sub', configuration: 'compile', transitive: false)
+                compile jar.outputs.files
+            }
+            checkDeps.inputs.files configurations.compile
+'''
+        file("sub/build.gradle") << '''
+            dependencies { 
+                compile jar.outputs.files
+            }
+'''
+
+        when:
+        run ":checkDeps"
+
+        then:
+        result.assertTasksExecuted(":jar", ":checkDeps");
+        resolve.expectGraph {
+            root(":", ":main:") {
+                files << "main.jar"
+                project(":sub", "main:sub:") {
+                    configuration = "compile"
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
 }

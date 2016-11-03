@@ -27,7 +27,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
     private final ResolvedLocalComponentsResultBuilder builder;
     private ComponentIdentifier rootId;
-    private DependencyGraphNode root;
 
     public ResolvedLocalComponentsResultGraphVisitor(ResolvedLocalComponentsResultBuilder builder) {
         this.builder = builder;
@@ -35,7 +34,6 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
 
     @Override
     public void start(DependencyGraphNode root) {
-        this.root = root;
         this.rootId = root.getOwner().getComponentId();
     }
 
@@ -49,15 +47,13 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
 
     @Override
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
-        if (resolvedConfiguration == root) {
-            return;
-        }
         ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
         if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
             return;
         }
         LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
 
+        // If there is an incoming edge then include the dependencies to build the artifacts of the node
         for (DependencyGraphEdge edge : resolvedConfiguration.getIncomingEdges()) {
             if (edge.getFrom().getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
                 // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
