@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.artifacts.ConfigurationAttributeMatcher
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -47,7 +46,7 @@ class ConfigurationAttributeMatchingStrategiesTest extends Specification {
         given:
         def strategy = new DefaultConfigurationAttributesMatchingStrategy()
         strategy.matcher('b') {
-            it.defaultValue = ConfigurationAttributeMatcher.ALWAYS_PROVIDE
+            it.matchAlways()
         }
         when:
         def bestMatches = ConfigurationAttributeMatchingStrategies.findBestMatches(strategy, source, candidates)

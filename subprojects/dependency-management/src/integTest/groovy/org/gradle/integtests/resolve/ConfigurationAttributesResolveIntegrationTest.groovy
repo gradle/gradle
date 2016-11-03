@@ -1267,14 +1267,12 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << '''
-            import static org.gradle.api.artifacts.ConfigurationAttributeMatcher.*
-
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     _compileFreeDebug.resolutionStrategy.attributesMatching {
                         matcher('flavor') {
-                            defaultValue = ALWAYS_PROVIDE
+                            matchAlways()
                         }
                     }
                 }
@@ -1324,14 +1322,12 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << '''
-            import static org.gradle.api.artifacts.ConfigurationAttributeMatcher.*
-
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     _compileFreeDebug.resolutionStrategy.attributesMatching {
                         matcher('flavor') {
-                            defaultValue = ALWAYS_PROVIDE
+                            matchAlways()
                         }
                     }
                 }
@@ -1381,17 +1377,15 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << '''
-            import static org.gradle.api.artifacts.ConfigurationAttributeMatcher.*
-
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     _compileFreeDebug.resolutionStrategy.attributesMatching {
                         matcher('flavor') {
-                            defaultValue = ALWAYS_PROVIDE
+                            matchAlways()
                         }
                         matcher('buildType') {
-                            scorer = CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH
+                            ignoreCase()
                         }
                     }
                 }
@@ -1497,7 +1491,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     _compileFreeDebug.resolutionStrategy.attributesMatching {
                        matcher('flavor') {
-                            defaultValue = ALWAYS_PROVIDE
+                            matchAlways()
                        }
                     }
                 }

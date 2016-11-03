@@ -50,11 +50,40 @@ public interface ConfigurationAttributesMatchingStrategy {
         ConfigurationAttributeMatcherBuilder setScorer(ConfigurationAttributeScorer comparator);
 
         /**
-         * Sets the function which computes the default value of an attribute in case it is missing.
+         * Sets the function which computes the default value of an attribute in case it is missing. The transformer
+         * transforms from the requested value to the default value. It therefore allows reacting to several cases
+         * based on the value which is requested. For example, for the attribute <code>flavor</code>, the value
+         * <code>free</code> is requested. Then the transformer can determine if it should return <code>null</code>,
+         * which means "do not provide a default value", or <code>free</code> to match exactly, or any other value
+         * of interest.
          * @param defaultValueBuilder the value builder
          * @return this builder
          */
         ConfigurationAttributeMatcherBuilder setDefaultValue(Transformer<String, String> defaultValueBuilder);
 
+        // The following methods are just handy DSL methods for common use cases
+
+        /**
+         * Sets the scorer to match exactly, but ignoring the case.
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder ignoreCase();
+
+        /**
+         * Sets the default value provider to always return the value which is requested. As a consequence,
+         * the scorer will always match.
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder matchAlways();
+
+        /**
+         * Sets the default value to a constant, independent of the requested value. As a consequence, some
+         * configuration attributes will match, some will not, depending on the scorer implementation. This
+         * can be used to implement <i>reasonable fallback</i> values which do not match exactly but at some
+         * distance.
+         * @param value the constant value to use as the default value when no attribute is found
+         * @return this builder
+         */
+        ConfigurationAttributeMatcherBuilder constantDefaultValue(String value);
     }
 }

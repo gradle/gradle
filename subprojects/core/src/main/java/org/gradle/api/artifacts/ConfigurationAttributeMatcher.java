@@ -40,15 +40,15 @@ public interface ConfigurationAttributeMatcher extends ConfigurationAttributeSco
         }
     };
 
-    Transformer<String, String> ALWAYS_PROVIDE = new Transformer<String, String>() {
+    Transformer<String, String> AUTO_DEFAULT = new Transformer<String, String>() {
         @Override
         public String transform(String requested) {
             return requested;
         }
     };
 
-    ConfigurationAttributeScorer STRICT_ATTRIBUTE_VALUE_MATCH = new StringAttributeValueMatch(true);
-    ConfigurationAttributeScorer CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH = new StringAttributeValueMatch(false);
+    ConfigurationAttributeScorer STRICT_MATCH = new StringAttributeValueMatch(true);
+    ConfigurationAttributeScorer STRICT_CASE_INSENSITIVE = new StringAttributeValueMatch(false);
 
 
     /**

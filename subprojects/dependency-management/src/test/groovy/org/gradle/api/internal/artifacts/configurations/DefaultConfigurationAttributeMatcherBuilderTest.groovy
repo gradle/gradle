@@ -42,7 +42,7 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     def "can have case insensitive match"() {
         when:
         def matcher = builder
-            .setScorer(ConfigurationAttributeMatcher.CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH)
+            .setScorer(ConfigurationAttributeMatcher.STRICT_CASE_INSENSITIVE)
             .build()
 
         then:
@@ -57,6 +57,58 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
     }
 
     @Unroll
+    def "can have case insensitive match with DSL shortcut"() {
+        when:
+        def matcher = builder
+            .ignoreCase()
+            .build()
+
+        then:
+        matcher.score(requested, provided) == score
+
+        where:
+        requested | provided | score
+        'foo'     | 'foo'    | 0
+        'foo'     | null     | -1
+        'foo'     | 'FOO'    | 0
+        'Foo'     | 'fOO'    | 0
+    }
+
+    def "can match always"() {
+        when:
+        def matcher = builder
+            .setDefaultValue(ConfigurationAttributeMatcher.AUTO_DEFAULT)
+            .build()
+
+        then:
+        matcher.score('foo', null) == -1
+        matcher.defaultValue('foo') == 'foo'
+    }
+
+    def "can match always with DSL shortcut"() {
+        when:
+        def matcher = builder
+            .matchAlways()
+            .build()
+
+        then:
+        matcher.score('foo', null) == -1
+        matcher.defaultValue('foo') == 'foo'
+    }
+
+    def "can return constant"() {
+        when:
+        def matcher = builder
+            .constantDefaultValue('blah')
+            .build()
+
+        then:
+        matcher.score('foo', null) == -1
+        matcher.defaultValue('foo') == 'blah'
+    }
+
+
+    @Unroll
     def "can have provide default value"() {
         when:
         def matcher = builder
@@ -67,8 +119,8 @@ class DefaultConfigurationAttributeMatcherBuilderTest extends Specification {
         matcher.defaultValue(requested) == defaultValue
 
         where:
-        requested | provider                                     | defaultValue
-        'foo'     | ConfigurationAttributeMatcher.ALWAYS_PROVIDE | 'foo'
-        'foo'     | ConfigurationAttributeMatcher.NO_DEFAULT     | null
+        requested | provider                                   | defaultValue
+        'foo'     | ConfigurationAttributeMatcher.AUTO_DEFAULT | 'foo'
+        'foo'     | ConfigurationAttributeMatcher.NO_DEFAULT   | null
     }
 }

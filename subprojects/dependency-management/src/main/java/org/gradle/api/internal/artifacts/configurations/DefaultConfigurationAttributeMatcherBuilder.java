@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ConfigurationAttributeScorer;
 
 public class DefaultConfigurationAttributeMatcherBuilder implements ConfigurationAttributesMatchingStrategyInternal.ConfigurationAttributeMatcherBuilderInternal {
 
-    private ConfigurationAttributeScorer scorer = ConfigurationAttributeMatcher.STRICT_ATTRIBUTE_VALUE_MATCH;
+    private ConfigurationAttributeScorer scorer = ConfigurationAttributeMatcher.STRICT_MATCH;
     private Transformer<String, String> defaultValueBuilder = ConfigurationAttributeMatcher.NO_DEFAULT;
 
     private DefaultConfigurationAttributeMatcherBuilder() {
@@ -67,4 +67,26 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
         }
     }
 
+    @Override
+    public DefaultConfigurationAttributeMatcherBuilder ignoreCase() {
+        setScorer(ConfigurationAttributeMatcher.STRICT_CASE_INSENSITIVE);
+        return this;
+    }
+
+    @Override
+    public DefaultConfigurationAttributeMatcherBuilder matchAlways() {
+        setDefaultValue(ConfigurationAttributeMatcher.AUTO_DEFAULT);
+        return this;
+    }
+
+    @Override
+    public DefaultConfigurationAttributeMatcherBuilder constantDefaultValue(final String value) {
+        setDefaultValue(new Transformer<String, String>() {
+            @Override
+            public String transform(String ignored) {
+                return value;
+            }
+        });
+        return this;
+    }
 }

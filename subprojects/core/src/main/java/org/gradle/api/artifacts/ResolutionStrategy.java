@@ -297,12 +297,12 @@ public interface ResolutionStrategy {
      *   resolutionStrategy.attributeMatching {
      *      // configures matching of "flavor" with a case insensitive matching strategy
      *      matcher('flavor') {
-     *          scorer = ConfigurationAttributeMatcher.CASE_INSENSITIVE_ATTRIBUTE_VALUE_MATCH
+     *          ignoreCase()
      *      }
      *
      *      // configures matching of "buildType" with a default value provider
      *      matcher('buildType') {
-     *          defaultValue = ConfigurationAttributeMatcher.ALWAYS_PROVIDE
+     *          matchAlways()
      *      }
      *
      *   }
