@@ -24,6 +24,7 @@ dependencies {
     compile project(':plugins')
     compile project(':ear')
     compile libraries.guava
+    compile libraries.gcs
     compile libraries.slf4j_api
 
     testCompile libraries.jsoup
