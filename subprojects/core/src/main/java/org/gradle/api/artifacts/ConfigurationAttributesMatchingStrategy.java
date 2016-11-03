@@ -64,12 +64,6 @@ public interface ConfigurationAttributesMatchingStrategy {
         // The following methods are just handy DSL methods for common use cases
 
         /**
-         * Sets the scorer to match exactly, but ignoring the case.
-         * @return this builder
-         */
-        ConfigurationAttributeMatcherBuilder ignoreCase();
-
-        /**
          * Sets the default value provider to always return the value which is requested. As a consequence,
          * the scorer will always match.
          * @return this builder

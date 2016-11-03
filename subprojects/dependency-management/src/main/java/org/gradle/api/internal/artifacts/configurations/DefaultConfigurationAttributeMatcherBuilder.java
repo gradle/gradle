@@ -84,12 +84,6 @@ public class DefaultConfigurationAttributeMatcherBuilder implements Configuratio
     }
 
     @Override
-    public DefaultConfigurationAttributeMatcherBuilder ignoreCase() {
-        setScorer(STRICT_CASE_INSENSITIVE);
-        return this;
-    }
-
-    @Override
     public DefaultConfigurationAttributeMatcherBuilder matchAlways() {
         setDefaultValue(AUTO_DEFAULT);
         return this;

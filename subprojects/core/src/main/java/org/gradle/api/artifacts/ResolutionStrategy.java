@@ -295,9 +295,9 @@ public interface ResolutionStrategy {
      * // configure matching strategy
      * configurations.all {
      *   resolutionStrategy.attributeMatching {
-     *      // configures matching of "flavor" with a case insensitive matching strategy
+     *      // configures matching of "flavor" with a default value of 'free'
      *      matcher('flavor') {
-     *          ignoreCase()
+     *          defaultValue = 'free'
      *      }
      *
      *      // configures matching of "buildType" with a default value provider
