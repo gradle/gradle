@@ -1,4 +1,0 @@
-Release Notes - Gradle - Version ${version}
-
-See https://docs.gradle.org/${version}/release-notes.html
-
