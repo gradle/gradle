@@ -19,6 +19,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -86,8 +87,8 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent);
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
+        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent, attributesMatchingStrategy);
     }
 
     @Override

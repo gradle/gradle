@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactResolver;
@@ -92,7 +93,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
         ConflictHandler conflictHandler = createConflictHandler(resolutionStrategy, globalRules);
 
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, (ConfigurationAttributesMatchingStrategyInternal) resolutionStrategy.getAttributesMatchingStrategy());
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler) {

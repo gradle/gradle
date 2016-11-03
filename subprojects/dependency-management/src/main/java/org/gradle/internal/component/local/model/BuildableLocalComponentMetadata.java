@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -34,11 +33,10 @@ public interface BuildableLocalComponentMetadata {
      * Adds a configuration to this component.
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration. Can be null.
-     * @param attributesMatchingStrategy
      * @param isConsumeOrPublishAllowed
      * @param isQueryOrResolveAllowed
      */
-    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, ConfigurationAttributesMatchingStrategy attributesMatchingStrategy, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed);
+    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed);
 
     /**
      * Adds a dependency to this component. Dependencies are attached to the configuration specified by {@link LocalOriginDependencyMetadata#getModuleConfiguration()} and each of its children.

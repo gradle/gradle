@@ -77,7 +77,6 @@ public class IncludedBuildDependencyMetadataBuilder {
             compositeComponentMetadata.addConfiguration(configurationName,
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
                 originalConfiguration.isVisible(), originalConfiguration.isTransitive(), originalConfiguration.getAttributes(),
-                originalConfiguration.getAttributeMatchingStrategy(),
                 originalConfiguration.isConsumeOrPublishAllowed(), originalConfiguration.isQueryOrResolveAllowed());
 
             final Set<String> targetTasks = determineTargetTasks(originalConfiguration);

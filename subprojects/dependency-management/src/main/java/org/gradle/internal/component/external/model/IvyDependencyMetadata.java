@@ -24,6 +24,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -101,7 +102,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
         boolean matched = false;

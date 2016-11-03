@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -29,6 +28,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributeMatchingStrategies;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.tasks.TaskDependency;
@@ -109,11 +109,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         Map<String, String> attributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
-        ConfigurationAttributesMatchingStrategy attributeMatchingStrategy = fromConfiguration.getAttributeMatchingStrategy();
         if (useConfigurationAttributes) {
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             Map<ConfigurationMetadata, Map<String, String>> candidateConfigurations = Maps.newHashMap();
@@ -124,9 +123,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     candidateConfigurations.put(dependencyConfiguration, dependencyConfigurationAttributes);
                 }
             }
-            List<ConfigurationMetadata> bestMatches = ConfigurationAttributeMatchingStrategies.findBestMatches(attributeMatchingStrategy, attributes, candidateConfigurations);
+            List<ConfigurationMetadata> bestMatches = ConfigurationAttributeMatchingStrategies.findBestMatches(attributesMatchingStrategy, attributes, candidateConfigurations);
             if (bestMatches.size()==1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(bestMatches.get(0), attributes, attributeMatchingStrategy));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(bestMatches.get(0), attributes));
             } else if (!bestMatches.isEmpty()) {
                 throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(bestMatches, CONFIG_NAME)) + ". All of them match the client attributes " + new TreeMap<String, String>(attributes));
             }
@@ -141,7 +140,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         ConfigurationMetadata delegate = toConfiguration;
         if (useConfigurationAttributes) {
-            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, attributes, attributeMatchingStrategy);
+            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, attributes);
         }
         return ImmutableSet.of(delegate);
     }
@@ -238,29 +237,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
         private final LocalConfigurationMetadata delegate;
         private final Map<String, String> attributes;
-        private final ConfigurationAttributesMatchingStrategy strategy;
 
-        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, Map<String, String> attributes, ConfigurationAttributesMatchingStrategy strategy) {
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, Map<String, String> attributes) {
             if (md instanceof LocalConfigurationMetadata) {
-                return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes, strategy);
+                return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
             return md;
         }
 
-        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, Map<String, String> attributes, ConfigurationAttributesMatchingStrategy strategy) {
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, Map<String, String> attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
-            this.strategy = strategy;
         }
 
         @Override
         public Map<String, String> getAttributes() {
             return attributes;
-        }
-
-        @Override
-        public ConfigurationAttributesMatchingStrategy getAttributeMatchingStrategy() {
-            return strategy;
         }
 
         @Override

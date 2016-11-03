@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 
@@ -49,7 +48,6 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             configuration.isVisible(),
             configuration.isTransitive(),
             configuration.getAttributes(),
-            ((ResolutionStrategyInternal)configuration.getResolutionStrategy()).getAttributesMatchingStrategy(),
             configuration.isConsumeOrPublishAllowed(),
             configuration.isQueryOrResolveAllowed());
     }

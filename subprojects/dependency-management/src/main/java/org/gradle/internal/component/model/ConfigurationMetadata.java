@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ConfigurationAttributesMatchingStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;
@@ -65,5 +64,4 @@ public interface ConfigurationMetadata {
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
-    ConfigurationAttributesMatchingStrategy getAttributeMatchingStrategy();
 }

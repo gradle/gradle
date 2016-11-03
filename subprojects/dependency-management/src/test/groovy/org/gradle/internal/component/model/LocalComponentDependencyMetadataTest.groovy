@@ -32,6 +32,8 @@ import spock.lang.Unroll
 
 class LocalComponentDependencyMetadataTest extends Specification {
 
+    def attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategyInternal)
+
     private static final Map<String, Closure<Integer>> C = [
         EXACT_MATCH: { a, b -> a == b ? 0 : -1 },
         NEVER_MATCH: { a, b -> -1 },
@@ -81,13 +83,13 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent) == [toConfig] as Set
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesMatchingStrategy) == [toConfig] as Set
     }
 
     @Unroll("selects configuration '#expected' from target component when all attributes are required (#comparator, #description)")
     def "selects the target configuration from target component which matches the attributes when all attributes are required"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
+        attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
                     score(_, _) >> { a, b -> C[comparator](a, b) }
@@ -100,7 +102,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> queryAttributes
-            getAttributeMatchingStrategy() >> strategy
         }
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
@@ -124,7 +125,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         expect:
         try {
-            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent)*.name as Set
+            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesMatchingStrategy)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -156,7 +157,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     @Unroll("selects configuration '#expected' from target component with exact matching strategy (#description)")
     def "selects the target configuration from target component with exact matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
+        attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
                     score(_, _) >> { a, b -> C.EXACT_MATCH(a, b) }
@@ -172,7 +173,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> queryAttributes
-            getAttributeMatchingStrategy() >> strategy
         }
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
@@ -196,7 +196,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         expect:
         try {
-            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent)*.name as Set
+            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesMatchingStrategy)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -225,7 +225,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#description)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def strategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
+        attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategyInternal) {
             getAttributeMatcher(_) >> { attr ->
                 Mock(ConfigurationAttributeMatcher) {
                     score(_, _) >> { a, b -> C.JAVA_MATCH(a, b) }
@@ -238,7 +238,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> queryAttributes
-            getAttributeMatchingStrategy() >> strategy
         }
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
@@ -262,7 +261,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         expect:
         try {
-            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent)*.name as Set
+            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesMatchingStrategy)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -301,7 +300,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent)
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesMatchingStrategy)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
