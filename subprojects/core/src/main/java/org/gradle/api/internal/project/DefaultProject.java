@@ -721,26 +721,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return ConfigureUtil.configure(closure, getFileOperations().files(paths));
     }
 
-    @Override
-    public ConfigurableFileCollection files(Object paths, Action<ConfigurableFileCollection> configureAction) {
-        ConfigurableFileCollection files = getFileOperations().files(paths);
-        configureAction.execute(files);
-        return files;
-    }
-
     public ConfigurableFileTree fileTree(Object baseDir) {
         return getFileOperations().fileTree(baseDir);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
         return ConfigureUtil.configure(closure, getFileOperations().fileTree(baseDir));
-    }
-
-    @Override
-    public ConfigurableFileTree fileTree(Object baseDir, Action<ConfigurableFileTree> configureAction) {
-        ConfigurableFileTree fileTree = getFileOperations().fileTree(baseDir);
-        configureAction.execute(fileTree);
-        return fileTree;
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
@@ -919,13 +905,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return ConfigureUtil.configure(configureClosure, getAnt());
     }
 
-    @Override
-    public AntBuilder ant(Action<AntBuilder> action) {
-        AntBuilder antBuilder = getAnt();
-        action.execute(antBuilder);
-        return antBuilder;
-    }
-
     public void subprojects(Closure configureClosure) {
         configure(getSubprojects(), configureClosure);
     }
@@ -936,13 +915,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public Project project(String path, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, project(path));
-    }
-
-    @Override
-    public Project project(String path, Action<Project> configureAction) {
-        ProjectInternal configuredProject = project(path);
-        configureAction.execute(configuredProject);
-        return configuredProject;
     }
 
     public Object configure(Object object, Closure configureClosure) {
@@ -960,45 +932,20 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         ((Configurable<?>) getConfigurations()).configure(configureClosure);
     }
 
-    @Override
-    public void configurations(Action<ConfigurationContainer> action) {
-        action.execute(getConfigurations());
-    }
-
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getRepositories());
-    }
-
-    @Override
-    public void repositories(Action<RepositoryHandler> action) {
-        action.execute(getRepositories());
     }
 
     public void dependencies(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
-    @Override
-    public void dependencies(Action<DependencyHandler> action) {
-        action.execute(getDependencies());
-    }
-
     public void artifacts(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getArtifacts());
     }
 
-    @Override
-    public void artifacts(Action<ArtifactHandler> action) {
-        action.execute(getArtifacts());
-    }
-
     public void buildscript(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getBuildscript());
-    }
-
-    @Override
-    public void buildscript(Action<ScriptHandler> action) {
-        action.execute(getBuildscript());
     }
 
     public Task task(String task) {
@@ -1011,13 +958,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public Task task(String task, Closure configureClosure) {
         return taskContainer.create(task).configure(configureClosure);
-    }
-
-    @Override
-    public Task task(String name, Action<? super Task> configureAction) {
-        Task task = taskContainer.create(name);
-        configureAction.execute(task);
-        return task;
     }
 
     public Task task(Object task, Closure configureClosure) {
@@ -1034,13 +974,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public Task task(Map options, String task, Closure configureClosure) {
         return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
-    }
-
-    @Override
-    public Task task(Map<String, ?> args, String name, Action<? super Task> configureAction) {
-        Task task = taskContainer.create(addMaps(args, singletonMap(Task.TASK_NAME, name)));
-        configureAction.execute(task);
-        return task;
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {
