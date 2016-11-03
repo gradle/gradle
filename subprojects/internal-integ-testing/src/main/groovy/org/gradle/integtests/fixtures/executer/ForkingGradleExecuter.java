@@ -188,7 +188,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement(), isOutputCapturingEnabled());
     }
 
     protected ExecutionResult doRun() {
