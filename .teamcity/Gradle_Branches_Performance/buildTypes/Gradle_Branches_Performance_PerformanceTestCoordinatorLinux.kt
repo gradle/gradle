@@ -70,6 +70,14 @@ fi"""
         build-receipt.properties => incoming-distributions"""
             }
         }
+        Gradle_Branches_CommitPhase_LinuxCommit_LinuxCommitJava18.Project.buildTypes.forEach { buildType ->
+            dependency(buildType) {
+                snapshot {
+                    onDependencyFailure = FailureAction.CANCEL
+                    onDependencyCancel = FailureAction.CANCEL
+                }
+            }
+        }
     }
 
     requirements {
