@@ -68,7 +68,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         cacheableTaskResult(pullFromCacheResults).upToDate
     }
 
-    @ToolingApiVersion('<3.3')
+    @ToolingApiVersion('<3.3 >=2.5')
     @TargetGradleVersion('>=3.3')
     def "cacheable task is reported as UP-TO-DATE on older TAPI versions"() {
         when:
