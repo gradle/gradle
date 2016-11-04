@@ -11,6 +11,7 @@ dependencies {
     publishCompile libraries.slf4j_api
     compile libraries.guava
     compile libraries.commons_lang
+    runtime project(":versionInfo")
     testCompile libraries.groovy
 }
 

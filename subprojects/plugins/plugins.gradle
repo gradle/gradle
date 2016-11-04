@@ -51,7 +51,7 @@ dependencies {
 def wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
 evaluationDependsOn(":wrapper")
 task wrapperJar(type: Copy) {
-    from project(":wrapper").executableJar.outputs.files
+    from project(":wrapper").executableJar
     into wrapperJarDir
 }
 sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar

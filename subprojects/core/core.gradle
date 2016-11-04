@@ -83,13 +83,6 @@ test {
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
-task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
-    into "$generatedResourcesDir/org/gradle"
-    from rootProject.createBuildReceipt.receiptFile
-}
-
-sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
-
 import org.gradle.build.PluginsManifest
 task pluginsManifest(type: PluginsManifest)
 
