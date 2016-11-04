@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ConfigurationAttributes;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -297,8 +298,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         @Override
-        public Map<String, String> getAttributes() {
-            return Collections.emptyMap();
+        public ConfigurationAttributes getAttributes() {
+            return ConfigurationAttributes.EMPTY;
         }
 
         @Override

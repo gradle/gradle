@@ -759,8 +759,10 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.excludeRules == original.excludeRules
         assert copy.resolutionStrategy == resolutionStrategyInCopy
         assert copy.hasAttributes() == original.hasAttributes()
-        assert copy.attributes == original.attributes
-        assert !copy.attributes.is(original.attributes)
+        assert copy.attributes.empty && original.attributes.empty || !copy.attributes.is(original.attributes)
+        original.attributes.keySet().each {
+            assert copy.getAttribute(it) == original.getAttribute(it)
+        }
         assert copy.canBeResolved == original.canBeResolved
         assert copy.canBeConsumed == original.canBeConsumed
         true

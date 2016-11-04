@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationAttributes;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -64,6 +65,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -75,16 +77,18 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
+
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
@@ -131,9 +135,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
-    private Map<String, String> attributes;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
+    private final DefaultConfigurationAttributes configurationAttributes = new DefaultConfigurationAttributes();
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -573,7 +577,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
         if (hasAttributes()) {
-            copiedConfiguration.attributes(attributes);
+            copiedConfiguration.attributes(configurationAttributes.attributes);
         }
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
@@ -749,34 +753,57 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attribute(String key, String value) {
-        validateMutation(MutationType.ATTRIBUTES);
-        ensureAttributes();
-        attributes.put(key, value);
+        attribute(stringAttribute(key), value);
         return this;
     }
 
-    @Override
-    public Configuration attributes(Map<String, String> attributes) {
-        validateMutation(MutationType.ATTRIBUTES);
-        ensureAttributes();
-        this.attributes.putAll(attributes);
-        return this;
-    }
-
-    private void ensureAttributes() {
-        if (this.attributes == null) {
-            this.attributes = new HashMap<String, String>();
+    private static void assertAttributeConstraints(Object value, ConfigurationAttributes.Key<?> attribute) {
+        if (value == null) {
+            throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
+        }
+        if (value.getClass() != attribute.getType()) {
+            throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
         }
     }
 
+
     @Override
-    public Map<String, String> getAttributes() {
-        return attributes == null ? Collections.<String, String>emptyMap() : ImmutableMap.copyOf(attributes);
+    public <T> Configuration attribute(ConfigurationAttributes.Key<T> key, T value) {
+        configurationAttributes.attribute(key, value);
+        return this;
+    }
+
+    @Override
+    public ConfigurationAttributes getAttributes() {
+        return configurationAttributes;
+    }
+
+    @Override
+    public <T> T getAttribute(ConfigurationAttributes.Key<T> key) {
+        return configurationAttributes.getAttribute(key);
+    }
+
+    @Override
+    public Configuration attributes(Map<?, ?> attributes) {
+        for (Map.Entry<?, ?> entry : attributes.entrySet()) {
+            Object rawKey = entry.getKey();
+            ConfigurationAttributes.Key<Object> key = Cast.uncheckedCast(asAttribute(rawKey));
+            Object value = entry.getValue();
+            configurationAttributes.attribute(key, value);
+        }
+        return this;
+    }
+
+    private static ConfigurationAttribute<?> asAttribute(Object rawKey) {
+        if (rawKey instanceof ConfigurationAttribute) {
+            return (ConfigurationAttribute<?>) rawKey;
+        }
+        return stringAttribute(rawKey.toString());
     }
 
     @Override
     public boolean hasAttributes() {
-        return attributes != null && !attributes.isEmpty();
+        return !configurationAttributes.isEmpty();
     }
 
     @Override
@@ -902,6 +929,115 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
             cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
             return artifacts;
+        }
+    }
+
+    private static ConfigurationAttribute<String> stringAttribute(String name) {
+        return new ConfigurationAttribute<String>(name, String.class);
+    }
+
+    private class DefaultConfigurationAttributes implements ConfigurationAttributes {
+
+        private Map<Key<?>, Object> attributes;
+
+        private void ensureAttributes() {
+            if (this.attributes == null) {
+                this.attributes = Maps.newHashMap();
+            }
+        }
+
+        @Override
+        public Set<Key<?>> keySet() {
+            if (attributes == null) {
+                return Collections.emptySet();
+            }
+            return attributes.keySet();
+        }
+
+        @Override
+        public <T> ConfigurationAttributes attribute(Key<T> key, T value) {
+            validateMutation(MutationType.ATTRIBUTES);
+            assertAttributeConstraints(value, key);
+            ensureAttributes();
+            attributes.put(key, value);
+            return this;
+        }
+
+        @Override
+        public <T> T getAttribute(Key<T> key) {
+            return Cast.uncheckedCast(attributes == null ? null : attributes.get(key));
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return attributes == null;
+        }
+
+        @Override
+        public boolean contains(Key<?> key) {
+            return attributes != null && attributes.containsKey(key);
+        }
+
+        public ConfigurationAttributes asImmutable() {
+            if (attributes == null) {
+                return EMPTY;
+            }
+            return new ImmutableAttributes(attributes);
+        }
+    }
+
+    private static class ImmutableAttributes implements ConfigurationAttributes {
+
+        public static final Comparator<Key<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Key<?>>() {
+            @Override
+            public int compare(Key<?> o1, Key<?> o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        };
+        private final Map<Key<?>, Object> attributes;
+
+        private ImmutableAttributes(Map<Key<?>, Object> attributes) {
+            this.attributes = attributes;
+        }
+
+        @Override
+        public Set<Key<?>> keySet() {
+            return attributes.keySet();
+        }
+
+        @Override
+        public <T> ConfigurationAttributes attribute(Key<T> key, T value) {
+            throw new UnsupportedOperationException("Mutation of attributes returned by Configuration#getAttributes() is not allowed");
+        }
+
+        @Override
+        public <T> T getAttribute(Key<T> key) {
+            return Cast.uncheckedCast(attributes.get(key));
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public boolean contains(Key<?> key) {
+            return attributes.containsKey(key);
+        }
+
+        @Override
+        public ConfigurationAttributes asImmutable() {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            if (attributes != null) {
+                TreeMap<Key<?>, Object> sorted = new TreeMap<Key<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
+                sorted.putAll(attributes);
+                return sorted.toString();
+            }
+            return "{}";
         }
     }
 

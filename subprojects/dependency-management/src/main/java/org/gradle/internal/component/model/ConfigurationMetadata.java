@@ -16,10 +16,10 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.ConfigurationAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface ConfigurationMetadata {
@@ -53,7 +53,7 @@ public interface ConfigurationMetadata {
 
     boolean isCanBeResolved();
 
-    Map<String, String> getAttributes();
+    ConfigurationAttributes getAttributes();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

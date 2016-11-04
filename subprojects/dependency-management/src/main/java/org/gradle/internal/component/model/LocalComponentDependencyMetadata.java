@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ConfigurationAttributes;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -38,9 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
@@ -60,11 +59,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean changing;
     private final boolean transitive;
     private final ModuleExclusion exclusions;
-    private final Map<String, String> moduleAttributes;
+    private final ConfigurationAttributes moduleAttributes;
 
     public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
                                             String moduleConfiguration,
-                                            Map<String, String> moduleAttributes,
+                                            ConfigurationAttributes moduleAttributes,
                                             String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
@@ -109,16 +108,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        Map<String, String> attributes = fromConfiguration.getAttributes();
+        ConfigurationAttributes attributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
         if (useConfigurationAttributes) {
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
-                Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
+                ConfigurationAttributes dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
                 if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isCanBeConsumed()) {
-                    if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
+                    Set<ConfigurationAttributes.Key<?>> keys = attributes.keySet();
+                    boolean containsAll = true;
+                    for (ConfigurationAttributes.Key<?> key : keys) {
+                        Object value = dependencyConfigurationAttributes.getAttribute(key);
+                        containsAll &= attributes.getAttribute(key).equals(value);
+                    }
+                    if (containsAll) {
                         candidateConfigurations.add(dependencyConfiguration);
                     }
                 }
@@ -126,7 +131,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (candidateConfigurations.size()==1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + new TreeMap<String, String>(attributes));
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + attributes);
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -235,22 +240,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
         private final LocalConfigurationMetadata delegate;
-        private final Map<String, String> attributes;
+        private final ConfigurationAttributes attributes;
 
-        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, Map<String, String> attributes) {
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, ConfigurationAttributes attributes) {
             if (md instanceof LocalConfigurationMetadata) {
                 return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
             return md;
         }
 
-        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, Map<String, String> attributes) {
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, ConfigurationAttributes attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
         }
 
         @Override
-        public Map<String, String> getAttributes() {
+        public ConfigurationAttributes getAttributes() {
             return attributes;
         }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationAttributes
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
@@ -57,8 +58,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         converter.addConfigurations(metaData, [config1, config2])
 
         then:
-        _ * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, [:], false, false)
-        _ * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, [:], false, false)
+        _ * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, false)
+        _ * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, false)
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._
@@ -98,6 +99,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         stub.getAllDependencies() >> new DefaultDependencySet("foo",  Mock(Configuration), WrapUtil.toDomainObjectSet(Dependency.class))
         stub.getArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
         stub.getAllArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
+        stub.getAttributes() >> Stub(ConfigurationAttributes)
         return stub;
     }
 
