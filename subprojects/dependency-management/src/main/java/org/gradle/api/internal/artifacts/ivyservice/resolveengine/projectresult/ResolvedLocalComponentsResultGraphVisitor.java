@@ -21,17 +21,17 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor, ResolvedLocalComponentsResult {
     private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<ResolvedProjectConfiguration>();
-    private final DefaultTaskDependency componentBuildDependencies = new DefaultTaskDependency();
+    private final List<TaskDependency> componentBuildDependencies = new ArrayList<TaskDependency>();
     private final boolean buildProjectDependencies;
     private ComponentIdentifier rootId;
 
@@ -84,8 +84,8 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     }
 
     @Override
-    public TaskDependency getComponentBuildDependencies() {
-        return componentBuildDependencies;
+    public void collectArtifactBuildDependencies(Collection<? super TaskDependency> dest) {
+        dest.addAll(componentBuildDependencies);
     }
 
     @Override

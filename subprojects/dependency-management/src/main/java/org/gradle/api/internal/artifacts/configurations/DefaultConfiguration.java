@@ -457,11 +457,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // Otherwise, already have a result, so reuse it
             results = cachedResolverResults;
         }
+        List<Object> buildDependencies = new ArrayList<Object>();
+        results.getResolvedLocalComponents().collectArtifactBuildDependencies(buildDependencies);
+        results.getFileDependencies().collectBuildDependencies(buildDependencies);
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
-        for (FileCollection fileCollection : results.getFileDependencies().getFiles()) {
-            taskDependency.add(fileCollection);
-        }
+        taskDependency.setValues(buildDependencies);
         return taskDependency;
     }
 

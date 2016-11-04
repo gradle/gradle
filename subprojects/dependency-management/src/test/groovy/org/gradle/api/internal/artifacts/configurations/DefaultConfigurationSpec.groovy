@@ -496,8 +496,8 @@ class DefaultConfigurationSpec extends Specification {
         def fileDependenciesResult = Mock(FileDependencyResults)
 
         given:
-        _ * localComponentsResult.componentBuildDependencies >> artifactTaskDependencies
-        _ * fileDependenciesResult.files >> [fileDependency]
+        _ * localComponentsResult.collectArtifactBuildDependencies(_) >> { it[0].add(artifactTaskDependencies) }
+        _ * fileDependenciesResult.collectBuildDependencies(_) >> { it[0].add(fileDependency) }
         _ * fileDependency.buildDependencies >> fileDependencyTaskDependencies
         _ * artifactTaskDependencies.getDependencies(_) >> ([task1] as Set)
         _ * fileDependencyTaskDependencies.getDependencies(_) >> ([task2] as Set)
@@ -513,7 +513,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.incoming.files.buildDependencies.getDependencies(targetTask) == requiredTasks
     }
 
-    def "task dependency from project dependency wihtout common configuration"() {
+    def "task dependency from project dependency without common configuration"() {
         // This test exists because a NullPointerException was thrown by getTaskDependencyFromProjectDependency()
         // if the rootProject defined a task as the same name as a subproject task, but did not define the same configuration.
 
