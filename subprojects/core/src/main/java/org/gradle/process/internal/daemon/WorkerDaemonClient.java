@@ -49,4 +49,8 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     public void stop() {
         workerProcess.stop();
     }
+
+    DaemonForkOptions getForkOptions() {
+        return forkOptions;
+    }
 }

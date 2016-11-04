@@ -18,6 +18,7 @@ package org.gradle.process.internal.daemon;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class WorkerDaemonClientsManager {
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
+    private final CompilerDaemonSimpleMemoryExpiration memoryExpiration = new CompilerDaemonSimpleMemoryExpiration(new MemoryInfo(), 0.05);
 
     private WorkerDaemonStarter workerDaemonStarter;
 
@@ -57,6 +59,9 @@ public class WorkerDaemonClientsManager {
     }
 
     public WorkerDaemonClient reserveNewClient(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+        synchronized (lock) {
+            memoryExpiration.eventuallyExpireDaemons(forkOptions, idleClients, allClients);
+        }
         //allow the daemon to be started concurrently
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(serverImplementationClass, workingDir, forkOptions);
         synchronized (lock) {
