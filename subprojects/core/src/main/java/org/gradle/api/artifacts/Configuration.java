@@ -195,7 +195,7 @@ public interface Configuration extends FileCollection {
     Set<File> resolve();
 
     /**
-     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as
+     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as
      * {@link #files(org.gradle.api.specs.Spec)}.
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
@@ -218,13 +218,13 @@ public interface Configuration extends FileCollection {
      * But only the resulting set of files belonging to the specified dependencies
      * is returned.
      *
-     * @param dependencies The dependences to be resolved
+     * @param dependencies The dependencies to be resolved
      * @return The files of a subset of dependencies of this configuration.
      */
     Set<File> files(Dependency... dependencies);
 
     /**
-     * Resolves this configuration lazily. The resolve happens when the elements of the returned FileCollection get accessed the first time.
+     * Resolves this configuration lazily. The resolve happens when the elements of the returned {@link FileCollection} get accessed the first time.
      * This locates and downloads the files which make up this configuration. Only the resulting set of files belonging to the subset
      * of dependencies specified by the dependencySpec is contained in the FileCollection.
      *
@@ -234,7 +234,7 @@ public interface Configuration extends FileCollection {
     FileCollection fileCollection(Spec<? super Dependency> dependencySpec);
 
     /**
-     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as
+     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as
      * {@link #fileCollection(org.gradle.api.specs.Spec)}.
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
@@ -243,7 +243,7 @@ public interface Configuration extends FileCollection {
     FileCollection fileCollection(Closure dependencySpecClosure);
 
     /**
-     * Resolves this configuration lazily. The resolve happens when the elements of the returned FileCollection get accessed the first time.
+     * Resolves this configuration lazily. The resolve happens when the elements of the returned {@link FileCollection} get accessed the first time.
      * This locates and downloads the files which make up this configuration. Only the resulting set of files belonging to specified
      * dependencies is contained in the FileCollection.
      *
@@ -254,7 +254,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
-     * a ResolvedConfiguration that may be used to determine information about the resolve (including errors).
+     * a {@link ResolvedConfiguration} that may be used to determine information about the resolve (including errors).
      *
      * @return The ResolvedConfiguration object
      */
@@ -418,7 +418,7 @@ public interface Configuration extends FileCollection {
     Configuration copyRecursive(Spec<? super Dependency> dependencySpec);
 
     /**
-     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
+     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
@@ -426,7 +426,7 @@ public interface Configuration extends FileCollection {
     Configuration copy(Closure dependencySpec);
 
     /**
-     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)}
+     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)}
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
