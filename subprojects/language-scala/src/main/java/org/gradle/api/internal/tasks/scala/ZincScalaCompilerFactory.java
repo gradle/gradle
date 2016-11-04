@@ -33,6 +33,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 import sbt.ScalaInstance;
 import sbt.compiler.AnalyzingCompiler;
@@ -40,7 +41,6 @@ import xsbti.compile.JavaCompiler;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -118,7 +118,7 @@ public class ZincScalaCompilerFactory {
             final File tmpDir = new File(zincCache.getBaseDir(), "tmp");
             tmpDir.mkdirs();
             final File tempFile = File.createTempFile("zinc", ".jar", tmpDir);
-            final long start = System.nanoTime();
+            final Clock timer = new Clock();
             sbt.compiler.IC.compileInterfaceJar(
                     sbtInterfaceFileName,
                     setup.compilerInterfaceSrc(),
@@ -126,9 +126,8 @@ public class ZincScalaCompilerFactory {
                     setup.sbtInterface(),
                     instance,
                     logger);
-            final long compilationTimeMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
-            final String interfaceCompletedMessage = String.format("Zinc interface compilation took %dms", compilationTimeMillis);
-            if (compilationTimeMillis > 30000) {
+            final String interfaceCompletedMessage = String.format("Zinc interface compilation took %s", timer.getElapsed());
+            if (timer.getElapsedMillis() > 30000) {
                 LOGGER.warn(interfaceCompletedMessage);
             } else {
                 LOGGER.debug(interfaceCompletedMessage);
