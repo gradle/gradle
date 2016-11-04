@@ -153,6 +153,8 @@ task ivyXml(type: Upload) {
     }
 
     def "succeeds if trying to publish a file without extension"() {
+        def module = ivyRepo.module("org.gradle", "publish", "2")
+        settingsFile << 'rootProject.name = "publish"'
 
         given:
         file('someDir/a') << 'some text'
@@ -160,22 +162,28 @@ task ivyXml(type: Upload) {
 
         apply plugin: 'base'
 
-        configurations {
-            archives
-        }
-
+        group = "org.gradle"
+        version = '2'
         artifacts {
             archives file("someDir/a")
+        }
+
+        uploadArchives {
+            repositories {
+                ivy {
+                    url "${ivyRepo.uri}"
+                }
+            }
         }
 
         """
 
         when:
-        run 'uploadArchives'
+        succeeds 'uploadArchives'
 
         then:
-        noExceptionThrown()
-
+        def published = module.moduleDir.file("a-2")
+        published.assertIsCopyOf(file('someDir/a'))
     }
 
 }
