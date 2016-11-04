@@ -32,7 +32,8 @@ useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
 
 integTestTasks.all {
-    dependsOn(publishLocalArchives, ':distributions:binZip')
+    requiresBinZip = true
+    requiresLibsRepo = true
 }
 
 forkingIntegTest {

@@ -84,6 +84,7 @@ task allZip(type: Zip) {
 }
 
 task binZip(type: Zip) {
+    outputs.cacheIf { true }
     classifier = 'bin'
     into(zipRootFolder) {
         with binDistImage
@@ -123,10 +124,6 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-integTest {
-    inputs.files(allZip, binZip, srcZip) withPropertyName "distributions" withPathSensitivity PathSensitivity.NAME_ONLY
-}
-
-java9IntegTest {
-    inputs.files(allZip, binZip, srcZip) withPropertyName "distributions" withPathSensitivity PathSensitivity.NAME_ONLY
+integTestTasks.all {
+    requiresDists = true
 }

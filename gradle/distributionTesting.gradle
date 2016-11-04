@@ -45,18 +45,26 @@ distributionTestTasks.all { DistributionTest task ->
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
-                systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
-                systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-                systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-                systemProperties['integTest.toolingApiShadedJarDir'] = rootProject.project(':toolingApi').shadedJar.outputDir
+                inputs.property 'systemProperties', [:]
 
-                // If the projects int test need the distributions, they should add:
-                // inputs.files rootProject.buildDists
-                systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+                gradleHomeDir = rootProject.intTestImage.destinationDir
+                gradleUserHomeDir = rootProject.file('intTestHomeDir')
 
-                // The user home dir is not wiped out by clean
-                // Move the daemon working space underneath the build dir so they don't pile up on CI
-                systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+                if (requiresLibsRepo) {
+                    libsRepo = rootProject.file('build/repo')
+                }
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').shadedJar.outputDir
+
+                // Only wrapper and toolingApi use the bin distribution
+                // The rest uses only the intTestImage
+                // distributions tests all the distributions
+                if (requiresDists) {
+                    distsDir = rootProject.distsDir
+                }
+                if (requiresBinZip) {
+                    binZip = project(':distributions').binZip.archivePath
+                }
+                daemonRegistry = file("$rootProject.buildDir/daemon")
             }
         }
     }

@@ -446,19 +446,15 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
 
-test {
-    dependsOn releaseNotes
-    inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
-    inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
-    inputs.property "systemProperties", [:]
-    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
-    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
-}
-
-java9Test {
-    dependsOn releaseNotes
-    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
-    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
+['test', 'java9Test'].each {
+    tasks[it].configure {
+        dependsOn releaseNotes
+        inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
+        inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
+        inputs.property "systemProperties", [:]
+        systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
+        systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
+    }
 }
 
 task docs {
