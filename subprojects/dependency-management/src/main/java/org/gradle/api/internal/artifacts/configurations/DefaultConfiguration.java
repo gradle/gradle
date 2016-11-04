@@ -36,6 +36,8 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.component.Artifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
@@ -53,6 +55,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -200,7 +203,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    @Override
     public InternalState getResolvedState() {
         return resolvedState;
     }
@@ -885,6 +887,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ResolutionResult getResolutionResult() {
             DefaultConfiguration.this.resolveNow(InternalState.RESULTS_RESOLVED);
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
+        }
+
+        @Override
+        public Set<ResolvedArtifactResult> getArtifacts() {
+            Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
+            for (File file : getFiles()) {
+                artifacts.add(new DefaultResolvedArtifactResult(Artifact.class, file));
+            }
+            return artifacts;
         }
     }
 

@@ -23,8 +23,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     ResolutionStrategyInternal getResolutionStrategy();
 
-    InternalState getResolvedState();
-
     String getPath();
 
     void triggerWhenEmptyActionsIfNecessary();

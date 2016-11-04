@@ -19,7 +19,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
+
+import java.util.Set;
 
 /**
  * A set of {@link Dependency} objects which can be resolved to a set of {@code File} instances.
@@ -91,4 +94,12 @@ public interface ResolvableDependencies {
      */
     @Incubating
     ResolutionResult getResolutionResult();
+
+    /**
+     * Returns the artifacts that are included in the result.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    Set<ResolvedArtifactResult> getArtifacts();
 }
