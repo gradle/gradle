@@ -196,18 +196,25 @@ tasks.withType(DistributedPerformanceTest) {
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
     teamCityPassword = project.findProperty("teamCityPassword")
+    afterEvaluate { p ->
+      if (branchName) {
+        channel = channel + "-" + branchName
+      }
+    }
 }
 
 task distributedPerformanceTest(type: DistributedPerformanceTest) {
     options {
         excludeCategories 'org.gradle.performance.categories.Experiment'
     }
+    channel = 'commits'
 }
 
 task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
+    channel = 'experiments'
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
