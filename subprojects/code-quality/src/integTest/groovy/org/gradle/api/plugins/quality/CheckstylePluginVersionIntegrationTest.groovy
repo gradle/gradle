@@ -132,7 +132,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         badCode()
         buildFile << """
             checkstyle {
-                maxAllowedViolations = 2
+                maxErrors = 2
             }
         """
 
