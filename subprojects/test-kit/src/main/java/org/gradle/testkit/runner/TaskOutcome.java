@@ -52,6 +52,9 @@ public enum TaskOutcome {
     /**
      * The task executed, but did not perform work as its output was cached.
      *
+     * <p>NOTE: If the Gradle build under test is older than 3.3, no tasks will
+     * have this outcome.</p>
+     *
      * @since 3.3
      */
     FROM_CACHE;
