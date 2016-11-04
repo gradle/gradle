@@ -19,6 +19,7 @@ package org.gradle.performance.results
 import groovy.transform.CompileStatic
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.DataSeries
 import org.gradle.performance.measure.Duration
 
 import static PrettyCalculator.toBytes
@@ -84,19 +85,32 @@ class BaselineVersion implements VersionResults {
     }
 
     boolean fasterThan(MeasuredOperationList current) {
-        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression()
+        DataSeries<Duration> filteredTotalTime = results.totalTime?.filterMinAndMax()
+        DataSeries<Duration> filteredCurrentTotalTime = current.totalTime?.filterMinAndMax()
+
+        filteredTotalTime && filteredCurrentTotalTime.average - filteredTotalTime.average > calculateMaxExecutionTimeRegression(filteredTotalTime)
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
-        results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression()
+        DataSeries<DataAmount> filteredTotalMemoryUsed = results.totalMemoryUsed?.filterMinAndMax()
+        DataSeries<DataAmount> filteredCurrentTotalMemoryUsed = current.totalMemoryUsed?.filterMinAndMax()
+
+        filteredTotalMemoryUsed && filteredCurrentTotalMemoryUsed.average - filteredTotalMemoryUsed.average > calculateMaxMemoryRegression(filteredTotalMemoryUsed)
     }
 
     Amount<Duration> getMaxExecutionTimeRegression() {
-        def allowedStatisticalRegression = results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
-        allowedStatisticalRegression
+        calculateMaxExecutionTimeRegression(results.totalTime?.filterMinAndMax())
+    }
+
+    Amount<Duration> calculateMaxExecutionTimeRegression(DataSeries<Duration> filteredTotalTime) {
+        filteredTotalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 
     Amount<DataAmount> getMaxMemoryRegression() {
-        results.totalMemoryUsed.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
+        calculateMaxMemoryRegression(results.totalMemoryUsed?.filterMinAndMax())
+    }
+
+    Amount<DataAmount> calculateMaxMemoryRegression(DataSeries<DataAmount> filteredTotalMemoryUsed) {
+        filteredTotalMemoryUsed.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 }
