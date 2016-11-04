@@ -87,8 +87,8 @@ class DefaultConfigurationSpec extends Specification {
         configuration.displayName == "configuration 'path'"
         configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
-        configuration.queryOrResolveAllowed
-        configuration.consumeOrPublishAllowed
+        configuration.canBeResolved
+        configuration.canBeConsumed
     }
 
     def hasUsefulDisplayName() {
@@ -675,21 +675,21 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
 
         when:
-        configuration.queryOrResolveAllowed = queryOrResolveAllowed
-        configuration.consumeOrPublishAllowed = consumeOrPublishAllowed
+        configuration.canBeResolved = resolveAllowed
+        configuration.canBeConsumed = consumeAllowed
         def copy = configuration.copy()
 
 
         then:
-        copy.queryOrResolveAllowed == configuration.queryOrResolveAllowed
-        copy.consumeOrPublishAllowed == configuration.consumeOrPublishAllowed
+        copy.canBeResolved == configuration.canBeResolved
+        copy.canBeConsumed == configuration.canBeConsumed
 
         where:
-        queryOrResolveAllowed | consumeOrPublishAllowed
-        false                 | false
-        true                  | false
-        false                 | true
-        true                  | true
+        resolveAllowed | consumeAllowed
+        false          | false
+        true           | false
+        false          | true
+        true           | true
     }
 
     def "can copy with spec"() {
@@ -759,8 +759,8 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.hasAttributes() == original.hasAttributes()
         assert copy.attributes == original.attributes
         assert !copy.attributes.is(original.attributes)
-        assert copy.queryOrResolveAllowed == original.queryOrResolveAllowed
-        assert copy.consumeOrPublishAllowed == original.consumeOrPublishAllowed
+        assert copy.canBeResolved == original.canBeResolved
+        assert copy.canBeConsumed == original.canBeConsumed
         true
     }
 

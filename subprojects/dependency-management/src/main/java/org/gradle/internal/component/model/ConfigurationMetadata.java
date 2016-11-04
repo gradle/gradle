@@ -49,9 +49,9 @@ public interface ConfigurationMetadata {
 
     boolean isVisible();
 
-    boolean isConsumeOrPublishAllowed();
+    boolean isCanBeConsumed();
 
-    boolean isQueryOrResolveAllowed();
+    boolean isCanBeResolved();
 
     Map<String, String> getAttributes();
 

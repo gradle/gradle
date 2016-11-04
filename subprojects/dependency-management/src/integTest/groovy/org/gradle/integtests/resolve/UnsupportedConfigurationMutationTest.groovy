@@ -487,9 +487,9 @@ task resolveChildFirst {
 
         where:
         role                      | code
-        'consume or publish only' | 'configurations.a.queryOrResolveAllowed = false'
-        'query or resolve only'   | 'configurations.a.consumeOrPublishAllowed = false'
-        'bucket'                  | 'configurations.a.queryOrResolveAllowed = false; configurations.a.consumeOrPublishAllowed = false'
+        'consume or publish only' | 'configurations.a.canBeResolved = false'
+        'query or resolve only'   | 'configurations.a.canBeConsumed = false'
+        'bucket'                  | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
 
     }
 }

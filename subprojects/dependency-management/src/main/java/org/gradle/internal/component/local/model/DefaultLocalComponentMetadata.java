@@ -78,9 +78,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allFiles.put(configuration, files);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean canBeConsumed, boolean canBeResolved) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, isConsumeOrPublishAllowed, isQueryOrResolveAllowed);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved);
         allConfigurations.put(name, conf);
     }
 
@@ -150,8 +150,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
         private final Map<String, String> attributes;
-        private final boolean isConsumeOrPublishAllowed;
-        private final boolean isQueryOrResolveAllowed;
+        private final boolean canBeConsumed;
+        private final boolean canBeResolved;
 
         private List<DependencyMetadata> configurationDependencies;
         private Set<ComponentArtifactMetadata> configurationArtifacts;
@@ -165,8 +165,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                   Set<String> extendsFrom,
                                                   Set<String> hierarchy,
                                                   Map<String, String> attributes,
-                                                  boolean isConsumeOrPublishAllowed,
-                                                  boolean isQueryOrResolveAllowed) {
+                                                  boolean canBeConsumed,
+                                                  boolean canBeResolved) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
@@ -174,8 +174,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
             this.attributes = attributes;
-            this.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
-            this.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
+            this.canBeConsumed = canBeConsumed;
+            this.canBeResolved = canBeResolved;
         }
 
         @Override
@@ -246,13 +246,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public boolean isConsumeOrPublishAllowed() {
-            return isConsumeOrPublishAllowed;
+        public boolean isCanBeConsumed() {
+            return canBeConsumed;
         }
 
         @Override
-        public boolean isQueryOrResolveAllowed() {
-            return isQueryOrResolveAllowed;
+        public boolean isCanBeResolved() {
+            return canBeResolved;
         }
 
         public List<DependencyMetadata> getDependencies() {

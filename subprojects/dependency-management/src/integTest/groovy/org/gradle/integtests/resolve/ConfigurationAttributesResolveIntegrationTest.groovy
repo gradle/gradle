@@ -980,8 +980,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.consumeOrPublishAllowed = false
-                    compileFreeRelease.consumeOrPublishAllowed = false
+                    compileFreeDebug.canBeConsumed = false
+                    compileFreeRelease.canBeConsumed = false
                 }
                 dependencies {
                     compileFreeDebug project(':b')
@@ -1003,8 +1003,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     // configurations used when resolving
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.consumeOrPublishAllowed = false
-                    compileFreeRelease.consumeOrPublishAllowed = false
+                    compileFreeDebug.canBeConsumed = false
+                    compileFreeRelease.canBeConsumed = false
                     // configurations used when selecting dependencies
                     _compileFreeDebug {
                         attributes(buildType: 'debug', flavor: 'free')

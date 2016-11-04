@@ -54,8 +54,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         role                      | code
-        'consume or publish only' | 'queryOrResolveAllowed = false'
-        'bucket'                  | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
+        'consume or publish only' | 'canBeResolved = false'
+        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
 
     }
 
@@ -86,8 +86,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         role                      | code
-        'consume or publish only' | 'queryOrResolveAllowed = false'
-        'bucket'                  | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
+        'consume or publish only' | 'canBeResolved = false'
+        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
 
     }
 
@@ -122,7 +122,7 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         where:
         [method, role] << [
             ['getResolvedConfiguration()', 'getBuildDependencies()', 'getIncoming().getFiles()', 'getIncoming().getResolutionResult()', 'getResolvedConfiguration()'],
-            ['queryOrResolveAllowed = false', 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false']
+            ['canBeResolved = false', 'canBeResolved = false; canBeConsumed = false']
         ].combinations()
     }
 
@@ -161,8 +161,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         role                    | code
-        'query or resolve only' | 'consumeOrPublishAllowed = false'
-        'bucket'                | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
+        'query or resolve only' | 'canBeConsumed = false'
+        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
 
 }

@@ -457,23 +457,23 @@ public interface Configuration extends FileCollection {
     boolean hasAttributes();
 
     @Incubating
-    void setConsumeOrPublishAllowed(boolean allowed);
+    void setCanBeConsumed(boolean allowed);
 
     /**
      * Returns true if this configuration can be consumed from another project, or published. Defaults to true.
      * @return true if this configuration can be consumed or published.
      */
     @Incubating
-    boolean isConsumeOrPublishAllowed();
+    boolean isCanBeConsumed();
 
     @Incubating
-    void setQueryOrResolveAllowed(boolean allowed);
+    void setCanBeResolved(boolean allowed);
 
     /**
      * Returns true if it is allowed to query or resolve this configuration. Defaults to true.
      * @return true if this configuration can be queried or resolved.
      */
     @Incubating
-    boolean isQueryOrResolveAllowed();
+    boolean isCanBeResolved();
 
 }
