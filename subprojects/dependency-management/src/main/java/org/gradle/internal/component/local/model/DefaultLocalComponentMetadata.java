@@ -188,7 +188,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public TaskDependency getDirectBuildDependencies() {
+        public TaskDependency getArtifactBuildDependencies() {
             DefaultTaskDependency taskDependency = new DefaultTaskDependency();
             for (ComponentArtifactMetadata artifact : getArtifacts()) {
                 if (artifact instanceof Buildable) {

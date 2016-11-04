@@ -21,15 +21,22 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
-    private final ResolvedLocalComponentsResultBuilder builder;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor, ResolvedLocalComponentsResult {
+    private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<ResolvedProjectConfiguration>();
+    private final DefaultTaskDependency componentBuildDependencies = new DefaultTaskDependency();
+    private final boolean buildProjectDependencies;
     private ComponentIdentifier rootId;
 
-    public ResolvedLocalComponentsResultGraphVisitor(ResolvedLocalComponentsResultBuilder builder) {
-        this.builder = builder;
+    public ResolvedLocalComponentsResultGraphVisitor(boolean buildProjectDependencies) {
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     @Override
@@ -41,16 +48,21 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
         ComponentIdentifier componentId = resolvedConfiguration.getOwner().getComponentId();
         if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
-            builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration());
+            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration()));
         }
     }
 
     @Override
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        if (!buildProjectDependencies) {
+            return;
+        }
+
         ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
         if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
             return;
         }
+
         LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
 
         // If there is an incoming edge then include the dependencies to build the artifacts of the node
@@ -62,12 +74,26 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
                     continue;
                 }
             }
-            builder.localComponentResolved(resolvedConfiguration.getOwner().getComponentId(), localConfigurationMetadata.getDirectBuildDependencies());
+            componentBuildDependencies.add(localConfigurationMetadata.getArtifactBuildDependencies());
             break;
         }
     }
 
     @Override
     public void finish(DependencyGraphNode root) {
+    }
+
+    @Override
+    public TaskDependency getComponentBuildDependencies() {
+        return componentBuildDependencies;
+    }
+
+    @Override
+    public Iterable<ResolvedProjectConfiguration> getResolvedProjectConfigurations() {
+        return resolvedProjectConfigurations;
+    }
+
+    public ResolvedLocalComponentsResult complete() {
+        return this;
     }
 }

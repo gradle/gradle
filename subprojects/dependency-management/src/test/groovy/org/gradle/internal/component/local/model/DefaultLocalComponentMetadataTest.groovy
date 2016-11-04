@@ -264,10 +264,10 @@ class DefaultLocalComponentMetadataTest extends Specification {
         addArtifact("child1", artifact3, file3, buildDeps3)
 
         then:
-        metadata.getConfiguration("conf1").directBuildDependencies.getDependencies(null) == [task1] as Set
-        metadata.getConfiguration("conf2").directBuildDependencies.getDependencies(null) == [task2] as Set
-        metadata.getConfiguration("child1").directBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
-        metadata.getConfiguration("child2").directBuildDependencies.getDependencies(null) == [task1] as Set
+        metadata.getConfiguration("conf1").artifactBuildDependencies.getDependencies(null) == [task1] as Set
+        metadata.getConfiguration("conf2").artifactBuildDependencies.getDependencies(null) == [task2] as Set
+        metadata.getConfiguration("child1").artifactBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
+        metadata.getConfiguration("child2").artifactBuildDependencies.getDependencies(null) == [task1] as Set
     }
 
     def "can add dependencies"() {

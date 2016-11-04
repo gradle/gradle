@@ -315,8 +315,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public TaskDependency getDirectBuildDependencies() {
-            return delegate.getDirectBuildDependencies();
+        public TaskDependency getArtifactBuildDependencies() {
+            return delegate.getArtifactBuildDependencies();
         }
 
         @Override
