@@ -20,6 +20,8 @@ import org.spockframework.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.hamcrest.core.StringContains.containsString
+
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     public void canPublishToLocalFileRepository() {
         given:
@@ -184,6 +186,33 @@ task ivyXml(type: Upload) {
         then:
         def published = module.moduleDir.file("a-2")
         published.assertIsCopyOf(file('someDir/a'))
+    }
+
+    def "fails gracefully if trying to publish a directory with ivy"() {
+
+        given:
+        file('someDir/a.txt') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+
+        configurations {
+            archives
+        }
+
+        artifacts {
+            archives file("someDir")
+        }
+
+        """
+
+        when:
+        fails 'uploadArchives'
+
+        then:
+        failure.assertHasCause "Could not publish configuration 'archives'"
+        failure.assertThatCause(containsString('Cannot publish a directory'))
+
     }
 
 }
