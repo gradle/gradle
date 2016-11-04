@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health
+package org.gradle.process.internal.daemon.health.memory
 
-import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Specification
 
-class MemoryInfoIntegrationTest extends Specification {
+class MemoryInfoIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.WINDOWS)
     def "gets available memory on a real live Windows system"() {
         when:

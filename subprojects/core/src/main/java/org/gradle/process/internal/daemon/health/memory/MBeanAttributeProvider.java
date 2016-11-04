@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory;
+package org.gradle.process.internal.daemon.health.memory;
 
 import org.gradle.internal.Cast;
 

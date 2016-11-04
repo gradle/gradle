@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory;
-
-import static org.gradle.launcher.daemon.server.health.memory.MBeanAttributeProvider.getMbeanAttribute;
+package org.gradle.process.internal.daemon.health.memory;
 
 public class MBeanAvailableMemory implements AvailableMemory {
     @Override
@@ -24,6 +22,6 @@ public class MBeanAvailableMemory implements AvailableMemory {
         // MBean value takes reclaimable memory into account on Windows and Solaris
         // See https://msdn.microsoft.com/en-us/library/windows/desktop/aa366770(v=vs.85).aspx
         // See https://github.com/dmlloyd/openjdk/blob/jdk8u/jdk8u/jdk/src/solaris/native/sun/management/OperatingSystemImpl.c#L341
-        return getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
+        return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
     }
 }

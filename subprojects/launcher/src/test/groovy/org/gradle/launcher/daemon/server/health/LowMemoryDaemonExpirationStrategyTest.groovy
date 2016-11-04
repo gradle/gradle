@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
-import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
+import org.gradle.process.internal.daemon.health.memory.MemoryInfo
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE

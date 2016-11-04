@@ -26,7 +26,7 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.LowMemoryDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.health.memory.MemoryInfo;
+import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
 
 import java.util.concurrent.TimeUnit;
 

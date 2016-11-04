@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory;
+package org.gradle.process.internal.daemon.health.memory;
 
 import org.gradle.internal.os.OperatingSystem;
-
-import static org.gradle.launcher.daemon.server.health.memory.MBeanAttributeProvider.getMbeanAttribute;
 
 public class MemoryInfo {
 
@@ -49,7 +47,7 @@ public class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
     public long getTotalPhysicalMemory() {
-        return getMbeanAttribute("java.lang:type=OperatingSystem", "TotalPhysicalMemorySize", Long.class);
+        return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", "TotalPhysicalMemorySize", Long.class);
     }
 
     /**
