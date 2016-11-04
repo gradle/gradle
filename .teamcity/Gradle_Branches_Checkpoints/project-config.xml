@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches" uuid="7dbb0aca-4710-4761-8a05-58f7a2a6c7f7" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Checkpoints</name>
+  <description>Configurations of the stages to getting a distribution that passes QA</description>
+  <parameters>
+    <param name="env.JAVA_HOME" value="%linux.java7.oracle.64bit%" />
+    <param name="system.locks.readLock.linux1ExclusiveUse" value="" />
+  </parameters>
+  <project-extensions>
+    <extension id="PROJECT_EXT_58" type="buildtype-graphs">
+      <parameters>
+        <param name="defaultFilters" value="" />
+        <param name="hideFilters" value="" />
+        <param name="series"><![CDATA[[
+  {
+    "type": "valueType",
+    "title": "Build Duration (all stages)",
+    "key": "BuildDuration"
+  }
+]]]></param>
+        <param name="seriesTitle" value="Serie" />
+        <param name="title" value="New chart title" />
+      </parameters>
+    </extension>
+    <extension id="PROJECT_EXT_59" type="buildtype-graphs.order">
+      <parameters>
+        <param name="order" value="PROJECT_EXT_58" />
+      </parameters>
+    </extension>
+  </project-extensions>
+  <cleanup />
+</project>
+

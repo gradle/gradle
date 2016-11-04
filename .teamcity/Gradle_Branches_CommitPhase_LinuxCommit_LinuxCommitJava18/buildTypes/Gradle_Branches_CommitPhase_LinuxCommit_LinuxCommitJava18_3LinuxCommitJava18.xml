@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="c800aa57-a7b4-4c2a-9b6c-ce1a06f72b61" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>(3) Linux commit - Java 1.8</name>
+  <description>Fast verification on Linux through in-process tests [clean quickTest3]</description>
+  <settings>
+    <options>
+      <option name="artifactRules" value="**/build/reports/** =&gt; reports&#xA;subprojects/*/build/tmp/test files/** =&gt; test-files&#xA;build/daemon/** =&gt; daemon&#xA;intTestHomeDir/worker-1/daemon/**/*.log =&gt; intTestHome-daemon&#xA;build/errorLogs/** =&gt; errorLogs" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="executionTimeoutMin" value="60" />
+      <option name="maximumNumberOfBuilds" value="3" />
+    </options>
+    <parameters>
+      <param name="env.JAVA_HOME" value="%linux.java8.oracle.64bit%" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="RUNNER_3" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-Dorg.gradle.cache.tasks=true  -Dgradle.cache.remote.url=%gradle.cache.remote.url% -I ./gradle/remoteHttpCacheInit.gradle -I ./gradle/taskCacheDetailedStatsInit.gradle -I ./gradle/buildScanInit.gradle -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean quickTest3" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2" name="VERIFY_TEST_FILES_CLEANUP" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="verifyTestFilesCleanup" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_3" name="CHECK_CLEAN_M2" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[REPO=/home/%env.USER%/.m2/repository
+if [ -e $REPO ] ; then
+rm -rf $REPO
+echo "$REPO was polluted during the build"
+return 1
+else
+echo "$REPO does not exist"
+fi]]></param>
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_4" name="TAG_BUILD" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="gradle/buildTagging.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="tagBuild" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
+    </vcs-settings>
+    <requirements>
+      <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers />
+    <dependencies>
+      <depend-on sourceBuildTypeId="Gradle_Branches_CommitPhase_SanityCheck">
+        <options>
+          <option name="run-build-if-dependency-failed" value="CANCEL" />
+          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+

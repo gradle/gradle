@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle" uuid="23127635-7b1f-4b70-892e-764156648a78" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Branches</name>
+  <description>Personal branches chain</description>
+  <parameters />
+  <project-extensions>
+    <extension id="PROJECT_EXT_62" type="versionedSettings">
+      <parameters>
+        <param name="buildSettings" value="PREFER_VCS" />
+        <param name="enabled" value="true" />
+        <param name="rootId" value="Gradle_Branches_VersionedSettings" />
+        <param name="showChanges" value="false" />
+      </parameters>
+    </extension>
+  </project-extensions>
+  <cleanup />
+</project>
+

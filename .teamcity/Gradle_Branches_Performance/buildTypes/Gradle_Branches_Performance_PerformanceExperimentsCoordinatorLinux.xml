@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="3504f187-ecba-4cdd-bd54-5f56c258f1f3" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Performance Experiments Coordinator - Linux</name>
+  <description />
+  <settings>
+    <options>
+      <option name="artifactRules" value="build/reports/** =&gt; reports&#xA;subprojects/*/build/performance-tests/** =&gt; results" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="enableHangingBuildsDetection" value="false" />
+      <option name="executionTimeoutMin" value="420" />
+      <option name="maximumNumberOfBuilds" value="1" />
+    </options>
+    <parameters>
+      <param name="TC_USERNAME" value="TeamcityRestBot" />
+      <param name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m" />
+      <param name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest" />
+      <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
+      <param name="performance.db.username" value="tcagent" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle cleanDistributedPerformanceExperiment distributedPerformanceExperiments -x prepareSamples -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=Gradle_Branches_Performance_IndividualPerformanceScenarioWorkersLinux -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2" name="CHECK_CLEAN_M2" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[REPO=/home/%env.USER%/.m2/repository
+if [ -e $REPO ] ; then
+rm -rf $REPO
+echo "$REPO was polluted during the build"
+return 1
+else
+echo "$REPO does not exist"
+fi]]></param>
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
+    </vcs-settings>
+    <requirements>
+      <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

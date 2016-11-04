@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CoveragePhase_LinuxCoverage" uuid="71f9b70a-6ca7-4a90-8bf2-01579af6f1e3" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Linux - Java 1.7 - Daemon integration tests</name>
+  <description>Daemon integration tests for Linux</description>
+  <parameters />
+  <cleanup />
+</project>
+

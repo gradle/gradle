@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches" uuid="a0207b01-9e3b-40fe-b435-405a10115518" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Soak tests</name>
+  <description>Long-running integration tests</description>
+  <parameters />
+  <cleanup />
+</project>
+

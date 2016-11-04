@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CoveragePhase_WindowsCoverage" uuid="f395d693-6649-4a50-adab-2fe8566b181b" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Windows - Java 1.7 - Daemon integration tests</name>
+  <description>Daemon integration tests for Windows</description>
+  <parameters />
+  <cleanup />
+</project>
+

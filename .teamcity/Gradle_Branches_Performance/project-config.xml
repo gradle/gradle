@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches" uuid="bec27f69-1287-43e6-a798-e72b68a396dd" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Performance</name>
+  <description>Configurations that execute performance tests (to be run exclusively on a given machine)</description>
+  <parameters />
+  <project-extensions>
+    <extension id="PROJECT_EXT_60" type="ReportTab">
+      <parameters>
+        <param name="startPage" value="results/performance/build/performance-tests/report/index.html" />
+        <param name="title" value="Performance" />
+        <param name="type" value="BuildReportTab" />
+      </parameters>
+    </extension>
+    <extension id="PROJECT_EXT_61" type="ReportTab">
+      <parameters>
+        <param name="buildTypeId" value="Gradle_Branches_Performance_PerformanceTestCoordinatorLinux" />
+        <param name="revisionRuleName" value="lastFinished" />
+        <param name="revisionRuleRevision" value="latest.lastFinished" />
+        <param name="startPage" value="results/performance/build/performance-tests/report/index.html" />
+        <param name="title" value="Performance" />
+        <param name="type" value="ProjectReportTab" />
+      </parameters>
+    </extension>
+  </project-extensions>
+  <cleanup>
+    <policy type="days" cleanup-level="ARTIFACTS">
+      <parameters>
+        <param name="keepDays.count" value="7" />
+      </parameters>
+    </policy>
+  </cleanup>
+</project>
+

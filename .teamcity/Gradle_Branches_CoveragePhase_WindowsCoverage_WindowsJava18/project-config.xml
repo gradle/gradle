@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CoveragePhase_WindowsCoverage" uuid="5441c6c7-4f7d-4531-8847-b02ad70c4391" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Windows - Java 1.8</name>
+  <description>Full platform coverage for Windows through forked tests</description>
+  <parameters />
+  <cleanup />
+</project>
+

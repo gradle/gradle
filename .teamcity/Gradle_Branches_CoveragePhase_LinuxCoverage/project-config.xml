@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CoveragePhase" uuid="eda4bf0f-4ab4-44d4-87c5-2f57f0883696" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Linux Coverage</name>
+  <description>Configurations that provide full test coverage on Linux</description>
+  <parameters />
+  <cleanup />
+</project>
+

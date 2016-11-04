@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="1922053d-e362-4575-99e7-7e3b604ebaac" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Performance Regression Analyzer - Linux</name>
+  <description />
+  <settings>
+    <options>
+      <option name="artifactRules" value="build/reports/** =&gt; reports" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="executionTimeoutMin" value="420" />
+      <option name="maximumNumberOfBuilds" value="1" />
+    </options>
+    <parameters>
+      <param name="TC_USERNAME" value="TeamcityRestBot" />
+      <param name="baselines" value="defaults" />
+      <param name="bisect.bad" value="" />
+      <param name="bisect.good" value="" />
+      <param name="checks" value="all" />
+      <param name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m" />
+      <param name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest" />
+      <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
+      <param name="performance.db.username" value="tcagent" />
+      <param name="runs" value="defaults" />
+      <param name="scenario" value="" />
+      <param name="templates" value="" />
+      <param name="warmups" value="defaults" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="Bisect regression" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[git bisect start
+git bisect good %bisect.good%
+git bisect bad %bisect.bad%
+git bisect run ./gradlew cleanSamples cleanPerformanceAdHocTest %templates% performanceAdhocTest --scenarios "%scenario%"  --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% -x prepareSamples -x performanceReport --no-daemon --continue]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2" name="Reset" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="git bisect reset" />
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_3" name="CHECK_CLEAN_M2" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[REPO=/home/%env.USER%/.m2/repository
+if [ -e $REPO ] ; then
+rm -rf $REPO
+echo "$REPO was polluted during the build"
+return 1
+else
+echo "$REPO does not exist"
+fi]]></param>
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
+    </vcs-settings>
+    <requirements>
+      <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

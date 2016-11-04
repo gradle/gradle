@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CommitPhase" uuid="0caab70d-eabe-4e49-997b-b9f6384c1a70" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Linux commit</name>
+  <description>Linux commit builds</description>
+  <parameters />
+  <cleanup />
+</project>
+

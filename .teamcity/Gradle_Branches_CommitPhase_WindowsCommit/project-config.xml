@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CommitPhase" uuid="ece468e9-dc49-4112-9e4b-5556e1b8487d" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Windows commit</name>
+  <description>Windows commit builds</description>
+  <parameters />
+  <cleanup />
+</project>
+

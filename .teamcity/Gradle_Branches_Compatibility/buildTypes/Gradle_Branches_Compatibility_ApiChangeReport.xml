@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="62569f76-861b-4ad0-905c-9747a6724925" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>API Change Report</name>
+  <description>Generates a JDiff API report for the upcoming release</description>
+  <settings>
+    <options>
+      <option name="artifactRules" value="incoming-build-receipt/build-receipt.properties =&gt; incoming-build-receipt&#xA;promote-projects/gradle/build/reports/jdiff =&gt; jdiff" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="executionTimeoutMin" value="120" />
+      <option name="maximumNumberOfBuilds" value="3" />
+    </options>
+    <parameters>
+      <param name="env.JAVA_HOME" value="%linux.java8.oracle.64bit%" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
+        <parameters>
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-P OLD_VERSION=3.1" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean jdiff" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Promotion__master_" />
+    </vcs-settings>
+    <requirements>
+      <equals id="RQ_1" name="teamcity.agent.name" value="agent1" />
+    </requirements>
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

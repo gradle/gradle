@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CoveragePhase_LinuxCoverage" uuid="89c6f01c-be6a-4ba8-abfd-1351bf4f14eb" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Linux - Java 1.7 - Cross-version tests</name>
+  <description>Cross-version tests for Linux</description>
+  <parameters />
+  <cleanup>
+    <policy type="builds" cleanup-level="ARTIFACTS">
+      <parameters>
+        <param name="keepBuilds.count" value="30" />
+      </parameters>
+    </policy>
+  </cleanup>
+</project>
+

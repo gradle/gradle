@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches_CoveragePhase_LinuxCoverage" uuid="b255fd7a-2109-414c-8e2a-fd4456ea02f0" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>Linux - Java 1.8</name>
+  <description>Full platform coverage on Linux through forked tests</description>
+  <parameters />
+  <cleanup />
+</project>
+
