@@ -1,7 +1,12 @@
+import groovy.xml.XmlUtil
 import org.gradle.build.*
 
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+configurations {
+    testPublishRuntime
+}
 
 dependencies {
     compile project(':core')
@@ -31,11 +36,6 @@ useTestFixtures(project: ":logging")
 useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
 
-integTestTasks.all {
-    requiresBinZip = true
-    requiresLibsRepo = true
-}
-
 forkingIntegTest {
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
@@ -50,9 +50,10 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
-task shadedJar(type: ShadedJar) {
+task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar")
-    sourceFiles = jar.inputs.files + files {(configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
+    sourceFiles = jar.inputs.files +
+        files { (configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
     analysisFile = file("$outputDir/analysis.txt")
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
@@ -60,6 +61,31 @@ task shadedJar(type: ShadedJar) {
     unshadedPackages = ["org.gradle", "org.slf4j"]
     ignorePackages = ["org.gradle.tooling.provider.model"]
     shadowPackage = "org.gradle.internal.impldep"
+}
+
+task toolingApiShadedJar(type: Zip) {
+    dependsOn shadedJarWithoutVersion, project(':versionInfo').createBuildReceipt
+    from zipTree(shadedJarWithoutVersion.jarFile)
+    from(project(':versionInfo').createTestBuildReceipt) {
+        into '/org/gradle'
+    }
+    baseName = 'gradle-tooling-api-shaded'
+    destinationDir file("$temporaryDir/")
+    extension 'jar'
+    version baseVersion
+}
+
+task testToolingApiShadedJar(type: Zip) {
+    outputs.cacheIf { true }
+    dependsOn shadedJarWithoutVersion, project(':versionInfo').createTestBuildReceipt
+    from zipTree(shadedJarWithoutVersion.jarFile)
+    from(project(':versionInfo').createTestBuildReceipt) {
+        into '/org/gradle'
+    }
+    baseName = 'gradle-tooling-api-shaded'
+    destinationDir file("$temporaryDir/")
+    extension 'jar'
+    version baseVersion
 }
 
 apply from: 'buildship.gradle'
@@ -71,10 +97,6 @@ sourceJar {
     }
 }
 
-artifacts {
-    publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
-}
-
 eclipse {
     classpath {
         file.whenMerged { classpath ->
@@ -83,6 +105,46 @@ eclipse {
             classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
         }
     }
+}
+
+task generateFixedVersionPom {
+    dependsOn generatePom
+    ext.fixedVersionPomFile = new File(temporaryDir, 'pom.xml')
+    outputs.files(fixedVersionPomFile)
+    inputs.file { generatePom.pomFile }
+    inputs.property("testedVersion", { testedVersion })
+    doLast {
+        def xml = new XmlParser().parse(generatePom.pomFile)
+        xml.version[0].value = testedVersion
+        fixedVersionPomFile.parentFile.mkdirs()
+        fixedVersionPomFile.createNewFile()
+        fixedVersionPomFile.text = XmlUtil.serialize(xml)
+    }
+}
+
+artifacts {
+    publishRuntime file: toolingApiShadedJar.archivePath, name: archivesBaseName, type: 'jar', builtBy: toolingApiShadedJar
+
+    testPublishRuntime jar
+    testPublishRuntime sourceJar
+    testPublishRuntime file: testToolingApiShadedJar.archivePath, name: archivesBaseName, type: 'jar', builtBy: testToolingApiShadedJar
+    testPublishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generateFixedVersionPom.fixedVersionPomFile, generateFixedVersionPom)
+}
+
+task publishLocalArchives(type: Upload) {
+    configuration = configurations.testPublishRuntime
+    dependsOn generateFixedVersionPom
+    uploadDescriptor = false
+    repositories {
+        ivy {
+            artifactPattern "${rootProject.file('build/repo')}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/${testedVersion}/[artifact]-${testedVersion}(-[classifier]).[ext]"
+        }
+    }
+}
+
+integTestTasks.all {
+    requiresBinZip = true
+    requiresLibsRepo = true
 }
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

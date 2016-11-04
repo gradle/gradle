@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.internal.os.OperatingSystem
-
 ext {
     buildReceiptFileName = "build-receipt.properties"
 
@@ -32,89 +30,3 @@ ext {
     }
 }
 
-task determineCommitId {
-    ext.commitId = null
-
-    doLast {
-        def strategies = []
-
-        def env = System.getenv()
-
-        // For promotion builds use the commitId passed in as a project property
-        strategies << {
-            project.hasProperty('promotionCommitId') ? project.property('promotionCommitId') : null
-        }
-
-        // Builds of Gradle happening on the CI server
-        strategies << {
-            env["BUILD_VCS_NUMBER"]
-        }
-
-        // For the discovery builds, this points to the Gradle revision
-        strategies << {
-            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
-        }
-
-        // For the discovery release builds, this points to the Gradle revision
-        strategies << {
-            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
-        }
-
-        // If it's a checkout, ask Git for it
-        strategies << {
-            if (file(".git").exists()) {
-                def baos = new ByteArrayOutputStream()
-                def execResult = exec {
-                    ignoreExitValue = true
-                    commandLine = ["git", "log", "-1", "--format=%H"]
-                    if (OperatingSystem.current().windows) {
-                        commandLine = ["cmd", "/c"] + commandLine
-                    }
-
-                    standardOutput = baos
-                }
-                if (execResult.exitValue == 0) {
-                    new String(baos.toByteArray(), "utf8").trim()
-                } else if (file(".git/HEAD").exists()) {
-                    // Read commit id directly from filesystem
-                    def headRef = file(".git/HEAD").text
-                    headRef = headRef.replaceAll('ref: ', '').trim()
-                    file(".git/$headRef").text.trim()
-                }
-            } else {
-                null
-            }
-        }
-
-        // It's a source distribution, we don't know.
-        strategies << {
-            if (!file("design-docs").directory) {
-                "<unknown>"
-            }
-        }
-
-        for (strategy in strategies) {
-            commitId = strategy()
-            if (commitId) {
-                break
-            }
-        }
-        if (!commitId) {
-            throw new InvalidUserDataException("Could not determine commit id")
-        }
-    }
-}
-
-task configureBuildReceipt(dependsOn: determineCommitId) {
-    doLast {
-        createBuildReceipt.versionNumber = rootProject.version
-        createBuildReceipt.baseVersion = rootProject.baseVersion
-        createBuildReceipt.snapshot = rootProject.isSnapshot
-        createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
-        createBuildReceipt.commitId = devBuild ? null : determineCommitId.commitId
-    }
-}
-
-task createBuildReceipt(type: org.gradle.build.BuildReceipt, dependsOn: configureBuildReceipt) {
-    createBuildReceipt.receiptFile = file("$buildDir/$buildReceiptFileName")
-}

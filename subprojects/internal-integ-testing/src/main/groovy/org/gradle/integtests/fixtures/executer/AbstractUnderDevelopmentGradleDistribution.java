@@ -25,7 +25,7 @@ public abstract class AbstractUnderDevelopmentGradleDistribution extends Default
         super(
                 buildContext.getVersion(),
                 buildContext.getGradleHomeDir(),
-                buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", buildContext.getVersion().getVersion()))
+                buildContext.getDistributionsDir().file(String.format("gradle-%s-test-bin.zip", buildContext.getVersion().getBaseVersion().getVersion()))
         );
     }
 }

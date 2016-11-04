@@ -30,7 +30,7 @@ if (useIncomingDistributions) {
     incomingDistributionsBuildReceipt = readBuildReceipt(file("$incomingDistributionsDir/build-receipt.properties"))
 
     def contents = incomingDistributionsDir.listFiles()
-    incomingAllDistribution = file("$incomingDistributionsDir/gradle-$incomingDistributionsBuildReceipt.versionNumber-all.zip")
+    incomingAllDistribution = file("$incomingDistributionsDir/gradle-$incomingDistributionsBuildReceipt.baseVersion-all.zip")
     if (!incomingAllDistribution.exists()) {
         throw new GradleException("Couldn't find all distribution in incoming distributions (contents: $contents.name)")
     }

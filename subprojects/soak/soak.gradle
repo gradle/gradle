@@ -17,5 +17,5 @@ task('soakTest', type: org.gradle.testing.IntegrationTest) {
     options {
         includeCategories 'org.gradle.soak.categories.SoakTest'
     }
-    dependsOn({ project(':toolingApi').publishLocalArchives }, ':distributions:binZip')
+    dependsOn({ project(':toolingApi').publishLocalArchives }, ':distributions:testBinZip')
 }

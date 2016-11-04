@@ -16,6 +16,7 @@
 
 evaluationDependsOn ":distributions"
 evaluationDependsOn ":docs"
+evaluationDependsOn ":versionInfo"
 
 task intTestImage(type: Sync) {
     into file("$buildDir/integ test")
@@ -28,15 +29,19 @@ if (useIncomingDistributions) {
     }
 
     // Compensate for the top level dir in the zip
-    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${incomingAllDistribution.name - "-all.zip"}"
+    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/gradle-${incomingDistributionsBuildReceipt.versionNumber}"
 
     intTestImage {
         dependsOn unpackIncomingAllDistribution
-        from unpackedPath
+        from(unpackedPath) {
+            exclude "lib/gradle-version-info*.jar"
+        }
+        with project(":distributions").testVersionInfo
     }
 } else {
     intTestImage {
         with project(":distributions").binDistImage
+        with project(":distributions").testVersionInfo
         into "samples", {
             from { project(":docs").outputs.samples }
         }

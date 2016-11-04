@@ -14,9 +14,147 @@
  * limitations under the License.
  */
 
-task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
-    into "$generatedResourcesDir/org/gradle"
-    from rootProject.createBuildReceipt.receiptFile
+import org.gradle.internal.os.OperatingSystem
+
+configurations {
+    testVersionInfo
 }
 
-sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
+task determineCommitId {
+    ext.commitId = null
+
+    doLast {
+        def strategies = []
+
+        def env = System.getenv()
+
+        // For promotion builds use the commitId passed in as a project property
+        strategies << {
+            project.hasProperty('promotionCommitId') ? project.property('promotionCommitId') : null
+        }
+
+        // Builds of Gradle happening on the CI server
+        strategies << {
+            env["BUILD_VCS_NUMBER"]
+        }
+
+        // For the discovery builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
+        }
+
+        // For the discovery release builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
+        }
+
+        // If it's a checkout, ask Git for it
+        strategies << {
+            def gitDir = file("${rootDir}/.git")
+            if (gitDir.exists()) {
+                def baos = new ByteArrayOutputStream()
+                def execResult = exec {
+                    workingDir = rootDir
+                    ignoreExitValue = true
+                    commandLine = ["git", "log", "-1", "--format=%H"]
+                    if (OperatingSystem.current().windows) {
+                        commandLine = ["cmd", "/c"] + commandLine
+                    }
+
+                    standardOutput = baos
+                }
+                if (execResult.exitValue == 0) {
+                    new String(baos.toByteArray(), "utf8").trim()
+                } else if (file("${gitDir}/HEAD").exists()) {
+                    // Read commit id directly from filesystem
+                    def headRef = file("${gitDir}/HEAD").text
+                    headRef = headRef.replaceAll('ref: ', '').trim()
+                    file("${gitDir}/$headRef").text.trim()
+                }
+            } else {
+                null
+            }
+        }
+
+        // It's a source distribution, we don't know.
+        strategies << {
+            if (!file("design-docs").directory) {
+                "<unknown>"
+            }
+        }
+
+        for (strategy in strategies) {
+            commitId = strategy()
+            if (commitId) {
+                break
+            }
+        }
+        if (!commitId) {
+            throw new InvalidUserDataException("Could not determine commit id")
+        }
+    }
+}
+
+task configureBuildReceipt {
+    dependsOn determineCommitId
+    doLast {
+        createBuildReceipt.versionNumber = rootProject.version
+        createBuildReceipt.baseVersion = rootProject.baseVersion
+        createBuildReceipt.snapshot = rootProject.isSnapshot
+        createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
+        createBuildReceipt.commitId = determineCommitId.commitId
+    }
+}
+
+task createBuildReceipt(type: org.gradle.build.BuildReceipt) {
+    dependsOn configureBuildReceipt
+    receiptFile = file("${rootProject.buildDir}/$buildReceiptFileName")
+}
+
+task createTestBuildReceipt(type: org.gradle.build.BuildReceipt) {
+    receiptFile = file("$generatedTestResourcesDir/org/gradle/${buildReceiptFileName}")
+    versionNumber = rootProject.testedVersion
+    baseVersion = rootProject.baseVersion
+    snapshot = rootProject.isSnapshot
+}
+// For IDE support we add the build-receipt to a directory with the right package layout
+sourceSets.test.output.dir generatedTestResourcesDir, builtBy: createTestBuildReceipt
+
+ext.buildReceiptPackage = '/org/gradle/'
+
+def libsDir = convention.getPlugin(BasePluginConvention).libsDir
+jar {
+    destinationDir = file("${libsDir}/prod")
+    from(createBuildReceipt) {
+        into buildReceiptPackage
+    }
+}
+
+task testVersionInfoJar(type: Jar) {
+    destinationDir = file("${libsDir}/test")
+    from(createTestBuildReceipt) {
+        into buildReceiptPackage
+    }
+    from classpathManifest
+}
+
+artifacts {
+    testVersionInfo testVersionInfoJar
+}
+
+idea {
+    module {
+        iml {
+            whenMerged { module ->
+                def testBuildReceipt = module.dependencies.find {
+                    it instanceof org.gradle.plugins.ide.idea.model.ModuleLibrary &&
+                        it.classes.any {
+                            it.url.contains('/build/generated-resources/test')
+                        }
+                }
+                // We need to have the test build receipt available for all tests. For IDEA we add it to the runtime classpath
+                testBuildReceipt.scope = 'RUNTIME'
+            }
+        }
+    }
+}

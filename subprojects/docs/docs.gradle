@@ -85,6 +85,7 @@ dependencies {
     testCompile libraries.commons_httpclient
     testCompile 'org.apache.httpcomponents:httpmime:4.4.1'
     testCompile project(":core")
+    testRuntime project(path: ":versionInfo", configuration: "testVersionInfo")
 }
 
 ext {
