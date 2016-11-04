@@ -36,7 +36,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Deprecated Ant-related Java compiler properties
 
-The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprecated the Ant-based `<depend/>` task support as well.
+The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprecated the Ant-based `<depend/>` task support as well. These properties will be removed in Gradle 4.0.
 
 * `JavaCompile.dependencyCacheDir`
 * `JavaCompileSpec.dependencyCacheDir`
@@ -47,6 +47,8 @@ The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprec
 
 ### Deprecated methods
 
+* `ProjectDependency.getProjectConfiguration()` is deprecated, and will be removed in Gradle 4.0. A project dependency is not guaranteed to resolve to a particular `Configuration` instance, for example, when dependency substitution rules are used, so the return value of this method can be misleading. To determine the actual target for a project dependency, you should query the resolution results provided by `Configuration.getIncoming().getResolutionResult()`.
+* `ModuleDependency.getConfiguration()` is deprecated, replaced by `getTargetConfiguration()`. This method will be removed in Gradle 4.0.
 * `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
 
 ## Potential breaking changes
@@ -56,7 +58,6 @@ The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprec
 In previous Gradle versions, when connected to a sub-project and asking for the `BuildInvocations` model using a `ProjectConnection`,
 the `BuildInvocations` model for the root project was returned instead. Gradle will now
 return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
-
 
 ### Java `Test` task doesn't track working directory as input
 

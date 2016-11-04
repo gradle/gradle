@@ -70,7 +70,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Deprecated
     public Configuration getProjectConfiguration() {
-        DeprecationLogger.nagUserOfDeprecated("ProjectDependency#getProjectConfiguration()", "There might not be a single matching configuration. Please use ProjectDependency#getDependencyProject().getConfigurations() instead");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ProjectDependency.getProjectConfiguration()");
         return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 

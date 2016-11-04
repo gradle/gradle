@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -135,9 +136,7 @@ public interface ModuleDependency extends Dependency {
 
     /**
      * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
-     * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}. A dependency source
-     * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
-     * for this dependency module.
+     * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
      *
      * @deprecated Use {@link #getTargetConfiguration()} instead
      */
@@ -145,11 +144,10 @@ public interface ModuleDependency extends Dependency {
     String getConfiguration();
 
     /**
-     * Returns the configuration of this dependency module (not the configurations this dependency belongs too).
-     * If null, the default configuration should be used. A dependency source
-     * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
-     * for this dependency module.
+     * Returns the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
+     * selecting the matching configuration. If {@code null}, a default configuration should be used.
      */
+    @Nullable
     String getTargetConfiguration();
 
     /**
