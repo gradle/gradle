@@ -481,7 +481,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:check'
 
         then:
-        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug}'
+        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug}'
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -528,7 +528,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug, flavor=free}')
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug, flavor=free}')
     }
 
     /**
@@ -966,13 +966,13 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of then match the client attributes {buildType=debug, flavor=free}')
+        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of them match the client attributes {buildType=debug, flavor=free}')
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {buildType=release, flavor=free}')
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of them match the client attributes {buildType=release, flavor=free}')
 
     }
 

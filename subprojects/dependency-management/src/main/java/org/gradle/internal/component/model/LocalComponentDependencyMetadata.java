@@ -126,7 +126,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (candidateConfigurations.size()==1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + new TreeMap<String, String>(attributes));
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + new TreeMap<String, String>(attributes));
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
