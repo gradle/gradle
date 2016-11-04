@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -73,15 +74,18 @@ public class DependencyGraphBuilder {
     private final ResolveContextToComponentResolver moduleResolver;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
+    private final ConfigurationAttributesMatchingStrategyInternal attributeMatchingStrategy;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
-                                  ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter) {
+                                  ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter,
+                                  ConfigurationAttributesMatchingStrategyInternal attributeMatchingStrategy) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;
         this.conflictHandler = conflictHandler;
         this.edgeFilter = edgeFilter;
+        this.attributeMatchingStrategy = attributeMatchingStrategy;
     }
 
     public void resolve(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
@@ -89,7 +93,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter);
+        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributeMatchingStrategy);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
@@ -280,7 +284,7 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            Set<ConfigurationMetadata> targetConfigurations = dependencyMetadata.selectConfigurations(from.moduleRevision.metaData, from.metaData, targetModuleVersion);
+            Set<ConfigurationMetadata> targetConfigurations = dependencyMetadata.selectConfigurations(from.moduleRevision.metaData, from.metaData, targetModuleVersion, resolveState.attributesMatchingStrategy);
             for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
                 ConfigurationNode targetConfigurationNode = resolveState.getConfigurationNode(targetModuleRevision, targetConfiguration);
                 this.targetConfigurations.add(targetConfigurationNode);
@@ -346,13 +350,15 @@ public class DependencyGraphBuilder {
         private final ComponentMetaDataResolver metaDataResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
+        private final ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy;
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
-                            ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter) {
+                            ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
             this.edgeFilter = edgeFilter;
+            this.attributesMatchingStrategy = attributesMatchingStrategy;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootConfigurationNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);

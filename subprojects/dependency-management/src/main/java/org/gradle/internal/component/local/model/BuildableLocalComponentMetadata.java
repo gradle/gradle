@@ -31,7 +31,7 @@ public interface BuildableLocalComponentMetadata {
 
     /**
      * Adds a configuration to this component.
-     *  @param hierarchy Must include name
+     * @param hierarchy Must include name
      * @param attributes the attributes of the configuration. Can be null.
      * @param isConsumeOrPublishAllowed
      * @param isQueryOrResolveAllowed

@@ -18,6 +18,7 @@ package org.gradle.jvm.internal.resolve;
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationAttributesMatchingStrategy;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
@@ -30,7 +31,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
     private final String displayName;
     private final UsageKind usage;
-    private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, null);
+    private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, null, new DefaultConfigurationAttributesMatchingStrategy());
     private final VariantsMetaData variants;
     private final Iterable<DependencySpec> dependencies;
 

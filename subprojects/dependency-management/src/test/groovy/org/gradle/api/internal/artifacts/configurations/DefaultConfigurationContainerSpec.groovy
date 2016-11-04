@@ -53,7 +53,8 @@ public class DefaultConfigurationContainerSpec extends Specification {
     def "adds and gets"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory) }
+        1 * instantiator.newInstance(DefaultConfigurationAttributesMatchingStrategy) >> { new DefaultConfigurationAttributesMatchingStrategy() }
+        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory, _) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory, _ as ConfigurationAttributesMatchingStrategyInternal) }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
                 projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory) >> conf
@@ -74,7 +75,8 @@ public class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory) }
+        1 * instantiator.newInstance(DefaultConfigurationAttributesMatchingStrategy) >> { new DefaultConfigurationAttributesMatchingStrategy() }
+        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory, _) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory, _ as ConfigurationAttributesMatchingStrategyInternal) }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
                 projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory) >> conf

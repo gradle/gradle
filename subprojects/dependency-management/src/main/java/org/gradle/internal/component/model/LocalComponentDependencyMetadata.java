@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -26,6 +27,8 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributeMatchingStrategies;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.tasks.TaskDependency;
@@ -34,7 +37,6 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -107,26 +109,25 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, ConfigurationAttributesMatchingStrategyInternal attributesMatchingStrategy) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         Map<String, String> attributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
         if (useConfigurationAttributes) {
             Set<String> configurationNames = targetComponent.getConfigurationNames();
-            List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
+            Map<ConfigurationMetadata, Map<String, String>> candidateConfigurations = Maps.newHashMap();
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
                 Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
                 if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isConsumeOrPublishAllowed()) {
-                    if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
-                        candidateConfigurations.add(dependencyConfiguration);
-                    }
+                    candidateConfigurations.put(dependencyConfiguration, dependencyConfigurationAttributes);
                 }
             }
-            if (candidateConfigurations.size()==1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
-            } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + new TreeMap<String, String>(attributes));
+            List<ConfigurationMetadata> bestMatches = ConfigurationAttributeMatchingStrategies.findBestMatches(attributesMatchingStrategy, attributes, candidateConfigurations);
+            if (bestMatches.size()==1) {
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(bestMatches.get(0), attributes));
+            } else if (!bestMatches.isEmpty()) {
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(bestMatches, CONFIG_NAME)) + ". All of them match the client attributes " + new TreeMap<String, String>(attributes));
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);

@@ -1262,4 +1262,304 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         'query or resolve only' | 'consumeOrPublishAllowed = false'
         'bucket'                | 'queryOrResolveAllowed = false; consumeOrPublishAllowed = false'
     }
+
+    def "Library project with flavors depends on a library project that does not"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeDebug.resolutionStrategy.attributesMatching {
+                        matcher('flavor') {
+                            optional()
+                        }
+                    }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(buildType: 'release') // no match on `buildType`
+                    }
+                }
+
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+    }
+
+    def "Library project with flavors prefers configuration with exact match rather than partial"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeDebug.resolutionStrategy.attributesMatching {
+                        matcher('flavor') {
+                            optional()
+                        }
+                    }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(buildType: 'debug', flavor: 'free') // exact match on `buildType` and `flavor`
+                    }
+                }
+
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
+
+    }
+
+    def "Library project with flavors depends on a library project that does not (case insensitive)"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeDebug.resolutionStrategy.attributesMatching {
+                        matcher('flavor') {
+                            optional()
+                        }
+                        matcher('buildType') {
+                            scorer = { a,b -> a.equalsIgnoreCase(b)?0:-1 }
+                        }
+                    }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'DEbUG') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(buildType: 'reLEAse') // no match on `buildType`
+                    }
+                }
+
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+    }
+
+    def "Library project without flavors depends on a library project with flavors"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug', flavor: 'free') // match on `buildType`
+                    }
+                    bar {
+                       attributes(buildType: 'release', flavor: 'free') // match on `buildType`
+                    }
+                }
+
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+    }
+
+    def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << '''
+            import static org.gradle.api.artifacts.ConfigurationAttributeMatcher.*
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeDebug.resolutionStrategy.attributesMatching {
+                       matcher('flavor') {
+                            optional()
+                       }
+                    }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug') // partial match on `buildType`
+                    }
+                    bar {
+                       attributes(buildType: 'release') // no match on `buildType`
+                    }
+                }
+                dependencies {
+                    foo project(':c')
+                    bar project(':c')
+                }
+
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo {
+                       attributes(buildType: 'debug', flavor: 'free') // exact match on `buildType` and `flavor`
+                    }
+                    bar {
+                       attributes(buildType: 'debug', flavor: 'paid') // partial match on `buildType`
+                    }
+                }
+
+
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar', ':c:fooJar'
+        notExecuted ':b:barJar', ':c:barJar'
+
+    }
 }

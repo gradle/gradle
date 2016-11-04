@@ -63,4 +63,5 @@ public interface ConfigurationMetadata {
      * (For external module components, we just instantiate a new artifact metadata).
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
+
 }

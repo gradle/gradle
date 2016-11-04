@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.configurations.ConfigurationAttributesMatchingStrategyInternal
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
@@ -30,6 +31,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 abstract class DefaultDependencyMetadataTest extends Specification {
     def requested = newSelector("org", "module", "1.2+")
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
+    def attributesMatchingStrategy = Mock(ConfigurationAttributesMatchingStrategyInternal)
 
     abstract DefaultDependencyMetadata create(ModuleVersionSelector selector)
 

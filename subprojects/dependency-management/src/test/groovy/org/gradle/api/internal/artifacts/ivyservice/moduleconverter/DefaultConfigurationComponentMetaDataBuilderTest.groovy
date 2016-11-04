@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
@@ -42,8 +43,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
     def "adds artifacts from each configuration"() {
         def emptySet = new HashSet<String>()
         def metaData = Mock(BuildableLocalComponentMetadata)
-        def config1 = Stub(Configuration)
-        def config2 = Stub(Configuration)
+        def config1 = createConfig()
+        def config2 = createConfig()
         def artifacts1 = Stub(PublishArtifactSet)
         def artifacts2 = Stub(PublishArtifactSet)
 
@@ -62,6 +63,19 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._
+    }
+
+    private Configuration createConfig(boolean includeHierarchy = true) {
+        def mock = Mock(ConfigurationInternal) {
+            getDescription() >> ''
+            getResolutionStrategy() >> Mock(ResolutionStrategyInternal)
+            getAttributes() >> [:]
+        }
+        if (includeHierarchy) {
+            mock.getHierarchy() >> []
+            mock.getExtendsFrom() >> []
+        }
+        mock
     }
 
     def "adds configurations to ivy module descriptor"() {
@@ -88,7 +102,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
     }
 
     private Configuration createNamesAndExtendedConfigurationStub(final String name, final Configuration... extendsFromConfigurations) {
-        final Configuration stub = Mock(ConfigurationInternal)
+        final Configuration stub = createConfig(false)
         stub.getName() >> name
         stub.getDescription() >> TestUtil.createUniqueId()
         stub.isTransitive() >> true
