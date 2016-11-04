@@ -46,7 +46,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
             for (Dependency dependency : configuration.getDependencies()) {
                 if (dependency instanceof ModuleDependency) {
                     ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), configuration.getAttributes(), moduleDependency));
+                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), configuration.getAttributes().asImmutable(), moduleDependency));
                 } else if (dependency instanceof FileCollectionDependency) {
                     final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                     metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));

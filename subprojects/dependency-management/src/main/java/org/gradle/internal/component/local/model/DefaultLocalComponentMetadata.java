@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.ConfigurationAttributes;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -78,7 +79,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allFiles.put(configuration, files);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean canBeConsumed, boolean canBeResolved) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ConfigurationAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved);
         allConfigurations.put(name, conf);
@@ -149,7 +150,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final boolean visible;
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
-        private final Map<String, String> attributes;
+        private final ConfigurationAttributes attributes;
         private final boolean canBeConsumed;
         private final boolean canBeResolved;
 
@@ -164,7 +165,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                   boolean transitive,
                                                   Set<String> extendsFrom,
                                                   Set<String> hierarchy,
-                                                  Map<String, String> attributes,
+                                                  ConfigurationAttributes attributes,
                                                   boolean canBeConsumed,
                                                   boolean canBeResolved) {
             this.name = name;
@@ -223,7 +224,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public Map<String, String> getAttributes() {
+        public ConfigurationAttributes getAttributes() {
             return attributes;
         }
 

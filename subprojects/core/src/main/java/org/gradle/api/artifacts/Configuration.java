@@ -442,17 +442,40 @@ public interface Configuration extends FileCollection {
     @Incubating
     Configuration attribute(String key, String value);
 
+    @Incubating
+    <T> Configuration attribute(ConfigurationAttributes.Key<T> key, T value);
+
     /**
      * Sets multiple configuration attributes at once. The attributes are copied from the source map.
+     * This method can be used with both a {@link ConfigurationAttributes.Key proper attribute key},
+     * or with a {@link String} in which case the type of the attribute is expected to be a {@link String}.
+     * Type safety is guaranteed at runtime.
      * @param attributes the attributes to be copied to this configuration
      * @return this configuration
      */
     @Incubating
-    Configuration attributes(Map<String, String> attributes);
+    Configuration attributes(Map<?, ?> attributes);
 
+    /**
+     * Returns this configuration attributes.
+     * @return the attribute set of this configuration
+     */
     @Incubating
-    Map<String, String> getAttributes();
+    ConfigurationAttributes getAttributes();
 
+    /**
+     * Returns the value of a configuration attribute, or <code>null</code> if not found
+     * @param key the key of the attribute
+     * @param <T> the type of the attribute
+     * @return the attribute value or <code>null</code> if not found
+     */
+    @Incubating
+    <T> T getAttribute(ConfigurationAttributes.Key<T> key);
+
+    /**
+     * Tells if this configuration defines attributes.
+     * @return true if this configuration has attributes.
+     */
     @Incubating
     boolean hasAttributes();
 

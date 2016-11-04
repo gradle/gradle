@@ -47,7 +47,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             hierarchy,
             configuration.isVisible(),
             configuration.isTransitive(),
-            configuration.getAttributes(),
+            configuration.getAttributes().asImmutable(),
             configuration.isCanBeConsumed(),
             configuration.isCanBeResolved());
     }
