@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
@@ -25,6 +28,7 @@ import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 /**
@@ -47,19 +51,52 @@ public class CompilerDaemonSimpleMemoryExpiration {
     }
 
     public void eventuallyExpireDaemons(DaemonForkOptions requiredForkOptions, List<CompilerDaemonClient> idleClients, List<CompilerDaemonClient> allClients) {
-        long freePhysicalMemory = memoryInfo.getFreePhysicalMemory();
-        long anticipatedFreeMemory = freePhysicalMemory - parseHeapSize(memoryInfo, requiredForkOptions.getMaxHeapSize());
+        long requiredMaxHeapSize = parseHeapSize(memoryInfo, requiredForkOptions.getMaxHeapSize());
+        long anticipatedFreeMemory = memoryInfo.getFreePhysicalMemory() - requiredMaxHeapSize;
         if (anticipatedFreeMemory < memoryThresholdInBytes) {
-            Iterator<CompilerDaemonClient> it = idleClients.iterator();
-            while (it.hasNext()) {
-                CompilerDaemonClient client = it.next();
+            if (expireDuplicateCompatibles(idleClients, allClients)) {
+                anticipatedFreeMemory = memoryInfo.getFreePhysicalMemory() - requiredMaxHeapSize;
+            }
+            if (anticipatedFreeMemory < memoryThresholdInBytes) {
+                expireLeastRecentlyUsedUntilEnoughFreeMemory(idleClients, allClients, anticipatedFreeMemory);
+            }
+        }
+    }
+
+    private boolean expireDuplicateCompatibles(List<CompilerDaemonClient> idleClients, List<CompilerDaemonClient> allClients) {
+        boolean expired = false;
+        ListIterator<CompilerDaemonClient> it = idleClients.listIterator(idleClients.size());
+        List<CompilerDaemonClient> compatibilityUniques = Lists.newArrayListWithCapacity(idleClients.size());
+        while (it.hasPrevious()) {
+            final CompilerDaemonClient client = it.previous();
+            boolean already = Iterables.any(compatibilityUniques, new Predicate<CompilerDaemonClient>() {
+                @Override
+                public boolean apply(CompilerDaemonClient candidate) {
+                    return candidate.isCompatibleWith(client.getForkOptions());
+                }
+            });
+            if (already) {
                 allClients.remove(client);
                 it.remove();
                 client.stop();
-                anticipatedFreeMemory += parseHeapSize(memoryInfo, client.getForkOptions().getMaxHeapSize());
-                if (anticipatedFreeMemory >= memoryThresholdInBytes) {
-                    break;
-                }
+                expired = true;
+            } else {
+                compatibilityUniques.add(client);
+            }
+        }
+        return expired;
+    }
+
+    private void expireLeastRecentlyUsedUntilEnoughFreeMemory(List<CompilerDaemonClient> idleClients, List<CompilerDaemonClient> allClients, long anticipatedFreeMemory) {
+        Iterator<CompilerDaemonClient> it = idleClients.iterator();
+        while (it.hasNext()) {
+            CompilerDaemonClient client = it.next();
+            allClients.remove(client);
+            it.remove();
+            client.stop();
+            anticipatedFreeMemory += parseHeapSize(memoryInfo, client.getForkOptions().getMaxHeapSize());
+            if (anticipatedFreeMemory >= memoryThresholdInBytes) {
+                break;
             }
         }
     }

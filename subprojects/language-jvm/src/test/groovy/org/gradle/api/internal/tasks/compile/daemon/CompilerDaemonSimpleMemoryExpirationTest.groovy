@@ -23,16 +23,18 @@ import spock.lang.Unroll
 class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
     def workingDir = new File("some-dir")
-    def twoGbOptions = Stub(DaemonForkOptions) { getMaxHeapSize() >> '2g' }
-    def fourGbOptions = Stub(DaemonForkOptions) { getMaxHeapSize() >> '4g' }
-    def twelveGbOptions = Stub(DaemonForkOptions) { getMaxHeapSize() >> '12g' }
+    def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'])
+    def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'])
+    def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
+    def fourGbOptions = new DaemonForkOptions('4g', '4g', ['four-gb-options'])
+    def twelveGbOptions = new DaemonForkOptions('12g', '12g', ['twelve-gb-options'])
     def memoryInfo = Mock(MemoryInfo) { getTotalPhysicalMemory() >> gb(8) }
     def expiration = new CompilerDaemonSimpleMemoryExpiration(memoryInfo, 0.05)
 
     def "does not expire worker daemons when enough system memory available"() {
         given:
-        def client1 = Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions }
-        def client2 = Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions }
+        def client1 = new CompilerDaemonClient(twoGbOptions, Stub(CompilerDaemonWorker))
+        def client2 = new CompilerDaemonClient(twoGbOptions, Stub(CompilerDaemonWorker))
         def allClients = [client1, client2]
         def idleClients = allClients.collect()
 
@@ -49,11 +51,11 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
     def "expires least recently used idle worker daemon to free system memory when requesting a new one"() {
         given:
-        def client2 = Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions }
-        def allClients = [
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions },
-            client2
-        ]
+        def worker1 = Mock(CompilerDaemonWorker)
+        def worker2 = Mock(CompilerDaemonWorker)
+        def client1 = new CompilerDaemonClient(oneGbOptions, worker1)
+        def client2 = new CompilerDaemonClient(twoGbOptions, worker2)
+        def allClients = [client1, client2]
         def idleClients = allClients.collect()
 
         when:
@@ -61,6 +63,8 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
         then:
         1 * memoryInfo.getFreePhysicalMemory() >> gb(2)
+        1 * worker1.stop()
+        0 * worker2.stop()
 
         and:
         idleClients == [client2]
@@ -69,12 +73,13 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
     def "expires enough idle worker daemons to fit requested one in system memory"() {
         given:
-        def client3 = Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions }
-        def allClients = [
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions },
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions },
-            client3
-        ]
+        def worker1 = Mock(CompilerDaemonWorker)
+        def worker2 = Mock(CompilerDaemonWorker)
+        def worker3 = Mock(CompilerDaemonWorker)
+        def client1 = new CompilerDaemonClient(threeGbOptions, worker1)
+        def client2 = new CompilerDaemonClient(twoGbOptions, worker2)
+        def client3 = new CompilerDaemonClient(oneGbOptions, worker3)
+        def allClients = [client1, client2, client3]
         def idleClients = allClients.collect()
 
         when:
@@ -82,6 +87,9 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
         then:
         1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
+        1 * worker1.stop()
+        1 * worker2.stop()
+        0 * worker3.stop()
 
         then:
         idleClients == [client3]
@@ -90,10 +98,11 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
     def "expires all idle daemons to fit requested one in system memory"() {
         given:
-        def allClients = [
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions },
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions }
-        ]
+        def worker1 = Mock(CompilerDaemonWorker)
+        def worker2 = Mock(CompilerDaemonWorker)
+        def client1 = new CompilerDaemonClient(oneGbOptions, worker1)
+        def client2 = new CompilerDaemonClient(threeGbOptions, worker2)
+        def allClients = [client1, client2]
         def idleClients = allClients.collect()
 
         when:
@@ -101,18 +110,22 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
         then:
         1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
+        1 * worker1.stop()
+        1 * worker2.stop()
 
         then:
         idleClients == []
         allClients == []
     }
 
-    def "expires all idle daemons when requested one require more than total system memory"() {
-        def allClients = [
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions },
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions },
-            Mock(CompilerDaemonClient) { getForkOptions() >> twoGbOptions }
-        ]
+    def "expires all idle worker daemons when requested one require more than total system memory"() {
+        def worker1 = Mock(CompilerDaemonWorker)
+        def worker2 = Mock(CompilerDaemonWorker)
+        def worker3 = Mock(CompilerDaemonWorker)
+        def client1 = new CompilerDaemonClient(oneGbOptions, worker1)
+        def client2 = new CompilerDaemonClient(twoGbOptions, worker2)
+        def client3 = new CompilerDaemonClient(threeGbOptions, worker3)
+        def allClients = [client1, client2, client3]
         def idleClients = allClients.collect()
 
         when:
@@ -120,10 +133,42 @@ class CompilerDaemonSimpleMemoryExpirationTest extends Specification {
 
         then:
         1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
+        1 * worker1.stop()
+        1 * worker2.stop()
+        1 * worker3.stop()
 
         then:
         idleClients == []
         allClients == []
+    }
+
+    def "expire all compatible worker daemons but the more recently used when trying to fit requested one in system memory"() {
+        given:
+        def worker1 = Mock(CompilerDaemonWorker)
+        def worker2 = Mock(CompilerDaemonWorker)
+        def worker3 = Mock(CompilerDaemonWorker)
+        def worker4 = Mock(CompilerDaemonWorker)
+        def client1 = new CompilerDaemonClient(oneGbOptions, worker1)
+        def client2 = new CompilerDaemonClient(oneGbOptions, worker2)
+        def client3 = new CompilerDaemonClient(oneGbOptions, worker3)
+        def client4 = new CompilerDaemonClient(oneGbOptions, worker4)
+        def allClients = [client1, client2, client3, client4]
+        def idleClients = allClients.collect()
+
+        when:
+        expiration.eventuallyExpireDaemons(twoGbOptions, idleClients, allClients)
+
+        then:
+        1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
+        1 * memoryInfo.getFreePhysicalMemory() >> gb(4)
+        1 * worker1.stop()
+        1 * worker2.stop()
+        1 * worker3.stop()
+        0 * worker4.stop()
+
+        then:
+        idleClients == [client4]
+        allClients == [client4]
     }
 
     def "can parse maximum heap null"() {
