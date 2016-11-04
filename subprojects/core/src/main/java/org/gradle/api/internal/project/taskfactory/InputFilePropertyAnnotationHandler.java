@@ -17,39 +17,29 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
-
-public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
-    private final ValidationAction inputFileValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            File fileValue = (File) value;
-            if (!fileValue.exists()) {
-                messages.add(String.format("File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            } else if (!fileValue.isFile()) {
-                messages.add(String.format("File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
-            }
-        }
-    };
-
+public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputFile.class;
     }
 
-    public void attachActions(final TaskPropertyActionContext context) {
-        context.setValidationAction(inputFileValidation);
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().files(futureValue)
-                    .withPropertyName(context.getName())
-                    .withPathSensitivity(getPathSensitivity(context));
-            }
-        });
+    @Override
+    protected void validate(String propertyName, Object value, Collection<String> messages) {
+        File fileValue = (File) value;
+        if (!fileValue.exists()) {
+            messages.add(String.format("File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
+        } else if (!fileValue.isFile()) {
+            messages.add(String.format("File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
+        }
     }
 
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+        return task.getInputs().files(futureValue);
+    }
 }

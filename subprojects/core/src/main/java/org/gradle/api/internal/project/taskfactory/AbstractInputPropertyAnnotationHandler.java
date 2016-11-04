@@ -16,45 +16,36 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 
-public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     public void attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(new ValidationAction() {
             @Override
             public void validate(String propertyName, Object value, Collection<String> messages) {
-                AbstractOutputPropertyAnnotationHandler.this.validate(propertyName, value, messages);
+                AbstractInputPropertyAnnotationHandler.this.validate(propertyName, value, messages);
             }
         });
         context.setConfigureAction(new UpdateAction() {
-            @Override
-            public void update(TaskInternal task, final Callable<Object> futureValue) {
+            public void update(TaskInternal task, Callable<Object> futureValue) {
                 createPropertyBuilder(context, task, futureValue)
                     .withPropertyName(context.getName())
                     .withPathSensitivity(getPathSensitivity(context))
+                    .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
+                    .orderSensitive(context.isAnnotationPresent(OrderSensitive.class))
                     .optional(context.isOptional());
-                task.prependParallelSafeAction(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        beforeTask(futureValue);
-                    }
-                });
             }
         });
     }
-
-    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
-
-    protected abstract void beforeTask(final Callable<Object> futureValue);
-
+    protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 }
