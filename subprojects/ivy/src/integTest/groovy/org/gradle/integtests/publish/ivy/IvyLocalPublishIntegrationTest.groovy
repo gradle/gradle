@@ -20,6 +20,8 @@ import org.spockframework.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.hamcrest.core.StringContains.containsString
+
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     public void canPublishToLocalFileRepository() {
         given:
@@ -153,9 +155,43 @@ task ivyXml(type: Upload) {
     }
 
     def "succeeds if trying to publish a file without extension"() {
+        def module = ivyRepo.module("org.gradle", "publish", "2")
+        settingsFile << 'rootProject.name = "publish"'
 
         given:
         file('someDir/a') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+
+        group = "org.gradle"
+        version = '2'
+        artifacts {
+            archives file("someDir/a")
+        }
+
+        uploadArchives {
+            repositories {
+                ivy {
+                    url "${ivyRepo.uri}"
+                }
+            }
+        }
+
+        """
+
+        when:
+        succeeds 'uploadArchives'
+
+        then:
+        def published = module.moduleDir.file("a-2")
+        published.assertIsCopyOf(file('someDir/a'))
+    }
+
+    def "fails gracefully if trying to publish a directory with ivy"() {
+
+        given:
+        file('someDir/a.txt') << 'some text'
         buildFile << """
 
         apply plugin: 'base'
@@ -165,16 +201,17 @@ task ivyXml(type: Upload) {
         }
 
         artifacts {
-            archives file("someDir/a")
+            archives file("someDir")
         }
 
         """
 
         when:
-        run 'uploadArchives'
+        fails 'uploadArchives'
 
         then:
-        noExceptionThrown()
+        failure.assertHasCause "Could not publish configuration 'archives'"
+        failure.assertThatCause(containsString('Cannot publish a directory'))
 
     }
 

@@ -129,8 +129,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
     private Map<String, String> attributes;
-    private boolean isConsumeOrPublishAllowed = true;
-    private boolean isQueryOrResolveAllowed = true;
+    private boolean canBeConsumed = true;
+    private boolean canBeResolved = true;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -553,8 +553,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
-        copiedConfiguration.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
-        copiedConfiguration.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
+        copiedConfiguration.canBeConsumed = canBeConsumed;
+        copiedConfiguration.canBeResolved = canBeResolved;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -723,7 +723,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void assertResolvingAllowed() {
-        if (!isQueryOrResolveAllowed) {
+        if (!canBeResolved) {
             throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
         }
     }
@@ -772,25 +772,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public boolean isConsumeOrPublishAllowed() {
-        return isConsumeOrPublishAllowed;
+    public boolean isCanBeConsumed() {
+        return canBeConsumed;
     }
 
     @Override
-    public void setConsumeOrPublishAllowed(boolean consumeOrPublishAllowed) {
+    public void setCanBeConsumed(boolean allowed) {
         validateMutation(MutationType.ROLE);
-        isConsumeOrPublishAllowed = consumeOrPublishAllowed;
+        canBeConsumed = allowed;
     }
 
     @Override
-    public boolean isQueryOrResolveAllowed() {
-        return isQueryOrResolveAllowed;
+    public boolean isCanBeResolved() {
+        return canBeResolved;
     }
 
     @Override
-    public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
+    public void setCanBeResolved(boolean allowed) {
         validateMutation(MutationType.ROLE);
-        isQueryOrResolveAllowed = queryOrResolveAllowed;
+        canBeResolved = allowed;
     }
 
     /**
