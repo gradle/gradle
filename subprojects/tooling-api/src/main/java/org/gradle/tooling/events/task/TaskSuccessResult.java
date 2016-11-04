@@ -36,6 +36,9 @@ public interface TaskSuccessResult extends TaskOperationResult, SuccessResult {
     /**
      * Returns whether the output for this task was pulled from a cache.
      *
+     * <p>NOTE: This will always be false if the Gradle version does
+     * not support a task output cache.</p>
+     *
      * @return {@code true} if the output for this task was from a cache
      * @since 3.3
      */

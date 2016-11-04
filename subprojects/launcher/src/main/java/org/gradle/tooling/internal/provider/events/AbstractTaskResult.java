@@ -16,16 +16,10 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskCacheResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 
-public abstract class AbstractTaskResult extends AbstractResult implements InternalTaskCacheResult, InternalTaskResult {
+public abstract class AbstractTaskResult extends AbstractResult implements InternalTaskResult {
     protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription) {
         super(startTime, endTime, outcomeDescription);
-    }
-
-    @Override
-    public boolean isFromCache() {
-        return false;
     }
 }

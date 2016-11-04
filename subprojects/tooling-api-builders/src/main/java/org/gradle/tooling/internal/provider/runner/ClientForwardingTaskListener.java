@@ -24,14 +24,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultTaskDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTaskFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
+import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
 

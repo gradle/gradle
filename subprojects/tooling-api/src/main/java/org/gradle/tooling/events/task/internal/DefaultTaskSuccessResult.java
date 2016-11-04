@@ -24,8 +24,8 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
  */
 public final class DefaultTaskSuccessResult extends DefaultOperationSuccessResult implements TaskSuccessResult {
 
-    private final boolean fromCache;
     private final boolean upToDate;
+    private final boolean fromCache;
 
     public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache) {
         super(startTime, endTime);
