@@ -33,7 +33,7 @@
                 <td><literal>true</literal></td>
             </tr>
             <tr>
-                <td>maxAllowedViolations</td>
+                <td>maxErrors</td>
                 <td><literal>0</literal></td>
             </tr>
         </table>
