@@ -191,6 +191,7 @@ The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
+  - A Path instance.
   - A URI or URL instance.""")
     }
 
