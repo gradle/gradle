@@ -19,6 +19,20 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileResolutionIntegrationTest extends AbstractIntegrationSpec {
+    def "file conversion works with java.nio.file.Path"() {
+        buildFile << """\n\
+java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
+def f = file(fAsPath)
+assert f == fAsPath.toFile()
+"""
+
+        when:
+        succeeds()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "gives reasonable error message when value cannot be converted to file"() {
         buildFile << """
 def f = file(12)
@@ -33,6 +47,7 @@ The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
+  - A Path instance.
   - A URI or URL instance.""")
     }
 
@@ -49,8 +64,9 @@ f.files.each { println it }
         failure.assertHasCause("""Cannot convert the provided notation to a File or URI: 12.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
-  - A String or CharSequence URI, for example 'file:/usr/include'.
+  - A String or CharSequence URI, for example 'file:/usr/include'.\n\
   - A File instance.
+  - A Path instance.
   - A URI or URL instance.""")
     }
 }
