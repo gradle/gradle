@@ -16,12 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.specs.Spec;
 
+import java.io.File;
 import java.util.Collection;
 
 public interface ArtifactResults {
+    /**
+     * Collects files reachable from first level dependencies that satisfy the given spec. Rethrows first failure encountered.
+     */
+    void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) throws ResolveException;
+
     /**
      * Collects all artifacts into the given collection.
      *

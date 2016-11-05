@@ -42,7 +42,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -130,9 +129,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
-        FilesAndArtifactCollectingVisitor collector = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, collector);
-        files.addAll(getFiles(filterUnresolved(collector.artifacts)));
+        FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
+        visitArtifacts(dependencySpec, visitor);
+        files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }
 
@@ -140,28 +139,32 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      * Collects files reachable from first level dependencies that satisfy the given spec. Rethrows first failure encountered.
      */
     public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
-        FilesAndArtifactCollectingVisitor collector = new FilesAndArtifactCollectingVisitor(dest);
-        visitArtifacts(dependencySpec, collector);
-        dest.addAll(getFiles(collector.artifacts));
+        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
+        try {
+            visitArtifacts(dependencySpec, visitor);
+            // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts. This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
+            // File dependencies and artifacts are currently treated separately as a migration step
+            visitor.addArtifacts();
+        } catch (Throwable t) {
+            visitor.failures.add(t);
+        }
+        if (!visitor.failures.isEmpty()) {
+            throw new ArtifactResolveException("files", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
+        }
     }
 
     /**
      * Collects all artifacts. Rethrows first failure encountered.
      */
     public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
-        ResolvedArtifactCollectingVisitor collector = new ResolvedArtifactCollectingVisitor(dest);
+        ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
         try {
-            visitArtifacts(Specs.<Dependency>satisfyAll(), collector);
+            visitArtifacts(Specs.<Dependency>satisfyAll(), visitor);
         } catch (Throwable t) {
-            collector.failures.add(t);
+            visitor.failures.add(t);
         }
-        if (!collector.failures.isEmpty()) {
-            throw new ResolveException(configuration.getPath(), collector.failures) {
-                @Override
-                public String getMessage() {
-                    return String.format("Could not resolve all artifacts for %s.", configuration.getDisplayName());
-                }
-            };
+        if (!visitor.failures.isEmpty()) {
+            throw new ArtifactResolveException("artifacts", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
         }
     }
 
@@ -169,9 +172,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-        ArtifactCollectingVisitor collector = new ArtifactCollectingVisitor();
-        visitArtifacts(dependencySpec, collector);
-        return filterUnresolved(collector.artifacts);
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+        visitArtifacts(dependencySpec, visitor);
+        return filterUnresolved(visitor.artifacts);
     }
 
     private Set<ResolvedArtifact> filterUnresolved(final Set<ResolvedArtifact> artifacts) {
@@ -255,19 +258,61 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
     }
 
+    private static class ResolvedFilesCollectingVisitor extends Visitor {
+        private final Collection<File> files;
+        private final List<Throwable> failures = new ArrayList<Throwable>();
+        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
+
+        ResolvedFilesCollectingVisitor(Collection<File> files) {
+            this.files = files;
+        }
+
+        @Override
+        void visitArtifacts(Set<ResolvedArtifact> artifacts) {
+            // Defer adding the artifacts until after all the file dependencies have been visited
+            this.artifacts.addAll(artifacts);
+        }
+
+        @Override
+        boolean shouldVisitFiles() {
+            return true;
+        }
+
+        @Override
+        void visitFiles(FileCollection fileCollection) {
+            try {
+                for (File file : fileCollection) {
+                    files.add(file);
+                }
+            } catch (Throwable t) {
+                failures.add(t);
+            }
+        }
+
+        public void addArtifacts() {
+            for (ResolvedArtifact artifact : artifacts) {
+                try {
+                    this.files.add(artifact.getFile());
+                } catch (Throwable t) {
+                    failures.add(t);
+                }
+            }
+        }
+    }
+
     private static class ResolvedArtifactCollectingVisitor extends Visitor {
-        private final Collection<? super ResolvedArtifactResult> dest;
+        private final Collection<? super ResolvedArtifactResult> artifacts;
         private final List<Throwable> failures = new ArrayList<Throwable>();
 
-        ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> dest) {
-            this.dest = dest;
+        ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
+            this.artifacts = artifacts;
         }
 
         @Override
         void visitArtifacts(Set<ResolvedArtifact> artifacts) {
             for (ResolvedArtifact artifact : artifacts) {
                 try {
-                    dest.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
+                    this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
                 } catch (Throwable t) {
                     failures.add(t);
                 }
@@ -283,7 +328,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         void visitFiles(FileCollection fileCollection) {
             try {
                 for (File file : fileCollection) {
-                    dest.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(file.getName()), Artifact.class, file));
+                    artifacts.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(file.getName()), Artifact.class, file));
                 }
             } catch (Throwable t) {
                 failures.add(t);
@@ -314,6 +359,23 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         @Override
         void visitFiles(FileCollection fileCollection) {
             this.files.addAll(fileCollection.getFiles());
+        }
+    }
+
+    private static class ArtifactResolveException extends ResolveException {
+        private final String type;
+        private final String displayName;
+
+        public ArtifactResolveException(String type, String path, String displayName, List<Throwable> failures) {
+            super(path, failures);
+            this.type = type;
+            this.displayName = displayName;
+        }
+
+        // Need to override as error message is hardcoded in constructor of public type ResolveException
+        @Override
+        public String getMessage() {
+            return String.format("Could not resolve all %s for %s.", type, displayName);
         }
     }
 

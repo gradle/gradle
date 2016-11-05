@@ -94,7 +94,7 @@ task show {
         outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0")
     }
 
-    def "reports failure to resolve component when artifacts are queried"() {
+    def "reports failure to resolve components when artifacts are queried"() {
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
@@ -115,7 +115,7 @@ task show {
         mavenHttpRepo.getModuleMetaData('org', 'test').expectGetMissing()
         mavenHttpRepo.directory('org', 'test').expectGetMissing()
         def m = mavenHttpRepo.module('org', 'test2', '2.0').publish()
-        m.pom.expectGet()
+        m.pom.expectGetBroken()
 
         when:
         fails 'show'
@@ -123,6 +123,7 @@ task show {
         then:
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not find any matches for org:test:1.0+ as no versions of org:test are available.")
+        failure.assertHasCause("Could not resolve org:test2:2.0.")
     }
 
     def "reports failure to download artifact when artifacts are queried"() {

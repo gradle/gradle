@@ -295,6 +295,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
+        public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) throws ResolveException {
+            throw wrapException(e, configuration);
+        }
+
+        @Override
         public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
             throw wrapException(e, configuration);
         }

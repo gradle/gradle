@@ -91,6 +91,10 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     private static class EmptyResults implements ArtifactResults {
         @Override
+        public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
+        }
+
+        @Override
         public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
         }
     }
