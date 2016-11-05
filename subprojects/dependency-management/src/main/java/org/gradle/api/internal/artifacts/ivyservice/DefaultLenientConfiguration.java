@@ -130,7 +130,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
-        FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(files);
+        FilesAndArtifactCollectingVisitor collector = new FilesAndArtifactCollectingVisitor(files);
         visitArtifacts(dependencySpec, collector);
         files.addAll(getFiles(filterUnresolved(collector.artifacts)));
         return files;
@@ -140,7 +140,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      * Collects files reachable from first level dependencies that satisfy the given spec. Rethrows first failure encountered.
      */
     public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
-        FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(dest);
+        FilesAndArtifactCollectingVisitor collector = new FilesAndArtifactCollectingVisitor(dest);
         visitArtifacts(dependencySpec, collector);
         dest.addAll(getFiles(collector.artifacts));
     }
@@ -149,19 +149,14 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      * Collects all artifacts. Rethrows first failure encountered.
      */
     public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+        ResolvedArtifactCollectingVisitor collector = new ResolvedArtifactCollectingVisitor(dest);
         try {
-            LinkedHashSet<File> files = new LinkedHashSet<File>();
-            FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(files);
             visitArtifacts(Specs.<Dependency>satisfyAll(), collector);
-            for (File file : files) {
-                final String name = file.getName();
-                dest.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(name), Artifact.class, file));
-            }
-            for (ResolvedArtifact artifact : collector.artifacts) {
-                dest.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
-            }
-        } catch (Exception e) {
-            throw new ResolveException(configuration.getPath(), e) {
+        } catch (Throwable t) {
+            collector.failures.add(t);
+        }
+        if (!collector.failures.isEmpty()) {
+            throw new ResolveException(configuration.getPath(), collector.failures) {
                 @Override
                 public String getMessage() {
                     return String.format("Could not resolve all artifacts for %s.", configuration.getDisplayName());
@@ -174,7 +169,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-        ArtifactsCollector collector = new ArtifactsCollector();
+        ArtifactCollectingVisitor collector = new ArtifactCollectingVisitor();
         visitArtifacts(dependencySpec, collector);
         return filterUnresolved(collector.artifacts);
     }
@@ -207,33 +202,33 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, ArtifactsCollector artifactsCollector) {
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, Visitor visitor) {
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
-            if (artifactsCollector.collectFiles()) {
+            if (visitor.shouldVisitFiles()) {
                 for (FileCollection fileCollection : fileDependencyResults.getFiles()) {
-                    artifactsCollector.visitFiles(fileCollection);
+                    visitor.visitFiles(fileCollection);
                 }
             }
-            artifactsCollector.visitArtifacts(artifactResults.getArtifacts());
+            visitor.visitArtifacts(artifactResults.getArtifacts());
             return;
         }
 
-        if (artifactsCollector.collectFiles()) {
+        if (visitor.shouldVisitFiles()) {
             for (Map.Entry<FileCollectionDependency, FileCollection> entry: fileDependencyResults.getFirstLevelFiles().entrySet()) {
                 if (dependencySpec.isSatisfiedBy(entry.getKey())) {
-                    artifactsCollector.visitFiles(entry.getValue());
+                    visitor.visitFiles(entry.getValue());
                 }
             }
         }
 
-        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactsCollector));
+        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor));
 
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 
         for (ResolvedDependency resolvedDependency : firstLevelModuleDependencies) {
-            artifactsCollector.visitArtifacts(resolvedDependency.getParentArtifacts(loadTransientGraphResults().getRoot()));
+            visitor.visitArtifacts(resolvedDependency.getParentArtifacts(loadTransientGraphResults().getRoot()));
             walker.add(resolvedDependency);
         }
         walker.findValues();
@@ -247,14 +242,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         return loadTransientGraphResults().getRoot().getChildren();
     }
 
-    private static class ArtifactsCollector {
-        final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
-
+    private static class Visitor {
         void visitArtifacts(Set<ResolvedArtifact> artifacts) {
-            this.artifacts.addAll(artifacts);
         }
 
-        boolean collectFiles() {
+        boolean shouldVisitFiles() {
             return false;
         }
 
@@ -263,15 +255,59 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
     }
 
-    private static class FilesAndArtifactsCollector extends ArtifactsCollector {
+    private static class ResolvedArtifactCollectingVisitor extends Visitor {
+        private final Collection<? super ResolvedArtifactResult> dest;
+        private final List<Throwable> failures = new ArrayList<Throwable>();
+
+        ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> dest) {
+            this.dest = dest;
+        }
+
+        @Override
+        void visitArtifacts(Set<ResolvedArtifact> artifacts) {
+            for (ResolvedArtifact artifact : artifacts) {
+                try {
+                    dest.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
+                } catch (Throwable t) {
+                    failures.add(t);
+                }
+            }
+        }
+
+        @Override
+        boolean shouldVisitFiles() {
+            return true;
+        }
+
+        @Override
+        void visitFiles(FileCollection fileCollection) {
+            try {
+                for (File file : fileCollection) {
+                    dest.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(file.getName()), Artifact.class, file));
+                }
+            } catch (Throwable t) {
+                failures.add(t);
+            }
+        }
+    }
+
+    private static class ArtifactCollectingVisitor extends Visitor {
+        final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
+
+        void visitArtifacts(Set<ResolvedArtifact> artifacts) {
+            this.artifacts.addAll(artifacts);
+        }
+    }
+
+    private static class FilesAndArtifactCollectingVisitor extends ArtifactCollectingVisitor {
         final Collection<File> files;
 
-        public FilesAndArtifactsCollector(Collection<File> files) {
+        FilesAndArtifactCollectingVisitor(Collection<File> files) {
             this.files = files;
         }
 
         @Override
-        boolean collectFiles() {
+        boolean shouldVisitFiles() {
             return true;
         }
 
@@ -282,25 +318,25 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
-        private final ArtifactsCollector artifactsCollector;
+        private final Visitor artifactsVisitor;
 
-        ResolvedDependencyArtifactsGraph(ArtifactsCollector artifactsCollector) {
-            this.artifactsCollector = artifactsCollector;
+        ResolvedDependencyArtifactsGraph(Visitor artifactsVisitor) {
+            this.artifactsVisitor = artifactsVisitor;
         }
 
         public void getNodeValues(ResolvedDependency node, Collection<? super ResolvedArtifact> values,
                                   Collection<? super ResolvedDependency> connectedNodes) {
             connectedNodes.addAll(node.getChildren());
-            if (artifactsCollector.collectFiles()) {
+            if (artifactsVisitor.shouldVisitFiles()) {
                 for (FileCollection fileCollection : fileDependencyResults.getFiles(((DefaultResolvedDependency) node).getId())) {
-                    artifactsCollector.visitFiles(fileCollection);
+                    artifactsVisitor.visitFiles(fileCollection);
                 }
             }
         }
 
         public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
                                   Collection<ResolvedArtifact> values) {
-            artifactsCollector.visitArtifacts(to.getParentArtifacts(from));
+            artifactsVisitor.visitArtifacts(to.getParentArtifacts(from));
         }
     }
 

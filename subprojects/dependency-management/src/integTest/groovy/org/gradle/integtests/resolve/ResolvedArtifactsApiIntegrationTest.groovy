@@ -148,6 +148,7 @@ task show {
         m1.artifact.expectGetMissing()
         def m2 = mavenHttpRepo.module('org', 'test2', '2.0').publish()
         m2.pom.expectGet()
+        m2.artifact.expectGet()
 
         when:
         fails 'show'
@@ -176,5 +177,43 @@ task show {
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("broken")
+    }
+
+    def "reports multiple failures to resolve artifacts when artifacts are queried"() {
+        buildFile << """
+allprojects {
+    repositories { maven { url '$mavenHttpRepo.uri' } }
+}
+dependencies {
+    compile 'org:test:1.0'
+    compile 'org:test2:2.0'
+    compile files { throw new RuntimeException('broken 1') }
+    compile files { throw new RuntimeException('broken 2') }
+}
+
+task show {
+    doLast {
+        configurations.compile.incoming.artifacts
+    }
+}
+"""
+
+        given:
+        def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
+        m1.pom.expectGet()
+        m1.artifact.expectGetMissing()
+        def m2 = mavenHttpRepo.module('org', 'test2', '2.0').publish()
+        m2.pom.expectGet()
+        m2.artifact.expectGetBroken()
+
+        when:
+        fails 'show'
+
+        then:
+        failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
+        failure.assertHasCause("Could not find test.jar (org:test:1.0).")
+        failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
+        failure.assertHasCause("broken 1")
+        failure.assertHasCause("broken 2")
     }
 }
