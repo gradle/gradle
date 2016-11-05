@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -67,6 +68,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -892,8 +894,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
-            for (File file : getFiles()) {
-                artifacts.add(new DefaultResolvedArtifactResult(Artifact.class, file));
+            for (final File file : getFiles()) {
+                artifacts.add(new DefaultResolvedArtifactResult(new ComponentArtifactIdentifier() {
+                    @Override
+                    public ComponentIdentifier getComponentIdentifier() {
+                        return new OpaqueComponentIdentifier(file.getName());
+                    }
+
+                    @Override
+                    public String getDisplayName() {
+                        return file.getName();
+                    }
+                }, Artifact.class, file));
             }
             return artifacts;
         }

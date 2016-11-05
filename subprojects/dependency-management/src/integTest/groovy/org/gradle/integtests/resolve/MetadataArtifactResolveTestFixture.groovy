@@ -132,7 +132,14 @@ task verify {
         def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
 
         for(component in result.resolvedComponents) {
-            def resolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof ResolvedArtifactResult }
+            def artifacts = component.getArtifacts($requestedArtifact)
+            artifacts.each { a ->
+                assert a.id.componentIdentifier.displayName == "${id.displayName}" 
+                assert a.id.componentIdentifier.group == "${id.group}" 
+                assert a.id.componentIdentifier.module == "${id.module}" 
+                assert a.id.componentIdentifier.version == "${id.version}" 
+            }
+            def resolvedArtifacts = artifacts.findAll { it instanceof ResolvedArtifactResult }
             assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
 
             ${createUnresolvedArtifactResultVerificationCode()}
