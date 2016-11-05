@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 public interface TaskPropertySpec extends Comparable<TaskPropertySpec> {
     String getPropertyName();

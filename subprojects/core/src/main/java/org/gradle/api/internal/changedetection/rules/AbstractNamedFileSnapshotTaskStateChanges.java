@@ -26,7 +26,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 

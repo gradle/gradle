@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.TaskOutputs;
 
-public interface TaskFilePropertySpec extends TaskPropertySpec {
-    FileCollection getPropertyFiles();
-    Class<? extends FileCollectionSnapshotter> getSnapshotter();
-    TaskFilePropertyCompareStrategy getCompareStrategy();
-    SnapshotNormalizationStrategy getSnapshotNormalizationStrategy();
+public class NonCacheablePropertySpec extends BasePropertySpec implements TaskOutputFilePropertySpec {
+    private final TaskPropertyFileCollection files;
+
+    public NonCacheablePropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, Object paths) {
+        super(taskOutputs);
+        this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
+    }
+
+    @Override
+    public FileCollection getPropertyFiles() {
+        return files;
+    }
 }

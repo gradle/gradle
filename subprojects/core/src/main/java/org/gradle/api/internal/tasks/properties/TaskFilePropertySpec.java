@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 
-public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
-    TaskFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy);
-
-    TaskFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter);
-
-    @Override
-    TaskFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity);
-
-    @Override
-    TaskFilePropertyBuilderInternal withPropertyName(String propertyName);
+public interface TaskFilePropertySpec extends TaskPropertySpec {
+    FileCollection getPropertyFiles();
+    Class<? extends FileCollectionSnapshotter> getSnapshotter();
+    TaskFilePropertyCompareStrategy getCompareStrategy();
+    SnapshotNormalizationStrategy getSnapshotNormalizationStrategy();
 }

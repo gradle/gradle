@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;

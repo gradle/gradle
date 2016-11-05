@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Function;
-import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -28,35 +27,28 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.properties.CacheablePropertySpec;
+import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.properties.CompositePropertySpec;
+import org.gradle.api.internal.tasks.properties.NonCacheablePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskOutputPropertySpecAndBuilder;
+import org.gradle.api.internal.tasks.properties.TaskPropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskPropertyUtils;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.OrSpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GFileUtils;
 
-import java.io.File;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
@@ -64,7 +56,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private AndSpec<TaskInternal> cacheIfSpec = AndSpec.empty();
     private OrSpec<TaskInternal> doNotCacheIfSpec = OrSpec.empty();
     private TaskExecutionHistory history;
-    private final List<BasePropertySpec> filePropertiesInternal = Lists.newArrayList();
+    private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
     private final FileResolver resolver;
     private final TaskInternal task;
@@ -77,25 +69,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
         buildDependencies.add(task);
-        this.allOutputFiles = new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return task + " output files";
-            }
-
-            @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                for (TaskFilePropertySpec propertySpec : getFileProperties()) {
-                    context.add(propertySpec.getPropertyFiles());
-                }
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(buildDependencies);
-                super.visitDependencies(context);
-            }
-        };
+        this.allOutputFiles = new TaskOutputUnionFileCollection("task '" + task.getName() + "' output files", buildDependencies);
     }
 
     @Override
@@ -129,7 +103,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean isCacheAllowed() {
-        for (BasePropertySpec spec : filePropertiesInternal) {
+        for (TaskPropertySpec spec : filePropertiesInternal) {
             if (spec instanceof NonCacheablePropertySpec) {
                 return false;
             }
@@ -175,9 +149,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         if (fileProperties == null) {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
             Iterable<TaskOutputFilePropertySpec> flattenedProperties = Iterables.concat(
-                Iterables.transform(filePropertiesInternal, new Function<BasePropertySpec, Iterable<? extends TaskOutputFilePropertySpec>>() {
+                Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterable<? extends TaskOutputFilePropertySpec>>() {
                     @Override
-                    public Iterable<? extends TaskOutputFilePropertySpec> apply(BasePropertySpec propertySpec) {
+                    public Iterable<? extends TaskOutputFilePropertySpec> apply(TaskPropertySpec propertySpec) {
                         if (propertySpec instanceof CompositePropertySpec) {
                             return (CompositePropertySpec) propertySpec;
                         } else {
@@ -196,7 +170,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CacheablePropertySpec(task.getName(), resolver, OutputType.FILE, path));
+                return addSpec(new CacheablePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.FILE, path));
             }
         });
     }
@@ -206,7 +180,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CacheablePropertySpec(task.getName(), resolver, OutputType.DIRECTORY, path));
+                return addSpec(new CacheablePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.DIRECTORY, path));
             }
         });
     }
@@ -216,7 +190,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.namedFiles(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositePropertySpec(resolver, OutputType.FILE, paths));
+                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.FILE, paths));
             }
         });
     }
@@ -227,7 +201,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
-                return addSpec(new CompositePropertySpec(resolver, OutputType.FILE, callable));
+                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.FILE, callable));
             }
         });
     }
@@ -237,7 +211,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.namedDirectories(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositePropertySpec(resolver, OutputType.DIRECTORY, paths));
+                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.DIRECTORY, paths));
             }
         });
     }
@@ -248,7 +222,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
-                return addSpec(new CompositePropertySpec(resolver, OutputType.DIRECTORY, callable));
+                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.DIRECTORY, callable));
             }
         });
     }
@@ -258,12 +232,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new NonCacheablePropertySpec(task.getName(), resolver, paths));
+                return addSpec(new NonCacheablePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, paths));
             }
         });
     }
 
-    private TaskOutputFilePropertyBuilder addSpec(BasePropertySpec spec) {
+    private TaskOutputFilePropertyBuilder addSpec(TaskOutputPropertySpecAndBuilder spec) {
         filePropertiesInternal.add(spec);
         return spec;
     }
@@ -281,244 +255,31 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    abstract private class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
-        private boolean optional;
-        private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
+    private class TaskOutputUnionFileCollection extends CompositeFileCollection {
+        private final String displayName;
+        private final DefaultTaskDependency buildDependencies;
 
-        @Override
-        public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-            setPropertyName(propertyName);
-            return this;
-        }
-
-        public boolean isOptional() {
-            return optional;
+        public TaskOutputUnionFileCollection(String displayName, DefaultTaskDependency buildDependencies) {
+            this.displayName = displayName;
+            this.buildDependencies = buildDependencies;
         }
 
         @Override
-        public TaskOutputFilePropertyBuilder optional() {
-            return optional(true);
+        public String getDisplayName() {
+            return displayName;
         }
 
         @Override
-        public TaskOutputFilePropertyBuilder optional(boolean optional) {
-            this.optional = optional;
-            return this;
-        }
-
-        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-            return snapshotNormalizationStrategy;
-        }
-
-        @Override
-        public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity);
-            return this;
-        }
-
-        public TaskFilePropertyCompareStrategy getCompareStrategy() {
-            return OUTPUT;
-        }
-
-        @Override
-        public String toString() {
-            return getPropertyName() + " (" + getCompareStrategy() + " " + snapshotNormalizationStrategy + ")";
-        }
-
-        // --- Deprecated delegate methods
-
-        private TaskOutputs getTaskOutputs(String method) {
-            DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskOutputs directly instead.", method));
-            return DefaultTaskOutputs.this;
-        }
-
-        public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
-            return GenericFileCollectionSnapshotter.class;
-        }
-
-        @Override
-        public void upToDateWhen(Closure upToDateClosure) {
-            getTaskOutputs("upToDateWhen(Closure)").upToDateWhen(upToDateClosure);
-        }
-
-        @Override
-        public void upToDateWhen(Spec<? super Task> upToDateSpec) {
-            getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
-        }
-
-        @Override
-        public void cacheIf(Spec<? super Task> spec) {
-            getTaskOutputs("cacheIf(Spec)").cacheIf(spec);
-        }
-
-        @Override
-        public boolean getHasOutput() {
-            return getTaskOutputs("getHasOutput()").getHasOutput();
-        }
-
-        @Override
-        public FileCollection getFiles() {
-            return getTaskOutputs("getFiles()").getFiles();
-        }
-
-        @Override
-        @Deprecated
-        public TaskOutputFilePropertyBuilder files(Object... paths) {
-            return getTaskOutputs("files(Object...)").files(paths);
-        }
-
-        @Override
-        public TaskOutputFilePropertyBuilder file(Object path) {
-            return getTaskOutputs("file(Object)").file(path);
-        }
-
-        @Override
-        public TaskOutputFilePropertyBuilder dir(Object path) {
-            return getTaskOutputs("dir(Object)").dir(path);
-        }
-
-        @Override
-        public int compareTo(TaskPropertySpec o) {
-            return getPropertyName().compareTo(o.getPropertyName());
-        }
-    }
-
-    private class CacheablePropertySpec extends BasePropertySpec implements CacheableTaskOutputFilePropertySpec {
-        private final TaskPropertyFileCollection files;
-        private final OutputType outputType;
-        private final FileResolver resolver;
-        private final Object path;
-
-        public CacheablePropertySpec(String taskName, FileResolver resolver, OutputType outputType, Object path) {
-            this.resolver = resolver;
-            this.outputType = outputType;
-            this.path = path;
-            this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, path);
-        }
-
-        @Override
-        public FileCollection getPropertyFiles() {
-            return files;
-        }
-
-        @Override
-        public File getOutputFile() {
-            Object unpackedOutput = GFileUtils.unpack(path);
-            if (unpackedOutput == null && isOptional()) {
-                return null;
+        public void visitContents(FileCollectionResolveContext context) {
+            for (TaskFilePropertySpec propertySpec : getFileProperties()) {
+                context.add(propertySpec.getPropertyFiles());
             }
-            return resolver.resolve(path);
         }
 
         @Override
-        public OutputType getOutputType() {
-            return outputType;
-        }
-    }
-
-    private class NonCacheablePropertySpec extends BasePropertySpec implements TaskOutputFilePropertySpec {
-        private final TaskPropertyFileCollection files;
-
-        public NonCacheablePropertySpec(String taskName, FileResolver resolver, Object paths) {
-            this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
-        }
-
-        @Override
-        public FileCollection getPropertyFiles() {
-            return files;
-        }
-    }
-
-    private class CompositePropertySpec extends BasePropertySpec implements Iterable<CacheableTaskOutputFilePropertySpec> {
-
-        private final OutputType outputType;
-        private final Callable<Map<?, ?>> paths;
-        private final FileResolver resolver;
-
-        public CompositePropertySpec(FileResolver resolver, OutputType outputType, Callable<Map<?, ?>> paths) {
-            this.resolver = resolver;
-            this.outputType = outputType;
-            this.paths = paths;
-        }
-
-        public OutputType getOutputType() {
-            return outputType;
-        }
-
-        @Override
-        public Iterator<CacheableTaskOutputFilePropertySpec> iterator() {
-            final Iterator<? extends Map.Entry<?, ?>> iterator = uncheckedCall(paths).entrySet().iterator();
-            return new AbstractIterator<CacheableTaskOutputFilePropertySpec>() {
-                @Override
-                protected CacheableTaskOutputFilePropertySpec computeNext() {
-                    if (iterator.hasNext()) {
-                        Map.Entry<?, ?> entry = iterator.next();
-                        String id = entry.getKey().toString();
-                        File file = resolver.resolve(entry.getValue());
-                        return new ElementPropertySpec(CompositePropertySpec.this, "." + id, file);
-                    }
-                    return endOfData();
-                }
-            };
-        }
-    }
-
-    private class ElementPropertySpec implements CacheableTaskOutputFilePropertySpec {
-        private final CompositePropertySpec parentProperty;
-        private final String propertySuffix;
-        private final FileCollection files;
-        private final File file;
-
-        public ElementPropertySpec(CompositePropertySpec parentProperty, String propertySuffix, File file) {
-            this.parentProperty = parentProperty;
-            this.propertySuffix = propertySuffix;
-            this.files = new SimpleFileCollection(Collections.singleton(file));
-            this.file = file;
-        }
-
-        @Override
-        public String getPropertyName() {
-            return parentProperty.getPropertyName() + propertySuffix;
-        }
-
-        @Override
-        public FileCollection getPropertyFiles() {
-            return files;
-        }
-
-        @Override
-        public File getOutputFile() {
-            return file;
-        }
-
-        @Override
-        public OutputType getOutputType() {
-            return parentProperty.getOutputType();
-        }
-
-        @Override
-        public TaskFilePropertyCompareStrategy getCompareStrategy() {
-            return OUTPUT;
-        }
-
-        @Override
-        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-            return parentProperty.getSnapshotNormalizationStrategy();
-        }
-
-        @Override
-        public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
-            return GenericFileCollectionSnapshotter.class;
-        }
-
-        @Override
-        public int compareTo(TaskPropertySpec o) {
-            return getPropertyName().compareTo(o.getPropertyName());
-        }
-
-        @Override
-        public String toString() {
-            return getPropertyName();
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(buildDependencies);
+            super.visitDependencies(context);
         }
     }
 }
