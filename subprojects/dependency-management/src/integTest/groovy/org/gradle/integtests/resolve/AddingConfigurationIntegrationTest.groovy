@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "can add configurations" () {
-        executer.expectDeprecationWarning()
         buildFile << """
             def file1 = file('file1')
             def file2 = file('file2')
@@ -50,7 +49,6 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can subtract configurations" () {
-        executer.expectDeprecationWarning()
         buildFile << """
             def file1 = file('file1')
             def file2 = file('file2')

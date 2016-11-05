@@ -47,8 +47,9 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.withArgument("--continue")
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
+        for (int i = 0; i < expectedDeprecationWarnings; i++) {
+            executer.expectDeprecationWarning()
+        }
         fails("broken", "broken2", "broken4")
 
         then:
@@ -57,46 +58,46 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("Cannot call ${description} on task ':broken3' after task has started execution.")
 
         where:
-        config                                                      | description
-        "doFirst(anAction)"                                         | "Task.doFirst(Action)"
-        "doFirst({})"                                               | "Task.doFirst(Closure)"
-        "doLast(anAction)"                                          | "Task.doLast(Action)"
-        "doLast({})"                                                | "Task.doLast(Closure)"
-        "actions.add(anAction)"                                     | "Task.getActions().add()"
-        "actions.addAll([anAction])"                                | "Task.getActions().addAll()"
-        "actions.set(0, anAction)"                                  | "Task.getActions().set(int, Object)"
-        "actions.removeAll(actions)"                                | "Task.getActions().removeAll()"
-        "actions.remove(actions[0])"                                | "Task.getActions().remove()"
-        "actions.clear()"                                           | "Task.getActions().clear()"
-        "def iter = actions.iterator(); iter.next(); iter.remove()" | "Task.getActions().remove()"
-        "actions = []"                                              | "Task.setActions(List<Action>)"
-        "deleteAllActions()"                                        | "Task.deleteAllActions()"
-        "onlyIf { }"                                                | "Task.onlyIf(Closure)"
-        "onlyIf({ } as Spec)"                                       | "Task.onlyIf(Spec)"
-        "setOnlyIf({ })"                                            | "Task.setOnlyIf(Closure)"
-        "onlyIf = ({ } as Spec)"                                    | "Task.setOnlyIf(Spec)"
-        "enabled = false"                                           | "Task.setEnabled(boolean)"
-        "dependsOn 'a', 'b'"                                        | "Task.dependsOn(Object...)"
-        "dependsOn = ['a', 'b']"                                    | "Task.setDependsOn(Iterable)"
-        "mustRunAfter 'a', 'b'"                                     | "Task.mustRunAfter(Object...)"
-        "mustRunAfter = ['a', 'b']"                                 | "Task.setMustRunAfter(Iterable)"
-        "finalizedBy 'a', 'b'"                                      | "Task.finalizedBy(Object...)"
-        "finalizedBy = ['a', 'b']"                                  | "Task.setFinalizedBy(Iterable)"
-        "inputs.file('a')"                                          | "TaskInputs.file(Object)"
-        "inputs.files('a')"                                         | "TaskInputs.files(Object...)"
-        "inputs.dir('a')"                                           | "TaskInputs.dir(Object)"
-        "inputs.property('key', 'value')"                           | "TaskInputs.property(String, Object)"
-        "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"
-        "inputs.source('a')"                                        | "TaskInputs.source(Object)"
-        "inputs.sourceDir('a')"                                     | "TaskInputs.sourceDir(Object)"
-        "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"
-        "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"
-        "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
-        "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
-        "outputs.namedFiles(['prop':'a'])"                          | "TaskOutputs.namedFiles(Map)"
-        "outputs.namedFiles({ ['prop':'a'] })"                      | "TaskOutputs.namedFiles(Callable)"
-        "outputs.namedDirectories(['prop':'a'])"                    | "TaskOutputs.namedDirectories(Map)"
-        "outputs.namedDirectories({ ['prop':'a'] })"                | "TaskOutputs.namedDirectories(Callable)"
-        "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
+        config                                                      | description                              | expectedDeprecationWarnings
+        "doFirst(anAction)"                                         | "Task.doFirst(Action)"                   | 2
+        "doFirst({})"                                               | "Task.doFirst(Closure)"                  | 2
+        "doLast(anAction)"                                          | "Task.doLast(Action)"                    | 2
+        "doLast({})"                                                | "Task.doLast(Closure)"                   | 2
+        "actions.add(anAction)"                                     | "Task.getActions().add()"                | 2
+        "actions.addAll([anAction])"                                | "Task.getActions().addAll()"             | 2
+        "actions.set(0, anAction)"                                  | "Task.getActions().set(int, Object)"     | 2
+        "actions.removeAll(actions)"                                | "Task.getActions().removeAll()"          | 2
+        "actions.remove(actions[0])"                                | "Task.getActions().remove()"             | 2
+        "actions.clear()"                                           | "Task.getActions().clear()"              | 2
+        "def iter = actions.iterator(); iter.next(); iter.remove()" | "Task.getActions().remove()"             | 2
+        "actions = []"                                              | "Task.setActions(List<Action>)"          | 2
+        "deleteAllActions()"                                        | "Task.deleteAllActions()"                | 2
+        "onlyIf { }"                                                | "Task.onlyIf(Closure)"                   | 2
+        "onlyIf({ } as Spec)"                                       | "Task.onlyIf(Spec)"                      | 2
+        "setOnlyIf({ })"                                            | "Task.setOnlyIf(Closure)"                | 2
+        "onlyIf = ({ } as Spec)"                                    | "Task.setOnlyIf(Spec)"                   | 2
+        "enabled = false"                                           | "Task.setEnabled(boolean)"               | 2
+        "dependsOn 'a', 'b'"                                        | "Task.dependsOn(Object...)"              | 2
+        "dependsOn = ['a', 'b']"                                    | "Task.setDependsOn(Iterable)"            | 2
+        "mustRunAfter 'a', 'b'"                                     | "Task.mustRunAfter(Object...)"           | 2
+        "mustRunAfter = ['a', 'b']"                                 | "Task.setMustRunAfter(Iterable)"         | 2
+        "finalizedBy 'a', 'b'"                                      | "Task.finalizedBy(Object...)"            | 2
+        "finalizedBy = ['a', 'b']"                                  | "Task.setFinalizedBy(Iterable)"          | 2
+        "inputs.file('a')"                                          | "TaskInputs.file(Object)"                | 2
+        "inputs.files('a')"                                         | "TaskInputs.files(Object...)"            | 2
+        "inputs.dir('a')"                                           | "TaskInputs.dir(Object)"                 | 2
+        "inputs.property('key', 'value')"                           | "TaskInputs.property(String, Object)"    | 2
+        "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"             | 2
+        "inputs.source('a')"                                        | "TaskInputs.source(Object)"              | 5
+        "inputs.sourceDir('a')"                                     | "TaskInputs.sourceDir(Object)"           | 5
+        "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"      | 2
+        "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"         | 2
+        "outputs.file('a')"                                         | "TaskOutputs.file(Object)"               | 2
+        "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"           | 2
+        "outputs.namedFiles(['prop':'a'])"                          | "TaskOutputs.namedFiles(Map)"            | 2
+        "outputs.namedFiles({ ['prop':'a'] })"                      | "TaskOutputs.namedFiles(Callable)"       | 2
+        "outputs.namedDirectories(['prop':'a'])"                    | "TaskOutputs.namedDirectories(Map)"      | 2
+        "outputs.namedDirectories({ ['prop':'a'] })"                | "TaskOutputs.namedDirectories(Callable)" | 2
+        "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"                | 2
     }
 }
