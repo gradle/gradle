@@ -32,6 +32,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -55,8 +56,12 @@ import java.util.Set;
  * </pre>
  * <p>
  * The report is generated in the <code>build/reports/project/dependencies</code> directory by default.
- * This can also be changed by setting the <code>outputDirectory</code>
- * property.
+ * This can also be changed by setting the <code>reports.html.destination</code> property:
+ * <pre>
+ * htmlDependencyReport {
+ *     reports.html.destination = file("build/reports/project/dependencies")
+ * }
+ * </pre>
  */
 @Incubating
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
@@ -114,6 +119,8 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator());
         reporter.render(getProjects(), reports.getHtml().getDestination());
+
+        getProject().getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
     }
 
     /**
