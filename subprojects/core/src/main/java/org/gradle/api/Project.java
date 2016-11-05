@@ -597,8 +597,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>A {@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
      * interpreted relative to the project directory.</li>
      *
+     * <li>A {@link java.nio.file.Path}. The path must be associated with the default provider and is treated the
+     * same way as an instance of {@code File}.</li>
+     *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
-     * {@code file:} URLs are supported.
+     * {@code file:} URLs are supported.</li>
      *
      * <li>A {@link Closure}. The closure's return value is resolved recursively.</li>
      *
@@ -650,8 +653,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
+     * <li>A {@link java.nio.file.Path} as defined by {@link #file(Object)}.</li>
+     *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
-     * {@code file:} URLs are supported.
+     * {@code file:} URLs are supported.</li>
      *
      * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
      * are recursively converted to files.</li>
