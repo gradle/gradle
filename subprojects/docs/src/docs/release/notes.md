@@ -10,6 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Clickable links to project reports
+
+When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -99,8 +103,9 @@ We would like to thank the following community members for making contributions 
 
  - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
  - [Francis Andre](https://github.com/zosrothko) - Import Gradle production source into Eclipse without compile errors
- - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
  - [David Illsley](https://github.com/davidillsley) - Update docs to indicate use of HTTPS maven central (#774)
+ - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
+ - [John Martel](https://github.com/johnmartel) - Print links to project reports on CLI (#762)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
