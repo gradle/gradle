@@ -47,6 +47,11 @@ class ElementPropertySpec implements CacheableTaskOutputFilePropertySpec {
     }
 
     @Override
+    public boolean isPartOfCacheKey() {
+        return true;
+    }
+
+    @Override
     public FileCollection getPropertyFiles() {
         return files;
     }

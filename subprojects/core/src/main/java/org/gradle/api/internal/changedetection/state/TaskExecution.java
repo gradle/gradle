@@ -41,21 +41,21 @@ public abstract class TaskExecution {
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
-    private Iterable<String> cacheableOutputProperties;
+    private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
     /**
-     * Returns the names of all cacheable output properties that have a value set.
+     * Returns the names of all cacheable output property names that have a value set.
      * The collection includes names of properties declared via mapped plural outputs,
      * and excludes optional properties that don't have a value set. If the task is not
      * cacheable, it returns an empty collection.
      */
-    public ImmutableSet<String> getCacheableOutputProperties() {
-        return ImmutableSet.copyOf(cacheableOutputProperties);
+    public ImmutableSet<String> getOutputPropertyNamesForCacheKey() {
+        return ImmutableSet.copyOf(outputPropertyNamesForCacheKey);
     }
 
-    public void setCacheableOutputProperties(Iterable<String> cacheableOutputProperties) {
-        this.cacheableOutputProperties = cacheableOutputProperties;
+    public void setOutputPropertyNamesForCacheKey(Iterable<String> outputPropertyNames) {
+        this.outputPropertyNamesForCacheKey = outputPropertyNames;
     }
 
     /**
@@ -138,8 +138,8 @@ public abstract class TaskExecution {
             snapshot.appendToCacheKey(builder);
         }
 
-        for (String cacheableOutputProperty : sortStrings(getCacheableOutputProperties())) {
-            builder.putString(cacheableOutputProperty);
+        for (String cacheableOutputPropertyName : sortStrings(getOutputPropertyNamesForCacheKey())) {
+            builder.putString(cacheableOutputPropertyName);
         }
 
         return builder.build();

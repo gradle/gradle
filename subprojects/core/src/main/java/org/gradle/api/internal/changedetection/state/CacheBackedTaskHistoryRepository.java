@@ -27,7 +27,6 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessContext;
@@ -66,7 +65,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
         final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;
-        currentExecution.setCacheableOutputProperties(getCacheableOutputProperties(task));
+        currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
         final LazyTaskExecution previousExecution = findBestMatchingPreviousExecution(currentExecution, previousExecutions.executions);
         if (previousExecution != null) {
@@ -143,20 +142,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
     }
 
-    private Iterable<String> getCacheableOutputProperties(TaskInternal task) {
-        Iterable<TaskOutputFilePropertySpec> cacheable = Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
-            @Override
-            public boolean apply(TaskOutputFilePropertySpec propertySpec) {
-                if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
-                    return false;
+    private Iterable<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
+        // Find all output properties that go into the cache key
+        Iterable<TaskOutputFilePropertySpec> outputPropertiesForCacheKey =
+            Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
+                @Override
+                public boolean apply(TaskOutputFilePropertySpec propertySpec) {
+                    return propertySpec.isPartOfCacheKey();
                 }
-                if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() == null) {
-                    return false;
-                }
-                return true;
-            }
         });
-        return Iterables.transform(cacheable, new Function<TaskOutputFilePropertySpec, String>() {
+        // Extract the output property names
+        return Iterables.transform(outputPropertiesForCacheKey, new Function<TaskOutputFilePropertySpec, String>() {
             @Override
             public String apply(TaskOutputFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
@@ -275,7 +271,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
             // Take copy of input properties map
             setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
-            setCacheableOutputProperties(taskExecutionSnapshot.getCacheableOutputProperties());
+            setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
             outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
@@ -339,7 +335,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
                 getTaskClass(),
-                getCacheableOutputProperties(),
+                getOutputPropertyNamesForCacheKey(),
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
                 getTaskActionsClassLoaderHash(),

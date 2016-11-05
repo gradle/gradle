@@ -65,5 +65,10 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
         int compareTo(TaskPropertySpec o) {
             return propertyName.compareTo(o.propertyName)
         }
+
+        @Override
+        boolean isPartOfCacheKey() {
+            return true
+        }
     }
 }

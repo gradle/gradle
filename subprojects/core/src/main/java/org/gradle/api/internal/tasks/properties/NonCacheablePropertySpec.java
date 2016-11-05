@@ -32,4 +32,9 @@ public class NonCacheablePropertySpec extends BasePropertySpec implements TaskOu
     public FileCollection getPropertyFiles() {
         return files;
     }
+
+    @Override
+    public boolean isPartOfCacheKey() {
+        return false;
+    }
 }

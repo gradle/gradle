@@ -75,6 +75,11 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
         int compareTo(TaskPropertySpec o) {
             propertyName <=> o.propertyName
         }
+
+        @Override
+        boolean isPartOfCacheKey() {
+            return true
+        }
     }
 
 }

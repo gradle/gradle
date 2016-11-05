@@ -60,4 +60,9 @@ public class CompositePropertySpec extends BasePropertySpec implements Iterable<
             }
         };
     }
+
+    @Override
+    public boolean isPartOfCacheKey() {
+        return true;
+    }
 }

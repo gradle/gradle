@@ -218,4 +218,9 @@ public class InputPropertySpec extends AbstractTaskPropertyBuilder implements Ta
     public int compareTo(TaskPropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
     }
+
+    @Override
+    public boolean isPartOfCacheKey() {
+        return true;
+    }
 }

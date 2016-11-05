@@ -55,4 +55,13 @@ public class CacheablePropertySpec extends BasePropertySpec implements Cacheable
     public OutputType getOutputType() {
         return outputType;
     }
+
+    @Override
+    public boolean isPartOfCacheKey() {
+        if (isOptional()) {
+            return getOutputFile() != null;
+        } else {
+            return true;
+        }
+    }
 }
