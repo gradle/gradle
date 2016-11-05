@@ -22,8 +22,8 @@ import spock.lang.Unroll
 
 import static org.hamcrest.core.StringContains.containsString
 
-public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void canPublishToLocalFileRepository() {
+class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
+    def canPublishToLocalFileRepository() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
 
@@ -49,7 +49,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-2456")
-    public void generatesSHA1FileWithLeadingZeros() {
+    def generatesSHA1FileWithLeadingZeros() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
         byte[] jarBytes = [0, 0, 0, 5]
@@ -83,7 +83,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-1811")
-    public void canGenerateTheIvyXmlWithoutPublishing() {
+    def canGenerateTheIvyXmlWithoutPublishing() {
         //this is more like documenting the current behavior.
         //Down the road we should add explicit task to create ivy.xml file
 
@@ -126,11 +126,14 @@ configurations {
      $attributes
   }
 }
+dependencies {
+  myJars 'a:b:1.2'
+}
 
 task myJar(type: Jar)
 
 artifacts {
-  'myJars' myJar
+  myJars myJar
 }
 
 task ivyXml(type: Upload) {
@@ -145,6 +148,7 @@ task ivyXml(type: Upload) {
         then:
         file('ivy.xml').assertIsFile()
         file('ivy.xml').text.contains '<conf name="myJars" visibility="public"/>'
+        file('ivy.xml').text.contains '<dependency org="a" name="b" rev="1.2" conf="myJars-&gt;default"/>'
 
         where:
         attributes << [
