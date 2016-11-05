@@ -86,7 +86,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 return element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
             }
         }, new CompositeDependencyGraphVisitor(localComponentsVisitor, fileDependenciesVisitor), new CompositeDependencyArtifactsVisitor());
-        result.resolved(localComponentsVisitor, fileDependenciesVisitor);
+        result.graphResolved(localComponentsVisitor, fileDependenciesVisitor);
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -113,7 +113,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor);
 
-        results.resolved(newModelBuilder.complete(), localComponentsVisitor, fileDependencyVisitor);
+        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, fileDependencyVisitor);
 
         results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsBuilder, fileDependencyVisitor, oldTransientModelBuilder));
     }
@@ -127,7 +127,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory);
-        results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
+        results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
     }
 
     private static class ArtifactResolveState {

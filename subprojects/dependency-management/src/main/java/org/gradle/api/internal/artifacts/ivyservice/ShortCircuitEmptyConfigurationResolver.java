@@ -25,12 +25,14 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
@@ -38,6 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDep
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -74,15 +77,21 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(false);
-        results.resolved(emptyResult, emptyProjectResult, new FileDependencyCollectingGraphVisitor());
+        results.graphResolved(emptyResult, emptyProjectResult, new FileDependencyCollectingGraphVisitor());
     }
 
     @Override
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
-            results.withResolvedConfiguration(new EmptyResolvedConfiguration());
+            results.artifactsResolved(new EmptyResolvedConfiguration(), new EmptyResults());
         } else {
             delegate.resolveArtifacts(configuration, results);
+        }
+    }
+
+    private static class EmptyResults implements ArtifactResults {
+        @Override
+        public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
         }
     }
 

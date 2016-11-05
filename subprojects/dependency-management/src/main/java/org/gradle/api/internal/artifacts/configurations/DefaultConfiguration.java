@@ -34,11 +34,9 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.component.Artifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
@@ -56,7 +54,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -68,7 +65,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -85,6 +81,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
     private final ConfigurationResolver resolver;
@@ -126,9 +124,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     private final Object observationLock = new Object();
-    private InternalState observedState = InternalState.UNRESOLVED;
+    private InternalState observedState = UNRESOLVED;
     private final Object resolutionLock = new Object();
-    private InternalState resolvedState = InternalState.UNRESOLVED;
+    private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
@@ -193,7 +191,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public State getState() {
         synchronized (resolutionLock) {
-            if (resolvedState == InternalState.RESULTS_RESOLVED || resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
                 if (cachedResolverResults.hasError()) {
                     return State.RESOLVED_WITH_FAILURES;
                 } else {
@@ -324,7 +322,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return fileCollection(Specs.<Dependency>satisfyAll()).getFiles();
+        return doGetFiles(Specs.<Dependency>satisfyAll());
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -371,34 +369,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
-        resolveNow(InternalState.RESULTS_RESOLVED);
+        resolveToStateOrLater(ARTIFACTS_RESOLVED);
         return cachedResolverResults.getResolvedConfiguration();
     }
 
-    private void resolveNow(InternalState requestedState) {
+    private void resolveToStateOrLater(InternalState requestedState) {
         assertResolvingAllowed();
         synchronized (resolutionLock) {
-            if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
+            if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
                 resolveGraphIfRequired(requestedState);
             }
-            if (requestedState == InternalState.RESULTS_RESOLVED) {
+            if (requestedState == ARTIFACTS_RESOLVED) {
                 resolveArtifactsIfRequired();
             }
         }
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             if (dependenciesModified) {
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
         }
-        if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        if (resolvedState == GRAPH_RESOLVED) {
             if (!dependenciesModified) {
                 return;
             }
             throw new InvalidUserDataException(String.format("Resolved %s again after modification", getDisplayName()));
+        }
+        if (resolvedState != UNRESOLVED) {
+            throw new IllegalStateException("Graph resolution already performed");
         }
 
         ResolvableDependencies incoming = getIncoming();
@@ -406,9 +407,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolver.resolveGraph(this, cachedResolverResults);
         dependenciesModified = false;
-        if (resolvedState != InternalState.RESULTS_RESOLVED) {
-            resolvedState = InternalState.TASK_DEPENDENCIES_RESOLVED;
-        }
+        resolvedState = GRAPH_RESOLVED;
 
         // Mark all affected configurations as observed
         markParentsObserved(requestedState);
@@ -439,17 +438,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveArtifactsIfRequired() {
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             return;
         }
+        if (resolvedState != GRAPH_RESOLVED) {
+            throw new IllegalStateException("Cannot resolve artifacts before graph has been resolved.");
+        }
         resolver.resolveArtifacts(this, cachedResolverResults);
-        resolvedState = InternalState.RESULTS_RESOLVED;
+        resolvedState = ARTIFACTS_RESOLVED;
     }
 
     public TaskDependency getBuildDependencies() {
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
             // Force graph resolution as this is required to calculate build dependencies
-            resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
+            resolveToStateOrLater(GRAPH_RESOLVED);
         }
         assertResolvingAllowed();
         ResolverResults results;
@@ -467,6 +469,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         taskDependency.setValues(buildDependencies);
         return taskDependency;
+    }
+
+    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec) {
+        synchronized (resolutionLock) {
+            ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
+            if (getState() == State.RESOLVED_WITH_FAILURES) {
+                resolvedConfiguration.rethrowFailure();
+            }
+            return resolvedConfiguration.getFiles(dependencySpec);
+        }
     }
 
     /**
@@ -641,9 +653,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return;
         }
 
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
-        } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        } else if (resolvedState == GRAPH_RESOLVED) {
             if (type == MutationType.DEPENDENCIES) {
                 throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
             }
@@ -653,14 +665,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void validateMutation(MutationType type) {
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
-        } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        } else if (resolvedState == GRAPH_RESOLVED) {
             // The task dependencies for the configuration have been calculated using Configuration.getBuildDependencies().
             throw new InvalidUserDataException(String.format("Cannot change %s of %s after task dependencies have been resolved", type, getDisplayName()));
-        } else if (observedState == InternalState.TASK_DEPENDENCIES_RESOLVED || observedState == InternalState.RESULTS_RESOLVED) {
+        } else if (observedState == GRAPH_RESOLVED || observedState == ARTIFACTS_RESOLVED) {
             // The configuration has been used in a resolution, and it is an error for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
@@ -716,13 +728,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            synchronized (resolutionLock) {
-                ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
-                if (getState() == State.RESOLVED_WITH_FAILURES) {
-                    resolvedConfiguration.rethrowFailure();
-                }
-                return resolvedConfiguration.getFiles(dependencySpec);
-            }
+            return doGetFiles(dependencySpec);
         }
     }
 
@@ -887,26 +893,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            DefaultConfiguration.this.resolveNow(InternalState.RESULTS_RESOLVED);
+            DefaultConfiguration.this.resolveToStateOrLater(ARTIFACTS_RESOLVED);
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
         }
 
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
+            resolveToStateOrLater(ARTIFACTS_RESOLVED);
             Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
-            for (final File file : getFiles()) {
-                artifacts.add(new DefaultResolvedArtifactResult(new ComponentArtifactIdentifier() {
-                    @Override
-                    public ComponentIdentifier getComponentIdentifier() {
-                        return new OpaqueComponentIdentifier(file.getName());
-                    }
-
-                    @Override
-                    public String getDisplayName() {
-                        return file.getName();
-                    }
-                }, Artifact.class, file));
-            }
+            cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
             return artifacts;
         }
     }

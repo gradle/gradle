@@ -23,8 +23,8 @@ import org.junit.runner.RunWith
 @RunWith(FluidDependenciesResolveRunner)
 class ResolvedArtifactsApiIntegrationTest extends AbstractDependencyResolutionTest {
     def "result includes artifacts from local and external components and file dependencies"() {
-        def module1 = mavenRepo.module("org", "test", "1.0").publish()
-        def module2 = mavenRepo.module("org", "test2", "1.0").publish()
+        mavenRepo.module("org", "test", "1.0").publish()
+        mavenRepo.module("org", "test2", "1.0").publish()
 
         settingsFile << """
 include 'a', 'b'
@@ -70,6 +70,8 @@ project(':b') {
 task show {
     doLast {
         println "files: " + configurations.compile.incoming.artifacts.collect { it.file.name }
+        println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
+        println "components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier.displayName }
     }
 }
 """
@@ -79,5 +81,7 @@ task show {
 
         then:
         outputContains("files: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)")
+        outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0")
     }
 }

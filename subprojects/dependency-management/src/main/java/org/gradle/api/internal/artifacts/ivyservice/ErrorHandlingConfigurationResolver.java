@@ -26,14 +26,17 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 public class ErrorHandlingConfigurationResolver implements ConfigurationResolver {
@@ -49,7 +52,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             delegate.resolveBuildDependencies(configuration, results);
         } catch (Throwable e) {
             results.failed(wrapException(e, configuration));
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
+            results.artifactsResolved(broken, broken);
         }
     }
 
@@ -59,12 +63,13 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             delegate.resolveGraph(configuration, results);
         } catch (Throwable e) {
             results.failed(wrapException(e, configuration));
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
+            results.artifactsResolved(broken, broken);
             return;
         }
 
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        results.resolved(wrappedResult, results.getResolvedLocalComponents(), results.getFileDependencies());
+        results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getFileDependencies());
     }
 
     @Override
@@ -72,12 +77,13 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             delegate.resolveArtifacts(configuration, results);
         } catch (Throwable e) {
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
+            results.artifactsResolved(broken, broken);
             return;
         }
 
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
-        results.withResolvedConfiguration(wrappedConfiguration);
+        results.artifactsResolved(wrappedConfiguration, results.getArtifactResults());
     }
 
     private static ResolveException wrapException(Throwable e, ResolveContext resolveContext) {
@@ -251,7 +257,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class BrokenResolvedConfiguration implements ResolvedConfiguration {
+    private static class BrokenResolvedConfiguration implements ResolvedConfiguration, ArtifactResults {
         private final Throwable e;
         private final ConfigurationInternal configuration;
 
@@ -285,6 +291,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
+            throw wrapException(e, configuration);
+        }
+
+        @Override
+        public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
             throw wrapException(e, configuration);
         }
     }

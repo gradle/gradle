@@ -25,15 +25,22 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.component.Artifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -49,7 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultLenientConfiguration implements LenientConfiguration {
+public class DefaultLenientConfiguration implements LenientConfiguration, ArtifactResults {
     private CacheLockingManager cacheLockingManager;
     private final Configuration configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
@@ -131,12 +138,37 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
     }
 
     /**
-     * Collects files reachable from first level dependencies that satisfy the given spec. Throws first failure.
+     * Collects files reachable from first level dependencies that satisfy the given spec. Rethrows first failure encountered.
      */
-    public void collectFiles(Spec<? super Dependency> dependencySpec, final Collection<File> dest) {
+    public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
         FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(dest);
         visitArtifacts(dependencySpec, collector);
         dest.addAll(getFiles(collector.artifacts));
+    }
+
+    /**
+     * Collects all artifacts. Rethrows first failure encountered.
+     */
+    public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+        LinkedHashSet<File> files = new LinkedHashSet<File>();
+        FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(files);
+        visitArtifacts(Specs.<Dependency>satisfyAll(), collector);
+        for (final File file : files) {
+            dest.add(new DefaultResolvedArtifactResult(new ComponentArtifactIdentifier() {
+                @Override
+                public ComponentIdentifier getComponentIdentifier() {
+                    return new OpaqueComponentIdentifier(file.getName());
+                }
+
+                @Override
+                public String getDisplayName() {
+                    return file.getName();
+                }
+            }, Artifact.class, file));
+        }
+        for (ResolvedArtifact artifact : collector.artifacts) {
+            dest.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
+        }
     }
 
     /**

@@ -19,11 +19,13 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public class DefaultResolverResults implements ResolverResults {
     private ResolvedConfiguration resolvedConfiguration;
+    private ArtifactResults artifactResults;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
     private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
@@ -45,6 +47,12 @@ public class DefaultResolverResults implements ResolverResults {
     public ResolvedConfiguration getResolvedConfiguration() {
         assertHasArtifacts();
         return resolvedConfiguration;
+    }
+
+    @Override
+    public ArtifactResults getArtifactResults() {
+        assertHasArtifacts();
+        return artifactResults;
     }
 
     @Override
@@ -86,7 +94,7 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void resolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
         this.fileDependencyResults = fileDependencyResults;
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.resolutionResult = null;
@@ -94,7 +102,7 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
         this.resolutionResult = resolutionResult;
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.fileDependencyResults = fileDependencyResults;
@@ -109,8 +117,9 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
+    public void artifactsResolved(ResolvedConfiguration resolvedConfiguration, ArtifactResults artifactResults) {
         this.resolvedConfiguration = resolvedConfiguration;
+        this.artifactResults = artifactResults;
         this.artifactResolveState = null;
     }
 

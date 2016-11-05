@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
@@ -28,6 +29,11 @@ public interface ResolverResults {
      * Returns the old model, slowly being replaced by the new model represented by {@link ResolutionResult}. Requires artifacts to be resolved.
      */
     ResolvedConfiguration getResolvedConfiguration();
+
+    /**
+     * Returns details of the resolved artifacts.
+     */
+    ArtifactResults getArtifactResults();
 
     /**
      * Returns the dependency graph resolve result.
@@ -47,12 +53,12 @@ public interface ResolverResults {
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
-    void resolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults);
+    void graphResolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults);
 
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
-    void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults);
+    void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults);
 
     void failed(ResolveException failure);
 
@@ -62,12 +68,12 @@ public interface ResolverResults {
     void retainState(Object artifactResolveState);
 
     /**
-     * Marks artifact resolution as successful, clearing state provided by {@link #retainState(Object)}.
-     */
-    void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration);
-
-    /**
      * Returns the opaque state required to resolve the artifacts.
      */
     Object getArtifactResolveState();
+
+    /**
+     * Marks artifact resolution as successful, clearing state provided by {@link #retainState(Object)}.
+     */
+    void artifactsResolved(ResolvedConfiguration resolvedConfiguration, ArtifactResults artifactResults);
 }
