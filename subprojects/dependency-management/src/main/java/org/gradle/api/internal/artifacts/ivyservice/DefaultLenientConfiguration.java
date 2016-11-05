@@ -25,13 +25,12 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
@@ -40,7 +39,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -58,13 +57,13 @@ import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, ArtifactResults {
     private CacheLockingManager cacheLockingManager;
-    private final Configuration configuration;
+    private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final ResolvedArtifacts artifactResults;
     private final FileDependencyResults fileDependencyResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
 
-    public DefaultLenientConfiguration(Configuration configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
                                        ResolvedArtifacts artifactResults, FileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
@@ -150,24 +149,24 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      * Collects all artifacts. Rethrows first failure encountered.
      */
     public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
-        LinkedHashSet<File> files = new LinkedHashSet<File>();
-        FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(files);
-        visitArtifacts(Specs.<Dependency>satisfyAll(), collector);
-        for (final File file : files) {
-            dest.add(new DefaultResolvedArtifactResult(new ComponentArtifactIdentifier() {
+        try {
+            LinkedHashSet<File> files = new LinkedHashSet<File>();
+            FilesAndArtifactsCollector collector = new FilesAndArtifactsCollector(files);
+            visitArtifacts(Specs.<Dependency>satisfyAll(), collector);
+            for (File file : files) {
+                final String name = file.getName();
+                dest.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(name), Artifact.class, file));
+            }
+            for (ResolvedArtifact artifact : collector.artifacts) {
+                dest.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
+            }
+        } catch (Exception e) {
+            throw new ResolveException(configuration.getPath(), e) {
                 @Override
-                public ComponentIdentifier getComponentIdentifier() {
-                    return new OpaqueComponentIdentifier(file.getName());
+                public String getMessage() {
+                    return String.format("Could not resolve all artifacts for %s.", configuration.getDisplayName());
                 }
-
-                @Override
-                public String getDisplayName() {
-                    return file.getName();
-                }
-            }, Artifact.class, file));
-        }
-        for (ResolvedArtifact artifact : collector.artifacts) {
-            dest.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
+            };
         }
     }
 

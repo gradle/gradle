@@ -16,28 +16,37 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
-class ResolvedArtifactsApiIntegrationTest extends AbstractDependencyResolutionTest {
+class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def setup() {
+        settingsFile << """
+rootProject.name = 'test'
+"""
+        buildFile << """
+allprojects {
+    configurations { 
+        compile {
+            attribute('usage', 'compile')
+        }
+    }
+}
+"""
+    }
+
     def "result includes artifacts from local and external components and file dependencies"() {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
 
         settingsFile << """
 include 'a', 'b'
-rootProject.name = 'test'
 """
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenRepo.uri' } }
-    configurations { 
-        compile {
-            attribute('usage', 'compile')
-        }
-    }
 }
 dependencies {
     compile files('test-lib.jar')    
@@ -83,5 +92,89 @@ task show {
         outputContains("files: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         outputContains("ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)")
         outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0")
+    }
+
+    def "reports failure to resolve component when artifacts are queried"() {
+        buildFile << """
+allprojects {
+    repositories { maven { url '$mavenHttpRepo.uri' } }
+}
+dependencies {
+    compile 'org:test:1.0+'
+    compile 'org:test2:2.0'
+}
+
+task show {
+    doLast {
+        configurations.compile.incoming.artifacts
+    }
+}
+"""
+
+        given:
+        mavenHttpRepo.getModuleMetaData('org', 'test').expectGetMissing()
+        mavenHttpRepo.directory('org', 'test').expectGetMissing()
+        def m = mavenHttpRepo.module('org', 'test2', '2.0').publish()
+        m.pom.expectGet()
+
+        when:
+        fails 'show'
+
+        then:
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not find any matches for org:test:1.0+ as no versions of org:test are available.")
+    }
+
+    def "reports failure to download artifact when artifacts are queried"() {
+        buildFile << """
+allprojects {
+    repositories { maven { url '$mavenHttpRepo.uri' } }
+}
+dependencies {
+    compile 'org:test:1.0'
+    compile 'org:test2:2.0'
+}
+
+task show {
+    doLast {
+        configurations.compile.incoming.artifacts
+    }
+}
+"""
+
+        given:
+        def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
+        m1.pom.expectGet()
+        m1.artifact.expectGetMissing()
+        def m2 = mavenHttpRepo.module('org', 'test2', '2.0').publish()
+        m2.pom.expectGet()
+
+        when:
+        fails 'show'
+
+        then:
+        failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
+        failure.assertHasCause("Could not find test.jar (org:test:1.0).")
+    }
+
+    def "reports failure to query file dependency when artifacts are queried"() {
+        buildFile << """
+dependencies {
+    compile files { throw new RuntimeException('broken') }
+    compile files('lib.jar')
+}
+
+task show {
+    doLast {
+        configurations.compile.incoming.artifacts
+    }
+}
+"""
+        when:
+        fails 'show'
+
+        then:
+        failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
+        failure.assertHasCause("broken")
     }
 }

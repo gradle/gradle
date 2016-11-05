@@ -98,8 +98,9 @@ public interface ResolvableDependencies {
     /**
      * Returns the artifacts that are included in the result.
      *
+     * @throws ResolveException On failure to resolve or download any artifact.
      * @since 3.3
      */
     @Incubating
-    Set<ResolvedArtifactResult> getArtifacts();
+    Set<ResolvedArtifactResult> getArtifacts() throws ResolveException;
 }

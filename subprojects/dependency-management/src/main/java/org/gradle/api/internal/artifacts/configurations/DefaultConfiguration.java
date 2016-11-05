@@ -474,9 +474,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec) {
         synchronized (resolutionLock) {
             ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
-            if (getState() == State.RESOLVED_WITH_FAILURES) {
-                resolvedConfiguration.rethrowFailure();
-            }
+            resolvedConfiguration.rethrowFailure();
             return resolvedConfiguration.getFiles(dependencySpec);
         }
     }
@@ -900,6 +898,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
+            cachedResolverResults.getResolvedConfiguration().rethrowFailure();
             Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
             cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
             return artifacts;

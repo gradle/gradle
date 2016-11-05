@@ -16,10 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 
 import java.util.Collection;
 
 public interface ArtifactResults {
-    void collectArtifacts(Collection<? super ResolvedArtifactResult> dest);
+    /**
+     * Collects all artifacts into the given collection.
+     *
+     * @throws ResolveException On failure to resolve or download any artifact.
+     */
+    void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) throws ResolveException;
 }
