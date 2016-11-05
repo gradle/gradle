@@ -88,7 +88,7 @@ configurations.conf.defaultDependencies { deps ->
         succeeds "checkExplicit"
     }
 
-    @Issue("gradle/gradle#")
+    @Issue("gradle/gradle#812")
     @NotYetImplemented
     def "can use defaultDependencies in a multi-project build"() {
         buildFile.text = """
