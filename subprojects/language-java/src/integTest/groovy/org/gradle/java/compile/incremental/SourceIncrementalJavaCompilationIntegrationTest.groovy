@@ -53,10 +53,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         }"""
         java "class B {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         assert a.delete()
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -68,10 +70,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         def a = java "class A {}"
         java "class B extends A {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when: assert a.delete()
         then:
+        executer.expectIncubationWarning()
         fails "compileJava"
         outputs.noneRecompiled()
         outputs.deletedClasses 'A', 'B'
@@ -83,12 +87,14 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         }"""
         java "class B {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java """class A {
             class InnerA { /* change */ }
         }"""
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -98,10 +104,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     def "detects change of an isolated class"() {
         java "class A {}", "class B {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class A { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -114,10 +122,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         }"""
         java "class B {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class A {}"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -131,12 +141,14 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         }"""
         java "class B {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java """class A {
             class InnerA2 {}
         }"""
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -147,12 +159,14 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     def "detects addition af a new class with an inner class"() {
         java "class B {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java """class A {
             class InnerA {}
         }"""
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -161,10 +175,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
 
     def "detects transitive dependencies"() {
         java "class A {}", "class B extends A {}", "class C extends B {}", "class D {}"
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class A { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'A', 'B', 'C'
@@ -172,6 +188,7 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         when:
         outputs.snapshot()
         java "class B { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'B', 'C'
@@ -183,10 +200,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
             class InnerC {}
         }
         """
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class A { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'A', 'B', 'C', 'C$InnerC'
@@ -195,10 +214,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     def "handles cycles in class dependencies"() {
         java "class A {}", "class D {}"
         java "class B extends A { C c; }", "class C extends B {}" //cycle
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class A { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'A', 'B', 'C'
@@ -209,21 +230,26 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
             @Retention(RetentionPolicy.SOURCE) public @interface SourceAnnotation {}
         """
         java "class A {}", "class B {}"
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         annotationClass.text += "/* change */"
+        executer.expectIncubationWarning()
         run "compileJava"
 
-        then: outputs.recompiledClasses 'A', 'B', 'SourceAnnotation'
+        then:
+        outputs.recompiledClasses 'A', 'B', 'SourceAnnotation'
     }
 
     def "changed class with private constant does not incur full rebuild"() {
         java "class A {}", "class B { private final static int x = 1;}"
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class B { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'B'
@@ -231,10 +257,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
 
     def "changed class with non-private constant incurs full rebuild"() {
         java "class A {}", "class B { final static int x = 1;}"
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class B { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'B', 'A'
@@ -242,10 +270,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
 
     def "dependent class with non-private constant does not incur full rebuild"() {
         java "class A {}", "class B extends A { final static int x = 1;}", "class C {}"
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class A { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses 'B', 'A'
@@ -253,10 +283,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
 
     def "detects class changes in subsequent runs ensuring the class dependency data is refreshed"() {
         java "class A {}", "class B {}", "class C {}"
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java "class B extends A {}"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses('B')
@@ -264,6 +296,7 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         when:
         outputs.snapshot()
         java "class A { /* change */ }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: outputs.recompiledClasses('A', 'B')
@@ -279,21 +312,24 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
             sourceSets { integTest.java.srcDir 'src/integTest/java' }
         """
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileIntegTestJava", "compileJava" }
 
-        when: //when A class is changed
+        when: 'when A class is changed'
         java "class A { String change; }"
+        executer.expectIncubationWarning()
         run "compileIntegTestJava", "compileJava", "-i"
 
-        then: //only B and A are recompiled
+        then: 'only B and A are recompiled'
         outputs.recompiledClasses("A", "B")
 
-        when: //when X class is changed
+        when: 'when X class is changed'
         outputs.snapshot()
         file("src/integTest/java/X.java").text = "class X { String change;}"
+        executer.expectIncubationWarning()
         run "compileIntegTestJava", "compileJava", "-i"
 
-        then: //only X and Y are recompiled
+        then: 'only X and Y are recompiled'
         outputs.recompiledClasses("X", "Y")
     }
 
@@ -304,10 +340,12 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         file("extra-java/A.java") << "class A extends B {}"
         file("extra-java/C.java") << "class C {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java("class B { String change; } ")
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -325,10 +363,12 @@ sourceSets {
         java("class Main extends com.foo.Other {}")
         file("src/other/java/com/foo/Other.java") << "package com.foo; public class Other {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         file("src/other/java/com/foo/Other.java").text = "package com.foo; public class Other { String change; }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -346,12 +386,14 @@ compileTestJava.options.incremental = true
 
         file("src/test/java/BazTest.java") << "public class BazTest {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileTestJava" }
 
         when:
         file("src/test/java/BazTest.java").text = "public class BazTest { String change; }"
         unusedClass.delete()
 
+        executer.expectIncubationWarning()
         run "compileTestJava"
 
         then:
@@ -366,10 +408,12 @@ compileTestJava.options.incremental = true
         file("extra-java/B.java") << "class B {}"
         file("extra-java/C.java") << "class C {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         file("extra-java/B.java").text = "class B { String change; }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -384,10 +428,12 @@ compileTestJava.options.incremental = true
         file("extra-java/A.java") << "class A extends B {}"
         file("extra-java/C.java") << "class C {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         java("class B { String change; } ")
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -406,10 +452,12 @@ compileTestJava.options.incremental = true
         file("extra-java/B.java") << "class B {}"
         file("extra-java/C.java") << "class C {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         file("extra-java/B.java").text = "class B { String change; }"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -428,11 +476,13 @@ compileTestJava.options.incremental = true
         file("extra-java/B.java") << "class B {}"
         file("extra-java/C.java") << "class C {}"
 
+        executer.expectIncubationWarning()
         outputs.snapshot { run "compileJava" }
 
         when:
         file("extra-java/B.java").text = "class B { String change; }"
         executer.withArgument "--info"
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then:
@@ -448,8 +498,12 @@ compileTestJava.options.incremental = true
         java("class A {}")
         file("java/A.java") << "class A {}"
 
-        when: fails "compileJava"
-        then: failure.assertHasCause("Compilation failed")
+        when:
+        executer.expectIncubationWarning()
+        fails "compileJava"
+
+        then:
+        failure.assertHasCause("Compilation failed")
     }
 
     @Issue("GRADLE-3426")
@@ -474,6 +528,7 @@ repositories { jcenter() }
 dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 """
         expect:
+        executer.expectIncubationWarning()
         run "compileJava"
     }
 }

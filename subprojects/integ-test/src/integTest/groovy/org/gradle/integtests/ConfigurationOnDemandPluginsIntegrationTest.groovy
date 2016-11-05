@@ -43,6 +43,7 @@ class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpe
         }
 
         when:
+        executer.expectIncubationWarning()
         run ':a:build'
 
         then:

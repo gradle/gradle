@@ -421,6 +421,9 @@ include ':b1:b11'
     @Unroll
     def "evaluates subprojects when substituting external dependencies with #name"() {
         given:
+        if(expectingIncubationWarning) {
+            executer.expectIncubationWarning()
+        }
         buildA.buildFile << """
             dependencies {
                 compile "group.requires.subproject.evaluation:b1:1.0"
@@ -445,10 +448,10 @@ afterEvaluate {
         }
 
         where:
-        name                  | args
-        "regular build"       | []
-        "configure on demand" | ["--configure-on-demand"]
-        "parallel"            | ["--parallel"]
+        name                  | args                       | expectingIncubationWarning
+        "regular build"       | []                         | false
+        "configure on demand" | ["--configure-on-demand"]  | true
+        "parallel"            | ["--parallel"]             | true
     }
 
     def "substitutes dependency in composite containing participants with same root directory name"() {

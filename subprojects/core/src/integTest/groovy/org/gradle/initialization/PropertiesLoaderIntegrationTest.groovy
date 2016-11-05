@@ -43,6 +43,7 @@ task assertCodDisabled {
 """
 
         then:
+        executer.expectIncubationWarning()
         succeeds ':assertCodEnabled'
 
         when:
@@ -98,6 +99,7 @@ task assertCodDisabled {
 """
 
         then:
+        executer.expectIncubationWarning()
         succeeds ':assertCodEnabled'
 
         when:

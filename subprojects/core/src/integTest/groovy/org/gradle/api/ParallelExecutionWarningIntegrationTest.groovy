@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
@@ -30,9 +31,14 @@ class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
-    def "does not present warning message for single project build"() {
+    @Unroll
+    def "does not present warning message for single project build and tasks #tasks"() {
         given:
         buildFile << basePluginAndBasicTask()
+
+        for (int i = 0; i < expectedIncubationWarnings; i++) {
+            executer.expectIncubationWarning()
+        }
 
         when:
         run(*tasks)
@@ -42,18 +48,18 @@ class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
         output.count(WARNING_MESSAGE) == 0
 
         where:
-        tasks << [
-            ['foo'],
-            ['clean', 'foo'],
-            ['foo'],
-            ['clean', 'foo'],
-            ['foo', '--parallel'],
-            ['clean', 'foo', '--parallel'],
-            ['clean', 'foo', '--parallel', '--configure-on-demand']
-        ]
+        tasks                                                   | expectedIncubationWarnings
+        ['foo']                                                 | 0
+        ['clean', 'foo']                                        | 0
+        ['foo']                                                 | 0
+        ['clean', 'foo']                                        | 0
+        ['foo', '--parallel']                                   | 1
+        ['clean', 'foo', '--parallel']                          | 1
+        ['clean', 'foo', '--parallel', '--configure-on-demand'] | 1
     }
 
-    def "may present warning message for multi-project build"() {
+    @Unroll
+    def "may present warning message for multi-project build and tasks #tasks"() {
         given:
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -61,6 +67,10 @@ class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
                 ${basePluginAndBasicTask()}
             }
         """
+
+        for (int i = 0; i < expectedIncubationWarnings; i++) {
+            executer.expectIncubationWarning()
+        }
 
         when:
         run(*tasks)
@@ -70,18 +80,18 @@ class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
         (output.count(WARNING_MESSAGE) == 1) == warningEmittedOnce
 
         where:
-        tasks                                                   | warningEmittedOnce
-        ['foo']                                                 | false
-        ['clean', 'foo']                                        | false
-        ['foo', '--parallel']                                   | false
-        ['foo', '--configure-on-demand']                        | false
-        ['clean', 'foo']                                        | false
-        ['clean', 'foo', '--configure-on-demand']               | false
-        ['foo', 'clean', '--configure-on-demand']               | false
-        ['clean', 'foo', '--parallel']                          | true
-        ['foo', 'clean', '--parallel']                          | true
-        ['clean', 'foo', '--parallel', '--configure-on-demand'] | true
-        ['foo', 'clean', '--parallel', '--configure-on-demand'] | true
+        tasks                                                   | warningEmittedOnce | expectedIncubationWarnings
+        ['foo']                                                 | false              | 0
+        ['clean', 'foo']                                        | false              | 0
+        ['foo', '--parallel']                                   | false              | 1
+        ['foo', '--configure-on-demand']                        | false              | 1
+        ['clean', 'foo']                                        | false              | 0
+        ['clean', 'foo', '--configure-on-demand']               | false              | 1
+        ['foo', 'clean', '--configure-on-demand']               | false              | 1
+        ['clean', 'foo', '--parallel']                          | true               | 1
+        ['foo', 'clean', '--parallel']                          | true               | 1
+        ['clean', 'foo', '--parallel', '--configure-on-demand'] | true               | 1
+        ['foo', 'clean', '--parallel', '--configure-on-demand'] | true               | 1
     }
 
     static String basePluginAndBasicTask() {

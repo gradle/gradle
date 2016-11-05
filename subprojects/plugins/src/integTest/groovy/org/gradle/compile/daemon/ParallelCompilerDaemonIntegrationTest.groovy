@@ -24,7 +24,7 @@ class ParallelCompilerDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     def "daemon compiler can handle --parallel"() {
         generateProjects(10, 10, 10)
-
+        executer.expectIncubationWarning()
         args("--parallel")
 
         expect:

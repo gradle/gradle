@@ -122,6 +122,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     void 'finalizer tasks are executed as expected in parallel builds'() {
         setupMultipleProjects()
         executer.withArguments('--parallel')
+        executer.expectIncubationWarning()
 
         when:
         succeeds 'a'

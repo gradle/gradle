@@ -27,6 +27,7 @@ class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << "org.gradle.parallel=true"
         buildFile << "assert gradle.startParameter.parallelProjectExecutionEnabled"
         expect:
+        executer.expectIncubationWarning()
         run()
     }
 }

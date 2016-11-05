@@ -880,7 +880,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withTaskCacheEnabled() {
-        return withArgument("-Dorg.gradle.cache.tasks=true");
+        return withArgument("-Dorg.gradle.cache.tasks=true")
+            // enabling task cache will currently cause at least one incubation warning
+            .expectIncubationWarning();
     }
 
     @Override

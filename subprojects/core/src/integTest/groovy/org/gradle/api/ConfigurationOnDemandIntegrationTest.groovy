@@ -35,6 +35,8 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
     def "presents incubating message"() {
+        given:
+        executer.expectIncubationWarning()
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
 
@@ -48,6 +50,8 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
     def "presents incubating message with parallel mode"() {
+        given:
+        executer.expectIncubationWarning()
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
 
@@ -60,6 +64,8 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can be enabled from command line for a single module build"() {
+        given:
+        executer.expectIncubationWarning()
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
 
@@ -71,6 +77,8 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "evaluates only project referenced in the task list"() {
+        given:
+        executer.expectIncubationWarning()
         // The util project's classloaders will be created eagerly because util:impl
         // will be evaluated before it
         executer.withEagerClassLoaderCreationCheckDisabled()
@@ -94,6 +102,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "follows java project dependencies"() {
+        given:
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << "allprojects { apply plugin: 'java' } "
 
@@ -114,6 +123,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         file("util/src/main/java/Utility.java") << "public class Utility extends PersonImpl {}"
 
         when:
+        executer.expectIncubationWarning()
         run(":api:build")
 
         then:
@@ -121,18 +131,21 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         inDirectory("impl")
+        executer.expectIncubationWarning()
         run(":api:build")
 
         then:
         fixture.assertProjectsConfigured(":", ":api")
 
         when:
+        executer.expectIncubationWarning()
         run(":impl:build")
 
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
+        executer.expectIncubationWarning()
         run(":util:build")
 
         then:
@@ -140,6 +153,8 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can have cycles in project dependencies"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << """
 allprojects { apply plugin: 'java' }
@@ -160,6 +175,8 @@ project(':api') {
     }
 
     def "follows project dependencies when run in subproject"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl', 'util'"
 
         file("api/build.gradle") << "configurations { api }"
@@ -178,16 +195,19 @@ project(':api') {
     }
 
     def "name matching execution from root evaluates all projects"() {
+        given:
         settingsFile << "include 'api', 'impl'"
         buildFile << "task foo"
 
         when:
+        executer.expectIncubationWarning()
         run("foo")
 
         then:
         fixture.assertProjectsConfigured(":", ":api", ":impl")
 
         when:
+        executer.expectIncubationWarning()
         run(":foo")
 
         then:
@@ -195,6 +215,8 @@ project(':api') {
     }
 
     def "name matching execution from subproject evaluates only the subproject recursively"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl:one', 'impl:two', 'impl:two:abc'"
         file("impl/build.gradle") << "task foo"
 
@@ -207,6 +229,8 @@ project(':api') {
     }
 
     def "may run implicit tasks from root"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl'"
 
         when:
@@ -217,6 +241,8 @@ project(':api') {
     }
 
     def "may run implicit tasks for subproject"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl'"
 
         when:
@@ -227,6 +253,8 @@ project(':api') {
     }
 
     def "respects default tasks"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl'"
         file("api/build.gradle") << """
             task foo
@@ -243,6 +271,8 @@ project(':api') {
     }
 
     def "respects evaluationDependsOn"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl', 'other'"
         file("api/build.gradle") << """
             evaluationDependsOn(":impl")
@@ -256,6 +286,7 @@ project(':api') {
     }
 
     def "respects buildProjectDependencies setting"() {
+        given:
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """
             apply plugin: 'java'
@@ -266,6 +297,7 @@ project(':api') {
         file("impl/src/main/java/Foo.java") << "public class Foo {}"
 
         when:
+        executer.expectIncubationWarning()
         run("impl:build")
 
         then:
@@ -273,6 +305,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
+        executer.expectIncubationWarning()
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:
@@ -283,6 +316,8 @@ project(':api') {
     }
 
     def "respects external task dependencies"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'api', 'impl', 'other'"
         file("build.gradle") << "allprojects { task foo }"
         file("impl/build.gradle") << """
@@ -298,6 +333,8 @@ project(':api') {
     }
 
     def "supports buildSrc"() {
+        given:
+        executer.expectIncubationWarning()
         file("buildSrc/src/main/java/FooTask.java") << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.TaskAction;
@@ -318,6 +355,8 @@ project(':api') {
     }
 
     def "may configure project at execution time"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'c'"
         file('a/build.gradle') << """
             configurations { conf }
@@ -342,6 +381,8 @@ project(':api') {
     }
 
     def "handles buildNeeded"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'c'"
         file("a/build.gradle") << """ apply plugin: 'java' """
         file("b/build.gradle") << """
@@ -360,6 +401,8 @@ project(':api') {
     }
 
     def "handles buildDependents"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'c'"
         file("a/build.gradle") << """ apply plugin: 'java' """
         file("b/build.gradle") << """
@@ -379,6 +422,8 @@ project(':api') {
     }
 
     def "task command-line argument may look like a task path"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'c'"
         file("a/build.gradle") << """
 task one(type: SomeTask)
@@ -399,6 +444,8 @@ class SomeTask extends DefaultTask {
     }
 
     def "does not configure all projects when excluded task path is not qualified and is exact match for task in default project"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'a:child', 'b', 'b:child', 'c'"
         file('a').mkdirs()
         file('b').mkdirs()
@@ -419,6 +466,7 @@ allprojects {
 
         when:
         executer.usingProjectDirectory(file('a'))
+        executer.expectIncubationWarning()
         run(":a:one", "-x", "two", "-x", "three")
 
         then:
@@ -427,6 +475,7 @@ allprojects {
 
         when:
         executer.usingProjectDirectory(file('b'))
+        executer.expectIncubationWarning()
         run(":a:one", "-x", "two", "-x", "three")
 
         then:
@@ -435,6 +484,8 @@ allprojects {
     }
 
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
         buildFile << """
@@ -455,6 +506,7 @@ project(':b') {
 
         when:
         executer.usingProjectDirectory(file("c"))
+        executer.expectIncubationWarning()
         runAndFail(":a:one", "-x", "two")
 
         then:
@@ -463,6 +515,8 @@ project(':b') {
     }
 
     def "configures all subprojects of default project when excluded task path is not qualified and an exact match not found in default project"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
         buildFile << """
@@ -481,6 +535,7 @@ allprojects {
 
         when:
         executer.usingProjectDirectory(file("c"))
+        executer.expectIncubationWarning()
         runAndFail(":a:one", "-x", "two")
 
         then:
@@ -489,6 +544,8 @@ allprojects {
     }
 
     def "configures all subprojects of default projects when excluded task path is not qualified and uses camel case matching"() {
+        given:
+        executer.expectIncubationWarning()
         settingsFile << "include 'a', 'b', 'b:child', 'c'"
         file('b').mkdirs()
         buildFile << """
@@ -507,6 +564,7 @@ allprojects {
 
         when:
         executer.usingProjectDirectory(file('b'))
+        executer.expectIncubationWarning()
         run(":a:one", "-x", "tw")
 
         then:

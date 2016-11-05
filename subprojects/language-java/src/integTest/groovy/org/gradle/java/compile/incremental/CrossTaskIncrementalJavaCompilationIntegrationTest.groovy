@@ -60,10 +60,13 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "detects changed class in an upstream project"() {
         java api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class A { String change; }"]
+
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -73,10 +76,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     def "detects change to transitive dependency in an upstream project"() {
         java api: ["class A {}", "class B extends A {}"]
         java impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class A { String change; }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -85,6 +90,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "deletion of jar without dependents does not recompile any classes"() {
         java api: ["class A {}"], impl: ["class SomeImpl {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
@@ -93,6 +99,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
                 configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
             }
         """
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -101,6 +108,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "deletion of jar with dependents causes compilation failure"() {
         java api: ["class A {}"], impl: ["class ImplA extends A {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
@@ -109,6 +117,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
                 configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
             }
         """
+        executer.expectIncubationWarning()
         fails "impl:compileJava"
 
         then:
@@ -118,10 +127,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     def "detects change to dependency and ensures class dependency info refreshed"() {
         java api: ["class A {}", "class B extends A {}"]
         java impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class B { /* remove extends */ }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then: impl.recompiledClasses("ImplB", "ImplB2")
@@ -129,6 +140,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         when:
         impl.snapshot()
         java api: ["class A { /* change */ }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then: impl.noneRecompiled() //because after earlier change to B, class A is no longer a dependency
@@ -137,10 +149,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     def "detects deleted class in an upstream project and fails compilation"() {
         def b = java(api: ["class A {}", "class B {}"])
         java impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         assert b.delete()
+        executer.expectIncubationWarning()
         fails "impl:compileJava"
 
         then:
@@ -149,10 +163,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "recompilation not necessary when upstream does not change any of the actual dependencies"() {
         java api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class B { String change; }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -161,6 +177,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "deletion of jar with non-private constant causes full rebuild"() {
         java api: ["class A { final static int x = 1; }"], impl: ["class X {}", "class Y {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
@@ -169,6 +186,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
                 configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
             }
         """
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -177,10 +195,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "change in an upstream class with non-private constant causes full rebuild"() {
         java api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class B { /* change */ }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -189,10 +209,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
         java api: ["class A { final static int x = 1; }", "class B extends A {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class B { /* change */ }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -201,10 +223,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "private constant in upstream project does not trigger full rebuild"() {
         java api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class B { /* change */ }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -213,11 +237,14 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "detects changed classes when upstream project was built in isolation"() {
         java api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class A { String change; }"]
+        executer.expectIncubationWarning()
         run "api:compileJava"
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then:
@@ -226,11 +253,14 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "detects class changes in subsequent runs ensuring the jar snapshots are refreshed"() {
         java api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileJava" }
 
         when:
         java api: ["class A { String change; }"]
+        executer.expectIncubationWarning()
         run "api:compileJava"
+        executer.expectIncubationWarning()
         run "impl:compileJava" //different build invocation
 
         then: impl.recompiledClasses("ImplA")
@@ -238,6 +268,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         when:
         impl.snapshot()
         java api: ["class B { String change; }"]
+        executer.expectIncubationWarning()
         run "compileJava"
 
         then: impl.recompiledClasses("ImplB")
@@ -245,11 +276,13 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
     def "changes to resources in jar do not incur recompilation"() {
         java impl: ["class A {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run "impl:compileJava" }
 
         when:
         file("api/src/main/resources/some-resource.txt") << "xxx"
         java api: ["class A { String change; }"]
+        executer.expectIncubationWarning()
         run "impl:compileJava"
 
         then: impl.noneRecompiled()
@@ -266,10 +299,12 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         """
         file("impl/src/integTest/java/SomeIntegTest.java") << "class SomeIntegTest extends Other {}"
 
+        executer.expectIncubationWarning()
         impl.snapshot { run "compileIntegTestJava", "compileJava" }
 
         when: //when api class is changed
         java api: ["class A { String change; }"]
+        executer.expectIncubationWarning()
         run "compileIntegTestJava", "compileJava"
 
         then: //only impl class is recompiled
@@ -278,6 +313,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         when: //when other class is changed
         impl.snapshot()
         java other: ["class Other { String change; }"]
+        executer.expectIncubationWarning()
         run "compileIntegTestJava", "compileJava"
 
         then: //only integTest class is recompiled
@@ -293,53 +329,67 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
             }
         """
 
-        when: run("impl:compileJava") //initial run
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
+        when:
+        executer.expectIncubationWarning()
+        run("impl:compileJava") //initial run
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
 
-        when: //project dependency changes
+        when: 'project dependency changes'
         java api: ["class A { String change; }"]
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
         then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
 
-        when: //transitive dependency is excluded
+        when: 'transitive dependency is excluded'
         file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
         then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar"
 
-        when: //direct dependency is excluded
+        when: 'direct dependency is excluded'
         file("impl/build.gradle") << "configurations.compile.exclude module: 'junit' \n"
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, objenesis-1.0.jar"
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, objenesis-1.0.jar"
 
-        when: //new dependency is added
+        when: 'new dependency is added'
         file("impl/build.gradle") << "dependencies { compile 'org.testng:testng:6.8.7' } \n"
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, testng-6.8.7.jar, objenesis-1.0.jar, bsh-2.0b4.jar, jcommander-1.27.jar, snakeyaml-1.12.jar"
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, testng-6.8.7.jar, objenesis-1.0.jar, bsh-2.0b4.jar, jcommander-1.27.jar, snakeyaml-1.12.jar"
     }
 
     def "handles duplicate class found in jar"() {
         java api: ["class A extends B {}", "class B {}"], impl: ["class A extends C {}", "class C {}"]
 
+        executer.expectIncubationWarning()
         impl.snapshot { run("impl:compileJava") }
 
         when:
         //change to source dependency duplicate triggers recompilation
         java impl: ["class C { String change; }"]
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
-        then: impl.recompiledClasses("A", "C")
+        then:
+        impl.recompiledClasses("A", "C")
 
         when:
         //change to jar dependency duplicate is ignored because source duplicate wins
         impl.snapshot()
         java api: ["class B { String change; } "]
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
-        then: impl.noneRecompiled()
+        then:
+        impl.noneRecompiled()
     }
 
     def "new jar with duplicate class appearing earlier on classpath must trigger compilation"() {
@@ -349,23 +399,28 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
             dependencies { compile 'junit:junit:4.12' }
         """
 
+        executer.expectIncubationWarning()
         impl.snapshot { run("impl:compileJava") }
 
         when:
         //add new jar with duplicate class that will be earlier on the classpath (project dependencies are earlier on classpath)
         file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
         file("impl/build.gradle") << "dependencies { compile project(':api') }"
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
-        then: impl.recompiledClasses("A")
+        then:
+        impl.recompiledClasses("A")
     }
 
     def "new jar without duplicate class does not trigger compilation"() {
         java impl: ["class A {}"]
+        executer.expectIncubationWarning()
         impl.snapshot { run("impl:compileJava") }
 
         when:
         file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
         then: impl.noneRecompiled()
@@ -377,11 +432,13 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
             dependencies { compile 'junit:junit:4.12' }
         """
 
+        executer.expectIncubationWarning()
         impl.snapshot { run("impl:compileJava") }
 
         when:
         //update existing jar with duplicate class that will be earlier on the classpath (project dependencies are earlier on classpath)
         file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
         then: impl.recompiledClasses("A")
@@ -393,6 +450,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
 
+        executer.expectIncubationWarning()
         impl.snapshot { run("impl:compileJava") }
 
         when:
@@ -400,6 +458,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
             configurations.compile.dependencies.clear()  //kill project dependency
             dependencies { compile 'junit:junit:4.11' }  //leave only junit
         """
+        executer.expectIncubationWarning()
         run("impl:compileJava")
 
         then: impl.recompiledClasses("A")

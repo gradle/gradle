@@ -64,6 +64,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithParallelExecuter()
 
         when:
+        executer.expectIncubationWarning()
         succeeds("build")
 
         then:
@@ -76,6 +77,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         // Check that we can successfully use an existing compiler-interface.jar as well
         when:
         expectTasksWithParallelExecuter()
+        executer.expectIncubationWarning()
         succeeds("clean", "build")
 
         then:
@@ -103,6 +105,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithIntraProjectParallelExecuter()
 
         when:
+        executer.expectIncubationWarning()
         succeeds("build")
 
         then:
@@ -136,6 +139,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithIntraProjectParallelExecuter()
 
         when:
+        executer.expectIncubationWarning()
         succeeds("buildAll")
 
         then:
@@ -167,6 +171,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithParallelExecuter()
 
         when:
+        executer.expectIncubationWarning()
         succeeds("build")
 
         then:

@@ -57,6 +57,7 @@ allprojects {
         blockingServer.expectConcurrentExecution(':b:pingServer', ':c:pingServer', ':d:pingServer')
         blockingServer.expectSerialExecution(':a:pingServer')
 
+        executer.expectIncubationWarning()
         run ':a:pingServer'
     }
 
@@ -71,6 +72,7 @@ allprojects {
         blockingServer.expectConcurrentExecution(':b:pingServer', ':c:pingServer')
         blockingServer.expectSerialExecution(':a:pingServer')
 
+        executer.expectIncubationWarning()
         run ':a:pingServer'
     }
 
@@ -82,6 +84,7 @@ allprojects {
         when:
         blockingServer.expectConcurrentExecution(':b:pingServer', ':c:pingServer')
 
+        executer.expectIncubationWarning()
         fails ':a:pingServer'
 
         then:
@@ -101,6 +104,7 @@ allprojects {
         blockingServer.expectSerialExecution(':b:pingA')
         blockingServer.expectSerialExecution(':b:pingC')
 
+        executer.expectIncubationWarning()
         run 'b:pingC'
     }
 
@@ -114,6 +118,7 @@ allprojects {
         blockingServer.expectConcurrentExecution(':a:pingA', ':b:pingA')
         blockingServer.expectSerialExecution(':b:pingB')
 
+        executer.expectIncubationWarning()
         run 'a:pingA', 'b:pingB'
     }
 
