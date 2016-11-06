@@ -473,15 +473,23 @@ task resolveChildFirst {
     }
 
     @Unroll
-    def "cannot change the configuration role after it has been resolved"() {
+    def "cannot change the configuration role (#code) after it has been resolved"() {
         buildFile << """
             configurations { a }
             configurations.a.resolve()
-            configurations.a.${role}()
+            ${code}
         """
-        when: fails()
-        then: failure.assertHasCause("Cannot change role of configuration ':a' after it has been resolved")
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("Cannot change role of configuration ':a' after it has been resolved")
+
         where:
-        role << ['forConsumingOrPublishingOnly', 'forQueryingOrResolvingOnly', 'asBucket']
+        role                      | code
+        'consume or publish only' | 'configurations.a.canBeResolved = false'
+        'query or resolve only'   | 'configurations.a.canBeConsumed = false'
+        'bucket'                  | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
+
     }
 }

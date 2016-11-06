@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -50,9 +51,14 @@ class AbstractIntegrationSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
-    GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
+    GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
+    GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
+
+    public IntegrationTestBuildContext getBuildContext() {
+        return IntegrationTestBuildContext.INSTANCE;
+    }
+
 
 //    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
@@ -233,7 +239,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     ArtifactBuilder artifactBuilder() {
-        def executer = distribution.executer(temporaryFolder)
+        def executer = distribution.executer(temporaryFolder, getBuildContext())
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
         return new GradleBackedArtifactBuilder(executer, getTestDirectory().file("artifacts"))
     }

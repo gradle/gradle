@@ -50,10 +50,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata) {
-            isQueryOrResolveAllowed() >> true
+            isCanBeResolved() >> true
         }
         def toConfig = Stub(ConfigurationMetadata) {
-            isConsumeOrPublishAllowed() >> true
+            isCanBeConsumed() >> true
         }
         fromConfig.hierarchy >> ["from"]
 
@@ -81,12 +81,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> [key: 'something']
-            isConsumeOrPublishAllowed() >> true
+            isCanBeConsumed() >> true
         }
         def toBarConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'bar'
             getAttributes() >> [key: 'something else']
-            isConsumeOrPublishAllowed() >> true
+            isCanBeConsumed() >> true
         }
 
         given:

@@ -302,12 +302,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         @Override
-        public boolean isConsumeOrPublishAllowed() {
+        public boolean isCanBeConsumed() {
             return true;
         }
 
         @Override
-        public boolean isQueryOrResolveAllowed() {
+        public boolean isCanBeResolved() {
             return false;
         }
 

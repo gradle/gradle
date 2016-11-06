@@ -423,7 +423,7 @@ task releaseNotes(type: Copy) {
     into "$docsDir"
     from releaseNotesMarkdown
     jsoup.plugins "src/transforms/release-notes.gradle"
-    filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
+    filter(ReplaceTokens, tokens: [version: project.version.toString(), baseVersion: rootProject.baseVersion])
     ext.entryPoint = file("$docsDir/$fileName")
 }
 

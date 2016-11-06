@@ -39,18 +39,19 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
-                        p.configurations.compile.asBucket()
+                        p.configurations.compile.canBeResolved = false
+                        p.configurations.compile.canBeConsumed = false
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
                                     extendsFrom p.configurations.compile
-                                    forConsumingOrPublishingOnly()
+                                    canBeResolved = false
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
                                     extendsFrom p.configurations.compile
-                                    forQueryingOrResolvingOnly()
+                                    canBeConsumed = false
                                     attributes buildType: bt, flavor: f, usage: 'compile'
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
@@ -102,10 +103,10 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             task checkConfigurations {
                 doLast {
                     ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
-                        assert !configurations.getByName(it).queryOrResolveAllowed
-                        assert configurations.getByName(it).consumeOrPublishAllowed
-                        assert configurations.getByName("_$it").queryOrResolveAllowed
-                        assert !configurations.getByName("_$it").consumeOrPublishAllowed
+                        assert !configurations.getByName(it).canBeResolved
+                        assert configurations.getByName(it).canBeConsumed
+                        assert configurations.getByName("_$it").canBeResolved
+                        assert !configurations.getByName("_$it").canBeConsumed
                     }
                 }
             }

@@ -17,11 +17,11 @@
 package org.gradle.integtests.fixtures.executer;
 
 public abstract class AbstractUnderDevelopmentGradleDistribution extends DefaultGradleDistribution {
-    public AbstractUnderDevelopmentGradleDistribution() {
-        this(new IntegrationTestBuildContext());
+    protected AbstractUnderDevelopmentGradleDistribution() {
+        this(IntegrationTestBuildContext.INSTANCE);
     }
 
-    private AbstractUnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
+    protected AbstractUnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
         super(
                 buildContext.getVersion(),
                 buildContext.getGradleHomeDir(),

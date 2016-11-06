@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.cunit
 
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -27,7 +26,7 @@ import org.gradle.util.TextUtil
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltDir = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs")
+    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/cunit/libs")
     def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CHelloWorldApp()
 

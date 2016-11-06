@@ -51,7 +51,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public String getConfiguration() {
-        DeprecationLogger.nagUserOfDeprecated("ModuleDependency#getConfiguration()", "Use ModuleDependency#getTargetConfiguration() instead");
+        DeprecationLogger.nagUserOfDeprecated("ModuleDependency.getConfiguration()", "Use ModuleDependency.getTargetConfiguration() instead");
         return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
 

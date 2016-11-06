@@ -53,7 +53,7 @@ class UserGuideSamplesRunner extends Runner {
     private TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder)
+    private GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder, buildContext)
     private Pattern dirFilter
     private List excludes
     private TestFile baseExecutionDir = temporaryFolder.testDirectory

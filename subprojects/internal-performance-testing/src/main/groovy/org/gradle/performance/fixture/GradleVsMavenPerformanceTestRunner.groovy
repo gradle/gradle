@@ -16,6 +16,7 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.DataReporter
@@ -30,8 +31,8 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     final M2Installation m2
 
-    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter) {
-        super(experimentRunner, dataReporter)
+    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, dataReporter, buildContext)
         m2 = new M2Installation(testDirectoryProvider)
     }
 

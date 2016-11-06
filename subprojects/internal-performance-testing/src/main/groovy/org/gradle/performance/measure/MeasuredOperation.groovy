@@ -43,7 +43,8 @@ public class MeasuredOperation {
     Amount<Duration> gcTotalTime
 
     boolean isValid() {
-        start!=null &&
+        exception == null &&
+            start!=null &&
             end != null &&
             totalTime != null &&
             configurationTime != null &&

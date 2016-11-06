@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.versions
 
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.Factory
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,13 +32,13 @@ class ReleasedVersionDistributionsTest extends Specification {
             Properties create() {
                 props
             }
-        })
+        }, IntegrationTestBuildContext.INSTANCE)
     }
 
     // Will fail if the classpath resource is not available, see ClasspathVersionSource
     def "can create from classpath"() {
         when:
-        def versions = new ReleasedVersionDistributions()
+        def versions = new ReleasedVersionDistributions(IntegrationTestBuildContext.INSTANCE)
 
         then:
         !versions.all.empty
@@ -79,7 +80,7 @@ class ReleasedVersionDistributionsTest extends Specification {
     @Unroll
     def "get previous distribution for #description"() {
         when:
-        def versions = new ReleasedVersionDistributions()
+        def versions = new ReleasedVersionDistributions(IntegrationTestBuildContext.INSTANCE)
 
         then:
         versions.getPrevious(givenVersion)?.version == previousVersion

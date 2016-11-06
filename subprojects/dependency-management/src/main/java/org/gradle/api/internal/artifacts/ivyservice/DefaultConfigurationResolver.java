@@ -39,8 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedLocalComponentsResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
@@ -80,15 +78,15 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
-        ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
-        DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
+        FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor();
+        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(buildProjectDependencies);
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, new Spec<DependencyMetadata>() {
             @Override
             public boolean isSatisfiedBy(DependencyMetadata element) {
                 return element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
             }
-        }, projectModelVisitor, new CompositeDependencyArtifactsVisitor());
-        result.resolved(localComponentsResultBuilder.complete());
+        }, new CompositeDependencyGraphVisitor(localComponentsVisitor, fileDependenciesVisitor), new CompositeDependencyArtifactsVisitor());
+        result.graphResolved(localComponentsVisitor, fileDependenciesVisitor);
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -105,20 +103,19 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
         StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
 
-        ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
-        DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
+        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(buildProjectDependencies);
 
         ResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
-        FileDependencyCollectingGraphVisitor filesBuilder = new FileDependencyCollectingGraphVisitor();
+        FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
 
-        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelBuilder, projectModelVisitor, filesBuilder);
+        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelBuilder, localComponentsVisitor, fileDependencyVisitor);
         DependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(oldModelVisitor, artifactsBuilder);
 
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor);
 
-        results.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
+        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, fileDependencyVisitor);
 
-        results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsBuilder, filesBuilder, oldTransientModelBuilder));
+        results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsBuilder, fileDependencyVisitor, oldTransientModelBuilder));
     }
 
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) {
@@ -130,7 +127,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory);
-        results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
+        results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
     }
 
     private static class ArtifactResolveState {

@@ -28,7 +28,7 @@ import org.gradle.api.Incubating;
 public enum TaskOutcome {
 
     /**
-     * That task executed and performed its actions without failure.
+     * The task executed and performed its actions without failure.
      */
     SUCCESS,
 
@@ -47,5 +47,15 @@ public enum TaskOutcome {
      *
      * A task may be skipped if it had no work to do (e.g. no source to compile).
      */
-    SKIPPED
+    SKIPPED,
+
+    /**
+     * The task executed, but did not perform work as its output was cached.
+     *
+     * <p>NOTE: If the Gradle build under test is older than 3.3, no tasks will
+     * have this outcome.</p>
+     *
+     * @since 3.3
+     */
+    FROM_CACHE;
 }

@@ -26,6 +26,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
+import static org.hamcrest.core.StringContains.containsString
 
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
@@ -689,5 +690,40 @@ uploadArchives {
         pom.scopes.provided == null
         pom.scopes.runtime == null
         pom.scopes.test == null
+    }
+
+    def "fails gracefully if trying to publish a directory with Maven"() {
+
+        given:
+        file('someDir/a.txt') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+        apply plugin: 'maven'
+
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    repository(url: "${mavenRepo.uri.toURL()}")
+                }
+            }
+        }
+
+        configurations {
+            archives
+        }
+
+        artifacts {
+            archives file("someDir")
+        }
+
+        """
+
+        when:
+        fails 'uploadArchives'
+
+        then:
+        failure.assertHasCause "Could not publish configuration 'archives'"
+        failure.assertThatCause(containsString('Cannot publish a directory'))
     }
 }

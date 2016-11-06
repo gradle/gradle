@@ -18,6 +18,8 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -48,12 +50,18 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
     private void runMavenExperiment(MeasuredOperationList results, MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
         performMeasurements(new InvocationExecutorProvider() {
-            public Runnable runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
-                return new Runnable() {
-                    public void run() {
-                        ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(invocationInfo, buildSpec));
+            public Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
+                return new Action<MeasuredOperation>() {
+                    @Override
+                    public void execute(MeasuredOperation measuredOperation) {
+                        final ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(invocationInfo, buildSpec));
                         System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
-                        mavenInvocation.execute();
+                        DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
+                            @Override
+                            public void run() {
+                                mavenInvocation.execute();
+                            }
+                        });
                     }
                 };
             }

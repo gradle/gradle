@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.ObjectConnection;
@@ -72,7 +73,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void onConnect(ObjectConnection connection) {
-        ConnectionAcceptor stoppable;
+        AsyncStoppable stoppable;
 
         lock.lock();
         try {
@@ -84,7 +85,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
 
-        stoppable.requestStop();
+        if (stoppable != null) {
+            stoppable.requestStop();
+        }
     }
 
     private void onProcessStop(ExecResult execResult) {

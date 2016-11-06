@@ -18,23 +18,29 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
-    private final ResolvedLocalComponentsResultBuilder builder;
-    private ComponentIdentifier rootId;
-    private DependencyGraphNode root;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-    public ResolvedLocalComponentsResultGraphVisitor(ResolvedLocalComponentsResultBuilder builder) {
-        this.builder = builder;
+public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor, ResolvedLocalComponentsResult {
+    private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<ResolvedProjectConfiguration>();
+    private final List<TaskDependency> componentBuildDependencies = new ArrayList<TaskDependency>();
+    private final boolean buildProjectDependencies;
+    private ComponentIdentifier rootId;
+
+    public ResolvedLocalComponentsResultGraphVisitor(boolean buildProjectDependencies) {
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     @Override
     public void start(DependencyGraphNode root) {
-        this.root = root;
         this.rootId = root.getOwner().getComponentId();
     }
 
@@ -42,19 +48,52 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
         ComponentIdentifier componentId = resolvedConfiguration.getOwner().getComponentId();
         if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
-            builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration());
-        }
-        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
-        if (resolvedConfiguration != root && configurationMetadata instanceof LocalConfigurationMetadata) {
-            builder.localComponentResolved(componentId, ((LocalConfigurationMetadata) configurationMetadata).getDirectBuildDependencies());
+            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration()));
         }
     }
 
     @Override
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        if (!buildProjectDependencies) {
+            return;
+        }
+
+        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
+        if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
+            return;
+        }
+
+        LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
+
+        // If there is an incoming edge then include the dependencies to build the artifacts of the node
+        for (DependencyGraphEdge edge : resolvedConfiguration.getIncomingEdges()) {
+            if (edge.getFrom().getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
+                // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
+                ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) edge.getFrom().getOwner().getComponentId();
+                if (!incomingId.getBuild().isCurrentBuild()) {
+                    continue;
+                }
+            }
+            componentBuildDependencies.add(localConfigurationMetadata.getArtifactBuildDependencies());
+            break;
+        }
     }
 
     @Override
     public void finish(DependencyGraphNode root) {
+    }
+
+    @Override
+    public void collectArtifactBuildDependencies(Collection<? super TaskDependency> dest) {
+        dest.addAll(componentBuildDependencies);
+    }
+
+    @Override
+    public Iterable<ResolvedProjectConfiguration> getResolvedProjectConfigurations() {
+        return resolvedProjectConfigurations;
+    }
+
+    public ResolvedLocalComponentsResult complete() {
+        return this;
     }
 }

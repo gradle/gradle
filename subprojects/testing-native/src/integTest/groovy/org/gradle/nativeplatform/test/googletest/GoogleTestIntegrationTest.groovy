@@ -17,7 +17,6 @@ package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -31,7 +30,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltDir = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs")
+    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
     def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CppHelloWorldApp()
 

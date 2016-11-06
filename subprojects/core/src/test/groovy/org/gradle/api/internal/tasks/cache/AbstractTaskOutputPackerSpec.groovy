@@ -26,15 +26,15 @@ import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrate
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.TaskPropertySpec
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 @CleanupTestDirectory(fieldName = "tempDir")
 abstract class AbstractTaskOutputPackerSpec extends Specification {
@@ -74,6 +74,11 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
         @Override
         int compareTo(TaskPropertySpec o) {
             propertyName <=> o.propertyName
+        }
+
+        @Override
+        boolean isPartOfCacheKey() {
+            return true
         }
     }
 

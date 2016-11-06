@@ -16,23 +16,52 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 
 
+@CompileStatic
 class PerformanceTestJvmOptions {
     static List<String> customizeJvmOptions(List<String> jvmOptions) {
-        if (!jvmOptions) {
-            jvmOptions = ['-Xms2g', '-Xmx2g']
+        commonJvmOptions(jvmOptions, ['-Xms2g', '-Xmx2g'])
+    }
+
+    // JVM default options for both build JVM and the daemon client (launcher) JVM
+    private static List<String> commonJvmOptions(List<String> originalJvmOptions, List<String> defaultOptions = []) {
+        List<String> jvmOptions
+        if (!originalJvmOptions) {
+            jvmOptions = defaultOptions
         } else {
-            jvmOptions = jvmOptions.collect { it.toString() }
+            jvmOptions = originalJvmOptions.collect { it.toString() }  // makes sure that all elements are java.lang.String instances
         }
         if (!JavaVersion.current().isJava8Compatible() && jvmOptions.count { it.startsWith('-XX:MaxPermSize=') } == 0) {
             jvmOptions << '-XX:MaxPermSize=256m'
         }
+        jvmOptions << '-XX:+PerfDisableSharedMem' // reduce possible jitter caused by slow /tmp
         jvmOptions << '-XX:+AlwaysPreTouch' // force the JVM to initialize heap at startup time to reduce jitter
         jvmOptions << '-XX:BiasedLockingStartupDelay=0' // start using biased locking when the JVM starts up
         jvmOptions << '-XX:CICompilerCount=2' // limit number of JIT compiler threads to reduce jitter
         jvmOptions << '-Dsun.io.useCanonCaches=false' // disable JVM file canonicalization cache since the caching might cause jitter in tests
+
+        if (JavaVersion.current().isJava8Compatible()) {
+            // settings to reduce malloc calls and to reduce native memory fragmentation
+
+            // code cache allocation settings
+            jvmOptions << '-XX:InitialCodeCacheSize=64m'
+            jvmOptions << '-XX:CodeCacheExpansionSize=4m'
+            jvmOptions << '-XX:ReservedCodeCacheSize=256m' // specifying this setting is required if InitialCodeCacheSize is set
+
+            // metaspace allocation settings
+            jvmOptions << '-XX:MetaspaceSize=64m'
+            jvmOptions << '-XX:MinMetaspaceExpansion=4m'
+            jvmOptions << '-XX:MaxMetaspaceExpansion=32m'
+        }
+
         return jvmOptions
+    }
+
+    // JVM options for daemon client (launcher)
+    static List<String> createDaemonClientJvmOptions() {
+        commonJvmOptions(['-Xms512m', '-Xmx512m', '-Xverify:none', '-Xshare:auto'])
     }
 }

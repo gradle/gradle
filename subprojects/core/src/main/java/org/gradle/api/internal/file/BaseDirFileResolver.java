@@ -77,7 +77,7 @@ public class BaseDirFileResolver extends AbstractFileResolver {
 
         if (file == null) {
             throw new IllegalArgumentException(String.format(
-                "Could not convert path to File. path='%s' basedir='%s'", path, baseDir));
+                "Cannot convert path to File. path='%s' basedir='%s'", path, baseDir));
         }
 
         if (!file.isAbsolute()) {

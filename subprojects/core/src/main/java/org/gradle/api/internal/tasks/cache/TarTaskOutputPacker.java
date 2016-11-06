@@ -34,10 +34,10 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 

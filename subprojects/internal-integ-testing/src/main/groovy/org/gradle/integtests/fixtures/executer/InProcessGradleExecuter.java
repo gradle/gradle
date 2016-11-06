@@ -59,6 +59,8 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
@@ -97,6 +99,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
+    }
+
+    public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
     @Override
@@ -164,7 +170,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle doStart() {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder()).start();
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement(), isOutputCapturingEnabled()).start();
     }
 
     private Factory<JavaExecHandleBuilder> getJavaExecBuilder() {
@@ -216,6 +222,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
+            resetTempDirLocation();
             processEnvironment.maybeSetProcessDir(originalUserDir);
             for (String envVar : changedEnvVars) {
                 String oldValue = originalEnv.get(envVar);
@@ -230,6 +237,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
+    private void resetTempDirLocation() {
+        SetSystemProperties.resetTempDirLocation();
+    }
+
     private BuildResult executeBuild(GradleInvocation invocation, StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
@@ -239,6 +250,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
+        resetTempDirLocation();
 
         // TODO: Fix tests that rely on this being set before we process arguments like this...
         StartParameter startParameter = new StartParameter();
@@ -266,11 +278,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildAction action = new ExecuteBuildAction(startParameter);
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext(outputListener, errorListener);
+            startMeasurement();
             actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
             return new BuildResult(null, null);
         } catch (ReportedException e) {
             return new BuildResult(null, e.getCause());
         } finally {
+            stopMeasurement();
             listenerManager.removeListener(listener);
         }
     }

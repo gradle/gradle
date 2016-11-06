@@ -111,7 +111,7 @@ project.logger.debug("debug logging");
     }
 
     private ExecutionResult runUsingCommandLine() {
-        targetDist.executer(temporaryFolder)
+        targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
             .withArgument("--no-daemon") //suppress daemon usage suggestions
             .withBuildJvmOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace

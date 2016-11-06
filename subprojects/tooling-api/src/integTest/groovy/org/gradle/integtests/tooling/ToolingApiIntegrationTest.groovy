@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -168,7 +167,7 @@ allprojects {
             apply plugin: 'application'
 
             repositories {
-                maven { url "${new IntegrationTestBuildContext().libsRepo.toURI()}" }
+                maven { url "${buildContext.libsRepo.toURI()}" }
                 maven { url "https://repo.gradle.org/gradle/repo" }
             }
 

@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.component.Artifact;
 
 /**
@@ -25,5 +26,15 @@ import org.gradle.api.component.Artifact;
  */
 @Incubating
 public interface ArtifactResult {
+    /**
+     * Returns an identifier for this artifact.
+     *
+     * @since 3.3
+     */
+    ComponentArtifactIdentifier getId();
+
+    /**
+     * Returns the type of this artifact.
+     */
     Class<? extends Artifact> getType();
 }

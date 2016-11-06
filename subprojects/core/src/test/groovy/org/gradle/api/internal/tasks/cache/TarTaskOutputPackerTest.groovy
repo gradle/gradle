@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.cache
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)

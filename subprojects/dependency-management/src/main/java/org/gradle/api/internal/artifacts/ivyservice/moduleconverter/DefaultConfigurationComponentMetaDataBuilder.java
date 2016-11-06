@@ -48,8 +48,8 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             configuration.isVisible(),
             configuration.isTransitive(),
             configuration.getAttributes(),
-            configuration.isConsumeOrPublishAllowed(),
-            configuration.isQueryOrResolveAllowed());
+            configuration.isCanBeConsumed(),
+            configuration.isCanBeResolved());
     }
 
     private void addDependencies(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {
