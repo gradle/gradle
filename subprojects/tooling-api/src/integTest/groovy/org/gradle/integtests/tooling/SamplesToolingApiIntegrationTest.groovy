@@ -21,15 +21,12 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
-
-    private IntegrationTestBuildContext buildContext
 
     @UsesSample('toolingApi/eclipse')
     def "can use tooling API to build Eclipse model"() {
@@ -99,7 +96,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         def buildScript = buildFile.text
         def index = buildScript.indexOf('repositories {')
         assert index >= 0
-        buildContext = new IntegrationTestBuildContext()
         buildScript = buildScript.substring(0, index) + """
 repositories {
     maven { url "${buildContext.libsRepo.toURI()}" }
@@ -123,7 +119,6 @@ run {
         def buildScript = buildFile.text
         def index = buildScript.indexOf('publishing {')
         assert index >= 0
-        buildContext = new IntegrationTestBuildContext()
         buildScript = buildScript.substring(0, index) + """
 repositories {
     maven { url "${buildContext.libsRepo.toURI()}" }
@@ -138,7 +133,7 @@ repositories {
 
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {
         try {
-            return new GradleContextualExecuter(distribution, temporaryFolder)
+            return new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
                     .requireGradleDistribution()
                     .inDirectory(dir)
                     .withTasks(task)

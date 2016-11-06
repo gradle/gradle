@@ -102,6 +102,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.addRule(description, ruleAction);
     }
 
+    @Override
+    public Rule addRule(String description, Action<String> ruleAction) {
+        return delegate.addRule(description, ruleAction);
+    }
+
     public Rule addRule(Rule rule) {
         return delegate.addRule(rule);
     }

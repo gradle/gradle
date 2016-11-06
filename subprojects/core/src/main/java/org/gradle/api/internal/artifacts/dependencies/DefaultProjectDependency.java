@@ -70,7 +70,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Deprecated
     public Configuration getProjectConfiguration() {
-        DeprecationLogger.nagUserOfDeprecated("ProjectDependency#getProjectConfiguration()", "There might not be a single matching configuration. Please use ProjectDependency#getDependencyProject().getConfigurations() instead");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ProjectDependency.getProjectConfiguration()");
         return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 
@@ -79,7 +79,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
-        if (declaredConfiguration!=null && !selectedConfiguration.isConsumeOrPublishAllowed()) {
+        if (declaredConfiguration!=null && !selectedConfiguration.isCanBeConsumed()) {
             throw new IllegalArgumentException("Configuration '" + declaredConfiguration+"' cannot be used in a project dependency");
         }
         return selectedConfiguration;

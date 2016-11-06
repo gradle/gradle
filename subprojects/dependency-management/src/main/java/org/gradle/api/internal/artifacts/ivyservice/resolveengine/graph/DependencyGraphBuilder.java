@@ -550,7 +550,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return id.toString();
+            return metaData.getComponentId().getDisplayName();
         }
 
         @Override
@@ -721,7 +721,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return String.format("%s(%s)", id.getId(), id.getConfiguration());
+            return String.format("%s(%s)", moduleRevision, id.getConfiguration());
         }
 
         public boolean isTransitive() {

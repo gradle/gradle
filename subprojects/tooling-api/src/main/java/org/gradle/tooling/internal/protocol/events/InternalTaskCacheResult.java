@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.tooling.internal.protocol.events;
 
-public interface TaskPropertySpec extends Comparable<TaskPropertySpec> {
-    String getPropertyName();
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 3.3
+ */
+public interface InternalTaskCacheResult extends InternalProtocolInterface {
+    boolean isFromCache();
 }

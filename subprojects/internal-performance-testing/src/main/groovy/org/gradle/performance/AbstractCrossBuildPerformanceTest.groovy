@@ -17,6 +17,8 @@
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
@@ -39,7 +41,9 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
 
-    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), RESULT_STORE) {
+    protected final IntegrationTestBuildContext buildContext = new PerformanceTestBuildContext()
+
+    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)

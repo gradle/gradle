@@ -20,6 +20,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.util.GradleVersion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,11 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
+        requireDaemon();
+    }
+
+    public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         requireDaemon();
     }
 

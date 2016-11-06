@@ -117,7 +117,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
                 Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
-                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isConsumeOrPublishAllowed()) {
+                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isCanBeConsumed()) {
                     if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
                         candidateConfigurations.add(dependencyConfiguration);
                     }
@@ -126,7 +126,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (candidateConfigurations.size()==1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + new TreeMap<String, String>(attributes));
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + new TreeMap<String, String>(attributes));
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -134,7 +134,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (toConfiguration == null) {
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
-        if (dependencyConfiguration!=null && !toConfiguration.isConsumeOrPublishAllowed()) {
+        if (dependencyConfiguration!=null && !toConfiguration.isCanBeConsumed()) {
             throw new IllegalArgumentException("Configuration '" + dependencyConfiguration + "' cannot be used in a project dependency");
         }
         ConfigurationMetadata delegate = toConfiguration;
@@ -255,13 +255,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public boolean isConsumeOrPublishAllowed() {
-            return delegate.isConsumeOrPublishAllowed();
+        public boolean isCanBeConsumed() {
+            return delegate.isCanBeConsumed();
         }
 
         @Override
-        public boolean isQueryOrResolveAllowed() {
-            return delegate.isQueryOrResolveAllowed();
+        public boolean isCanBeResolved() {
+            return delegate.isCanBeResolved();
         }
 
         @Override
@@ -315,8 +315,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public TaskDependency getDirectBuildDependencies() {
-            return delegate.getDirectBuildDependencies();
+        public TaskDependency getArtifactBuildDependencies() {
+            return delegate.getArtifactBuildDependencies();
         }
 
         @Override

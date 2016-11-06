@@ -728,12 +728,27 @@ public class DefaultNamedDomainObjectSetTest {
     public void addRuleByClosure() {
         String testPropertyKey = "org.gradle.test.addRuleByClosure";
         String expectedTaskName = "someTaskName";
-        Closure ruleClosure = TestUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', '%s') }",
-                testPropertyKey, expectedTaskName));
-        container.addRule("description", ruleClosure);
+        container.addRule(
+            "description",
+            TestUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', taskName) }", testPropertyKey)));
         container.getRules().get(0).apply(expectedTaskName);
         assertThat(System.getProperty(testPropertyKey), equalTo(expectedTaskName));
-        System.getProperties().remove(testPropertyKey);
+        System.clearProperty(testPropertyKey);
+    }
+
+    @Test
+    public void addRuleByAction() {
+        final String testPropertyKey = "org.gradle.test.addRuleByAction";
+        final String expectedTaskName = "someTaskName";
+        container.addRule("description", new Action<String>() {
+            @Override
+            public void execute(String taskName) {
+                System.setProperty(testPropertyKey, taskName);
+            }
+        });
+        container.getRules().get(0).apply(expectedTaskName);
+        assertThat(System.getProperty(testPropertyKey), equalTo(expectedTaskName));
+        System.clearProperty(testPropertyKey);
     }
 
     private void addRuleFor(final Bean bean) {

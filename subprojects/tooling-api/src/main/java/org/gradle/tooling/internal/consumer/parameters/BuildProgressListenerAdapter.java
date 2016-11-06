@@ -251,8 +251,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static TaskOperationResult toTaskResult(InternalTaskResult result) {
+        boolean fromCache = false;
+        if (result instanceof InternalTaskCacheResult) {
+            fromCache = ((InternalTaskCacheResult)result).isFromCache();
+        }
+
         if (result instanceof InternalTaskSuccessResult) {
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate());
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate(), fromCache);
         } else if (result instanceof InternalTaskSkippedResult) {
             return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
         } else if (result instanceof InternalTaskFailureResult) {

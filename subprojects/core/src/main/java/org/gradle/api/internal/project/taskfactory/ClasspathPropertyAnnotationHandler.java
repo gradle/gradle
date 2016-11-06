@@ -38,7 +38,8 @@ public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHan
                     .withPropertyName(context.getName())
                     .orderSensitive(true)
                     .withSnapshotNormalizationStrategy(ClasspathSnapshotNormalizationStrategy.INSTANCE)
-                    .withSnapshotter(ClasspathSnapshotter.class);
+                    .withSnapshotter(ClasspathSnapshotter.class)
+                    .optional(context.isOptional());
             }
         });
     }

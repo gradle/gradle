@@ -42,7 +42,7 @@ public class IdentityFileResolver extends AbstractFileResolver {
 
         if (file == null) {
             throw new IllegalArgumentException(String.format(
-                "Could not convert path to File. path='%s'", path));
+                "Cannot convert path to File. path='%s'", path));
         }
 
         if (!file.isAbsolute()) {

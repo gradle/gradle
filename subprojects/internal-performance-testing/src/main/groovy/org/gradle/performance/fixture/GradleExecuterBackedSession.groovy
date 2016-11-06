@@ -17,7 +17,10 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 @CompileStatic
@@ -27,9 +30,15 @@ class GradleExecuterBackedSession implements GradleSession {
 
     private final TestDirectoryProvider testDirectoryProvider
 
-    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
+    private final IntegrationTestBuildContext integrationTestBuildContext
+
+    private GradleExecuter executer
+    private GradleExecuter executerForStopping
+
+    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext integrationTestBuildContext) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
+        this.integrationTestBuildContext = integrationTestBuildContext
     }
 
     @Override
@@ -37,45 +46,84 @@ class GradleExecuterBackedSession implements GradleSession {
         cleanup()
     }
 
-
-    Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
-        def runner = createExecuter(invocationInfo, invocationCustomizer, true)
-        return {
-            if (invocation.expectFailure) {
-                runner.runWithFailure()
-            } else {
-                runner.run()
+    Action<MeasuredOperation> runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+        def runner = createExecuter(invocationInfo, invocationCustomizer)
+        return { MeasuredOperation measuredOperation ->
+            runner.withDurationMeasurement(new DurationMeasurementImpl(measuredOperation))
+            try {
+                if (invocation.expectFailure) {
+                    runner.runWithFailure()
+                } else {
+                    runner.run()
+                }
+            } catch (Exception e) {
+                measuredOperation.setException(e)
             }
-        }
+        } as Action<MeasuredOperation>
     }
 
     @Override
     void cleanup() {
-        createExecuter(null, null, false).withTasks().withArgument("--stop").run()
+        if (executerForStopping != null) {
+            try {
+                if (executerForStopping.isUseDaemon()) {
+                    executerForStopping.withTasks().withArguments(['--stop'])
+                    executerForStopping.run()
+                    executerForStopping.stop()
+                }
+                executerForStopping = null
+            } finally {
+                executer?.stop()
+                executer = null
+            }
+        }
     }
 
-    private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
+    private GradleExecuter createExecuter(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
-        def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
+        def createNewExecuter = {
+            invocation.gradleDistribution.executer(testDirectoryProvider, integrationTestBuildContext)
+        }
+        if (executer == null) {
+            executer = createNewExecuter()
+        } else {
+            executer.reset()
+        }
+
+        executer.
             requireOwnGradleUserHomeDir().
+            withReuseUserHomeServices(true).
             requireGradleDistribution().
             requireIsolatedDaemons().
-            expectDeprecationWarning().
+            withFullDeprecationStackTraceDisabled().
             withStackTraceChecksDisabled().
             withArgument('-u').
             inDirectory(invocation.workingDirectory).
-            withTasks(invocation.tasksToRun)
+            withTasks(invocation.tasksToRun).
+            withOutputCapturing(false)
 
-        if (withGradleOpts) {
-            executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
-            executer.withBuildJvmOpts(invocation.jvmOpts)
-        }
+        executer.withBuildJvmOpts(invocation.jvmOpts)
 
         invocation.args.each { executer.withArgument(it) }
 
         if (invocation.useDaemon) {
             executer.requireDaemon()
+        }
+
+        if (executer.isUseDaemon()) {
+            executer.withCommandLineGradleOpts(PerformanceTestJvmOptions.createDaemonClientJvmOptions())
+        } else {
+            // optimize for fast startup time when there is no daemon
+            // also enable Class Data Sharing (cds) when it's a non-daemon JVM
+            executer.withBuildJvmOpts(['-Xverify:none', '-Xshare:auto'])
+        }
+
+        // must make a copy of argument for executer to use for stopping since arguments must match when stopping the daemons
+        // executer instance's reset method gets called after execution and the arguments aren't preserved there
+        if (executerForStopping == null) {
+            executerForStopping = createNewExecuter()
+            executer.copyTo(executerForStopping)
         }
 
         executer

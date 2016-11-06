@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
-import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -481,7 +480,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:check'
 
         then:
-        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug}'
+        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug}'
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -528,7 +527,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug, flavor=free}')
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug, flavor=free}')
     }
 
     /**
@@ -812,85 +811,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':c:fooJar'
     }
 
-    def "context travels down to transitive dependencies with composite builds"() {
-        given:
-        file('settings.gradle') << """
-            include 'a', 'b'
-            includeBuild 'includedBuild'
-        """
-        buildFile << '''
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
-                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
-                    }
-                }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) {
-                    doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
-                    }
-                }
-
-            }
-            project(':b') {
-                configurations.create('default') {
-
-                }
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.0')
-                }
-            }
-        '''
-
-        file('includedBuild/build.gradle') << '''
-
-            group = 'com.acme.external'
-            version = '2.0-SNAPSHOT'
-            configurations {
-                foo.attributes(buildType: 'debug', flavor: 'free')
-                bar.attributes(buildType: 'release', flavor: 'free')
-            }
-            task fooJar(type: Jar) {
-               baseName = 'c-foo'
-            }
-            task barJar(type: Jar) {
-               baseName = 'c-bar'
-            }
-            artifacts {
-                foo fooJar
-                bar barJar
-            }
-        '''
-        file('includedBuild/settings.gradle') << '''
-            rootProject.name = 'external'
-        '''
-
-        when:
-        run ':a:checkDebug'
-
-        then:
-        executedAndNotSkipped ':external:fooJar'
-        notExecuted ':external:barJar'
-
-        when:
-        run ':a:checkRelease'
-
-        then:
-        executedAndNotSkipped ':external:barJar'
-        notExecuted ':external:fooJar'
-    }
-
     def "transitive dependencies selection uses the source configuration attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"
@@ -966,13 +886,13 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of then match the client attributes {buildType=debug, flavor=free}')
+        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of them match the client attributes {buildType=debug, flavor=free}')
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of then match the client attributes {buildType=release, flavor=free}')
+        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of them match the client attributes {buildType=release, flavor=free}')
 
     }
 
@@ -1052,7 +972,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':c:fooJar'
     }
 
-    def "two configuratios can have the same attributes but for different roles"() {
+    def "two configurations can have the same attributes but for different roles"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << '''
@@ -1060,8 +980,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 configurations {
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.forQueryingOrResolvingOnly()
-                    compileFreeRelease.forQueryingOrResolvingOnly()
+                    compileFreeDebug.canBeConsumed = false
+                    compileFreeRelease.canBeConsumed = false
                 }
                 dependencies {
                     compileFreeDebug project(':b')
@@ -1083,8 +1003,8 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     // configurations used when resolving
                     compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
-                    compileFreeDebug.forQueryingOrResolvingOnly()
-                    compileFreeRelease.forQueryingOrResolvingOnly()
+                    compileFreeDebug.canBeConsumed = false
+                    compileFreeRelease.canBeConsumed = false
                     // configurations used when selecting dependencies
                     _compileFreeDebug {
                         attributes(buildType: 'debug', flavor: 'free')
@@ -1122,136 +1042,4 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         notExecuted ':b:fooJar'
     }
 
-    @Unroll("cannot resolve a configuration with role #role at execution time")
-    def "cannot resolve a configuration which is for publishing only at execution time"() {
-        given:
-        buildFile << """
-
-        configurations {
-            internal {
-                $role
-            }
-        }
-        dependencies {
-            internal files('foo.jar')
-        }
-
-        task checkState {
-            doLast {
-                configurations.internal.resolve()
-            }
-        }
-
-        """
-
-        when:
-        fails 'checkState'
-
-        then:
-        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
-
-        where:
-        role << ['forConsumingOrPublishingOnly()', 'asBucket()']
-    }
-
-    @Unroll("cannot resolve a configuration with role #role at configuration time")
-    def "cannot resolve a configuration which is for publishing only at configuration time"() {
-        given:
-        buildFile << """
-
-        configurations {
-            internal {
-                $role
-            }
-        }
-        dependencies {
-            internal files('foo.jar')
-        }
-
-        task checkState(dependsOn: configurations.internal.files) {
-        }
-
-        """
-
-        when:
-        fails 'checkState'
-
-        then:
-        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
-
-        where:
-        role << ['forConsumingOrPublishingOnly()', 'asBucket()']
-    }
-
-    @Unroll("cannot resolve a configuration with role #role using #method")
-    def "cannot resolve a configuration which is for publishing only"() {
-        given:
-        buildFile << """
-
-        configurations {
-            internal {
-                $role
-            }
-        }
-        dependencies {
-            internal files('foo.jar')
-        }
-
-        task checkState {
-            doLast {
-                configurations.internal.$method
-            }
-        }
-
-        """
-
-        when:
-        fails 'checkState'
-
-        then:
-        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
-
-        where:
-        [method, role] << [
-            ['getResolvedConfiguration()', 'getBuildDependencies()', 'getIncoming().getFiles()', 'getIncoming().getResolutionResult()', 'getResolvedConfiguration()'],
-            ['forConsumingOrPublishingOnly()', 'asBucket()']
-        ].combinations()
-    }
-
-    @Unroll("cannot add a dependency on a configuration role #role")
-    def "cannot add a dependency on a configuration not meant to be resolvable"() {
-        given:
-        file('settings.gradle') << 'include "a", "b"'
-        buildFile << """
-        project(':a') {
-            configurations {
-                compile
-            }
-            dependencies {
-                compile project(path: ':b', configuration: 'internal')
-            }
-
-            task check {
-                doLast { configurations.compile.resolve() }
-            }
-        }
-        project(':b') {
-            configurations {
-                internal {
-                    $role
-                }
-            }
-        }
-
-        """
-
-        when:
-        fails 'a:check'
-
-        then:
-        failure.assertHasCause "Configuration 'internal' cannot be used in a project dependency"
-
-        where:
-        role << ['forQueryingOrResolvingOnly()', 'asBucket()']
-    }
 }

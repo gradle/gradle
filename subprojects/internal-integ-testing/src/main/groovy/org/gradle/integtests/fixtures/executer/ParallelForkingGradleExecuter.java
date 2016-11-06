@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
-    public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
-        super(distribution, testDirectoryProvider);
+    public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
     @Override
@@ -47,6 +47,6 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        return new ParallelForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory);
+        return new ParallelForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement(), isOutputCapturingEnabled());
     }
 }

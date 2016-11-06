@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
@@ -44,13 +45,13 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         'org.gradle.performance.db.url': "jdbc:h2:${tmpDir.testDirectory}"
     )
 
-    final buildContext = new IntegrationTestBuildContext();
+    final buildContext = IntegrationTestBuildContext.INSTANCE
     final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(ReporterAndStore)
     final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
-    final currentVersionBase = GradleVersion.current().baseVersion.version
+    final currentBaseVersion = GradleVersion.current().baseVersion.version
 
     def setup() {
         releases.all >> [
@@ -89,7 +90,8 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.testProject == 'test1'
         results.tasks == ['clean', 'build']
         results.args == ['--arg1', '--arg2']
-        runner.gradleOpts.findAll { !it.startsWith('-XX:MaxPermSize=') } == ['-Xmx24']
+        runner.gradleOpts.find { it == '-Xmx24' }
+        runner.gradleOpts.sort(false) == (runner.gradleOpts as Set).sort(false)
         results.daemon
         results.versionUnderTest
         results.jvm
@@ -176,7 +178,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         when:
         System.setProperty('org.gradle.performance.baselines', 'defaults')
-        def results = runner.run()
+        runner.run()
 
         then:
         thrown(IllegalArgumentException)
@@ -205,7 +207,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     def "ignores baseline version if it has the same base as the version under test"() {
         given:
         def runner = runner()
-        runner.targetVersions = ['1.0', currentVersionBase, MOST_RECENT_RELEASE, 'last']
+        runner.targetVersions = ['1.0', currentBaseVersion, MOST_RECENT_RELEASE, 'last']
 
         when:
         def results = runner.run()
@@ -416,7 +418,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases)
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, new PerformanceTestBuildContext())
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory

@@ -26,6 +26,8 @@ import java.io.File;
  */
 public class IntegrationTestBuildContext {
 
+    public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
+
     public TestFile getGradleHomeDir() {
         return file("integTest.gradleHomeDir", null);
     }
@@ -72,7 +74,7 @@ public class IntegrationTestBuildContext {
 
     public TestFile getFatToolingApiJar() {
         TestFile toolingApiShadedJarDir = file("integTest.toolingApiShadedJarDir", "subprojects/tooling-api/build/shaded-jar");
-        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getVersion()));
+        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getBaseVersion().getVersion()));
 
         if (!fatToolingApiJar.exists()) {
             throw new IllegalStateException(String.format("The fat Tooling API JAR file does not exist: %s", fatToolingApiJar.getAbsolutePath()));
@@ -92,13 +94,17 @@ public class IntegrationTestBuildContext {
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
-    private static TestFile file(String propertyName, String defaultFile) {
+    protected static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
             throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
                     propertyName, defaultFile));
         }
         return new TestFile(new File(path));
+    }
+
+    public void configure(GradleExecuter gradleExecuter) {
+        // do nothing by default
     }
 
 }

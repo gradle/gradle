@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 
 import org.gradle.api.tasks.TaskDependency;
 
+import java.util.Collection;
+
 public interface ResolvedLocalComponentsResult {
-    TaskDependency getComponentBuildDependencies();
+    void collectArtifactBuildDependencies(Collection<? super TaskDependency> dest);
     Iterable<ResolvedProjectConfiguration> getResolvedProjectConfigurations();
 }

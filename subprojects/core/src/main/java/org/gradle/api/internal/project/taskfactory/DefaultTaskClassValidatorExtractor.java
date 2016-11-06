@@ -244,7 +244,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public boolean getOptional() {
+        public boolean isOptional() {
             return optional;
         }
 

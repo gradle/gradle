@@ -21,13 +21,23 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.*
+import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
+import org.gradle.testkit.runner.fixtures.Debug
+import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
+import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
@@ -35,7 +45,6 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
 import org.junit.runner.RunWith
-import spock.lang.Shared
 
 import java.lang.annotation.Annotation
 
@@ -52,9 +61,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     public static GradleProvider gradleProvider
     public static boolean debug
     public static boolean crossVersion
-
-    @Shared
-    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties(

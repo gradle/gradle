@@ -212,6 +212,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 return createBuildTask(taskPath, FAILED);
             } else if (isSkipped(result)) {
                 return createBuildTask(taskPath, SKIPPED);
+            } else if (isFromCache(result)) {
+                return createBuildTask(taskPath, FROM_CACHE);
             } else if (isUpToDate(result)) {
                 return createBuildTask(taskPath, UP_TO_DATE);
             }
@@ -233,6 +235,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
         private boolean isUpToDate(TaskOperationResult result) {
             return result instanceof TaskSuccessResult && ((TaskSuccessResult) result).isUpToDate();
+        }
+
+        private boolean isFromCache(TaskOperationResult result) {
+            return result instanceof TaskSuccessResult && ((TaskSuccessResult) result).isFromCache();
         }
     }
 }

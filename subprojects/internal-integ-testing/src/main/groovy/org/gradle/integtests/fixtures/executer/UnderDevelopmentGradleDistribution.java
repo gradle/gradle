@@ -24,9 +24,13 @@ public class UnderDevelopmentGradleDistribution extends AbstractUnderDevelopment
         super();
     }
 
+    public UnderDevelopmentGradleDistribution(IntegrationTestBuildContext buildContext) {
+        super(buildContext);
+    }
+
     @Override
-    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
-        return new GradleContextualExecuter(this, testDirectoryProvider);
+    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        return new GradleContextualExecuter(this, testDirectoryProvider, buildContext);
     }
 }
 

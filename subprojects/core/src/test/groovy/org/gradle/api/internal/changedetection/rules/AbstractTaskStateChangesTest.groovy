@@ -26,8 +26,8 @@ import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrate
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.internal.tasks.properties.TaskInputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.TaskPropertySpec
 import spock.lang.Specification
 
 abstract public class AbstractTaskStateChangesTest extends Specification {
@@ -64,6 +64,11 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
         @Override
         int compareTo(TaskPropertySpec o) {
             return propertyName.compareTo(o.propertyName)
+        }
+
+        @Override
+        boolean isPartOfCacheKey() {
+            return true
         }
     }
 }

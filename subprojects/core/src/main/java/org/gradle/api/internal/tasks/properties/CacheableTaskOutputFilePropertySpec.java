@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
+import org.gradle.api.Nullable;
+
+import java.io.File;
+
+public interface CacheableTaskOutputFilePropertySpec extends TaskOutputFilePropertySpec {
+    enum OutputType {
+        FILE, DIRECTORY
+    }
+
+    @Nullable
+    File getOutputFile();
+    OutputType getOutputType();
 }

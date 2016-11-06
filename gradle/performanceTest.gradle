@@ -141,12 +141,22 @@ performanceTestTasks.all { PerformanceTest task ->
     maxParallelForks = 1
     checks = 'speed'
 
+    // JVM arguments to get more stable performance on the measurements side to minimize the affect of measuring and executing the build on the performance measurement results
+    jvmArgs '-XX:+AlwaysPreTouch', '-XX:BiasedLockingStartupDelay=0', '-XX:CICompilerCount=2', '-Dsun.io.useCanonCaches=false'
+    environment 'MALLOC_ARENA_MAX', '2' // see https://devcenter.heroku.com/articles/tuning-glibc-memory-behavior#what-value-to-choose-for-malloc_arena_max
+
+    // Retain the tmpdir in running performance tests
+    // In CI, the build has java.io.tmpdir set to TeamCity agent's
+    // temp/buildTmp directory that gets cleaned up after the build
+    // completes.
+    systemProperty 'java.io.tmpdir', System.getProperty('java.io.tmpdir')
 
     doFirst {
         // Some performance builds generate a lot of output,
         // that is buffered until the test finishes via GradleExecuter.
         if (System.getProperty('sun.arch.data.model').contains("64")) {
-            jvmArgs '-Xmx4g'
+            minHeapSize = '4g'
+            maxHeapSize = '4g'
         } else {
             println "not increasing JVM heap size due to use of 32bit JVM"
         }
@@ -182,21 +192,29 @@ tasks.withType(DistributedPerformanceTest) {
     buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
     workerTestTaskName = project.findProperty("org.gradle.performance.workerTestTaskName")?:'fullPerformanceTest'
     coordinatorBuildId = project.findProperty("org.gradle.performance.coordinatorBuildId")
+    branchName = project.findProperty("org.gradle.performance.branchName")
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
     teamCityPassword = project.findProperty("teamCityPassword")
+    afterEvaluate { p ->
+      if (branchName) {
+        channel = channel + "-" + branchName
+      }
+    }
 }
 
 task distributedPerformanceTest(type: DistributedPerformanceTest) {
     options {
         excludeCategories 'org.gradle.performance.categories.Experiment'
     }
+    channel = 'commits'
 }
 
 task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
+    channel = 'experiments'
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
