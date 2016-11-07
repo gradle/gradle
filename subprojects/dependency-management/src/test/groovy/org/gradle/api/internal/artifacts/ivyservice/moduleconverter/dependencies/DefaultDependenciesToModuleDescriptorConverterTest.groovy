@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal
+import org.gradle.api.internal.artifacts.AttributeContainerInternal
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
@@ -61,7 +61,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
-        _ * configuration.attributes >> Stub(ConfigurationAttributesInternal)
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * dependencyDescriptorFactory.createDependencyDescriptor("config", _, dependency1) >> dependencyDescriptor1
         1 * dependencyDescriptorFactory.createDependencyDescriptor("config", _, dependency2) >> dependencyDescriptor2
         1 * metaData.addDependency(dependencyDescriptor1)

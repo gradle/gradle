@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
@@ -1410,4 +1411,7 @@ All Artifacts:
             props.tasks ?: []
         )
     }
+
+    interface Flavor extends Named {}
+    interface BuildType extends Named {}
 }

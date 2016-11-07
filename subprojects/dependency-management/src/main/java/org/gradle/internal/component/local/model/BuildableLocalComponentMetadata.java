@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ConfigurationAttributes;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -36,7 +36,7 @@ public interface BuildableLocalComponentMetadata {
      * @param canBeConsumed
      * @param canBeResolved
      */
-    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ConfigurationAttributes attributes, boolean canBeConsumed, boolean canBeResolved);
+    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, AttributeContainer attributes, boolean canBeConsumed, boolean canBeResolved);
 
     /**
      * Adds a dependency to this component. Dependencies are attached to the configuration specified by {@link LocalOriginDependencyMetadata#getModuleConfiguration()} and each of its children.

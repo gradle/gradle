@@ -15,28 +15,29 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ConfigurationAttributes;
+import org.gradle.api.Attribute;
+import org.gradle.api.AttributeContainer;
 
 import java.util.Collections;
 import java.util.Set;
 
-public interface ConfigurationAttributesInternal extends ConfigurationAttributes {
+public interface AttributeContainerInternal extends AttributeContainer {
     /**
      * An immutable empty configuration attributes map.
      */
-    ConfigurationAttributesInternal EMPTY = new ConfigurationAttributesInternal() {
+    AttributeContainerInternal EMPTY = new AttributeContainerInternal() {
         @Override
-        public Set<Key<?>> keySet() {
+        public Set<Attribute<?>> keySet() {
             return Collections.emptySet();
         }
 
         @Override
-        public <T> ConfigurationAttributes attribute(Key<T> key, T value) {
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
             throw new UnsupportedOperationException("Mutation of attributes is not allowed");
         }
 
         @Override
-        public <T> T getAttribute(Key<T> key) {
+        public <T> T getAttribute(Attribute<T> key) {
             return null;
         }
 
@@ -46,12 +47,12 @@ public interface ConfigurationAttributesInternal extends ConfigurationAttributes
         }
 
         @Override
-        public boolean contains(Key<?> key) {
+        public boolean contains(Attribute<?> key) {
             return false;
         }
 
         @Override
-        public ConfigurationAttributes asImmutable() {
+        public AttributeContainer asImmutable() {
             return this;
         }
     };
@@ -61,6 +62,6 @@ public interface ConfigurationAttributesInternal extends ConfigurationAttributes
      * instance for each call.
      * @return an immutable view of this container.
      */
-    ConfigurationAttributes asImmutable();
+    AttributeContainer asImmutable();
 
 }
