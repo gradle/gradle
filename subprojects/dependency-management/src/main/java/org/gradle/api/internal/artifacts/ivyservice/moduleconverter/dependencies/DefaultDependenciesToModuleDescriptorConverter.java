@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
@@ -46,7 +47,8 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
             for (Dependency dependency : configuration.getDependencies()) {
                 if (dependency instanceof ModuleDependency) {
                     ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), configuration.getAttributes().asImmutable(), moduleDependency));
+                    ConfigurationAttributesInternal attributes = (ConfigurationAttributesInternal) configuration.getAttributes();
+                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), attributes.asImmutable(), moduleDependency));
                 } else if (dependency instanceof FileCollectionDependency) {
                     final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                     metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));

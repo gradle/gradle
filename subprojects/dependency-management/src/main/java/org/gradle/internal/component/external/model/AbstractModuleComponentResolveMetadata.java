@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ConfigurationAttributes;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -299,7 +300,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         @Override
         public ConfigurationAttributes getAttributes() {
-            return ConfigurationAttributes.EMPTY;
+            return ConfigurationAttributesInternal.EMPTY;
         }
 
         @Override
