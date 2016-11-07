@@ -109,8 +109,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        AttributeContainer attributes = fromConfiguration.getAttributes();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
+        AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
         if (useConfigurationAttributes) {
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
@@ -118,11 +118,15 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
                 AttributeContainer dependencyAttributeContainer = dependencyConfiguration.getAttributes();
                 if (!dependencyAttributeContainer.isEmpty() && dependencyConfiguration.isCanBeConsumed()) {
-                    Set<Attribute<?>> keys = attributes.keySet();
+                    Set<Attribute<?>> keys = fromConfigurationAttributes.keySet();
                     boolean containsAll = true;
                     for (Attribute<?> key : keys) {
-                        Object value = dependencyAttributeContainer.getAttribute(key);
-                        containsAll &= attributes.getAttribute(key).equals(value);
+                        Object requestedValue = fromConfigurationAttributes.getAttribute(key);
+                        Object candidateValue = dependencyAttributeContainer.getAttribute(key);
+                        containsAll = requestedValue.equals(candidateValue);
+                        if (!containsAll) {
+                            break;
+                        }
                     }
                     if (containsAll) {
                         candidateConfigurations.add(dependencyConfiguration);
@@ -130,9 +134,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 }
             }
             if (candidateConfigurations.size()==1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), fromConfigurationAttributes));
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + attributes);
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of them match the client attributes " + fromConfigurationAttributes);
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -145,7 +149,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         ConfigurationMetadata delegate = toConfiguration;
         if (useConfigurationAttributes) {
-            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, attributes);
+            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
         }
         return ImmutableSet.of(delegate);
     }
