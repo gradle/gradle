@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskCacheResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 
-public class DefaultTaskSuccessResult extends AbstractTaskResult implements InternalTaskSuccessResult, InternalTaskCacheResult {
+public class DefaultTaskSuccessResult extends AbstractTaskResult implements InternalTaskSuccessResult, InternalTaskCachedResult {
     private final boolean upToDate;
     private final boolean fromCache;
 

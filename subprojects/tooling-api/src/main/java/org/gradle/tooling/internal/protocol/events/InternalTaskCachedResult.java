@@ -16,13 +16,11 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 3.3
  */
-public interface InternalTaskCacheResult extends InternalProtocolInterface {
+public interface InternalTaskCachedResult extends InternalTaskResult {
     boolean isFromCache();
 }

@@ -30,25 +30,32 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
         buildFile << """
             apply plugin: 'base'
 
-            task cacheable {
-                def outputFile = new File(buildDir, "output")
-                inputs.file("input")
-                outputs.file(outputFile)
-                outputs.cacheIf { true }
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile
+                File outputFile
 
-                doLast {
-                    outputFile.parentFile.mkdirs()
+                @InputFile
+                File inputFile
+
+                @TaskAction
+                public void makeOutput() {
                     outputFile.text = "done"
                 }
             }
-"""
+
+            task cacheable(type: CustomTask) {
+                inputFile = file("input")
+                outputFile = new File(buildDir, "output")
+            }
+            """
         file("gradle.properties") << """
             org.gradle.cache.tasks=true
-"""
+            """
         file("input").text = "input file"
 
         when:
-        def result = runner('cacheable').forwardOutput().build()
+        def result = runner('cacheable').build()
 
         then:
         result.tasks.collect { it.path } == [':cacheable']
@@ -60,9 +67,9 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
         when:
         file("build").deleteDir()
-        and:
-        result = runner('cacheable').forwardOutput().build()
+        result = runner('cacheable').build()
         then:
+        file("build/output").text == "done"
         result.tasks.collect { it.path } == [':cacheable']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty

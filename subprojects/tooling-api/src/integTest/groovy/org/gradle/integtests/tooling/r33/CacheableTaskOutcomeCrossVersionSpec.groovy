@@ -45,6 +45,16 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
             org.gradle.cache.tasks=true
 """
         file("input").text = "input file"
+
+        // Ensure this test has a separate Gradle user home directory, so no
+        // cache can be shared between runs.
+        // TODO: If we make the local cache directory configurable, we could go back
+        // to a shared daemon and remove this.
+        toolingApi.requireIsolatedToolingApi()
+    }
+
+    def cleanup() {
+        toolingApi.close()
     }
 
     @ToolingApiVersion('>=3.3')
