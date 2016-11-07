@@ -862,7 +862,7 @@
                 </tr>
                 <tr>
                     <td><literal>s3</literal></td>
-                    <td>access key/secret key</td>
+                    <td>access key/secret key/session token or Environment variables</td>
                 </tr>
             </table>
             <para>To define a repository use the <literal>repositories</literal> configuration block. Within the <literal>repositories</literal> closure,
@@ -883,6 +883,12 @@
             </para>
             <sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
+            </sample>
+
+            <para>You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how :
+            </para>
+            <sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
+                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>
             </sample>
 
             <section id="sub:s3_configuration properties">
