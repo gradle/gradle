@@ -36,7 +36,7 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     def serviceRegistry = new DefaultServiceRegistry()
         .add(LocalComponentRegistry, Stub(LocalComponentRegistry))
         .add(IncludedBuildExecuter, Stub(IncludedBuildExecuter))
-        .add(BuildIdentity, new DefaultBuildIdentity(DefaultBuildIdentifier.of("foo")))
+        .add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("foo")))
     private final dependenciesProvider = new IdeaDependenciesProvider(serviceRegistry)
 
     def "no dependencies test"() {
