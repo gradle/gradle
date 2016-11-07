@@ -21,10 +21,10 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Attribute;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -961,8 +961,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             validateMutation(MutationType.ATTRIBUTES);
             assertAttributeConstraints(value, key);
             ensureAttributes();
+            checkInsertionAllowed(key);
             attributes.put(key, value);
             return this;
+        }
+
+        private <T> void checkInsertionAllowed(Attribute<T> key) {
+            for (Attribute<?> attribute : attributes.keySet()) {
+                String name = key.getName();
+                if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
+                    throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
+                        + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
+                        + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
+                }
+            }
         }
 
         @Override
