@@ -46,13 +46,7 @@ ext {
 
     binDistImage = copySpec {
         from("$rootDir/LICENSE")
-        from('src/toplevel') {
-            exclude 'media/**'
-            expand(version: version)
-        }
-        from('src/toplevel') {
-            include 'media/**'
-        }
+        from('src/toplevel')
         from project(':docs').outputs.distDocs
         into('bin') {
             from { project(':launcher').startScripts.outputs.files }
