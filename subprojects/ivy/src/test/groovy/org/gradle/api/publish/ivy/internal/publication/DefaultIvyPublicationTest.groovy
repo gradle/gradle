@@ -299,7 +299,7 @@ class DefaultIvyPublicationTest extends Specification {
     def otherPublication(String name, String org, String module, String revision) {
         def pub = Mock(PublicationInternal)
         pub.name >> name
-        pub.coordinates >> DefaultModuleVersionIdentifier.of(org, module, revision)
+        pub.coordinates >> new DefaultModuleVersionIdentifier(org, module, revision)
         return pub
     }
 }

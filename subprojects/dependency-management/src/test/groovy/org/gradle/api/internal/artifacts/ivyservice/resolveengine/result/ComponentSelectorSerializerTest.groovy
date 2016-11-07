@@ -39,7 +39,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentSelector"() {
         given:
-        ModuleComponentSelector selection = DefaultModuleComponentSelector.of('group-one', 'name-one', 'version-one')
+        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', 'version-one')
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)
@@ -64,7 +64,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes LibraryComponentSelector project #projectPath library #libraryName variant #variant"() {
         given:
-        LibraryComponentSelector selection = DefaultLibraryComponentSelector.of(projectPath, libraryName)
+        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)
 
         when:
         LibraryComponentSelector result = serialize(selection, serializer)

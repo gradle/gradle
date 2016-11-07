@@ -16,8 +16,6 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -27,38 +25,19 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
-    private static final Interner<DefaultProjectComponentIdentifier> CURRENT_INSTANCES_INTERNER = Interners.newWeakInterner();
-    private static final Interner<DefaultProjectComponentIdentifier> OTHER_INSTANCES_INTERNER = Interners.newStrongInterner();
     private final BuildIdentifier buildIdentifier;
     private final String projectPath;
-    private String displayName;
+    private final String displayName;
 
-    private DefaultProjectComponentIdentifier(BuildIdentifier buildIdentifier, String projectPath) {
+    public DefaultProjectComponentIdentifier(BuildIdentifier buildIdentifier, String projectPath) {
         assert buildIdentifier != null : "build cannot be null";
         assert projectPath != null : "project path cannot be null";
         this.buildIdentifier = buildIdentifier;
         this.projectPath = projectPath;
-    }
-
-    public static DefaultProjectComponentIdentifier of(BuildIdentifier buildIdentifier, String projectPath) {
-        DefaultProjectComponentIdentifier instance = new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
-        // BuildIdentifier contains state which isn't part of equals/hashCode
-        // DefaultBuildableCompositeBuildContext.ensureRegistered depends on this state
-        if (buildIdentifier.isCurrentBuild()) {
-            return CURRENT_INSTANCES_INTERNER.intern(instance);
-        } else {
-            return OTHER_INSTANCES_INTERNER.intern(instance);
-        }
-    }
-
-    private String createDisplayName(BuildIdentifier buildIdentifier, String projectPath) {
-        return "project " + fullPath(buildIdentifier, projectPath);
+        displayName = "project " + fullPath(buildIdentifier, projectPath);
     }
 
     public String getDisplayName() {
-        if (displayName == null) {
-            displayName = createDisplayName(buildIdentifier, projectPath);
-        }
         return displayName;
     }
 
@@ -92,7 +71,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     @Override
     public String toString() {
-        return getDisplayName();
+        return displayName;
     }
 
     private static String fullPath(BuildIdentifier build, String projectPath) {
@@ -103,13 +82,13 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     }
 
     public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
-        BuildIdentifier buildIdentifier = DefaultBuildIdentifier.of(build.getName());
-        return of(buildIdentifier, projectPath);
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
+        return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }
 
     public static ProjectComponentIdentifier newProjectId(Project project) {
         BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
-        return of(buildId, project.getPath());
+        return new DefaultProjectComponentIdentifier(buildId, project.getPath());
     }
 
 }

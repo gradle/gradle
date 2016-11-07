@@ -93,7 +93,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     }
 
     private static DefaultModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {
-        return DefaultModuleVersionIdentifier.of(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
+        return new DefaultModuleVersionIdentifier(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
     }
 
     private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
@@ -129,21 +129,21 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
             projectPath = defaultProject;
         }
         String libraryName = projectDependency.getLibraryName();
-        ComponentSelector selector = DefaultLibraryComponentSelector.of(projectPath, libraryName);
-        DefaultModuleVersionSelector requested = DefaultModuleVersionSelector.of(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
+        ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
     private LocalOriginDependencyMetadata binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
         String projectPath = binarySpec.getProjectPath();
         String libraryName = binarySpec.getLibraryName();
-        ComponentSelector selector = DefaultLibraryComponentSelector.of(projectPath, libraryName, binarySpec.getVariant());
-        DefaultModuleVersionSelector requested = DefaultModuleVersionSelector.of(projectPath, libraryName, getId().getVersion());
+        ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
     private ModuleVersionSelector moduleVersionSelectorFrom(ModuleDependencySpec module) {
-        return DefaultModuleVersionSelector.of(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
+        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
     }
 
     /**

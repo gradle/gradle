@@ -30,7 +30,7 @@ class StrictDependencyResultSpecTest extends Specification {
         new StrictDependencyResultSpec(moduleIdentifier).isSatisfiedBy(newDependency("org.foo", "foo-core", "1.0"))
 
         where:
-        moduleIdentifier << [DefaultModuleIdentifier.of('org.foo', 'foo-core')]
+        moduleIdentifier << [new DefaultModuleIdentifier('org.foo', 'foo-core')]
     }
 
     def "knows mismatching dependencies"() {
@@ -38,8 +38,8 @@ class StrictDependencyResultSpecTest extends Specification {
         !new StrictDependencyResultSpec(moduleIdentifier).isSatisfiedBy(newDependency("org.foo", "foo-core", "1.0"))
 
         where:
-        moduleIdentifier << [DefaultModuleIdentifier.of('org.foobar', 'foo-core'),
-                             DefaultModuleIdentifier.of('org.foo', 'foo-coreImpl')]
+        moduleIdentifier << [new DefaultModuleIdentifier('org.foobar', 'foo-core'),
+                             new DefaultModuleIdentifier('org.foo', 'foo-coreImpl')]
     }
 
     def "matches unresolved dependencies"() {
@@ -47,7 +47,7 @@ class StrictDependencyResultSpecTest extends Specification {
         new StrictDependencyResultSpec(moduleIdentifier).isSatisfiedBy(newUnresolvedDependency("org.foo", "foo-core", "5.0"))
 
         where:
-        moduleIdentifier << [DefaultModuleIdentifier.of('org.foo', 'foo-core')]
+        moduleIdentifier << [new DefaultModuleIdentifier('org.foo', 'foo-core')]
     }
 
     def "does not match unresolved dependencies"() {
@@ -55,7 +55,7 @@ class StrictDependencyResultSpecTest extends Specification {
         !new StrictDependencyResultSpec(moduleIdentifier).isSatisfiedBy(newUnresolvedDependency("org.foo", "foo-core", "5.0"))
 
         where:
-        moduleIdentifier << [DefaultModuleIdentifier.of('org.foobar', 'foo-core'),
-                             DefaultModuleIdentifier.of('org.foo', 'foo-coreImpl')]
+        moduleIdentifier << [new DefaultModuleIdentifier('org.foobar', 'foo-core'),
+                             new DefaultModuleIdentifier('org.foo', 'foo-coreImpl')]
     }
 }

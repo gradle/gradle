@@ -117,7 +117,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
         // TODO:Cedric find out why if we use the same ID directly, it fails resolution by trying to get the artifacts
         // from the resolving metadata instead of the resolved metadata
         LibraryBinaryIdentifier id = testBinary.getId();
-        LibraryBinaryIdentifier thisId = DefaultLibraryBinaryIdentifier.of(id.getProjectPath(), id.getLibraryName() + "Test", id.getVariant());
+        LibraryBinaryIdentifier thisId = new DefaultLibraryBinaryIdentifier(id.getProjectPath(), id.getLibraryName() + "Test", id.getVariant());
         return new JvmLibraryResolveContext(thisId,
             DefaultVariantsMetaData.extractFrom(testBinary, schema),
             runtimeDependencies(testBinary),

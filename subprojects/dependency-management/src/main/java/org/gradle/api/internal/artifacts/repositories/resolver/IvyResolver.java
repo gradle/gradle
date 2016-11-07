@@ -77,7 +77,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     @Override
     protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
-        return DefaultIvyArtifactName.of("ivy", "ivy", "xml");
+        return new DefaultIvyArtifactName("ivy", "ivy", "xml");
     }
 
     @Override

@@ -569,7 +569,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         executedTasks == [':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build']
-}
+    }
 
     @Ignore("Re-enable once serious effort have been put to fix this issue")
     @NotYetImplemented
@@ -602,7 +602,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
 
-        executedTasks == [':a'] + (count..0).collect{ ":d_$it" } + [':f']
+        executedTasks == [':a'] + (count..0).collect { ":d_$it" } + [':f']
     }
 
     @NotYetImplemented
@@ -626,5 +626,4 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         thrown(CircularReferenceException)
     }
-
 }

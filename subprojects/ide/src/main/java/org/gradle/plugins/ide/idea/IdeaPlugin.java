@@ -21,11 +21,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.JavaVersion;
+import org.gradle.api.*;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -48,24 +45,12 @@ import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
-import org.gradle.plugins.ide.idea.model.IdeaModel;
-import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
-import org.gradle.plugins.ide.idea.model.IdeaProject;
-import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
-import org.gradle.plugins.ide.idea.model.PathFactory;
-import org.gradle.plugins.ide.idea.model.internal.PathInterner;
+import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
@@ -94,15 +79,14 @@ public class IdeaPlugin extends IdePlugin {
             return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
         }
     };
+
     private final Instantiator instantiator;
-    private final PathInterner pathInterner;
     private IdeaModel ideaModel;
     private List<Project> allJavaProjects;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator, PathInterner pathInterner) {
+    public IdeaPlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.pathInterner = pathInterner;
     }
 
     public IdeaModel getModel() {
@@ -235,7 +219,7 @@ public class IdeaPlugin extends IdePlugin {
             conventionMapping.map("pathFactory", new Callable<PathFactory>() {
                 @Override
                 public PathFactory call() throws Exception {
-                    return new PathFactory(pathInterner).addPathVariable("PROJECT_DIR", task.getOutputFile().getParentFile());
+                    return new PathFactory().addPathVariable("PROJECT_DIR", task.getOutputFile().getParentFile());
                 }
             });
 
@@ -309,7 +293,7 @@ public class IdeaPlugin extends IdePlugin {
         conventionMapping.map("pathFactory", new Callable<PathFactory>() {
             @Override
             public PathFactory call() throws Exception {
-                final PathFactory factory = new PathFactory(pathInterner);
+                final PathFactory factory = new PathFactory();
                 factory.addPathVariable("MODULE_DIR", task.getOutputFile().getParentFile());
                 for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());

@@ -29,7 +29,7 @@ public class BuildIdentifierSerializer implements Serializer<BuildIdentifier> {
     public BuildIdentifier read(Decoder decoder) throws IOException {
         String buildName = decoder.readString();
         boolean current = decoder.readBoolean();
-        return DefaultBuildIdentifier.of(buildName, current);
+        return new DefaultBuildIdentifier(buildName, current);
     }
 
     @Override

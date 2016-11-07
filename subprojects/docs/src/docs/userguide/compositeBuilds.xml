@@ -69,15 +69,13 @@
             <title>Defining a composite build via <literal>settings.gradle</literal></title>
             <para>
                 It's possible to make the above arrangement persistent, by using <apilink class='org.gradle.api.initialization.Settings' method="includeBuild(java.lang.Object)"/> to declare the included build in the <literal>settings.gradle</literal> file.
+                The <literal>settings.gradle</literal> file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
             </para>
-            <sample id="compositeBuilds_basic_settings" dir="compositeBuilds/basic/my-app" title="Declaring a composite via settings.gradle">
-                <sourcefile file="settings-composite.gradle"/>
-            </sample>
         </section>
         <section id="separate_composite">
             <title>Defining a separate composite build</title>
             <para>
-                One downside of the above approach is that it requires you to modify an existing build, rendering it less useful as a standalone build. One way to avoid this is to define a separate composite build, whose onyl purpose is to combine otherwise separate builds.
+                One downside of the above approach is that it requires you to modify an existing build, rendering it less useful as a standalone build. One way to avoid this is to define a separate composite build, whose only purpose is to combine otherwise separate builds.
             </para>
             <sample id="compositeBuilds_basic_composite" dir="compositeBuilds/basic/composite" title="Declaring a separate composite">
                 <sourcefile file="settings.gradle"/>
@@ -193,6 +191,7 @@
                 <listitem><para>Execution of included builds in parallel.</para></listitem>
                 <listitem><para>Detection of changes to included builds when running with continuous build (<literal>-t</literal>).</para></listitem>
                 <listitem><para>Making the implicit <literal>buildSrc</literal> project an included build.</para></listitem>
+                <listitem><para>Supporting composite-of-composite builds.</para></listitem>
             </itemizedlist>
         </para>
     </section>

@@ -389,7 +389,7 @@ public class DefaultMavenPublicationTest extends Specification {
     def otherPublication(String name, String group, String artifactId, String version) {
         def pub = Mock(PublicationInternal)
         pub.name >> name
-        pub.coordinates >> DefaultModuleVersionIdentifier.of(group, artifactId, version)
+        pub.coordinates >> new DefaultModuleVersionIdentifier(group, artifactId, version)
         return pub
     }
 }
