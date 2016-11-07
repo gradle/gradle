@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -64,16 +65,18 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final CacheLockingManager cacheLockingManager;
     private final ResolutionResultsStoreFactory storeFactory;
     private final boolean buildProjectDependencies;
+    private final AttributesSchema attributesSchema;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler, CacheLockingManager cacheLockingManager,
-                                        ResolutionResultsStoreFactory storeFactory, boolean buildProjectDependencies) {
+                                        ResolutionResultsStoreFactory storeFactory, boolean buildProjectDependencies, AttributesSchema attributesSchema) {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
         this.cacheLockingManager = cacheLockingManager;
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = buildProjectDependencies;
+        this.attributesSchema = attributesSchema;
     }
 
     @Override
@@ -85,7 +88,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             public boolean isSatisfiedBy(DependencyMetadata element) {
                 return element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
             }
-        }, new CompositeDependencyGraphVisitor(localComponentsVisitor, fileDependenciesVisitor), new CompositeDependencyArtifactsVisitor());
+        }, new CompositeDependencyGraphVisitor(localComponentsVisitor, fileDependenciesVisitor), new CompositeDependencyArtifactsVisitor(), attributesSchema);
         result.graphResolved(localComponentsVisitor, fileDependenciesVisitor);
     }
 
@@ -111,7 +114,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelBuilder, localComponentsVisitor, fileDependencyVisitor);
         DependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(oldModelVisitor, artifactsBuilder);
 
-        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor);
+        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema);
 
         results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, fileDependencyVisitor);
 

@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -51,22 +52,24 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final BinarySpecInternal binary;
     private final ArtifactDependencyResolver dependencyResolver;
     private final ResolveContext resolveContext;
-    private final String descriptor;
+    private final AttributesSchema attributesSchema;
 
+    private final String descriptor;
     private ResolveResult resolveResult;
 
     public DependencyResolvingClasspath(
-            BinarySpecInternal binarySpec,
-            String descriptor,
-            ArtifactDependencyResolver dependencyResolver,
-            List<ResolutionAwareRepository> remoteRepositories,
-            ResolveContext resolveContext
-            ) {
+        BinarySpecInternal binarySpec,
+        String descriptor,
+        ArtifactDependencyResolver dependencyResolver,
+        List<ResolutionAwareRepository> remoteRepositories,
+        ResolveContext resolveContext,
+        AttributesSchema attributesSchema) {
         this.binary = binarySpec;
         this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
         this.resolveContext = resolveContext;
+        this.attributesSchema = attributesSchema;
     }
 
     @Override
@@ -103,7 +106,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private ResolveResult resolve() {
         ResolveResult result = new ResolveResult();
-        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result);
+        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema);
         return result;
     }
 

@@ -186,7 +186,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 List<ResolutionAwareRepository> resolutionAwareRepositories = collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
                 ModelSchema<? extends BinarySpec> schema = schemaStore.getSchema(((BinarySpecInternal) binary).getPublicType());
                 VariantsMetaData variantsMetaData = DefaultVariantsMetaData.extractFrom(binary, schema);
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories);
+                AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

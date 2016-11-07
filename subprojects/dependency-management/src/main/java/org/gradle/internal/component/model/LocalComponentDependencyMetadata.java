@@ -22,6 +22,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
+import org.gradle.api.AttributeMatchingStrategy;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -31,6 +33,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -107,7 +110,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
@@ -121,9 +124,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     Set<Attribute<?>> keys = fromConfigurationAttributes.keySet();
                     boolean containsAll = true;
                     for (Attribute<?> key : keys) {
-                        Object requestedValue = fromConfigurationAttributes.getAttribute(key);
-                        Object candidateValue = dependencyAttributeContainer.getAttribute(key);
-                        containsAll = requestedValue.equals(candidateValue);
+                        final Object requestedValue = fromConfigurationAttributes.getAttribute(key);
+                        final Object candidateValue = dependencyAttributeContainer.getAttribute(key);
+                        AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(attributesSchema.getMatchingStrategy(key));
+                        containsAll = matchingStrategy.isCompatible(requestedValue, candidateValue);
                         if (!containsAll) {
                             break;
                         }

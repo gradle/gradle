@@ -37,6 +37,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def flavor = Attribute.of(Flavor)
             def buildType = Attribute.of(BuildType)
 
+            AttributeMatchingStrategy ms = { requested, candidate -> requested == candidate }
+            allprojects {
+               configurationAttributesSchema {
+                  setMatchingStrategy(flavor, ms)
+                  setMatchingStrategy(buildType, ms)
+               }
+            }
         '''
     }
 

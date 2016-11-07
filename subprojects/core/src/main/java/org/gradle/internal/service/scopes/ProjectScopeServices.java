@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ClassGenerator;
@@ -48,6 +49,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.RuleBasedPluginApplicator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
+import org.gradle.api.internal.project.DefaultConfigurationAttributesSchema;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
@@ -215,6 +217,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected TypeConverter createTypeConverter(PathToFileResolver fileResolver) {
         return new DefaultTypeConverter(fileResolver);
+    }
+
+    protected AttributesSchema createConfigurationAttributesSchema() {
+        return new DefaultConfigurationAttributesSchema();
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {

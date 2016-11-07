@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.Action;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -73,15 +74,17 @@ public class DependencyGraphBuilder {
     private final ResolveContextToComponentResolver moduleResolver;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
+    private final AttributesSchema attributesSchema;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
-                                  ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter) {
+                                  ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;
         this.conflictHandler = conflictHandler;
         this.edgeFilter = edgeFilter;
+        this.attributesSchema = attributesSchema;
     }
 
     public void resolve(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
@@ -89,7 +92,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter);
+        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
@@ -280,7 +283,7 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            Set<ConfigurationMetadata> targetConfigurations = dependencyMetadata.selectConfigurations(from.moduleRevision.metaData, from.metaData, targetModuleVersion);
+            Set<ConfigurationMetadata> targetConfigurations = dependencyMetadata.selectConfigurations(from.moduleRevision.metaData, from.metaData, targetModuleVersion, resolveState.getAttributesSchema());
             for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
                 ConfigurationNode targetConfigurationNode = resolveState.getConfigurationNode(targetModuleRevision, targetConfiguration);
                 this.targetConfigurations.add(targetConfigurationNode);
@@ -346,13 +349,15 @@ public class DependencyGraphBuilder {
         private final ComponentMetaDataResolver metaDataResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
+        private final AttributesSchema attributesSchema;
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
-                            ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter) {
+                            ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
             this.edgeFilter = edgeFilter;
+            this.attributesSchema = attributesSchema;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootConfigurationNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
@@ -426,6 +431,10 @@ public class DependencyGraphBuilder {
             if (queued.add(configuration)) {
                 queue.addFirst(configuration);
             }
+        }
+
+        public AttributesSchema getAttributesSchema() {
+            return attributesSchema;
         }
     }
 
