@@ -763,7 +763,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
         }
-        if (value.getClass() != attribute.getType()) {
+        if (!attribute.getType().isAssignableFrom(value.getClass())) {
             throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
         }
     }

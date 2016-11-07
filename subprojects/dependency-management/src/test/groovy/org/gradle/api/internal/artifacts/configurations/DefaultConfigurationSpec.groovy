@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.Attribute
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -1346,6 +1347,21 @@ class DefaultConfigurationSpec extends Specification {
         configuration.artifacts.remove(artifact())
         then:
         thrown(InvalidUserDataException)
+    }
+
+    def "can define typed attributes"() {
+        def conf = conf()
+        def flavor = Attribute.of('flavor', Flavor) // give it a name and a type
+        def buildType = Attribute.of(BuildType) // infer the name from the type
+
+        when:
+        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.attribute(buildType, Mock(BuildType){ getName() >> 'release'})
+
+        then:
+        conf.hasAttributes()
+        conf.getAttribute(flavor).name == 'free'
+        conf.getAttribute(buildType).name == 'release'
     }
 
     def dumpString() {

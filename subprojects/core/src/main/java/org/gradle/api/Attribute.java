@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import org.apache.commons.lang.WordUtils;
+
 /**
  * An attribute is a named entity with a type. It is used in conjunction with a {@link AttributeContainer}
  * to provide a type safe container for attributes. This class isn't intended to store the value of an
@@ -40,6 +42,21 @@ public class Attribute<T> implements Named {
      */
     public static <T> Attribute<T> of(String name, Class<T> type) {
         return new Attribute<T>(name, type);
+    }
+
+    /**
+     * Creates a new attribute of  the given type, inferring the name of the attribute from the simple type name.
+     * This method is useful when there's supposely only one attribute of a specific type in a container, so there's
+     * no need to distinguish by name (but the returned type doesn't enforce it_. There's no guarantee that subsequent
+     * calls to this method with the same attributes would either return the same instance or different instances
+     * of {@link Attribute}, so consumers are required to compare the attributes with the {@link #equals(Object)}
+     * method.
+     * @param type the class of the attribute
+     * @param <T> the type of the attribute
+     * @return an attribute with the given name and type
+     */
+    public static <T> Attribute<T> of(Class<T> type) {
+        return of(WordUtils.uncapitalize(type.getSimpleName()), type);
     }
 
     private Attribute(String name, Class<T> type) {
