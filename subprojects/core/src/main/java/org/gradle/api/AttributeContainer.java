@@ -29,6 +29,10 @@ import java.util.Set;
  * similar to a {@link java.util.Map} where the entry is a "typed String" and the value
  * is of the string type. However the set of methods available to the container is
  * much more limited.
+ *
+ * It is not allowed to have two attributes with the same name but different types in
+ * the container.
+ *
  */
 @Incubating
 @HasInternalProtocol

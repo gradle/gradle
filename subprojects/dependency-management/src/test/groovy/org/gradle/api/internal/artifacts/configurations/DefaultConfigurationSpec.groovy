@@ -1364,6 +1364,45 @@ class DefaultConfigurationSpec extends Specification {
         conf.getAttribute(buildType).name == 'release'
     }
 
+    def "cannot define two attributes with the same name but different types"() {
+        def conf = conf()
+        def flavor = Attribute.of(Flavor)
+
+        when:
+        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.attribute('flavor', 'paid')
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
+    }
+
+    def "can overwrite a configuration attribute"() {
+        def conf = conf()
+        def flavor = Attribute.of(Flavor)
+        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'})
+
+        when:
+        conf.attribute(flavor, Mock(Flavor) { getName() >> 'paid'} )
+
+        then:
+        conf.getAttribute(flavor).name == 'paid'
+    }
+
+    def "can have two attributes with the same type but different names"() {
+        def conf = conf()
+        def targetPlatform = Attribute.of('targetPlatform', Platform)
+        def runtimePlatform = Attribute.of('runtimePlatform', Platform)
+
+        when:
+        conf.attribute(targetPlatform, Platform.JAVA6 )
+        conf.attribute(runtimePlatform, Platform.JAVA7)
+
+        then:
+        conf.getAttribute(targetPlatform) == Platform.JAVA6
+        conf.getAttribute(runtimePlatform) == Platform.JAVA7
+    }
+
     def dumpString() {
         when:
         def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
@@ -1430,4 +1469,8 @@ All Artifacts:
 
     interface Flavor extends Named {}
     interface BuildType extends Named {}
+    enum Platform {
+        JAVA6,
+        JAVA7
+    }
 }
