@@ -17,8 +17,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -30,42 +30,8 @@ import java.util.Set;
  * API to read or write attributes.
  */
 @Incubating
+@HasInternalProtocol
 public interface ConfigurationAttributes {
-
-    /**
-     * An immutable empty configuration attributes map.
-     */
-    ConfigurationAttributes EMPTY = new ConfigurationAttributes() {
-        @Override
-        public Set<Key<?>> keySet() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public <T> ConfigurationAttributes attribute(Key<T> key, T value) {
-            throw new UnsupportedOperationException("Mutation of attributes is not allowed");
-        }
-
-        @Override
-        public <T> T getAttribute(Key<T> key) {
-            return null;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public boolean contains(Key<?> key) {
-            return false;
-        }
-
-        @Override
-        public ConfigurationAttributes asImmutable() {
-            return this;
-        }
-    };
 
     /**
      * Returns the set of attribute keys of this container.
@@ -104,13 +70,6 @@ public interface ConfigurationAttributes {
      * @return true if this attribute is found in this container.
      */
     boolean contains(Key<?> key);
-
-    /**
-     * Returns an immutable view of this attribute set. Implementations are not required to return a distinct
-     * instance for each call.
-     * @return an immutable view of this container.
-     */
-    ConfigurationAttributes asImmutable();
 
     /**
      * Represents an attribute key, consisting of a name

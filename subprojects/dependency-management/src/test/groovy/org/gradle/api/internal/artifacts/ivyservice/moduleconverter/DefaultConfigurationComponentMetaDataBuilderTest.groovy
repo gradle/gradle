@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationAttributes
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -43,8 +43,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
     def "adds artifacts from each configuration"() {
         def emptySet = new HashSet<String>()
         def metaData = Mock(BuildableLocalComponentMetadata)
-        def config1 = Stub(Configuration)
-        def config2 = Stub(Configuration)
+        def config1 = config()
+        def config2 = config()
         def artifacts1 = Stub(PublishArtifactSet)
         def artifacts2 = Stub(PublishArtifactSet)
 
@@ -63,6 +63,12 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._
+    }
+
+    private Configuration config() {
+        Stub(Configuration) {
+            getAttributes() >> Stub(ConfigurationAttributesInternal)
+        }
     }
 
     def "adds configurations to ivy module descriptor"() {
@@ -99,7 +105,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         stub.getAllDependencies() >> new DefaultDependencySet("foo",  Mock(Configuration), WrapUtil.toDomainObjectSet(Dependency.class))
         stub.getArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
         stub.getAllArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
-        stub.getAttributes() >> Stub(ConfigurationAttributes)
+        stub.getAttributes() >> Stub(ConfigurationAttributesInternal)
         return stub;
     }
 

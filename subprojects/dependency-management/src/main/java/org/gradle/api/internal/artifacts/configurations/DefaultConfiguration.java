@@ -42,6 +42,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -936,7 +937,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationAttribute<String>(name, String.class);
     }
 
-    private class DefaultConfigurationAttributes implements ConfigurationAttributes {
+    private class DefaultConfigurationAttributes implements ConfigurationAttributesInternal {
 
         private Map<Key<?>, Object> attributes;
 
@@ -986,9 +987,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class ImmutableAttributes implements ConfigurationAttributes {
+    private static class ImmutableAttributes implements ConfigurationAttributesInternal {
 
-        public static final Comparator<Key<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Key<?>>() {
+        private static final Comparator<Key<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Key<?>>() {
             @Override
             public int compare(Key<?> o1, Key<?> o2) {
                 return o1.getName().compareTo(o2.getName());
