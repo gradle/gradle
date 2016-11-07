@@ -19,6 +19,7 @@ package org.gradle.api.internal.project
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
+import org.gradle.api.AttributesSchema
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -132,6 +133,7 @@ class DefaultProjectTest {
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
     ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
     AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
+    AttributesSchema attributesSchema = context.mock(AttributesSchema)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -186,6 +188,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
+            allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -169,7 +170,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ComponentIdentifierFactory componentIdentifierFactory,
                                                        CacheLockingManager cacheLockingManager,
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-                                                       StartParameter startParameter) {
+                                                       StartParameter startParameter,
+                                                       AttributesSchema attributesSchema) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -178,7 +180,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             metadataHandler,
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies()),
+                            startParameter.isBuildProjectDependencies(), attributesSchema),
                         componentIdentifierFactory)
             );
         }

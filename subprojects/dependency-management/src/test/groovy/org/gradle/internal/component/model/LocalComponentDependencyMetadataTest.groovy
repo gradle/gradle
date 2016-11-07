@@ -18,6 +18,8 @@ package org.gradle.internal.component.model
 
 import org.gradle.api.Attribute
 import org.gradle.api.AttributeContainer
+import org.gradle.api.AttributeMatchingStrategy
+import org.gradle.api.AttributesSchema
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -31,6 +33,12 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class LocalComponentDependencyMetadataTest extends Specification {
+    def attributesSchema = Mock(AttributesSchema) {
+        getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
+            isCompatible(_, _) >> { args -> args[0] == args[1] }
+        }
+    }
+
     def "returns this when same version requested"() {
         def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], false, false, true)
 
@@ -63,7 +71,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent) == [toConfig] as Set
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema) == [toConfig] as Set
     }
 
     @Unroll("selects configuration '#expected' from target component")
@@ -97,7 +105,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent)*.name as Set == [expected] as Set
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set == [expected] as Set
 
         where:
         queryAttributes                 | expected
@@ -120,7 +128,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent)
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)
 
         then:
         def e = thrown(ConfigurationNotFoundException)

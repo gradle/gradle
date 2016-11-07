@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -36,10 +37,10 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
     }
 
     @Override
-    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final Spec<? super DependencyMetadata> edgeFilter, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
+    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final Spec<? super DependencyMetadata> edgeFilter, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor, final AttributesSchema attributesSchema) {
         lockingManager.useCache("resolve " + resolveContext, new Runnable() {
             public void run() {
-                resolver.resolve(resolveContext, repositories, metadataHandler, edgeFilter, graphVisitor, artifactsVisitor);
+                resolver.resolve(resolveContext, repositories, metadataHandler, edgeFilter, graphVisitor, artifactsVisitor, attributesSchema);
             }
         });
     }

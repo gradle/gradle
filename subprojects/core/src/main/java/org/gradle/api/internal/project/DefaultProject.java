@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -189,6 +190,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final Path path;
 
+    private final AttributesSchema configurationAttributesSchema;
+
     public DefaultProject(String name,
                           ProjectInternal parent,
                           File projectDir,
@@ -227,6 +230,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
+
+        configurationAttributesSchema = services.get(AttributesSchema.class);
 
         populateModelRegistry(services.get(ModelRegistry.class));
     }
@@ -1078,5 +1083,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
+    }
+
+    @Override
+    public AttributesSchema configurationAttributesSchema(Action<? super AttributesSchema> configureAction) {
+        configureAction.execute(configurationAttributesSchema);
+        return configurationAttributesSchema;
     }
 }

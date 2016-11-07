@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.AttributesSchema
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -28,6 +29,8 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 abstract class DefaultDependencyMetadataTest extends Specification {
+    def attributesSchema = Mock(AttributesSchema)
+
     def requested = newSelector("org", "module", "1.2+")
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
 

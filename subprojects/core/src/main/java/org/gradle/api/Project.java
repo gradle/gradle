@@ -23,16 +23,23 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.*;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -1493,4 +1500,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
+
+    /**
+     * Configures the configuration attributes schema. The action is passed a {@link AttributesSchema} instance.
+     * @param configureAction the configure action
+     * @return the configured schema
+     */
+    @Incubating
+    AttributesSchema configurationAttributesSchema(Action<? super AttributesSchema> configureAction);
 }
