@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ConfigurationAttributes;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;
@@ -53,7 +53,7 @@ public interface ConfigurationMetadata {
 
     boolean isCanBeResolved();
 
-    ConfigurationAttributes getAttributes();
+    AttributeContainer getAttributes();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

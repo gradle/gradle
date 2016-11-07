@@ -20,7 +20,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ConfigurationAttributes;
+import org.gradle.api.Attribute;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -59,11 +60,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean changing;
     private final boolean transitive;
     private final ModuleExclusion exclusions;
-    private final ConfigurationAttributes moduleAttributes;
+    private final AttributeContainer moduleAttributes;
 
     public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
                                             String moduleConfiguration,
-                                            ConfigurationAttributes moduleAttributes,
+                                            AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
@@ -108,19 +109,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        ConfigurationAttributes attributes = fromConfiguration.getAttributes();
+        AttributeContainer attributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
         if (useConfigurationAttributes) {
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
             for (String configurationName : configurationNames) {
                 ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
-                ConfigurationAttributes dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
-                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isCanBeConsumed()) {
-                    Set<ConfigurationAttributes.Key<?>> keys = attributes.keySet();
+                AttributeContainer dependencyAttributeContainer = dependencyConfiguration.getAttributes();
+                if (!dependencyAttributeContainer.isEmpty() && dependencyConfiguration.isCanBeConsumed()) {
+                    Set<Attribute<?>> keys = attributes.keySet();
                     boolean containsAll = true;
-                    for (ConfigurationAttributes.Key<?> key : keys) {
-                        Object value = dependencyConfigurationAttributes.getAttribute(key);
+                    for (Attribute<?> key : keys) {
+                        Object value = dependencyAttributeContainer.getAttribute(key);
                         containsAll &= attributes.getAttribute(key).equals(value);
                     }
                     if (containsAll) {
@@ -240,22 +241,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
         private final LocalConfigurationMetadata delegate;
-        private final ConfigurationAttributes attributes;
+        private final AttributeContainer attributes;
 
-        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, ConfigurationAttributes attributes) {
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, AttributeContainer attributes) {
             if (md instanceof LocalConfigurationMetadata) {
                 return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
             return md;
         }
 
-        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, ConfigurationAttributes attributes) {
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, AttributeContainer attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
         }
 
         @Override
-        public ConfigurationAttributes getAttributes() {
+        public AttributeContainer getAttributes() {
             return attributes;
         }
 

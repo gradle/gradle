@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal
+import org.gradle.api.internal.artifacts.AttributeContainerInternal
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -67,7 +67,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
 
     private Configuration config() {
         Stub(Configuration) {
-            getAttributes() >> Stub(ConfigurationAttributesInternal)
+            getAttributes() >> Stub(AttributeContainerInternal)
         }
     }
 
@@ -105,7 +105,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         stub.getAllDependencies() >> new DefaultDependencySet("foo",  Mock(Configuration), WrapUtil.toDomainObjectSet(Dependency.class))
         stub.getArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
         stub.getAllArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
-        stub.getAttributes() >> Stub(ConfigurationAttributesInternal)
+        stub.getAttributes() >> Stub(AttributeContainerInternal)
         return stub;
     }
 

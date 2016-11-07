@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationAttribute
-import org.gradle.api.artifacts.ConfigurationAttributes
+import org.gradle.api.Attribute
+import org.gradle.api.AttributeContainer
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -153,11 +153,11 @@ class LocalComponentDependencyMetadataTest extends Specification {
         return config
     }
 
-    private ConfigurationAttributes attributes(Map<String, String> src) {
-        Mock(ConfigurationAttributes) {
+    private AttributeContainer attributes(Map<String, String> src) {
+        Mock(AttributeContainer) {
             isEmpty() >> src.isEmpty()
             getAttribute(_) >> { args-> src[args[0].name]}
-            keySet() >> src.keySet().collect { new ConfigurationAttribute(it, String)}
+            keySet() >> src.keySet().collect { new Attribute(it, String)}
         }
     }
 }

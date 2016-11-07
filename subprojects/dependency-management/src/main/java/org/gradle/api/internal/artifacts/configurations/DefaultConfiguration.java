@@ -20,10 +20,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Attribute;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationAttributes;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -42,7 +43,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.artifacts.ConfigurationAttributesInternal;
+import org.gradle.api.internal.artifacts.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -138,7 +139,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
-    private final DefaultConfigurationAttributes configurationAttributes = new DefaultConfigurationAttributes();
+    private final DefaultAttributeContainer configurationAttributes = new DefaultAttributeContainer();
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -758,7 +759,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    private static void assertAttributeConstraints(Object value, ConfigurationAttributes.Key<?> attribute) {
+    private static void assertAttributeConstraints(Object value, Attribute<?> attribute) {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
         }
@@ -769,18 +770,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
 
     @Override
-    public <T> Configuration attribute(ConfigurationAttributes.Key<T> key, T value) {
+    public <T> Configuration attribute(Attribute<T> key, T value) {
         configurationAttributes.attribute(key, value);
         return this;
     }
 
     @Override
-    public ConfigurationAttributes getAttributes() {
+    public AttributeContainer getAttributes() {
         return configurationAttributes;
     }
 
     @Override
-    public <T> T getAttribute(ConfigurationAttributes.Key<T> key) {
+    public <T> T getAttribute(Attribute<T> key) {
         return configurationAttributes.getAttribute(key);
     }
 
@@ -788,16 +789,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public Configuration attributes(Map<?, ?> attributes) {
         for (Map.Entry<?, ?> entry : attributes.entrySet()) {
             Object rawKey = entry.getKey();
-            ConfigurationAttributes.Key<Object> key = Cast.uncheckedCast(asAttribute(rawKey));
+            Attribute<Object> key = Cast.uncheckedCast(asAttribute(rawKey));
             Object value = entry.getValue();
             configurationAttributes.attribute(key, value);
         }
         return this;
     }
 
-    private static ConfigurationAttribute<?> asAttribute(Object rawKey) {
-        if (rawKey instanceof ConfigurationAttribute) {
-            return (ConfigurationAttribute<?>) rawKey;
+    private static Attribute<?> asAttribute(Object rawKey) {
+        if (rawKey instanceof Attribute) {
+            return (Attribute<?>) rawKey;
         }
         return stringAttribute(rawKey.toString());
     }
@@ -933,13 +934,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static ConfigurationAttribute<String> stringAttribute(String name) {
-        return new ConfigurationAttribute<String>(name, String.class);
+    private static Attribute<String> stringAttribute(String name) {
+        return Attribute.of(name, String.class);
     }
 
-    private class DefaultConfigurationAttributes implements ConfigurationAttributesInternal {
+    private class DefaultAttributeContainer implements AttributeContainerInternal {
 
-        private Map<Key<?>, Object> attributes;
+        private Map<Attribute<?>, Object> attributes;
 
         private void ensureAttributes() {
             if (this.attributes == null) {
@@ -948,7 +949,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public Set<Key<?>> keySet() {
+        public Set<Attribute<?>> keySet() {
             if (attributes == null) {
                 return Collections.emptySet();
             }
@@ -956,7 +957,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public <T> ConfigurationAttributes attribute(Key<T> key, T value) {
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
             validateMutation(MutationType.ATTRIBUTES);
             assertAttributeConstraints(value, key);
             ensureAttributes();
@@ -965,7 +966,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public <T> T getAttribute(Key<T> key) {
+        public <T> T getAttribute(Attribute<T> key) {
             return Cast.uncheckedCast(attributes == null ? null : attributes.get(key));
         }
 
@@ -975,11 +976,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public boolean contains(Key<?> key) {
+        public boolean contains(Attribute<?> key) {
             return attributes != null && attributes.containsKey(key);
         }
 
-        public ConfigurationAttributes asImmutable() {
+        public AttributeContainer asImmutable() {
             if (attributes == null) {
                 return EMPTY;
             }
@@ -987,32 +988,32 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class ImmutableAttributes implements ConfigurationAttributesInternal {
+    private static class ImmutableAttributes implements AttributeContainerInternal {
 
-        private static final Comparator<Key<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Key<?>>() {
+        private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
             @Override
-            public int compare(Key<?> o1, Key<?> o2) {
+            public int compare(Attribute<?> o1, Attribute<?> o2) {
                 return o1.getName().compareTo(o2.getName());
             }
         };
-        private final Map<Key<?>, Object> attributes;
+        private final Map<Attribute<?>, Object> attributes;
 
-        private ImmutableAttributes(Map<Key<?>, Object> attributes) {
+        private ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
             this.attributes = attributes;
         }
 
         @Override
-        public Set<Key<?>> keySet() {
+        public Set<Attribute<?>> keySet() {
             return attributes.keySet();
         }
 
         @Override
-        public <T> ConfigurationAttributes attribute(Key<T> key, T value) {
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
             throw new UnsupportedOperationException("Mutation of attributes returned by Configuration#getAttributes() is not allowed");
         }
 
         @Override
-        public <T> T getAttribute(Key<T> key) {
+        public <T> T getAttribute(Attribute<T> key) {
             return Cast.uncheckedCast(attributes.get(key));
         }
 
@@ -1022,19 +1023,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public boolean contains(Key<?> key) {
+        public boolean contains(Attribute<?> key) {
             return attributes.containsKey(key);
         }
 
         @Override
-        public ConfigurationAttributes asImmutable() {
+        public AttributeContainer asImmutable() {
             return this;
         }
 
         @Override
         public String toString() {
             if (attributes != null) {
-                TreeMap<Key<?>, Object> sorted = new TreeMap<Key<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
+                TreeMap<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
                 sorted.putAll(attributes);
                 return sorted.toString();
             }
