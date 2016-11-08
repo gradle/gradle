@@ -20,16 +20,22 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.daemon.WorkerDaemonExecutor;
 import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExecutor<T> {
@@ -37,23 +43,18 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     private final JavaForkOptions javaForkOptions;
     private final Set<File> classpath = Sets.newLinkedHashSet();
     private final Set<String> sharedPackages = Sets.newLinkedHashSet();
-    private Class<? extends T> implementationClass;
+    private final Class<? extends T> implementationClass;
     private Serializable[] params;
 
-    public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver) {
+    public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends T> implementationClass) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaForkOptions = new DefaultJavaForkOptions(fileResolver);
+        this.implementationClass = implementationClass;
     }
 
     @Override
     public WorkerDaemonExecutor<T> classpath(Iterable<File> files) {
         GUtil.addToCollection(classpath, files);
-        return this;
-    }
-
-    @Override
-    public WorkerDaemonExecutor<T> sharedPackages(Iterable<String> packages) {
-        GUtil.addToCollection(sharedPackages, packages);
         return this;
     }
 
@@ -66,12 +67,6 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     @Override
     public JavaForkOptions getForkOptions() {
         return javaForkOptions;
-    }
-
-    @Override
-    public WorkerDaemonExecutor<T> implementationClass(Class<? extends T> implementationClass) {
-        this.implementationClass = implementationClass;
-        return this;
     }
 
     @Override
@@ -126,10 +121,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder) {
         if (visibleClass.getClassLoader() != null) {
-            classpathBuilder.add(ClasspathUtil.getClasspathForClass(visibleClass));
-        }
-        if (GroovyObject.class.isAssignableFrom(visibleClass)) {
-            classpathBuilder.add(ClasspathUtil.getClasspathForClass(GroovyObject.class));
+            classpathBuilder.addAll(ClasspathUtil.getClasspathFiles(visibleClass.getClassLoader()));
         }
 
         if (visibleClass.getPackage() != null) {

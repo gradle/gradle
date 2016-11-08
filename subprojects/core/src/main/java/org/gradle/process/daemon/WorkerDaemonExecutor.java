@@ -37,14 +37,6 @@ public interface WorkerDaemonExecutor<T> {
     WorkerDaemonExecutor<T> classpath(Iterable<File> files);
 
     /**
-     * Adds a set of shared packages to the packages exposed to this daemon process.
-     *
-     * @param packages - the packages to add
-     * @return this builder
-     */
-    WorkerDaemonExecutor<T> sharedPackages(Iterable<String> packages);
-
-    /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
      *
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder
@@ -58,14 +50,6 @@ public interface WorkerDaemonExecutor<T> {
      * @return the {@link JavaForkOptions} of this builder
      */
     JavaForkOptions getForkOptions();
-
-    /**
-     * Sets the implementationClass to use for this builder.
-     *
-     * @param implementationClass - the implementation class to use
-     * @return this builder
-     */
-    WorkerDaemonExecutor<T> implementationClass(Class<? extends T> implementationClass);
 
     /**
      * Sets any initialization parameters to use when constructing an instance of the implementation class.

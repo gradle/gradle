@@ -17,9 +17,11 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -56,6 +58,19 @@ public class ClasspathUtil {
             }
         }.visit(classLoader);
         return implementationClassPath;
+    }
+
+    public static Iterable<File> getClasspathFiles(ClassLoader classLoader) {
+        return CollectionUtils.collect(ClasspathUtil.getClasspath(classLoader), new Transformer<File, URL>() {
+            @Override
+            public File transform(URL url) {
+                try {
+                    return new File(url.toURI());
+                } catch (URISyntaxException e) {
+                    throw new UncheckedException(e);
+                }
+            }
+        });
     }
 
     public static File getClasspathForClass(Class<?> targetClass) {

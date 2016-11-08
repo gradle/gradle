@@ -24,8 +24,7 @@ import org.gradle.util.CollectionUtils;
 public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<Runnable> {
 
     WorkerDaemonRunnableExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends Runnable> implementationClass) {
-        super(workerDaemonFactory, fileResolver);
-        implementationClass(implementationClass);
+        super(workerDaemonFactory, fileResolver, implementationClass);
     }
 
     @Override
