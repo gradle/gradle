@@ -83,6 +83,12 @@ test {
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
+// this is a leftover file from a removed task. Delete it for now
+task deleteBuildReceiptResource(type: Delete) {
+    delete = "$generatedResourcesDir/org/gradle/build-receipt.properties"
+}
+sourceSets.main.output.dir generatedResourcesDir, builtBy: deleteBuildReceiptResource
+
 import org.gradle.build.PluginsManifest
 task pluginsManifest(type: PluginsManifest)
 
