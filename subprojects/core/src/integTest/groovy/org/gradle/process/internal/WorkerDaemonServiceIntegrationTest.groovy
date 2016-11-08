@@ -60,17 +60,23 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             import org.gradle.test.MyRunnable
+            import javax.inject.Inject
+            import org.gradle.process.daemon.WorkerDaemonService
 
             class MyTask extends DefaultTask {
                 def list = []
 
+                @Inject
+                WorkerDaemonService getWorkerDaemons() {
+                    throw new UnsupportedOperationException()
+                }
+
                 @TaskAction
                 void executeTask() {
-                    project.workerDaemons.daemonRunnable()
+                    workerDaemons.daemonRunnable(MyRunnable.class)
                         .forkOptions {
                             it.workingDir(project.projectDir)
                         }
-                        .implementationClass(MyRunnable.class)
                         .params(list.collect { it as String }, new File("${outputFileDirPath}"))
                         .execute()
                 }
@@ -101,6 +107,9 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
+            import javax.inject.Inject
+            import org.gradle.process.daemon.WorkerDaemonService
+
             class MyRunnable implements Runnable {
                 private final List<String> files;
                 private File outputDir;
@@ -129,13 +138,17 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
             class MyTask extends DefaultTask {
                 def list = []
 
+                @Inject
+                WorkerDaemonService getWorkerDaemons() {
+                    throw new UnsupportedOperationException()
+                }
+
                 @TaskAction
                 void executeTask() {
-                    project.workerDaemons.daemonRunnable()
+                    workerDaemons.daemonRunnable(MyRunnable.class)
                         .forkOptions {
                             it.workingDir(project.projectDir)
                         }
-                        .implementationClass(MyRunnable.class)
                         .params(list.collect { it as String }, new File("${outputFileDirPath}"), new Foo())
                         .execute()
                 }
