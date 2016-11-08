@@ -27,17 +27,18 @@ class MissingLocalArtifactMetadataTest extends Specification {
     def file = new File(".")
     def "has useful string representation"() {
         def componentId = Stub(ComponentIdentifier)
+        componentId.displayName >> "<comp>"
 
         expect:
-        def noClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext")
+        def noClassifier = localArtifactIdentifier(componentId, "name", "type", "ext")
         noClassifier.displayName == "name.ext (<comp>)"
         noClassifier.toString() == "name.ext (<comp>)"
 
-        def withClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", 'classifier')
+        def withClassifier = localArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
         withClassifier.displayName == "name-classifier.ext (<comp>)"
         withClassifier.toString() == "name-classifier.ext (<comp>)"
 
-        def noExtension = localArtifactIdentifier(componentId, "<comp>", "name", "type", null, 'classifier')
+        def noExtension = localArtifactIdentifier(componentId, "name", "type", null, 'classifier')
         noExtension.displayName == "name-classifier (<comp>)"
         noExtension.toString() == "name-classifier (<comp>)"
     }
@@ -46,15 +47,15 @@ class MissingLocalArtifactMetadataTest extends Specification {
         def moduleVersion = DefaultModuleVersionIdentifier.newId("group", "module", "version")
         def componentId = DefaultModuleComponentIdentifier.newId(moduleVersion)
 
-        def withClassifier = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier')
-        def same = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier')
-        def differentName = localArtifactIdentifier(componentId, "comp", "2", "type", "ext", 'classifier')
-        def differentType = localArtifactIdentifier(componentId, "comp", "name", "2", "ext", 'classifier')
-        def differentExt = localArtifactIdentifier(componentId, "comp", "name", "type", "2", 'classifier')
-        def differentAttributes = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier-2')
-        def emptyParts = localArtifactIdentifier(componentId, "comp", "name", "type", null)
-        def emptyPartsSame = localArtifactIdentifier(componentId, "comp", "name", "type", null)
-        def differentFile = new MissingLocalArtifactMetadata(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", 'classifier-2'))
+        def withClassifier = localArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
+        def same = localArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
+        def differentName = localArtifactIdentifier(componentId, "2", "type", "ext", 'classifier')
+        def differentType = localArtifactIdentifier(componentId, "name", "2", "ext", 'classifier')
+        def differentExt = localArtifactIdentifier(componentId, "name", "type", "2", 'classifier')
+        def differentAttributes = localArtifactIdentifier(componentId, "name", "type", "ext", 'classifier-2')
+        def emptyParts = localArtifactIdentifier(componentId, "name", "type", null)
+        def emptyPartsSame = localArtifactIdentifier(componentId, "name", "type", null)
+        def differentFile = new MissingLocalArtifactMetadata(componentId, new DefaultIvyArtifactName("name", "type", "ext", 'classifier-2'))
 
         expect:
         withClassifier Matchers.strictlyEqual(same)
@@ -69,7 +70,7 @@ class MissingLocalArtifactMetadataTest extends Specification {
         emptyParts != withClassifier
     }
 
-    def localArtifactIdentifier(def componentId, def displayName, def name, def type, def extension, String classifier = null) {
-        return new MissingLocalArtifactMetadata(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, classifier))
+    def localArtifactIdentifier(def componentId, def name, def type, def extension, String classifier = null) {
+        return new MissingLocalArtifactMetadata(componentId, new DefaultIvyArtifactName(name, type, extension, classifier))
     }
 }

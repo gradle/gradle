@@ -355,7 +355,7 @@ project(":b") {
 
         and:
         failure.assertHasCause("Could not resolve all files for configuration ':b:compile'.")
-        failure.assertHasCause("Could not find b.jar (test:a:unspecified).")
+        failure.assertHasCause("Could not find b.jar (project :a).")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {

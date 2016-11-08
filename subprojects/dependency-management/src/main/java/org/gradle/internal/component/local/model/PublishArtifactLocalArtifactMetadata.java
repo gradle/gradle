@@ -28,13 +28,10 @@ import java.io.File;
 
 public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, Buildable {
     private final ComponentIdentifier componentIdentifier;
-    private final String componentDisplayName;
     private final PublishArtifact publishArtifact;
 
-    // The componentDisplayName parameter is temporary
-    public PublishArtifactLocalArtifactMetadata(ComponentIdentifier componentIdentifier, String componentDisplayName, PublishArtifact publishArtifact) {
+    public PublishArtifactLocalArtifactMetadata(ComponentIdentifier componentIdentifier, PublishArtifact publishArtifact) {
         this.componentIdentifier = componentIdentifier;
-        this.componentDisplayName = componentDisplayName;
         this.publishArtifact = publishArtifact;
     }
 
@@ -42,7 +39,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
         StringBuilder result = new StringBuilder();
         result.append(getName());
         result.append(" (")
-              .append(componentDisplayName)
+              .append(componentIdentifier.getDisplayName())
               .append(")");
         return result.toString();
     }

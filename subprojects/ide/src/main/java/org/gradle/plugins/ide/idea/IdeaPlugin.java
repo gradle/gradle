@@ -147,7 +147,7 @@ public class IdeaPlugin extends IdePlugin {
         File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
         Task byName = project.getTasks().getByName("ideaModule");
         PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
-        return new PublishArtifactLocalArtifactMetadata(projectId, "idea.iml", publishArtifact);
+        return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
     }
 
     private void configureIdeaWorkspace(final Project project) {

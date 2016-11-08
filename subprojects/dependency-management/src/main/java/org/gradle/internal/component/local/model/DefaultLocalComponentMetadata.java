@@ -65,7 +65,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            ComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, componentIdentifier.getDisplayName(), artifact);
+            ComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
             addArtifact(configuration, artifactMetadata);
         }
     }
@@ -320,7 +320,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 }
             }
 
-            return new MissingLocalArtifactMetadata(componentIdentifier, id.toString(), ivyArtifactName);
+            return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
         }
     }
 }
