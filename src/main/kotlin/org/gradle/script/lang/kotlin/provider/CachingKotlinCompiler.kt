@@ -71,7 +71,7 @@ class CachingKotlinCompiler(
                                  compilationSpecFor: (File) -> ScriptCompilationSpec): Class<*> {
         val cacheDir = cacheRepository
             .cache(cacheKeyFor(cacheKeySpec + parentClassLoader))
-            .withProperties(mapOf("version" to "1"))
+            .withProperties(mapOf("version" to "2"))
             .let { if (recompileScripts) it.withValidator { false } else it }
             .withInitializer { cache ->
                 val cacheDir = cache.baseDir
