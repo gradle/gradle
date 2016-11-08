@@ -67,8 +67,8 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
         }
 
         @Override
-        boolean isPartOfCacheKey() {
-            return true
+        boolean isSkipWhenEmpty() {
+            return false
         }
     }
 }

@@ -40,9 +40,6 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "customTask"
 
         where:
-        annotation     | _
-        InputFile      | _
-        InputDirectory | _
-        InputFiles     | _
+        annotation << [ InputFile, InputDirectory, InputFiles ]
     }
 }

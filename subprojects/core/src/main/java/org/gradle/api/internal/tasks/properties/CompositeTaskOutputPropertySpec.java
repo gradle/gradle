@@ -27,13 +27,13 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class CompositePropertySpec extends BasePropertySpec implements Iterable<CacheableTaskOutputFilePropertySpec> {
+public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements Iterable<CacheableTaskOutputFilePropertySpec> {
 
     private final CacheableTaskOutputFilePropertySpec.OutputType outputType;
     private final Callable<Map<?, ?>> paths;
     private final FileResolver resolver;
 
-    public CompositePropertySpec(TaskOutputs taskOutputs, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Callable<Map<?, ?>> paths) {
+    public CompositeTaskOutputPropertySpec(TaskOutputs taskOutputs, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Callable<Map<?, ?>> paths) {
         super(taskOutputs);
         this.resolver = resolver;
         this.outputType = outputType;
@@ -54,15 +54,10 @@ public class CompositePropertySpec extends BasePropertySpec implements Iterable<
                     Map.Entry<?, ?> entry = iterator.next();
                     String id = entry.getKey().toString();
                     File file = resolver.resolve(entry.getValue());
-                    return new ElementPropertySpec(CompositePropertySpec.this, "." + id, file);
+                    return new DefaultTaskOutputFilePropertySpec(CompositeTaskOutputPropertySpec.this, "." + id, file);
                 }
                 return endOfData();
             }
         };
-    }
-
-    @Override
-    public boolean isPartOfCacheKey() {
-        return true;
     }
 }

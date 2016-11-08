@@ -16,6 +16,5 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public interface TaskPropertySpec extends Comparable<TaskPropertySpec> {
-    String getPropertyName();
+public interface TaskInputPropertySpecAndBuilder extends TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
 }

@@ -20,10 +20,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskOutputs;
 
-public class NonCacheablePropertySpec extends BasePropertySpec implements TaskOutputFilePropertySpec {
-    private final TaskPropertyFileCollection files;
+public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements TaskOutputFilePropertySpec {
+    private final FileCollection files;
 
-    public NonCacheablePropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, Object paths) {
+    public NonCacheableTaskOutputPropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, Object paths) {
         super(taskOutputs);
         this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
     }
@@ -31,10 +31,5 @@ public class NonCacheablePropertySpec extends BasePropertySpec implements TaskOu
     @Override
     public FileCollection getPropertyFiles() {
         return files;
-    }
-
-    @Override
-    public boolean isPartOfCacheKey() {
-        return false;
     }
 }

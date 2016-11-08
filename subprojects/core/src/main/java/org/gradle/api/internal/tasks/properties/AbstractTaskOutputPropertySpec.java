@@ -32,12 +32,12 @@ import org.gradle.util.DeprecationLogger;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 
-abstract class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder, TaskOutputFilePropertyBuilder {
+abstract class AbstractTaskOutputPropertySpec extends AbstractTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private final TaskOutputs taskOutputs;
     private boolean optional;
     private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
-    protected BasePropertySpec(TaskOutputs taskOutputs) {
+    protected AbstractTaskOutputPropertySpec(TaskOutputs taskOutputs) {
         this.taskOutputs = taskOutputs;
     }
 

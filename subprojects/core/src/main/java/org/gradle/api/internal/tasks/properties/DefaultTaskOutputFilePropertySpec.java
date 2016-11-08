@@ -28,13 +28,13 @@ import java.util.Collections;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 
-class ElementPropertySpec implements CacheableTaskOutputFilePropertySpec {
-    private final CompositePropertySpec parentProperty;
+class DefaultTaskOutputFilePropertySpec implements CacheableTaskOutputFilePropertySpec {
+    private final CompositeTaskOutputPropertySpec parentProperty;
     private final String propertySuffix;
     private final FileCollection files;
     private final File file;
 
-    public ElementPropertySpec(CompositePropertySpec parentProperty, String propertySuffix, File file) {
+    public DefaultTaskOutputFilePropertySpec(CompositeTaskOutputPropertySpec parentProperty, String propertySuffix, File file) {
         this.parentProperty = parentProperty;
         this.propertySuffix = propertySuffix;
         this.files = new SimpleFileCollection(Collections.singleton(file));
@@ -44,11 +44,6 @@ class ElementPropertySpec implements CacheableTaskOutputFilePropertySpec {
     @Override
     public String getPropertyName() {
         return parentProperty.getPropertyName() + propertySuffix;
-    }
-
-    @Override
-    public boolean isPartOfCacheKey() {
-        return true;
     }
 
     @Override

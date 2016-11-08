@@ -30,10 +30,10 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.properties.CacheablePropertySpec;
+import org.gradle.api.internal.tasks.properties.DefaultCacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
-import org.gradle.api.internal.tasks.properties.CompositePropertySpec;
-import org.gradle.api.internal.tasks.properties.NonCacheablePropertySpec;
+import org.gradle.api.internal.tasks.properties.CompositeTaskOutputPropertySpec;
+import org.gradle.api.internal.tasks.properties.NonCacheableTaskOutputPropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskOutputPropertySpecAndBuilder;
@@ -104,7 +104,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public boolean isCacheAllowed() {
         for (TaskPropertySpec spec : filePropertiesInternal) {
-            if (spec instanceof NonCacheablePropertySpec) {
+            if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return false;
             }
         }
@@ -152,8 +152,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterable<? extends TaskOutputFilePropertySpec>>() {
                     @Override
                     public Iterable<? extends TaskOutputFilePropertySpec> apply(TaskPropertySpec propertySpec) {
-                        if (propertySpec instanceof CompositePropertySpec) {
-                            return (CompositePropertySpec) propertySpec;
+                        if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
+                            return (CompositeTaskOutputPropertySpec) propertySpec;
                         } else {
                             return Collections.singleton((TaskOutputFilePropertySpec) propertySpec);
                         }
@@ -170,7 +170,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CacheablePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.FILE, path));
+                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.FILE, path));
             }
         });
     }
@@ -180,7 +180,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CacheablePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.DIRECTORY, path));
+                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.DIRECTORY, path));
             }
         });
     }
@@ -190,7 +190,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.namedFiles(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.FILE, paths));
+                return addSpec(new CompositeTaskOutputPropertySpec(DefaultTaskOutputs.this, resolver, OutputType.FILE, paths));
             }
         });
     }
@@ -201,7 +201,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
-                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.FILE, callable));
+                return addSpec(new CompositeTaskOutputPropertySpec(DefaultTaskOutputs.this, resolver, OutputType.FILE, callable));
             }
         });
     }
@@ -211,7 +211,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.namedDirectories(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.DIRECTORY, paths));
+                return addSpec(new CompositeTaskOutputPropertySpec(DefaultTaskOutputs.this, resolver, OutputType.DIRECTORY, paths));
             }
         });
     }
@@ -222,7 +222,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
-                return addSpec(new CompositePropertySpec(DefaultTaskOutputs.this, resolver, OutputType.DIRECTORY, callable));
+                return addSpec(new CompositeTaskOutputPropertySpec(DefaultTaskOutputs.this, resolver, OutputType.DIRECTORY, callable));
             }
         });
     }
@@ -232,7 +232,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new NonCacheablePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, paths));
+                return addSpec(new NonCacheableTaskOutputPropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, paths));
             }
         });
     }

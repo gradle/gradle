@@ -34,7 +34,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
-public class InputPropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
+public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder implements TaskInputPropertySpecAndBuilder {
 
     private final TaskInputs taskInputs;
     private final TaskPropertyFileCollection files;
@@ -44,7 +44,7 @@ public class InputPropertySpec extends AbstractTaskPropertyBuilder implements Ta
     private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
-    public InputPropertySpec(TaskInputs taskInputs, String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
+    public DefaultTaskInputPropertySpec(TaskInputs taskInputs, String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
         this.taskInputs = taskInputs;
         this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
         this.skipWhenEmpty = skipWhenEmpty;
@@ -217,10 +217,5 @@ public class InputPropertySpec extends AbstractTaskPropertyBuilder implements Ta
     @Override
     public int compareTo(TaskPropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
-    }
-
-    @Override
-    public boolean isPartOfCacheKey() {
-        return true;
     }
 }

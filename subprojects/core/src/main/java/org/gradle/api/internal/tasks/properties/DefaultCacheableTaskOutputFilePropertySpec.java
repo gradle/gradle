@@ -23,13 +23,13 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
-public class CacheablePropertySpec extends BasePropertySpec implements CacheableTaskOutputFilePropertySpec {
+public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec {
     private final TaskPropertyFileCollection files;
     private final OutputType outputType;
     private final FileResolver resolver;
     private final Object path;
 
-    public CacheablePropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, OutputType outputType, Object path) {
+    public DefaultCacheableTaskOutputFilePropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, OutputType outputType, Object path) {
         super(taskOutputs);
         this.resolver = resolver;
         this.outputType = outputType;
@@ -54,14 +54,5 @@ public class CacheablePropertySpec extends BasePropertySpec implements Cacheable
     @Override
     public OutputType getOutputType() {
         return outputType;
-    }
-
-    @Override
-    public boolean isPartOfCacheKey() {
-        if (isOptional()) {
-            return getOutputFile() != null;
-        } else {
-            return true;
-        }
     }
 }
