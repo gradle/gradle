@@ -208,4 +208,80 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         notExecuted ':b:fooJar', ':b:barJar'
 
     }
+
+    def "cannot select best compatible match when multiple best matches are possible"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+               configurationAttributesSchema {
+                  setMatchingStrategy(flavor, [
+                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
+                    selectClosestMatch: { requested, candidates ->
+                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
+                    }
+                  ] as AttributeMatchingStrategy)
+               }
+            }
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeRelease.attributes($freeRelease)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                        attributes((buildType): BuildType.debug, (flavor): Flavor.of("FREE"))
+                    }
+                    foo2 {
+                        attributes($freeDebug)
+                    }
+                    foo3 {
+                        attributes($freeDebug)
+                    }
+                    bar {
+                        attributes($freeRelease)
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'b-foo2'
+                }
+                task foo3Jar(type: Jar) {
+                   baseName = 'b-foo3'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    foo2 foo2Jar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause("Cannot choose between the following configurations: [foo2, foo3]. All of them match the client attributes {buildType=debug, flavor=free}")
+
+    }
 }
