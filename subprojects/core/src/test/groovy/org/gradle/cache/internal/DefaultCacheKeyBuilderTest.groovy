@@ -125,6 +125,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def string = 's'
+        def stringHash = 42G
         def file = new File('f')
         def fileHash = 51G
         def hasher = Mock(Hasher)
@@ -135,8 +136,9 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
         then:
         1 * hashFunction.newHasher() >> hasher
-        1 * hasher.putString(string, Charsets.UTF_8) >> hasher
+        1 * hashFunction.hashString(string, Charsets.UTF_8) >> hashCodeFrom(stringHash)
         1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
+        1 * hasher.putBytes(stringHash.toByteArray())
         1 * hasher.putBytes(fileHash.toByteArray())
         1 * hasher.hash() >> hashCodeFrom(combinedHash)
         0 * _
