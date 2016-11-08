@@ -54,21 +54,21 @@ class CachingKotlinCompiler(
         val buildscript = scriptFile.readText().substring(buildscriptRange)
         return compileWithCache(cacheKeyPrefix + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
-                buildscriptSectionFileFor(buildscript, cacheDir),
                 KotlinBuildScriptSection::class,
+                buildscriptSectionFileFor(buildscript, cacheDir),
                 scriptFile.name + " buildscript block")
         }
     }
 
     fun compileBuildScript(scriptFile: File, classPath: ClassPath, parentClassLoader: ClassLoader): Class<*> =
         compileWithCache(cacheKeyPrefix + scriptFile, classPath, parentClassLoader) {
-            ScriptCompilationSpec(scriptFile, KotlinBuildScript::class, scriptFile.name)
+            ScriptCompilationSpec(KotlinBuildScript::class, scriptFile, scriptFile.name)
         }
 
     private fun compileWithCache(cacheKeySpec: CacheKeySpec,
                                  classPath: ClassPath,
                                  parentClassLoader: ClassLoader,
-                                 compilationSpecFrom: (File) -> ScriptCompilationSpec): Class<*> {
+                                 compilationSpecFor: (File) -> ScriptCompilationSpec): Class<*> {
         val cacheDir = cacheRepository
             .cache(cacheKeyFor(cacheKeySpec + parentClassLoader))
             .withProperties(mapOf("version" to "1"))
@@ -76,7 +76,7 @@ class CachingKotlinCompiler(
             .withInitializer { cache ->
                 val cacheDir = cache.baseDir
                 val scriptClass =
-                    compileTo(classesDirOf(cacheDir), compilationSpecFrom(cacheDir), classPath, parentClassLoader)
+                    compileTo(classesDirOf(cacheDir), compilationSpecFor(cacheDir), classPath, parentClassLoader)
                 writeClassNameTo(cacheDir, scriptClass.name)
             }.open().run {
                 close()
@@ -85,7 +85,7 @@ class CachingKotlinCompiler(
         return loadClassFrom(classesDirOf(cacheDir), readClassNameFrom(cacheDir), parentClassLoader)
     }
 
-    data class ScriptCompilationSpec(val scriptFile: File, val scriptTemplate: KClass<out Any>, val description: String)
+    data class ScriptCompilationSpec(val scriptTemplate: KClass<out Any>, val scriptFile: File, val description: String)
 
     private fun compileTo(outputDir: File,
                           spec: ScriptCompilationSpec,
