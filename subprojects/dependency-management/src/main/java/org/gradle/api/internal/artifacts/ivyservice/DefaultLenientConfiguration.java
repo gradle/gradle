@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -302,6 +304,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
 
     private static class ResolvedArtifactCollectingVisitor extends Visitor {
         private final Collection<? super ResolvedArtifactResult> artifacts;
+        private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
+        private final Set<File> seenFiles = new HashSet<File>();
         private final List<Throwable> failures = new ArrayList<Throwable>();
 
         ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
@@ -312,7 +316,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         void visitArtifacts(Set<ResolvedArtifact> artifacts) {
             for (ResolvedArtifact artifact : artifacts) {
                 try {
-                    this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, artifact.getFile()));
+                    if (seenArtifacts.add(artifact.getId())) {
+                        // Trigger download of file, if required
+                        File file = artifact.getFile();
+                        this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, file));
+                    }
                 } catch (Throwable t) {
                     failures.add(t);
                 }
@@ -328,7 +336,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         void visitFiles(FileCollection fileCollection) {
             try {
                 for (File file : fileCollection) {
-                    artifacts.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(file.getName()), Artifact.class, file));
+                    if (seenFiles.add(file)) {
+                        artifacts.add(new DefaultResolvedArtifactResult(new OpaqueComponentArtifactIdentifier(file.getName()), Artifact.class, file));
+                    }
                 }
             } catch (Throwable t) {
                 failures.add(t);

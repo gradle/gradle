@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-//@RunWith(FluidDependenciesResolveRunner)
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -36,8 +35,7 @@ allprojects {
 """
     }
 
-    @Unroll
-    def "result includes files from local and external components and file dependencies in a fixed order using #expression"() {
+    def "result includes files from local and external components and file dependencies in a fixed order"() {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
 
@@ -78,7 +76,14 @@ project(':b') {
 
 task show {
     doLast {
-        println "files: " + ${expression}.collect { it.name }
+        println "files 1: " + configurations.compile.incoming.files.collect { it.name }
+        println "files 2: " + configurations.compile.files.collect { it.name }
+        println "files 3: " + configurations.compile.resolve().collect { it.name }
+        println "files 4: " + configurations.compile.files { true }.collect { it.name }
+        println "files 5: " + configurations.compile.fileCollection { true }.collect { it.name }
+        println "files 6: " + configurations.compile.fileCollection { true }.files.collect { it.name }
+        println "files 7: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
+        println "files 8: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
     }
 }
 """
@@ -87,17 +92,15 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
-
-        where:
-        expression                                                                            | _
-        "configurations.compile.incoming.files"                                               | _
-        "configurations.compile.files"                                                        | _
-        "configurations.compile.resolve()"                                                    | _
-//        "configurations.compile.files { true }"                                               | _
-//        "configurations.compile.fileCollection { true }"                                      | _
-//        "configurations.compile.resolvedConfiguration.getFiles { true }"                      | _
-//        "configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }" | _
+        outputContains("files 1: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("files 2: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("files 3: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        // Note: the filtered views order files differently. This is documenting existing behaviour rather than necessarily desired behaviour
+        outputContains("files 4: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 5: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 6: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 7: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 8: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
     }
 
     @Unroll

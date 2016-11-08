@@ -37,7 +37,7 @@ allprojects {
 """
     }
 
-    def "result includes artifacts from local and external components and file dependencies"() {
+    def "result includes artifacts from local and external components and file dependencies in fixed order"() {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
 
