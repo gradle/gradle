@@ -17,6 +17,7 @@
 package org.gradle.script.lang.kotlin
 
 import groovy.lang.Closure
+import org.gradle.internal.Cast.uncheckedCast
 
 /**
  * Adapts a Kotlin function to a single argument Groovy [Closure].
@@ -41,7 +42,7 @@ fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
 fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
     object : groovy.lang.Closure<Unit>(this, this) {
         @Suppress("unused") // to be called dynamically by Groovy
-        fun doCall() = (delegate as T).action()
+        fun doCall() = uncheckedCast<T>(delegate).action()
     }
 
 /**
