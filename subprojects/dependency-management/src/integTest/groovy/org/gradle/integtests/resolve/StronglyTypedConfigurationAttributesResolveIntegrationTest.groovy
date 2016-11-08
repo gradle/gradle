@@ -38,7 +38,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def buildType = Attribute.of(BuildType)
 
             AttributeMatchingStrategy ms = { requested, candidate -> requested == candidate }
-            allprojects {
+            project(':a') {
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, ms)
                   setMatchingStrategy(buildType, ms)
