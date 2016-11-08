@@ -20,6 +20,7 @@ import org.gradle.api.Attribute
 import org.gradle.api.AttributeContainer
 import org.gradle.api.AttributeMatchingStrategy
 import org.gradle.api.AttributesSchema
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -155,6 +156,105 @@ class LocalComponentDependencyMetadataTest extends Specification {
         exclusions.is(dep.getExclusions(configuration("other", "from")))
     }
 
+    @Unroll("can select a compatible attribute value (#scenario)")
+    def "can select a compatible attribute value"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConfigurationNames() >> ['foo', 'bar']
+        }
+        def fromConfig = Stub(LocalConfigurationMetadata) {
+            getAttributes() >> attributes(queryAttributes)
+        }
+        fromConfig.hierarchy >> ["from"]
+        def defaultConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'default'
+        }
+        def toFooConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'foo'
+            getAttributes() >> attributes(key: 'something')
+            isCanBeConsumed() >> true
+        }
+        def toBarConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'bar'
+            getAttributes() >> attributes(key: 'something else')
+            isCanBeConsumed() >> true
+        }
+
+        def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
+            getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
+                isCompatible(_, _) >> { requested, candidate ->
+                    if (candidate == 'something') {
+                        return false // simulate never compatible
+                    }
+                    requested == candidate || // simulate exact match
+                        (requested == 'other' && candidate == 'something else') // simulate compatible match
+                }
+            }
+        }
+
+        given:
+        toComponent.getConfiguration("default") >> defaultConfig
+        toComponent.getConfiguration("foo") >> toFooConfig
+        toComponent.getConfiguration("bar") >> toBarConfig
+
+        expect:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
+
+        where:
+        scenario                     | queryAttributes                 | expected
+        'never compatible'           | [key: 'something']              | 'default'
+        'exact match'                | [key: 'something else']         | 'bar'
+        'compatible value'           | [key: 'other']                  | 'bar'
+        'wrong number of attributes' | [key: 'something', extra: 'no'] | 'default'
+    }
+
+    def "matcher failure"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConfigurationNames() >> ['foo', 'bar']
+        }
+        def fromConfig = Stub(LocalConfigurationMetadata) {
+            getAttributes() >> attributes(key: 'something')
+        }
+        fromConfig.hierarchy >> ["from"]
+        def defaultConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'default'
+        }
+        def toFooConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'foo'
+            getAttributes() >> attributes(key: 'something')
+            isCanBeConsumed() >> true
+        }
+        def toBarConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'bar'
+            getAttributes() >> attributes(key: 'something else')
+            isCanBeConsumed() >> true
+        }
+
+        def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
+            getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
+                isCompatible(_, _) >> { requested, candidate ->
+                    throw new RuntimeException('oh noes!')
+                }
+                toString() >> 'DummyMatcher'
+            }
+        }
+
+        given:
+        toComponent.getConfiguration("default") >> defaultConfig
+        toComponent.getConfiguration("foo") >> toFooConfig
+        toComponent.getConfiguration("bar") >> toBarConfig
+
+        when:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
+
+        then:
+        def e = thrown(GradleException)
+        e.message.startsWith("Unexpected error thrown when trying to match attribute values with DummyMatcher")
+    }
+
     def configuration(String name, String... parents) {
         def config = Stub(ConfigurationMetadata)
         config.hierarchy >> ([name] as Set) + (parents as Set)
@@ -164,8 +264,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
     private AttributeContainer attributes(Map<String, String> src) {
         Mock(AttributeContainer) {
             isEmpty() >> src.isEmpty()
-            getAttribute(_) >> { args-> src[args[0].name]}
-            keySet() >> src.keySet().collect { new Attribute(it, String)}
+            getAttribute(_) >> { args -> src[args[0].name] }
+            keySet() >> src.keySet().collect { Attribute.of(it, String) }
         }
     }
 }
