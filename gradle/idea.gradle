@@ -185,6 +185,20 @@ idea {
                   type(id: 'android')
                   type(id: 'web')
                 })
+
+                def buildSrcModuleFile = 'buildSrc/buildSrc.iml'
+                if (file(buildSrcModuleFile).exists()) {
+                    def projects = node.component.find { it.@name == 'ProjectModuleManager' }
+                    if (projects) {
+                        def buildSrc = projects.modules.module.find { it.@filepath.contains('buildSrc') }
+                        if (!buildSrc) {
+                            projects.modules.find().appendNode('module', [
+                                fileurl: "file://\$PROJECT_DIR\$/${buildSrcModuleFile}",
+                                filepath: "\$PROJECT_DIR\$/${buildSrcModuleFile}"
+                            ])
+                        }
+                    }
+                }
             }
         }
     }
