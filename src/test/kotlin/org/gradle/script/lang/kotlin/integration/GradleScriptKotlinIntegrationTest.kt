@@ -312,6 +312,20 @@ class GradleScriptKotlinIntegrationTest {
             containsString("url: https://foo.bar/qux"))
     }
 
+    @Test
+    fun `given an exception thrown during buildscript block execution, its stack trace should contain correct file and line info`() {
+        withBuildScript(""" // line 1
+            // line 2
+            // line 3
+            buildscript { // line 4
+                throw IllegalStateException() // line 5
+            }
+        """)
+        assertThat(
+            buildFailureOutput(),
+            containsString("build.gradle.kts:5"))
+    }
+
     private fun withBuildSrc() {
         withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
             package build
@@ -360,6 +374,9 @@ class GradleScriptKotlinIntegrationTest {
         gradleRunner()
             .withArguments(*arguments, "--stacktrace")
             .build()
+
+    private fun buildFailureOutput() =
+        gradleRunner().withArguments("--stacktrace").buildAndFail().output
 
     private fun gradleRunner() =
         gradleRunnerFor(projectDir.root)

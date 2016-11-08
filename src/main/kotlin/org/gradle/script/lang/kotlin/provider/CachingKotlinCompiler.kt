@@ -51,19 +51,22 @@ class CachingKotlinCompiler(
                                   buildscriptRange: IntRange,
                                   classPath: ClassPath,
                                   parentClassLoader: ClassLoader): Class<*> {
-        val buildscript = scriptFile.readText().substring(buildscriptRange)
-        return compileWithCache(cacheKeyPrefix + buildscript, classPath, parentClassLoader) { cacheDir ->
+        val buildscript = scriptFile.readText().linePreservingSubstring(buildscriptRange)
+        val scriptFileName = scriptFile.name
+        return compileWithCache(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 KotlinBuildscriptBlock::class,
-                buildscriptBlockFileFor(buildscript, cacheDir),
-                scriptFile.name + " buildscript block")
+                buildscriptBlockFileFor(buildscript, cacheDir, scriptFileName),
+                scriptFileName + " buildscript block")
         }
     }
 
-    fun compileBuildScript(scriptFile: File, classPath: ClassPath, parentClassLoader: ClassLoader): Class<*> =
-        compileWithCache(cacheKeyPrefix + scriptFile, classPath, parentClassLoader) {
-            ScriptCompilationSpec(KotlinBuildScript::class, scriptFile, scriptFile.name)
+    fun compileBuildScript(scriptFile: File, classPath: ClassPath, parentClassLoader: ClassLoader): Class<*> {
+        val scriptFileName = scriptFile.name
+        return compileWithCache(cacheKeyPrefix + scriptFileName + scriptFile, classPath, parentClassLoader) {
+            ScriptCompilationSpec(KotlinBuildScript::class, scriptFile, scriptFileName)
         }
+    }
 
     private fun compileWithCache(cacheKeySpec: CacheKeySpec,
                                  classPath: ClassPath,
@@ -118,8 +121,8 @@ class CachingKotlinCompiler(
     private fun classPathOf(classesDir: File) =
         DefaultClassPath.of(listOf(classesDir))
 
-    private fun buildscriptBlockFileFor(buildscript: String, cacheDir: File) =
-        File(cacheDir, "buildscript-block.gradle.kts").apply {
+    private fun buildscriptBlockFileFor(buildscript: String, cacheDir: File, fileName: String) =
+        File(cacheDir, fileName).apply {
             writeText(buildscript)
         }
 
