@@ -24,6 +24,7 @@ import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.AttributeMatchingStrategy;
 import org.gradle.api.AttributesSchema;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -127,7 +128,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                         final Object requestedValue = fromConfigurationAttributes.getAttribute(key);
                         final Object candidateValue = dependencyAttributeContainer.getAttribute(key);
                         AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(attributesSchema.getMatchingStrategy(key));
-                        containsAll = matchingStrategy.isCompatible(requestedValue, candidateValue);
+                        try {
+                            containsAll = matchingStrategy.isCompatible(requestedValue, candidateValue);
+                        } catch (Exception ex) {
+                            throw new GradleException("Unexpected error thrown when trying to match attribute values with " + matchingStrategy, ex);
+                        }
                         if (!containsAll) {
                             break;
                         }
