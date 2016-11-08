@@ -58,6 +58,9 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
                 testCompile "junit:junit:4.12"
             }
 
+            sourceCompatibility = "1.7"
+            targetCompatibility = "1.7"
+
             test {
                 executable "${JDK_PATHS[0]}/bin/java"
             }
