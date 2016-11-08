@@ -26,7 +26,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 @Requires(adhoc = { AvailableJavaHomes.getAvailableJdks { it.javaVersion == VERSION_1_7 }*.javaHome.unique().size() > 1 })
 class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
-    static List<File> JDK_PATHS = AvailableJavaHomes.getAvailableJdks { it.javaVersion == VERSION_1_7 }*.javaHome.unique()
+    static final List<File> JDK_PATHS = AvailableJavaHomes.getAvailableJdks { it.javaVersion == VERSION_1_7 }*.javaHome.unique()
 
     @Override
     protected String getTaskName() {
