@@ -130,9 +130,9 @@ artifacts {
 }
 
 integTest {
-    inputs.files allZip, binZip, srcZip
+    inputs.files(allZip, binZip, srcZip) withPropertyNames "distributions" withPathSensitivity PathSensitivity.NAME_ONLY
 }
 
 java9IntegTest {
-    inputs.files allZip, binZip, srcZip
+    inputs.files(allZip, binZip, srcZip) withPropertyNames "distributions" withPathSensitivity PathSensitivity.NAME_ONLY
 }

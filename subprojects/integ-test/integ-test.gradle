@@ -22,7 +22,7 @@ integTestTasks.all {
 
 
     def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")
-    inputs.files(fileTree(userguideOutput))
+    inputs.files(fileTree(userguideOutput)) withPropertyName "userguide" withPathSensitivity PathSensitivity.RELATIVE
 
     doFirst {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc

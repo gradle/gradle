@@ -48,7 +48,7 @@ task executableJar(type: Jar) {
 }
 
 integTestTasks.all {
-    inputs.files { project(":distributions").binZip }
+    inputs.files { project(":distributions").binZip } withPropertyName "distribution" withPathSensitivity PathSensitivity.RELATIVE
 }
 
 useTestFixtures()
