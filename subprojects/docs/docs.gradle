@@ -281,7 +281,7 @@ task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samp
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml']) withPropertyName "sources" withPathSensitivity PathSensitivity.RELATIVE
 
     sourceFile new File(userguideSrcDir, 'userguide.xml')
     websiteUrl 'http://www.gradle.org'
@@ -320,7 +320,8 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     inputs.files fileTree(userguideSrcDir) {
         include 'img/*.png'
-    } + cssFiles
+    } withPropertyName "images" withPathSensitivity PathSensitivity.RELATIVE
+    inputs.files cssFiles withPropertyName "cssFiles" withPathSensitivity PathSensitivity.RELATIVE
     sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
@@ -332,7 +333,7 @@ def mavenApiUrl = "http://maven.apache.org/ref/${versions.maven}/maven-model/api
 
 task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
-    inputs.file stylesheetFile
+    inputs.file stylesheetFile withPropertyName "stylesheetFile" withPathSensitivity PathSensitivity.NAME_ONLY
 
     group = 'documentation'
     options.encoding = 'utf-8'
