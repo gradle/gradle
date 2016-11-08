@@ -1063,7 +1063,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of test classes. Returns 0 when there is no maximum.
      */
-    @Input
+    @Internal
     public long getForkEvery() {
         return forkEvery;
     }
@@ -1085,7 +1085,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of forked test processes.
      */
-    @Input
+    @Internal
     public int getMaxParallelForks() {
         return getDebug() ? 1 : maxParallelForks;
     }
