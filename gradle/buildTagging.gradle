@@ -20,7 +20,7 @@ buildscript {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
     dependencies {
-        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.24'
+        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.26'
     }
 }
 
