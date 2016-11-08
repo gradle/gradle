@@ -550,7 +550,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return metaData.getComponentId().getDisplayName();
+            return id.toString();
         }
 
         @Override
