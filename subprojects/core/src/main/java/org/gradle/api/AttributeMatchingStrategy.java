@@ -15,6 +15,9 @@
  */
 package org.gradle.api;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * An attribute matching strategy is responsible for providing information about how an {@link Attribute}
  * is matched during dependency resolution. In particular, it will tell if a value, provided by a consumer,
@@ -32,4 +35,7 @@ public interface AttributeMatchingStrategy<T> {
      * @return true if the candidate value is <i>compatible with</i> the requested value
      */
     boolean isCompatible(T requestedValue, T candidateValue);
+
+    <K> List<K> selectClosestMatch(T requestedValue, Map<K, T> compatibleValues);
+
 }

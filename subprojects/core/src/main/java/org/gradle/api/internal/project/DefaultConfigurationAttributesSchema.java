@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeMatchingStrategy;
 import org.gradle.internal.Cast;
 
+import java.util.List;
 import java.util.Map;
 
 public class DefaultConfigurationAttributesSchema implements org.gradle.api.AttributesSchema {
@@ -50,5 +52,9 @@ public class DefaultConfigurationAttributesSchema implements org.gradle.api.Attr
             return requestedValue.equals(candidateValue);
         }
 
+        @Override
+        public <K> List<K> selectClosestMatch(String requestedValue, Map<K, String> compatibleValues) {
+            return ImmutableList.copyOf(compatibleValues.keySet());
+        }
     }
 }
