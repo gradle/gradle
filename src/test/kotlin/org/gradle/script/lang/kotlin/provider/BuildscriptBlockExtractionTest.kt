@@ -7,7 +7,7 @@ import org.junit.Test
 
 import kotlin.test.assertNull
 
-class BuildScriptExtractionTest {
+class BuildscriptBlockExtractionTest {
 
     @Test
     fun `given top-level buildscript it returns exact range`() {
@@ -19,7 +19,7 @@ class BuildScriptExtractionTest {
                 // also part of the content }}
             }dependencies {}""".replaceIndent()
 
-        val range = extractBuildScriptFrom(script)!!
+        val range = extractBuildscriptBlockFrom(script)!!
         assertThat(
             script.substring(range),
             equalTo("""
@@ -34,17 +34,17 @@ class BuildScriptExtractionTest {
     fun `given non top-level buildscript it returns null`() {
         // as we can't currently know if it's a legit call to another similarly named
         // function in a different context
-        assertNoBuildScript("foo { buildscript {} }")
+        assertNoBuildscript("foo { buildscript {} }")
     }
 
     @Test
     fun `given top-level buildscript with typo it returns null`() {
-        assertNoBuildScript("buildscripto {}")
+        assertNoBuildscript("buildscripto {}")
     }
 
     @Test
     fun `given top-level buildscript reference it returns null`() {
-        assertNoBuildScript("""
+        assertNoBuildscript("""
             val a = buildscript
             a.dependencies {}""")
     }
@@ -52,32 +52,32 @@ class BuildScriptExtractionTest {
     @Test
     fun `given top-level buildscript reference followed by top-level buildscript it returns correct range`() {
         assertThat(
-            extractBuildScriptFrom("val a = buildscript\nbuildscript {}"),
+            extractBuildscriptBlockFrom("val a = buildscript\nbuildscript {}"),
             equalTo(20..33))
     }
 
     @Test
     fun `given no buildscript it returns null`() {
-        assertNoBuildScript("dependencies {}")
+        assertNoBuildscript("dependencies {}")
     }
 
     @Test
     fun `given an empty script it returns null`() {
-        assertNoBuildScript("")
+        assertNoBuildscript("")
     }
 
     @Test
     fun `given line commented buildscript it returns null`() {
-        assertNoBuildScript("// no buildscript {} here")
+        assertNoBuildscript("// no buildscript {} here")
     }
 
     @Test
     fun `given block commented buildscript it returns null`() {
-        assertNoBuildScript("/* /* no */ buildscript {} here either */")
+        assertNoBuildscript("/* /* no */ buildscript {} here either */")
     }
 
-    private fun assertNoBuildScript(script: String) {
-        assertNull(extractBuildScriptFrom(script))
+    private fun assertNoBuildscript(script: String) {
+        assertNull(extractBuildscriptBlockFrom(script))
     }
 }
 

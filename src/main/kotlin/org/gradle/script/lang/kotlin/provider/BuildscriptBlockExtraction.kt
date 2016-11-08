@@ -19,7 +19,7 @@ package org.gradle.script.lang.kotlin.provider
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.*
 
-fun extractBuildScriptFrom(script: String) =
+fun extractBuildscriptBlockFrom(script: String) =
     extractTopLevelSectionFrom(script, "buildscript")
 
 /**

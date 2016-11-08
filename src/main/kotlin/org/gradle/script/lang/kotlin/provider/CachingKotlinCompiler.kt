@@ -28,7 +28,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
+import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromAnnotatedTemplate
@@ -47,15 +47,15 @@ class CachingKotlinCompiler(
 
     private val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
 
-    fun compileBuildscriptSectionOf(scriptFile: File,
-                                    buildscriptRange: IntRange,
-                                    classPath: ClassPath,
-                                    parentClassLoader: ClassLoader): Class<*> {
+    fun compileBuildscriptBlockOf(scriptFile: File,
+                                  buildscriptRange: IntRange,
+                                  classPath: ClassPath,
+                                  parentClassLoader: ClassLoader): Class<*> {
         val buildscript = scriptFile.readText().substring(buildscriptRange)
         return compileWithCache(cacheKeyPrefix + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
-                KotlinBuildScriptSection::class,
-                buildscriptSectionFileFor(buildscript, cacheDir),
+                KotlinBuildscriptBlock::class,
+                buildscriptBlockFileFor(buildscript, cacheDir),
                 scriptFile.name + " buildscript block")
         }
     }
@@ -118,8 +118,8 @@ class CachingKotlinCompiler(
     private fun classPathOf(classesDir: File) =
         DefaultClassPath.of(listOf(classesDir))
 
-    private fun buildscriptSectionFileFor(buildscript: String, cacheDir: File) =
-        File(cacheDir, "buildscript-section.gradle.kts").apply {
+    private fun buildscriptBlockFileFor(buildscript: String, cacheDir: File) =
+        File(cacheDir, "buildscript-block.gradle.kts").apply {
             writeText(buildscript)
         }
 

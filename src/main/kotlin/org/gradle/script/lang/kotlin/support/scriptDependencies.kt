@@ -54,7 +54,7 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
 
     var sourcePathProvider: SourcePathProvider = DefaultSourcePathProvider
 
-    class DepsWithBuildscriptSectionHash(
+    class DepsWithBuildscriptBlockHash(
         override val classpath: Iterable<File>,
         override val imports: Iterable<String>,
         override val sources: Iterable<File>,
@@ -84,9 +84,9 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
             return makeDependencies(classPath.asFiles)
 
         // IDEA content assist path
-        val hash = getBuildscriptSectionHash(script, environment)
+        val hash = getBuildscriptBlockHash(script, environment)
         return when {
-            hash != null && sameBuildScriptSectionHashAs(previousDependencies, hash) ->
+            hash != null && sameBuildscriptBlockHashAs(previousDependencies, hash) ->
                 null
             else ->
                 modelFor(environment)?.getDependencies(environment, hash)
@@ -96,11 +96,11 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
     private fun modelFor(environment: Environment) =
         modelProvider.modelFor(environment)
 
-    private fun sameBuildScriptSectionHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray) =
-        buildScriptSectionHashOf(previousDependencies)?.let { equals(it, hash) } ?: false
+    private fun sameBuildscriptBlockHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray) =
+        buildscriptBlockHashOf(previousDependencies)?.let { equals(it, hash) } ?: false
 
-    private fun buildScriptSectionHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
-        (previousDependencies as? DepsWithBuildscriptSectionHash)?.hash
+    private fun buildscriptBlockHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
+        (previousDependencies as? DepsWithBuildscriptBlockHash)?.hash
 
     private fun KotlinBuildScriptModel.getDependencies(environment: Environment, hash: ByteArray?): KotlinScriptExternalDependencies =
         makeDependencies(
@@ -112,9 +112,9 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
         sourcePathProvider.sourcePathFor(this, environment)
 
     private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList(), hash: ByteArray? = null) =
-        DepsWithBuildscriptSectionHash(classPath, implicitImports, sources, hash)
+        DepsWithBuildscriptBlockHash(classPath, implicitImports, sources, hash)
 
-    private fun getBuildscriptSectionHash(script: ScriptContents, environment: Environment): ByteArray? {
+    private fun getBuildscriptBlockHash(script: ScriptContents, environment: Environment): ByteArray? {
         @Suppress("unchecked_cast")
         val getScriptSectionTokens = environment["getScriptSectionTokens"] as? ScriptSectionTokensProvider
         return when {

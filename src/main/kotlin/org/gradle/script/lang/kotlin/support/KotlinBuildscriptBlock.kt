@@ -25,8 +25,8 @@ import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
 @ScriptTemplateDefinition(
     resolver = GradleKotlinScriptDependenciesResolver::class,
-    scriptFilePattern = "buildscript-section.*\\.gradle\\.kts")
-abstract class KotlinBuildScriptSection(project: Project) : KotlinBuildScript(project) {
+    scriptFilePattern = "buildscript-block.*\\.gradle\\.kts")
+abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(project) {
 
     /**
      * Configures the build script classpath for this project.

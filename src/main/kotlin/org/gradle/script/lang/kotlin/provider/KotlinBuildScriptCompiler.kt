@@ -54,38 +54,38 @@ class KotlinBuildScriptCompiler(
      */
     val buildSrc: ClassPath = exportClassPathOf(baseScope)
 
-    val buildScriptSectionCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + buildSrc
+    val buildscriptBlockCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + buildSrc
 
     val scriptClassPath: ClassPath by lazy {
         scriptHandler.scriptClassPath
     }
 
     val compilationClassPath: ClassPath by lazy {
-        scriptClassPath + buildScriptSectionCompilationClassPath
+        scriptClassPath + buildscriptBlockCompilationClassPath
     }
 
     fun compile(): (Project) -> Unit {
-        val buildscriptRange = extractTopLevelBuildScriptRange()
+        val buildscriptBlockRange = extractTopLevelBuildscriptBlockRange()
         return when {
-            buildscriptRange != null ->
-                twoPassScript(buildscriptRange)
+            buildscriptBlockRange != null ->
+                twoPassScript(buildscriptBlockRange)
             else ->
                 onePassScript()
         }
     }
 
     fun compileForClassPath(): (Project) -> Unit = { target ->
-        executeBuildscriptSectionIgnoringErrors(target)
+        executeBuildscriptBlockIgnoringErrors(target)
     }
 
-    private fun extractTopLevelBuildScriptRange() =
-        if (topLevelScript) extractBuildScriptFrom(script) else null
+    private fun extractTopLevelBuildscriptBlockRange() =
+        if (topLevelScript) extractBuildscriptBlockFrom(script) else null
 
-    private fun executeBuildscriptSectionIgnoringErrors(target: Project) {
+    private fun executeBuildscriptBlockIgnoringErrors(target: Project) {
         try {
-            val buildscriptRange = extractBuildScriptFrom(script)
+            val buildscriptRange = extractBuildscriptBlockFrom(script)
             if (buildscriptRange != null) {
-                executeBuildscriptSection(buildscriptRange, target)
+                executeBuildscriptBlock(buildscriptRange, target)
             }
         } catch(e: Exception) {
             e.printStackTrace()
@@ -102,7 +102,7 @@ class KotlinBuildScriptCompiler(
 
     private fun twoPassScript(buildscriptRange: IntRange): (Project) -> Unit {
         return { target ->
-            executeBuildscriptSection(buildscriptRange, target)
+            executeBuildscriptBlock(buildscriptRange, target)
 
             val scriptClassLoader = scriptBodyClassLoader()
             val scriptClass = compileScriptFile(scriptClassLoader)
@@ -110,9 +110,9 @@ class KotlinBuildScriptCompiler(
         }
     }
 
-    private fun executeBuildscriptSection(buildscriptRange: IntRange, target: Project) {
+    private fun executeBuildscriptBlock(buildscriptRange: IntRange, target: Project) {
         val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
-        val buildscriptClass = compileBuildscriptSection(buildscriptRange, buildscriptClassLoader)
+        val buildscriptClass = compileBuildscriptBlock(buildscriptRange, buildscriptClassLoader)
         executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
     }
 
@@ -129,8 +129,8 @@ class KotlinBuildScriptCompiler(
             localClassLoader
         }
 
-    private fun compileBuildscriptSection(buildscriptRange: IntRange, classLoader: ClassLoader) =
-        kotlinCompiler.compileBuildscriptSectionOf(scriptFile, buildscriptRange, buildScriptSectionCompilationClassPath, classLoader)
+    private fun compileBuildscriptBlock(buildscriptRange: IntRange, classLoader: ClassLoader) =
+        kotlinCompiler.compileBuildscriptBlockOf(scriptFile, buildscriptRange, buildscriptBlockCompilationClassPath, classLoader)
 
     private fun compileScriptFile(classLoader: ClassLoader): Class<*> =
         kotlinCompiler.compileBuildScript(scriptFile, compilationClassPath, classLoader)
