@@ -542,28 +542,24 @@ task someTask(dependsOn: [someDep, someOtherDep])
     @Issue("gradle/gradle#783")
     def "executes finalizer task as soon as possible after finalized task"() {
         buildFile << """
+            class NotParallel extends DefaultTask {}
+
             project(":a") {
-                task jar {
+                task jar(type: NotParallel) {
                   dependsOn "compileJava"
-                  doLast {}
                 }
-                task compileJava {
+                task compileJava(type: NotParallel) {
                   dependsOn ":b:jar"
                   finalizedBy "compileFinalizer"
-                  doLast {}
                 }
-                task compileFinalizer {
-                    doLast {}
-                }
+                task compileFinalizer(type: NotParallel)
             }
 
             project(":b") {
-                task jar {
-                    doLast {}
-                }
+                task jar(type: NotParallel)
             }
 
-            task build {
+            task build(type: NotParallel) {
               dependsOn ":a:jar"
               dependsOn ":b:jar"
             }
