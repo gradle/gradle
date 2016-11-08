@@ -33,7 +33,7 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -
     override fun getSource() = scriptSource
 
     override fun apply(target: Any) {
-        logger.info("Applying Kotlin script to {}", target)
+        logger.debug("Applying Kotlin script to {}", target)
         if (target !is Project) {
             throw IllegalArgumentException("target $target was not a Project as expected")
         }

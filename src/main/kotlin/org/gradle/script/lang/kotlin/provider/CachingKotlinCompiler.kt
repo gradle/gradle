@@ -92,7 +92,7 @@ class CachingKotlinCompiler(
                           classPath: ClassPath,
                           parentClassLoader: ClassLoader): Class<*> =
         withProgressLoggingFor(spec.description) {
-            logger.info("Kotlin compilation classpath for {}: {}", spec.description, classPath)
+            logger.debug("Kotlin compilation classpath for {}: {}", spec.description, classPath)
             compileKotlinScriptToDirectory(
                 outputDir,
                 spec.scriptFile,
