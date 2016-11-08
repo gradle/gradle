@@ -218,7 +218,7 @@ task dslMetaData(type: ExtractDslMetaDataTask) {
 }
 
 task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
-    inputs.files fileTree(dir: dslSrcDir, includes: ['*.xml'])
+    inputs.files fileTree(dir: dslSrcDir, includes: ['*.xml']) withPropertyName "sources" withPathSensitivity PathSensitivity.RELATIVE
     sourceFile = new File(dslSrcDir, 'dsl.xml')
     classMetaDataFile = dslMetaData.destFile
     pluginsMetaDataFile = new File(dslSrcDir, 'plugins.xml')
