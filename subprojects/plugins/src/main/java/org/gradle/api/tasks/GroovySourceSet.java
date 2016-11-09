@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -40,6 +41,16 @@ public interface GroovySourceSet {
      * @return this
      */
     GroovySourceSet groovy(Closure configureClosure);
+
+    /**
+     * Configures the Groovy source for this set.
+     *
+     * <p>The given action is used to configure the {@link SourceDirectorySet} which contains the Groovy source.
+     *
+     * @param configureAction The action to use to configure the Groovy source.
+     * @return this
+     */
+    GroovySourceSet groovy(Action<? super SourceDirectorySet> configureAction);
 
     /**
      * All Groovy source for this source set.

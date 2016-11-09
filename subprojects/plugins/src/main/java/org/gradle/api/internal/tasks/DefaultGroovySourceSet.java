@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.GroovySourceSet;
@@ -39,6 +40,12 @@ public class DefaultGroovySourceSet implements GroovySourceSet {
 
     public GroovySourceSet groovy(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getGroovy());
+        return this;
+    }
+
+    @Override
+    public GroovySourceSet groovy(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getGroovy());
         return this;
     }
 

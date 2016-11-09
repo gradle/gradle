@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
@@ -164,6 +165,12 @@ public class DefaultSourceSet implements SourceSet {
         return this;
     }
 
+    @Override
+    public SourceSet java(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getJava());
+        return this;
+    }
+
     public SourceDirectorySet getAllJava() {
         return allJavaSource;
     }
@@ -174,6 +181,12 @@ public class DefaultSourceSet implements SourceSet {
 
     public SourceSet resources(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getResources());
+        return this;
+    }
+
+    @Override
+    public SourceSet resources(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getResources());
         return this;
     }
 
