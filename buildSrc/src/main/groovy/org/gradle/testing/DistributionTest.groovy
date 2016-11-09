@@ -32,6 +32,13 @@ import org.gradle.internal.os.OperatingSystem
  */
 @CompileStatic
 class DistributionTest extends Test {
+
+    DistributionTest() {
+        dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
+        dependsOn { requiresBinZip ? ':distributions:binZip' : null }
+        dependsOn { requiresLibsRepo ? ':toolingApi:publishLocalArchives' : null }
+    }
+
     @Input
     String getOperatingSystem() {
         OperatingSystem.current().toString()
@@ -55,16 +62,14 @@ class DistributionTest extends Test {
     File gradleHomeDir
 
     void setGradleHomeDir(File gradleHomeDir) {
-        this.gradleHomeDir = gradleHomeDir
-        fileSystemProperty('integTest.gradleHomeDir', gradleHomeDir)
+        this.gradleHomeDir = fileSystemProperty('integTest.gradleHomeDir', gradleHomeDir)
     }
 
     @Internal
     File gradleUserHomeDir
 
     void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir
-        fileSystemProperty('integTest.gradleUserHomeDir', gradleUserHomeDir)
+        this.gradleUserHomeDir = fileSystemProperty('integTest.gradleUserHomeDir', gradleUserHomeDir)
     }
 
     @Optional
@@ -73,27 +78,18 @@ class DistributionTest extends Test {
     File libsRepo
 
     void setLibsRepo(File libsRepo) {
-        this.libsRepo = libsRepo
-        fileSystemProperty('integTest.libsRepo', libsRepo)
+        this.libsRepo = fileSystemProperty('integTest.libsRepo', libsRepo)
     }
 
     @Input
     boolean requiresLibsRepo
-
-    void setRequiresLibsRepo(boolean requiresLibsRepo) {
-        this.requiresLibsRepo = requiresLibsRepo
-        if (requiresLibsRepo) {
-            dependsOn(':toolingApi:publishLocalArchives')
-        }
-    }
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     File toolingApiShadedJarDir
 
     void setToolingApiShadedJarDir(File toolingApiShadedJarDir) {
-        this.toolingApiShadedJarDir = toolingApiShadedJarDir
-        fileSystemProperty('integTest.toolingApiShadedJarDir', toolingApiShadedJarDir)
+        this.toolingApiShadedJarDir = fileSystemProperty('integTest.toolingApiShadedJarDir', toolingApiShadedJarDir)
     }
 
     @Optional
@@ -104,27 +100,12 @@ class DistributionTest extends Test {
     @Input
     boolean requiresDists
 
-    void setRequiresDists(boolean requiresDists) {
-        this.requiresDists = requiresDists
-        if (requiresDists) {
-            dependsOn(['all', 'bin', 'src'].collect { ":distributions:${it}Zip" })
-        }
-    }
-
     void setDistsDir(File distsDir) {
-        this.distsDir = distsDir
-        fileSystemProperty('integTest.distsDir', distsDir)
+        this.distsDir = fileSystemProperty('integTest.distsDir', distsDir)
     }
 
     @Input
     boolean requiresBinZip
-
-    void setRequiresBinZip(boolean requiresBinZip) {
-        this.requiresBinZip = requiresBinZip
-        if (requiresBinZip) {
-            dependsOn(':distributions:binZip')
-        }
-    }
 
     @Optional
     @InputFile
@@ -142,15 +123,15 @@ class DistributionTest extends Test {
     File daemonRegistry
 
     void setDaemonRegistry(File daemonRegistry) {
-        this.daemonRegistry = daemonRegistry
-        fileSystemProperty('org.gradle.integtest.daemon.registry', daemonRegistry)
+        this.daemonRegistry = fileSystemProperty('org.gradle.integtest.daemon.registry', daemonRegistry)
     }
 
     private Map<String, File> fileSystemProperties = [:]
 
-    void fileSystemProperty(String key, File value) {
+    File fileSystemProperty(String key, File value) {
         super.systemProperty(key, value.absolutePath)
         fileSystemProperties[key] = value
+        value
     }
 
     void fileSystemProperties(Map<String, File> files) {

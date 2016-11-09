@@ -45,19 +45,20 @@ distributionTestTasks.all { DistributionTest task ->
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
+                // we are setting the systemProperties input to [:] here since we do
+                // not want absolute paths to appear in them and we cannot ignore those
+                // by doing this in the constructor of `DistributionTest` since it will
+                // be overridden by the input Annotation scanning after the Constructor
+                // has been called.
                 inputs.property 'systemProperties', [:]
 
                 gradleHomeDir = rootProject.intTestImage.destinationDir
                 gradleUserHomeDir = rootProject.file('intTestHomeDir')
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').shadedJar.outputDir
 
                 if (requiresLibsRepo) {
                     libsRepo = rootProject.file('build/repo')
                 }
-                toolingApiShadedJarDir = rootProject.project(':toolingApi').shadedJar.outputDir
-
-                // Only wrapper and toolingApi use the bin distribution
-                // The rest uses only the intTestImage
-                // distributions tests all the distributions
                 if (requiresDists) {
                     distsDir = rootProject.distsDir
                 }
