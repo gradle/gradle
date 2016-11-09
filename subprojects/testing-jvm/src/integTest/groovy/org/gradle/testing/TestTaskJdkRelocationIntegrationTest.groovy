@@ -16,18 +16,29 @@
 
 package org.gradle.testing
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TextUtil
 
-import static org.gradle.api.JavaVersion.VERSION_1_7
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks { it.javaVersion == VERSION_1_7 }*.javaHome.unique().size() > 1 })
+@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_7).size() > 1 })
 class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
-    static final List<File> JDK_PATHS = AvailableJavaHomes.getAvailableJdks { it.javaVersion == VERSION_1_7 }*.javaHome.unique()
+    private File getOriginalJavaExecutable() {
+        getAvailableJdk7s()[0].javaExecutable
+    }
+
+    private File getDifferentJavaExecutable() {
+        getAvailableJdk7s()[1].javaExecutable
+    }
+
+    private List<Jvm> getAvailableJdk7s() {
+        AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_7)
+    }
 
     @Override
     protected String getTaskName() {
@@ -63,7 +74,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
             targetCompatibility = "1.7"
 
             test {
-                executable "${TextUtil.escapeString(JDK_PATHS[0])}/bin/java"
+                executable "${TextUtil.escapeString(originalJavaExecutable)}"
             }
 
             afterEvaluate {
@@ -76,7 +87,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
     protected void moveFilesAround() {
         buildFile << """
             test {
-                executable "${TextUtil.escapeString(JDK_PATHS[1])}/bin/java"
+                executable "${TextUtil.escapeString(differentJavaExecutable)}"
             }
         """
     }
