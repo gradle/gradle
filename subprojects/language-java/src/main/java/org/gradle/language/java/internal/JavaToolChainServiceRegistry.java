@@ -16,21 +16,17 @@
 
 package org.gradle.language.java.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonClientsManager;
 import org.gradle.process.internal.daemon.WorkerDaemonManager;
-import org.gradle.process.internal.daemon.WorkerDaemonStarter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.tools.JavaCompiler;
 

@@ -33,12 +33,12 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
     }
 
     @Override
-    public WorkerDaemon getDaemon(final File workingDir, final DaemonForkOptions forkOptions) {
+    public WorkerDaemon getDaemon(final Class<? extends WorkerDaemonProtocol> serverImplementationClass, final File workingDir, final DaemonForkOptions forkOptions) {
         return new WorkerDaemon() {
             public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
-                    client = clientsManager.reserveNewClient(workingDir, forkOptions);
+                    client = clientsManager.reserveNewClient(serverImplementationClass, workingDir, forkOptions);
                 }
                 try {
                     return client.execute(action, spec);

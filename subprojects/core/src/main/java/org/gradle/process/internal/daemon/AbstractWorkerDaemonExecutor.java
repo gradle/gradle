@@ -18,24 +18,17 @@ package org.gradle.process.internal.daemon;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.daemon.WorkerDaemonExecutor;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExecutor<T> {
@@ -44,12 +37,14 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     private final Set<File> classpath = Sets.newLinkedHashSet();
     private final Set<String> sharedPackages = Sets.newLinkedHashSet();
     private final Class<? extends T> implementationClass;
+    private final Class<? extends WorkerDaemonProtocol> serverImplementationClass;
     private Serializable[] params;
 
-    public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends T> implementationClass) {
+    public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends T> implementationClass, Class<? extends WorkerDaemonProtocol> serverImplementationClass) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaForkOptions = new DefaultJavaForkOptions(fileResolver);
         this.implementationClass = implementationClass;
+        this.serverImplementationClass = serverImplementationClass;
     }
 
     @Override
@@ -87,12 +82,16 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
         return implementationClass;
     }
 
-    protected Object[] getParams() {
+    protected Serializable[] getParams() {
         return params;
     }
 
     protected WorkerDaemonFactory getWorkerDaemonFactory() {
         return workerDaemonFactory;
+    }
+
+    public Class<? extends WorkerDaemonProtocol> getServerImplementationClass() {
+        return serverImplementationClass;
     }
 
     static DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages) {

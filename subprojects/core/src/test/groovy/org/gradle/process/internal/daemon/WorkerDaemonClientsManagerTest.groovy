@@ -25,6 +25,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def options = Stub(DaemonForkOptions)
     def starter = Stub(WorkerDaemonStarter)
+    def serverImpl = Stub(WorkerDaemonProtocol)
 
     @Subject manager = new WorkerDaemonClientsManager(starter)
 
@@ -54,10 +55,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "reserves new client"() {
         def newClient = Stub(WorkerDaemonClient)
-        starter.startDaemon(workingDir, options) >> newClient
+        starter.startDaemon(serverImpl.class, workingDir, options) >> newClient
 
         when:
-        def client = manager.reserveNewClient(workingDir, options)
+        def client = manager.reserveNewClient(serverImpl.class, workingDir, options)
 
         then:
         newClient == client
@@ -66,11 +67,11 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def "can stop all created clients"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(workingDir, options) >>> [client1, client2]
+        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
 
         when:
-        manager.reserveNewClient(workingDir, options)
-        manager.reserveNewClient(workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
         manager.stop()
 
         then:
@@ -80,10 +81,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "clients can be released for further use"() {
         def client = Mock(WorkerDaemonClient) { isCompatibleWith(_) >> true }
-        starter.startDaemon(workingDir, options) >> client
+        starter.startDaemon(serverImpl.class, workingDir, options) >> client
 
         when:
-        manager.reserveNewClient(workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options)
 
         then:
         manager.reserveIdleClient(options) == null

@@ -30,10 +30,11 @@ class WorkerDaemonManagerTest extends Specification {
     def worker = Stub(WorkerDaemonAction)
     def options = Stub(DaemonForkOptions)
     def spec = Stub(WorkSpec)
+    def serverImpl = Stub(WorkerDaemonProtocol)
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        manager.getDaemon(workingDir, options);
+        manager.getDaemon(serverImpl.class, workingDir, options);
 
         then:
         0 * clientsManager._
@@ -41,13 +42,13 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        manager.getDaemon(workingDir, options).execute(worker, spec)
+        manager.getDaemon(serverImpl.class, workingDir, options).execute(worker, spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
-        1 * clientsManager.reserveNewClient(workingDir, options) >> client
+        1 * clientsManager.reserveNewClient(serverImpl.class, workingDir, options) >> client
 
         then:
         1 * client.execute(worker, spec)
@@ -59,7 +60,7 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        manager.getDaemon(workingDir, options).execute(worker, spec)
+        manager.getDaemon(serverImpl.class, workingDir, options).execute(worker, spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
@@ -74,7 +75,7 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        manager.getDaemon(workingDir, options).execute(worker, spec)
+        manager.getDaemon(serverImpl.class, workingDir, options).execute(worker, spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client

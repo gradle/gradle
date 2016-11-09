@@ -56,9 +56,9 @@ public class WorkerDaemonClientsManager {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(File workingDir, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workingDir, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(serverImplementationClass, workingDir, forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }
