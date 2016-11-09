@@ -16,7 +16,9 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
@@ -42,11 +44,24 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         return new FilteredFileTree(filterConfigClosure);
     }
 
+    @Override
+    public FileTree matching(Action<PatternFilterable> filterConfigAction) {
+        return new FilteredFileTree(filterConfigAction);
+    }
+
     public FileTree matching(PatternFilterable patterns) {
         return new FilteredFileTree(patterns);
     }
 
     public FileTree visit(Closure visitor) {
+        for (FileTree tree : getSourceCollections()) {
+            tree.visit(visitor);
+        }
+        return this;
+    }
+
+    @Override
+    public FileTree visit(Action<FileVisitDetails> visitor) {
         for (FileTree tree : getSourceCollections()) {
             tree.visit(visitor);
         }
@@ -72,16 +87,25 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     private class FilteredFileTree extends CompositeFileTree {
         private final Closure closure;
+        private final Action<PatternFilterable> action;
         private final PatternFilterable patterns;
 
         public FilteredFileTree(Closure closure) {
             this.closure = closure;
+            action = null;
             patterns = null;
         }
 
         public FilteredFileTree(PatternFilterable patterns) {
             this.patterns = patterns;
             closure = null;
+            action = null;
+        }
+
+        public FilteredFileTree(Action<PatternFilterable> action) {
+            this.action = action;
+            closure = null;
+            patterns = null;
         }
 
         @Override
@@ -96,6 +120,8 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
             for (FileTree set : nestedContext.resolveAsFileTrees()) {
                 if (closure != null) {
                     context.add(set.matching(closure));
+                } else if (action != null) {
+                    context.add(set.matching(action));
                 } else {
                     context.add(set.matching(patterns));
                 }
