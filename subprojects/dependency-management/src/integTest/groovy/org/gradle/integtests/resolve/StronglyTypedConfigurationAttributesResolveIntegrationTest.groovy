@@ -47,16 +47,6 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
     }
 
     @Override
-    String getFreeDebug() {
-        '(buildType): BuildType.debug, (flavor): Flavor.of("free")'
-    }
-
-    @Override
-    String getFreeRelease() {
-        '(buildType): BuildType.release, (flavor): Flavor.of("free")'
-    }
-
-    @Override
     String getDebug() {
         '(buildType): BuildType.debug'
     }
@@ -64,6 +54,16 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
     @Override
     String getFree() {
         '(flavor): Flavor.of("free")'
+    }
+
+    @Override
+    String getRelease() {
+        '(buildType): BuildType.release'
+    }
+
+    @Override
+    String getPaid() {
+        '(flavor): Flavor.of("paid")'
     }
 
     // This documents the current behavior, not necessarily the one we would want. Maybe

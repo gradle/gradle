@@ -26,16 +26,6 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
     }
 
     @Override
-    String getFreeDebug() {
-        "buildType: 'debug', flavor: 'free'"
-    }
-
-    @Override
-    String getFreeRelease() {
-        "buildType: 'release', flavor: 'free'"
-    }
-
-    @Override
     String getDebug() {
         "buildType: 'debug'"
     }
@@ -43,5 +33,15 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
     @Override
     String getFree() {
         "flavor: 'free'"
+    }
+
+    @Override
+    String getRelease() {
+        "buildType: 'release'"
+    }
+
+    @Override
+    String getPaid() {
+        "flavor: 'paid'"
     }
 }

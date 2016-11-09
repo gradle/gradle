@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
@@ -26,10 +27,18 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     abstract String getTypeDefs()
 
-    abstract String getFreeDebug()
-    abstract String getFreeRelease()
+    String getFreeDebug() {
+        "${free}, ${debug}"
+    }
+
+    String getFreeRelease() {
+        "${free}, ${release}"
+    }
+
     abstract String getDebug()
     abstract String getFree()
+    abstract String getRelease()
+    abstract String getPaid()
 
     def "selects configuration in target project which matches the configuration attributes"() {
         given:
@@ -1093,4 +1102,178 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
+    @NotYetImplemented
+    def "Library project with flavors depends on a library project that does not"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes($debug) // partial match on `buildType`
+                    }
+                    bar {
+                       attributes($release) // no match on `buildType`
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+    }
+
+    def "Library project without flavors depends on a library project with flavors"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($debug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes($freeDebug) // match on `buildType`
+                    }
+                    bar {
+                       attributes($freeRelease) // match on `buildType`
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+
+    }
+
+    @NotYetImplemented
+    def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                       attributes($debug) // partial match on `buildType`
+                    }
+                    bar {
+                       attributes($release) // no match on `buildType`
+                    }
+                }
+                dependencies {
+                    foo project(':c')
+                    bar project(':c')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo {
+                       attributes($freeDebug) // exact match on `buildType` and `flavor`
+                    }
+                    bar {
+                       attributes(${free}, ${paid}) // partial match on `buildType`
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar', ':c:fooJar'
+        notExecuted ':b:barJar', ':c:barJar'
+
+    }
 }
