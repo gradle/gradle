@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
+    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
 
@@ -40,12 +41,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
     private final AtomicBoolean canceled = new AtomicBoolean();
 
-    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
+    DefaultBuildOperationQueue(BuildOperationWorkerRegistry buildOperationWorkerRegistry, ExecutorService executor, BuildOperationWorker<T> worker) {
+        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
     }
 
+    @Override
     public void add(final T operation) {
         if (waitingForCompletion.get()) {
             throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
@@ -119,10 +122,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             this.failures = failures;
         }
 
+        @Override
         public void onSuccess(Object result) {
             finished.countDown();
         }
 
+        @Override
         public void onFailure(Throwable t) {
             failures.add(t);
             finished.countDown();
@@ -147,11 +152,21 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             this.operation = operation;
         }
 
+        @Override
         public void run() {
             // Don't execute if the queue has been canceled
             started.set(!canceled.get());
             if (started.get()) {
+                runBuildOperation();
+            }
+        }
+
+        private void runBuildOperation() {
+            BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.operationStart();
+            try {
                 worker.execute(operation);
+            } finally {
+                workerLease.operationFinish();
             }
         }
 
@@ -159,6 +174,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             return started.get();
         }
 
+        @Override
         public String toString() {
             return "Worker ".concat(worker.getDisplayName()).concat(" for operation ").concat(operation.getDescription());
         }
