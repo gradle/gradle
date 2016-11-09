@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.local.model;
+package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 
-/**
- * Represents a local file dependency. Should be modelled as a regular dependency, but is treated separately as a migration step.
- */
-public interface LocalFileDependencyMetadata {
+public interface SelfResolvingDependencyInternal extends SelfResolvingDependency {
     /**
-     * Returns the id of the component that the file dependency references, if known. If not known an arbitrary identifier will be assigned.
+     * Returns the id of the target component of this dependency, if known. If unknown, an arbitrary identifier is assigned to the files referenced by this dependency.
      */
     @Nullable
-    ComponentIdentifier getComponentId();
-
-    /**
-     * Remove this.
-     */
-    FileCollectionDependency getSource();
-
-    FileCollection getFiles();
+    ComponentIdentifier getTargetComponentId();
 }

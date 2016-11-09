@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
 import org.gradle.api.internal.artifacts.AttributeContainerInternal;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -52,6 +55,8 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
                 } else if (dependency instanceof FileCollectionDependency) {
                     final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                     metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));
+                } else {
+                    throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
                 }
             }
         }
@@ -75,6 +80,11 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         @Override
         public FileCollectionDependency getSource() {
             return fileDependency;
+        }
+
+        @Override @Nullable
+        public ComponentIdentifier getComponentId() {
+            return ((SelfResolvingDependencyInternal) fileDependency).getTargetComponentId();
         }
 
         @Override

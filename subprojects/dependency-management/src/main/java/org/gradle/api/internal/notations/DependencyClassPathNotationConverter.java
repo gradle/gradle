@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.SingletonFileSet;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
@@ -98,7 +99,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             } else {
                 files = fileResolver.resolveFiles(classpath);
             }
-            dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, files);
+            dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), files);
             internCache.put(notation, dependency);
         }
         return dependency;
