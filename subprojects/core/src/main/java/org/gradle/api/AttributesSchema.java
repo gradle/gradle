@@ -38,4 +38,15 @@ public interface AttributesSchema {
      * @return the matching strategy for this attribute.
      */
     <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute);
+
+    /**
+     * Configures the matching strategy for the provided attribute with a standard equality
+     * matching strategy: attribute values will be considered compatible if and only if they
+     * match using the {@link Object#equals(Object) equals method}.
+     *
+     * @param attribute the attribute for which to set the strategy
+     * @param <T> the type of the attribute
+     */
+    <T> void matchStrictly(Attribute<T> attribute);
+
 }
