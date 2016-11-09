@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -58,6 +59,13 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     public FileTree matching(Closure filterConfigClosure) {
         PatternSet patternSet = new PatternSet();
         ConfigureUtil.configure(filterConfigClosure, patternSet);
+        return matching(patternSet);
+    }
+
+    @Override
+    public FileTree matching(Action<PatternFilterable> filterConfigAction) {
+        PatternSet patternSet = new PatternSet();
+        filterConfigAction.execute(patternSet);
         return matching(patternSet);
     }
 
@@ -111,6 +119,21 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     public FileTree visit(Closure closure) {
         return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
+    }
+
+    @Override
+    public FileTree visit(final Action<FileVisitDetails> visitor) {
+        return visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                visitor.execute(dirDetails);
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                visitor.execute(fileDetails);
+            }
+        });
     }
 
     @Override
