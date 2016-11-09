@@ -14,6 +14,26 @@ Add-->
 
 When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
 
+### Task property types can be overridden
+
+In previous versions of Gradle a task overriding another one couldn't change the type of an input or output property via annotations. Now it's posisble to change an `@InputFiles` property to an `@Classpath` for example, or an `@OutputFile` to an `@OutputDirectory`.
+
+```groovy
+class TaskA extends DefaultTask {
+  @InputFile file
+}
+
+class TaskB extends TaskA {
+  @Internal getFile() { super.getFile() }
+}
+
+class TaskC extends TaskB {
+  @OutputFile getFile() { super.getFile() }
+}
+```
+
+In the above example `TaskA.file` is an `@InputFile`, while `TaskC.file` is an `@OutputFile`, whereas `TaskB.file` is tracked as neither input nor output.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
