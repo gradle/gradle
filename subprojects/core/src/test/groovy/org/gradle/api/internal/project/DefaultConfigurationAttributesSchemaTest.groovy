@@ -44,6 +44,18 @@ class DefaultConfigurationAttributesSchemaTest extends Specification {
         e.message == 'Unable to find matching strategy for map'
     }
 
+    def "can set a basic equality match strategy"() {
+        given:
+        schema.matchStrictly(Attribute.of(Map))
+
+        when:
+        def strategy= schema.getMatchingStrategy(Attribute.of(Map))
+
+        then:
+        strategy.isCompatible([a: 'foo', b: 'bar'], [a: 'foo', b: 'bar'])
+        !strategy.isCompatible([a: 'foo', b: 'bar'], [a: 'foo', b: 'baz'])
+    }
+
     def "can set a custom matching strategy"() {
         def attr = Attribute.of(Map)
 
