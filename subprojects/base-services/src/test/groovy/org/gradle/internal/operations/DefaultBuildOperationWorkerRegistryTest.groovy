@@ -70,7 +70,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "child operation starts immediately when there are sufficient leases available"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(2)
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
 
         expect:
         async {
@@ -198,7 +198,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "cannot get current operation when when current thread has no operation"() {
+    def "cannot get current operation when current thread has no operation"() {
         def registry = new DefaultBuildOperationWorkerRegistry(1)
 
         when:

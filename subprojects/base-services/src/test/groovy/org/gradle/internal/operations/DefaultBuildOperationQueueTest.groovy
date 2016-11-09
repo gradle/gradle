@@ -58,8 +58,9 @@ class DefaultBuildOperationQueueTest extends Specification {
     BuildOperationQueue operationQueue
 
     void setupQueue(int threads) {
+        def workerRegistry = new DefaultBuildOperationWorkerRegistry(threads);
         ListeningExecutorService sameThreadExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threads))
-        operationQueue = new DefaultBuildOperationQueue(sameThreadExecutor, new SimpleWorker())
+        operationQueue = new DefaultBuildOperationQueue(workerRegistry, sameThreadExecutor, new SimpleWorker())
     }
 
     @Unroll

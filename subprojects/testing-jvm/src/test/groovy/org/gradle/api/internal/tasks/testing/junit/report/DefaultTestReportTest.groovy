@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
@@ -39,7 +40,8 @@ class DefaultTestReportTest extends Specification {
     final TestResultsProvider testResultProvider = Mock()
 
     def reportWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), numThreads)
+        def workerRegistry = new DefaultBuildOperationWorkerRegistry(numThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), numThreads)
         return new DefaultTestReport(buildOperationProcessor)
     }
 
