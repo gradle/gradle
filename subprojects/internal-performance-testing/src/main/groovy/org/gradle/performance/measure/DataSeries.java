@@ -18,6 +18,7 @@ package org.gradle.performance.measure;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A collection of measurements of some given units.
@@ -75,6 +76,23 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
 
         standardError = Amount.valueOf(result, baseUnits);
         standardErrorOfMean = standardError.div(BigDecimal.valueOf(Math.sqrt(size())));
+    }
+
+    /**
+     * Returns a copy of the DataSeries with minimum and maximum value removed
+     */
+    public DataSeries<Q> filterMinAndMax() {
+        if (size() > 2) {
+            List<Amount<Q>> filtered = new ArrayList<Amount<Q>>();
+            for (Amount<Q> value : this) {
+                if (value != min && value != max) {
+                    filtered.add(value);
+                }
+            }
+            return new DataSeries<Q>(filtered);
+        } else {
+            return new DataSeries<Q>(this);
+        }
     }
 
     public Amount<Q> getAverage() {
