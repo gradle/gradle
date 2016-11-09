@@ -36,7 +36,7 @@ public class DefaultConfigurationAttributesSchema implements org.gradle.api.Attr
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
         AttributeMatchingStrategy<?> strategy = strategies.get(attribute);
         if (strategy == null && String.class == attribute.getType()) {
-            strategy = StringMatchingStrategy.INSTANCE;
+            strategy = StrictMatchingStrategy.INSTANCE;
         }
         if (strategy == null) {
             throw new IllegalArgumentException("Unable to find matching strategy for " + attribute);
@@ -44,16 +44,25 @@ public class DefaultConfigurationAttributesSchema implements org.gradle.api.Attr
         return Cast.uncheckedCast(strategy);
     }
 
-    private static class StringMatchingStrategy implements AttributeMatchingStrategy<String> {
-        private static final StringMatchingStrategy INSTANCE = new StringMatchingStrategy();
+    @Override
+    public <T> void matchStrictly(Attribute<T> attribute) {
+        setMatchingStrategy(attribute, StrictMatchingStrategy.<T>get());
+    }
+
+    private static class StrictMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
+        private static final StrictMatchingStrategy<?> INSTANCE = new StrictMatchingStrategy<Object>();
+
+        public static <T> StrictMatchingStrategy<T> get() {
+            return Cast.uncheckedCast(INSTANCE);
+        }
 
         @Override
-        public boolean isCompatible(String requestedValue, String candidateValue) {
+        public boolean isCompatible(T requestedValue, T candidateValue) {
             return requestedValue.equals(candidateValue);
         }
 
         @Override
-        public <K> List<K> selectClosestMatch(String requestedValue, Map<K, String> compatibleValues) {
+        public <K> List<K> selectClosestMatch(T requestedValue, Map<K, T> compatibleValues) {
             return ImmutableList.copyOf(compatibleValues.keySet());
         }
     }
