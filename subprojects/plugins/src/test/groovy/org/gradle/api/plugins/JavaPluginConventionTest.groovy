@@ -109,6 +109,14 @@ class JavaPluginConventionTest {
         convention.sourceCompatibility = 6
         assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
         assertEquals(JavaVersion.VERSION_1_2, convention.targetCompatibility)
+
+        convention.targetCompatibility = JavaVersion.VERSION_1_3
+        assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_3, convention.targetCompatibility)
+
+        convention.sourceCompatibility = JavaVersion.VERSION_1_7
+        assertEquals(JavaVersion.VERSION_1_7, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_3, convention.targetCompatibility)
     }
 
     @Test
