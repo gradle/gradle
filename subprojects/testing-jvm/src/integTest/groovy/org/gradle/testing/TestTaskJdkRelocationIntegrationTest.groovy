@@ -19,6 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
+import org.gradle.util.TextUtil
 
 import static org.gradle.api.JavaVersion.VERSION_1_7
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -62,7 +63,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
             targetCompatibility = "1.7"
 
             test {
-                executable "${JDK_PATHS[0]}/bin/java"
+                executable "${TextUtil.escapeString(JDK_PATHS[0])}/bin/java"
             }
 
             afterEvaluate {
@@ -75,7 +76,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
     protected void moveFilesAround() {
         buildFile << """
             test {
-                executable "${JDK_PATHS[1]}/bin/java"
+                executable "${TextUtil.escapeString(JDK_PATHS[1])}/bin/java"
             }
         """
     }
