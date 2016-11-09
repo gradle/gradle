@@ -119,14 +119,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
         if (useConfigurationAttributes) {
             Matcher matcher = new Matcher(attributesSchema, targetComponent, fromConfigurationAttributes);
-            if (matcher.hasCompatibleMatches()) {
-                List<ConfigurationMetadata> fullMatches = matcher.getFullMatches();
-                if (fullMatches.size() == 1) {
-                    return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(fullMatches.get(0), fromConfigurationAttributes));
-                } else if (!fullMatches.isEmpty()) {
-                    throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(fullMatches, CONFIG_NAME)) + ". All of them match the client attributes " + fromConfigurationAttributes);
-                }
+            List<ConfigurationMetadata> matches = matcher.getFullMatchs();
+            if (matches.size() == 1) {
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
+            } else if (!matches.isEmpty()) {
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME)) + ". All of them match the client attributes " + fromConfigurationAttributes);
             }
+            matches = matcher.getPartialMatchs();
+            if (matches.size() == 1) {
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
+            } else if (!matches.isEmpty()) {
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME)) + ". All of them partially match the client attributes " + fromConfigurationAttributes);
+            }
+
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
@@ -362,30 +367,38 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             }
         }
 
-        public boolean hasCompatibleMatches() {
-            for (MatchDetails details : matchDetails.values()) {
-                if (details.isCompatible) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public List<ConfigurationMetadata> getFullMatches() {
-            List<ConfigurationMetadata> fullMatches = new ArrayList<ConfigurationMetadata>(1);
+        public List<ConfigurationMetadata> getFullMatchs() {
+            List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
             for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
                 MatchDetails details = entry.getValue();
-                if (details.isCompatible && details.hasAllAttributes) {
-                    fullMatches.add(entry.getKey());
+                if (details.isFullMatch && details.hasAllAttributes) {
+                    matchs.add(entry.getKey());
                 }
             }
-            if (fullMatches.size() > 1) {
-                List<ConfigurationMetadata> remainingMatches = selectClosestMatches(fullMatches);
+            if (matchs.size() > 1) {
+                List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
                 if (remainingMatches != null) {
                     return remainingMatches;
                 }
             }
-            return fullMatches;
+            return matchs;
+        }
+
+        public List<ConfigurationMetadata> getPartialMatchs() {
+            List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
+            for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
+                MatchDetails details = entry.getValue();
+                if (details.isPartialMatch && !details.hasAllAttributes) {
+                    matchs.add(entry.getKey());
+                }
+            }
+            if (matchs.size() > 1) {
+                List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
+                if (remainingMatches != null) {
+                    return remainingMatches;
+                }
+            }
+            return matchs;
         }
 
         private List<ConfigurationMetadata> selectClosestMatches(List<ConfigurationMetadata> fullMatches) {
@@ -416,17 +429,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             }
             return null;
         }
+
     }
 
     private static class MatchDetails {
         private final Map<Attribute<Object>, Object> matchesByAttribute = Maps.newHashMap();
         private final boolean hasAllAttributes;
 
-        private boolean isCompatible;
+        private boolean isFullMatch;
+        private boolean isPartialMatch;
 
         private MatchDetails(boolean hasAllAttributes) {
             this.hasAllAttributes = hasAllAttributes;
-            this.isCompatible = hasAllAttributes;
+            this.isFullMatch = hasAllAttributes;
         }
 
         private void update(Attribute<Object> attribute, AttributeMatchingStrategy<Object> strategy, Object requested, Object provided) {
@@ -434,7 +449,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (attributeCompatible) {
                 matchesByAttribute.put(attribute, provided);
             }
-            isCompatible &= attributeCompatible;
+            isFullMatch &= attributeCompatible;
+            isPartialMatch |= attributeCompatible;
         }
     }
 }
