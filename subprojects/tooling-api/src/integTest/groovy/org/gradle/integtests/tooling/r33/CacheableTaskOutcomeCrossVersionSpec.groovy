@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.util.TextUtil
 
 class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -44,7 +45,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         def cacheDir = file("task-output-cache")
         file("gradle.properties") << """
             org.gradle.cache.tasks=true
-            org.gradle.cache.tasks.directory=${cacheDir.absolutePath}
+            org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
 """
         file("input").text = "input file"
     }
