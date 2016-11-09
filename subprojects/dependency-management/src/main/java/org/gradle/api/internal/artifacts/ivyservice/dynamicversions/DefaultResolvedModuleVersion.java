@@ -25,6 +25,11 @@ public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
         this.identifier = identifier;
     }
 
+    @Override
+    public String toString() {
+        return identifier.toString();
+    }
+
     public ModuleVersionIdentifier getId() {
         return identifier;
     }

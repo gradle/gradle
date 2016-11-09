@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.component.Artifact;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.component.Artifact;
 
 import java.io.File;
 
@@ -30,6 +30,11 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
         this.identifier = identifier;
         this.type = type;
         this.file = file;
+    }
+
+    @Override
+    public String toString() {
+        return identifier.getDisplayName();
     }
 
     @Override
