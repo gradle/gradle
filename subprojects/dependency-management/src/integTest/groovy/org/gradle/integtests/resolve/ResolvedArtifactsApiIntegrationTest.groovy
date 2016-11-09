@@ -133,7 +133,7 @@ project(':b') {
 
 task show {
     doLast {
-        println "files: " + configurations.compile.incoming.artifacts.collect { rootProject.relativePath(it.file) }
+        println "files: " + configurations.compile.incoming.artifacts.collect { rootProject.relativePath(it.file).replace(File.separator, '/') }
         println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
         println "unique ids: " + configurations.compile.incoming.artifacts.collect { it.id }.unique()
         println "components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier.displayName }
