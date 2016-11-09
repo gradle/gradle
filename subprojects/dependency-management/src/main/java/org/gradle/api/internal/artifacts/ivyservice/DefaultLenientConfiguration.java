@@ -343,7 +343,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
                     if (seenFiles.add(file)) {
                         ComponentArtifactIdentifier artifactIdentifier;
                         if (componentIdentifier == null) {
-                            artifactIdentifier = new OpaqueComponentArtifactIdentifier(file.getName());
+                            artifactIdentifier = new OpaqueComponentArtifactIdentifier(file);
                         } else {
                             artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
                         }

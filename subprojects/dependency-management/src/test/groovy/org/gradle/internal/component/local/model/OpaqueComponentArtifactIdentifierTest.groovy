@@ -22,13 +22,13 @@ import spock.lang.Specification
 class OpaqueComponentArtifactIdentifierTest extends Specification {
     def "has useful string representation"() {
         expect:
-        new OpaqueComponentArtifactIdentifier("thing").toString() == "thing"
+        new OpaqueComponentArtifactIdentifier(new File("thing")).toString() == "thing"
     }
 
     def "identifiers are equal when display names are equal"() {
-        def id = new OpaqueComponentArtifactIdentifier("one")
-        def sameId = new OpaqueComponentArtifactIdentifier("one")
-        def differentId = new OpaqueComponentArtifactIdentifier("two")
+        def id = new OpaqueComponentArtifactIdentifier(new File("one"))
+        def sameId = new OpaqueComponentArtifactIdentifier(new File("one"))
+        def differentId = new OpaqueComponentArtifactIdentifier(new File("two"))
 
         expect:
         Matchers.strictlyEquals(id, sameId)

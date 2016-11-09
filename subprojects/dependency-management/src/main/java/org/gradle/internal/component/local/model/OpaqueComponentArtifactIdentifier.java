@@ -19,26 +19,28 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class OpaqueComponentArtifactIdentifier implements ComponentArtifactIdentifier {
-    private final String displayName;
+import java.io.File;
 
-    public OpaqueComponentArtifactIdentifier(String displayName) {
-        this.displayName = displayName;
+public class OpaqueComponentArtifactIdentifier implements ComponentArtifactIdentifier, ComponentIdentifier {
+    private final File file;
+
+    public OpaqueComponentArtifactIdentifier(File file) {
+        this.file = file;
     }
 
     @Override
     public ComponentIdentifier getComponentIdentifier() {
-        return new OpaqueComponentIdentifier(displayName);
+        return this;
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return file.getName();
     }
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     @Override
@@ -50,11 +52,11 @@ public class OpaqueComponentArtifactIdentifier implements ComponentArtifactIdent
             return false;
         }
         OpaqueComponentArtifactIdentifier other = (OpaqueComponentArtifactIdentifier) obj;
-        return displayName.equals(other.displayName);
+        return file.equals(other.file);
     }
 
     @Override
     public int hashCode() {
-        return displayName.hashCode();
+        return file.hashCode();
     }
 }

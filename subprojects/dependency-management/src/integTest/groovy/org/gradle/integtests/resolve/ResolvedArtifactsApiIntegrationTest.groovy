@@ -80,7 +80,10 @@ task show {
     doLast {
         println "files: " + configurations.compile.incoming.artifacts.collect { it.file.name }
         println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
+        println "unique ids: " + configurations.compile.incoming.artifacts.collect { it.id }.unique()
+        println "display-names: " + configurations.compile.incoming.artifacts.collect { it.toString() }
         println "components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier.displayName }
+        println "unique components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier }.unique()
     }
 }
 """
@@ -89,9 +92,65 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
-        outputContains("ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)")
-        outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0")
+        outputContains("files: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar]")
+        outputContains("ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
+        outputContains("unique ids: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
+        outputContains("display-names: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
+        outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
+        outputContains("unique components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
+    }
+
+    def "local files can have same base name"() {
+        settingsFile << """
+include 'a', 'b'
+"""
+        buildFile << """
+dependencies {
+    compile project(':a')
+    compile files('lib.jar')
+}
+project(':a') {
+    dependencies {
+        compile project(':b')
+        compile rootProject.files('lib.jar')
+        compile files('lib.jar')
+    }
+    artifacts {
+        compile file('one/lib.jar')
+        compile file('two/lib.jar')
+        compile rootProject.file('lib.jar')
+    }
+}
+project(':b') {
+    dependencies {
+        compile rootProject.files('lib.jar')
+        compile files('lib.jar')
+    }
+    artifacts {
+        compile rootProject.file('lib.jar')
+    }
+}
+
+task show {
+    doLast {
+        println "files: " + configurations.compile.incoming.artifacts.collect { rootProject.relativePath(it.file) }
+        println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
+        println "unique ids: " + configurations.compile.incoming.artifacts.collect { it.id }.unique()
+        println "components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier.displayName }
+        println "unique components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier }.unique()
+    }
+}
+"""
+
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [lib.jar, a/lib.jar, b/lib.jar, a/one/lib.jar, a/two/lib.jar, lib.jar, lib.jar]")
+        outputContains("ids: [lib.jar, lib.jar, lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar (project :b)]")
+        outputContains("unique ids: [lib.jar, lib.jar, lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar (project :b)]")
+        outputContains("components: [lib.jar, lib.jar, lib.jar, project :a, project :a, project :a, project :b]")
+        outputContains("unique components: [lib.jar, lib.jar, lib.jar, project :a, project :b]")
     }
 
     def "reports failure to resolve components when artifacts are queried"() {
