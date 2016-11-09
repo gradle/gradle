@@ -16,15 +16,14 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -57,9 +56,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree matching(Closure filterConfigClosure) {
-        PatternSet patternSet = new PatternSet();
-        ConfigureUtil.configure(filterConfigClosure, patternSet);
-        return matching(patternSet);
+        return matching(ClosureBackedAction.<PatternFilterable>of(filterConfigClosure));
     }
 
     @Override
@@ -118,7 +115,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree visit(Closure closure) {
-        return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
+        return visit(ClosureBackedAction.<FileVisitDetails>of(closure));
     }
 
     @Override
