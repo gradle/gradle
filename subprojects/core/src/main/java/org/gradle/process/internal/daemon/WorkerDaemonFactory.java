@@ -20,5 +20,5 @@ import java.io.File;
 
 public interface WorkerDaemonFactory {
     // TODO - workingDir should be injected into the implementation
-    WorkerDaemon getDaemon(File workingDir, DaemonForkOptions forkOptions);
+    WorkerDaemon getDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions);
 }

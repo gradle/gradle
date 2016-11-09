@@ -60,7 +60,8 @@ public interface WorkerDaemonExecutor<T> {
     WorkerDaemonExecutor<T> params(Serializable... params);
 
     /**
-     * Synchronously executes the task in a daemon process.
+     * Synchronously executes the task in a daemon process.  Each call will execute in an idle daemon.  If no
+     * idle daemons are available, a new daemon will be started.
      */
     void execute();
 }

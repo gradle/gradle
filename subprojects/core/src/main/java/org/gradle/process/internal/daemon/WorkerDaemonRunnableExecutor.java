@@ -21,10 +21,12 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.CollectionUtils;
 
+import java.io.Serializable;
+
 public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<Runnable> {
 
-    WorkerDaemonRunnableExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends Runnable> implementationClass) {
-        super(workerDaemonFactory, fileResolver, implementationClass);
+    WorkerDaemonRunnableExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends Runnable> implementationClass, Class<? extends WorkerDaemonProtocol> serverImplementationClass) {
+        super(workerDaemonFactory, fileResolver, implementationClass, serverImplementationClass);
     }
 
     @Override
@@ -39,18 +41,18 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
         });
         final DaemonForkOptions daemonForkOptions = toDaemonOptions(getImplementationClass(), paramTypes, getForkOptions(), getClasspath(), getSharedPackages());
 
-        WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getForkOptions().getWorkingDir(), daemonForkOptions);
+        WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getServerImplementationClass(), getForkOptions().getWorkingDir(), daemonForkOptions);
         daemon.execute(daemonRunnable, spec);
     }
 
     private static class ParamSpec implements WorkSpec {
-        final Object[] params;
+        final Serializable[] params;
 
-        ParamSpec(Object[] params) {
+        ParamSpec(Serializable[] params) {
             this.params = params;
         }
 
-        public Object[] getParams() {
+        public Serializable[] getParams() {
             return params;
         }
     }
@@ -65,7 +67,7 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
         @Override
         public WorkerDaemonResult execute(ParamSpec spec) {
             try {
-                Runnable runnable = DirectInstantiator.instantiate(runnableClass, spec.getParams());
+                Runnable runnable = DirectInstantiator.instantiate(runnableClass, (Object[])spec.getParams());
                 runnable.run();
                 return new WorkerDaemonResult(true, null);
             } catch (Throwable t) {

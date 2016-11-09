@@ -36,10 +36,10 @@ public class WorkerDaemonStarter {
         this.startParameter = startParameter;
     }
 
-    public WorkerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient startDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Timers.startTimer();
-        MultiRequestWorkerProcessBuilder<WorkerDaemonWorker> builder = workerFactory.multiRequestWorker(WorkerDaemonWorker.class, WorkerDaemonProtocol.class, WorkerDaemonServer.class);
+        MultiRequestWorkerProcessBuilder<WorkerDaemonWorker> builder = workerFactory.multiRequestWorker(WorkerDaemonWorker.class, WorkerDaemonProtocol.class, serverImplementationClass);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());

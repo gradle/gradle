@@ -21,70 +21,18 @@ import org.gradle.util.TextUtil
 
 
 class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
+    def outputFileDir = file("build/worker")
+    def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
+    def list = [ 1, 2, 3 ]
 
     def "can create and use a daemon runnable defined in buildSrc"() {
-        def outputFileDir = file("build/worker")
-        def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
-        def list = [ 1, 2, 3 ]
+        withBuildSrcParameterClass()
+        withBuildSrcRunnableClass()
 
-        file("buildSrc/src/main/java/org/gradle/test/MyRunnable.java") << """
-            package org.gradle.test;
-
-            import org.gradle.api.Action;
-            import java.io.Serializable;
-            import java.io.File;
-            import java.util.List;
-
-            public class MyRunnable implements Runnable {
-                private final List<String> files;
-                private File outputDir;
-
-                public MyRunnable(List<String> files, File outputDir) {
-                    this.files = files;
-                    this.outputDir = outputDir;
-                }
-
-                public void run() {
-                    outputDir.mkdirs();
-
-                    for (String name : files) {
-                        try {
-                            File outputFile = new File(outputDir, name);
-                            outputFile.createNewFile();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
-            }
-        """
         buildFile << """
             import org.gradle.test.MyRunnable
-            import javax.inject.Inject
-            import org.gradle.process.daemon.WorkerDaemonService
 
-            class MyTask extends DefaultTask {
-                def list = []
-
-                @Inject
-                WorkerDaemonService getWorkerDaemons() {
-                    throw new UnsupportedOperationException()
-                }
-
-                @TaskAction
-                void executeTask() {
-                    workerDaemons.daemonRunnable(MyRunnable.class)
-                        .forkOptions {
-                            it.workingDir(project.projectDir)
-                        }
-                        .params(list.collect { it as String }, new File("${outputFileDirPath}"))
-                        .execute()
-                }
-            }
-
-            task runActions(type: MyTask) {
-                list = $list
-            }
+            $taskUsingWorkerDaemon
         """
 
         when:
@@ -97,43 +45,28 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create and use a daemon runnable defined in build script"() {
-        def outputFileDir = file("build/worker")
-        def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
-        def list = [ 1, 2, 3 ]
-
-        file("buildSrc/src/main/groovy/Foo.groovy") << """
-            class Foo implements Serializable {
-            }
-        """
+        withBuildSrcParameterClass()
 
         buildFile << """
+            $runnableThatCreatesFiles
+
+            $taskUsingWorkerDaemon
+        """
+
+        when:
+        succeeds("runActions")
+
+        then:
+        list.each {
+            outputFileDir.file(it).assertExists()
+        }
+    }
+
+    String getTaskUsingWorkerDaemon() {
+        return """
             import javax.inject.Inject
             import org.gradle.process.daemon.WorkerDaemonService
-
-            class MyRunnable implements Runnable {
-                private final List<String> files;
-                private File outputDir;
-                private Foo foo;
-
-                public MyRunnable(List<String> files, File outputDir, Foo foo) {
-                    this.files = files;
-                    this.outputDir = outputDir;
-                    this.foo = foo;
-                }
-
-                public void run() {
-                    outputDir.mkdirs();
-
-                    for (String name : files) {
-                        try {
-                            File outputFile = new File(outputDir, name);
-                            outputFile.createNewFile();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
-            }
+            import org.gradle.other.Foo
 
             class MyTask extends DefaultTask {
                 def list = []
@@ -158,13 +91,57 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
                 list = $list
             }
         """
+    }
 
-        when:
-        succeeds("runActions")
+    String getRunnableThatCreatesFiles() {
+        return """
+            import java.io.Serializable;
+            import java.io.File;
+            import java.util.List;
+            import org.gradle.other.Foo;
 
-        then:
-        list.each {
-            outputFileDir.file(it).assertExists()
-        }
+            public class MyRunnable implements Runnable {
+                private final List<String> files;
+                private final File outputDir;
+                private final Foo foo ;
+
+                public MyRunnable(List<String> files, File outputDir, Foo foo) {
+                    this.files = files;
+                    this.outputDir = outputDir;
+                    this.foo = foo;
+                }
+
+                public void run() {
+                    outputDir.mkdirs();
+
+                    for (String name : files) {
+                        try {
+                            File outputFile = new File(outputDir, name);
+                            outputFile.createNewFile();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    void withBuildSrcParameterClass() {
+        file("buildSrc/src/main/java/org/gradle/other/Foo.java") << """
+            package org.gradle.other;
+
+            import java.io.Serializable;
+
+            public class Foo implements Serializable { }
+        """
+    }
+
+    void withBuildSrcRunnableClass() {
+        file("buildSrc/src/main/java/org/gradle/test/MyRunnable.java") << """
+            package org.gradle.test;
+
+            $runnableThatCreatesFiles
+        """
     }
 }

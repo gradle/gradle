@@ -31,6 +31,6 @@ public class DefaultWorkerDaemonService implements WorkerDaemonService {
 
     @Override
     public WorkerDaemonExecutor daemonRunnable(Class<? extends Runnable> runnableClass) {
-        return new WorkerDaemonRunnableExecutor(workerDaemonFactory, fileResolver, runnableClass);
+        return new WorkerDaemonRunnableExecutor(workerDaemonFactory, fileResolver, runnableClass, WorkerDaemonServer.class);
     }
 }
