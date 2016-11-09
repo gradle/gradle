@@ -21,11 +21,7 @@ import org.gradle.script.lang.kotlin.KotlinScriptHandler
 
 import org.gradle.api.Project
 
-import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
-@ScriptTemplateDefinition(
-    resolver = GradleKotlinScriptDependenciesResolver::class,
-    scriptFilePattern = ".*\\.gradle\\.kts")
 abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(project) {
 
     /**

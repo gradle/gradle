@@ -16,8 +16,6 @@
 
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.internal.classpath.ClassPath
-
 import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
 
 import org.gradle.tooling.GradleConnector
@@ -77,11 +75,6 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
                             previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? {
         if (environment == null)
             return previousDependencies
-
-        // Gradle compilation path
-        val classPath = environment["classPath"] as? ClassPath
-        if (classPath != null)
-            return makeDependencies(classPath.asFiles)
 
         // IDEA content assist path
         val hash = getBuildscriptBlockHash(script, environment)

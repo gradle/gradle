@@ -28,10 +28,14 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 
 import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.support.GradleKotlinScriptDependenciesResolver.Companion.implicitImports
 import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
 
-import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromAnnotatedTemplate
+import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+
+import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 
 import java.io.File
 
@@ -127,7 +131,15 @@ class CachingKotlinCompiler(
         }
 
     private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
-        KotlinScriptDefinitionFromAnnotatedTemplate(template, environment = mapOf("classPath" to classPath))
+        object : KotlinScriptDefinition(template) {
+            override fun <TF> getDependenciesFor(file: TF, project: Project, previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
+                object : KotlinScriptExternalDependencies {
+                    override val imports: Iterable<String>
+                        get() = implicitImports
+                    override val classpath: Iterable<File>
+                        get() = classPath.asFiles
+                }
+        }
 
     private fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
         val operation = progressLoggerFactory
