@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright 2016 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='task_output_cache'>
+    <note>
+        <para>
+            This feature is a work in progress. There is no public API for enabling or using this cache; although, you may see references
+            to it while we build the underlying infrastructure.
+        </para>
+    </note>
+    <title>Task Output Cache</title>
+    <section id="task_output_cache_intro">
+        <title>Overview</title>
+        <para>
+            Task output caching is a new kind of cache mechanism that aims to save time by reusing outputs produced by previous executions of
+            a task with matching inputs. Task outputs can be reused between builds of the same project on one computer or even between builds
+            running on different computers.
+        </para>
+    </section>
+</chapter>
