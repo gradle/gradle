@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
@@ -365,7 +364,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-    def "selects default configuration when partial match is found"() {
+    def "chooses a configuration when partial match is found"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -380,7 +379,63 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-default.jar']
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    create 'default'
+                    foo {
+                       attributes($debug) // partial match on `buildType`
+                    }
+                    bar {
+                       attributes($paid) // no match on `flavor`
+                    }
+                }
+                task defaultJar(type: Jar) {
+                   baseName = 'b-default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    'default' defaultJar
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:defaultJar', ':b:barJar'
+
+    }
+
+   def "cannot choose a configuration when multiple partial matchs are found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
                     }
                 }
             }
@@ -413,11 +468,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         """
 
         when:
-        run ':a:checkDebug'
+        fails ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:defaultJar'
-        notExecuted ':b:fooJar', ':b:barJar'
+        failure.assertHasCause "Cannot choose between the following configurations: [bar, foo]. All of them partially match the client attributes {buildType=debug, flavor=free}"
 
     }
 
@@ -630,7 +684,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.error.contains("default")
+        failure.assertHasCause("Cannot choose between the following configurations: [compile, debug]. All of them partially match the client attributes {buildType=debug, flavor=free}")
 
     }
 
@@ -1102,7 +1156,6 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-    @NotYetImplemented
     def "Library project with flavors depends on a library project that does not"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -1202,8 +1255,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-    @NotYetImplemented
-    def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
+   def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
@@ -1252,7 +1304,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                        attributes($freeDebug) // exact match on `buildType` and `flavor`
                     }
                     bar {
-                       attributes(${free}, ${paid}) // partial match on `buildType`
+                       attributes(${debug}, ${paid}) // partial match on `buildType`
                     }
                 }
                 task fooJar(type: Jar) {

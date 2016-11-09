@@ -75,7 +75,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema) == [toConfig] as Set
     }
 
-    @Unroll("selects configuration '#expected' from target component")
+    @Unroll("selects configuration '#expected' from target component (#scenario)")
     def "selects the target configuration from target component which matches the attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
@@ -109,11 +109,11 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set == [expected] as Set
 
         where:
-        queryAttributes                 | expected
-        [key: 'something']              | 'foo'
-        [key: 'something else']         | 'bar'
-        [key: 'other']                  | 'default'
-        [key: 'something', extra: 'no'] | 'default'
+        scenario               | queryAttributes                 | expected
+        'exact match'          | [key: 'something']              | 'foo'
+        'exact match'          | [key: 'something else']         | 'bar'
+        'no match'             | [key: 'other']                  | 'default'
+        'partial match on key' | [key: 'something', extra: 'no'] | 'foo'
     }
 
     def "fails to select target configuration when not present in the target component"() {
