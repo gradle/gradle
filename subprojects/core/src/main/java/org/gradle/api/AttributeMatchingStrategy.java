@@ -36,6 +36,26 @@ public interface AttributeMatchingStrategy<T> {
      */
     boolean isCompatible(T requestedValue, T candidateValue);
 
+    /**
+     * Selects the best matches from a list of compatible ones. The list of compatible sets
+     * is expressed a a {@link Map} which key is a candidate, and which value is the compatible value
+     * of this candidate. It is implied that this method is only called with compatible values, so
+     * the objective of this method is to discriminate (or order) compatible values, and return only
+     * the best ones.
+     *
+     * The result of the selection process is going to depend on the result of this method: if it
+     * returns a single value, then there's a clear winner. If it returns more than one value, then
+     * it means that they are equivalent and that the strategy cannot discriminate between them.
+     *
+     * The result of this operation is never empty: since the map we pass only contains compatible
+     * values, it is an error to say that there's no best match in that list. Similarly, it is
+     * an error to return a value which is not contained in the key set of the candidates map.
+     *
+     * @param requestedValue the value to compare against
+     * @param compatibleValues the map of candidate values
+     * @param <K> the type of the candidate
+     * @return a list of best matches. Must never be empty.
+     */
     <K> List<K> selectClosestMatch(T requestedValue, Map<K, T> compatibleValues);
 
 }
