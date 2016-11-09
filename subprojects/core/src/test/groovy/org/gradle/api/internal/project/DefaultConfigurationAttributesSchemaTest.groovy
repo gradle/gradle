@@ -56,6 +56,25 @@ class DefaultConfigurationAttributesSchemaTest extends Specification {
         !strategy.isCompatible([a: 'foo', b: 'bar'], [a: 'foo', b: 'baz'])
     }
 
+    def "strategy is per attribute"() {
+        given:
+        schema.matchStrictly(Attribute.of('a', Map))
+
+        when:
+        schema.getMatchingStrategy(Attribute.of('someOther', Map))
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Unable to find matching strategy for someOther'
+
+        when:
+        schema.getMatchingStrategy(Attribute.of(Map))
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == 'Unable to find matching strategy for map'
+    }
+
     def "can set a custom matching strategy"() {
         def attr = Attribute.of(Map)
 
