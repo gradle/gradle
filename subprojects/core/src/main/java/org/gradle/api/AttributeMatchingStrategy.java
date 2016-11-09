@@ -38,7 +38,7 @@ public interface AttributeMatchingStrategy<T> {
 
     /**
      * Selects the best matches from a list of compatible ones. The list of compatible sets
-     * is expressed a a {@link Map} which key is a candidate, and which value is the compatible value
+     * is expressed as a {@link Map} which key is a candidate, and which value is the compatible value
      * of this candidate. It is implied that this method is only called with compatible values, so
      * the objective of this method is to discriminate (or order) compatible values, and return only
      * the best ones.
