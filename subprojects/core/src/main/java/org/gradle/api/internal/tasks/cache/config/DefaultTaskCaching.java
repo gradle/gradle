@@ -20,34 +20,32 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.cache.LocalDirectoryTaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
-import org.gradle.cache.CacheRepository;
 
 import java.io.File;
 
 public class DefaultTaskCaching implements TaskCachingInternal {
+    private static final TaskOutputCacheFactory DEFAULT_LOCAL_TASK_CACHE_FACTORY = new TaskOutputCacheFactory() {
+        @Override
+        public TaskOutputCache createCache(StartParameter startParameter) {
+            String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
+            File cacheDirectory = cacheDirectoryPath != null
+                ? new File(cacheDirectoryPath)
+                : new File(startParameter.getGradleUserHomeDir(), "task-cache");
+            return new LocalDirectoryTaskOutputCache(cacheDirectory);
+        }
+    };
     private final boolean pullAllowed;
     private final boolean pushAllowed;
-    private final CacheRepository cacheRepository;
-    private TaskOutputCacheFactory factory;
+    private TaskOutputCacheFactory factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
 
-    public DefaultTaskCaching(CacheRepository cacheRepository) {
-        this.cacheRepository = cacheRepository;
-        useLocalCache();
+    public DefaultTaskCaching() {
         this.pullAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
         this.pushAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
     }
 
     @Override
     public void useLocalCache() {
-        this.factory = new TaskOutputCacheFactory() {
-            @Override
-            public TaskOutputCache createCache(StartParameter startParameter) {
-                String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
-                return cacheDirectoryPath != null
-                    ? new LocalDirectoryTaskOutputCache(cacheRepository, new File(cacheDirectoryPath))
-                    : new LocalDirectoryTaskOutputCache(cacheRepository, "task-cache");
-            }
-        };
+        this.factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
     }
 
     @Override
@@ -55,7 +53,7 @@ public class DefaultTaskCaching implements TaskCachingInternal {
         this.factory = new TaskOutputCacheFactory() {
             @Override
             public TaskOutputCache createCache(StartParameter startParameter) {
-                return new LocalDirectoryTaskOutputCache(cacheRepository, directory);
+                return new LocalDirectoryTaskOutputCache(directory);
             }
         };
     }

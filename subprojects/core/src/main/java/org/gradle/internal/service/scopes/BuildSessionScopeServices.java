@@ -93,8 +93,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new WorkerProcessClassPathProvider(cacheRepository);
     }
 
-    TaskCachingInternal createTaskCaching(CacheRepository cacheRepository) {
-        return new DefaultTaskCaching(cacheRepository);
+    TaskCachingInternal createTaskCaching() {
+        return new DefaultTaskCaching();
     }
 
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {

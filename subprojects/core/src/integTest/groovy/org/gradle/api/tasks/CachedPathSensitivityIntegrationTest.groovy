@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec {
+    File cacheDir
 
-class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements LocalTaskCacheFixture {
     def setup() {
+        // Make sure cache dir is empty for every test execution
+        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
         buildFile << """
             task clean {
                 doLast {
@@ -31,7 +33,9 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
 
     @Override
     void execute(String... tasks) {
-        withTaskCache().succeeds tasks
+        executer.withArgument "-Dorg.gradle.cache.tasks=true"
+        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
+        succeeds tasks
     }
 
     @Override

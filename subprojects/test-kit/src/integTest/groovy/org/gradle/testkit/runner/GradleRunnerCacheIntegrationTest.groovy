@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.util.TextUtil
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -50,11 +49,9 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
                 outputFile = new File(buildDir, "output")
             }
             """
-        def cacheDir = file("task-output-cache")
         file("gradle.properties") << """
             org.gradle.cache.tasks=true
-            org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
-        """
+            """
         file("input").text = "input file"
 
         when:

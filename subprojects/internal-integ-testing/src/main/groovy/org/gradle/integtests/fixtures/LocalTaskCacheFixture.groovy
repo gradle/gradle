@@ -43,8 +43,4 @@ trait LocalTaskCacheFixture {
         executer.withLocalTaskCache(cacheDir)
         this
     }
-
-    List<TestFile> listCacheFiles() {
-        cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/}.sort()
-    }
 }
