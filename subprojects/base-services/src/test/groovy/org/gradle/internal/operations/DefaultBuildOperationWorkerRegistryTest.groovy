@@ -219,4 +219,37 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
         cleanup:
         registry?.stop()
     }
+
+    def "synchronous child operation borrows parent lease"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        expect:
+        def outer = registry.operationStart()
+        def inner = registry.current.operationStart()
+        inner.operationFinish()
+        outer.operationFinish()
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "fails when synchronous child operation completes after parent"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        when:
+        def outer = registry.operationStart()
+        def inner = registry.current.operationStart()
+        try {
+            outer.operationFinish()
+        } finally {
+            inner.operationFinish()
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Some child operations have not yet completed.'
+
+        cleanup:
+        registry?.stop()
+    }
 }
