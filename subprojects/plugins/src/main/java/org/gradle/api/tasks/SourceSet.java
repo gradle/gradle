@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
@@ -119,6 +120,16 @@ public interface SourceSet {
     SourceSet resources(Closure configureClosure);
 
     /**
+     * Configures the non-Java resources for this set.
+     *
+     * <p>The given action is used to configure the {@link SourceDirectorySet} which contains the resources.
+     *
+     * @param configureAction The action to use to configure the resources.
+     * @return this
+     */
+    SourceSet resources(Action<? super SourceDirectorySet> configureAction);
+
+    /**
      * Returns the Java source which is to be compiled by the Java compiler into the class output directory.
      *
      * @return the Java source. Never returns null.
@@ -134,6 +145,16 @@ public interface SourceSet {
      * @return this
      */
     SourceSet java(Closure configureClosure);
+
+    /**
+     * Configures the Java source for this set.
+     *
+     * <p>The given action is used to configure the {@link SourceDirectorySet} which contains the Java source.
+     *
+     * @param configureAction The action to use to configure the Java source.
+     * @return this
+     */
+    SourceSet java(Action<? super SourceDirectorySet> configureAction);
 
     /**
      * All Java source files for this source set. This includes, for example, source which is directly compiled, and
