@@ -18,20 +18,32 @@ package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.TaskInputsInternal
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.tasks.properties.TaskInputFilePropertyBuilderInternal
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder
+import org.gradle.api.tasks.OutputFiles
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
-import java.util.concurrent.Callable
 
 class DefaultTaskClassValidatorExtractorTest extends Specification {
+    private static final List<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = [
+        InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Classpath
+    ]
+
+    @Shared GroovyClassLoader groovyClassLoader
+
+    def setupSpec() {
+        groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
+    }
+
     class TaskWithCustomAnnotation extends DefaultTask {
         @SearchPath FileCollection searchPath;
     }
@@ -63,6 +75,7 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         expect:
         def validator = extractor.extractValidator(TaskWithCustomAnnotation)
         validator.validatedProperties*.name as List == ["searchPath"]
+        validator.validatedProperties[0].propertyType == SearchPath
         validator.validatedProperties[0].configureAction == configureAction
     }
 
@@ -78,34 +91,36 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         @OutputFile @Override getFile() {}
     }
 
-    def "can override property type"() {
-        def taskInputs = Mock(TaskInputsInternal)
-        def taskOutputs = Mock(TaskOutputsInternal)
-        def task = Stub(TaskInternal) {
-            getInputs() >> taskInputs
-            getOutputs() >> taskOutputs
-        }
-        def mockInput = Mock(TaskInputFilePropertyBuilderInternal)
-        def mockOutput = Mock(TaskOutputFilePropertyBuilder)
-        def futureValue = Mock(Callable)
+    def "can make property internal and then make it into another type of property"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        expect:
+        extractor.extractValidator(TaskWithInputFile).validatedProperties[0].propertyType == InputFile
+        extractor.extractValidator(TaskWithInternal).validatedProperties.empty
+        extractor.extractValidator(TaskWithOutputFile).validatedProperties[0].propertyType == OutputFile
+    }
+
+    @Unroll
+    def "can override @#parentAnnotation.simpleName property type with @#childAnnotation.simpleName"() {
+        def parentTask = groovyClassLoader.parseClass """
+            class ParentTask extends org.gradle.api.DefaultTask {
+                @$parentAnnotation.name Object getValue() { null }
+            }
+        """
+
+        def childTask = groovyClassLoader.parseClass """
+            class ChildTask extends ParentTask {
+                @Override @$childAnnotation.name Object getValue() { null }
+            }
+        """
 
         def extractor = new DefaultTaskClassValidatorExtractor()
 
-        when:
-        extractor.extractValidator(TaskWithInputFile).validatedProperties[0].configureAction.update(task, futureValue)
-        then:
-        1 * taskInputs.files(futureValue) >> mockInput
-        _ * mockInput._(*_) >> mockInput
-        0 * _
-
         expect:
-        extractor.extractValidator(TaskWithInternal).validatedProperties.empty
+        extractor.extractValidator(parentTask).validatedProperties[0].propertyType == parentAnnotation
+        extractor.extractValidator(childTask).validatedProperties[0].propertyType == childAnnotation
 
-        when:
-        extractor.extractValidator(TaskWithOutputFile).validatedProperties[0].configureAction.update(task, futureValue)
-        then:
-        1 * taskOutputs.file(futureValue) >> mockOutput
-        _ * mockOutput._(*_) >> mockOutput
-        0 * _
+        where:
+        [parentAnnotation, childAnnotation] << [PROPERTY_TYPE_ANNOTATIONS, PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 }

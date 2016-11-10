@@ -301,7 +301,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             if (configureAction == null && validationAction == null) {
                 return null;
             }
-            return new TaskPropertyInfo(parent, name, method, getType(), validationAction, configureAction, optional);
+            return new TaskPropertyInfo(parent, name, propertyType, method, getType(), validationAction, configureAction, optional);
         }
     }
 }
