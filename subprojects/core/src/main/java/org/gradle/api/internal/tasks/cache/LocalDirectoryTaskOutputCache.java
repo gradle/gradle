@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.tasks.cache;
 
+import com.google.common.io.Closer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,10 +30,28 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
-    private final File directory;
+import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-    public LocalDirectoryTaskOutputCache(File directory) {
+public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Stoppable {
+    private final PersistentCache persistentCache;
+
+    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, File directory) {
+        this(cacheRepository.cache(checkDirectory(directory)));
+    }
+
+    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, String cacheKey) {
+        this(cacheRepository.cache(cacheKey));
+    }
+
+    private LocalDirectoryTaskOutputCache(CacheBuilder cacheBuilder) {
+        this.persistentCache = cacheBuilder
+            .withDisplayName("Task output cache")
+            .withLockOptions(mode(Exclusive))
+            .open();
+    }
+
+    private static File checkDirectory(File directory) {
         if (directory.exists()) {
             if (!directory.isDirectory()) {
                 throw new IllegalArgumentException(String.format("Cache directory %s must be a directory", directory));
@@ -43,41 +67,70 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
                 throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
             }
         }
-        this.directory = directory;
+        return directory;
     }
 
     @Override
-    public boolean load(TaskCacheKey key, TaskOutputReader reader) throws IOException {
-        final File file = getFile(key.getHashCode());
-        if (file.isFile()) {
-            FileInputStream stream = new FileInputStream(file);
-            try {
-                reader.readFrom(stream);
-                return true;
-            } finally {
-                stream.close();
+    public boolean load(final TaskCacheKey key, final TaskOutputReader reader) throws IOException {
+        return persistentCache.useCache("load task output", new Factory<Boolean>() {
+            @Override
+            public Boolean create() {
+                File file = getFile(key.getHashCode());
+                if (file.isFile()) {
+                    try {
+                        Closer closer = Closer.create();
+                        FileInputStream stream = closer.register(new FileInputStream(file));
+                        try {
+                            reader.readFrom(stream);
+                            return true;
+                        } catch (Throwable ex) {
+                            throw closer.rethrow(ex);
+                        } finally {
+                            closer.close();
+                        }
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    }
+                }
+                return false;
             }
-        }
-        return false;
+        });
     }
 
     @Override
-    public void store(TaskCacheKey key, TaskOutputWriter result) throws IOException {
-        File file = getFile(key.getHashCode());
-        OutputStream output = new FileOutputStream(file);
-        try {
-            result.writeTo(output);
-        } finally {
-            output.close();
-        }
+    public void store(final TaskCacheKey key, final TaskOutputWriter result) throws IOException {
+        persistentCache.useCache("store task output", new Runnable() {
+            @Override
+            public void run() {
+                File file = getFile(key.getHashCode());
+                try {
+                    Closer closer = Closer.create();
+                    OutputStream output = closer.register(new FileOutputStream(file));
+                    try {
+                        result.writeTo(output);
+                    } catch (Throwable ex) {
+                        throw closer.rethrow(ex);
+                    } finally {
+                        closer.close();
+                    }
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            }
+        });
     }
 
     private File getFile(String key) {
-        return new File(directory, key);
+        return new File(persistentCache.getBaseDir(), key);
     }
 
     @Override
     public String getDescription() {
-        return "local directory cache in " + directory;
+        return "local directory cache in " + persistentCache.getBaseDir();
+    }
+
+    @Override
+    public void stop() {
+        persistentCache.close();
     }
 }
