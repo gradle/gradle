@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.tooling.fixture.TextUtil
+import org.gradle.util.TextUtil
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.*
