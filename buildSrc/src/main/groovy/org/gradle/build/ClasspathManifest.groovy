@@ -1,6 +1,7 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -37,7 +38,7 @@ class ClasspathManifest extends DefaultTask {
     List<String> optionalProjects = []
 
     @Internal
-    List<String> additionalProjects = []
+    List<Project> additionalProjects = []
 
     @OutputFile
     File getManifestFile() {
@@ -55,7 +56,7 @@ class ClasspathManifest extends DefaultTask {
     String getProjects() {
         return (input.allDependencies.withType(ProjectDependency).collect {
             it.dependencyProject.archivesBaseName
-        } + additionalProjects).join(',')
+        } + additionalProjects*.archivesBaseName).join(',')
     }
 
     Properties createProperties() {

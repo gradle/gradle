@@ -15,7 +15,7 @@ dependencies {
 }
 
 classpathManifest {
-    additionalProjects = [project(':versionInfo').archivesBaseName]
+    additionalProjects = [project(':versionInfo')]
 }
 
 useTestFixtures()
