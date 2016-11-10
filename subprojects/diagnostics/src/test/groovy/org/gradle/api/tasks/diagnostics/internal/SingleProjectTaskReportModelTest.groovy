@@ -78,49 +78,6 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         task5Details.children*.task == [task4]
     }
 
-    def theDependenciesOfATopLevelTaskAreTheUnionOfTheDependenciesOfItsChildren() {
-        def task1 = task('task1', 'group1')
-        def task2 = task('task2', 'group2', task1)
-        def task3 = task('task3', 'group3')
-        def task4 = task('task4', task2)
-        def task5 = task('task5', 'group4', task3, task4)
-
-        when:
-        model.build([task1, task2, task3, task4, task5])
-
-        then:
-        TaskDetails t = (model.getTasksForGroup('group4') as List).first()
-        t.dependencies*.path*.name as Set == ['task2', 'task3'] as Set
-    }
-
-    def dependenciesIncludeExternalTasks() {
-        def task1 = task('task1')
-        def task2 = task('task2', 'other')
-        def task3 = task('task3', 'group', task1, task2)
-
-        when:
-        model.build([task2, task3])
-
-        then:
-        TaskDetails t = (model.getTasksForGroup('group') as List).first()
-        t.dependencies*.path*.name as Set == ['task1', 'task2'] as Set
-    }
-
-    def dependenciesDoNotIncludeTheChildrenOfOtherTopLevelTasks() {
-        def task1 = task('task1')
-        def task2 = task('task2', 'group1', task1)
-        def task3 = task('task3', task1)
-        def task4 = task('task4', task2)
-        def task5 = task('task5', 'group2', task3, task4)
-
-        when:
-        model.build([task1, task2, task3, task4, task5])
-
-        then:
-        TaskDetails t = (model.getTasksForGroup('group2') as List).first()
-        t.dependencies*.path*.name as Set == ['task2'] as Set
-    }
-
     def addsAGroupThatContainsTheTasksWithNoGroup() {
         def task1 = task('task1')
         def task2 = task('task2', 'group', task1)
@@ -174,6 +131,5 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         TaskDetails t = (model.getTasksForGroup('group1') as List).first()
         t.children*.task == [task1]
-        t.dependencies*.path*.name == ['other2']
     }
 }

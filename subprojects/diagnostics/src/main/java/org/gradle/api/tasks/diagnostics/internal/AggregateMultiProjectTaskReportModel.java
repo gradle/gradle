@@ -87,10 +87,5 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         public String getDescription() {
             return task.getDescription();
         }
-
-        @Override
-        public Set<TaskDetails> getDependencies() {
-            return task.getDependencies();
-        }
     }
 }

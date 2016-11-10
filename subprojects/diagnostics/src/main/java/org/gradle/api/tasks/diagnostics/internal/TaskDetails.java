@@ -24,7 +24,5 @@ public interface TaskDetails {
 
     String getDescription();
 
-    Set<TaskDetails> getDependencies();
-
     Set<TaskDetails> getChildren();
 }

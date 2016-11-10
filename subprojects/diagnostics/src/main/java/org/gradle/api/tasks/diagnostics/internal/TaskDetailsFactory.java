@@ -48,10 +48,6 @@ public class TaskDetailsFactory {
                 return task.getDescription();
             }
 
-            public Set<TaskDetails> getDependencies() {
-                return Collections.emptySet();
-            }
-
             public Set<TaskDetails> getChildren() {
                 return Collections.emptySet();
             }

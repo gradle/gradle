@@ -88,9 +88,9 @@ rule2Description
 
 Group tasks
 -----------
-:task1 - task1Description [:task11, :task12]
+:task1 - task1Description
     :task2
-:task3 [:task1]
+:task3
 
 Rules
 -----

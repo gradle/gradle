@@ -23,7 +23,12 @@ import org.gradle.internal.graph.GraphAggregator;
 import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
     private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(new Comparator<String>() {
@@ -62,21 +67,14 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         for (Task task : result.getTopLevelNodes()) {
             Set<Task> nodesForThisTask = new TreeSet<Task>(result.getNodes(task));
             Set<TaskDetails> children = new LinkedHashSet<TaskDetails>();
-            Set<TaskDetails> dependencies = new LinkedHashSet<TaskDetails>();
             for (Task node : nodesForThisTask) {
                 if (node != task) {
-                    children.add(new TaskDetailsImpl(node, factory.create(node), Collections.<TaskDetails>emptySet(),
-                            Collections.<TaskDetails>emptySet()));
-                }
-                for (Task dep : node.getTaskDependencies().getDependencies(node)) {
-                    if (topLevelTasks.contains(dep) || !containsTaskWithPath(tasks, dep.getPath())) {
-                        dependencies.add(factory.create(dep));
-                    }
+                    children.add(new TaskDetailsImpl(node, factory.create(node), Collections.<TaskDetails>emptySet()));
                 }
             }
 
             String group = topLevelTasks.contains(task) ? task.getGroup() : DEFAULT_GROUP;
-            groups.put(group, new TaskDetailsImpl(task, factory.create(task), children, dependencies));
+            groups.put(group, new TaskDetailsImpl(task, factory.create(task), children));
         }
     }
 
@@ -106,13 +104,11 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         private final Task task;
         private final TaskDetails details;
         private final Set<TaskDetails> children;
-        private final Set<TaskDetails> dependencies;
 
-        public TaskDetailsImpl(Task task, TaskDetails details, Set<TaskDetails> children, Set<TaskDetails> dependencies) {
+        public TaskDetailsImpl(Task task, TaskDetails details, Set<TaskDetails> children) {
             this.task = task;
             this.details = details;
             this.children = children;
-            this.dependencies = dependencies;
         }
 
         @Override
@@ -132,11 +128,6 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
 
         public Task getTask() {
             return task;
-        }
-
-        @Override
-        public Set<TaskDetails> getDependencies() {
-            return dependencies;
         }
 
         @Override
