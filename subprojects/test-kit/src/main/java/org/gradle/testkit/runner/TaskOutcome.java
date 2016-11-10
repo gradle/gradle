@@ -50,7 +50,8 @@ public enum TaskOutcome {
     SKIPPED,
 
     /**
-     * The task executed, but did not perform work as its output was cached.
+     * The task executed, but did not perform work as its output was cached in a
+     * <a href="https://docs.gradle.org/current/userguide/task_output_cache.html">task output cache</a>..
      *
      * <p>NOTE: If the Gradle version used for build under test is older than 3.3,
      * no tasks will have this outcome.</p>
