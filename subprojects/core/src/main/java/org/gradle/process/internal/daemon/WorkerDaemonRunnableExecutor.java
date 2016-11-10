@@ -18,6 +18,7 @@ package org.gradle.process.internal.daemon;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.CollectionUtils;
 
@@ -42,7 +43,10 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
         final DaemonForkOptions daemonForkOptions = toDaemonOptions(getImplementationClass(), paramTypes, getForkOptions(), getClasspath(), getSharedPackages());
 
         WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getServerImplementationClass(), getForkOptions().getWorkingDir(), daemonForkOptions);
-        daemon.execute(daemonRunnable, spec);
+        WorkerDaemonResult result = daemon.execute(daemonRunnable, spec);
+        if (!result.isSuccess()) {
+            throw UncheckedException.throwAsUncheckedException(result.getException());
+        }
     }
 
     private static class ParamSpec implements WorkSpec {
