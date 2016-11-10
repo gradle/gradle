@@ -16,13 +16,14 @@
 
 package org.gradle.internal.operations;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Note that this class currently does not consider the build operations being run by {@link DefaultBuildOperationProcessor}.
@@ -32,7 +33,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     private final int maxWorkerCount;
     private final Object lock = new Object();
     private int counter = 1;
-    private final Map<Thread, DefaultOperation> threads = new HashMap<Thread, DefaultOperation>();
+    private final ListMultimap<Thread, DefaultOperation> threads = ArrayListMultimap.create();
     private final Root root = new Root();
 
     public DefaultBuildOperationWorkerRegistry(int maxWorkerCount) {
@@ -43,46 +44,45 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     @Override
     public Operation getCurrent() {
         synchronized (lock) {
-            DefaultOperation operation = threads.get(Thread.currentThread());
-            if (operation == null) {
+            List<DefaultOperation> operations = threads.get(Thread.currentThread());
+            if (operations.isEmpty()) {
                 throw new IllegalStateException("No build operation associated with the current thread");
             }
-            return operation;
+            return operations.get(operations.size() - 1);
         }
     }
 
     @Override
     public Completion operationStart() {
-        return doStartOperation(root);
+        synchronized (lock) {
+            List<DefaultOperation> operations = threads.get(Thread.currentThread());
+            LeaseHolder parent = operations.isEmpty() ? root : operations.get(operations.size() - 1);
+            return doStartOperation(parent);
+        }
     }
 
+    // Must be holding lock
     private BuildOperationWorkerRegistry.Completion doStartOperation(LeaseHolder parent) {
-        synchronized (lock) {
-            int workerId = counter++;
-            Thread ownerThread = Thread.currentThread();
-            if (threads.containsKey(ownerThread)) {
-                // Not implemented - not yet required. Please implement if required
-                throw new UnsupportedOperationException("Cannot nest operations in the same thread. Each nested operation must run in its own thread.");
-            }
+        int workerId = counter++;
+        Thread ownerThread = Thread.currentThread();
 
-            DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
-            while (!parent.grantLease()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker {} waiting for a lease. Currently {} in use", operation.getDisplayName(), root.leasesInUse);
-                }
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-
-            threads.put(ownerThread, operation);
+        DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
+        while (!parent.grantLease()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Worker {} started ({} in use).", operation.getDisplayName(), root.leasesInUse);
+                LOGGER.debug("Worker {} waiting for a lease. Currently {} in use", operation.getDisplayName(), root.leasesInUse);
             }
-            return operation;
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
+
+        threads.put(ownerThread, operation);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Worker {} started ({} in use).", operation.getDisplayName(), root.leasesInUse);
+        }
+        return operation;
     }
 
     @Override
@@ -160,7 +160,9 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
         @Override
         public Completion operationStart() {
-            return doStartOperation(this);
+            synchronized (lock) {
+                return doStartOperation(this);
+            }
         }
 
         @Override
@@ -172,7 +174,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 }
 
                 parent.releaseLease();
-                threads.remove(ownerThread);
+                threads.remove(ownerThread, this);
                 lock.notifyAll();
 
                 if (LOGGER.isDebugEnabled()) {
