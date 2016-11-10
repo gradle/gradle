@@ -108,7 +108,7 @@ task generateFixedVersionPom {
     dependsOn generatePom
     ext.fixedVersionPomFile = new File(temporaryDir, 'pom.xml')
     outputs.files(fixedVersionPomFile)
-    inputs.file { generatePom.pomFile }
+    inputs.file { generatePom.pomFile } withPropertyName 'pomFile' withPathSensitivity PathSensitivity.NONE
     inputs.property("testedVersion", { testedVersion })
     doLast {
         def xml = new XmlParser().parse(generatePom.pomFile)
