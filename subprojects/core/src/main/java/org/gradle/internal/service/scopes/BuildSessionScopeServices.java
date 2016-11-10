@@ -123,8 +123,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    WorkerDaemonManager createWorkerDaemonManager(WorkerProcessFactory workerFactory, StartParameter startParameter) {
-        return new WorkerDaemonManager(new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter)));
+    WorkerDaemonManager createWorkerDaemonManager(BuildOperationWorkerRegistry buildOperationWorkerRegistry, WorkerProcessFactory workerFactory, StartParameter startParameter) {
+        return new WorkerDaemonManager(new WorkerDaemonClientsManager(new WorkerDaemonStarter(buildOperationWorkerRegistry, workerFactory, startParameter)));
     }
 
     WorkerDaemonService createWorkerDaemonService(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {

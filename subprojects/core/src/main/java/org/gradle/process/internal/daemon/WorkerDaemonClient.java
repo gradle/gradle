@@ -16,12 +16,15 @@
 package org.gradle.process.internal.daemon;
 
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 
 class WorkerDaemonClient implements WorkerDaemon, Stoppable {
+    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final DaemonForkOptions forkOptions;
     private final WorkerDaemonWorker workerProcess;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonWorker workerProcess) {
+    public WorkerDaemonClient(BuildOperationWorkerRegistry buildOperationWorkerRegistry, DaemonForkOptions forkOptions, WorkerDaemonWorker workerProcess) {
+        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.forkOptions = forkOptions;
         this.workerProcess = workerProcess;
     }
@@ -30,7 +33,12 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
         // currently we just allow a single compilation thread at a time (per compiler daemon)
         // one problem to solve when allowing multiple threads is how to deal with memory requirements specified by compile tasks
-        return workerProcess.execute(action, spec);
+        BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.operationStart();
+        try {
+            return workerProcess.execute(action, spec);
+        } finally {
+            workerLease.operationFinish();
+        }
     }
 
     public boolean isCompatibleWith(DaemonForkOptions required) {
