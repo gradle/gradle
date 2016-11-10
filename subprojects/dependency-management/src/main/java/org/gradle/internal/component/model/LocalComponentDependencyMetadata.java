@@ -118,7 +118,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
+        boolean useConfigurationAttributes = dependencyConfiguration == null;
         if (useConfigurationAttributes) {
             Matcher matcher = new Matcher(attributesSchema, targetComponent, fromConfigurationAttributes);
             List<ConfigurationMetadata> matches = matcher.getFullMatchs();
