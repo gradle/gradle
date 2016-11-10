@@ -19,6 +19,7 @@ package org.gradle.internal.component.model
 import org.gradle.api.Attribute
 import org.gradle.api.AttributeContainer
 import org.gradle.api.AttributeMatchingStrategy
+import org.gradle.api.AttributeValue
 import org.gradle.api.AttributesSchema
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -373,7 +374,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
 
         @Override
-        def <K> List<K> selectClosestMatch(JavaVersion requestedValue, Map<K, JavaVersion> compatibleValues) {
+        def <K> List<K> selectClosestMatch(AttributeValue<JavaVersion> requestedValue, Map<K, JavaVersion> compatibleValues) {
             def maxCompat = compatibleValues.values().sort { it.ordinal() }.last()
             def result = compatibleValues.findAll { it.value == maxCompat }*.key
             result

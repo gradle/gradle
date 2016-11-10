@@ -26,6 +26,7 @@ import org.gradle.api.AttributeContainer;
 import org.gradle.api.AttributeMatchingStrategy;
 import org.gradle.api.AttributesSchema;
 import org.gradle.api.GradleException;
+import org.gradle.api.AttributeValue;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -408,6 +409,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     }
                 }
             }
+            Set<Attribute<?>> consumerAttributes = consumerAttributeSchema.getAttributes();
             List<ConfigurationMetadata> remainingMatches = Lists.newArrayList(matchs);
             Map<ConfigurationMetadata, Object> values = Maps.newHashMap();
             for (Attribute<?> attribute : producerOnlyAttributes) {
@@ -419,7 +421,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 }
                 if (!values.isEmpty()) {
                     AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(producerAttributeSchema.getMatchingStrategy(attribute));
-                    List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(null, values);
+                    AttributeValue<Object> absent = consumerAttributes.contains(attribute) ? AttributeValue.missing() : AttributeValue.unknown();
+                    List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(absent, values);
                     remainingMatches.retainAll(best);
                     if (remainingMatches.isEmpty()) {
                         // the intersection is empty, so we cannot choose
@@ -460,7 +463,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     values.put(match, matchedAttributes.get(attribute));
                 }
                 AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
-                List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(requestedValue, values);
+                List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(AttributeValue.of(requestedValue), values);
                 remainingMatches.retainAll(best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
