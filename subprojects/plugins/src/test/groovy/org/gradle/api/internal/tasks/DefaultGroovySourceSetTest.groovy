@@ -62,12 +62,7 @@ class DefaultGroovySourceSetTest {
 
     @Test
     public void canConfigureGroovySourceUsingAnAction() {
-        sourceSet.groovy(new Action<SourceDirectorySet>() {
-            @Override
-            void execute(SourceDirectorySet set) {
-                set.srcDir 'src/groovy'
-            }
-        })
+        sourceSet.groovy({ set -> set.srcDir 'src/groovy' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.groovy.srcDirs, equalTo([tmpDir.file("src/groovy")] as Set))
     }
 }

@@ -143,12 +143,7 @@ class DefaultSourceSetTest {
 
     @Test public void canConfigureResourcesUsingAnAction() {
         SourceSet sourceSet = sourceSet('main')
-        sourceSet.resources(new Action<SourceDirectorySet>() {
-            @Override
-            void execute(SourceDirectorySet set) {
-                set.srcDir 'src/resources'
-            }
-        })
+        sourceSet.resources({ set -> set.srcDir 'src/resources' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.resources.srcDirs, equalTo([tmpDir.file('src/resources')] as Set))
     }
 
@@ -160,12 +155,7 @@ class DefaultSourceSetTest {
 
     @Test public void canConfigureJavaSourceUsingAnAction() {
         SourceSet sourceSet = sourceSet('main')
-        sourceSet.java(new Action<SourceDirectorySet>() {
-            @Override
-            void execute(SourceDirectorySet set) {
-                set.srcDir 'src/java'
-            }
-        })
+        sourceSet.java({ set -> set.srcDir 'src/java' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.java.srcDirs, equalTo([tmpDir.file('src/java')] as Set))
     }
 

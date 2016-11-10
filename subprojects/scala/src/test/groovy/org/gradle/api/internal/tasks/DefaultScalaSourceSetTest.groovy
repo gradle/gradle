@@ -63,12 +63,7 @@ class DefaultScalaSourceSetTest {
 
     @Test
     public void canConfigureScalaSourceUsingAnAction() {
-        sourceSet.scala(new Action<SourceDirectorySet>() {
-            @Override
-            void execute(SourceDirectorySet set) {
-                set.srcDir 'src/scala'
-            }
-        })
+        sourceSet.scala({ set -> set.srcDir 'src/scala' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.scala.srcDirs, equalTo([tmpDir.file('src/scala')] as Set))
     }
 }
