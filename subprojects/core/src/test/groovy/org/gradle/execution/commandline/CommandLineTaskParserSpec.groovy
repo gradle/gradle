@@ -41,7 +41,7 @@ class CommandLineTaskParserSpec extends Specification {
         def request = new DefaultTaskExecutionRequest(['foo'], 'project')
         def selection = new TaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task))
 
-        selector.getSelection('project', 'foo') >> selection
+        selector.getSelection('project', null, 'foo') >> selection
 
         when:
         def out = parser.parseTasks(request)
@@ -56,8 +56,8 @@ class CommandLineTaskParserSpec extends Specification {
         def selection1 = new TaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task, task2))
         def selection2 = new TaskSelector.TaskSelection(':project', ':bar', asTaskSelectionResults(task3))
 
-        selector.getSelection(null, 'foo') >> selection1
-        selector.getSelection(null, 'bar') >> selection2
+        selector.getSelection(null, null, 'foo') >> selection1
+        selector.getSelection(null, null, 'bar') >> selection2
 
         when:
         def out = parser.parseTasks(request)
@@ -69,9 +69,9 @@ class CommandLineTaskParserSpec extends Specification {
     def "configures tasks if configuration options specified"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'])
-        selector.getSelection(null, 'foo') >> new TaskSelector.TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
-        selector.getSelection(null, 'bar') >> new TaskSelector.TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
-        selector.getSelection(null, 'lastTask') >> new TaskSelector.TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
+        selector.getSelection(null, null, 'foo') >> new TaskSelector.TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
+        selector.getSelection(null, null, 'bar') >> new TaskSelector.TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
+        selector.getSelection(null, null, 'lastTask') >> new TaskSelector.TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
 
         when:
         def out = parser.parseTasks(request)
