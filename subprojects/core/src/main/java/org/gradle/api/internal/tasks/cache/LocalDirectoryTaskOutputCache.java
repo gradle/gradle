@@ -18,11 +18,12 @@ package org.gradle.api.internal.tasks.cache;
 
 import com.google.common.io.Closer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.Stoppable;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,12 +33,19 @@ import java.io.OutputStream;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Stoppable {
+public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable {
     private final PersistentCache persistentCache;
 
-    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, File cacheDirectory) {
-        checkDirectory(cacheDirectory);
-        this.persistentCache = cacheRepository.cache(cacheDirectory)
+    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, File directory) {
+        this(cacheRepository.cache(checkDirectory(directory)));
+    }
+
+    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, String cacheKey) {
+        this(cacheRepository.cache(cacheKey));
+    }
+
+    private LocalDirectoryTaskOutputCache(CacheBuilder cacheBuilder) {
+        this.persistentCache = cacheBuilder
             .withDisplayName("Task output cache")
             .withLockOptions(mode(Exclusive))
             .open();
@@ -122,7 +130,7 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Stoppable
     }
 
     @Override
-    public void stop() {
+    public void close() throws IOException {
         persistentCache.close();
     }
 }
