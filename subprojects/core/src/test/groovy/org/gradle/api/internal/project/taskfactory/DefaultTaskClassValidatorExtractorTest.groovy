@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -34,8 +35,12 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 
 class DefaultTaskClassValidatorExtractorTest extends Specification {
-    private static final List<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = [
+    private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
         InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Classpath
+    ]
+
+    private static final List<Class<? extends Annotation>> UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
+        Console, Internal
     ]
 
     @Shared GroovyClassLoader groovyClassLoader
@@ -121,6 +126,54 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         extractor.extractValidator(childTask).validatedProperties[0].propertyType == childAnnotation
 
         where:
-        [parentAnnotation, childAnnotation] << [PROPERTY_TYPE_ANNOTATIONS, PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
+        [parentAnnotation, childAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, PROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
+    }
+
+    @Unroll
+    def "can override @#processedAnnotation.simpleName property type with @#unprocessedAnnotation.simpleName"() {
+        def parentTask = groovyClassLoader.parseClass """
+            class ParentTask extends org.gradle.api.DefaultTask {
+                @$processedAnnotation.name Object getValue() { null }
+            }
+        """
+
+        def childTask = groovyClassLoader.parseClass """
+            class ChildTask extends ParentTask {
+                @Override @$unprocessedAnnotation.name Object getValue() { null }
+            }
+        """
+
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        expect:
+        extractor.extractValidator(parentTask).validatedProperties[0].propertyType == processedAnnotation
+        extractor.extractValidator(childTask).validatedProperties.empty
+
+        where:
+        [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
+    }
+
+    @Unroll
+    def "can override @#unprocessedAnnotation.simpleName property type with @#processedAnnotation.simpleName"() {
+        def parentTask = groovyClassLoader.parseClass """
+            class ParentTask extends org.gradle.api.DefaultTask {
+                @$unprocessedAnnotation.name Object getValue() { null }
+            }
+        """
+
+        def childTask = groovyClassLoader.parseClass """
+            class ChildTask extends ParentTask {
+                @Override @$processedAnnotation.name Object getValue() { null }
+            }
+        """
+
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        expect:
+        extractor.extractValidator(parentTask).validatedProperties.empty
+        extractor.extractValidator(childTask).validatedProperties[0].propertyType == processedAnnotation
+
+        where:
+        [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 }
