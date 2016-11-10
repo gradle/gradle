@@ -117,7 +117,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withTaskCache().succeeds "jar"
-        def originalCacheContents = (cacheDir.listFiles() as List).sort()
+        def originalCacheContents = listCacheFiles()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
         skippedTasks.empty
@@ -128,7 +128,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withTaskCache().succeeds "jar", "--rerun-tasks"
-        def updatedCacheContents = (cacheDir.listFiles() as List).sort()
+        def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
@@ -159,7 +159,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withTaskCache().succeeds "jar"
-        def originalCacheContents = (cacheDir.listFiles() as List).sort()
+        def originalCacheContents = listCacheFiles()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
         skippedTasks.empty
@@ -170,7 +170,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withTaskCache().succeeds "jar", "-Dorg.gradle.cache.tasks.pull=false"
-        def updatedCacheContents = (cacheDir.listFiles() as List).sort()
+        def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
