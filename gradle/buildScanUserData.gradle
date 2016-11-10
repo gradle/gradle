@@ -83,7 +83,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
 
     if (gradle.startParameter.taskOutputCacheEnabled) {
         buildScan.tag 'CACHED'
-        apply from: rootProject.file('gradle/buildScanCacheDiagnostics.gradle')
+        apply from: rootProject.file('gradle/taskCacheBuildScanUserData.gradle')
     }
 }
 

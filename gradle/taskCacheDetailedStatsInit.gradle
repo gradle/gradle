@@ -99,7 +99,10 @@ gradle.addListener(new BuildAdapter() {
                     writer.println([k, v].collect { quote(it) }.join(","))
                 }
             } finally {
-                writer.close()
+                writer.flush()
+                if (csv) {
+                    writer.close()
+                }
             }
         }
     }
