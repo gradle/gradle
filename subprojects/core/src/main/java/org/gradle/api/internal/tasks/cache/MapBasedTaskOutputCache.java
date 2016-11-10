@@ -52,4 +52,9 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
         output.writeTo(buffer.getOutputStream());
         delegate.put(key.getHashCode(), buffer.readAsByteArray());
     }
+
+    @Override
+    public void close() throws IOException {
+        // Do nothing
+    }
 }
