@@ -51,7 +51,7 @@ daemonIntegTest {
 }
 
 task shadedJarWithoutVersion(type: ShadedJar) {
-    ext.outputDir = file("$buildDir/shaded-jar")
+    ext.outputDir = file("$buildDir/shaded-jar-without-version")
     sourceFiles = jar.inputs.files +
         files { (configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
     analysisFile = file("$outputDir/analysis.txt")
@@ -64,26 +64,23 @@ task shadedJarWithoutVersion(type: ShadedJar) {
 }
 
 task toolingApiShadedJar(type: Zip) {
-    dependsOn shadedJarWithoutVersion, project(':versionInfo').createBuildReceipt
-    from zipTree(shadedJarWithoutVersion.jarFile)
-    from(project(':versionInfo').createTestBuildReceipt) {
-        into '/org/gradle'
-    }
-    baseName = 'gradle-tooling-api-shaded'
-    destinationDir file("$temporaryDir/")
-    extension 'jar'
-    version baseVersion
+    ext.buildReceipt = project(':versionInfo').createBuildReceipt
+    destinationDir file("$buildDir/shaded-jar")
 }
 
 task testToolingApiShadedJar(type: Zip) {
+    ext.buildReceipt = project(':versionInfo').createTestBuildReceipt
     outputs.cacheIf { true }
-    dependsOn shadedJarWithoutVersion, project(':versionInfo').createTestBuildReceipt
+    destinationDir file("$buildDir/shaded-jar-with-test-version")
+}
+
+configure([toolingApiShadedJar, testToolingApiShadedJar]) {
+    dependsOn shadedJarWithoutVersion, buildReceipt
     from zipTree(shadedJarWithoutVersion.jarFile)
-    from(project(':versionInfo').createTestBuildReceipt) {
+    baseName = 'gradle-tooling-api-shaded'
+    from(buildReceipt) {
         into '/org/gradle'
     }
-    baseName = 'gradle-tooling-api-shaded'
-    destinationDir file("$temporaryDir/")
     extension 'jar'
     version baseVersion
 }
