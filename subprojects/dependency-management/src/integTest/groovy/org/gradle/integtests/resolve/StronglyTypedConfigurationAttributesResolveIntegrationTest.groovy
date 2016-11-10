@@ -435,9 +435,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                arm64
             }
             def arch = Attribute.of(Arch)
+            def dummy = Attribute.of('dummy', String)
 
             allprojects {
                configurationAttributesSchema {
+                  matchStrictly(dummy)
                   setMatchingStrategy(arch, new AttributeMatchingStrategy<Arch>() {
                        boolean isCompatible(Arch req, Arch can) { req == can }
                        public <K> List<K> selectClosestMatch(AttributeValue<Arch> requestedValue, Map<K, Arch> compatibleValues) {
@@ -455,7 +457,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                 configurations {
-                    compile
+                    compile.attributes(dummy: 'dummy')
                 }
                 dependencies {
                     compile project(':b')
@@ -469,8 +471,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':b') {
                 configurations {
-                    foo.attributes((arch): Arch.x86)
-                    bar.attributes((arch): Arch.arm64)
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -485,9 +487,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':c') {
                 configurations {
-                    create('default')
-                    foo.attributes((arch): Arch.x86)
-                    bar.attributes((arch): Arch.arm64)
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
                 }
                 task fooJar(type: Jar) {
                    baseName = 'c-foo'
