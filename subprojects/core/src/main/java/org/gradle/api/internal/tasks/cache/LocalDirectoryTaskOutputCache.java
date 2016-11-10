@@ -30,7 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable {
@@ -47,7 +47,7 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable
     private LocalDirectoryTaskOutputCache(CacheBuilder cacheBuilder) {
         this.persistentCache = cacheBuilder
             .withDisplayName("Task output cache")
-            .withLockOptions(mode(Exclusive))
+            .withLockOptions(mode(None))
             .open();
     }
 
