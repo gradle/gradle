@@ -53,7 +53,7 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
         def cacheDir = file("task-output-cache")
         file("gradle.properties") << """
             org.gradle.cache.tasks=true
-            org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
+            systemProp.org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
         """
         file("input").text = "input file"
 

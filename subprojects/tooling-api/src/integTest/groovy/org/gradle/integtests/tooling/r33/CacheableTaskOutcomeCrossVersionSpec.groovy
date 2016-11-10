@@ -45,7 +45,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         def cacheDir = file("task-output-cache")
         file("gradle.properties") << """
             org.gradle.cache.tasks=true
-            org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
+            systemProp.org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
 """
         file("input").text = "input file"
     }
@@ -93,10 +93,10 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         (TaskSuccessResult)events.operations[0].result
     }
 
-    private void runCacheableBuild(pullFromCacheResults) {
+    private void runCacheableBuild(listener) {
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('cacheable').addProgressListener(pullFromCacheResults, EnumSet.of(OperationType.TASK)).run()
+                connection.newBuild().forTasks('cacheable').addProgressListener(listener, EnumSet.of(OperationType.TASK)).run()
         }
     }
 }
