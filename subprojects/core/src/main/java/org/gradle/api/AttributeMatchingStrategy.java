@@ -51,15 +51,21 @@ public interface AttributeMatchingStrategy<T> {
      * values, it is an error to say that there's no best match in that list. Similarly, it is
      * an error to return a value which is not contained in the key set of the candidates map.
      *
-     * If the requested value is <code>null</code>, then it means that the consumer did not express a value
-     * for this attribute. It is up to the strategy to tell what to do in that case. In practice it means
-     * that implementations <b>must</b> check for <code>null</code> as a potential value.
+     * There are 3 possibilities for the provided value: it can be present, missing or unknown.
+     * A present value is the normal case, when the consumer provides a value. A missing value
+     * is possible when the consumer knows about an attribute but doesn't care about providing
+     * a value. Last, an unknown value is when the consumer didn't provide a value and doesn't know
+     * about the attribute. This would be the case when the producer has more attributes than the
+     * consumer, and the consumer doesn't know about the extra attributes.
      *
-     * @param requestedValue the value to compare against. If null, it means the consumer didn't express a value.
+     * The {@link AttributeValue requested value} provides handy method for dealing with those 3
+     * cases if you want to.
+     *
+     * @param requestedValue the value to compare against. Never null.
      * @param compatibleValues the map of candidate values
      * @param <K> the type of the candidate
      * @return a list of best matches. Must never be empty.
      */
-    <K> List<K> selectClosestMatch(T requestedValue, Map<K, T> compatibleValues);
+    <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> compatibleValues);
 
 }

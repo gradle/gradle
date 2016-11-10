@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Attribute
 import org.gradle.api.AttributeMatchingStrategy
+import org.gradle.api.AttributeValue
 import spock.lang.Specification
 
 class DefaultConfigurationAttributesSchemaTest extends Specification {
@@ -32,7 +33,7 @@ class DefaultConfigurationAttributesSchemaTest extends Specification {
         !strategy.isCompatible("foo", "bar")
 
         and:
-        strategy.selectClosestMatch("foo", [a: "foo"]) == ['a']
+        strategy.selectClosestMatch(AttributeValue.of("foo"), [a: "foo"]) == ['a']
     }
 
     def "fails if no strategy is declared for custom type"() {
@@ -86,8 +87,12 @@ class DefaultConfigurationAttributesSchemaTest extends Specification {
             }
 
             @Override
-            def <K> List<K> selectClosestMatch(Map requestedValue, Map<K, Map> compatibleValues) {
-                compatibleValues.findAll { it.value == requestedValue }*.getKey()
+            def <K> List<K> selectClosestMatch(AttributeValue<Map> optionalAttribute, Map<K, Map> compatibleValues) {
+                optionalAttribute.whenPresent { requestedValue ->
+                    compatibleValues.findAll { it.value == requestedValue }*.getKey()
+                } whenMissing {
+                    [compatibleValues.keySet().first()]
+                } getOrElse { compatibleValues.keySet().toList() }
             }
         })
 
@@ -99,6 +104,8 @@ class DefaultConfigurationAttributesSchemaTest extends Specification {
         strategy.isCompatible([a: 'foo', b: 'bar'], [c: 'foo', d: 'bar'])
 
         and:
-        strategy.selectClosestMatch([a: 'foo', b: 'bar'], [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1, 3]
+        strategy.selectClosestMatch(AttributeValue.of([a: 'foo', b: 'bar']), [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1, 3]
+        strategy.selectClosestMatch(AttributeValue.missing(), [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1]
+        strategy.selectClosestMatch(AttributeValue.unknown(), [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1, 2, 3]
     }
 }

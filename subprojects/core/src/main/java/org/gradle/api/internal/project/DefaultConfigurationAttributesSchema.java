@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeMatchingStrategy;
+import org.gradle.api.AttributeValue;
 import org.gradle.internal.Cast;
 
 import java.util.List;
@@ -68,7 +69,7 @@ public class DefaultConfigurationAttributesSchema implements org.gradle.api.Attr
         }
 
         @Override
-        public <K> List<K> selectClosestMatch(T requestedValue, Map<K, T> compatibleValues) {
+        public <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> compatibleValues) {
             return ImmutableList.copyOf(compatibleValues.keySet());
         }
     }

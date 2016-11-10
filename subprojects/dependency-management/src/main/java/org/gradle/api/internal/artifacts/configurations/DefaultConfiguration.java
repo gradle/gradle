@@ -623,7 +623,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
-        AttributesSchema schema = project == null ? null : project.getAttributesSchema() ;
+        AttributesSchema schema = project == null ? null : project.getAttributesSchema();
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
         return metaData;

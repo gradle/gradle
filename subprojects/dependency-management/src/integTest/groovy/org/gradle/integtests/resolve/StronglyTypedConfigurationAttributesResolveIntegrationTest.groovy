@@ -143,7 +143,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   setMatchingStrategy(flavor, [
                     isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
                     selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
+                        candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
                     }
                   ] as AttributeMatchingStrategy)
                }
@@ -214,7 +214,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   setMatchingStrategy(flavor, [
                     isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
                     selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
+                        candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
                     }
                   ] as AttributeMatchingStrategy)
                }
@@ -290,7 +290,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   setMatchingStrategy(flavor, [
                     isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
                     selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
+                        candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
                     }
                   ] as AttributeMatchingStrategy)
 
@@ -298,7 +298,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   setMatchingStrategy(buildType, [
                     isCompatible: { requested, candidate -> true },
                     selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value == requested }*.key
+                        candidates.entrySet().findAll { it.value == requested.get() }*.key
                     }
                   ] as AttributeMatchingStrategy)
                }
@@ -375,11 +375,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   matchStrictly(buildType)
                   setMatchingStrategy(flavor, new AttributeMatchingStrategy<String>() {
                        boolean isCompatible(String req, String can) { req == can }
-                       public <K> List<K> selectClosestMatch(String requestedValue, Map<K, String> compatibleValues) {
-                            if (requestedValue == null) {
-                                return [compatibleValues.entrySet().sort { it.value }.first().key ]
+                       public <K> List<K> selectClosestMatch(AttributeValue<String> value, Map<K, String> compatibleValues) {
+                            value.whenPresent {
+                                compatibleValues.keySet() as List
+                            } getOrElse {
+                                [compatibleValues.entrySet().sort { it.value }.first().key ]
                             }
-                            compatibleValues.keySet() as List
                        }
                   })
                }
@@ -423,6 +424,92 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         then:
         executedAndNotSkipped ':b:fooJar'
         notExecuted ':b:barJar'
+    }
+
+    def "both dependencies will choose the same default value"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << """
+            enum Arch {
+               x86,
+               arm64
+            }
+            def arch = Attribute.of(Arch)
+            def dummy = Attribute.of('dummy', String)
+
+            allprojects {
+               configurationAttributesSchema {
+                  matchStrictly(dummy)
+                  setMatchingStrategy(arch, new AttributeMatchingStrategy<Arch>() {
+                       boolean isCompatible(Arch req, Arch can) { req == can }
+                       public <K> List<K> selectClosestMatch(AttributeValue<Arch> requestedValue, Map<K, Arch> compatibleValues) {
+                            requestedValue.whenPresent {
+                                // the consumer provided a value
+                                compatibleValues.keySet() as List
+                            } getOrElse {
+                                // the consumer did not provide a value
+                                [compatibleValues.entrySet().sort { it.value.ordinal()}.last().key]
+                            }
+                       }
+                  })
+               }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes(dummy: 'dummy')
+                }
+                dependencies {
+                    compile project(':b')
+                    compile project(':c')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:barJar', ':c:barJar'
+        notExecuted ':b:fooJar', ':c:fooJar'
     }
 
 }
