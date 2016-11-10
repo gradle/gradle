@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.tasks.cache;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Cache protocol interface to be implemented by task output cache backends.
  */
-public interface TaskOutputCache {
+public interface TaskOutputCache extends Closeable {
     /**
      * Load the cached task output corresponding to the given task cache key. The {@code reader} will be called if an entry is found in the cache.
+     *
      * @param key the cache key.
      * @param reader the reader to read the data corresponding to the cache key.
      * @return {@code true} if an entry was found, {@code false} otherwise.
@@ -33,6 +35,7 @@ public interface TaskOutputCache {
 
     /**
      * Store the task output with the given cache key. The {@code writer} will be called to actually write the data.
+     *
      * @param key the cache key.
      * @param writer the writer to write the data corresponding to the cache key.
      * @throws IOException if an I/O error occurs.
@@ -43,4 +46,12 @@ public interface TaskOutputCache {
      * Returns a description for the cache.
      */
     String getDescription();
+
+    /**
+     * Clean up any resources held by the cache once it's not used anymore.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
+    @Override
+    void close() throws IOException;
 }
