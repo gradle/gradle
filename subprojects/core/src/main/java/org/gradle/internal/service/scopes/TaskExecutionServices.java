@@ -181,8 +181,8 @@ public class TaskExecutionServices {
     }
 
     TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
-        int parallelThreads = startParameter.isParallelProjectExecutionEnabled() ? startParameter.getMaxWorkerCount() : 1;
-        return new TaskPlanExecutorFactory(parallelThreads, executorFactory, buildOperationWorkerRegistry).create();
+        int maxWorkers = startParameter.isParallelProjectExecutionEnabled() ? startParameter.getMaxWorkerCount() : 1;
+        return new TaskPlanExecutorFactory(maxWorkers, executorFactory, buildOperationWorkerRegistry).create();
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
