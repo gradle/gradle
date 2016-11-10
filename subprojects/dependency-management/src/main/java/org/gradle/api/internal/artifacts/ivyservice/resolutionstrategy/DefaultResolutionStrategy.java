@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -25,6 +26,8 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.transform.DependencyTransform;
+import org.gradle.api.artifacts.transform.internal.DependencyTransforms;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -39,6 +42,7 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -56,6 +60,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
+    private final DependencyTransforms transforms = new DependencyTransforms();
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
@@ -80,6 +85,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         cachePolicy.setMutationValidator(validator);
         componentSelectionRules.setMutationValidator(validator);
         dependencySubstitutions.setMutationValidator(validator);
+    }
+
+    @Override
+    public Transformer<File, File> getTransform(String from, String to) {
+        return transforms.getTransform(from, to);
+    }
+
+    @Override
+    public void registerTransform(Class<? extends DependencyTransform> type, Action<? super DependencyTransform> config) {
+        transforms.registerTransform(type, config);
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {
