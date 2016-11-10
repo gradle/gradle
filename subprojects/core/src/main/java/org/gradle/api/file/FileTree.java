@@ -60,7 +60,7 @@ public interface FileTree extends FileCollection {
      * @param filterConfigAction Action to use to configure the filter.
      * @return The filtered tree.
      */
-    FileTree matching(Action<PatternFilterable> filterConfigAction);
+    FileTree matching(Action<? super PatternFilterable> filterConfigAction);
 
     /**
      * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so
@@ -102,7 +102,7 @@ public interface FileTree extends FileCollection {
      * @param visitor The visitor.
      * @return this
      */
-    FileTree visit(Action<FileVisitDetails> visitor);
+    FileTree visit(Action<? super FileVisitDetails> visitor);
 
     /**
      * Returns a {@code FileTree} which contains the union of this tree and the given tree. The returned tree is live,

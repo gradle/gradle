@@ -60,7 +60,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public FileTree matching(Action<PatternFilterable> filterConfigAction) {
+    public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
         PatternSet patternSet = new PatternSet();
         filterConfigAction.execute(patternSet);
         return matching(patternSet);
@@ -119,7 +119,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public FileTree visit(final Action<FileVisitDetails> visitor) {
+    public FileTree visit(final Action<? super FileVisitDetails> visitor) {
         return visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {

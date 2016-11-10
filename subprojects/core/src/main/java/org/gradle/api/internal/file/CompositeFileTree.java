@@ -46,7 +46,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
-    public FileTree matching(Action<PatternFilterable> filterConfigAction) {
+    public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
         return new FilteredFileTree(filterConfigAction);
     }
 
@@ -59,7 +59,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
-    public FileTree visit(Action<FileVisitDetails> visitor) {
+    public FileTree visit(Action<? super FileVisitDetails> visitor) {
         for (FileTree tree : getSourceCollections()) {
             tree.visit(visitor);
         }
@@ -84,7 +84,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     private class FilteredFileTree extends CompositeFileTree {
-        private final Action<PatternFilterable> action;
+        private final Action<? super PatternFilterable> action;
         private final PatternFilterable patterns;
 
         public FilteredFileTree(PatternFilterable patterns) {
@@ -92,7 +92,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
             action = null;
         }
 
-        public FilteredFileTree(Action<PatternFilterable> action) {
+        public FilteredFileTree(Action<? super PatternFilterable> action) {
             this.action = action;
             patterns = null;
         }
