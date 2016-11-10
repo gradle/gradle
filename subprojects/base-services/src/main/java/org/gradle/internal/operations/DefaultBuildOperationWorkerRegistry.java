@@ -38,7 +38,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
     public DefaultBuildOperationWorkerRegistry(int maxWorkerCount) {
         this.maxWorkerCount = maxWorkerCount;
-        LOGGER.debug("Using {} worker leases.", maxWorkerCount);
+        LOGGER.info("Using {} worker leases.", maxWorkerCount);
     }
 
     @Override

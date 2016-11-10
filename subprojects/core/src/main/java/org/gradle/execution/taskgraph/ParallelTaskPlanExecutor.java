@@ -55,7 +55,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     }
 
     private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor) {
-        LOGGER.info("Using {} parallel executor threads", executorCount);
+        LOGGER.debug("Using {} parallel executor threads", maxWorkers);
 
         for (int i = 1; i < maxWorkers; i++) {
             Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
