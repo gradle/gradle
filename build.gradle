@@ -195,7 +195,6 @@ ext {
     removedProjects = ['sonar']
 }
 
-apply from: "gradle/buildReceipt.gradle"
 apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"

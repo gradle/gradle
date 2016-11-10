@@ -108,11 +108,11 @@ task configureBuildReceipt {
 
 task createBuildReceipt(type: org.gradle.build.BuildReceipt) {
     dependsOn configureBuildReceipt
-    receiptFile = file("${rootProject.buildDir}/$buildReceiptFileName")
+    destinationDir = file("${rootProject.buildDir}")
 }
 
 task createTestBuildReceipt(type: org.gradle.build.BuildReceipt) {
-    receiptFile = file("$generatedTestResourcesDir/org/gradle/${buildReceiptFileName}")
+    destinationDir = file("$generatedTestResourcesDir/org/gradle")
     versionNumber = rootProject.testedVersion
     baseVersion = rootProject.baseVersion
     snapshot = rootProject.isSnapshot

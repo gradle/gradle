@@ -17,16 +17,34 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+import java.text.SimpleDateFormat
+
 @CacheableTask
 class BuildReceipt extends DefaultTask {
-    private static final TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+    public static final String BUILD_RECEIPT_FILE_NAME = 'build-receipt.properties'
+
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
     private static final String UNKNOWN_TIMESTAMP = "unknown"
+
+    static Properties readBuildReceipt(File dir) {
+        File buildReceiptFile = new File(dir, BUILD_RECEIPT_FILE_NAME)
+        if (!buildReceiptFile.exists()) {
+            throw new GradleException("Can't read build receipt file '$buildReceiptFile' as it doesn't exist")
+        }
+        buildReceiptFile.withInputStream {
+            Properties p = new Properties()
+            p.load(it)
+            p
+        }
+    }
 
     @Input
     String versionNumber
@@ -40,8 +58,15 @@ class BuildReceipt extends DefaultTask {
     @Input
     @Optional
     Date buildTimestamp
+
+    @Internal
+    File destinationDir
+
     @OutputFile
-    File receiptFile
+    File getReceiptFile() {
+        assert destinationDir != null
+        new File(destinationDir, BUILD_RECEIPT_FILE_NAME)
+    }
 
     @TaskAction
     void generate() {
@@ -53,7 +78,7 @@ class BuildReceipt extends DefaultTask {
             buildTimestamp: getBuildTimestampAsString(),
         ]
 
-        receiptFile.parentFile.mkdirs()
+        destinationDir.mkdirs()
         ReproduciblePropertiesWriter.store(data, receiptFile)
     }
 
