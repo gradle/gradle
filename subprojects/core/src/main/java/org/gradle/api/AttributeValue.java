@@ -133,7 +133,7 @@ public class AttributeValue<T> {
      *     }.get()
      * </code>
      * <p/>
-     * Alternatively if the missing and default value are the same, it is possible to use the shortcut {@link ProducerDefault#getOrElse} method:
+     * Alternatively if the missing and default value are the same, it is possible to use the shortcut {@link DefaultingResultBuilder#getOrElse} method:
      * <p/>
      * <code>
      *     String result = attributeValue.whenPresent { String value ->
@@ -146,15 +146,15 @@ public class AttributeValue<T> {
      * @param <O> the type of the result
      * @return a value producer
      */
-    public <O> ProducerP<O> whenPresent(Transformer<O, T> transformer) {
-        return new ProducerImpl<O>(transformer);
+    public <O> ResultBuilder<O> whenPresent(Transformer<O, T> transformer) {
+        return new Builder<O>(transformer);
     }
 
     /**
      * Interface for builders supporting returning a default value in case value is missing or unknown.
      * @param <O> the type of the result.
      */
-    public interface ProducerDefault<O> {
+    public interface DefaultingResultBuilder<O> {
         /**
          * Calls the transformer if the attribute value is present. If the attribute value is missing and that
          * a missing generator was set, returns the generated missing value, otherwise calls the factory.
@@ -168,33 +168,33 @@ public class AttributeValue<T> {
      * Builder for producers with a present value generator.
      * @param <O> the type of the result.
      */
-    public interface ProducerP<O> extends ProducerDefault<O> {
+    public interface ResultBuilder<O> extends DefaultingResultBuilder<O> {
         /**
          * Sets the factory that will be called if the attribute value is missing.
          * @param factory the factory
          * @return a builder allowing to set what happens if the value is unknown.
          */
-        ProducerPM<O> whenMissing(Factory<O> factory);
+        WithMissingResultBuilder<O> whenMissing(Factory<O> factory);
     }
 
     /**
      * Builder for producers with a present value and missing value generator.
      * @param <O> the type of the result.
      */
-    public interface ProducerPM<O> extends ProducerDefault<O> {
+    public interface WithMissingResultBuilder<O> extends DefaultingResultBuilder<O> {
         /**
          * Sets the factory to be called if the attribute value is unknown.
          * @param factory the factory
          * @return a producer which can be called to get a transformed value.
          */
-        Producer<O> whenUnknown(Factory<O> factory);
+        ConfiguredResultBuilder<O> whenUnknown(Factory<O> factory);
     }
 
     /**
      * Interface for builders which support generating an output.
      * @param <O>
      */
-    public interface Producer<O> {
+    public interface ConfiguredResultBuilder<O> {
         /**
          * Generates a value depending on the attribute state. If is is present, it will call
          * the transformer used when attribute values are present. If it is missing, it will
@@ -204,13 +204,13 @@ public class AttributeValue<T> {
         O get();
     }
 
-    private class ProducerImpl<O> implements ProducerP<O>, ProducerPM<O>, Producer<O> {
+    private class Builder<O> implements ResultBuilder<O>, WithMissingResultBuilder<O>, ConfiguredResultBuilder<O> {
 
         private Transformer<O, T> whenPresent;
         private Factory<O> whenMissing;
         private Factory<O> whenUnknown;
 
-        public ProducerImpl(Transformer<O, T> transformer) {
+        public Builder(Transformer<O, T> transformer) {
             this.whenPresent = transformer;
         }
 
@@ -226,13 +226,13 @@ public class AttributeValue<T> {
         }
 
         @Override
-        public ProducerPM<O> whenMissing(Factory<O> factory) {
+        public WithMissingResultBuilder<O> whenMissing(Factory<O> factory) {
             this.whenMissing = factory;
             return this;
         }
 
         @Override
-        public Producer<O> whenUnknown(Factory<O> factory) {
+        public ConfiguredResultBuilder<O> whenUnknown(Factory<O> factory) {
             this.whenUnknown = factory;
             return this;
         }
