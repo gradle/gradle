@@ -40,7 +40,7 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOu
     @Override
     protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
         TaskOutputFilePropertyBuilder propertyBuilder;
-        if (Map.class.isAssignableFrom(context.getType())) {
+        if (Map.class.isAssignableFrom(context.getValueType())) {
             propertyBuilder = task.getOutputs().namedDirectories(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
         } else {
             propertyBuilder = task.getOutputs().files(futureValue);

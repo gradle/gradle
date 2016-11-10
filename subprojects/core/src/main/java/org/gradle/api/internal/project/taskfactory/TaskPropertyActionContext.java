@@ -29,7 +29,7 @@ public interface TaskPropertyActionContext {
      * then returns the declared type of the instance variable. Otherwise returns the return
      * type of the declaring method.
      */
-    Class<?> getType();
+    Class<?> getValueType();
 
     /**
      * Sets the instance field of the property.

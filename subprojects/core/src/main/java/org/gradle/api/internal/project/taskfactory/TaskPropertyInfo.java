@@ -51,17 +51,15 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
     private final String propertyName;
     private final Class<? extends Annotation> propertyType;
     private final Method method;
-    private final Class<?> valueType;
     private final ValidationAction validationAction;
     private final UpdateAction configureAction;
     private final boolean optional;
 
-    TaskPropertyInfo(TaskPropertyInfo parent, String propertyName, Class<? extends Annotation> propertyType, Method method, Class<?> valueType, ValidationAction validationAction, UpdateAction configureAction, boolean optional) {
+    TaskPropertyInfo(TaskPropertyInfo parent, String propertyName, Class<? extends Annotation> propertyType, Method method, ValidationAction validationAction, UpdateAction configureAction, boolean optional) {
         this.parent = parent;
         this.propertyName = propertyName;
         this.propertyType = propertyType;
         this.method = method;
-        this.valueType = valueType;
         this.validationAction = validationAction == null ? NO_OP_VALIDATION_ACTION : validationAction;
         this.configureAction = configureAction == null ? NO_OP_CONFIGURATION_ACTION : configureAction;
         this.optional = optional;
@@ -69,7 +67,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
 
     @Override
     public String toString() {
-        return String.format("%s: %s", propertyName, valueType);
+        return propertyName;
     }
 
     public String getName() {
@@ -78,10 +76,6 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
 
     public Class<? extends Annotation> getPropertyType() {
         return propertyType;
-    }
-
-    public Class<?> getValueType() {
-        return valueType;
     }
 
     public UpdateAction getConfigureAction() {

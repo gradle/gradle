@@ -219,7 +219,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public Class<?> getType() {
+        public Class<?> getValueType() {
             return instanceVariableField != null
                 ? instanceVariableField.getType()
                 : method.getReturnType();
@@ -301,7 +301,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             if (configureAction == null && validationAction == null) {
                 return null;
             }
-            return new TaskPropertyInfo(parent, name, propertyType, method, getType(), validationAction, configureAction, optional);
+            return new TaskPropertyInfo(parent, name, propertyType, method, validationAction, configureAction, optional);
         }
     }
 }
