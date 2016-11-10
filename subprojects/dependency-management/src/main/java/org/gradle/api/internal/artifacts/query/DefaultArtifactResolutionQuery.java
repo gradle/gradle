@@ -160,9 +160,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifactMetaData, component.getSource(), resolveResult);
             if (resolveResult.getFailure() != null) {
-                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
+                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, artifactMetaData.getName().getType(), resolveResult.getFailure()));
             } else {
-                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getResult()));
+                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), type, artifactMetaData.getName().getType(), resolveResult.getResult()));
             }
         }
     }

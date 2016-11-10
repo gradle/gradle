@@ -25,10 +25,12 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     private final ComponentArtifactIdentifier identifier;
     private final Class<? extends Artifact> type;
     private final File file;
+    private final String format;
 
-    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,  Class<? extends Artifact> type, File file) {
+    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,  Class<? extends Artifact> type, String format, File file) {
         this.identifier = identifier;
         this.type = type;
+        this.format = format;
         this.file = file;
     }
 
@@ -44,6 +46,11 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
 
     public Class<? extends Artifact> getType() {
         return type;
+    }
+
+    @Override
+    public String getFormat() {
+        return format;
     }
 
     public File getFile() {
