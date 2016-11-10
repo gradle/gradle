@@ -16,7 +16,9 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.AttributesSchema;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 public interface LocalComponentMetadata extends ComponentResolveMetadata {
+    AttributesSchema getAttributesSchema();
 }

@@ -363,4 +363,66 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         executedAndNotSkipped ':b:foo2Jar'
         notExecuted ':b:fooJar', ':b:barJar', ':b:bar2Jar'
     }
+
+    def "can select configuration thanks to producer schema disambiguation"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':b') {
+               configurationAttributesSchema {
+                  matchStrictly(buildType)
+                  setMatchingStrategy(flavor, new AttributeMatchingStrategy<String>() {
+                       boolean isCompatible(String req, String can) { req == can }
+                       public <K> List<K> selectClosestMatch(String requestedValue, Map<K, String> compatibleValues) {
+                            if (requestedValue == null) {
+                                return [compatibleValues.entrySet().sort { it.value }.first().key ]
+                            }
+                            compatibleValues.keySet() as List
+                       }
+                  })
+               }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes($debug)
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes($free, $debug)
+                    bar.attributes($paid, $debug)
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+    }
+
 }

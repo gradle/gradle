@@ -22,8 +22,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import org.gradle.api.Buildable;
 import org.gradle.api.AttributeContainer;
+import org.gradle.api.AttributesSchema;
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -52,11 +53,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
+    private final AttributesSchema attributesSchema;
 
-    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status) {
+    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchema attributesSchema) {
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.status = status;
+        this.attributesSchema = attributesSchema;
     }
 
     public ModuleVersionIdentifier getId() {
@@ -141,6 +144,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     public DefaultLocalConfigurationMetadata getConfiguration(final String name) {
         return allConfigurations.get(name);
+    }
+
+    @Override
+    public AttributesSchema getAttributesSchema() {
+        return attributesSchema;
     }
 
     private class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata {

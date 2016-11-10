@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -621,7 +622,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Set<? extends Configuration> configurations = getAll();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        ProjectInternal project = projectFinder.findProject(module.getProjectPath());
+        AttributesSchema schema = project == null ? null : project.getAttributesSchema() ;
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
         return metaData;
     }

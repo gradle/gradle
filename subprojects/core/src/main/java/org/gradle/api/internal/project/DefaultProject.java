@@ -1090,4 +1090,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         configureAction.execute(configurationAttributesSchema);
         return configurationAttributesSchema;
     }
+
+    @Override
+    public AttributesSchema getAttributesSchema() {
+        return configurationAttributesSchema;
+    }
 }

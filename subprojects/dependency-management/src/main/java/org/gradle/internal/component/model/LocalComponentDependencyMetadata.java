@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.util.GUtil;
@@ -331,12 +332,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private static class Matcher {
-        private final AttributesSchema attributesSchema;
+        private final AttributesSchema consumerAttributeSchema;
+        private final AttributesSchema producerAttributeSchema;
         private final Map<ConfigurationMetadata, MatchDetails> matchDetails = Maps.newHashMap();
         private final AttributeContainer requestedAttributesContainer;
 
-        public Matcher(AttributesSchema attributesSchema, ComponentResolveMetadata targetComponent, AttributeContainer requestedAttributesContainer) {
-            this.attributesSchema = attributesSchema;
+        public Matcher(AttributesSchema consumerAttributeSchema, ComponentResolveMetadata targetComponent, AttributeContainer requestedAttributesContainer) {
+            this.consumerAttributeSchema = consumerAttributeSchema;
+            this.producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : null;
             Set<Attribute<?>> requestedAttributeSet = requestedAttributesContainer.keySet();
             for (String config : targetComponent.getConfigurationNames()) {
                 ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
@@ -350,14 +353,15 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         private void doMatch() {
-            Set<Attribute<?>> requestedAttributes = requestedAttributesContainer.keySet();
+            Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requestedAttributesContainer.keySet());
             for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
                 ConfigurationMetadata key = entry.getKey();
                 MatchDetails details = entry.getValue();
                 AttributeContainer dependencyAttributesContainer = key.getAttributes();
-                Set<Attribute<Object>> testedAttributes = Cast.uncheckedCast(Sets.intersection(requestedAttributes, dependencyAttributesContainer.keySet()));
-                for (Attribute<Object> attribute : testedAttributes) {
-                    AttributeMatchingStrategy<Object> strategy = Cast.uncheckedCast(attributesSchema.getMatchingStrategy(attribute));
+                Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(dependencyAttributesContainer.keySet());
+                Set<Attribute<Object>> commonAttributes = Sets.intersection(requestedAttributes, dependencyAttributes);
+                for (Attribute<Object> attribute : commonAttributes) {
+                    AttributeMatchingStrategy<Object> strategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
                     try {
                         details.update(attribute, strategy, requestedAttributesContainer.getAttribute(attribute), dependencyAttributesContainer.getAttribute(attribute));
                     } catch (Exception ex) {
@@ -375,11 +379,58 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     matchs.add(entry.getKey());
                 }
             }
+            return disambiguateUsingClosestMatch(matchs);
+        }
+
+        private List<ConfigurationMetadata> disambiguateUsingClosestMatch(List<ConfigurationMetadata> matchs) {
             if (matchs.size() > 1) {
                 List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
                 if (remainingMatches != null) {
-                    return remainingMatches;
+                    return disambiguateUsingProducerSchema(remainingMatches);
                 }
+            }
+            return matchs;
+        }
+
+        private List<ConfigurationMetadata> disambiguateUsingProducerSchema(List<ConfigurationMetadata> matchs) {
+            if (matchs.size()<2 || producerAttributeSchema==null) {
+                return matchs;
+            }
+            // If we are reaching this point, it means that we have more than one match, so we need to
+            // ask the producer if it has any preference: so far only the consumer schema was used. Now
+            // we need to take into consideration the producer schema
+            Set<Attribute<?>> producerOnlyAttributes = Sets.newHashSet();
+            for (ConfigurationMetadata match : matchs) {
+                AttributeContainer attributes = match.getAttributes();
+                for (Attribute<?> attribute : attributes.keySet()) {
+                    if (!requestedAttributesContainer.contains(attribute)) {
+                        producerOnlyAttributes.add(attribute);
+                    }
+                }
+            }
+            List<ConfigurationMetadata> remainingMatches = Lists.newArrayList(matchs);
+            Map<ConfigurationMetadata, Object> values = Maps.newHashMap();
+            for (Attribute<?> attribute : producerOnlyAttributes) {
+                for (ConfigurationMetadata match : matchs) {
+                    Object maybeProvided = match.getAttributes().getAttribute(attribute);
+                    if (maybeProvided != null) {
+                        values.put(match, maybeProvided);
+                    }
+                }
+                if (!values.isEmpty()) {
+                    AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(producerAttributeSchema.getMatchingStrategy(attribute));
+                    List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(null, values);
+                    remainingMatches.retainAll(best);
+                    if (remainingMatches.isEmpty()) {
+                        // the intersection is empty, so we cannot choose
+                        return matchs;
+                    }
+                    values.clear();
+                }
+            }
+            if (!remainingMatches.isEmpty()) {
+                // there's a subset (or not) of best matches
+                return remainingMatches;
             }
             return matchs;
         }
@@ -392,13 +443,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     matchs.add(entry.getKey());
                 }
             }
-            if (matchs.size() > 1) {
-                List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
-                if (remainingMatches != null) {
-                    return remainingMatches;
-                }
-            }
-            return matchs;
+            return disambiguateUsingClosestMatch(matchs);
         }
 
         private List<ConfigurationMetadata> selectClosestMatches(List<ConfigurationMetadata> fullMatches) {
@@ -414,7 +459,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                     Map<Attribute<Object>, Object> matchedAttributes = matchDetails.get(match).matchesByAttribute;
                     values.put(match, matchedAttributes.get(attribute));
                 }
-                AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(attributesSchema.getMatchingStrategy(attribute));
+                AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
                 List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(requestedValue, values);
                 remainingMatches.retainAll(best);
                 if (remainingMatches.isEmpty()) {
