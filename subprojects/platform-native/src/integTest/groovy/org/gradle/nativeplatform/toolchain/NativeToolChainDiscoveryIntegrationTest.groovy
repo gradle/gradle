@@ -17,6 +17,7 @@ package org.gradle.nativeplatform.toolchain
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.junit.Assume
 
 /**
  * Test that each available tool chain can be discovered and used without configuration, assuming it is in the path.
@@ -31,6 +32,9 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
     }
 
     def "can discover tool chain in environment"() {
+        // Ignoring Visual Studio toolchain tests until PR gradle/gradle#704 is merged
+        Assume.assumeFalse(toolChain.isVisualCpp())
+
         given:
         toolChain.initialiseEnvironment();
 
