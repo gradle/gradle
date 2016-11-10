@@ -50,6 +50,9 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "multiModule"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         run 'init'
 
@@ -81,6 +84,9 @@ Root project 'webinar-parent'
     }
 
     def "multiModuleWithNestedParent"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         run 'init'
 
@@ -99,6 +105,9 @@ Root project 'webinar-parent'
     }
 
     def "flatmultimodule"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         executer.inDirectory(file("webinar-parent"))
         run 'init'
@@ -131,6 +140,9 @@ Root project 'webinar-parent'
     }
 
     def "singleModule"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         executer.withArgument("-d")
         run 'init'
@@ -148,9 +160,11 @@ Root project 'webinar-parent'
     }
 
     def "singleModule with explicit project dir"() {
-        setup:
+        given:
+        executer.expectIncubationWarning()
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
         def workingDir = temporaryFolder.createDir("workingDir")
+
         when:
         executer.inDirectory(workingDir).usingProjectDirectory(file('.'))
         run 'init'
@@ -168,6 +182,9 @@ Root project 'webinar-parent'
     }
 
     def "testjar"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         run 'init'
 
@@ -183,6 +200,9 @@ Root project 'webinar-parent'
     }
 
     def "enforcerplugin"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         run 'init'
 
@@ -203,6 +223,9 @@ it.exclude group: '*', module: 'badArtifact'
     }
 
     def "providedNotWar"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         run 'init'
 
@@ -217,7 +240,8 @@ it.exclude group: '*', module: 'badArtifact'
     }
 
     def "provides decent error message when POM is invalid"() {
-        setup:
+        given:
+        executer.expectIncubationWarning()
         def pom = file("pom.xml")
         pom << "<project>someInvalid pom content</project>"
 
@@ -229,6 +253,9 @@ it.exclude group: '*', module: 'badArtifact'
     }
 
     def "mavenExtensions"() {
+        given:
+        executer.expectIncubationWarning()
+
         when:
         run 'init'
         then:
@@ -243,7 +270,8 @@ it.exclude group: '*', module: 'badArtifact'
 
     @Issue("GRADLE-2820")
     def "remoteparent"() {
-        setup:
+        given:
+        executer.expectIncubationWarning()
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
@@ -267,7 +295,8 @@ it.exclude group: '*', module: 'badArtifact'
 
     @Issue("GRADLE-2872")
     def "expandProperties"() {
-        setup:
+        given:
+        executer.expectIncubationWarning()
         withSharedResources()
         executer.withArgument("-DCOMMONS_LANG_VERSION=2.6")
 
@@ -285,7 +314,8 @@ it.exclude group: '*', module: 'badArtifact'
 
     @Issue("GRADLE-2819")
     def "multiModuleWithRemoteParent"() {
-        setup:
+        given:
+        executer.expectIncubationWarning()
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url

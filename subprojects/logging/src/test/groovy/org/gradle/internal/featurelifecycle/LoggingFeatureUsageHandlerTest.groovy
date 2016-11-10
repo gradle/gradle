@@ -26,34 +26,22 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-@Subject(LoggingDeprecatedFeatureHandler)
-class LoggingDeprecatedFeatureHandlerTest extends Specification {
+@Subject(LoggingFeatureUsageHandler)
+class LoggingFeatureUsageHandlerTest extends Specification {
     final outputEventListener = new CollectingTestOutputEventListener()
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
-    final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
+    final handler = new LoggingFeatureUsageHandler(locationReporter)
 
-    def 'logs each deprecation warning only once'() {
-        when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature1'))
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature2'))
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature2'))
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 2
-
-        and:
-        events[0].message == 'feature1'
-        events[1].message == 'feature2'
-    }
+    // behavior regarding repeating messages is now handled in UsageNagger.
+    // setTraceLoggingEnabled/isTraceLoggingEnabled is now handled in Naggers.
 
     def 'deprecations are logged at WARN level'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature'))
+        handler.featureUsed(new FeatureUsage('feature', []))
 
         then:
         outputEventListener.events.size() == 1
@@ -70,7 +58,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -99,7 +87,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
         ] as ArrayList<StackTraceElement>
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     @Unroll
@@ -108,7 +96,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -137,7 +125,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
         ] as ArrayList<StackTraceElement>
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     @Unroll
@@ -146,7 +134,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -175,7 +163,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             new StackTraceElement('some.GradleScript', 'foo', 'GradleScript.gradle', 1337),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
         ] as ArrayList<StackTraceElement>
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     @Unroll
@@ -184,7 +172,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -205,7 +193,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
         ] as ArrayList<StackTraceElement>
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     @Unroll
@@ -214,7 +202,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -229,7 +217,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         fakeStackTrace = [
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     @Unroll
@@ -238,7 +226,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -254,7 +242,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         fakeStackTrace = [
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     @Unroll
@@ -263,7 +251,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest))
+        handler.featureUsed(new FeatureUsage('fake', []))
         def events = outputEventListener.events
 
         then:
@@ -274,15 +262,15 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         deprecationTraceProperty << [true, false]
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     def 'location reporter can prepend text'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature'))
+        handler.featureUsed(new FeatureUsage('feature', []))
 
         then:
-        1 * locationReporter.reportLocation(_, _) >> { DeprecatedFeatureUsage param1, StringBuilder message ->
+        1 * locationReporter.reportLocation(_, _) >> { FeatureUsage param1, StringBuilder message ->
             message.append('location')
         }
 
@@ -292,51 +280,20 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature')
     }
 
-    @Unroll
-    def 'Setting #deprecationTracePropertyName=#deprecationTraceProperty overrides setTraceLoggingEnabled value.'() {
+    def 'logged message is using system dependent line separator consistently'() {
         given:
-        System.setProperty(deprecationTracePropertyName, deprecationTraceProperty)
+        final lineSeparator = 'FOOBAR'
+        System.setProperty(Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, 'false')
+        System.setProperty('line.separator', lineSeparator)
 
         when:
-        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true)
+        handler.featureUsed(new FeatureUsage('a\nmulti\nline\nmessage', [
+            new StackTraceElement('some.GradleScript', 'foo', 'GradleScript.gradle', 1337),
+        ]))
 
         then:
-        LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled() == expectedResult
-
-        when:
-        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false)
-
-        then:
-        LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled() == expectedResult
-
-        where:
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
-        deprecationTraceProperty << ['true', 'false', 'foo']
-        expectedResult << [true, false, false]
-    }
-
-    @Unroll
-    def 'Undefined #deprecationTracePropertyName does not influence setTraceLoggingEnabled value.'() {
-        given:
-        System.clearProperty(deprecationTracePropertyName)
-
-        when:
-        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true)
-
-        then:
-        LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled()
-
-        when:
-        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false)
-
-        then:
-        !LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled()
-
-        where:
-        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
-    }
-
-    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String message) {
-        new DeprecatedFeatureUsage(message, LoggingDeprecatedFeatureHandlerTest)
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message.count(lineSeparator) == 4
     }
 }

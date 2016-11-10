@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,19 @@
 
 package org.gradle.internal.featurelifecycle;
 
-/**
- * Notified when a deprecated feature is used.
- *
- * <p>Implementations need not be thread-safe.
- */
-public interface DeprecatedFeatureHandler {
-    void deprecatedFeatureUsed(DeprecatedFeatureUsage usage);
+import java.util.ArrayList;
+import java.util.List;
+
+public class CollectingLocationReporter implements UsageLocationReporter {
+    private final List<FeatureUsage> usages = new ArrayList<FeatureUsage>();
+    @Override
+    public void reportLocation(FeatureUsage usage, StringBuilder target) {
+        usages.add(usage);
+    }
+
+    public List<FeatureUsage> getUsages() {
+        return usages;
+    }
+
+
 }

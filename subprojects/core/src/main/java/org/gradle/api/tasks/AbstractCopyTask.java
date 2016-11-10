@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
-    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Consider configuring the spec during configuration time, or using a separate task to do the configuration";
+    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Consider configuring the spec during configuration time, or using a separate task to do the configuration.";
 
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
@@ -67,7 +67,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 if (getState().getExecuting()) {
                     if (getOutputs().isCacheEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
                         throw new GradleException("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled. "
-                            + CONFIGURE_SPEC_DURING_CONFIGURATION + ".");
+                            + CONFIGURE_SPEC_DURING_CONFIGURATION);
                     }
                     DeprecationLogger.nagUserOfDeprecated(
                         "Configuring child specs of a copy task at execution time of the task",

@@ -51,7 +51,6 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         executer.beforeExecute {
-            it.expectDeprecationWarning()
             moduleResolution()
         }
 
@@ -67,10 +66,12 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
         reset()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
@@ -86,12 +87,16 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         pluginQuery1()
         pluginQuery2()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         build()
-        containsDeprecationMessage("FOO")
+        containsDeprecationMessage("FOO", 2) // deprecate more than once!
 
         reset()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         build()
-        containsDeprecationMessage("FOO")
+        containsDeprecationMessage("FOO", 2) // deprecate more than once!
     }
 
     def "changed deprecation message is detected across builds"() {
@@ -100,6 +105,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
@@ -108,6 +114,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin2() // use a different plugin, because the response for the previous will be cached
         pluginQuery2()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("BAR")
     }
@@ -118,6 +125,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
@@ -135,11 +143,13 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQueryError1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         failError()
         containsDeprecationMessage("FOO")
 
         usePlugin1()
         pluginQueryError1()
+        executer.expectDeprecationWarning()
         failError()
         containsDeprecationMessage("FOO")
     }
@@ -150,11 +160,13 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQueryNotFound1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         failPluginNotFound()
         containsDeprecationMessage("FOO")
 
         usePlugin1()
         pluginQueryNotFound1()
+        executer.expectDeprecationWarning()
         failPluginNotFound()
         containsDeprecationMessage("FOO")
     }
@@ -166,20 +178,24 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
         deprecateClient("BAR")
         service.statusChecksum("a")
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
         args "--refresh-dependencies"
         pluginQuery1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("BAR")
 
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("BAR")
     }
@@ -190,10 +206,12 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         usePlugin1()
         pluginQuery1()
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
 
         args "--offline"
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
     }
@@ -225,6 +243,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
 
         // Test that if the issue gets resolved, everything works as it should
         service.expectStatusQuery()
+        executer.expectDeprecationWarning()
         build()
         containsDeprecationMessage("FOO")
     }
@@ -263,8 +282,12 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         run "tasks"
     }
 
+    void containsDeprecationMessage(String message, int expectedCount) {
+        assert effectiveOutput.count("Plugin resolution service client status service ${service.apiAddress}/${executer.distribution.version.version} reported that this client has been deprecated: $message") == expectedCount
+    }
+
     void containsDeprecationMessage(String message) {
-        assert effectiveOutput.count("Plugin resolution service client status service ${service.apiAddress}/${executer.distribution.version.version} reported that this client has been deprecated: $message") == 1
+        containsDeprecationMessage(message, 1)
     }
 
     void containsNoDeprecationMessage() {

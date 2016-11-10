@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,30 +18,30 @@ package org.gradle.util
 
 import org.gradle.internal.Factory
 import org.gradle.internal.featurelifecycle.CollectingLocationReporter
-import org.gradle.internal.notfeaturelifecycle.GroovySingleMessageSource
-import org.gradle.internal.notfeaturelifecycle.JavaSingleMessageSource
+import org.gradle.internal.notfeaturelifecycle.GroovyDeprecationSource
+import org.gradle.internal.notfeaturelifecycle.JavaDeprecationSource
 import org.gradle.internal.notfeaturelifecycle.NaggingSource
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Subject
 import spock.lang.Unroll
 
-@Subject(SingleMessageLogger)
-class SingleMessageLoggerTest extends ConcurrentSpec {
+@Subject(DeprecationLogger)
+class DeprecationLoggerTest extends ConcurrentSpec {
     def reporter = new CollectingLocationReporter()
 
     def setup() {
-        SingleMessageLogger.useLocationReporter(reporter)
+        DeprecationLogger.useLocationReporter(reporter)
     }
 
     def cleanup() {
-        SingleMessageLogger.reset()
+        DeprecationLogger.reset()
     }
 
     def 'nagUserWith nags more than once'() {
         when:
-        SingleMessageLogger.nagUserWith('feature1')
-        SingleMessageLogger.nagUserWith('feature2')
-        SingleMessageLogger.nagUserWith('feature2')
+        DeprecationLogger.nagUserWith('feature1')
+        DeprecationLogger.nagUserWith('feature2')
+        DeprecationLogger.nagUserWith('feature2')
 
         then:
         def usages = reporter.usages
@@ -55,9 +55,9 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
     def 'nagUserOnceWith nags only once'() {
         when:
-        SingleMessageLogger.nagUserOnceWith('feature1')
-        SingleMessageLogger.nagUserOnceWith('feature2')
-        SingleMessageLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.nagUserOnceWith('feature1')
+        DeprecationLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.nagUserOnceWith('feature2')
 
         then:
         def usages = reporter.usages
@@ -70,17 +70,17 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
     def 'nagUserOnceWith nags only once, unless reset is called.'() {
         when:
-        SingleMessageLogger.nagUserOnceWith('feature1')
-        SingleMessageLogger.nagUserOnceWith('feature2')
-        SingleMessageLogger.nagUserOnceWith('feature2')
-        SingleMessageLogger.reset()
-        SingleMessageLogger.nagUserOnceWith('feature1')
-        SingleMessageLogger.nagUserOnceWith('feature2')
-        SingleMessageLogger.nagUserOnceWith('feature2')
-        SingleMessageLogger.reset()
-        SingleMessageLogger.nagUserOnceWith('feature1')
-        SingleMessageLogger.nagUserOnceWith('feature2')
-        SingleMessageLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.nagUserOnceWith('feature1')
+        DeprecationLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.reset()
+        DeprecationLogger.nagUserOnceWith('feature1')
+        DeprecationLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.reset()
+        DeprecationLogger.nagUserOnceWith('feature1')
+        DeprecationLogger.nagUserOnceWith('feature2')
+        DeprecationLogger.nagUserOnceWith('feature2')
 
         then:
         def usages = reporter.usages
@@ -101,14 +101,14 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         Factory<String> factory = Mock(Factory)
 
         when:
-        def result = SingleMessageLogger.whileDisabled(factory)
+        def result = DeprecationLogger.whileDisabled(factory)
 
         then:
         result == 'result'
 
         and:
         1 * factory.create() >> {
-            SingleMessageLogger.nagUserWith('nag')
+            DeprecationLogger.nagUserWith('nag')
             return 'result'
         }
         0 * _
@@ -122,11 +122,11 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         def action = Mock(Runnable)
 
         when:
-        SingleMessageLogger.whileDisabled(action)
+        DeprecationLogger.whileDisabled(action)
 
         then:
         _ * action.run() >> {
-            SingleMessageLogger.nagUserWith('nag')
+            DeprecationLogger.nagUserWith('nag')
         }
         0 * _
 
@@ -139,7 +139,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         def major = GradleVersion.current().nextMajor
 
         when:
-        SingleMessageLogger.nagUserOfDeprecated('foo', 'bar')
+        DeprecationLogger.nagUserOfDeprecated('foo', 'bar')
 
         then:
         def usages = reporter.usages
@@ -154,13 +154,13 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         async {
             start {
                 thread.blockUntil.disabled
-                SingleMessageLogger.nagUserWith('nag')
+                DeprecationLogger.nagUserWith('nag')
                 instant.logged
             }
             start {
-                SingleMessageLogger.whileDisabled {
+                DeprecationLogger.whileDisabled {
                     instant.disabled
-                    SingleMessageLogger.nagUserWith('ignored')
+                    DeprecationLogger.nagUserWith('ignored')
                     thread.blockUntil.logged
                 }
             }
@@ -202,7 +202,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         usages[2].stack[2].methodName == 'indirectly2'
 
         where:
-        source << [new JavaSingleMessageSource(), new GroovySingleMessageSource()]
+        source << [new JavaDeprecationSource(), new GroovyDeprecationSource()]
         sourceClassName = source.class.name
         simpleSourceClassName = source.class.simpleName
     }

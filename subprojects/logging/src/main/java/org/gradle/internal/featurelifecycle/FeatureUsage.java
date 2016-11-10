@@ -21,25 +21,25 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An immutable description of the usage of a deprecated feature.
+ * An immutable description of the usage of a feature.
  */
-public class DeprecatedFeatureUsage {
+public class FeatureUsage {
     private final String message;
     private final List<StackTraceElement> stack;
-    private final Class<?> calledFrom;
 
-    public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
+    public FeatureUsage(String message) {
         this.message = message;
-        this.calledFrom = calledFrom;
-        this.stack = Collections.emptyList();
+        this.stack = Collections.unmodifiableList(createStackTrace());
     }
 
-    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
+    /*
+     * Only used in tests.
+     */
+    FeatureUsage(String message, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack");
         }
-        this.message = usage.message;
-        this.calledFrom = usage.calledFrom;
+        this.message = message;
         this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
     }
 
@@ -51,27 +51,19 @@ public class DeprecatedFeatureUsage {
         return stack;
     }
 
-    /**
-     * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that
-     * this method is called from the same thread that triggered the usage.
-     */
-    public DeprecatedFeatureUsage withStackTrace() {
-        if (!stack.isEmpty()) {
-            return this;
-        }
-
+    private static List<StackTraceElement> createStackTrace() {
         StackTraceElement[] originalStack = new Exception().getStackTrace();
-        final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;
         for (caller = 0; caller < originalStack.length; caller++) {
             StackTraceElement current = originalStack[caller];
+            String className = current.getClassName();
             if (!calledFromFound) {
-                if (current.getClassName().startsWith(calledFromName)) {
+                if (isFeatureUsageElement(className)) {
                     calledFromFound = true;
                 }
             } else {
-                if (!current.getClassName().startsWith(calledFromName)) {
+                if (!isFeatureUsageElement(className)) {
                     break;
                 }
             }
@@ -83,21 +75,60 @@ public class DeprecatedFeatureUsage {
         for (; caller < originalStack.length; caller++) {
             result.add(originalStack[caller]);
         }
-        return new DeprecatedFeatureUsage(this, result);
+        return result;
     }
 
     private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
         for (; caller < stackTrace.length; caller++) {
             String currentClassName = stackTrace[caller].getClassName();
-            if (!currentClassName.startsWith("org.codehaus.groovy.")
-                && !currentClassName.startsWith("org.gradle.internal.metaobject.")
-                && !currentClassName.startsWith("groovy.")
-                && !currentClassName.startsWith("java.")
-                && !currentClassName.startsWith("jdk.internal.")
-                ) {
+            if (!isSystemStackElement(currentClassName)) {
                 break;
             }
         }
         return caller;
+    }
+
+    private static boolean isFeatureUsageElement(String className) {
+        return className.startsWith("org.gradle.internal.featurelifecycle.")
+            // TODO: remove the following line after deleting old loggers
+            || className.startsWith("org.gradle.util.");
+    }
+
+    private static boolean isSystemStackElement(String className) {
+        return className.startsWith("org.codehaus.groovy.")
+            || className.startsWith("org.gradle.internal.metaobject.")
+            || className.startsWith("groovy.")
+            || className.startsWith("java.")
+            || className.startsWith("jdk.internal.");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        FeatureUsage that = (FeatureUsage) o;
+
+        if (message != null ? !message.equals(that.message) : that.message != null) {
+            return false;
+        }
+        return stack != null ? stack.equals(that.stack) : that.stack == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = message != null ? message.hashCode() : 0;
+        result = 31 * result + (stack != null ? stack.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "FeatureUsage{message='" + message + "', stack=" + stack + "}";
     }
 }

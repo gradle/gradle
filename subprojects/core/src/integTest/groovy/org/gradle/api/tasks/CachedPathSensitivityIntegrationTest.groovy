@@ -35,6 +35,7 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
     void execute(String... tasks) {
         executer.withArgument "-Dorg.gradle.cache.tasks=true"
         executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
+        executer.expectIncubationWarning()
         succeeds tasks
     }
 

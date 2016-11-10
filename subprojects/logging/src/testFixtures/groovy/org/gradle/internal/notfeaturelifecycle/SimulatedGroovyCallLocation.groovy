@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle
+package org.gradle.internal.notfeaturelifecycle
+
+import org.gradle.internal.featurelifecycle.FeatureUsage
+import org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger
 
 /**
- * This class is used to test proper call stack evaluation of Groovy classes.
+ * Package is notfeaturelifecycle, i.e. anything but featurelifecycle, because of
+ * Groovy call stack workaround in FeatureUsage.createStackTrace()
  */
 class SimulatedGroovyCallLocation {
-    static DeprecatedFeatureUsage create() {
+    static FeatureUsage create() {
         return SimulatedDeprecationMessageLogger.nagUserWith(SimulatedDeprecationMessageLogger.DIRECT_CALL)
     }
 
-    static DeprecatedFeatureUsage indirectly() {
+    static FeatureUsage indirectly() {
         return SimulatedDeprecationMessageLogger.indirectly(SimulatedDeprecationMessageLogger.INDIRECT_CALL)
     }
 
-    static DeprecatedFeatureUsage indirectly2() {
+    static FeatureUsage indirectly2() {
         return SimulatedDeprecationMessageLogger.indirectlySecondLevel(SimulatedDeprecationMessageLogger.INDIRECT_CALL_2)
     }
 }

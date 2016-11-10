@@ -41,6 +41,7 @@ class ConcurrentClassDecorationSpec extends AbstractIntegrationSpec {
         }
 
         when:
+        executer.expectIncubationWarning()
         args "--parallel"
 
         then:

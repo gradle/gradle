@@ -132,6 +132,7 @@ include 'child'
 
     def "pom conversion is triggered when pom and no gradle file found"() {
         given:
+        executer.expectIncubationWarning()
         pom()
 
         when:

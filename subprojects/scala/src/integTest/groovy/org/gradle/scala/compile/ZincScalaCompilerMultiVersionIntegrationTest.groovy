@@ -36,7 +36,6 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             }
         """
         args("--info")
-        executer.expectDeprecationWarning()
     }
 
     def "can build with configured zinc compiler version" () {

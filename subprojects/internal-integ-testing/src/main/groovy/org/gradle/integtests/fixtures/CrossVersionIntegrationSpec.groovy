@@ -75,7 +75,6 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         if (gradleUserHomeDir) {
             executer.withGradleUserHomeDir(gradleUserHomeDir)
         }
-        executer.expectDeprecationWarning()
         executer.inDirectory(testDirectory)
         executers << executer
         return executer

@@ -34,7 +34,7 @@ import org.gradle.internal.buildevents.CacheStatisticsReporter;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.featurelifecycle.Naggers;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -175,10 +175,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         switch (showStacktrace) {
             case ALWAYS:
             case ALWAYS_FULL:
-                LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true);
+                Naggers.setTraceLoggingEnabled(true);
                 break;
             default:
-                LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
+                Naggers.setTraceLoggingEnabled(false);
         }
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 

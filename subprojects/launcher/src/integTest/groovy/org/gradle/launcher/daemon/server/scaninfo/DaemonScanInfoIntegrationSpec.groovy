@@ -42,7 +42,11 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         expect:
-        executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
+        executer
+            .withArguments('help', '--continuous', '-i')
+            .expectIncubationWarning()
+            .run()
+            .getExecutedTasks().contains(':help')
     }
 
     def "should capture basic data when a foreground daemon runs multiple builds"() {
@@ -80,7 +84,12 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        result = executer.withArguments(continuous ? ['delay', '--continuous'] : ['delay']).run()
+        if(continuous) {
+            executer.expectIncubationWarning()
+        }
+        result = executer
+            .withArguments(continuous ? ['delay', '--continuous'] : ['delay'])
+            .run()
 
         then:
         output.findAll('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy').size() == 1

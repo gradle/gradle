@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,14 @@
 
 package org.gradle.internal.featurelifecycle;
 
-public interface UsageLocationReporter {
-    void reportLocation(FeatureUsage usage, StringBuilder target);
+/**
+ *  Use this to nag the user with incubation messages.
+ *
+ * Obtain an instance by calling Naggers.getIncubationNagger().
+ *
+ * @see Naggers#getIncubationNagger()
+ */
+public interface IncubationNagger {
+    void incubatingFeatureUsed(String incubatingFeature);
+    void incubatingFeatureUsed(String incubatingFeature, String additionalWarning);
 }

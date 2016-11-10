@@ -37,6 +37,7 @@ class ParallelJavaPluginTest extends AbstractIntegrationSpec {
         executer.withArgument("--parallel")
                 .withArgument("--max-workers=4")
                 .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
+                .expectIncubationWarning()
     }
 
     def "can execute a java build that runs tasks in parallel"() {

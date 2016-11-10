@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle;
+package org.gradle.internal.notfeaturelifecycle;
 
-public interface UsageLocationReporter {
-    void reportLocation(FeatureUsage usage, StringBuilder target);
+/**
+ * Package is notfeaturelifecycle, i.e. anything but featurelifecycle, because of
+ * Groovy call stack workaround in FeatureUsage.createStackTrace()
+ */
+public interface NaggingSource {
+    String DIRECT_CALL = "direct call";
+    String INDIRECT_CALL = "indirect call";
+    String INDIRECT_CALL_2 = "second-level indirect call";
+
+    void execute();
+    void create(String message);
+    void indirectly(String message);
+    void indirectly2(String message);
 }

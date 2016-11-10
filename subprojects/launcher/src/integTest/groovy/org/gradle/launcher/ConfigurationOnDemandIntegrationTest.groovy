@@ -28,6 +28,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << "org.gradle.configureondemand=true"
         buildFile << "assert gradle.startParameter.configureOnDemand"
         expect:
+        executer.expectIncubationWarning()
         run()
     }
 
@@ -41,6 +42,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectIncubationWarning()
         run("--configure-on-demand", ":api:foo")
 
         then:

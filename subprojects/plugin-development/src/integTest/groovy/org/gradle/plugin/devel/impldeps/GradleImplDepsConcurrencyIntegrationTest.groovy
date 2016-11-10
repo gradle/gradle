@@ -153,6 +153,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
     private void executeBuildInParallel(String... taskNames) {
         executer.withBuildJvmOpts('-Xmx1024m')
         args('--parallel')
+        executer.expectIncubationWarning()
         succeeds taskNames
     }
 

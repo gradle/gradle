@@ -68,6 +68,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         }
 
         when:
+        executer.expectIncubationWarning()
         run(*apps.keySet().collect { "${it}Executable" })
 
         then:
@@ -132,6 +133,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         }
 
         when:
+        executer.expectIncubationWarning()
         run(*apps.keySet().collect { "install${it.capitalize()}MainExecutable" })
 
         then:

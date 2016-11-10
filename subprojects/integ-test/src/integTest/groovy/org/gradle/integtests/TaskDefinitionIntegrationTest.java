@@ -29,8 +29,12 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task task",
                 "task withOptions(dependsOn: [nothing, withAction, emptyOptions, task])",
                 "task withOptionsAndAction(dependsOn: withOptions) << { }");
-        inTestDirectory().expectDeprecationWarning().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
-                ":task", ":withAction", ":withOptions", ":withOptionsAndAction");
+        inTestDirectory()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .withTasks("withOptionsAndAction")
+            .run()
+            .assertTasksExecuted(":emptyOptions", ":nothing", ":task", ":withAction", ":withOptions", ":withOptionsAndAction");
     }
 
     @Test
@@ -42,8 +46,12 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task \"emptyOptions$v\"()",
                 "task \"withOptions$v\"(dependsOn: [nothingTask, withActionTask, emptyOptionsTask])",
                 "task \"withOptionsAndAction$v\"(dependsOn: withOptionsTask) << { }");
-        inTestDirectory().expectDeprecationWarning().withTasks("withOptionsAndActionTask").run().assertTasksExecuted(":emptyOptionsTask",
-                ":nothingTask", ":withActionTask", ":withOptionsTask", ":withOptionsAndActionTask");
+        inTestDirectory()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .withTasks("withOptionsAndActionTask")
+            .run()
+            .assertTasksExecuted(":emptyOptionsTask", ":nothingTask", ":withActionTask", ":withOptionsTask", ":withOptionsAndActionTask");
     }
 
     @Test
@@ -54,8 +62,12 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task 'emptyOptions'()",
                 "task 'withOptions'(dependsOn: [nothing, withAction, emptyOptions])",
                 "task 'withOptionsAndAction'(dependsOn: withOptions) << { }");
-        inTestDirectory().expectDeprecationWarning().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
-                ":withAction", ":withOptions", ":withOptionsAndAction");
+        inTestDirectory()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .withTasks("withOptionsAndAction")
+            .run()
+            .assertTasksExecuted(":emptyOptions", ":nothing", ":withAction", ":withOptions", ":withOptionsAndAction");
     }
 
     @Test
@@ -67,8 +79,10 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task()", "def cl = { -> task inClosure }",
                 "cl()",
                 "task all(dependsOn: [dynamic0, dynamic1, inBlock, inMethod, inClosure])");
-        inTestDirectory().withTasks("all").run().assertTasksExecuted(":dynamic0", ":dynamic1", ":inBlock", ":inClosure",
-                ":inMethod", ":all");
+        inTestDirectory()
+            .withTasks("all")
+            .run()
+            .assertTasksExecuted(":dynamic0", ":dynamic1", ":inBlock", ":inClosure", ":inMethod", ":all");
     }
 
     @Test
@@ -86,7 +100,15 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "a = task(withOptionsAndAction, description: 'description') << { }",
                 "a = task(anotherWithAction).doFirst\n{}",
                 "task all(dependsOn: tasks as List)");
-        inTestDirectory().expectDeprecationWarning().withTasks("all").run().assertTasksExecuted(":anotherWithAction", ":dynamic", ":emptyOptions",
+        inTestDirectory()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .expectDeprecationWarning()
+            .withTasks("all")
+            .run()
+            .assertTasksExecuted(":anotherWithAction", ":dynamic", ":emptyOptions",
                 ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
                 ":withAction", ":withOptions", ":withOptionsAndAction", ":all");
     }
@@ -108,7 +130,9 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "}",
                 "task all(dependsOn: tasks as List)",
                 "class TestTask extends DefaultTask { String property }");
-        inTestDirectory().withTasks("all").run();
+        inTestDirectory()
+            .withTasks("all")
+            .run();
     }
 
     @Test
@@ -132,6 +156,9 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "assert 'value' == f.property",
                 "assert 'value' == i.property",
                 "task all(dependsOn: tasks as List)");
-        inTestDirectory().withTasks("all").run().assertTasksExecuted(":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all");
+        inTestDirectory()
+            .withTasks("all")
+            .run()
+            .assertTasksExecuted(":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all");
     }
 }
