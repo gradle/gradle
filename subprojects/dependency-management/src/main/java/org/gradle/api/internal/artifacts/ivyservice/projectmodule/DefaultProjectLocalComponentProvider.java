@@ -60,7 +60,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         ComponentIdentifier componentIdentifier = newProjectId(project);
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), project.getAttributesSchema());
         metaDataBuilder.addConfigurations(metaData, project.getConfigurations());
         return metaData;
     }

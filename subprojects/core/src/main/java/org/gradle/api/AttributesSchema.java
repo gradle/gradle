@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import java.util.Set;
+
 /**
  * An attributes schema stores information about {@link Attribute attributes} and how they
  * can be matched together.
@@ -49,4 +51,5 @@ public interface AttributesSchema {
      */
     <T> void matchStrictly(Attribute<T> attribute);
 
+    Set<Attribute<?>> getAttributes();
 }

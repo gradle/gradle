@@ -70,7 +70,7 @@ public class IncludedBuildDependencyMetadataBuilder {
     }
 
     private LocalComponentMetadata createCompositeCopy(IncludedBuild build, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
-        DefaultLocalComponentMetadata compositeComponentMetadata = new DefaultLocalComponentMetadata(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
+        DefaultLocalComponentMetadata compositeComponentMetadata = new DefaultLocalComponentMetadata(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus(), originalComponentMetadata.getAttributesSchema());
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
             LocalConfigurationMetadata originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);

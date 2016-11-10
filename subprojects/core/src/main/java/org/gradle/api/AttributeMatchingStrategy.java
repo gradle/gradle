@@ -51,7 +51,11 @@ public interface AttributeMatchingStrategy<T> {
      * values, it is an error to say that there's no best match in that list. Similarly, it is
      * an error to return a value which is not contained in the key set of the candidates map.
      *
-     * @param requestedValue the value to compare against
+     * If the requested value is <code>null</code>, then it means that the consumer did not express a value
+     * for this attribute. It is up to the strategy to tell what to do in that case. In practice it means
+     * that implementations <b>must</b> check for <code>null</code> as a potential value.
+     *
+     * @param requestedValue the value to compare against. If null, it means the consumer didn't express a value.
      * @param compatibleValues the map of candidate values
      * @param <K> the type of the candidate
      * @return a list of best matches. Must never be empty.

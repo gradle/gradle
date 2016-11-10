@@ -23,6 +23,7 @@ import org.gradle.internal.Cast;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultConfigurationAttributesSchema implements org.gradle.api.AttributesSchema {
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
@@ -47,6 +48,11 @@ public class DefaultConfigurationAttributesSchema implements org.gradle.api.Attr
     @Override
     public <T> void matchStrictly(Attribute<T> attribute) {
         setMatchingStrategy(attribute, StrictMatchingStrategy.<T>get());
+    }
+
+    @Override
+    public Set<Attribute<?>> getAttributes() {
+        return strategies.keySet();
     }
 
     private static class StrictMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
