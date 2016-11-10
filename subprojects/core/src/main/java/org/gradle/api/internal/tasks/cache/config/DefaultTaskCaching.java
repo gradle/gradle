@@ -18,16 +18,14 @@ package org.gradle.api.internal.tasks.cache.config;
 
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.cache.LocalDirectoryTaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
@@ -100,14 +98,6 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
 
     @Override
     public void stop() {
-        for (TaskOutputCache cache : cachesCreated) {
-            if (cache instanceof Closeable) {
-                try {
-                    ((Closeable) cache).close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        }
+        CompositeStoppable.stoppable(cachesCreated).stop();
     }
 }
