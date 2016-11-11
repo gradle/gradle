@@ -18,8 +18,88 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
+
+    private final static String[] TASKS_REPORT_TASK = ['tasks'] as String[]
+    private final static String[] TASKS_DETAILED_REPORT_TASK = ['tasks', '--all'] as String[]
+    private final static String GROUP = 'Hello world'
+
+    @Unroll
+    def "renders tasks with and without group running #tasks"() {
+        given:
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+
+            task b
+        """
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+$groupHeader
+a
+""") == rendersGroupedTask
+        output.contains("""
+Other tasks
+-----------
+b
+""") == rendersUngroupedTask
+        where:
+        tasks                      | rendersGroupedTask | rendersUngroupedTask
+        TASKS_REPORT_TASK          | true               | false
+        TASKS_DETAILED_REPORT_TASK | true               | true
+    }
+
+    def "renders task with dependencies without group in detailed report"() {
+        given:
+        buildFile << """
+            task a
+
+            task b {
+                dependsOn a
+            }
+        """
+
+        when:
+        succeeds TASKS_DETAILED_REPORT_TASK
+
+        then:
+        output.contains("""
+Other tasks
+-----------
+b
+""")
+    }
+
+    def "renders grouped task with dependencies in detailed report"() {
+        given:
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+
+            task b {
+                group = '$GROUP'
+                dependsOn a
+            }
+        """
+
+        when:
+        succeeds TASKS_DETAILED_REPORT_TASK
+
+        then:
+        output.contains("""
+$groupHeader
+a
+b
+""")
+    }
 
     def "task selector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
         given:
@@ -28,29 +108,39 @@ include 'sub1'
 include 'sub2'
 """
         file("sub1/build.gradle") << """
-task alpha { description = 'ALPHA_in_sub1' }
-"""
+            task alpha {
+                group = '$GROUP'
+                description = 'ALPHA_in_sub1'
+            }
+        """
         file("sub2/build.gradle") << """
-task alpha { description = 'ALPHA_in_sub2' }
-"""
+            task alpha {
+                group = '$GROUP'
+                description = 'ALPHA_in_sub2'
+            }
+        """
 
         when:
-        run "tasks"
+        succeeds TASKS_REPORT_TASK
 
         then:
         output.contains """
-Other tasks
------------
+$groupHeader
 alpha - ALPHA_in_sub1
 """
     }
 
-    def "task report includes tasks defined via model rules"() {
+    @Unroll
+    def "task report includes tasks defined via model rules running #tasks"() {
         when:
         buildScript """
             model {
                 tasks {
                     create("t1") {
+                        group = '$GROUP'
+                        description = "from model rule"
+                    }
+                    create("t2") {
                         description = "from model rule"
                     }
                 }
@@ -58,10 +148,16 @@ alpha - ALPHA_in_sub1
         """
 
         then:
-        succeeds "tasks"
+        succeeds tasks
 
         and:
-        output.contains("t1 - from model rule")
+        output.contains("t1 - from model rule") == rendersGroupedTask
+        output.contains("t2 - from model rule") == rendersUngroupedTask
+
+        where:
+        tasks                      | rendersGroupedTask | rendersUngroupedTask
+        TASKS_REPORT_TASK          | true               | false
+        TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
     def "task report includes task container rule based tasks defined via model rule"() {
@@ -86,7 +182,7 @@ alpha - ALPHA_in_sub1
         """
 
         then:
-        succeeds "tasks", "--all"
+        succeeds TASKS_DETAILED_REPORT_TASK
 
         and:
         output.contains("t1 - from model rule")
@@ -99,7 +195,7 @@ alpha - ALPHA_in_sub1
         buildFile << getBuildScriptContent()
 
         then:
-        succeeds "tasks", "--all"
+        succeeds TASKS_DETAILED_REPORT_TASK
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")
@@ -110,7 +206,7 @@ alpha - ALPHA_in_sub1
         file("module/build.gradle") << getBuildScriptContent()
 
         then:
-        succeeds "tasks", "--all"
+        succeeds TASKS_DETAILED_REPORT_TASK
     }
 
     protected static String getBuildScriptContent() {
@@ -131,4 +227,8 @@ alpha - ALPHA_in_sub1
         """
     }
 
+    static String getGroupHeader() {
+        """$GROUP tasks
+-----------------"""
+    }
 }
