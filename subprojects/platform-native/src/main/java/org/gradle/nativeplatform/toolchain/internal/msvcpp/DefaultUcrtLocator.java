@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
