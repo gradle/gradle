@@ -17,10 +17,10 @@
 // To be used from a third party build via
 // apply from: 'https://raw.githubusercontent.com/gradle/gradle/master/gradle/detailedCacheDiagnosticsInit.gradle'
 
-ext.diagnosticsVersion = hasProperty('cache.diagnostics.version') ? diagnosticsVersion : 'master'
+ext.commitId = 'master'
 
-apply from: "https://raw.githubusercontent.com/gradle/gradle/${diagnosticsVersion}/gradle/taskCacheDetailedStatsInit.gradle"
-apply from: "https://raw.githubusercontent.com/gradle/gradle/${diagnosticsVersion}/gradle/overlappingTaskOutputsStatsInit.gradle"
+apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/taskCacheDetailedStatsInit.gradle"
+apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/overlappingTaskOutputsStatsInit.gradle"
 rootProject {
-    apply from: "https://raw.githubusercontent.com/gradle/gradle/${diagnosticsVersion}/gradle/taskCacheBuildScanUserData.gradle"
+    apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/taskCacheBuildScanUserData.gradle"
 }
