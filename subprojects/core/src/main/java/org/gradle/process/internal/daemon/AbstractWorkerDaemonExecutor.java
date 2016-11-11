@@ -19,12 +19,14 @@ package org.gradle.process.internal.daemon;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.daemon.WorkerDaemonExecutor;
 import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -38,7 +40,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     private final Set<String> sharedPackages = Sets.newLinkedHashSet();
     private final Class<? extends T> implementationClass;
     private final Class<? extends WorkerDaemonProtocol> serverImplementationClass;
-    private Serializable[] params;
+    private Serializable[] params = new Serializable[]{};
 
     public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends T> implementationClass, Class<? extends WorkerDaemonProtocol> serverImplementationClass) {
         this.workerDaemonFactory = workerDaemonFactory;
@@ -91,11 +93,21 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
         return workerDaemonFactory;
     }
 
-    public Class<? extends WorkerDaemonProtocol> getServerImplementationClass() {
+    protected Class<? extends WorkerDaemonProtocol> getServerImplementationClass() {
         return serverImplementationClass;
     }
 
-    static DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages) {
+    protected DaemonForkOptions getDaemonForkOptions() {
+        Iterable<Class<?>> paramTypes = CollectionUtils.collect(getParams(), new Transformer<Class<?>, Object>() {
+            @Override
+            public Class<?> transform(Object o) {
+                return o.getClass();
+            }
+        });
+        return toDaemonOptions(implementationClass, paramTypes, javaForkOptions, classpath, sharedPackages);
+    }
+
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages) {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 

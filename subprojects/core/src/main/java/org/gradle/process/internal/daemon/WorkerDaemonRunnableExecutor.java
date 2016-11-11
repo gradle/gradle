@@ -16,11 +16,9 @@
 
 package org.gradle.process.internal.daemon;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.util.CollectionUtils;
 
 import java.io.Serializable;
 
@@ -34,15 +32,7 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
     public void execute() {
         final ParamSpec spec = new ParamSpec(getParams());
         final WrappedDaemonRunnable daemonRunnable = new WrappedDaemonRunnable(getImplementationClass());
-        Iterable<Class<?>> paramTypes = CollectionUtils.collect(getParams(), new Transformer<Class<?>, Object>() {
-            @Override
-            public Class<?> transform(Object o) {
-                return o.getClass();
-            }
-        });
-        final DaemonForkOptions daemonForkOptions = toDaemonOptions(getImplementationClass(), paramTypes, getForkOptions(), getClasspath(), getSharedPackages());
-
-        WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getServerImplementationClass(), getForkOptions().getWorkingDir(), daemonForkOptions);
+        WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getServerImplementationClass(), getForkOptions().getWorkingDir(), getDaemonForkOptions());
         WorkerDaemonResult result = daemon.execute(daemonRunnable, spec);
         if (!result.isSuccess()) {
             throw UncheckedException.throwAsUncheckedException(result.getException());
