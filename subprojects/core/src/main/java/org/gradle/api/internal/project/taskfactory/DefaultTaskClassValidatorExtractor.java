@@ -229,7 +229,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         public void addAnnotations(Annotation[] declaredAnnotations) {
             for (Annotation annotation : declaredAnnotations) {
                 Class<? extends Annotation> annotationType = annotation.annotationType();
-                if (isPropretyTypeAnnotation(annotationType)) {
+                if (isPropertyTypeAnnotation(annotationType)) {
                     // Ignore property type annotation if one is already set
                     if (propertyType != null) {
                         continue;
@@ -242,7 +242,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             }
         }
 
-        private boolean isPropretyTypeAnnotation(Class<? extends Annotation> annotationType) {
+        private boolean isPropertyTypeAnnotation(Class<? extends Annotation> annotationType) {
             return propertyTypeAnnotations.contains(annotationType);
         }
 
