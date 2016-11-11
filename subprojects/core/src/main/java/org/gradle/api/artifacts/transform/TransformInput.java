@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares the input type for a dependency transform.
+ * Declares the input type for an artifact transform.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})

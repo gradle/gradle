@@ -19,9 +19,9 @@ package org.gradle.api.artifacts.transform;
 import java.io.File;
 
 /**
- * Base class for dependency transformations.
+ * Base class for artifact transformations.
  */
-public abstract class DependencyTransform {
+public abstract class ArtifactTransform {
     private File outputDirectory;
 
     public File getOutputDirectory() {

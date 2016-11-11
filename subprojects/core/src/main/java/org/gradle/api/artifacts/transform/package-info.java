@@ -15,7 +15,7 @@
  */
 
 /**
- * Classes that perform dependency transformations.
+ * Classes that perform artifact transformations.
  */
 @org.gradle.api.Incubating
 package org.gradle.api.artifacts.transform;

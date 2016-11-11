@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class TransformedConfigurationIntegrationTest extends AbstractIntegrationSpec {
+class ArtifactTransformIntegrationTest extends AbstractIntegrationSpec {
 
     def "Can resolve transformed configuration with external dependency"() {
         given:
@@ -60,7 +60,7 @@ class TransformedConfigurationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "resolve"
 
         then:
-        file("build/libs").listFiles().count {it.name.endsWith('.md5')} > 20
+        file("build/libs").listFiles().count {it.name.contains('gradle') && it.name.endsWith('.jar.md5')} >= 1
     }
 
     def "Can filter configuration from dependency"() {
@@ -139,7 +139,7 @@ class TransformedConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @TransformInput(format = 'jar')
-            class JarTransform extends DependencyTransform {
+            class JarTransform extends ArtifactTransform {
                 private File jar
 
                 @TransformOutput(format = 'classpath')
@@ -190,7 +190,7 @@ class TransformedConfigurationIntegrationTest extends AbstractIntegrationSpec {
         }
 
         @TransformInput(format = 'jar')
-        class FileHasher extends DependencyTransform {
+        class FileHasher extends ArtifactTransform {
             private File output
 
             @TransformOutput(format = 'md5')

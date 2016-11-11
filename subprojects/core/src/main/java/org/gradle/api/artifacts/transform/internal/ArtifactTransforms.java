@@ -19,7 +19,7 @@ package org.gradle.api.artifacts.transform.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.transform.DependencyTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.TransformInput;
 import org.gradle.api.artifacts.transform.TransformOutput;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -30,7 +30,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class DependencyTransforms {
+public class ArtifactTransforms {
     private final List<DependencyTransformRegistration> transforms = Lists.newArrayList();
 
     public Transformer<File, File> getTransform(String from, String to) {
@@ -42,10 +42,10 @@ public class DependencyTransforms {
         return null;
     }
 
-    public void registerTransform(Class<? extends DependencyTransform> type, Action<? super DependencyTransform> config) {
+    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
         TransformInput transformInput = type.getAnnotation(TransformInput.class);
         if (transformInput == null) {
-            throw new RuntimeException("DependencyTransform must statically declare input type using `@TransformInput`");
+            throw new RuntimeException("ArtifactTransform must statically declare input type using `@TransformInput`");
         }
         String from = transformInput.format();
 
@@ -57,7 +57,7 @@ public class DependencyTransforms {
                 }
 
                 String to = transformOutput.format();
-                JavaMethod<? super DependencyTransform, File> javaMethod = JavaReflectionUtil.method(File.class, method);
+                JavaMethod<? super ArtifactTransform, File> javaMethod = JavaReflectionUtil.method(File.class, method);
                 DependencyTransformRegistration registration = new DependencyTransformRegistration(from, to, type, javaMethod, config);
                 transforms.add(registration);
             }
@@ -67,11 +67,11 @@ public class DependencyTransforms {
     private final class DependencyTransformRegistration {
         final String from;
         final String to;
-        final Class<? extends DependencyTransform> type;
-        final JavaMethod<? super DependencyTransform, File> outputProperty;
-        final Action<? super DependencyTransform> config;
+        final Class<? extends ArtifactTransform> type;
+        final JavaMethod<? super ArtifactTransform, File> outputProperty;
+        final Action<? super ArtifactTransform> config;
 
-        public DependencyTransformRegistration(String from, String to, Class<? extends DependencyTransform> type, JavaMethod<? super DependencyTransform, File> outputProperty, Action<? super DependencyTransform> config) {
+        public DependencyTransformRegistration(String from, String to, Class<? extends ArtifactTransform> type, JavaMethod<? super ArtifactTransform, File> outputProperty, Action<? super ArtifactTransform> config) {
             this.from = from;
             this.to = to;
             this.type = type;
@@ -80,28 +80,28 @@ public class DependencyTransforms {
         }
 
         public Transformer<File, File> getTransformer() {
-            DependencyTransform dependencyTransform = DirectInstantiator.INSTANCE.newInstance(type);
-            config.execute(dependencyTransform);
-            return new DependencyTransformTransformer(dependencyTransform, outputProperty);
+            ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
+            config.execute(artifactTransform);
+            return new DependencyTransformTransformer(artifactTransform, outputProperty);
         }
     }
 
     private static class DependencyTransformTransformer implements Transformer<File, File> {
-        private final DependencyTransform dependencyTransform;
-        private final JavaMethod<? super DependencyTransform, File> outputProperty;
+        private final ArtifactTransform artifactTransform;
+        private final JavaMethod<? super ArtifactTransform, File> outputProperty;
 
-        private DependencyTransformTransformer(DependencyTransform dependencyTransform, JavaMethod<? super DependencyTransform, File> outputProperty) {
-            this.dependencyTransform = dependencyTransform;
+        private DependencyTransformTransformer(ArtifactTransform artifactTransform, JavaMethod<? super ArtifactTransform, File> outputProperty) {
+            this.artifactTransform = artifactTransform;
             this.outputProperty = outputProperty;
         }
 
         @Override
         public File transform(File file) {
-            if (dependencyTransform.getOutputDirectory() != null) {
-                dependencyTransform.getOutputDirectory().mkdirs();
+            if (artifactTransform.getOutputDirectory() != null) {
+                artifactTransform.getOutputDirectory().mkdirs();
             }
-            dependencyTransform.transform(file);
-            return outputProperty.invoke(dependencyTransform);
+            artifactTransform.transform(file);
+            return outputProperty.invoke(artifactTransform);
         }
     }
 
