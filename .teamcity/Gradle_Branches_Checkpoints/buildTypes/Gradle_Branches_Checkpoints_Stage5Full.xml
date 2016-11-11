@@ -57,7 +57,25 @@ fi]]></param>
     <requirements>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
-    <build-triggers />
+    <build-triggers>
+      <build-trigger id="vcsTrigger" type="vcsTrigger">
+        <parameters>
+          <param name="branchFilter" value="+:refs/pull/*/head" />
+          <param name="quietPeriodMode" value="DO_NOT_USE" />
+          <param name="triggerRules"><![CDATA[+:user=adammurdoch;root=Gradle_Branches_GradleInternalPRs:**
++:user=big-guy;root=Gradle_Branches_GradleInternalPRs:**
++:user=bigdaz;root=Gradle_Branches_GradleInternalPRs:**
++:user=eriwen;root=Gradle_Branches_GradleInternalPRs:**
++:user=eskatos;root=Gradle_Branches_GradleInternalPRs:**
++:user=ghale;root=Gradle_Branches_GradleInternalPRs:**
++:user=lacasseio;root=Gradle_Branches_GradleInternalPRs:**
++:user=lptr;root=Gradle_Branches_GradleInternalPRs:**
++:user=oehme;root=Gradle_Branches_GradleInternalPRs:**
++:user=melix;root=Gradle_Branches_GradleInternalPRs:**
++:user=wolfs;root=Gradle_Branches_GradleInternalPRs:**]]></param>
+        </parameters>
+      </build-trigger>
+    </build-triggers>
     <dependencies>
       <depend-on sourceBuildTypeId="Gradle_Branches_Checkpoints_Stage4FullCoverage">
         <options>
