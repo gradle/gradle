@@ -36,7 +36,18 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
  * - processClasses                 filters and transforms to 'classes' format (e.g. extracts jars to class folders)
  * - processManifests               filters for 'android-manifest' format (no transformation for local libraries, extraction from aar)
  */
-abstract public class AbstractAARTransformIntegrationTest extends AbstractDependencyResolutionTest {
+abstract public class AbstractAARFilterAndTransformIntegrationTest extends AbstractDependencyResolutionTest {
+
+    enum Feature {
+        FILTER_LOCAL,       // Filter functionality - local artifacts (performance/issues/205)
+        FILTER_EXTERNAL,    // Filter functionality - external artifacts (performance/issues/206)
+        TRANSFORM           // Transform artifacts on-demand during filtering (performance/issues/206)
+    }
+
+    //used to turn of test code which would not compile if the feature is not there
+    def availableFeatures() {
+        []
+    }
 
     def setup() {
         settingsFile << """
@@ -46,9 +57,10 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
             include 'android-app'
         """.stripIndent()
 
+        if (availableFeatures().contains(Feature.TRANSFORM)) {
+            buildFile << 'import org.gradle.api.artifacts.transform.*'
+        }
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
             ${javaLibWithClassFolderArtifact('java-lib')}
             ${mockedAndroidLib('android-lib')}
             ${mockedAndroidApp('android-app')}
@@ -75,7 +87,7 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
 
             artifacts {
                 compileClassesAndResources(compileJava.destinationDir) {
-                    type 'classes'
+                    ${formatInLocalArtifact('classes')}
                     builtBy classes
                 }
             }
@@ -131,11 +143,11 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
 
             artifacts {
                 compileClassesAndResources(classes.destinationDir) {
-                    type 'classes'
+                    ${formatInLocalArtifact('classes')}
                     builtBy classes
                 }
                 compileClassesAndResources(file('aar-image/AndroidManifest.xml')) {
-                    type 'android-manifest'
+                    ${formatInLocalArtifact('android-manifest')}
                 }
 
                 runtime jar
@@ -160,41 +172,33 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
                 // configurations with filtering/transformation over 'compile'
                 processClasspath {
                     extendsFrom(compileClassesAndResources)
-                    format = 'classpath' // 'classes' or 'jar'
+                    ${formatInConfiguration('classpath')} // 'classes' or 'jar'
                     resolutionStrategy {
-                        registerTransform(AarExtractor)  {
-                            outputDirectory = project.file("transformed")
-                            files = project
-                        }
-                        registerTransform(JarClasspathTransform) {
-                            outputDirectory = project.file("transformed")
-                            files = project
-                        }
-                        registerTransform(ClassesFolderClasspathTransform) { }
+                        ${registerTransform('AarExtractor')}
+                        ${registerTransform('JarTransform')}
+                        ${registerTransform('ClassesFolderClasspathTransform')}
                     }
                 }
                 processClasses {
                     extendsFrom(compileClassesAndResources)
-                    format = 'classes'
+                    ${formatInConfiguration('classes')}
                     resolutionStrategy {
-                        registerTransform(AarExtractor)  {
-                            outputDirectory = project.file("transformed")
-                            files = project
-                        }
-                        registerTransform(JarClasspathTransform) {
-                            outputDirectory = project.file("transformed")
-                            files = project
-                        }
+                        ${registerTransform('AarExtractor')}
+                        ${registerTransform('JarTransform')}
+                    }
+                }
+                processJar {
+                    extendsFrom(compileClassesAndResources)
+                    ${formatInConfiguration('jar')}
+                    resolutionStrategy {
+                        ${registerTransform('AarExtractor')}
                     }
                 }
                 processManifests {
                     extendsFrom(compileClassesAndResources)
-                    format = 'android-manifest'
+                    ${formatInConfiguration('android-manifest')}
                     resolutionStrategy {
-                        registerTransform(AarExtractor)  {
-                            outputDirectory = project.file("transformed")
-                            files = project
-                        }
+                        ${registerTransform('AarExtractor')}
                     }
                 }
             }
@@ -214,9 +218,12 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
     }
 
     def aarTransform() {
+        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+            return ""
+        }
         """
         @TransformInput(format = 'aar')
-        class AarExtractor extends DependencyTransform {
+        class AarExtractor extends ArtifactTransform {
             private Project files
 
             private File explodedAar
@@ -266,9 +273,12 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
     }
 
     def jarTransform() {
+        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+            return ""
+        }
         """
         @TransformInput(format = 'jar')
-        class JarClasspathTransform extends DependencyTransform {
+        class JarTransform extends ArtifactTransform {
             private Project files
 
             private File jar
@@ -289,7 +299,7 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
 
                 //We could use a location based on the input, since the classes folder is similar for all consumers.
                 //Maybe the output should not be configured from the outside, but the context of the consumer should
-                //be always passed in autoamtically (as we do with "Project files") here. Then the consumer and
+                //be always passed in automatically (as we do with "Project files") here. Then the consumer and
                 //properties of it (e.g. dex options) can be used in the output location
                 classesFolder = new File(outputDirectory, input.name + "/classes")
                 if (!classesFolder.exists()) {
@@ -304,9 +314,14 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
     }
 
     def classFolderTransform() {
+        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+            return ""
+        }
         """
         @TransformInput(format = 'classes')
-        class ClassesFolderClasspathTransform extends DependencyTransform {
+        class ClassesFolderClasspathTransform extends ArtifactTransform {
+            private Project files
+
             private File classesFolder
 
             @TransformOutput(format = 'classpath')
@@ -318,6 +333,36 @@ abstract public class AbstractAARTransformIntegrationTest extends AbstractDepend
                 classesFolder = input
             }
         }
+        """
+    }
+
+    def  registerTransform(String implementationName) {
+        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+            return ""
+        }
+        """
+        registerTransform($implementationName) {
+            outputDirectory = project.file("transformed")
+            files = project
+        }
+        """
+    }
+
+    def formatInConfiguration(String formatName) {
+        if (!availableFeatures().contains(Feature.FILTER_LOCAL) && !availableFeatures().contains(Feature.FILTER_EXTERNAL)) {
+            return ""
+        }
+        """
+        format = '$formatName'
+        """
+    }
+
+    def formatInLocalArtifact(String formatName) {
+        if (!availableFeatures().contains(Feature.FILTER_LOCAL)) {
+            return ""
+        }
+        """
+        type '$formatName'
         """
     }
 
