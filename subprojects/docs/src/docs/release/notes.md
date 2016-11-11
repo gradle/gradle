@@ -14,25 +14,21 @@ Add-->
 
 When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
 
-### Task property types can be overridden
+### Custom task property annotations can be overridden in subclasses
 
-In previous versions of Gradle a task overriding another one couldn't change the type of an input or output property via annotations. Now it's posisble to change an `@InputFiles` property to an `@Classpath` for example, or an `@OutputFile` to an `@OutputDirectory`.
+In previous versions of Gradle, a custom task class overriding a property from a base class couldn't reliably change the type of the property via annotations. It is now possible to change an `@InputFiles` property to `@Classpath` or an `@OutputFile` to `@OutputDirectory`. This can be useful when extending or working around problems with custom tasks that you do not control.
 
-```groovy
-class TaskA extends DefaultTask {
-  @InputFile file
-}
+    class BrokenTask extends DefaultTask {
+        @Input def inputFile // wrong, task depends on the contents of inputFile
+        @OutputFile def outputFile // wrong, this is a directory 
+    }
 
-class TaskB extends TaskA {
-  @Internal getFile() { super.getFile() }
-}
+    class FixedTask extends BrokenTask {
+        @InputFile def inputFile
+        @OutputDirectory def outputFile
+    }
 
-class TaskC extends TaskB {
-  @OutputFile getFile() { super.getFile() }
-}
-```
-
-In the above example `TaskA.file` is an `@InputFile`, while `TaskC.file` is an `@OutputFile`, whereas `TaskB.file` is tracked as neither input nor output.
+In the above example, `FixedTask.inputFile` will be an `@InputFile` and `FixedTask.outputFile` will be an `@OutputDirectory`.
 
 ## Promoted features
 
@@ -85,26 +81,30 @@ return the `BuildInvocations` model of the project that the `ProjectConnection` 
 
 ### Java `Test` task doesn't track working directory as input
 
-Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic, too, since the default working directory is the project directory. All-in-all tracking the working directory path wasn't adding much functionality as most tests don't rely on the working directory at all, and those that do depend on its contents as well.
+Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic since the default working directory is the project directory. 
 
-From Gradle 3.3 the working directory is not tracked at all. Due to this changing the path of the working directory between builds won't make the task out-of-date.
+Most tests don't rely on the working directory at all and those that do depend on its contents.
+
+From Gradle 3.3, the working directory is not tracked at all. Due to this, changing the path of the working directory between builds won't make the task out-of-date.
 
 If it's needed, the working directory can be added as an explicit input to the task, with contents tracking:
 
-```groovy
-test {
-    workingDir "$buildDir/test-work"
-    inputs.dir workingDir
-}
-```
+    test {
+        workingDir "$buildDir/test-work"
+        inputs.dir workingDir
+    }
 
 To restore the previous behavior of tracking only the path of the working directory:
 
-```groovy
-test {
-    inputs.property "workingDir", workingDir
-}
-```
+    test {
+        inputs.property "workingDir", workingDir
+    }
+
+### Order of task property annotations from hierarchy 
+
+The annotated type of a property (`@InputFile`, `@OutputFile`, etc) for a custom task is now determined by the class hierarchy when conflicting types are present. In previous Gradle releases, the way the conflict was resolved was unspecified. This change affects incremental builds and may cause Gradle to treat a property as a different kind of input or output than it did.
+
+See [Custom task property annotations can be overridden in subclasses](#custom-task-property-annotations-can-be-overridden-in-subclasses) above for an example.
 
 ### `LenientConfiguration.getFiles()` returns the same set of files as other dependency query methods
 
