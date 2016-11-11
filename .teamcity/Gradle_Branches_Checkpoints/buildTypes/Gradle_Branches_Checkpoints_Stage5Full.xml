@@ -86,6 +86,15 @@ fi]]></param>
           <param name="vcsRootId" value="Gradle_Branches_GradleInternalPRs" />
         </parameters>
       </extension>
+      <extension id="BUILD_EXT_21" type="commit-status-publisher">
+        <parameters>
+          <param name="github_authentication_type" value="token" />
+          <param name="github_host" value="https://api.github.com" />
+          <param name="publisherId" value="githubStatusPublisher" />
+          <param name="secure:github_access_token" value="zxx8553c43c0f4ea6fa28da143549a708d6fe3e5fd4c9fa954e1c4753095f7ba6d4ce0371f79ddbc405775d03cbe80d301b" />
+          <param name="vcsRootId" value="Gradle_Branches_GradlePersonalBranches" />
+        </parameters>
+      </extension>
     </build-extensions>
     <dependencies>
       <depend-on sourceBuildTypeId="Gradle_Branches_Checkpoints_Stage4FullCoverage">
