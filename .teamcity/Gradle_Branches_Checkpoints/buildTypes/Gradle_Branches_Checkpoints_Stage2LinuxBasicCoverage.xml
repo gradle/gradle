@@ -43,7 +43,22 @@ fi]]></param>
     <requirements>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
-    <build-triggers />
+    <build-triggers>
+      <build-trigger id="vcsTrigger" type="vcsTrigger">
+        <parameters>
+          <param name="branchFilter"><![CDATA[+:*
+-:<default>		
+-:*-noci		
+-:*-no-ci]]></param>
+          <param name="quietPeriodMode" value="DO_NOT_USE" />
+          <param name="triggerRules"><![CDATA[-:design-docs
+-:.teamcity		
+-:.github		
+-:README.md		
+-:LICENSE]]></param>
+        </parameters>
+      </build-trigger>
+    </build-triggers>
     <artifact-dependencies>
       <dependency id="ARTIFACT_DEPENDENCY_1" sourceBuildTypeId="Gradle_Branches_CommitPhase_BuildDistributions" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
