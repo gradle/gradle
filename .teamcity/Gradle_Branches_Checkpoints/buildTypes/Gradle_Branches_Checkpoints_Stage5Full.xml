@@ -65,6 +65,7 @@ fi]]></param>
           <param name="triggerRules"><![CDATA[+:user=adammurdoch;root=Gradle_Branches_GradleInternalPRs:**
 +:user=big-guy;root=Gradle_Branches_GradleInternalPRs:**
 +:user=bigdaz;root=Gradle_Branches_GradleInternalPRs:**
++:user=eric;root=Gradle_Branches_GradleInternalPRs:**
 +:user=eriwen;root=Gradle_Branches_GradleInternalPRs:**
 +:user=eskatos;root=Gradle_Branches_GradleInternalPRs:**
 +:user=ghale;root=Gradle_Branches_GradleInternalPRs:**
