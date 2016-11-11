@@ -20,6 +20,7 @@ import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -66,7 +67,7 @@ public class HttpTaskOutputCache implements TaskOutputCache {
                 return false;
             }
         } finally {
-            response.close();
+            HttpClientUtils.closeQuietly(response);
         }
     }
 
@@ -106,7 +107,7 @@ public class HttpTaskOutputCache implements TaskOutputCache {
                 LOGGER.debug("Response for PUT {}: {}", uri, response.getStatusLine());
             }
         } finally {
-            response.close();
+            HttpClientUtils.closeQuietly(response);
         }
     }
 
