@@ -86,12 +86,6 @@ public class TaskReportRenderer extends TextReportRenderer {
         writeTask(task, "");
     }
 
-    public void addChildTask(TaskDetails task) {
-        if (detail) {
-            writeTask(task, "    ");
-        }
-    }
-
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
         getTextOutput().withStyle(Identifier).text(task.getPath());

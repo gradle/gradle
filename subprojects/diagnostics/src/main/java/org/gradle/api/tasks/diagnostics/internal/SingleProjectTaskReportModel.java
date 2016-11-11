@@ -24,11 +24,9 @@ import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
     private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(new Comparator<String>() {
@@ -65,16 +63,8 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
 
         GraphAggregator.Result<Task> result = aggregator.group(topLevelTasks, tasks);
         for (Task task : result.getTopLevelNodes()) {
-            Set<Task> nodesForThisTask = new TreeSet<Task>(result.getNodes(task));
-            Set<TaskDetails> children = new LinkedHashSet<TaskDetails>();
-            for (Task node : nodesForThisTask) {
-                if (node != task) {
-                    children.add(new TaskDetailsImpl(node, factory.create(node), Collections.<TaskDetails>emptySet()));
-                }
-            }
-
             String group = topLevelTasks.contains(task) ? task.getGroup() : DEFAULT_GROUP;
-            groups.put(group, new TaskDetailsImpl(task, factory.create(task), children));
+            groups.put(group, new TaskDetailsImpl(task, factory.create(task)));
         }
     }
 
@@ -103,12 +93,10 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
     private static class TaskDetailsImpl implements TaskDetails {
         private final Task task;
         private final TaskDetails details;
-        private final Set<TaskDetails> children;
 
-        public TaskDetailsImpl(Task task, TaskDetails details, Set<TaskDetails> children) {
+        public TaskDetailsImpl(Task task, TaskDetails details) {
             this.task = task;
             this.details = details;
-            this.children = children;
         }
 
         @Override
@@ -128,11 +116,6 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
 
         public Task getTask() {
             return task;
-        }
-
-        @Override
-        public Set<TaskDetails> getChildren() {
-            return children;
         }
     }
 }

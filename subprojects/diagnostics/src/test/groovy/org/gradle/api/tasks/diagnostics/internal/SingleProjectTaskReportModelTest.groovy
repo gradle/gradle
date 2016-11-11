@@ -71,11 +71,9 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         TaskDetails task3Details = (model.getTasksForGroup('group1') as List).first()
         task3Details.task == task3
-        task3Details.children*.task == [task1, task2]
 
         TaskDetails task5Details = (model.getTasksForGroup('group2') as List).first()
         task5Details.task == task5
-        task5Details.children*.task == [task4]
     }
 
     def addsAGroupThatContainsTheTasksWithNoGroup() {
@@ -94,7 +92,6 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         tasks*.task == [task5]
         def t = tasks.first()
         t.task == task5
-        t.children*.task == [task3, task4]
     }
 
     def addsAGroupWhenThereAreNoTasksWithAGroup() {
@@ -117,19 +114,5 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
         then:
         model.groups as List == []
-    }
-
-    def ignoresReachableTasksOutsideTheProject() {
-        def other1 = task('other1')
-        def other2 = task('other2', other1)
-        def task1 = task('task1', other2)
-        def task2 = task('task2', 'group1', task1)
-
-        when:
-        model.build([task1, task2])
-
-        then:
-        TaskDetails t = (model.getTasksForGroup('group1') as List).first()
-        t.children*.task == [task1]
     }
 }
