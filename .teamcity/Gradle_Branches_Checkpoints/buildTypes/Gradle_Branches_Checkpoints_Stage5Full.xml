@@ -52,7 +52,6 @@ fi]]></param>
     </build-runners>
     <vcs-settings>
       <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
-      <vcs-entry-ref root-id="Gradle_PullRequest_GradleMasterBranch" />
     </vcs-settings>
     <requirements>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
