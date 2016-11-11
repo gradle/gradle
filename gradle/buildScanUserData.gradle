@@ -24,6 +24,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
     String commitId
     if (System.getenv("CI")) {
         buildScan.tag "CI"
+        buildScan.tag System.getenv("TEAMCITY_BUILDCONF_NAME")
         buildScan.link "TeamCity Build", System.getenv("BUILD_URL")
         buildScan.value "Build ID", System.getenv("BUILD_ID")
         commitId = System.getenv("BUILD_VCS_NUMBER")
