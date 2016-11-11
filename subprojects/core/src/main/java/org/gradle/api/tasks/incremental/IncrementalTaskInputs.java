@@ -30,10 +30,10 @@ import org.gradle.api.NonExtensible;
  * <pre autoTested="true">
  * class IncrementalReverseTask extends DefaultTask {
  *      {@literal @}InputDirectory
- *      def File inputDir
+ *      File inputDir
  *
  *      {@literal @}OutputDirectory
- *      def File outputDir
+ *      File outputDir
  *
  *      {@literal @}TaskAction
  *      void execute(IncrementalTaskInputs inputs) {
