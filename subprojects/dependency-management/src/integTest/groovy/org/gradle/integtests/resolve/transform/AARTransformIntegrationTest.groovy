@@ -16,59 +16,15 @@
 
 package org.gradle.integtests.resolve.transform;
 
-public class AARTransformationIntegrationTest extends AbstractAARTransformIntegrationTest {
+public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
-    // compileClassesAndResources (unfiltered, no transformations)
-
-    def "compileClassesAndResources references class folder from local java library"() {
-        when:
-        dependency "project(':java-lib')"
-
-        then:
-        artifacts('compileClassesAndResources') == ['/java-lib/build/classes/main']
-        executed ":java-lib:classes"
-        notExecuted ':java-lib:jar'
+    def availableFeatures(){
+        [Feature.FILTER_LOCAL, Feature.FILTER_EXTERNAL, Feature.TRANSFORM]
     }
 
-    def "compileClassesAndResources references classes folder and manifest from local android library"() {
-        when:
-        dependency "project(':android-lib')"
+    // processClasspath filtering and transformation
 
-        then:
-        artifacts('compileClassesAndResources') == ['/android-lib/build/classes/main', '/android-lib/aar-image/AndroidManifest.xml']
-        executed ":android-lib:classes"
-        notExecuted ":android-lib:jar"
-        notExecuted ":android-lib:aar"
-    }
-
-    // Working with jars, using 'runtime' instead of 'compileClassesAndResources'
-
-    def "compile references jar from local java library"() {
-        when:
-        dependency "project(':java-lib')"
-        dependency "runtime", "project(path: ':java-lib', configuration: 'runtime')" //need to declare 'runtime' as it is not teh default here anymore
-
-        then:
-        artifacts('runtime') == ['/java-lib/build/libs/java-lib.jar']
-        executed ":java-lib:classes"
-        executed ':java-lib:jar'
-    }
-
-    def "compile references classes.jar from local android library"() {
-        when:
-        dependency "project(':java-lib')"
-        dependency "runtime", "project(path: ':android-lib', configuration: 'runtime')"
-
-        then:
-        artifacts('runtime') == ['/android-lib/aar-image/classes.jar']
-        executed ":android-lib:classes"
-        executed ":android-lib:jar"
-        notExecuted ":android-lib:aar"
-    }
-
-    // processClasses filtering and transformation
-
-    def "processClasspath includes jars from published java modules"() {
+    def "processClasspath includes jars from published java module"() {
         when:
         dependency "'org.gradle:ext-java-lib:1.0'"
 
@@ -76,7 +32,16 @@ public class AARTransformationIntegrationTest extends AbstractAARTransformIntegr
         artifacts('processClasspath') == ['/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar']
     }
 
-    def "processClasspath includes classes.jar from published android modules"() {
+    def "processClasspath includes jars from file dependencies"() {
+        when:
+        dependency "gradleApi()"
+
+        then:
+        artifacts('processClasspath').count {it.contains('gradle') && it.endsWith('.jar')} >= 1
+        !output.contains('.jar/classes')
+    }
+
+    def "processClasspath includes classes.jar from published android module"() {
         when:
         dependency "'org.gradle:ext-android-lib:1.0'"
 
@@ -84,17 +49,7 @@ public class AARTransformationIntegrationTest extends AbstractAARTransformIntegr
         artifacts('processClasspath') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar']
     }
 
-    def "processClasspath can include jars from file dependencies"() {
-        when:
-        dependency "gradleApi()"
-
-        then:
-        artifacts('processClasspath').size() > 20
-        output.contains('.jar\n')
-        !output.contains('.jar/classes')
-    }
-
-    def "processClasspath includes a combination of project class folders and library jars"() {
+    def "processClasspath includes class folders from local libraries and jars from published java module"() {
         when:
         dependency "project(':java-lib')"
         dependency "project(':android-lib')"
@@ -112,7 +67,7 @@ public class AARTransformationIntegrationTest extends AbstractAARTransformIntegr
 
     // processClasses filtering and transformation
 
-    def "processClasses includes classes folder from published java modules"() {
+    def "processClasses includes class folder from published java modules"() {
         when:
         dependency "'org.gradle:ext-java-lib:1.0'"
 
@@ -120,7 +75,7 @@ public class AARTransformationIntegrationTest extends AbstractAARTransformIntegr
         artifacts('processClasses') == ['/android-app/transformed/ext-java-lib-1.0.jar/classes']
     }
 
-    def "processClasses includes classes folder from published android modules"() {
+    def "processClasses includes class folder from published android modules"() {
         when:
         dependency "'org.gradle:ext-android-lib:1.0'"
 
@@ -128,14 +83,13 @@ public class AARTransformationIntegrationTest extends AbstractAARTransformIntegr
         artifacts('processClasses') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedClassesJar']
     }
 
-    def "processClasses can include classes folders from file dependencies"() {
+    def "processClasses includes class folders from file dependencies"() {
         when:
         dependency "gradleApi()"
 
         then:
-        artifacts('processClasses').size() > 20
+        artifacts('processClasses').count {it.contains('gradle') && it.endsWith('.jar/classes')} >= 1
         !output.contains('.jar\n')
-        output.contains('.jar/classes')
     }
 
     def "processClasses includes class folders from projects and libraries"() {
