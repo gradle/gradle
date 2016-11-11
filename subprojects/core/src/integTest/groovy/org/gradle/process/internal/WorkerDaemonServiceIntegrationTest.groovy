@@ -214,6 +214,24 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
+    def "worker daemon lifecycle is logged" () {
+        withRunnableClassInBuildSrc()
+
+        buildFile << """
+            task runInDaemon(type: DaemonTask)
+        """
+
+        when:
+        args("--info")
+        succeeds("runInDaemon")
+
+        then:
+        output.contains("Starting process 'Gradle Worker Daemon 1'.")
+        output.contains("Successfully started process 'Gradle Worker Daemon 1'")
+        output.contains("Executing org.gradle.process.internal.daemon.WorkerDaemonRunnableExecutor\$WrappedDaemonRunnable")
+        output.contains("Successfully executed org.gradle.process.internal.daemon.WorkerDaemonRunnableExecutor\$WrappedDaemonRunnable")
+    }
+
     void assertRunnableExecuted(String taskName) {
         list.each {
             outputFileDir.file(taskName).file(it).assertExists()
@@ -261,7 +279,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
                 void executeTask() {
                     workerDaemons.daemonRunnable(runnableClass)
                         .forkOptions {
-                            it.workingDir(project.projectDir)
                             it.systemProperty("org.gradle.workerId", workerId)
                         }
                         .forkOptions(additionalForkOptions)

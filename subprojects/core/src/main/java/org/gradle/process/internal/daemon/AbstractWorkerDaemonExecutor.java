@@ -45,6 +45,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
         this.javaForkOptions = new DefaultJavaForkOptions(fileResolver);
         this.implementationClass = implementationClass;
         this.serverImplementationClass = serverImplementationClass;
+        this.javaForkOptions.workingDir(new File("").getAbsoluteFile());
     }
 
     @Override
