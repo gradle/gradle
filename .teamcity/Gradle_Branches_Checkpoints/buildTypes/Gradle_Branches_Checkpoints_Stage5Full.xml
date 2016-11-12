@@ -73,7 +73,8 @@ fi]]></param>
 +:user=lptr;root=Gradle_Branches_GradleInternalPRs:**
 +:user=oehme;root=Gradle_Branches_GradleInternalPRs:**
 +:user=melix;root=Gradle_Branches_GradleInternalPRs:**
-+:user=wolfs;root=Gradle_Branches_GradleInternalPRs:**]]></param>
++:user=wolfs;root=Gradle_Branches_GradleInternalPRs:**
++:user=oehme;root=Gradle_Branches_GradleInternalPRs:**]]></param>
         </parameters>
       </build-trigger>
     </build-triggers>
