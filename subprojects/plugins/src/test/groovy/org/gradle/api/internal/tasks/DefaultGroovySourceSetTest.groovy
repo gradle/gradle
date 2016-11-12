@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.Action
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -55,6 +57,12 @@ class DefaultGroovySourceSetTest {
     @Test
     public void canConfigureGroovySource() {
         sourceSet.groovy { srcDir 'src/groovy' }
+        assertThat(sourceSet.groovy.srcDirs, equalTo([tmpDir.file("src/groovy")] as Set))
+    }
+
+    @Test
+    public void canConfigureGroovySourceUsingAnAction() {
+        sourceSet.groovy({ set -> set.srcDir 'src/groovy' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.groovy.srcDirs, equalTo([tmpDir.file("src/groovy")] as Set))
     }
 }

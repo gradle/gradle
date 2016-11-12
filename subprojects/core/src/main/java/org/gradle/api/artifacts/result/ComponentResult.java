@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 @Incubating
 public interface ComponentResult {
     /**
-     * Returns the ID of the requested component.
+     * Returns an identifier for the requested component.
      */
     ComponentIdentifier getId();
 }

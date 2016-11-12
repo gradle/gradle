@@ -185,6 +185,20 @@ idea {
                   type(id: 'android')
                   type(id: 'web')
                 })
+
+                def buildSrcModuleFile = 'buildSrc/buildSrc.iml'
+                if (file(buildSrcModuleFile).exists()) {
+                    def projects = node.component.find { it.@name == 'ProjectModuleManager' }
+                    if (projects) {
+                        def buildSrc = projects.modules.module.find { it.@filepath.contains('buildSrc') }
+                        if (!buildSrc) {
+                            projects.modules.find().appendNode('module', [
+                                fileurl: "file://\$PROJECT_DIR\$/${buildSrcModuleFile}",
+                                filepath: "\$PROJECT_DIR\$/${buildSrcModuleFile}"
+                            ])
+                        }
+                    }
+                }
             }
         }
     }
@@ -216,6 +230,7 @@ idea {
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-Dorg.gradle.integtest.versions=latest",
+                "-Dorg.gradle.integtest.testkit.compatibility=current",
                 "-ea",
                 "-Xmx512m"
         ]
@@ -263,9 +278,9 @@ idea {
         '''))
 
         def gradleRunners = [
-                "Quick Check (precommit)": "quickCheck --daemon",
-                "Regenerate IDEA metadata": "idea --daemon",
-                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives --daemon"
+                "Quick Check (precommit)": "quickCheck",
+                "Regenerate IDEA metadata": "idea",
+                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives -x killExistingDaemons"
         ]
 
         def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"

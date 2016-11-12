@@ -182,6 +182,17 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     Rule addRule(String description, Closure ruleAction);
 
     /**
+     * Adds a rule to this collection. The given action is executed when an unknown object is requested by name. The
+     * requested name is passed to the action.
+     *
+     * @param description The description of the rule.
+     * @param ruleAction The action to execute to apply the rule.
+     * @return The added rule.
+     * @since 3.3
+     */
+    Rule addRule(String description, Action<String> ruleAction);
+
+    /**
      * Returns the rules used by this collection.
      *
      * @return The rules, in the order they will be applied.

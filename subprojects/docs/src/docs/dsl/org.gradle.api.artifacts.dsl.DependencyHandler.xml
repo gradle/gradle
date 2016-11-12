@@ -39,6 +39,9 @@
                 <td>gradleApi</td>
             </tr>
             <tr>
+                <td>gradleTestKit</td>
+            </tr>
+            <tr>
                 <td>localGroovy</td>
             </tr>
             <tr>

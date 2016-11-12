@@ -22,19 +22,20 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
+/**
+ * Represents an unknown local artifact, referenced from a dependency definition.
+ */
 public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
-    private final String componentDisplayName;
     private final IvyArtifactName name;
 
-    public MissingLocalArtifactMetadata(ComponentIdentifier componentIdentifier, String componentDisplayName, IvyArtifactName artifactName) {
+    public MissingLocalArtifactMetadata(ComponentIdentifier componentIdentifier, IvyArtifactName artifactName) {
         this.componentIdentifier = componentIdentifier;
-        this.componentDisplayName = componentDisplayName;
         this.name = artifactName;
     }
 
     public String getDisplayName() {
-        return name + " (" + componentDisplayName+ ")";
+        return name + " (" + componentIdentifier.getDisplayName()+ ")";
     }
 
     @Override

@@ -21,8 +21,33 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        // So we can assert on which version of ANTLR is used at runtime
         executer.withArgument("-i")
-        writeBuildFile()
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                repositories() {
+                    jcenter()
+                }
+            }
+            project(":grammar-builder") {
+                apply plugin: "antlr"
+
+                dependencies {
+                    antlr '$antlrDependency'
+                }
+            }
+            project(":grammar-user") {
+
+                dependencies {
+                    compile project(":grammar-builder")
+                }
+            }
+"""
+        settingsFile << """
+            include 'grammar-builder'
+            include 'grammar-user'
+"""
     }
 
     abstract String getAntlrDependency()
@@ -30,20 +55,4 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
     void assertAntlrVersion(int version) {
         assert output.contains("Processing with ANTLR $version")
     }
-
-    protected void writeBuildFile() {
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "antlr"
-
-            repositories() {
-                jcenter()
-            }
-
-            dependencies {
-                antlr '$antlrDependency'
-            }
-        """
-    }
-
 }

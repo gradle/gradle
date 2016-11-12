@@ -15,22 +15,42 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.component.Artifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.component.Artifact;
 
 import java.io.File;
 
 public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
+    private final ComponentArtifactIdentifier identifier;
     private final Class<? extends Artifact> type;
     private final File file;
+    private final String format;
 
-    public DefaultResolvedArtifactResult(Class<? extends Artifact> type, File file) {
+    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,  Class<? extends Artifact> type, String format, File file) {
+        this.identifier = identifier;
         this.type = type;
+        this.format = format;
         this.file = file;
+    }
+
+    @Override
+    public String toString() {
+        return identifier.getDisplayName();
+    }
+
+    @Override
+    public ComponentArtifactIdentifier getId() {
+        return identifier;
     }
 
     public Class<? extends Artifact> getType() {
         return type;
+    }
+
+    @Override
+    public String getFormat() {
+        return format;
     }
 
     public File getFile() {

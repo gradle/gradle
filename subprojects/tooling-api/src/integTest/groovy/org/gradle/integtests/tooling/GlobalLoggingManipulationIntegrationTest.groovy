@@ -20,18 +20,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.BlockingResultHandler
-import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.logging.LogManager
 
 import static java.util.logging.Level.OFF
 
-@Ignore // TODO:DAZ Ignoring this test on the suspicion that it is causing flakiness
-// My theory is that the static methods `ConnectorServices.close()` and `ConnectorServices.reset()` may be interfering with other TAPI tests
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     RedirectStdIn stdIn
@@ -40,9 +36,11 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
-        toolingApi.requireIsolatedDaemons()
-        // Reset so that logging services are recreated and state set back to defaults
-        ConnectorServices.reset()
+        toolingApi.requireIsolatedToolingApi()
+    }
+
+    def cleanup() {
+        toolingApi.close()
     }
 
     def "tooling api restores standard streams at end of the build"() {

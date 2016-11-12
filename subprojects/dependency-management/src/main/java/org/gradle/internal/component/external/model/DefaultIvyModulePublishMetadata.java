@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -74,7 +75,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, Map<String, String> attributes, boolean isConsumeOrPublishAllowed, boolean isQueryOrResolveAllowed) {
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, AttributeContainer attributes, boolean canBeConsumed, boolean canBeResolved) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
         Configuration configuration = new Configuration(name, transitive, visible, sortedExtends);

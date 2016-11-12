@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
-import java.util.Map;
-
 public interface DependencyDescriptorFactory {
-    DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> attributes, ModuleDependency dependency);
+    DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency);
 }

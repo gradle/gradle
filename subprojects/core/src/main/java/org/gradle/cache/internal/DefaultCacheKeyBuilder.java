@@ -21,6 +21,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
 
@@ -33,11 +34,16 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     private final HashFunction hashFunction;
     private final FileHasher fileHasher;
     private final ClassPathSnapshotter snapshotter;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
-    public DefaultCacheKeyBuilder(HashFunction hashFunction, FileHasher fileHasher, ClassPathSnapshotter snapshotter) {
+    public DefaultCacheKeyBuilder(HashFunction hashFunction,
+                                  FileHasher fileHasher,
+                                  ClassPathSnapshotter snapshotter,
+                                  ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.hashFunction = hashFunction;
         this.fileHasher = fileHasher;
         this.snapshotter = snapshotter;
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
     @Override
@@ -61,6 +67,9 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
         if (component instanceof File) {
             return fileHasher.hash((File) component);
         }
+        if (component instanceof ClassLoader) {
+            return classLoaderHierarchyHasher.getLenientHash((ClassLoader) component);
+        }
         if (component instanceof ClassPath) {
             return snapshotter.snapshot((ClassPath) component).getStrongHash();
         }
@@ -70,12 +79,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     private HashCode combinedHashOf(Object[] components) {
         Hasher hasher = hashFunction.newHasher();
         for (Object c : components) {
-            if (c instanceof String) {
-                hasher.putString((String) c, Charsets.UTF_8);
-            } else {
-                // TODO: optimize away the intermediate ClassPath hashes by introducing `ClasspathHasher#hashInto(Hasher, ClassPath)`
-                hasher.putBytes(hashOf(c).asBytes());
-            }
+            hasher.putBytes(hashOf(c).asBytes());
         }
         return hasher.hash();
     }

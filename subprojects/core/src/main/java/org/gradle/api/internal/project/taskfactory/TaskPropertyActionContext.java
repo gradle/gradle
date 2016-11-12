@@ -29,7 +29,7 @@ public interface TaskPropertyActionContext {
      * then returns the declared type of the instance variable. Otherwise returns the return
      * type of the declaring method.
      */
-    Class<?> getType();
+    Class<?> getValueType();
 
     /**
      * Sets the instance field of the property.
@@ -50,6 +50,11 @@ public interface TaskPropertyActionContext {
      * Returns the given annotation if present on the field or any of the methods declaring the property.
      */
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
+
+    /**
+     * @return Is this an optional property (value may be null)?
+     */
+    boolean isOptional();
 
     /**
      * Sets whether the property allows null values.

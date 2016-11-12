@@ -19,6 +19,8 @@ package org.gradle.performance
 import groovy.json.JsonSlurper
 import org.apache.commons.io.output.NullOutputStream
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -53,6 +55,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     private static final String WITH_PLUGIN_LABEL = "with plugin"
     private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
 
+    protected final IntegrationTestBuildContext buildContext = new PerformanceTestBuildContext()
     CrossBuildPerformanceTestRunner runner
 
     PrintStream originalSystemErr
@@ -71,7 +74,9 @@ class BuildScanPluginPerformanceTest extends Specification {
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId) {
+
+
+        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

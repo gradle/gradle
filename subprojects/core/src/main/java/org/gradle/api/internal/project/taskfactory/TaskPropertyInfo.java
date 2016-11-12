@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -48,17 +49,17 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
 
     private final TaskPropertyInfo parent;
     private final String propertyName;
+    private final Class<? extends Annotation> propertyType;
     private final Method method;
-    private final Class<?> type;
     private final ValidationAction validationAction;
     private final UpdateAction configureAction;
     private final boolean optional;
 
-    TaskPropertyInfo(TaskPropertyInfo parent, String propertyName, Method method, Class<?> type, ValidationAction validationAction, UpdateAction configureAction, boolean optional) {
+    TaskPropertyInfo(TaskPropertyInfo parent, String propertyName, Class<? extends Annotation> propertyType, Method method, ValidationAction validationAction, UpdateAction configureAction, boolean optional) {
         this.parent = parent;
         this.propertyName = propertyName;
+        this.propertyType = propertyType;
         this.method = method;
-        this.type = type;
         this.validationAction = validationAction == null ? NO_OP_VALIDATION_ACTION : validationAction;
         this.configureAction = configureAction == null ? NO_OP_CONFIGURATION_ACTION : configureAction;
         this.optional = optional;
@@ -73,8 +74,8 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
         return propertyName;
     }
 
-    public Class<?> getType() {
-        return type;
+    public Class<? extends Annotation> getPropertyType() {
+        return propertyType;
     }
 
     public UpdateAction getConfigureAction() {

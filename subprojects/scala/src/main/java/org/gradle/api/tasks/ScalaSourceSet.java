@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -40,6 +41,16 @@ public interface ScalaSourceSet {
      * @return this
      */
     ScalaSourceSet scala(Closure configureClosure);
+
+    /**
+     * Configures the Scala source for this set.
+     *
+     * <p>The given action is used to configure the {@link SourceDirectorySet} which contains the Scala source.
+     *
+     * @param configureAction The action to use to configure the Scala source.
+     * @return this
+     */
+    ScalaSourceSet scala(Action<? super SourceDirectorySet> configureAction);
 
     /**
      * All Scala source for this source set.

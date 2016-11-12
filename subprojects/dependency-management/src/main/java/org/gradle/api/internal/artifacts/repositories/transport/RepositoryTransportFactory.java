@@ -115,6 +115,7 @@ public class RepositoryTransportFactory {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
             boolean isAuthenticationSupported = false;
             Credentials credentials = authenticationInternal.getCredentials();
+            boolean needCredentials = authenticationInternal.requiresCredentials();
 
             for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
                 if (authenticationType.isAssignableFrom(authentication.getClass())) {
@@ -134,7 +135,9 @@ public class RepositoryTransportFactory {
                         credentials.getClass().getSimpleName(), authentication));
                 }
             } else {
-                throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
+                if (needCredentials) {
+                    throw new InvalidUserDataException("You cannot configure authentication schemes for this repository type if no credentials are provided.");
+                }
             }
 
             if (!configuredAuthenticationTypes.add(authenticationInternal.getType())) {

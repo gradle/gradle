@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.results.DataReporter
@@ -28,7 +29,8 @@ import org.gradle.performance.results.ResultsStoreHelper
 import org.junit.Assume
 
 abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
-    final GradleDistribution gradleDistribution = new ForkingUnderDevelopmentGradleDistribution()
+    final IntegrationTestBuildContext buildContext
+    final GradleDistribution gradleDistribution
     final BuildExperimentRunner experimentRunner
     final TestProjectLocator testProjectLocator = new TestProjectLocator()
     final TimeProvider timeProvider = new TrueTimeProvider()
@@ -42,9 +44,11 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     BuildExperimentListener buildExperimentListener
     InvocationCustomizer invocationCustomizer
 
-    public AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<R> dataReporter) {
+    public AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         this.reporter = dataReporter
         this.experimentRunner = experimentRunner
+        this.buildContext = buildContext
+        this.gradleDistribution = new ForkingUnderDevelopmentGradleDistribution(buildContext)
     }
 
     public void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {

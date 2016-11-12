@@ -68,17 +68,25 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter().executeParallel;
     }
 
-    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
-        super(distribution, testDirectoryProvider);
+    private GradleExecuter gradleExecuter;
+
+    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, buildContext);
         this.executerType = getSystemPropertyExecuter();
     }
+
+
 
     protected GradleExecuter configureExecuter() {
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
 
-        GradleExecuter gradleExecuter = createExecuter(executerType);
+        if (gradleExecuter == null) {
+            gradleExecuter = createExecuter(executerType);
+        } else {
+            gradleExecuter.reset();
+        }
         configureExecuter(gradleExecuter);
         try {
             gradleExecuter.assertCanExecute();
@@ -101,16 +109,31 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private GradleExecuter createExecuter(Executer executerType) {
         switch (executerType) {
             case embedded:
-                return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case daemon:
-                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case parallel:
-                return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case forking:
-                return new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
+                return new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
     }
 
+    @Override
+    public void cleanup() {
+        if (gradleExecuter != null) {
+            gradleExecuter.stop();
+        }
+        super.cleanup();
+    }
+
+    @Override
+    public GradleExecuter reset() {
+        if (gradleExecuter != null) {
+            gradleExecuter.reset();
+        }
+        return super.reset();
+    }
 }

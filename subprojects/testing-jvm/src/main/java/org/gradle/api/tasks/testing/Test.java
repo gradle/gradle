@@ -300,10 +300,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     */
+    @Input
+    public JavaVersion getJavaVersion() {
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
-    @Input
+    @Internal
     public String getExecutable() {
         return forkOptions.getExecutable();
     }
@@ -604,7 +612,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getServices().get(BuildOperationWorkerRegistry.class));
         }
 
-        JavaVersion javaVersion = getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+        JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
@@ -1063,7 +1071,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of test classes. Returns 0 when there is no maximum.
      */
-    @Input
+    @Internal
     public long getForkEvery() {
         return forkEvery;
     }
@@ -1085,7 +1093,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of forked test processes.
      */
-    @Input
+    @Internal
     public int getMaxParallelForks() {
         return getDebug() ? 1 : maxParallelForks;
     }

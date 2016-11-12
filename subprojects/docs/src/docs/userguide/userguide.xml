@@ -46,6 +46,7 @@
         <xi:include href='buildEnvironment.xml'/>
         <xi:include href='troubleshooting.xml'/>
         <xi:include href='embedding.xml'/>
+        <xi:include href='taskOutputCache.xml'/>
     </part>
     <part>
         <title>Writing Gradle build scripts</title>

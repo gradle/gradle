@@ -32,4 +32,9 @@ public class AllSchemesAuthentication extends AbstractAuthentication {
     public boolean supports(Credentials credentials) {
         return true;
     }
+
+    @Override
+    public boolean requiresCredentials() {
+        return true;
+    }
 }

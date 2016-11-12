@@ -17,15 +17,16 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 public class DefaultSourceSet implements SourceSet {
@@ -160,7 +161,12 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet java(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getJava());
+        return java(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public SourceSet java(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getJava());
         return this;
     }
 
@@ -173,7 +179,12 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet resources(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getResources());
+        return resources(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public SourceSet resources(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getResources());
         return this;
     }
 

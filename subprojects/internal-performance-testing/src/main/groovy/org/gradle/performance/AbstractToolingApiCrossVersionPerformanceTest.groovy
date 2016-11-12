@@ -56,10 +56,12 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
-
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static GradleDistribution CURRENT = new ForkingUnderDevelopmentGradleDistribution()
 
@@ -74,8 +76,15 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     protected ClassLoader tapiClassLoader
 
+    @Shared
+    private Logger logger
+
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
+    }
+
+    def setupSpec() {
+        logger = LoggerFactory.getLogger(getClass())
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
@@ -242,7 +251,15 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         experimentSpec.listener.afterInvocation(info, measuredOperation, cb)
                     }
                     if (!omit) {
-                        versionResults.add(measuredOperation)
+                        if (measuredOperation.getException() == null) {
+                            if (measuredOperation.isValid()) {
+                                versionResults.add(measuredOperation)
+                            } else {
+                                logger.error("Discarding invalid operation record {}", measuredOperation)
+                            }
+                        } else {
+                            logger.error("Discarding invalid operation record " + measuredOperation, measuredOperation.getException())
+                        }
                     }
                     sleep(sleepAfterTestRoundMillis)
                 }

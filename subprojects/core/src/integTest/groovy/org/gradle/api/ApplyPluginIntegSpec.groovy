@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
@@ -25,14 +24,13 @@ import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
 import spock.lang.Issue
+
 // TODO: This needs a better home - Possibly in the test kit package in the future
 
 @UsesNativeServices
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     def testProjectPath
     def gradleUserHome
-
-    def buildContext = new IntegrationTestBuildContext()
 
     def setup() {
         testProjectPath = TextUtil.normaliseFileSeparators(file("test-project-dir").absolutePath)

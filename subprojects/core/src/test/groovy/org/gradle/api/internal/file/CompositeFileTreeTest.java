@@ -16,10 +16,15 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Actions;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
@@ -61,17 +66,38 @@ public class CompositeFileTreeTest {
     @Test
     public void matchingWithClosureReturnsUnionOfFilteredSets() {
         final Closure closure = TestUtil.TEST_CLOSURE;
+        final Action<PatternFilterable> action = ClosureBackedAction.of(closure);
         final FileTreeInternal filtered1 = context.mock(FileTreeInternal.class);
         final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations() {{
-            oneOf(source1).matching(closure);
+            oneOf(source1).matching(action);
             will(returnValue(filtered1));
-            oneOf(source2).matching(closure);
+            oneOf(source2).matching(action);
             will(returnValue(filtered2));
         }});
 
         FileTree filtered = tree.matching(closure);
+        assertThat(filtered, instanceOf(CompositeFileTree.class));
+        CompositeFileTree filteredCompositeSet = (CompositeFileTree) filtered;
+
+        assertThat(toList(filteredCompositeSet.getSourceCollections()), equalTo(toList(filtered1, filtered2)));
+    }
+
+    @Test
+    public void matchingWithActionReturnsUnionOfFilteredSets() {
+        final Action<PatternFilterable> action = Actions.doNothing();
+        final FileTreeInternal filtered1 = context.mock(FileTreeInternal.class);
+        final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
+
+        context.checking(new Expectations() {{
+            oneOf(source1).matching(action);
+            will(returnValue(filtered1));
+            oneOf(source2).matching(action);
+            will(returnValue(filtered2));
+        }});
+
+        FileTree filtered = tree.matching(action);
         assertThat(filtered, instanceOf(CompositeFileTree.class));
         CompositeFileTree filteredCompositeSet = (CompositeFileTree) filtered;
 
@@ -123,6 +149,19 @@ public class CompositeFileTreeTest {
     @Test
     public void visitsEachTreeWithClosure() {
         final Closure visitor = TestUtil.TEST_CLOSURE;
+        final Action<FileVisitDetails> action = ClosureBackedAction.of(visitor);
+
+        context.checking(new Expectations() {{
+            oneOf(source1).visit(action);
+            oneOf(source2).visit(action);
+        }});
+
+        tree.visit(visitor);
+    }
+
+    @Test
+    public void visitsEachTreeWithAction() {
+        final Action<FileVisitDetails> visitor = Actions.doNothing();
 
         context.checking(new Expectations() {{
             oneOf(source1).visit(visitor);

@@ -21,16 +21,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
+import org.gradle.api.internal.tasks.properties.DefaultTaskInputPropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskInputFilePropertyBuilderInternal;
+import org.gradle.api.internal.tasks.properties.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskInputPropertySpecAndBuilder;
+import org.gradle.api.internal.tasks.properties.TaskPropertyUtils;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.DeprecationLogger;
 
@@ -40,10 +38,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
-import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
+import static org.gradle.api.internal.tasks.properties.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskInputs implements TaskInputsInternal {
@@ -53,7 +48,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
-    private final List<PropertySpec> filePropertiesInternal = Lists.newArrayList();
+    private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
@@ -61,8 +56,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.task = task;
         this.taskMutator = taskMutator;
         String taskName = task.getName();
-        this.allInputFiles = new TaskInputUnionFileCollection("task '" + taskName + "' input files", false);
-        this.allSourceFiles = new TaskInputUnionFileCollection("task '" + taskName + "' source files", true);
+        this.allInputFiles = new TaskInputUnionFileCollection("task '" + taskName + "' input files", false, filePropertiesInternal);
+        this.allSourceFiles = new TaskInputUnionFileCollection("task '" + taskName + "' source files", true, filePropertiesInternal);
     }
 
     @Override
@@ -116,7 +111,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        for (PropertySpec propertySpec : filePropertiesInternal) {
+        for (TaskInputPropertySpecAndBuilder propertySpec : filePropertiesInternal) {
             if (propertySpec.isSkipWhenEmpty()) {
                 return true;
             }
@@ -170,7 +165,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskInputFilePropertyBuilderInternal addSpec(Object paths, boolean skipWhenEmpty) {
-        PropertySpec spec = new PropertySpec(task.getName(), skipWhenEmpty, resolver, paths);
+        DefaultTaskInputPropertySpec spec = new DefaultTaskInputPropertySpec(this, task.getName(), skipWhenEmpty, resolver, paths);
         filePropertiesInternal.add(spec);
         return spec;
     }
@@ -225,197 +220,15 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
-
-        private final TaskPropertyFileCollection files;
-        private boolean skipWhenEmpty;
-        private boolean optional;
-        private TaskFilePropertyCompareStrategy compareStrategy = UNORDERED;
-        private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
-        private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
-
-        public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
-            this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
-            this.skipWhenEmpty = skipWhenEmpty;
-        }
-
-        @Override
-        public FileCollection getPropertyFiles() {
-            return files;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
-            setPropertyName(propertyName);
-            return this;
-        }
-
-        public boolean isSkipWhenEmpty() {
-            return skipWhenEmpty;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal skipWhenEmpty(boolean skipWhenEmpty) {
-            this.skipWhenEmpty = skipWhenEmpty;
-            return this;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal skipWhenEmpty() {
-            return skipWhenEmpty(true);
-        }
-
-        public boolean isOptional() {
-            return optional;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal optional(boolean optional) {
-            this.optional = optional;
-            return this;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal optional() {
-            return optional(true);
-        }
-
-        @Override
-        public TaskFilePropertyCompareStrategy getCompareStrategy() {
-            return compareStrategy;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal orderSensitive() {
-            return orderSensitive(true);
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive) {
-            this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
-            return this;
-        }
-
-        @Override
-        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-            return snapshotNormalizationStrategy;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-            return withSnapshotNormalizationStrategy(TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity));
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-            this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
-            return this;
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter) {
-            this.snapshotter = snapshotter;
-            return this;
-        }
-
-        @Override
-        public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
-            return snapshotter;
-        }
-
-        @Override
-        public String toString() {
-            return getPropertyName() + " (" + compareStrategy + ", " + snapshotNormalizationStrategy + ")";
-        }
-
-        // --- Deprecated delegate methods
-
-        private TaskInputs getTaskInputs(String method) {
-            DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Please use the %s method on TaskInputs directly instead.", method));
-            return DefaultTaskInputs.this;
-        }
-
-        @Override
-        public boolean getHasInputs() {
-            return getTaskInputs("getHasInputs()").getHasInputs();
-        }
-
-        @Override
-        public FileCollection getFiles() {
-            return getTaskInputs("getFiles()").getFiles();
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilder files(Object... paths) {
-            return getTaskInputs("files(Object...)").files(paths);
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilder file(Object path) {
-            return getTaskInputs("file(Object)").file(path);
-        }
-
-        @Override
-        public TaskInputFilePropertyBuilder dir(Object dirPath) {
-            return getTaskInputs("dir(Object)").dir(dirPath);
-        }
-
-        @Override
-        public Map<String, Object> getProperties() {
-            return getTaskInputs("getProperties()").getProperties();
-        }
-
-        @Override
-        public TaskInputs property(String name, Object value) {
-            return getTaskInputs("property(String, Object)").property(name, value);
-        }
-
-        @Override
-        public TaskInputs properties(Map<String, ?> properties) {
-            return getTaskInputs("properties(Map)").properties(properties);
-        }
-
-        @Override
-        public boolean getHasSourceFiles() {
-            return getTaskInputs("getHasSourceFiles()").getHasSourceFiles();
-        }
-
-        @Override
-        public FileCollection getSourceFiles() {
-            return getTaskInputs("getSourceFiles()").getSourceFiles();
-        }
-
-        @Override
-        @Deprecated
-        public TaskInputs source(Object... paths) {
-            return getTaskInputs("source(Object...)").source(paths);
-        }
-
-        @Override
-        @Deprecated
-        public TaskInputs source(Object path) {
-            return getTaskInputs("source(Object)").source(path);
-        }
-
-        @Override
-        @Deprecated
-        public TaskInputs sourceDir(Object path) {
-            return getTaskInputs("sourceDir(Object)").sourceDir(path);
-        }
-
-        @Override
-        public int compareTo(TaskPropertySpec o) {
-            return getPropertyName().compareTo(o.getPropertyName());
-        }
-    }
-
-    private class TaskInputUnionFileCollection extends CompositeFileCollection {
+    private static class TaskInputUnionFileCollection extends CompositeFileCollection {
         private final boolean skipWhenEmptyOnly;
         private final String displayName;
+        private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal;
 
-        public TaskInputUnionFileCollection(String displayName, boolean skipWhenEmptyOnly) {
+        public TaskInputUnionFileCollection(String displayName, boolean skipWhenEmptyOnly, List<TaskInputPropertySpecAndBuilder> filePropertiesInternal) {
             this.displayName = displayName;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
+            this.filePropertiesInternal = filePropertiesInternal;
         }
 
         @Override
@@ -425,7 +238,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            for (PropertySpec fileProperty : filePropertiesInternal) {
+            for (TaskInputPropertySpecAndBuilder fileProperty : filePropertiesInternal) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                     context.add(fileProperty.getPropertyFiles());
                 }

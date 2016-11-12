@@ -18,43 +18,29 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.OrderSensitive;
-import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
-
-public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    private final ValidationAction inputDirValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            File fileValue = (value instanceof ConfigurableFileTree) ? ((ConfigurableFileTree) value).getDir() : (File) value;
-            if (!fileValue.exists()) {
-                messages.add(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            } else if (!fileValue.isDirectory()) {
-                messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
-            }
-        }
-    };
-
+public class InputDirectoryPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputDirectory.class;
     }
 
-    public void attachActions(final TaskPropertyActionContext context) {
-        context.setValidationAction(inputDirValidation);
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().dir(futureValue)
-                    .withPropertyName(context.getName())
-                    .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
-                    .orderSensitive(context.isAnnotationPresent(OrderSensitive.class))
-                    .withPathSensitivity(getPathSensitivity(context));
-            }
-        });
+    @Override
+    protected void validate(String propertyName, Object value, Collection<String> messages) {
+        File fileValue = (value instanceof ConfigurableFileTree) ? ((ConfigurableFileTree) value).getDir() : (File) value;
+        if (!fileValue.exists()) {
+            messages.add(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
+        } else if (!fileValue.isDirectory()) {
+            messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
+        }
     }
 
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+        return task.getInputs().dir(futureValue);
+    }
 }

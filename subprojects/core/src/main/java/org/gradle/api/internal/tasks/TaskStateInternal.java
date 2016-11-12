@@ -104,10 +104,14 @@ public class TaskStateInternal implements TaskState {
     }
 
     public String getSkipMessage() {
-        return outcome != null ? outcome.getSkippedMessage() : null;
+        return outcome != null ? outcome.getMessage() : null;
     }
 
     public boolean getUpToDate() {
         return outcome != null && outcome.isUpToDate();
+    }
+
+    public boolean isFromCache() {
+        return outcome == TaskExecutionOutcome.FROM_CACHE;
     }
 }

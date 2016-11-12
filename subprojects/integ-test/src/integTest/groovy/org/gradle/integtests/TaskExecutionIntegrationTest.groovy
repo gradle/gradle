@@ -539,6 +539,40 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
     }
 
+    @Issue("gradle/gradle#783")
+    def "executes finalizer task as soon as possible after finalized task"() {
+        buildFile << """
+            class NotParallel extends DefaultTask {}
+
+            project(":a") {
+                task jar(type: NotParallel) {
+                  dependsOn "compileJava"
+                }
+                task compileJava(type: NotParallel) {
+                  dependsOn ":b:jar"
+                  finalizedBy "compileFinalizer"
+                }
+                task compileFinalizer(type: NotParallel)
+            }
+
+            project(":b") {
+                task jar(type: NotParallel)
+            }
+
+            task build(type: NotParallel) {
+              dependsOn ":a:jar"
+              dependsOn ":b:jar"
+            }
+        """
+        settingsFile << "include 'a', 'b'"
+
+        when:
+        succeeds ':build'
+
+        then:
+        executedTasks == [':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build']
+    }
+
     @Ignore("Re-enable once serious effort have been put to fix this issue")
     @NotYetImplemented
     @Issue("gradle/gradle#769")
@@ -569,7 +603,8 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a'
 
         then:
-        executedTasks.size == count+3
+
+        executedTasks == [':a'] + (count..0).collect { ":d_$it" } + [':f']
     }
 
     @NotYetImplemented
@@ -593,5 +628,4 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         thrown(CircularReferenceException)
     }
-
 }

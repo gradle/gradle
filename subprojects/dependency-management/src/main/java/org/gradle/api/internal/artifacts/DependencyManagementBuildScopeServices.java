@@ -108,10 +108,10 @@ class DependencyManagementBuildScopeServices {
         ProjectInternal rootProject = projectRegistry.getProject(":");
         if (rootProject == null || rootProject.getGradle().getParent() == null) {
             // BuildIdentity for a top-level build
-            return new DefaultBuildIdentity(DefaultBuildIdentifier.of(":", true));
+            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
         }
         // BuildIdentity for an included build
-        return new DefaultBuildIdentity(DefaultBuildIdentifier.of(rootProject.getName(), true));
+        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
+
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 
@@ -22,12 +23,13 @@ class OtoolBinaryInfo implements BinaryInfo {
     def binaryFile
 
     OtoolBinaryInfo(File binaryFile) {
-        this.binaryFile = binaryFile    }
+        this.binaryFile = binaryFile
+    }
 
     ArchitectureInternal getArch() {
         def process = ['otool', '-hv', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
-        def archString = lines[3].split()[1]
+        def archString = lines.last().split()[1]
 
         switch (archString) {
             case "I386":

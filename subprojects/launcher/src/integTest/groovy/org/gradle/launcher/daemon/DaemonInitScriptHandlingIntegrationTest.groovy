@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
@@ -45,7 +44,13 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     def runWithGradleHome(TestFile gradleHome) {
         def copiedDistro = new DefaultGradleDistribution(executer.distribution.version, gradleHome, null)
-        executer.copyTo(new DaemonGradleExecuter(copiedDistro, executer.testDirectoryProvider)).run()
+        def daemonExecuter = new DaemonGradleExecuter(copiedDistro, executer.testDirectoryProvider)
+        executer.copyTo(daemonExecuter)
+        try {
+            return daemonExecuter.run()
+        } finally {
+            daemonExecuter.cleanup();
+        }
     }
 
     def "init scripts from client distribution are used, not from the test"() {
@@ -75,7 +80,7 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         distro2Result.output.contains "from distro 2"
-        distro1Result.output.contains "runtime gradle home: ${distro1.absolutePath}"
+        distro2Result.output.contains "runtime gradle home: ${distro2.absolutePath}"
     }
 
 }

@@ -45,18 +45,27 @@ distributionTestTasks.all { DistributionTest task ->
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
-                systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
-                systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-                systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-                systemProperties['integTest.toolingApiShadedJarDir'] = rootProject.project(':toolingApi').shadedJar.outputDir
+                // we are setting the systemProperties input to [:] here since we do
+                // not want absolute paths to appear in them and we cannot ignore those
+                // by doing this in the constructor of `DistributionTest` since it will
+                // be overridden by the input Annotation scanning after the Constructor
+                // has been called.
+                inputs.property 'systemProperties', [:]
 
-                // If the projects int test need the distributions, they should add:
-                // inputs.files rootProject.buildDists
-                systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+                gradleHomeDir = rootProject.intTestImage.destinationDir
+                gradleUserHomeDir = rootProject.file('intTestHomeDir')
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').shadedJar.outputDir
 
-                // The user home dir is not wiped out by clean
-                // Move the daemon working space underneath the build dir so they don't pile up on CI
-                systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+                if (requiresLibsRepo) {
+                    libsRepo = rootProject.file('build/repo')
+                }
+                if (requiresDists) {
+                    distsDir = rootProject.distsDir
+                }
+                if (requiresBinZip) {
+                    binZip = project(':distributions').binZip.archivePath
+                }
+                daemonRegistry = file("$rootProject.buildDir/daemon")
             }
         }
     }
@@ -129,7 +138,7 @@ def removeDaemonLogFiles(File dir) {
 /**
  * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
  */
-def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
+def removeOldVersionsFromDir(File dir, shouldDelete, dirPrefix = "", dirSuffix = "") {
     if (dir.directory) {
 
         for (File cacheDir : dir.listFiles()) {
@@ -187,13 +196,13 @@ project(":") {
             def testedVersion = GradleVersion.version(versionProps.versionNumber)
 
             // Expire .gradle cache where major version is older than executing version
-            def expireTaskCache = { def candidateVersion ->
+            def expireTaskCache = { candidateVersion ->
                 return candidateVersion.baseVersion < executingVersion.baseVersion
             }
 
             // Expire intTestImage cache snapshots that are older than the tested version
             // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
-            def expireIntegTestCache = { def candidateVersion ->
+            def expireIntegTestCache = { candidateVersion ->
                 return (candidateVersion.snapshot && candidateVersion < testedVersion) || candidateVersion.version.endsWith('-snapshot-1')
             }
 

@@ -32,7 +32,8 @@ useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
 
 integTestTasks.all {
-    dependsOn(publishLocalArchives, ':distributions:binZip')
+    requiresBinZip = true
+    requiresLibsRepo = true
 }
 
 forkingIntegTest {
@@ -54,7 +55,7 @@ task shadedJar(type: ShadedJar) {
     sourceFiles = jar.inputs.files + files {(configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
     analysisFile = file("$outputDir/analysis.txt")
     classesDir = file("$outputDir/classes")
-    jarFile = file("$outputDir/gradle-tooling-api-shaded-${version}.jar")
+    jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
     keepPackages = ["org.gradle.tooling"]
     unshadedPackages = ["org.gradle", "org.slf4j"]
     ignorePackages = ["org.gradle.tooling.provider.model"]

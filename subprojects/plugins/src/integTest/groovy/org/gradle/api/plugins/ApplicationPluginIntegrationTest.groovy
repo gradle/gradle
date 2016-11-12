@@ -39,7 +39,7 @@ class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('eval \\"\$JAVACMD\\" \$JVM_OPTS -classpath \\"\$CLASSPATH\\" org.gradle.test.Main \$APP_ARGS')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript()
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
@@ -65,7 +65,7 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         unixStartScriptContent.contains('APP_NAME="myApp"')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('eval \\"\$JAVACMD\\" \$JVM_OPTS -classpath \\"\$CLASSPATH\\" org.gradle.test.Main \$APP_ARGS')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
@@ -162,6 +162,25 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
 
         cleanup:
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    public void "java PID equals script PID"() {
+        given:
+        succeeds('installDist')
+        def binFile = file('build/install/sample/bin/sample')
+        binFile.text = """echo Script PID: \$\$
+
+$binFile.text
+"""
+
+        when:
+        ExecutionResult result = runViaUnixStartScript()
+        def pids = result.output.findAll(/PID: \d+/)
+
+        then:
+        assert pids.size() == 2
+        assert pids[0] == pids[1]
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -276,6 +295,7 @@ package org.gradle.test;
 public class Main {
     public static void main(String[] args) {
         System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
+        System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         System.out.println("Hello World!");
     }
 }

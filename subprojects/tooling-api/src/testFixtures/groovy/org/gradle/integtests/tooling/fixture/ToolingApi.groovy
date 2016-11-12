@@ -20,10 +20,12 @@ import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -44,6 +46,7 @@ class ToolingApi implements TestRule {
     private boolean useSeparateDaemonBaseDir
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
+    private DefaultServiceRegistry isolatedToolingClient
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
@@ -72,6 +75,16 @@ class ToolingApi implements TestRule {
 
     TestFile getDaemonBaseDir() {
         return useSeparateDaemonBaseDir ? daemonBaseDir : gradleUserHomeDir.file("daemon")
+    }
+
+    void requireIsolatedToolingApi() {
+        requireIsolatedDaemons()
+        isolatedToolingClient = new ConnectorServices.ConnectorServiceRegistry()
+    }
+
+    void close() {
+        assert isolatedToolingClient != null
+        isolatedToolingClient.close()
     }
 
     /**
@@ -143,7 +156,12 @@ class ToolingApi implements TestRule {
     }
 
     GradleConnector connector() {
-        DefaultGradleConnector connector = GradleConnector.newConnector()
+        DefaultGradleConnector connector
+        if (isolatedToolingClient != null) {
+            connector = isolatedToolingClient.getFactory(DefaultGradleConnector).create()
+        } else {
+            connector = GradleConnector.newConnector() as DefaultGradleConnector
+        }
         connector.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         if (useSeparateDaemonBaseDir) {
             connector.daemonBaseDir(new File(daemonBaseDir.path))
@@ -192,6 +210,9 @@ class ToolingApi implements TestRule {
                 try {
                     base.evaluate();
                 } finally {
+                    if (isolatedToolingClient != null) {
+                        isolatedToolingClient.close()
+                    }
                     if (requireIsolatedDaemons) {
                         try {
                             getDaemons().killAll()

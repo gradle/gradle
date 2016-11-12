@@ -16,10 +16,10 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface ConfigurationMetadata {
@@ -49,11 +49,11 @@ public interface ConfigurationMetadata {
 
     boolean isVisible();
 
-    boolean isConsumeOrPublishAllowed();
+    boolean isCanBeConsumed();
 
-    boolean isQueryOrResolveAllowed();
+    boolean isCanBeResolved();
 
-    Map<String, String> getAttributes();
+    AttributeContainer getAttributes();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

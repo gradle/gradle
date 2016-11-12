@@ -68,6 +68,10 @@ public interface CacheKeyBuilder {
             return plusComponent(cp);
         }
 
+        public CacheKeySpec plus(ClassLoader cl) {
+            return plusComponent(cl);
+        }
+
         String getPrefix() {
             return prefix;
         }

@@ -38,6 +38,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.targetVersions = ['last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
+        runner.warmUpRuns = 6
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]

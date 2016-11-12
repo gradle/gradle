@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Attribute;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
@@ -36,10 +39,12 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.artifacts.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -53,6 +58,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -63,6 +69,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -74,14 +81,18 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
+
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
@@ -115,22 +126,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean visible = true;
     private boolean transitive = true;
+    private String format;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
     private ConfigurationsProvider configurationsProvider;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     private final Object observationLock = new Object();
-    private InternalState observedState = InternalState.UNRESOLVED;
+    private InternalState observedState = UNRESOLVED;
     private final Object resolutionLock = new Object();
-    private InternalState resolvedState = InternalState.UNRESOLVED;
+    private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
-    private Map<String, String> attributes;
-    private boolean isConsumeOrPublishAllowed = true;
-    private boolean isQueryOrResolveAllowed = true;
+    private boolean canBeConsumed = true;
+    private boolean canBeResolved = true;
+    private final DefaultAttributeContainer configurationAttributes = new DefaultAttributeContainer();
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -188,7 +200,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public State getState() {
         synchronized (resolutionLock) {
-            if (resolvedState == InternalState.RESULTS_RESOLVED || resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
                 if (cachedResolverResults.hasError()) {
                     return State.RESOLVED_WITH_FAILURES;
                 } else {
@@ -200,7 +212,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    @Override
     public InternalState getResolvedState() {
         return resolvedState;
     }
@@ -264,6 +275,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Override
+    public String getFormat() {
+        return format;
+    }
+
+    @Override
+    public Configuration setFormat(String format) {
+        this.format = format;
+        return this;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -320,7 +342,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return fileCollection(Specs.<Dependency>satisfyAll()).getFiles();
+        return doGetFiles(Specs.<Dependency>satisfyAll());
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -367,34 +389,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
-        resolveNow(InternalState.RESULTS_RESOLVED);
+        resolveToStateOrLater(ARTIFACTS_RESOLVED);
         return cachedResolverResults.getResolvedConfiguration();
     }
 
-    private void resolveNow(InternalState requestedState) {
+    private void resolveToStateOrLater(InternalState requestedState) {
         assertResolvingAllowed();
         synchronized (resolutionLock) {
-            if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
+            if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
                 resolveGraphIfRequired(requestedState);
             }
-            if (requestedState == InternalState.RESULTS_RESOLVED) {
+            if (requestedState == ARTIFACTS_RESOLVED) {
                 resolveArtifactsIfRequired();
             }
         }
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             if (dependenciesModified) {
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
         }
-        if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        if (resolvedState == GRAPH_RESOLVED) {
             if (!dependenciesModified) {
                 return;
             }
             throw new InvalidUserDataException(String.format("Resolved %s again after modification", getDisplayName()));
+        }
+        if (resolvedState != UNRESOLVED) {
+            throw new IllegalStateException("Graph resolution already performed");
         }
 
         ResolvableDependencies incoming = getIncoming();
@@ -402,9 +427,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolver.resolveGraph(this, cachedResolverResults);
         dependenciesModified = false;
-        if (resolvedState != InternalState.RESULTS_RESOLVED) {
-            resolvedState = InternalState.TASK_DEPENDENCIES_RESOLVED;
-        }
+        resolvedState = GRAPH_RESOLVED;
 
         // Mark all affected configurations as observed
         markParentsObserved(requestedState);
@@ -435,17 +458,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveArtifactsIfRequired() {
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             return;
         }
+        if (resolvedState != GRAPH_RESOLVED) {
+            throw new IllegalStateException("Cannot resolve artifacts before graph has been resolved.");
+        }
         resolver.resolveArtifacts(this, cachedResolverResults);
-        resolvedState = InternalState.RESULTS_RESOLVED;
+        resolvedState = ARTIFACTS_RESOLVED;
     }
 
     public TaskDependency getBuildDependencies() {
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
             // Force graph resolution as this is required to calculate build dependencies
-            resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
+            resolveToStateOrLater(GRAPH_RESOLVED);
         }
         assertResolvingAllowed();
         ResolverResults results;
@@ -457,10 +483,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // Otherwise, already have a result, so reuse it
             results = cachedResolverResults;
         }
+        List<Object> buildDependencies = new ArrayList<Object>();
+        results.getResolvedLocalComponents().collectArtifactBuildDependencies(buildDependencies);
+        results.getFileDependencies().collectBuildDependencies(buildDependencies);
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.add(results.getResolvedLocalComponents().getComponentBuildDependencies());
-        taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
+        taskDependency.setValues(buildDependencies);
         return taskDependency;
+    }
+
+    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec) {
+        synchronized (resolutionLock) {
+            ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
+            resolvedConfiguration.rethrowFailure();
+            return resolvedConfiguration.getFiles(dependencySpec);
+        }
     }
 
     /**
@@ -551,13 +587,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
-        copiedConfiguration.isConsumeOrPublishAllowed = isConsumeOrPublishAllowed;
-        copiedConfiguration.isQueryOrResolveAllowed = isQueryOrResolveAllowed;
+        copiedConfiguration.canBeConsumed = canBeConsumed;
+        copiedConfiguration.canBeResolved = canBeResolved;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
         if (hasAttributes()) {
-            copiedConfiguration.attributes(attributes);
+            copiedConfiguration.attributes(configurationAttributes.attributes);
         }
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
@@ -635,9 +671,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return;
         }
 
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
-        } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        } else if (resolvedState == GRAPH_RESOLVED) {
             if (type == MutationType.DEPENDENCIES) {
                 throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
             }
@@ -647,14 +683,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void validateMutation(MutationType type) {
-        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == ARTIFACTS_RESOLVED) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
-        } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        } else if (resolvedState == GRAPH_RESOLVED) {
             // The task dependencies for the configuration have been calculated using Configuration.getBuildDependencies().
             throw new InvalidUserDataException(String.format("Cannot change %s of %s after task dependencies have been resolved", type, getDisplayName()));
-        } else if (observedState == InternalState.TASK_DEPENDENCIES_RESOLVED || observedState == InternalState.RESULTS_RESOLVED) {
+        } else if (observedState == GRAPH_RESOLVED || observedState == ARTIFACTS_RESOLVED) {
             // The configuration has been used in a resolution, and it is an error for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
@@ -710,18 +746,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            synchronized (resolutionLock) {
-                ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
-                if (getState() == State.RESOLVED_WITH_FAILURES) {
-                    resolvedConfiguration.rethrowFailure();
-                }
-                return resolvedConfiguration.getFiles(dependencySpec);
-            }
+            return doGetFiles(dependencySpec);
         }
     }
 
     private void assertResolvingAllowed() {
-        if (!isQueryOrResolveAllowed) {
+        if (!canBeResolved) {
             throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
         }
     }
@@ -739,74 +769,79 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attribute(String key, String value) {
-        validateMutation(MutationType.ATTRIBUTES);
-        ensureAttributes();
-        attributes.put(key, value);
+        attribute(stringAttribute(key), value);
         return this;
     }
 
-    @Override
-    public Configuration attributes(Map<String, String> attributes) {
-        validateMutation(MutationType.ATTRIBUTES);
-        ensureAttributes();
-        this.attributes.putAll(attributes);
-        return this;
-    }
-
-    private void ensureAttributes() {
-        if (this.attributes == null) {
-            this.attributes = new HashMap<String, String>();
+    private static void assertAttributeConstraints(Object value, Attribute<?> attribute) {
+        if (value == null) {
+            throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
+        }
+        if (!attribute.getType().isAssignableFrom(value.getClass())) {
+            throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
         }
     }
 
+
     @Override
-    public Map<String, String> getAttributes() {
-        return attributes == null ? Collections.<String, String>emptyMap() : ImmutableMap.copyOf(attributes);
+    public <T> Configuration attribute(Attribute<T> key, T value) {
+        configurationAttributes.attribute(key, value);
+        return this;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return configurationAttributes;
+    }
+
+    @Override
+    public <T> T getAttribute(Attribute<T> key) {
+        return configurationAttributes.getAttribute(key);
+    }
+
+    @Override
+    public Configuration attributes(Map<?, ?> attributes) {
+        for (Map.Entry<?, ?> entry : attributes.entrySet()) {
+            Object rawKey = entry.getKey();
+            Attribute<Object> key = Cast.uncheckedCast(asAttribute(rawKey));
+            Object value = entry.getValue();
+            configurationAttributes.attribute(key, value);
+        }
+        return this;
+    }
+
+    private static Attribute<?> asAttribute(Object rawKey) {
+        if (rawKey instanceof Attribute) {
+            return (Attribute<?>) rawKey;
+        }
+        return stringAttribute(rawKey.toString());
     }
 
     @Override
     public boolean hasAttributes() {
-        return attributes != null && !attributes.isEmpty();
+        return !configurationAttributes.isEmpty();
     }
 
     @Override
-    public boolean isConsumeOrPublishAllowed() {
-        return isConsumeOrPublishAllowed;
+    public boolean isCanBeConsumed() {
+        return canBeConsumed;
     }
 
     @Override
-    public void setConsumeOrPublishAllowed(boolean consumeOrPublishAllowed) {
+    public void setCanBeConsumed(boolean allowed) {
         validateMutation(MutationType.ROLE);
-        isConsumeOrPublishAllowed = consumeOrPublishAllowed;
+        canBeConsumed = allowed;
     }
 
     @Override
-    public boolean isQueryOrResolveAllowed() {
-        return isQueryOrResolveAllowed;
+    public boolean isCanBeResolved() {
+        return canBeResolved;
     }
 
     @Override
-    public void setQueryOrResolveAllowed(boolean queryOrResolveAllowed) {
+    public void setCanBeResolved(boolean allowed) {
         validateMutation(MutationType.ROLE);
-        isQueryOrResolveAllowed = queryOrResolveAllowed;
-    }
-
-    @Override
-    public void forConsumingOrPublishingOnly() {
-        setConsumeOrPublishAllowed(true);
-        setQueryOrResolveAllowed(false);
-    }
-
-    @Override
-    public void forQueryingOrResolvingOnly() {
-        setConsumeOrPublishAllowed(false);
-        setQueryOrResolveAllowed(true);
-    }
-
-    @Override
-    public void asBucket() {
-        setConsumeOrPublishAllowed(false);
-        setQueryOrResolveAllowed(false);
+        canBeResolved = allowed;
     }
 
     /**
@@ -899,8 +934,165 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            DefaultConfiguration.this.resolveNow(InternalState.RESULTS_RESOLVED);
+            DefaultConfiguration.this.resolveToStateOrLater(ARTIFACTS_RESOLVED);
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
+        }
+
+        @Override
+        public Set<ResolvedArtifactResult> getArtifacts() {
+            resolveToStateOrLater(ARTIFACTS_RESOLVED);
+            cachedResolverResults.getResolvedConfiguration().rethrowFailure();
+            Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
+            cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
+            return filterAndTransform(artifacts);
+        }
+
+        private Set<ResolvedArtifactResult> filterAndTransform(Set<ResolvedArtifactResult> artifacts) {
+            if (format == null) {
+                // this is a configuration without specific format
+                return artifacts;
+            }
+
+            Set<ResolvedArtifactResult> filteredArtifacts = new LinkedHashSet<ResolvedArtifactResult>();
+
+            // First attempt to locate artifacts with the correct format
+            for (ResolvedArtifactResult artifact : artifacts) {
+                if (artifact.getFormat().equals(format)) {
+                    filteredArtifacts.add(artifact);
+                } else {
+                    Transformer<File, File> transform = getResolutionStrategy().getTransform(artifact.getFormat(), format);
+                    if (transform != null) {
+                        // TODO: Parallel evaluation and caching
+                        File transformedFile = transform.transform(artifact.getFile());
+
+                        ResolvedArtifactResult transformedArtifact = new DefaultResolvedArtifactResult(
+                            artifact.getId(), artifact.getType(), format, transformedFile);
+                        filteredArtifacts.add(transformedArtifact);
+                    }
+                }
+            }
+            return filteredArtifacts;
+        }
+    }
+
+    private static Attribute<String> stringAttribute(String name) {
+        return Attribute.of(name, String.class);
+    }
+
+    private class DefaultAttributeContainer implements AttributeContainerInternal {
+
+        private Map<Attribute<?>, Object> attributes;
+
+        private void ensureAttributes() {
+            if (this.attributes == null) {
+                this.attributes = Maps.newHashMap();
+            }
+        }
+
+        @Override
+        public Set<Attribute<?>> keySet() {
+            if (attributes == null) {
+                return Collections.emptySet();
+            }
+            return attributes.keySet();
+        }
+
+        @Override
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+            validateMutation(MutationType.ATTRIBUTES);
+            assertAttributeConstraints(value, key);
+            ensureAttributes();
+            checkInsertionAllowed(key);
+            attributes.put(key, value);
+            return this;
+        }
+
+        private <T> void checkInsertionAllowed(Attribute<T> key) {
+            for (Attribute<?> attribute : attributes.keySet()) {
+                String name = key.getName();
+                if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
+                    throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
+                        + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
+                        + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
+                }
+            }
+        }
+
+        @Override
+        public <T> T getAttribute(Attribute<T> key) {
+            return Cast.uncheckedCast(attributes == null ? null : attributes.get(key));
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return attributes == null;
+        }
+
+        @Override
+        public boolean contains(Attribute<?> key) {
+            return attributes != null && attributes.containsKey(key);
+        }
+
+        public AttributeContainer asImmutable() {
+            if (attributes == null) {
+                return EMPTY;
+            }
+            return new ImmutableAttributes(attributes);
+        }
+    }
+
+    private static class ImmutableAttributes implements AttributeContainerInternal {
+
+        private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
+            @Override
+            public int compare(Attribute<?> o1, Attribute<?> o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        };
+        private final Map<Attribute<?>, Object> attributes;
+
+        private ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
+            this.attributes = attributes;
+        }
+
+        @Override
+        public Set<Attribute<?>> keySet() {
+            return attributes.keySet();
+        }
+
+        @Override
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+            throw new UnsupportedOperationException("Mutation of attributes returned by Configuration#getAttributes() is not allowed");
+        }
+
+        @Override
+        public <T> T getAttribute(Attribute<T> key) {
+            return Cast.uncheckedCast(attributes.get(key));
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public boolean contains(Attribute<?> key) {
+            return attributes.containsKey(key);
+        }
+
+        @Override
+        public AttributeContainer asImmutable() {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            if (attributes != null) {
+                TreeMap<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
+                sorted.putAll(attributes);
+                return sorted.toString();
+            }
+            return "{}";
         }
     }
 

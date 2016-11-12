@@ -85,6 +85,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
@@ -93,9 +94,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private final Logger logger;
 
-    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    protected final IntegrationTestBuildContext buildContext;
 
-    private final Set<File> customDaemonBaseDirs = new HashSet<File>();
+    private final Set<File> isolatedDaemonBaseDirs = new HashSet<File>();
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
@@ -107,7 +108,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
-    private TestFile gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+    private TestFile gradleUserHomeDir;
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
@@ -118,7 +119,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 120;
     private boolean requireDaemon;
-    private File daemonBaseDir = buildContext.getDaemonBaseDir();
+    private File daemonBaseDir;
     private final List<String> buildJvmOpts = new ArrayList<String>();
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
@@ -132,10 +133,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final Set<Action<? super GradleExecuter>> afterExecute = new LinkedHashSet<Action<? super GradleExecuter>>();
 
     private final TestDirectoryProvider testDirectoryProvider;
-    private final GradleVersion gradleVersion;
+    protected final GradleVersion gradleVersion;
     private final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
+    private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
@@ -145,15 +147,29 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
 
+    private TestFile tmpDir;
+    private boolean cleanTempDirOnShutdown;
+    private DurationMeasurement durationMeasurement;
+    private boolean reuseUserHomeServices;
+    private boolean outputCapturingEnabled = true;
+
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
     }
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion) {
+        this(distribution, testDirectoryProvider, gradleVersion, IntegrationTestBuildContext.INSTANCE);
+    }
+
+    protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
         this.gradleVersion = gradleVersion;
         logger = Logging.getLogger(getClass());
+        this.buildContext = buildContext;
+        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+        daemonBaseDir = buildContext.getDaemonBaseDir();
+        buildContext.configure(this);
     }
 
     protected Logger getLogger() {
@@ -184,9 +200,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         expectedDeprecationWarnings = 0;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
+        debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        durationMeasurement = null;
+        reuseUserHomeServices = false;
         return this;
     }
 
@@ -307,12 +326,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.startBuildProcessInDebugger(debug);
+        executer.startLauncherInDebugger(debugLauncher);
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
         }
+
+        if (durationMeasurement != null) {
+            executer.withDurationMeasurement(durationMeasurement);
+        }
+
+        executer.withReuseUserHomeServices(reuseUserHomeServices);
 
         return executer;
     }
@@ -415,6 +441,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             String key = entry.getKey();
             String value = entry.getValue();
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
+        }
+        if (isDebugLauncher()) {
+            gradleInvocation.implicitLauncherJvmArgs.addAll(DEBUG_ARGS);
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
@@ -612,7 +641,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return daemonBaseDir.equals(buildContext.getDaemonBaseDir());
     }
 
-    protected boolean isUseDaemon() {
+    public boolean isUseDaemon() {
         CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
         if (cliDaemonArgument == DAEMON) {
             return true;
@@ -624,8 +653,37 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
-        for (File baseDir : customDaemonBaseDirs) {
-            new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+        cleanupIsolatedDaemons();
+        cleanupTmpDir();
+    }
+
+    protected void cleanupIsolatedDaemons() {
+        for (File baseDir : isolatedDaemonBaseDirs) {
+            try {
+                new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+            } catch (Exception e) {
+                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
+            }
+
+            // remove daemon registry just in case the daemon registry directory gets reused
+            new File(baseDir, "registry.bin").delete();
+            new File(baseDir, "registry.bin.lock").delete();
+        }
+    }
+
+    protected void cleanupTmpDir() {
+        if (cleanTempDirOnShutdown && tmpDir != null) {
+            if (tmpDir.exists()) {
+                try {
+                    tmpDir.deleteDir();
+                } catch (Exception e) {
+                    getLogger().warn("Problem cleaning up temp directory " + tmpDir, e);
+                } finally {
+                    tmpDir = null;
+                }
+            } else {
+                tmpDir = null;
+            }
         }
     }
 
@@ -746,12 +804,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
-        if (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
+        if (!reuseUserHomeServices && gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
 
         if (!noExplicitTmpDir) {
-            String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
+            if (tmpDir == null) {
+                tmpDir = getDefaultTmpDir();
+            }
+            String tmpDirPath = tmpDir.createDir().getAbsolutePath();
             if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
@@ -824,7 +885,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private void collectStateBeforeExecution() {
         if (!isSharedDaemons()) {
-            customDaemonBaseDirs.add(daemonBaseDir);
+            isolatedDaemonBaseDirs.add(daemonBaseDir);
         }
     }
 
@@ -975,6 +1036,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter startLauncherInDebugger(boolean flag) {
+        debugLauncher = flag;
+        return this;
+    }
+
+    @Override
+    public boolean isDebugLauncher() {
+        return debugLauncher;
+    }
+
     public GradleExecuter withProfiler(String args) {
         profiler = args;
         return this;
@@ -1003,6 +1075,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withCleanupTempDirectory(boolean flag) {
+        cleanTempDirOnShutdown = flag;
+        return this;
+    }
+
     @Override
     public boolean isDebug() {
         return debug;
@@ -1023,4 +1100,46 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
     }
 
+    @Override
+    public void stop() {
+        cleanup();
+    }
+
+    @Override
+    public GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement) {
+        this.durationMeasurement = durationMeasurement;
+        return this;
+    }
+
+    protected void startMeasurement() {
+        if (durationMeasurement != null) {
+            durationMeasurement.start();
+        }
+    }
+
+    protected void stopMeasurement() {
+        if (durationMeasurement != null) {
+            durationMeasurement.stop();
+        }
+    }
+
+    protected DurationMeasurement getDurationMeasurement() {
+        return durationMeasurement;
+    }
+
+    @Override
+    public GradleExecuter withReuseUserHomeServices(boolean flag) {
+        this.reuseUserHomeServices = flag;
+        return this;
+    }
+
+    protected boolean isOutputCapturingEnabled() {
+        return outputCapturingEnabled;
+    }
+
+    @Override
+    public GradleExecuter withOutputCapturing(boolean flag) {
+        this.outputCapturingEnabled = flag;
+        return this;
+    }
 }

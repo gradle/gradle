@@ -16,33 +16,21 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 public class DefaultModuleIdentifier implements ModuleIdentifier {
-    private static final Interner<DefaultModuleIdentifier> INSTANCES_INTERNER = Interners.newStrongInterner();
     private final String group;
     private final String name;
-    private final int hashCode;
-    private String displayName;
 
-    private DefaultModuleIdentifier(String group, String name) {
+    public DefaultModuleIdentifier(String group, String name) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         this.group = group;
         this.name = name;
-        this.hashCode = calculateHashCode();
     }
 
     public static ModuleIdentifier newId(String group, String name) {
-        return of(group, name);
-    }
-
-    public static DefaultModuleIdentifier of(String group, String name) {
-        DefaultModuleIdentifier instance = new DefaultModuleIdentifier(group, name);
-        return INSTANCES_INTERNER.intern(instance);
+        return new DefaultModuleIdentifier(group, name);
     }
 
     public String getGroup() {
@@ -55,13 +43,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public String toString() {
-        if (displayName == null) {
-            displayName = createDisplayName();
-        }
-        return displayName;
-    }
-
-    private String createDisplayName() {
         return String.format("%s:%s", group, name);
     }
 
@@ -74,9 +55,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
             return false;
         }
         DefaultModuleIdentifier other = (DefaultModuleIdentifier) obj;
-        if (hashCode() != other.hashCode()) {
-            return false;
-        }
         if (!group.equals(other.group)) {
             return false;
         }
@@ -88,10 +66,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private int calculateHashCode() {
-        return Objects.hashCode(group, name);
+        return group.hashCode() ^ name.hashCode();
     }
 }

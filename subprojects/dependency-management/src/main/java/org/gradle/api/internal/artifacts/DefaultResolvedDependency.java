@@ -22,8 +22,16 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
@@ -66,11 +74,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     public ResolvedModuleVersion getModule() {
-        return new ResolvedModuleVersion() {
-            public ModuleVersionIdentifier getId() {
-                return id.getId();
-            }
-        };
+        return new DefaultResolvedModuleVersion(id.getId());
     }
 
     public Set<ResolvedDependency> getChildren() {

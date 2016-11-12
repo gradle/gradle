@@ -344,7 +344,7 @@ project(":b") {
     task test {
         inputs.files configurations.compile
         doFirst {
-            assert configurations.compile.files.collect { it.name } == ['a-b.jar', 'externalA-1.5.jar']
+            configurations.compile.files.collect { it.name }
         }
     }
 }
@@ -354,7 +354,8 @@ project(":b") {
         fails ':b:test'
 
         and:
-        failure.assertResolutionFailure(":b:compile").assertHasCause("Could not find b.jar (test:a:unspecified).")
+        failure.assertHasCause("Could not resolve all files for configuration ':b:compile'.")
+        failure.assertHasCause("Could not find b.jar (project :a).")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {

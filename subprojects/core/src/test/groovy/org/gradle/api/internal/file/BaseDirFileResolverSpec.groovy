@@ -24,6 +24,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 @UsesNativeServices
@@ -196,8 +198,21 @@ The following types/formats are supported:
         def ancestor = new File(tmpDir.testDirectory, "test")
         def baseDir = new File(ancestor, "base")
 
-        expect:
-        normalize({ null }, baseDir) == null
+        when:
+        normalize(new Callable() {
+            @Override
+            Object call() throws Exception {
+                return null
+            }
+
+            @Override
+            String toString() {
+                return "null returning Callable"
+            }
+        }, baseDir)
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot convert path to File. path='null returning Callable' basedir='${baseDir.absolutePath}'"
     }
 
     def createLink(File link, File target) {
@@ -225,10 +240,10 @@ The following types/formats are supported:
     private File[] getFsRoots() {
         File.listRoots().findAll { !it.absolutePath.startsWith("A:") }
     }
-    
+
     private File nonexistentFsRoot() {
-        ('Z'..'A').collect { 
-            "$it:\\" 
+        ('Z'..'A').collect {
+            "$it:\\"
         }.findResult {
             new File(it).exists() ? null : new File(it)
         }

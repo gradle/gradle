@@ -16,51 +16,69 @@
 
 package org.gradle.api.internal.tasks.cache.config;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.cache.LocalDirectoryTaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
+import org.gradle.cache.CacheRepository;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
+import java.util.List;
 
-public class DefaultTaskCaching implements TaskCachingInternal {
-    private static final TaskOutputCacheFactory DEFAULT_LOCAL_TASK_CACHE_FACTORY = new TaskOutputCacheFactory() {
-        @Override
-        public TaskOutputCache createCache(StartParameter startParameter) {
-            String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
-            File cacheDirectory = cacheDirectoryPath != null
-                ? new File(cacheDirectoryPath)
-                : new File(startParameter.getGradleUserHomeDir(), "task-cache");
-            return new LocalDirectoryTaskOutputCache(cacheDirectory);
-        }
-    };
+public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     private final boolean pullAllowed;
     private final boolean pushAllowed;
-    private TaskOutputCacheFactory factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
+    private final CacheRepository cacheRepository;
+    private final List<TaskOutputCache> cachesCreated = Lists.newCopyOnWriteArrayList();
+    private TaskOutputCacheFactory factory;
 
-    public DefaultTaskCaching() {
+    public DefaultTaskCaching(CacheRepository cacheRepository) {
+        this.cacheRepository = cacheRepository;
+        useLocalCache();
         this.pullAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
         this.pushAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
     }
 
     @Override
     public void useLocalCache() {
-        this.factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
+        setFactory(new TaskOutputCacheFactory() {
+            @Override
+            public TaskOutputCache createCache(StartParameter startParameter) {
+                String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
+                return cacheDirectoryPath != null
+                    ? new LocalDirectoryTaskOutputCache(cacheRepository, new File(cacheDirectoryPath))
+                    : new LocalDirectoryTaskOutputCache(cacheRepository, "task-cache");
+            }
+        });
     }
 
     @Override
     public void useLocalCache(final File directory) {
-        this.factory = new TaskOutputCacheFactory() {
+        setFactory(new TaskOutputCacheFactory() {
             @Override
             public TaskOutputCache createCache(StartParameter startParameter) {
-                return new LocalDirectoryTaskOutputCache(directory);
+                return new LocalDirectoryTaskOutputCache(cacheRepository, directory);
             }
-        };
+        });
     }
 
     @Override
     public void useCacheFactory(TaskOutputCacheFactory factory) {
-        this.factory = factory;
+        setFactory(factory);
+    }
+
+    private void setFactory(final TaskOutputCacheFactory factory) {
+        this.factory = new TaskOutputCacheFactory() {
+            @Override
+            public TaskOutputCache createCache(StartParameter startParameter) {
+                TaskOutputCache cache = factory.createCache(startParameter);
+                cachesCreated.add(cache);
+                return cache;
+            }
+        };
     }
 
     @Override
@@ -76,5 +94,10 @@ public class DefaultTaskCaching implements TaskCachingInternal {
     @Override
     public boolean isPushAllowed() {
         return pushAllowed;
+    }
+
+    @Override
+    public void stop() {
+        CompositeStoppable.stoppable(cachesCreated).stop();
     }
 }

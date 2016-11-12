@@ -203,6 +203,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public ModuleVersionIdentifier getCoordinates() {
-        return DefaultModuleVersionIdentifier.of(getOrganisation(), getModule(), getRevision());
+        return new DefaultModuleVersionIdentifier(getOrganisation(), getModule(), getRevision());
     }
 }

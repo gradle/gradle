@@ -39,9 +39,9 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
 
         where:
         testProject       | targetVersions
-        "small"           | ['3.3-20161026000020+0000']
-        "multi"           | ['3.3-20161026000020+0000']
-        "lotDependencies" | ['3.3-20161026000020+0000']
+        "small"           | ['3.3-20161028000018+0000']
+        "multi"           | ['3.3-20161028000018+0000']
+        "lotDependencies" | ['3.3-20161028000018+0000']
     }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")
@@ -51,7 +51,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
-        runner.targetVersions = ['3.3-20161026000020+0000']
+        runner.targetVersions = ['3.3-20161028000018+0000']
         runner.useDaemon = true
         when:
         def result = runner.run()

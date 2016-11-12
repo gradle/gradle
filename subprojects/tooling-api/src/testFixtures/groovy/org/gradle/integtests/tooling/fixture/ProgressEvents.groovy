@@ -80,7 +80,7 @@ class ProgressEvents implements ProgressListener {
                     def storedOperation = operations.find { it.descriptor == descriptor }
                     storedOperation.result = event.result
 
-                    assert event.displayName.matches("\\Q${descriptor.displayName}\\E \\w+")
+                    assert event.displayName.matches("\\Q${descriptor.displayName}\\E [\\w-]+")
 
                     // don't check event timestamp order on Windows OS
                     // timekeeping in CI environment on Windows is currently problematic

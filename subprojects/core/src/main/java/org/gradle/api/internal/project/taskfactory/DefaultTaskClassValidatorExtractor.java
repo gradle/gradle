@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import groovy.lang.GroovyObject;
@@ -45,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExtractor {
     // Avoid reflecting on classes we know we don't need to look at
@@ -70,6 +73,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
     );
 
     private final List<PropertyAnnotationHandler> annotationHandlers;
+    private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
 
     public DefaultTaskClassValidatorExtractor(PropertyAnnotationHandler... customAnnotationHandlers) {
         this(Arrays.asList(customAnnotationHandlers));
@@ -80,6 +84,12 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             .addAll(HANDLERS)
             .addAll(customAnnotationHandlers)
             .build();
+        this.propertyTypeAnnotations = ImmutableSet.copyOf(Iterables.transform(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
+            @Override
+            public Class<? extends Annotation> apply(PropertyAnnotationHandler annotationHandler) {
+                return annotationHandler.getAnnotationType();
+            }
+        }));
     }
 
     @Override
@@ -114,7 +124,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
 
                     DefaultTaskPropertyActionContext propertyContext = propertyContexts.get(propertyName);
                     if (propertyContext == null) {
-                        propertyContext = new DefaultTaskPropertyActionContext(parent, propertyName, method);
+                        propertyContext = new DefaultTaskPropertyActionContext(propertyTypeAnnotations, parent, propertyName, method);
                         propertyContexts.put(propertyName, propertyContext);
                     }
                     propertyContext.addAnnotations(method.getDeclaredAnnotations());
@@ -184,6 +194,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
     }
 
     private static class DefaultTaskPropertyActionContext implements TaskPropertyActionContext {
+        private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
         private final TaskPropertyInfo parent;
         private final String name;
         private final Method method;
@@ -193,8 +204,10 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         private UpdateAction configureAction;
         private boolean optional;
         private Class<?> nestedType;
+        private Class<? extends Annotation> propertyType;
 
-        public DefaultTaskPropertyActionContext(TaskPropertyInfo parent, String name, Method method) {
+        public DefaultTaskPropertyActionContext(Set<Class<? extends Annotation>> propertyTypeAnnotations, TaskPropertyInfo parent, String name, Method method) {
+            this.propertyTypeAnnotations = propertyTypeAnnotations;
             this.parent = parent;
             this.name = name;
             this.method = method;
@@ -206,7 +219,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public Class<?> getType() {
+        public Class<?> getValueType() {
             return instanceVariableField != null
                 ? instanceVariableField.getType()
                 : method.getReturnType();
@@ -215,10 +228,22 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         @Override
         public void addAnnotations(Annotation[] declaredAnnotations) {
             for (Annotation annotation : declaredAnnotations) {
+                Class<? extends Annotation> annotationType = annotation.annotationType();
+                if (isPropertyTypeAnnotation(annotationType)) {
+                    // Ignore property type annotation if one is already set
+                    if (propertyType != null) {
+                        continue;
+                    }
+                    propertyType = annotationType;
+                }
                 if (!isAnnotationPresent(annotation.getClass())) {
                     annotations.add(annotation);
                 }
             }
+        }
+
+        private boolean isPropertyTypeAnnotation(Class<? extends Annotation> annotationType) {
+            return propertyTypeAnnotations.contains(annotationType);
         }
 
         @Override
@@ -241,6 +266,11 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             if (this.instanceVariableField == null && instanceVariableField != null) {
                 this.instanceVariableField = instanceVariableField;
             }
+        }
+
+        @Override
+        public boolean isOptional() {
+            return optional;
         }
 
         @Override
@@ -271,7 +301,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             if (configureAction == null && validationAction == null) {
                 return null;
             }
-            return new TaskPropertyInfo(parent, name, method, getType(), validationAction, configureAction, optional);
+            return new TaskPropertyInfo(parent, name, propertyType, method, validationAction, configureAction, optional);
         }
     }
 }

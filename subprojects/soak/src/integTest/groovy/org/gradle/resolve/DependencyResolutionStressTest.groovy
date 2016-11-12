@@ -18,6 +18,7 @@ package org.gradle.resolve
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -83,7 +84,7 @@ task check {
 }
         """
 
-                GradleExecuter executer = distribution.executer(workspace).
+                GradleExecuter executer = distribution.executer(workspace, IntegrationTestBuildContext.INSTANCE).
                         requireGradleDistribution().
                         withGradleUserHomeDir(workspace.file("user-home"))
                 10.times {

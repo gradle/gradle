@@ -116,6 +116,9 @@ allprojects {
             actualFiles = findLines(configDetails, 'file-incoming')
             compare("incoming.files", actualFiles, expectedFiles)
 
+            actualFiles = findLines(configDetails, 'file-artifact-incoming')
+            compare("incoming.artifacts", actualFiles, expectedFiles)
+
             actualFiles = findLines(configDetails, 'file-filtered')
             compare("filtered files", actualFiles, expectedFiles)
 
@@ -498,6 +501,9 @@ class GenerateGraphTask extends DefaultTask {
                 }
                 configuration.incoming.files.each {
                     writer.println("file-incoming:${it.name}")
+                }
+                configuration.incoming.artifacts.each {
+                    writer.println("file-artifact-incoming:${it.file.name}")
                 }
                 configuration.files { true }.each {
                     writer.println("file-filtered:${it.name}")

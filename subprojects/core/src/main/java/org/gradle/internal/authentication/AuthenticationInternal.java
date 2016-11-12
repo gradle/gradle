@@ -29,4 +29,6 @@ public interface AuthenticationInternal extends Authentication {
     void setCredentials(Credentials credentials);
 
     Class<? extends Authentication> getType();
+
+    boolean requiresCredentials();
 }

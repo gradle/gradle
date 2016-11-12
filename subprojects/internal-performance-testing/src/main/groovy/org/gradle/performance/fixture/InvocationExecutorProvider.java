@@ -15,6 +15,9 @@
  */
 package org.gradle.performance.fixture;
 
+import org.gradle.api.Action;
+import org.gradle.performance.measure.MeasuredOperation;
+
 public interface InvocationExecutorProvider {
-    Runnable runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer);
+    Action<MeasuredOperation> runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer);
 }

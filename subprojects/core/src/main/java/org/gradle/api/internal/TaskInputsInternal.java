@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskInputFilePropertyBuilderInternal;
+import org.gradle.api.internal.tasks.properties.TaskInputFilePropertySpec;
 import org.gradle.api.tasks.TaskInputs;
 
 import java.util.SortedSet;

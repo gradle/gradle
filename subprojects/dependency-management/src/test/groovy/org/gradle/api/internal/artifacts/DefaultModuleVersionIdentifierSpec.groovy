@@ -21,18 +21,18 @@ import static org.gradle.util.Matchers.strictlyEqual
 
 class DefaultModuleVersionIdentifierSpec extends Specification {
     def "has useful toString()"() {
-        def module = DefaultModuleVersionIdentifier.of("group", "module", "version")
+        def module = new DefaultModuleVersionIdentifier("group", "module", "version")
 
         expect:
         module.toString().contains("group:module:version")
     }
 
     def "ids are equal when group, module and version are equal"() {
-        def module = DefaultModuleVersionIdentifier.of("group", "module", "version")
-        def same = DefaultModuleVersionIdentifier.of("group", "module", "version")
-        def differentGroup = DefaultModuleVersionIdentifier.of("other", "module", "version")
-        def differentModule = DefaultModuleVersionIdentifier.of("group", "other", "version")
-        def differentVersion = DefaultModuleVersionIdentifier.of("group", "module", "other")
+        def module = new DefaultModuleVersionIdentifier("group", "module", "version")
+        def same = new DefaultModuleVersionIdentifier("group", "module", "version")
+        def differentGroup = new DefaultModuleVersionIdentifier("other", "module", "version")
+        def differentModule = new DefaultModuleVersionIdentifier("group", "other", "version")
+        def differentVersion = new DefaultModuleVersionIdentifier("group", "module", "other")
 
         expect:
         module strictlyEqual(same)
@@ -43,7 +43,7 @@ class DefaultModuleVersionIdentifierSpec extends Specification {
 
     def "provides module identifier"() {
         expect:
-        def id = DefaultModuleVersionIdentifier.of("org.gradle", "tooling-api", "1.3")
+        def id = new DefaultModuleVersionIdentifier("org.gradle", "tooling-api", "1.3")
         id.group == id.module.group
         id.name == id.module.name
     }

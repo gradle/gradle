@@ -105,24 +105,16 @@ task determineCommitId {
     }
 }
 
-task createBuildReceipt(dependsOn: determineCommitId) {
-    ext.receiptFile = file("$buildDir/$buildReceiptFileName")
-    inputs.property "version", { version }
-    inputs.property "versionBase", { versionBase }
-    inputs.property "isSnapshot", { isSnapshot }
-    inputs.property "buildTimestamp", { buildTimestamp }
-    inputs.property "commitId", { devBuild ? "HEAD" : determineCommitId.commitId }
-    outputs.file receiptFile
-    outputs.cacheIf { true }
+task configureBuildReceipt(dependsOn: determineCommitId) {
     doLast {
-        def data = [
-                commitId: devBuild ? "HEAD" : determineCommitId.commitId,
-                versionNumber: version,
-                versionBase: versionBase,
-                isSnapshot: isSnapshot,
-                buildTimestamp: buildTimestamp,
-        ]
-
-        org.gradle.build.ReproduciblePropertiesWriter.store(data, receiptFile)
+        createBuildReceipt.versionNumber = rootProject.version
+        createBuildReceipt.baseVersion = rootProject.baseVersion
+        createBuildReceipt.snapshot = rootProject.isSnapshot
+        createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
+        createBuildReceipt.commitId = devBuild ? null : determineCommitId.commitId
     }
+}
+
+task createBuildReceipt(type: org.gradle.build.BuildReceipt, dependsOn: configureBuildReceipt) {
+    createBuildReceipt.receiptFile = file("$buildDir/$buildReceiptFileName")
 }

@@ -10,6 +10,26 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Clickable links to project reports
+
+When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
+
+### Custom task property annotations can be overridden in subclasses
+
+In previous versions of Gradle, a custom task class overriding a property from a base class couldn't reliably change the type of the property via annotations. It is now possible to change an `@InputFiles` property to `@Classpath` or an `@OutputFile` to `@OutputDirectory`. This can be useful when extending or working around problems with custom tasks that you do not control.
+
+    class BrokenTask extends DefaultTask {
+        @Input def inputFile // wrong, task depends on the contents of inputFile
+        @OutputFile def outputFile // wrong, this is a directory 
+    }
+
+    class FixedTask extends BrokenTask {
+        @InputFile def inputFile
+        @OutputDirectory def outputFile
+    }
+
+In the above example, `FixedTask.inputFile` will be an `@InputFile` and `FixedTask.outputFile` will be an `@OutputDirectory`.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -36,7 +56,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Deprecated Ant-related Java compiler properties
 
-The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprecated the Ant-based `<depend/>` task support as well.
+The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprecated the Ant-based `<depend/>` task support as well. These properties will be removed in Gradle 4.0.
 
 * `JavaCompile.dependencyCacheDir`
 * `JavaCompileSpec.dependencyCacheDir`
@@ -47,6 +67,8 @@ The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprec
 
 ### Deprecated methods
 
+* `ProjectDependency.getProjectConfiguration()` is deprecated, and will be removed in Gradle 4.0. A project dependency is not guaranteed to resolve to a particular `Configuration` instance, for example, when dependency substitution rules are used, so the return value of this method can be misleading. To determine the actual target for a project dependency, you should query the resolution results provided by `Configuration.getIncoming().getResolutionResult()`.
+* `ModuleDependency.getConfiguration()` is deprecated, replaced by `getTargetConfiguration()`. This method will be removed in Gradle 4.0.
 * `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
 
 ## Potential breaking changes
@@ -57,29 +79,32 @@ In previous Gradle versions, when connected to a sub-project and asking for the 
 the `BuildInvocations` model for the root project was returned instead. Gradle will now
 return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
 
-
 ### Java `Test` task doesn't track working directory as input
 
-Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic, too, since the default working directory is the project directory. All-in-all tracking the working directory path wasn't adding much functionality as most tests don't rely on the working directory at all, and those that do depend on its contents as well.
+Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic since the default working directory is the project directory. 
 
-From Gradle 3.3 the working directory is not tracked at all. Due to this changing the path of the working directory between builds won't make the task out-of-date.
+Most tests don't rely on the working directory at all and those that do depend on its contents.
+
+From Gradle 3.3, the working directory is not tracked at all. Due to this, changing the path of the working directory between builds won't make the task out-of-date.
 
 If it's needed, the working directory can be added as an explicit input to the task, with contents tracking:
 
-```groovy
-test {
-    workingDir "$buildDir/test-work"
-    inputs.dir workingDir
-}
-```
+    test {
+        workingDir "$buildDir/test-work"
+        inputs.dir workingDir
+    }
 
 To restore the previous behavior of tracking only the path of the working directory:
 
-```groovy
-test {
-    inputs.property "workingDir", workingDir
-}
-```
+    test {
+        inputs.property "workingDir", workingDir
+    }
+
+### Order of task property annotations from hierarchy 
+
+The annotated type of a property (`@InputFile`, `@OutputFile`, etc) for a custom task is now determined by the class hierarchy when conflicting types are present. In previous Gradle releases, the way the conflict was resolved was unspecified. This change affects incremental builds and may cause Gradle to treat a property as a different kind of input or output than it did.
+
+See [Custom task property annotations can be overridden in subclasses](#custom-task-property-annotations-can-be-overridden-in-subclasses) above for an example.
 
 ### `LenientConfiguration.getFiles()` returns the same set of files as other dependency query methods
 
@@ -98,6 +123,9 @@ We would like to thank the following community members for making contributions 
 
  - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
  - [Francis Andre](https://github.com/zosrothko) - Import Gradle production source into Eclipse without compile errors
+ - [David Illsley](https://github.com/davidillsley) - Update docs to indicate use of HTTPS maven central (#774)
+ - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
+ - [John Martel](https://github.com/johnmartel) - Print links to project reports on CLI (#762)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)

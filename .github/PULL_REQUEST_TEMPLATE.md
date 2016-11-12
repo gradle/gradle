@@ -1,6 +1,6 @@
 Any of the checked boxes below indicate that I took action:
 
-- [ ] Reviewed the [Contribution Guidelines](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#contribution-workflow).
+- [ ] Reviewed the [Contribution Guidelines](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md).
 - [ ] Signed the [Gradle CLA](http://gradle.org/contributor-license-agreement/).
 - [ ] Ensured that basic checks pass: `./gradlew quickCheck`
 

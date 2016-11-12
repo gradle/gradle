@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -43,9 +42,16 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         dependencyResolver.resolveBuildDependencies(configuration, results)
 
         then:
-        def result = results.resolvedLocalComponents
-        result.componentBuildDependencies.getDependencies(Stub(Task)).empty
-        result.resolvedProjectConfigurations as List == []
+        def buildDeps = []
+
+        def localComponentsResult = results.resolvedLocalComponents
+        localComponentsResult.collectArtifactBuildDependencies(buildDeps)
+        localComponentsResult.resolvedProjectConfigurations as List == []
+
+        def fileDependencyResults = results.fileDependencies
+        fileDependencyResults.collectBuildDependencies(buildDeps)
+
+        buildDeps.empty
 
         and:
         0 * delegate._
@@ -65,9 +71,16 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         result.allDependencies.empty
 
         and:
-        def localComponents = results.resolvedLocalComponents
-        localComponents.componentBuildDependencies.getDependencies(Stub(Task)).empty
-        localComponents.resolvedProjectConfigurations as List == []
+        def buildDeps = []
+
+        def localComponentsResult = results.resolvedLocalComponents
+        localComponentsResult.collectArtifactBuildDependencies(buildDeps)
+        localComponentsResult.resolvedProjectConfigurations as List == []
+
+        def fileDependencyResults = results.fileDependencies
+        fileDependencyResults.collectBuildDependencies(buildDeps)
+
+        buildDeps.empty
 
         and:
         0 * delegate._

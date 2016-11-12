@@ -23,4 +23,9 @@ public class DefaultDigestAuthentication extends AbstractAuthentication implemen
     public DefaultDigestAuthentication(String name) {
         super(name, DigestAuthentication.class, PasswordCredentials.class);
     }
+
+    @Override
+    public boolean requiresCredentials() {
+        return true;
+    }
 }

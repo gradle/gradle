@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
@@ -47,9 +48,9 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             hierarchy,
             configuration.isVisible(),
             configuration.isTransitive(),
-            configuration.getAttributes(),
-            configuration.isConsumeOrPublishAllowed(),
-            configuration.isQueryOrResolveAllowed());
+            ((AttributeContainerInternal)configuration.getAttributes()).asImmutable(),
+            configuration.isCanBeConsumed(),
+            configuration.isCanBeResolved());
     }
 
     private void addDependencies(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {

@@ -34,7 +34,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def setup() {
         connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
-        connectorFactory1.getSupportedAuthentication() >> ([GoodCredentialsAuthentication, BadCredentialsAuthentication] as Set)
+        connectorFactory1.getSupportedAuthentication() >> ([GoodCredentialsAuthentication, BadCredentialsAuthentication, AuthenticationWithoutCredentials] as Set)
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
@@ -121,7 +121,15 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "You cannot configure authentication schemes for a repository if no credentials are provided."
+        ex.message == "You cannot configure authentication schemes for this repository type if no credentials are provided."
+    }
+
+    def "should accept no credentials for auth"() {
+        when:
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new AuthenticationWithoutCredentials('good')])
+
+        then:
+        transport.class == ResourceConnectorRepositoryTransport
     }
 
     def "should throw when specifying multiple authentication schemes of the same type"() {
@@ -136,22 +144,49 @@ class RepositoryTransportFactoryTest extends Specification {
         ex.message == "You cannot configure multiple authentication schemes of the same type.  The duplicate one is 'good'(Authentication)."
     }
 
+    private class AuthenticationWithoutCredentials extends AbstractAuthentication {
+        AuthenticationWithoutCredentials(String name) {
+            super(name, Authentication, GoodCredentials)
+        }
+
+        boolean requiresCredentials() {
+            return false;
+        }
+
+    }
+
     private class GoodCredentialsAuthentication extends AbstractAuthentication {
         GoodCredentialsAuthentication(String name) {
             super(name, Authentication, GoodCredentials)
         }
+
+        boolean requiresCredentials() {
+            return true;
+        }
+
     }
 
     private class BadCredentialsAuthentication extends AbstractAuthentication {
         BadCredentialsAuthentication(String name) {
             super(name, Authentication, BadCredentials)
         }
+
+        boolean requiresCredentials() {
+            return true;
+        }
+
     }
 
     private class NoCredentialsAuthentication extends AbstractAuthentication {
         NoCredentialsAuthentication(String name) {
             super(name, Authentication)
         }
+
+        boolean requiresCredentials() {
+            return false;
+        }
+
+
     }
 
     private interface GoodCredentials extends Credentials {}

@@ -70,7 +70,7 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
 
-        NativeServices.initialize(gradleUserHomeDir);
+        NativeServices.initialize(gradleUserHomeDir, false);
 
         try {
             action.execute(context);

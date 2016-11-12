@@ -46,7 +46,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
         buildIdentity.getCurrentBuild() >> buildId
 
         and:
-        componentIdentifier == DefaultProjectComponentIdentifier.of(buildId, ':a')
+        componentIdentifier == new DefaultProjectComponentIdentifier(buildId, ':a')
     }
 
     def "can create module component identifier"() {
@@ -57,6 +57,6 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
-        componentIdentifier == DefaultModuleComponentIdentifier.of('some-group', 'some-name', '1.0')
+        componentIdentifier == new DefaultModuleComponentIdentifier('some-group', 'some-name', '1.0')
     }
 }

@@ -48,7 +48,7 @@ task executableJar(type: Jar) {
 }
 
 integTestTasks.all {
-    inputs.files { project(":distributions").binZip }
+    requiresBinZip = true
 }
 
 useTestFixtures()

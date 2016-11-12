@@ -15,17 +15,20 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
@@ -63,7 +66,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
         final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;
-        currentExecution.setCacheableOutputProperties(getCacheableOutputProperties(task));
+        currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
         final LazyTaskExecution previousExecution = findBestMatchingPreviousExecution(currentExecution, previousExecutions.executions);
         if (previousExecution != null) {
@@ -140,18 +143,26 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
     }
 
-    private static ImmutableSet<String> getCacheableOutputProperties(TaskInternal task) {
-        ImmutableSet.Builder<String> cacheableOutputProperties = ImmutableSet.builder();
-        for (TaskOutputFilePropertySpec propertySpec : task.getOutputs().getFileProperties()) {
-            if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
-                continue;
+    private Iterable<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
+        // Find all output properties that go into the cache key
+        Iterable<TaskOutputFilePropertySpec> outputPropertiesForCacheKey =
+            Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
+                @Override
+                public boolean apply(TaskOutputFilePropertySpec propertySpec) {
+                    if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                        CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec)propertySpec;
+                        return cacheablePropertySpec.getOutputFile() != null;
+                    }
+                    return false;
+                }
+        });
+        // Extract the output property names
+        return Iterables.transform(outputPropertiesForCacheKey, new Function<TaskOutputFilePropertySpec, String>() {
+            @Override
+            public String apply(TaskOutputFilePropertySpec propertySpec) {
+                return propertySpec.getPropertyName();
             }
-            if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() == null) {
-                continue;
-            }
-            cacheableOutputProperties.add(propertySpec.getPropertyName());
-        }
-        return cacheableOutputProperties.build();
+        });
     }
 
     private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
@@ -265,7 +276,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
             // Take copy of input properties map
             setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
-            setCacheableOutputProperties(taskExecutionSnapshot.getCacheableOutputProperties());
+            setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
             outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
@@ -329,7 +340,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
                 getTaskClass(),
-                getCacheableOutputProperties(),
+                getOutputPropertyNamesForCacheKey(),
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
                 getTaskActionsClassLoaderHash(),

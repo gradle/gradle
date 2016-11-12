@@ -21,6 +21,7 @@ import com.google.common.hash.HashCode
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
 import org.gradle.api.internal.hash.FileHasher
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClassPathSnapshot
 import org.gradle.internal.classloader.ClassPathSnapshotter
 import org.gradle.internal.classpath.DefaultClassPath
@@ -33,7 +34,8 @@ class DefaultCacheKeyBuilderTest extends Specification {
     def hashFunction = Mock(HashFunction)
     def fileHasher = Mock(FileHasher)
     def snapshotter = Mock(ClassPathSnapshotter)
-    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, snapshotter)
+    def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, snapshotter, classLoaderHierarchyHasher)
 
     def 'given just a prefix, it should return it'() {
         given:
@@ -53,7 +55,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def string = 's'
-        def stringHash = bigInt(42)
+        def stringHash = 42G
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string)
@@ -70,7 +72,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def file = new File('f')
-        def fileHash = bigInt(42)
+        def fileHash = 42G
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + file)
@@ -87,7 +89,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def classPath = DefaultClassPath.of([new File('f')])
-        def classPathHash = bigInt(42)
+        def classPathHash = 42G
         def classPathSnapshot = Mock(ClassPathSnapshot)
 
         when:
@@ -102,32 +104,47 @@ class DefaultCacheKeyBuilderTest extends Specification {
         key == "$prefix/${classPathHash.toString(36)}"
     }
 
+    def 'given a ClassLoader component, it should hash its hierarchy and append it to the prefix'() {
+        given:
+        def prefix = 'p'
+        def classLoader = Mock(ClassLoader)
+        def classLoaderHierarchyHash = 42G
+
+        when:
+        def key = subject.build(CacheKeySpec.withPrefix(prefix) + classLoader)
+
+        then:
+        1 * classLoaderHierarchyHasher.getLenientHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
+        0 * _
+
+        and:
+        key == "$prefix/${classLoaderHierarchyHash.toString(36)}"
+    }
+
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
         given:
         def prefix = 'p'
         def string = 's'
+        def stringHash = 42G
         def file = new File('f')
-        def fileHash = bigInt(51)
+        def fileHash = 51G
         def hasher = Mock(Hasher)
-        def combinedHash = bigInt(99)
+        def combinedHash = 99G
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string + file)
 
         then:
         1 * hashFunction.newHasher() >> hasher
-        1 * hasher.putString(string, Charsets.UTF_8) >> hasher
+        1 * hashFunction.hashString(string, Charsets.UTF_8) >> hashCodeFrom(stringHash)
         1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
+        1 * hasher.putBytes(stringHash.toByteArray())
         1 * hasher.putBytes(fileHash.toByteArray())
         1 * hasher.hash() >> hashCodeFrom(combinedHash)
         0 * _
 
         and:
         key == "$prefix/${combinedHash.toString(36)}"
-    }
-
-    private BigInteger bigInt(long val) {
-        BigInteger.valueOf(val)
     }
 
     private HashCode hashCodeFrom(BigInteger bigInteger) {

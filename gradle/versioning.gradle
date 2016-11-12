@@ -20,12 +20,12 @@ if ((milestoneNumber != null && rcNumber != null) ||
 
 
 if (incomingDistributionsBuildReceipt) {
-    ext.versionBase = incomingDistributionsBuildReceipt.versionBase
+    ext.baseVersion = incomingDistributionsBuildReceipt.baseVersion
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
     ext.devBuild = false
 } else {
     ext.devBuild = milestoneNumber == null && rcNumber == null && !finalRelease && !timestampedVersion;
-    ext.versionBase = rootProject.file("version.txt").text.trim()
+    ext.baseVersion = rootProject.file("version.txt").text.trim()
 
     if (devBuild) {
         ext.buildTimestamp = "unknown";
@@ -60,7 +60,7 @@ if (incomingDistributionsBuildReceipt) {
     }
 }
 
-version = versionBase
+version = baseVersion
 
 ext.isSnapshot = false
 if (finalRelease) {
@@ -78,5 +78,5 @@ if (finalRelease) {
 }
 
 if (buildTypes.promotionBuild.active) {
-    logger.lifecycle "Version: $version (version base: $versionBase, timestamp: $buildTimestamp, snapshot: $isSnapshot, dev build: $devBuild)"
+    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot, dev build: $devBuild)"
 }
