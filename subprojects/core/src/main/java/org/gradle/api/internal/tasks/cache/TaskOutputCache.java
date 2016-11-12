@@ -40,7 +40,7 @@ public interface TaskOutputCache extends Closeable {
      * @param writer the writer to write the data corresponding to the cache key.
      * @throws IOException if an I/O error occurs.
      */
-    void store(TaskCacheKey key, TaskOutputWriter output) throws IOException;
+    void store(TaskCacheKey key, TaskOutputWriter writer) throws IOException;
 
     /**
      * Returns a description for the cache.
