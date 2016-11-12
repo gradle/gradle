@@ -399,7 +399,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
                 final int bar = 0;
 
                 abstract int getFoo();
-                synchronized void getBar() { }
+                synchronized void doBar() { }
             }
         '''
 
@@ -415,8 +415,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'bar', int).modifiers == Modifier.FINAL
         hasMethod(clazz.clazz, 'getFoo').modifiers == Modifier.ABSTRACT
         hasMethod(extracted, 'getFoo').modifiers == Modifier.ABSTRACT
-        hasMethod(clazz.clazz, 'getBar').modifiers == Modifier.SYNCHRONIZED
-        hasMethod(extracted, 'getBar').modifiers == Modifier.SYNCHRONIZED
+        hasMethod(clazz.clazz, 'doBar').modifiers == Modifier.SYNCHRONIZED
+        hasMethod(extracted, 'doBar').modifiers == Modifier.SYNCHRONIZED
 
     }
 
