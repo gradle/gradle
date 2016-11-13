@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -172,6 +173,7 @@ public interface Configuration extends FileCollection {
      * @return the format or null if not specified.
      * @since 3.3
      */
+    @Incubating @Nullable
     String getFormat();
 
     /**
@@ -183,7 +185,7 @@ public interface Configuration extends FileCollection {
      * @since 3.3
      */
     @Incubating
-    Configuration setFormat(String format);
+    Configuration setFormat(@Nullable String format);
 
     /**
      * Returns the description for this configuration.
