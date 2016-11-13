@@ -33,7 +33,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
@@ -107,7 +107,15 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
         Set<ResolvedDependency> matches = new LinkedHashSet<ResolvedDependency>();
-        for (Map.Entry<ModuleDependency, ResolvedDependency> entry : loadTransientGraphResults().getFirstLevelDependencies().entrySet()) {
+        for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
+            matches.add(node.getPublicView());
+        }
+        return matches;
+    }
+
+    private Set<DependencyGraphNodeResult> getFirstLevelNodes(Spec<? super Dependency> dependencySpec) {
+        Set<DependencyGraphNodeResult> matches = new LinkedHashSet<DependencyGraphNodeResult>();
+        for (Map.Entry<ModuleDependency, DependencyGraphNodeResult> entry : loadTransientGraphResults().getFirstLevelDependencies().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
                 matches.add(entry.getValue());
             }
@@ -118,7 +126,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     public Set<ResolvedDependency> getAllModuleDependencies() {
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<ResolvedDependency>();
         Deque<ResolvedDependency> workQueue = new LinkedList<ResolvedDependency>();
-        workQueue.addAll(loadTransientGraphResults().getRoot().getChildren());
+        workQueue.addAll(loadTransientGraphResults().getRootNode().getPublicView().getChildren());
         while (!workQueue.isEmpty()) {
             ResolvedDependency item = workQueue.removeFirst();
             if (resolvedElements.add(item)) {
@@ -143,7 +151,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     /**
-     * Collects files reachable from first level dependencies that satisfy the given spec. Rethrows first failure encountered.
+     * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
      */
     public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
@@ -161,7 +169,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     /**
-     * Collects all artifacts. Rethrows first failure encountered.
+     * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
      */
     public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
         ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
@@ -233,13 +241,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
             }
         }
 
-        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor));
 
-        Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
-
-        for (ResolvedDependency resolvedDependency : firstLevelModuleDependencies) {
-            visitor.visitArtifacts(resolvedDependency.getParentArtifacts(loadTransientGraphResults().getRoot()));
-            walker.add(resolvedDependency);
+        for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
+            visitor.visitArtifacts(node.getArtifactsForIncomingEdge(loadTransientGraphResults().getRootNode()));
+            walker.add(node);
         }
         walker.findValues();
     }
@@ -249,7 +255,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return loadTransientGraphResults().getRoot().getChildren();
+        return loadTransientGraphResults().getRootNode().getPublicView().getChildren();
     }
 
     private static class Visitor {
@@ -400,26 +406,27 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
     }
 
-    private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
+    private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<DependencyGraphNodeResult, ResolvedArtifact> {
         private final Visitor artifactsVisitor;
 
         ResolvedDependencyArtifactsGraph(Visitor artifactsVisitor) {
             this.artifactsVisitor = artifactsVisitor;
         }
 
-        public void getNodeValues(ResolvedDependency node, Collection<? super ResolvedArtifact> values,
-                                  Collection<? super ResolvedDependency> connectedNodes) {
-            connectedNodes.addAll(node.getChildren());
+        @Override
+        public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
+            connectedNodes.addAll(node.getOutgoingEdges());
             if (artifactsVisitor.shouldVisitFiles()) {
-                for (LocalFileDependencyMetadata dependencyMetadata : fileDependencyResults.getFiles(((DefaultResolvedDependency) node).getId())) {
+                for (LocalFileDependencyMetadata dependencyMetadata : fileDependencyResults.getFiles(node.getId())) {
                     artifactsVisitor.visitFiles(dependencyMetadata.getComponentId(), dependencyMetadata.getFiles());
                 }
             }
         }
 
-        public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
+        @Override
+        public void getEdgeValues(DependencyGraphNodeResult from, DependencyGraphNodeResult to,
                                   Collection<ResolvedArtifact> values) {
-            artifactsVisitor.visitArtifacts(to.getParentArtifacts(from));
+            artifactsVisitor.visitArtifacts(to.getArtifactsForIncomingEdge(from));
         }
     }
 

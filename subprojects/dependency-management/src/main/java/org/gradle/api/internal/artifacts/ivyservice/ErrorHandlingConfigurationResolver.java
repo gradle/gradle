@@ -110,6 +110,15 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             }
         }
 
+        @Override
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+            try {
+                return lenientConfiguration.getFirstLevelModuleDependencies();
+            } catch (Throwable e) {
+                throw wrapException(e, resolveContext);
+            }
+        }
+
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getFirstLevelModuleDependencies(dependencySpec);

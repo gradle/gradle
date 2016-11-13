@@ -69,7 +69,7 @@ public class DefaultResolvedDependencyTest {
         resolvedDependency.addModuleArtifact(moduleArtifact);
         DefaultResolvedDependency childDependency = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion"), "someChildConfiguration");
         childDependency.addModuleArtifact(childModuleArtifact);
-        resolvedDependency.getChildren().add(childDependency);
+        resolvedDependency.addChild(childDependency);
         assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(toSet(moduleArtifact, childModuleArtifact)));
     }
 
@@ -179,7 +179,7 @@ public class DefaultResolvedDependencyTest {
         createAndAddParent("parent2", resolvedDependency, newHashSet(createArtifact("parent2Specific")));
 
         DefaultResolvedDependency child = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion"), "someChildConfiguration");
-        resolvedDependency.getChildren().add(child);
+        resolvedDependency.addChild(child);
 
         Set<ResolvedArtifact> childParent1SpecificArtifacts = newHashSet(createArtifact("childParent1Specific"));
         createAndAddParent("childParent1", child, childParent1SpecificArtifacts);

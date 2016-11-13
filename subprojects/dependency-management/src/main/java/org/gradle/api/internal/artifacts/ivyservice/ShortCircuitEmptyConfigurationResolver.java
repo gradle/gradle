@@ -107,6 +107,11 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         public LenientConfiguration getLenientConfiguration() {
             return new LenientConfiguration() {
+                @Override
+                public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+                    return Collections.emptySet();
+                }
+
                 public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }

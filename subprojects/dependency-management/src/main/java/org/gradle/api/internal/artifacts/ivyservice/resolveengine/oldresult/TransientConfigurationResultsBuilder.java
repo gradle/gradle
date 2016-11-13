@@ -17,7 +17,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
 import org.gradle.api.internal.cache.BinaryStore;
@@ -32,6 +34,7 @@ import org.gradle.internal.time.Timers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -130,7 +133,8 @@ public class TransientConfigurationResultsBuilder {
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedContentsMapping mapping) {
         Timer clock = Timers.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
-        DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
+        Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
+        DependencyGraphNodeResult root;
         int valuesRead = 0;
         byte type = -1;
         try {
@@ -146,20 +150,20 @@ public class TransientConfigurationResultsBuilder {
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();
-                        results.root = allDependencies.get(id);
-                        if (results.root == null) {
+                        root = allDependencies.get(id);
+                        if (root == null) {
                             throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
                         //root should be the last
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
-                        return results;
+                        return new DefaultTransientConfigurationResults(root, firstLevelDependencies);
                     case FIRST_LVL:
                         id = decoder.readSmallLong();
                         DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
                             throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
-                        results.firstLevelDependencies.put(mapping.getModuleDependency(id), dependency);
+                        firstLevelDependencies.put(mapping.getModuleDependency(id), dependency);
                         break;
                     case PARENT_CHILD:
                         long parentId = decoder.readSmallLong();

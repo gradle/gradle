@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -24,6 +25,7 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,8 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class DefaultResolvedDependency implements ResolvedDependency {
-    private final Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
+public class DefaultResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
+    private final Set<DefaultResolvedDependency> children = new LinkedHashSet<DefaultResolvedDependency>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private final String name;
@@ -49,10 +51,16 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         this.moduleArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
     }
 
+    @Override
+    public ResolvedDependency getPublicView() {
+        return this;
+    }
+
     public String getName() {
         return name;
     }
 
+    @Override
     public ResolvedConfigurationIdentifier getId() {
         return id;
     }
@@ -78,6 +86,11 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     public Set<ResolvedDependency> getChildren() {
+        return ImmutableSet.<ResolvedDependency>copyOf(children);
+    }
+
+    @Override
+    public Collection<? extends DependencyGraphNodeResult> getOutgoingEdges() {
         return children;
     }
 
@@ -103,6 +116,11 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         }
         Set<ResolvedArtifact> artifacts = parentArtifacts.get(parent);
         return artifacts == null ? Collections.<ResolvedArtifact>emptySet() : artifacts;
+    }
+
+    @Override
+    public Set<ResolvedArtifact> getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
+        return getParentArtifacts((ResolvedDependency) from);
     }
 
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {

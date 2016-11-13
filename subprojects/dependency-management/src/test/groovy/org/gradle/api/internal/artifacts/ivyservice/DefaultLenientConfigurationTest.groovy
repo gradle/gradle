@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
+import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Factory
@@ -30,15 +32,16 @@ class DefaultLenientConfigurationTest extends Specification {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
-        ResolvedDependency root = Mock(ResolvedDependency)
-        def expectedResults = [Mock(ResolvedDependency)] as Set
+        def rootNode = new TestResolvedDependency()
+        def child = new TestResolvedDependency()
+        rootNode.children.add(child)
+        def expectedResults = [child] as Set
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
 
         then:
-        1 * transientConfigurationResults.getRoot() >> root
-        1 * root.getChildren() >> expectedResults
+        1 * transientConfigurationResults.getRootNode() >> rootNode
         results == expectedResults
         0 * _._
     }
@@ -47,8 +50,11 @@ class DefaultLenientConfigurationTest extends Specification {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
-        Spec spec = Mock(Spec)
-        def firstLevelDependencies = [(Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency)]
+        def spec = Mock(Spec)
+        def node1 = new TestResolvedDependency()
+        def node2 = new TestResolvedDependency()
+        def node3 = new TestResolvedDependency()
+        def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
 
         when:
@@ -59,7 +65,7 @@ class DefaultLenientConfigurationTest extends Specification {
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[0].key) >> true
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[1].key) >> false
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[2].key) >> true
-        result == [firstLevelDependenciesEntries[0].value, firstLevelDependenciesEntries[2].value] as Set
+        result == [node1, node3] as Set
         0 * _._
     }
 
@@ -74,7 +80,7 @@ class DefaultLenientConfigurationTest extends Specification {
         def result = lenientConfiguration.getAllModuleDependencies()
 
         then:
-        1 * transientConfigurationResults.getRoot() >> root
+        1 * transientConfigurationResults.getRootNode() >> root
         result.size() == size
         result == expected
 
@@ -105,17 +111,37 @@ class DefaultLenientConfigurationTest extends Specification {
         [new LinkedHashSet(dependenciesById.values()), root]
     }
 
-    private static class TestResolvedDependency implements ResolvedDependency {
+    private static class TestResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
         String name
         String moduleGroup
         String moduleName
         String moduleVersion
         String configuration
         ResolvedModuleVersion module
-        Set<ResolvedDependency> children
+        Set<ResolvedDependency> children = []
         Set<ResolvedDependency> parents
         Set<ResolvedArtifact> moduleArtifacts
         Set<ResolvedArtifact> allModuleArtifacts
+
+        @Override
+        ResolvedDependency getPublicView() {
+            return this
+        }
+
+        @Override
+        ResolvedConfigurationIdentifier getId() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Collection<? extends DependencyGraphNodeResult> getOutgoingEdges() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Set<ResolvedArtifact> getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
+            throw new UnsupportedOperationException()
+        }
 
         @Override
         Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
