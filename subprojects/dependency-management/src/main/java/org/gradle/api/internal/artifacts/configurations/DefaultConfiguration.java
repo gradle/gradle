@@ -24,7 +24,6 @@ import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
@@ -58,7 +57,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -944,34 +942,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             cachedResolverResults.getResolvedConfiguration().rethrowFailure();
             Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
             cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
-            return filterAndTransform(artifacts);
-        }
-
-        private Set<ResolvedArtifactResult> filterAndTransform(Set<ResolvedArtifactResult> artifacts) {
-            if (format == null) {
-                // this is a configuration without specific format
-                return artifacts;
-            }
-
-            Set<ResolvedArtifactResult> filteredArtifacts = new LinkedHashSet<ResolvedArtifactResult>();
-
-            // First attempt to locate artifacts with the correct format
-            for (ResolvedArtifactResult artifact : artifacts) {
-                if (artifact.getFormat().equals(format)) {
-                    filteredArtifacts.add(artifact);
-                } else {
-                    Transformer<File, File> transform = getResolutionStrategy().getTransform(artifact.getFormat(), format);
-                    if (transform != null) {
-                        // TODO: Parallel evaluation and caching
-                        File transformedFile = transform.transform(artifact.getFile());
-
-                        ResolvedArtifactResult transformedArtifact = new DefaultResolvedArtifactResult(
-                            artifact.getId(), artifact.getType(), format, transformedFile);
-                        filteredArtifacts.add(transformedArtifact);
-                    }
-                }
-            }
-            return filteredArtifacts;
+            return artifacts;
         }
     }
 

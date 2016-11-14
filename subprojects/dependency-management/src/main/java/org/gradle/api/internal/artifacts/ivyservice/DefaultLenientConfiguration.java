@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
@@ -69,15 +68,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     private final ResolvedArtifactResults artifactResults;
     private final FileDependencyResults fileDependencyResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
+    private final ArtifactTransformer artifactTransformer;
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
-                                       ResolvedArtifactResults artifactResults, FileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader) {
+                                       ResolvedArtifactResults artifactResults, FileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
+        this.artifactTransformer = artifactTransformer;
     }
 
     public boolean hasError() {
@@ -231,7 +232,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, Visitor visitor) {
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, ArtifactVisitor visitor) {
+        visitor = artifactTransformer.visitor(visitor);
+
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
@@ -268,12 +271,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     private static class Visitor implements ArtifactVisitor {
-        final void visitArtifacts(Set<ResolvedArtifact> artifacts) {
-            for (ResolvedArtifact artifact : artifacts) {
-                visitArtifact(artifact);
-            }
-        }
-
         @Override
         public void visitArtifact(ResolvedArtifact artifact) {
         }
@@ -284,7 +281,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
             throw new UnsupportedOperationException();
         }
     }
@@ -310,7 +307,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
             try {
                 for (File file : files) {
                     this.files.add(file);
@@ -360,7 +357,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
             try {
                 for (File file : files) {
                     if (seenFiles.add(file)) {
@@ -401,8 +398,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files) {
-            this.files.addAll(files.getFiles());
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+            CollectionUtils.addAll(this.files, files);
         }
     }
 
@@ -424,9 +421,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<DependencyGraphNodeResult, ResolvedArtifact> {
-        private final Visitor artifactsVisitor;
+        private final ArtifactVisitor artifactsVisitor;
 
-        ResolvedDependencyArtifactsGraph(Visitor artifactsVisitor) {
+        ResolvedDependencyArtifactsGraph(ArtifactVisitor artifactsVisitor) {
             this.artifactsVisitor = artifactsVisitor;
         }
 

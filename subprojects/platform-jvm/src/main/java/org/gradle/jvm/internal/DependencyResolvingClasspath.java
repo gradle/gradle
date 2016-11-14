@@ -20,7 +20,6 @@ import org.gradle.api.AttributesSchema;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -96,7 +95,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files) {
+            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
                 for (File file : files) {
                     result.add(file);
                 }

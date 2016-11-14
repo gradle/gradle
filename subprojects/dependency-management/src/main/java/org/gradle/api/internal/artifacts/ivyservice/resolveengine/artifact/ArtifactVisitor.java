@@ -19,7 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.file.FileCollection;
+
+import java.io.File;
 
 public interface ArtifactVisitor {
     /**
@@ -28,12 +29,12 @@ public interface ArtifactVisitor {
     void visitArtifact(ResolvedArtifact artifact);
 
     /**
-     * Should {@link #visitFiles(ComponentIdentifier, FileCollection)} be called?
+     * Should {@link #visitFiles(ComponentIdentifier, Iterable)} be called?
      */
     boolean includeFiles();
 
     /**
      * Visits a file collection. Should be considered a set of artifacts but is separate as a migration step.
      */
-    void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files);
+    void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files);
 }
