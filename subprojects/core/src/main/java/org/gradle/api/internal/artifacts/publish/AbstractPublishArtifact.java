@@ -15,16 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.DefaultAttributeContainer;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 
 public abstract class AbstractPublishArtifact implements PublishArtifact {
     private final DefaultTaskDependency taskDependency;
+    private final AttributeContainer attributes;
 
     public AbstractPublishArtifact(Object... tasks) {
         taskDependency = new DefaultTaskDependency();
         taskDependency.add(tasks);
+        this.attributes = new DefaultAttributeContainer();
     }
 
     public TaskDependency getBuildDependencies() {
@@ -34,6 +38,11 @@ public abstract class AbstractPublishArtifact implements PublishArtifact {
     public AbstractPublishArtifact builtBy(Object... tasks) {
         taskDependency.add(tasks);
         return this;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
     }
 
     @Override

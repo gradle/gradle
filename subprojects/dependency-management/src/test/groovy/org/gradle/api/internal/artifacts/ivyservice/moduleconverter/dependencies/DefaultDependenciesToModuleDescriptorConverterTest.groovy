@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.internal.artifacts.AttributeContainerInternal
+import org.gradle.api.internal.AttributeContainerInternal
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude

@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
-import org.gradle.api.internal.artifacts.AttributeContainerInternal;
+import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 

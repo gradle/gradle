@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.AttributeContainerInternal;
+import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
