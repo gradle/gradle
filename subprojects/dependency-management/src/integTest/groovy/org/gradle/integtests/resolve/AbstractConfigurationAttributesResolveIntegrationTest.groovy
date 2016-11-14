@@ -35,8 +35,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     }
 
     abstract String getDebug()
+
     abstract String getFree()
+
     abstract String getRelease()
+
     abstract String getPaid()
 
     def "selects configuration in target project which matches the configuration attributes"() {
@@ -420,7 +423,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-   def "cannot choose a configuration when multiple partial matchs are found"() {
+    def "cannot choose a configuration when multiple partial matchs are found"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -471,7 +474,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Cannot choose between the following configurations: [bar, foo]. All of them partially match the client attributes {buildType=debug, flavor=free}"
+        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, foo]. All of them partially match the consumer attributes:
+   - Configuration 'bar' :
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Required flavor 'free' but no value provided."""))
 
     }
 
@@ -572,8 +581,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug}'
-
+        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+   - Configuration 'bar' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+   - Configuration 'foo' :
+      - Required buildType 'debug' and found compatible value 'debug'."""))
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -622,8 +634,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug, flavor=free}')
-
+        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+   - Configuration 'bar' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra 2' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'."""))
     }
 
     /**
@@ -684,8 +703,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.assertHasCause("Cannot choose between the following configurations: [compile, debug]. All of them partially match the client attributes {buildType=debug, flavor=free}")
-
+        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [compile, debug]. All of them partially match the consumer attributes:
+   - Configuration 'compile' :
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'debug'   :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Required flavor 'free' but no value provided."""))
     }
 
     def "transitive dependencies of selected configuration are included"() {
@@ -994,13 +1018,29 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of them match the client attributes {buildType=debug, flavor=free}')
+        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [foo, foo2]. All of them match the consumer attributes:
+   - Configuration 'foo'  :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo2' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra 2' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'."""))
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of them match the client attributes {buildType=release, flavor=free}')
+        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, bar2]. All of them match the consumer attributes:
+   - Configuration 'bar'  :
+      - Required buildType 'release' and found compatible value 'release'.
+      - Found extra 'extra' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'bar2' :
+      - Required buildType 'release' and found compatible value 'release'.
+      - Found extra 'extra 2' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'."""))
 
     }
 
@@ -1255,7 +1295,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-   def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
+    def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
