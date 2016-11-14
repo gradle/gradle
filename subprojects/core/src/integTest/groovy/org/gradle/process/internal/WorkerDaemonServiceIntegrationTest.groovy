@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -118,7 +119,7 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         fails("runInDaemon")
 
         then:
-        errorOutput.contains("Unrecognized option: -foo")
+        errorOutput.contains(unrecognizedOptionError)
 
         and:
         failure.assertHasCause("Failed to run Gradle Worker Daemon")
@@ -230,6 +231,15 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Successfully started process 'Gradle Worker Daemon 1'")
         output.contains("Executing org.gradle.process.internal.daemon.WorkerDaemonRunnableExecutor\$WrappedDaemonRunnable")
         output.contains("Successfully executed org.gradle.process.internal.daemon.WorkerDaemonRunnableExecutor\$WrappedDaemonRunnable")
+    }
+
+    String getUnrecognizedOptionError() {
+        def jvm = Jvm.current()
+        if (jvm.ibmJvm) {
+            return "Command-line option unrecognised: -foo"
+        } else {
+            return "Unrecognized option: -foo"
+        }
     }
 
     void assertRunnableExecuted(String taskName) {
