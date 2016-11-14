@@ -112,7 +112,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new WorkerDaemonManager(new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter)));
     }
 
-    WorkerDaemonService createWorkerDaemonAdapter(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {
+    WorkerDaemonService createWorkerDaemonService(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {
         return new DefaultWorkerDaemonService(workerDaemonManager, fileResolver);
     }
 }
