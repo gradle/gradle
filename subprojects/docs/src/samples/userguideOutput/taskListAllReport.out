@@ -10,12 +10,9 @@ Build tasks
 clean - Deletes the build directory (build)
 api:clean - Deletes the build directory (build)
 webapp:clean - Deletes the build directory (build)
-dists - Builds the distribution [api:libs, webapp:libs]
-    docs - Builds the documentation
+dists - Builds the distribution
 api:libs - Builds the JAR
-    api:compile - Compiles the source files
-webapp:libs - Builds the JAR [api:libs]
-    webapp:compile - Compiles the source files
+webapp:libs - Builds the JAR
 
 Build Setup tasks
 -----------------
@@ -54,3 +51,9 @@ webapp:properties - Displays the properties of project ':webapp'.
 tasks - Displays the tasks runnable from root project 'projectReports' (some of the displayed tasks may belong to subprojects).
 api:tasks - Displays the tasks runnable from project ':api'.
 webapp:tasks - Displays the tasks runnable from project ':webapp'.
+
+Other tasks
+-----------
+api:compile - Compiles the source files
+webapp:compile - Compiles the source files
+docs - Builds the documentation

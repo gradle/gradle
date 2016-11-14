@@ -89,9 +89,9 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         model.groups == ['group', ''] as Set
         def tasks = model.getTasksForGroup('') as List
-        tasks*.task == [task5]
+        tasks*.task == [task1, task3, task4, task5]
         def t = tasks.first()
-        t.task == task5
+        t.task == task1
     }
 
     def addsAGroupWhenThereAreNoTasksWithAGroup() {
@@ -105,7 +105,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         model.groups == [''] as Set
         def tasks = model.getTasksForGroup('') as List
-        tasks*.task == [task2, task3]
+        tasks*.task == [task1, task2, task3]
     }
 
     def buildsModelWhenThereAreNoTasks() {

@@ -73,6 +73,7 @@ b
         output.contains("""
 Other tasks
 -----------
+a
 b
 """)
     }
@@ -98,6 +99,50 @@ b
 $groupHeader
 a
 b
+""")
+    }
+
+    def "renders tasks in a multi-project build running [tasks]"() {
+        given:
+        buildFile << multiProjectBuild()
+        settingsFile << "include 'sub1', 'sub2'"
+
+        when:
+        succeeds TASKS_REPORT_TASK
+
+        then:
+        output.contains("""
+$groupHeader
+a
+""")
+        !output.contains("""
+Other tasks
+-----------
+c
+""")
+    }
+
+    def "renders tasks in a multi-project build running [tasks, --all]"() {
+        given:
+        buildFile << multiProjectBuild()
+        settingsFile << "include 'sub1', 'sub2'"
+
+        when:
+        succeeds TASKS_DETAILED_REPORT_TASK
+
+        then:
+        output.contains("""
+$groupHeader
+a
+sub1:a
+sub2:a
+""")
+        output.contains("""
+Other tasks
+-----------
+sub1:b
+sub2:b
+c
 """)
     }
 
@@ -230,5 +275,21 @@ alpha - ALPHA_in_sub1
     static String getGroupHeader() {
         """$GROUP tasks
 -----------------"""
+    }
+
+    static String multiProjectBuild() {
+        """
+            allprojects {
+                task a {
+                    group = '$GROUP'
+                }
+            }
+
+            subprojects {
+                task b
+            }
+
+            task c
+        """
     }
 }
