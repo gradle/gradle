@@ -26,12 +26,12 @@ import java.util.Collection;
 
 public interface ArtifactResults {
     /**
-     * Collects files reachable from first level dependencies that satisfy the given spec. Rethrows first failure encountered.
+     * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved.
      */
     void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) throws ResolveException;
 
     /**
-     * Collects all artifacts into the given collection.
+     * Collects all artifacts into the given collection. Fails when any artifact cannot be resolved.
      *
      * @throws ResolveException On failure to resolve or download any artifact.
      */
