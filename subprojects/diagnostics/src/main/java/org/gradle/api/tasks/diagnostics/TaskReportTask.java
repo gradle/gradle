@@ -35,8 +35,9 @@ import java.io.IOException;
  * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
  * from the command-line.</p>
  *
- * By default only reports on a task whose group is visible (meaning non-null or blank).
- * Hidden groups (null or blank) can be included in the report by enabling the command line option {@code --all}.
+ * By default, this report shows only those tasks which have been assigned to a task group, so-called <i>visible</i>
+ * tasks. Tasks which have not been assigned to a task group, so-called <i>hidden</i> tasks, can be included in the report
+ * by enabling the command line option {@code --all}.
  */
 public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
