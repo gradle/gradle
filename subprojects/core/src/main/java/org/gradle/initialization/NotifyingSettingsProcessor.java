@@ -34,12 +34,12 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsInternal process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope baseClassLoaderScope, final StartParameter startParameter) {
+    public SettingsInternal process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameter startParameter) {
         BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Configure settings").progressDisplayName("settings").build();
         return buildOperationExecutor.run(operationDetails, new Factory<SettingsInternal>() {
             @Override
             public SettingsInternal create() {
-                return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
+                return settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
             }
         });
     }
