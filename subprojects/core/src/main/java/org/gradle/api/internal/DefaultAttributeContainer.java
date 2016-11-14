@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+// TODO: CC: Maybe it would be good to have a parent AttributeContainer too, so that
+// in the case of artifacts, we can inherit the attributes from the configuration
 public class DefaultAttributeContainer implements AttributeContainerInternal {
 
     private Map<Attribute<?>, Object> attributes;
