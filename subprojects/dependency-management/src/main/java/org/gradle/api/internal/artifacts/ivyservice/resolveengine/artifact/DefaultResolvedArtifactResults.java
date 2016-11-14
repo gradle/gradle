@@ -29,8 +29,8 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     private Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
 
     // Artifact State : held for the life of a build
-    private ArtifactBackedArtifactSet allArtifacts;
-    private Map<Long, ArtifactBackedArtifactSet> resolvedArtifactsById;
+    private ResolvedArtifactSet allArtifacts;
+    private Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
 
     @Override
     public ResolvedArtifactSet getArtifacts() {
@@ -55,9 +55,9 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
             for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
                 Set<ResolvedArtifact> resolvedArtifacts = entry.getValue().getArtifacts();
                 artifacts.addAll(resolvedArtifacts);
-                resolvedArtifactsById.put(entry.getKey(), new ArtifactBackedArtifactSet(resolvedArtifacts));
+                resolvedArtifactsById.put(entry.getKey(), ArtifactBackedArtifactSet.of(resolvedArtifacts));
             }
-            allArtifacts = new ArtifactBackedArtifactSet(artifacts);
+            allArtifacts = ArtifactBackedArtifactSet.of(artifacts);
 
             // Release ResolvedArtifactSet instances so we're not holding onto state
             artifactSets = null;

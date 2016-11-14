@@ -20,6 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -40,4 +41,19 @@ public interface ResolvedArtifactSet {
      * Visits the contents of this set.
      */
     void visit(ArtifactVisitor visitor);
+
+    ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
+        @Override
+        public Set<ResolvedArtifact> getArtifacts() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void collectBuildDependencies(Collection<? super Buildable> dest) {
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+        }
+    };
 }

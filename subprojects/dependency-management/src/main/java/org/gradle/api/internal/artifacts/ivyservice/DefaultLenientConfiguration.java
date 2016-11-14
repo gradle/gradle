@@ -236,9 +236,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
             if (visitor.includeFiles()) {
-                for (ResolvedArtifactSet artifacts : fileDependencyResults.getFiles()) {
-                    artifacts.visit(visitor);
-                }
+                fileDependencyResults.getFiles().visit(visitor);
             }
             artifactResults.getArtifacts().visit(visitor);
             return;
@@ -255,7 +253,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor));
 
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
-            visitor.visitArtifacts(node.getArtifactsForIncomingEdge(loadTransientGraphResults().getRootNode()));
+            node.getArtifactsForIncomingEdge(loadTransientGraphResults().getRootNode()).visit(visitor);
             walker.add(node);
         }
         walker.findValues();
@@ -436,16 +434,14 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
             if (artifactsVisitor.includeFiles()) {
-                for (ResolvedArtifactSet artifacts : fileDependencyResults.getFiles(node.getNodeId())) {
-                    artifacts.visit(artifactsVisitor);
-                }
+                fileDependencyResults.getFiles(node.getNodeId()).visit(artifactsVisitor);
             }
         }
 
         @Override
         public void getEdgeValues(DependencyGraphNodeResult from, DependencyGraphNodeResult to,
                                   Collection<ResolvedArtifact> values) {
-            artifactsVisitor.visitArtifacts(to.getArtifactsForIncomingEdge(from));
+            to.getArtifactsForIncomingEdge(from).visit(artifactsVisitor);
         }
     }
 

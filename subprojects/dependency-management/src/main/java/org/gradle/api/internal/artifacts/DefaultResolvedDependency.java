@@ -16,19 +16,21 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -37,11 +39,11 @@ import java.util.TreeSet;
 public class DefaultResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<DefaultResolvedDependency>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
-    private final Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
     private final Long id;
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
-    private final Set<ResolvedArtifact> moduleArtifacts;
+    private final Set<ResolvedArtifactSet> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
@@ -49,7 +51,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         this.id = id;
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;
-        this.moduleArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
+        this.moduleArtifacts = new LinkedHashSet<ResolvedArtifactSet>();
     }
 
     @Override
@@ -96,7 +98,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     public Set<ResolvedArtifact> getModuleArtifacts() {
-        return moduleArtifacts;
+        return sort(CompositeArtifactSet.of(moduleArtifacts));
     }
 
     public Set<ResolvedArtifact> getAllModuleArtifacts() {
@@ -112,16 +114,21 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
-        if (!parents.contains(parent)) {
-            throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
-        }
-        Set<ResolvedArtifact> artifacts = parentArtifacts.get(parent);
-        return artifacts == null ? Collections.<ResolvedArtifact>emptySet() : artifacts;
+        return sort(getArtifactsForIncomingEdge((DependencyGraphNodeResult) parent));
+    }
+
+    private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
+        Set<ResolvedArtifact> result = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
+        result.addAll(artifacts.getArtifacts());
+        return result;
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
-        return getParentArtifacts((ResolvedDependency) from);
+    public ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult parent) {
+        if (!parents.contains(parent)) {
+            throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
+        }
+        return CompositeArtifactSet.of(parentArtifacts.get((ResolvedDependency) parent));
     }
 
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
@@ -173,18 +180,9 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         child.parents.add(this);
     }
 
-    public void addParentSpecificArtifacts(ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
-        Set<ResolvedArtifact> parentArtifacts = this.parentArtifacts.get(parent);
-        if (parentArtifacts == null) {
-            parentArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
-            this.parentArtifacts.put(parent, parentArtifacts);
-        }
-        parentArtifacts.addAll(artifacts);
-        moduleArtifacts.addAll(artifacts);
-    }
-
-    public void addModuleArtifact(ResolvedArtifact artifact) {
-        moduleArtifacts.add(artifact);
+    public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedArtifactSet artifacts) {
+        this.parentArtifacts.put(parent, artifacts);
+        moduleArtifacts.add(artifacts);
     }
 
     private static class ResolvedArtifactComparator implements Comparator<ResolvedArtifact> {

@@ -24,9 +24,15 @@ class ArtifactBackedArtifactSetTest extends Specification {
     def artifact2 = Mock(ResolvedArtifact)
     def set = new ArtifactBackedArtifactSet([artifact1, artifact2] as Set)
 
-    def "returns artifacts"() {
+    def "factory method returns empty set when source set is empty"() {
         expect:
-        set.artifacts == [artifact1, artifact2] as Set
+        ArtifactBackedArtifactSet.of([]) == ResolvedArtifactSet.EMPTY
+        ArtifactBackedArtifactSet.of([artifact1, artifact2]) instanceof ArtifactBackedArtifactSet
+    }
+
+    def "returns artifacts and retains order"() {
+        expect:
+        set.artifacts as List == [artifact1, artifact2]
     }
 
     def "visits artifacts"() {

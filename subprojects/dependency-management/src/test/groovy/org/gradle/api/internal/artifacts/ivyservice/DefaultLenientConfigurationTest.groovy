@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Factory
@@ -138,7 +139,7 @@ class DefaultLenientConfigurationTest extends Specification {
         }
 
         @Override
-        Set<ResolvedArtifact> getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
+        ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
             throw new UnsupportedOperationException()
         }
 

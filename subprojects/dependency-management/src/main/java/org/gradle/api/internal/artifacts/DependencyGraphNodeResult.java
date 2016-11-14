@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 import java.util.Collection;
-import java.util.Set;
 
 public interface DependencyGraphNodeResult {
     ResolvedDependency getPublicView();
@@ -29,5 +28,5 @@ public interface DependencyGraphNodeResult {
 
     Collection<? extends DependencyGraphNodeResult> getOutgoingEdges();
 
-    Set<ResolvedArtifact> getArtifactsForIncomingEdge(DependencyGraphNodeResult from);
+    ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult from);
 }

@@ -26,13 +26,20 @@ import java.util.Set;
 public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
     private final Set<ResolvedArtifact> artifacts;
 
-    public ArtifactBackedArtifactSet(Set<ResolvedArtifact> artifacts) {
-        this.artifacts = artifacts;
+    public ArtifactBackedArtifactSet(Collection<? extends ResolvedArtifact> artifacts) {
+        this.artifacts = ImmutableSet.copyOf(artifacts);
+    }
+
+    public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifact> artifacts) {
+        if (artifacts.isEmpty()) {
+            return EMPTY;
+        }
+        return new ArtifactBackedArtifactSet(artifacts);
     }
 
     @Override
     public Set<ResolvedArtifact> getArtifacts() {
-        return ImmutableSet.copyOf(artifacts);
+        return artifacts;
     }
 
     @Override

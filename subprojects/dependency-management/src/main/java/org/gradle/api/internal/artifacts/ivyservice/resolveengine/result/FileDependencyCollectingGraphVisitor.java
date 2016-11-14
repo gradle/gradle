@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -32,7 +31,6 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -83,19 +81,12 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public Set<ResolvedArtifactSet> getFiles(Long node) {
-        return filesByConfiguration.get(node);
+    public ResolvedArtifactSet getFiles(Long node) {
+        return CompositeArtifactSet.of(filesByConfiguration.get(node));
     }
 
     @Override
-    public Set<ResolvedArtifactSet> getFiles() {
-        return ImmutableSet.copyOf(filesByConfiguration.values());
-    }
-
-    @Override
-    public void collectBuildDependencies(Collection<? super Buildable> dest) {
-        for (ResolvedArtifactSet dependency : filesByConfiguration.values()) {
-            dependency.collectBuildDependencies(dest);
-        }
+    public ResolvedArtifactSet getFiles() {
+        return CompositeArtifactSet.of(filesByConfiguration.values());
     }
 }

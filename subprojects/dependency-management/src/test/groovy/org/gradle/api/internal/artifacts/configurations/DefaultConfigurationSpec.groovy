@@ -43,6 +43,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
@@ -498,10 +499,12 @@ class DefaultConfigurationSpec extends Specification {
         def fileDependencyTaskDependencies = Mock(TaskDependency)
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         def fileDependenciesResult = Mock(FileDependencyResults)
+        def artifacts = Mock(ResolvedArtifactSet)
 
         given:
         _ * localComponentsResult.collectArtifactBuildDependencies(_) >> { it[0].add(artifactTaskDependencies) }
-        _ * fileDependenciesResult.collectBuildDependencies(_) >> { it[0].add(fileDependency) }
+        _ * fileDependenciesResult.files >> artifacts
+        _ * artifacts.collectBuildDependencies(_) >> { it[0].add(fileDependency) }
         _ * fileDependency.buildDependencies >> fileDependencyTaskDependencies
         _ * artifactTaskDependencies.getDependencies(_) >> ([task1] as Set)
         _ * fileDependencyTaskDependencies.getDependencies(_) >> ([task2] as Set)

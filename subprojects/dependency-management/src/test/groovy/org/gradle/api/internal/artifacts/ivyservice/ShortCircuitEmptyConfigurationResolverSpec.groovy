@@ -49,7 +49,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations as List == []
 
         def fileDependencyResults = results.fileDependencies
-        fileDependencyResults.collectBuildDependencies(buildDeps)
+        fileDependencyResults.files.collectBuildDependencies(buildDeps)
 
         buildDeps.empty
 
@@ -78,7 +78,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations as List == []
 
         def fileDependencyResults = results.fileDependencies
-        fileDependencyResults.collectBuildDependencies(buildDeps)
+        fileDependencyResults.files.collectBuildDependencies(buildDeps)
 
         buildDeps.empty
 
