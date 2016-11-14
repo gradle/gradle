@@ -16,6 +16,7 @@
 
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 
+def buildClock = new Clock()
 def taskInfos = []
 
 class TaskCacheInfo {
@@ -95,6 +96,7 @@ gradle.addListener(new BuildAdapter() {
                 ? new PrintWriter(csv)
                 : new PrintWriter(System.out)
             try {
+                writer.println(["Build time", buildClock.timeInMs].collect { quote(it) }.join(","))
                 writer.println(["Outcome", "Cacheable", "Task", "Package", "Count", "Sum", "Mean", "StdDev", "Min", "Max"].collect { quote(it) }.join(","))
                 def byOutcome = taskInfos.groupBy { it.outcome }
                 byOutcome.each { outcome, taskInfosWithOutcome ->
@@ -161,6 +163,12 @@ static List<Object> csvSummary(Collection<TaskCacheInfo> tasks) {
 static String quote(def data) {
     if (data == null) {
         return ""
+    }
+    if (data instanceof Boolean) {
+        return data
+    }
+    if (data instanceof Number) {
+        return data
     }
     def string = data.toString().replace((char) '"', (char) '\'')
     return "\"$string\""
