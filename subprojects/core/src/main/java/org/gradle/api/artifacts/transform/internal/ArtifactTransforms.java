@@ -22,6 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.TransformInput;
 import org.gradle.api.artifacts.transform.TransformOutput;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -82,17 +84,21 @@ public class ArtifactTransforms {
         public Transformer<File, File> getTransformer() {
             ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
             config.execute(artifactTransform);
-            return new DependencyTransformTransformer(artifactTransform, outputProperty);
+            return new DependencyTransformTransformer(artifactTransform, outputProperty, to);
         }
     }
 
     private static class DependencyTransformTransformer implements Transformer<File, File> {
+        private static final Logger LOGGER = Logging.getLogger(DependencyTransformTransformer.class);
+
         private final ArtifactTransform artifactTransform;
         private final JavaMethod<? super ArtifactTransform, File> outputProperty;
+        private final String outputFormat;
 
-        private DependencyTransformTransformer(ArtifactTransform artifactTransform, JavaMethod<? super ArtifactTransform, File> outputProperty) {
+        private DependencyTransformTransformer(ArtifactTransform artifactTransform, JavaMethod<? super ArtifactTransform, File> outputProperty, String outputFormat) {
             this.artifactTransform = artifactTransform;
             this.outputProperty = outputProperty;
+            this.outputFormat = outputFormat;
         }
 
         @Override
@@ -100,8 +106,25 @@ public class ArtifactTransforms {
             if (artifactTransform.getOutputDirectory() != null) {
                 artifactTransform.getOutputDirectory().mkdirs();
             }
-            artifactTransform.transform(file);
-            return outputProperty.invoke(artifactTransform);
+            File output = null;
+            try {
+                artifactTransform.transform(file);
+                output = outputProperty.invoke(artifactTransform);
+                if (output == null) {
+                    reportError(file, "no output file created", null);
+                } else if (!output.exists()) {
+                    reportError(file, "expected output file '" + output.getPath() + "' was not created", null);
+                }
+            } catch (Exception e) {
+                reportError(file, e.getMessage(), e);
+            }
+            return output;
+        }
+
+        private void reportError(File input, String message, Exception e) {
+            LOGGER.error(String.format("Error while transforming '%s' to format '%s' using '%s'%s",
+                input.getName(), outputFormat, artifactTransform.getClass().getSimpleName(),
+                message != null ? " - " + message : ""), e);
         }
     }
 
