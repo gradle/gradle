@@ -102,6 +102,15 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             this.resolveContext = resolveContext;
         }
 
+        @Override
+        public Set<ResolvedArtifact> getArtifacts() {
+            try {
+                return lenientConfiguration.getArtifacts();
+            } catch (Exception e) {
+                throw wrapException(e, resolveContext);
+            }
+        }
+
         public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getArtifacts(dependencySpec);
@@ -140,6 +149,15 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 return lenientConfiguration.getUnresolvedModuleDependencies();
             } catch (Throwable e) {
+                throw wrapException(e, resolveContext);
+            }
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            try {
+                return lenientConfiguration.getFiles();
+            } catch (Exception e) {
                 throw wrapException(e, resolveContext);
             }
         }
@@ -233,6 +251,15 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             }
         }
 
+        @Override
+        public Set<File> getFiles() throws ResolveException {
+            try {
+                return resolvedConfiguration.getFiles();
+            } catch (ResolveException e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
             try {
                 return resolvedConfiguration.getFiles(dependencySpec);
@@ -284,6 +311,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         public void rethrowFailure() throws ResolveException {
+            throw wrapException(e, configuration);
+        }
+
+        @Override
+        public Set<File> getFiles() throws ResolveException {
             throw wrapException(e, configuration);
         }
 

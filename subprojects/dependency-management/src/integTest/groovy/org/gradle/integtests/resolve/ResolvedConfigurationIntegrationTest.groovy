@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
-public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpec {
+class ResolvedConfigurationIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
         buildFile << """
             allprojects {
@@ -29,6 +31,45 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpe
                 maven { url '${mavenRepo.uri}' }
             }
         """
+    }
+
+    @Unroll
+    def "resolves strictly for #expression"() {
+        settingsFile << "include 'child'"
+        mavenRepo.module('org.foo', 'hiphop').publish()
+        mavenRepo.module('org.foo', 'rock').dependsOnModules("some unresolved dependency").publish()
+
+        buildFile << """
+            dependencies {
+                compile 'org.foo:hiphop:1.0'
+                compile 'unresolved.org:hiphopxx:3.0' //does not exist
+                compile project(":child")
+
+                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
+            }
+
+            task validate {
+                doLast {
+                    def compile = configurations.compile.resolvedConfiguration
+                    assert compile.hasError()
+                    println "evaluating:"
+                    compile.${expression}
+                }
+            }
+        """
+
+        expect:
+        fails "validate"
+        outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
+        failure.assertHasCause("Could not find unresolved.org:hiphopxx:3.0.")
+
+        where:
+        expression                                 | _
+        "firstLevelModuleDependencies"             | _
+        "getFirstLevelModuleDependencies { true }" | _
+        "files { true }"                           | _
+        "files"                                    | _
+        "resolvedArtifacts"                        | _
     }
 
     def "resolves leniently"() {
@@ -49,14 +90,90 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpe
                 doLast {
                     LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
 
-                    def unresolved = compile.getUnresolvedModuleDependencies()
-                    def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                    def resolved = compile.firstLevelModuleDependencies
 
                     assert resolved.size() == 3
-                    assert resolved.find { it.moduleName == 'hiphop' }
-                    assert resolved.find { it.moduleName == 'rock' }
-                    assert resolved.find { it.moduleName == 'child' }
+                    assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
+                    
+                    resolved = compile.getFirstLevelModuleDependencies { true }
+                    assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
 
+                    def files = compile.files
+                    
+                    assert files.size() == 3
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    
+                    files = compile.getFiles { true }
+                    
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    
+                    def artifacts = compile.artifacts
+
+                    assert artifacts.size() == 3
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+
+                    artifacts = compile.getArtifacts { true }
+
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+
+                    def unresolved = compile.unresolvedModuleDependencies
+                    assert unresolved.size() == 2
+                    assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
+                    assert unresolved.find { it.selector.name == 'some unresolved dependency' }
+                }
+            }
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "lenient for both dependency and artifact resolve and download failures"() {
+        settingsFile << "include 'child'"
+        mavenRepo.module('org.foo', 'hiphop').publish()
+        def m = mavenRepo.module('org.foo', 'rock').dependsOnModules("some unresolved dependency").publish()
+        m.artifactFile.delete()
+
+        buildFile << """
+            dependencies {
+                compile 'org.foo:hiphop:1.0'
+                compile 'unresolved.org:hiphopxx:3.0' //does not exist
+                compile project(":child")
+
+                compile 'org.foo:rock:1.0' //contains unresolved transitive dependency, plus missing jar
+            }
+
+            task validate {
+                doLast {
+                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+
+                    def resolved = compile.firstLevelModuleDependencies
+
+                    assert resolved.size() == 3
+                    assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
+                    
+                    resolved = compile.getFirstLevelModuleDependencies { true }
+                    assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
+
+                    def files = compile.files
+                    
+                    assert files.size() == 2
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
+                    
+                    files = compile.getFiles { true }
+                    
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
+                    
+                    def artifacts = compile.artifacts
+
+                    assert artifacts.size() == 2
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar']
+
+                    artifacts = compile.getArtifacts { true }
+
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar']
+
+                    def unresolved = compile.unresolvedModuleDependencies
                     assert unresolved.size() == 2
                     assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
                     assert unresolved.find { it.selector.name == 'some unresolved dependency' }

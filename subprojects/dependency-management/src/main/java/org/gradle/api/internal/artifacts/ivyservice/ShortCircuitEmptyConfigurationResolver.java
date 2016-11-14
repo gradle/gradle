@@ -101,10 +101,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
 
+        @Override
         public boolean hasError() {
             return false;
         }
 
+        @Override
         public LenientConfiguration getLenientConfiguration() {
             return new LenientConfiguration() {
                 @Override
@@ -112,43 +114,68 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<ResolvedDependency> getAllModuleDependencies() {
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
                     return Collections.emptySet();
                 }
 
+                @Override
+                public Set<File> getFiles() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
+                @Override
+                public Set<ResolvedArtifact> getArtifacts() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
             };
         }
 
+        @Override
         public void rethrowFailure() throws ResolveException {
         }
 
+        @Override
+        public Set<File> getFiles() throws ResolveException {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
         }

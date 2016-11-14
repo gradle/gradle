@@ -47,6 +47,15 @@ public interface ResolvedConfiguration {
     void rethrowFailure() throws ResolveException;
 
     /**
+     * Returns the files for the configuration dependencies.
+     *
+     * @return The artifact files of the specified dependencies.
+     * @throws ResolveException when the resolve was not successful.
+     * @since 3.3
+     */
+    Set<File> getFiles() throws ResolveException;
+
+    /**
      * Returns the files for the specified subset of configuration dependencies.
      *
      * @param dependencySpec The filter for the configuration dependencies.

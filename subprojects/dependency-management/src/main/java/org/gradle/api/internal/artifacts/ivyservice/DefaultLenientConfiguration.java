@@ -62,7 +62,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, ArtifactResults {
-    private CacheLockingManager cacheLockingManager;
+    private final CacheLockingManager cacheLockingManager;
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final ResolvedArtifacts artifactResults;
@@ -139,6 +139,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         return resolvedElements;
     }
 
+    @Override
+    public Set<File> getFiles() {
+        return getFiles(Specs.<Dependency>satisfyAll());
+    }
+
     /**
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
@@ -181,6 +186,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         if (!visitor.failures.isEmpty()) {
             throw new ArtifactResolveException("artifacts", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
         }
+    }
+
+    @Override
+    public Set<ResolvedArtifact> getArtifacts() {
+        return getArtifacts(Specs.<Dependency>satisfyAll());
     }
 
     /**
@@ -435,7 +445,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
             if (isExternalModuleArtifact(element)) {
                 try {
                     element.getFile();
-                } catch (ArtifactResolveException e) {
+                } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                     return false;
                 }
             }
