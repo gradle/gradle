@@ -40,25 +40,25 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     @Override
     public void addFirstLevelDependency(ModuleDependency moduleDependency, DependencyGraphNode dependency) {
-        builder.firstLevelDependency(dependency.getResultId());
+        builder.firstLevelDependency(dependency.getNodeId());
         //we don't serialise the module dependencies at this stage so we need to keep track
         //of the mapping module dependency <-> resolved dependency
-        modulesMap.put(dependency.getResultId(), moduleDependency);
+        modulesMap.put(dependency.getNodeId(), moduleDependency);
     }
 
     @Override
     public void done(DependencyGraphNode root) {
-        builder.done(root.getResultId());
+        builder.done(root.getNodeId());
     }
 
     @Override
     public void addChild(DependencyGraphNode parent, DependencyGraphNode child, long artifactsId) {
-        builder.parentChildMapping(parent.getResultId(), child.getResultId(), artifactsId);
+        builder.parentChildMapping(parent.getNodeId(), child.getNodeId(), artifactsId);
     }
 
     @Override
     public void newResolvedDependency(DependencyGraphNode node) {
-        builder.resolvedDependency(node.getResultId(), node.getNodeId());
+        builder.resolvedDependency(node.getNodeId(), node.getResolvedConfigurationId());
     }
 
     @Override

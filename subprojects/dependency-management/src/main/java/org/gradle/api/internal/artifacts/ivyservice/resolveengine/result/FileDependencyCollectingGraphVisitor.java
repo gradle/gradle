@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -36,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, FileDependencyResults {
-    private final SetMultimap<ResolvedConfigurationIdentifier, LocalFileDependencyMetadata> filesByConfiguration = LinkedHashMultimap.create();
+    private final SetMultimap<Long, LocalFileDependencyMetadata> filesByConfiguration = LinkedHashMultimap.create();
     private Map<FileCollectionDependency, LocalFileDependencyMetadata> rootFiles;
 
     @Override
@@ -81,7 +80,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public Set<LocalFileDependencyMetadata> getFiles(ResolvedConfigurationIdentifier node) {
+    public Set<LocalFileDependencyMetadata> getFiles(Long node) {
         return filesByConfiguration.get(node);
     }
 

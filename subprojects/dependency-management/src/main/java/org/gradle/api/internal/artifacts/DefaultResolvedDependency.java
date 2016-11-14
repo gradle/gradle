@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
@@ -39,15 +38,17 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<DefaultResolvedDependency>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private final Long id;
     private final String name;
-    private final ResolvedConfigurationIdentifier id;
+    private final ResolvedConfigurationIdentifier resolvedConfigId;
     private final Set<ResolvedArtifact> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(ModuleVersionIdentifier moduleVersionIdentifier, String configuration) {
-        this.name = String.format("%s:%s:%s", moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
-        id = new ResolvedConfigurationIdentifier(moduleVersionIdentifier, configuration);
+    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier) {
+        this.id = id;
+        this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
+        this.resolvedConfigId = resolvedConfigurationIdentifier;
         this.moduleArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
     }
 
@@ -61,28 +62,28 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public ResolvedConfigurationIdentifier getId() {
+    public Long getNodeId() {
         return id;
     }
 
     public String getModuleGroup() {
-        return id.getModuleGroup();
+        return resolvedConfigId.getModuleGroup();
     }
 
     public String getModuleName() {
-        return id.getModuleName();
+        return resolvedConfigId.getModuleName();
     }
 
     public String getModuleVersion() {
-        return id.getModuleVersion();
+        return resolvedConfigId.getModuleVersion();
     }
 
     public String getConfiguration() {
-        return id.getConfiguration();
+        return resolvedConfigId.getConfiguration();
     }
 
     public ResolvedModuleVersion getModule() {
-        return new DefaultResolvedModuleVersion(id.getId());
+        return new DefaultResolvedModuleVersion(resolvedConfigId.getId());
     }
 
     public Set<ResolvedDependency> getChildren() {
@@ -159,12 +160,12 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         }
 
         DefaultResolvedDependency that = (DefaultResolvedDependency) o;
-        return id.equals(that.id);
+        return resolvedConfigId.equals(that.resolvedConfigId);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return resolvedConfigId.hashCode();
     }
 
     public void addChild(DefaultResolvedDependency child) {

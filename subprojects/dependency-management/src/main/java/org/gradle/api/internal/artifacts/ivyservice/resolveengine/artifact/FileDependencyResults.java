@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.Collection;
@@ -37,7 +36,7 @@ public interface FileDependencyResults {
     /**
      * Returns the file dependencies, if any, attached to the given node.
      */
-    Set<LocalFileDependencyMetadata> getFiles(ResolvedConfigurationIdentifier node);
+    Set<LocalFileDependencyMetadata> getFiles(Long node);
 
     void collectBuildDependencies(Collection<? super Buildable> dest);
 

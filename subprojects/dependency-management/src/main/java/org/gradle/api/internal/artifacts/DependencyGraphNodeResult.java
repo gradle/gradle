@@ -25,7 +25,7 @@ import java.util.Set;
 public interface DependencyGraphNodeResult {
     ResolvedDependency getPublicView();
 
-    ResolvedConfigurationIdentifier getId();
+    Long getNodeId();
 
     Collection<? extends DependencyGraphNodeResult> getOutgoingEdges();
 

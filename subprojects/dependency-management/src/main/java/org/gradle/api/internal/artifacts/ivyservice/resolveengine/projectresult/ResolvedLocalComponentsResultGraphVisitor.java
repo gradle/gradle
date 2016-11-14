@@ -48,7 +48,7 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
         ComponentIdentifier componentId = resolvedConfiguration.getOwner().getComponentId();
         if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
-            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration()));
+            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, resolvedConfiguration.getResolvedConfigurationId().getConfiguration()));
         }
     }
 

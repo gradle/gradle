@@ -699,12 +699,12 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Long getResultId() {
+        public Long getNodeId() {
             return resultId;
         }
 
         @Override
-        public ResolvedConfigurationIdentifier getNodeId() {
+        public ResolvedConfigurationIdentifier getResolvedConfigurationId() {
             return id;
         }
 

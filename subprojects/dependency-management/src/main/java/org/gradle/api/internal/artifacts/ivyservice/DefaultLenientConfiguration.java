@@ -427,7 +427,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
             if (artifactsVisitor.shouldVisitFiles()) {
-                for (LocalFileDependencyMetadata dependencyMetadata : fileDependencyResults.getFiles(node.getId())) {
+                for (LocalFileDependencyMetadata dependencyMetadata : fileDependencyResults.getFiles(node.getNodeId())) {
                     artifactsVisitor.visitFiles(dependencyMetadata.getComponentId(), dependencyMetadata.getFiles());
                 }
             }

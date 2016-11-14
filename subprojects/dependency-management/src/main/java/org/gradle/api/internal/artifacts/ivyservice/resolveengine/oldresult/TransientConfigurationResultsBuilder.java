@@ -146,7 +146,7 @@ public class TransientConfigurationResultsBuilder {
                     case NEW_DEP:
                         id = decoder.readSmallLong();
                         ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        allDependencies.put(id, new DefaultResolvedDependency(details.getId(), details.getConfiguration()));
+                        allDependencies.put(id, new DefaultResolvedDependency(id, details));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();
@@ -154,7 +154,7 @@ public class TransientConfigurationResultsBuilder {
                         if (root == null) {
                             throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
-                        //root should be the last
+                        //root should be the last entry
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
                         return new DefaultTransientConfigurationResults(root, firstLevelDependencies);
                     case FIRST_LVL:
