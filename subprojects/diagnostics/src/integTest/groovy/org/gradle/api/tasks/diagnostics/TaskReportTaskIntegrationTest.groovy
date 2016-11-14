@@ -49,13 +49,15 @@ a
 $otherGroupHeader
 b
 """) == rendersUngroupedTask
+
         where:
         tasks                      | rendersGroupedTask | rendersUngroupedTask
         TASKS_REPORT_TASK          | true               | false
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    def "renders task with dependencies without group in detailed report"() {
+    @Unroll
+    def "renders task with dependencies without group in detailed report running #tasks"() {
         given:
         buildFile << """
             task a
@@ -66,17 +68,23 @@ b
         """
 
         when:
-        succeeds TASKS_DETAILED_REPORT_TASK
+        succeeds tasks
 
         then:
         output.contains("""
 $otherGroupHeader
 a
 b
-""")
+""") == rendersTasks
+
+        where:
+        tasks                      | rendersTasks
+        TASKS_REPORT_TASK          | false
+        TASKS_DETAILED_REPORT_TASK | true
     }
 
-    def "renders grouped task with dependencies in detailed report"() {
+    @Unroll
+    def "renders grouped task with dependencies in detailed report running #tasks"() {
         given:
         buildFile << """
             task a {
@@ -90,7 +98,7 @@ b
         """
 
         when:
-        succeeds TASKS_DETAILED_REPORT_TASK
+        succeeds tasks
 
         then:
         output.contains("""
@@ -98,6 +106,11 @@ $helloWorldGroupHeader
 a
 b
 """)
+
+        where:
+        tasks                      | rendersTasks
+        TASKS_REPORT_TASK          | true
+        TASKS_DETAILED_REPORT_TASK | true
     }
 
     def "renders tasks in a multi-project build running [tasks]"() {
