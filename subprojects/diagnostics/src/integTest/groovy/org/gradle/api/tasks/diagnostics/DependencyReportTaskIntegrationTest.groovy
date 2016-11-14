@@ -804,4 +804,36 @@ compile
 \\--- org.original:original:1.0 -> org.other:another:0.1
 """
     }
+
+    void "doesn't fail if a configuration is not resolvable"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+        mavenRepo.module("foo", "bar", '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                api.canBeResolved = false
+                compile.extendsFrom api
+            }
+            dependencies {
+                api 'foo:foo:1.0'
+                compile 'foo:bar:2.0'
+            }
+        """
+
+        when:
+        run ":dependencies"
+
+        then:
+        output.contains """
+api
+\\--- foo:foo:1.0
+
+compile
++--- foo:foo:1.0
+\\--- foo:bar:2.0
+"""
+    }
 }

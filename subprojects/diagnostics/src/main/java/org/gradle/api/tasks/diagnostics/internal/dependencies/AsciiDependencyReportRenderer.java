@@ -82,9 +82,16 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     @Override
     public void render(Configuration configuration) throws IOException {
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        RenderableDependency root = new RenderableModuleResult(result.getRoot());
-        renderNow(root);
+        if (configuration.isCanBeResolved()) {
+            ResolutionResult result = configuration.getIncoming().getResolutionResult();
+            RenderableDependency root = new RenderableModuleResult(result.getRoot());
+            renderNow(root);
+        } else {
+            // Create a resolvable copy for the purpose of showing dependencies only
+            Configuration copy = configuration.copy();
+            copy.setCanBeResolved(true);
+            render(copy);
+        }
     }
 
     void renderNow(RenderableDependency root) {
