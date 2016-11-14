@@ -24,15 +24,18 @@ import java.util.Collection;
 import java.util.Set;
 
 public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
-    private final Set<ResolvedArtifact> artifacts;
+    private final ImmutableSet<ResolvedArtifact> artifacts;
 
-    public ArtifactBackedArtifactSet(Collection<? extends ResolvedArtifact> artifacts) {
+    private ArtifactBackedArtifactSet(Collection<? extends ResolvedArtifact> artifacts) {
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
     public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifact> artifacts) {
         if (artifacts.isEmpty()) {
             return EMPTY;
+        }
+        if (artifacts.size() == 1) {
+            return new SingletonSet(artifacts.iterator().next());
         }
         return new ArtifactBackedArtifactSet(artifacts);
     }
@@ -50,6 +53,28 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
     public void visit(ArtifactVisitor visitor) {
         for (ResolvedArtifact artifact : artifacts) {
             visitor.visitArtifact(artifact);
+        }
+    }
+
+    private static class SingletonSet implements ResolvedArtifactSet {
+        private final ResolvedArtifact artifact;
+
+        SingletonSet(ResolvedArtifact artifact) {
+            this.artifact = artifact;
+        }
+
+        @Override
+        public Set<ResolvedArtifact> getArtifacts() {
+            return ImmutableSet.of(artifact);
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            visitor.visitArtifact(artifact);
+        }
+
+        @Override
+        public void collectBuildDependencies(Collection<? super Buildable> dest) {
         }
     }
 }

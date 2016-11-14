@@ -22,30 +22,46 @@ import spock.lang.Specification
 class ArtifactBackedArtifactSetTest extends Specification {
     def artifact1 = Mock(ResolvedArtifact)
     def artifact2 = Mock(ResolvedArtifact)
-    def set = new ArtifactBackedArtifactSet([artifact1, artifact2] as Set)
+    def artifact3 = Mock(ResolvedArtifact)
 
-    def "factory method returns empty set when source set is empty"() {
+    def "factory method returns specialized sets for zero and one elements"() {
         expect:
         ArtifactBackedArtifactSet.of([]) == ResolvedArtifactSet.EMPTY
+        ArtifactBackedArtifactSet.of([artifact1]) instanceof ArtifactBackedArtifactSet.SingletonSet
         ArtifactBackedArtifactSet.of([artifact1, artifact2]) instanceof ArtifactBackedArtifactSet
     }
 
     def "returns artifacts and retains order"() {
+        def set1 = ArtifactBackedArtifactSet.of([artifact1, artifact2, artifact3])
+        def set2 = ArtifactBackedArtifactSet.of([artifact1, artifact2, artifact1, artifact2])
+        def set3 = ArtifactBackedArtifactSet.of([artifact1])
+
         expect:
-        set.artifacts as List == [artifact1, artifact2]
+        set1.artifacts as List == [artifact1, artifact2, artifact3]
+        set2.artifacts as List == [artifact1, artifact2]
+        set3.artifacts as List == [artifact1]
     }
 
-    def "visits artifacts"() {
+    def "visits artifacts and retains order"() {
         def visitor = Mock(ArtifactVisitor)
+        def set1 = ArtifactBackedArtifactSet.of([artifact1, artifact2])
+        def set2 = ArtifactBackedArtifactSet.of([artifact1])
 
         when:
-        set.visit(visitor)
+        set1.visit(visitor)
 
         then:
         1 * visitor.visitArtifact(artifact1)
 
         then:
         1 * visitor.visitArtifact(artifact2)
+        0 * _
+
+        when:
+        set2.visit(visitor)
+
+        then:
+        1 * visitor.visitArtifact(artifact1)
         0 * _
     }
 }
