@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish;
+package org.gradle.api.internal.artifacts.publish
 
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.gradle.api.artifacts.PublishArtifact
+import spock.lang.Specification
 
-import java.io.File;
-import java.util.Date;
-
-import static org.junit.Assert.assertEquals;
-
-public abstract class AbstractPublishArtifactTest {
+public abstract class AbstractPublishArtifactTest extends Specification {
     private static final File TEST_FILE = new File("artifactFile");
     private static final String TEST_NAME = "myfile-1";
     private static final String TEST_EXT = "ext";
@@ -34,40 +27,36 @@ public abstract class AbstractPublishArtifactTest {
     private static final Date TEST_DATE = new Date();
 
     protected File getTestFile() {
-        return TEST_FILE;
+        TEST_FILE
     }
 
     protected String getTestName() {
-        return TEST_NAME;
+        TEST_NAME
     }
 
     protected String getTestExt() {
-        return TEST_EXT;
+        TEST_EXT
     }
 
     protected String getTestType() {
-        return TEST_TYPE;
+        TEST_TYPE
     }
 
     protected String getTestClassifier() {
-        return TEST_CLASSIFIER;
+        TEST_CLASSIFIER
     }
 
     protected Date getDate() {
-        return TEST_DATE;
+        TEST_DATE
     }
 
-    protected JUnit4Mockery context = new JUnit4GroovyMockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
-
     protected void assertCommonPropertiesAreSet(PublishArtifact artifact, boolean shouldHaveClassifier) {
-        assertEquals(getTestName(), artifact.getName());
-        assertEquals(getTestType(), artifact.getType());
-        assertEquals(getTestExt(), artifact.getExtension());
-        assertEquals(getTestFile(), artifact.getFile());
+        assert testName == artifact.name
+        assert testType == artifact.type
+        assert testExt == artifact.extension
+        assert testFile == artifact.file
         if (shouldHaveClassifier) {
-            assertEquals(getTestClassifier(), artifact.getClassifier());
+            assert testClassifier == artifact.classifier
         }
     }
 }
