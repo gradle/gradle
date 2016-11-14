@@ -171,6 +171,11 @@ public class DependencyInsightReportTask extends DefaultTask {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         GraphRenderer renderer = new GraphRenderer(output);
 
+        if (!configuration.isCanBeResolved()) {
+            output.println(String.valueOf(configuration) + " is not a resolvable configuration.");
+            return;
+        }
+
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();

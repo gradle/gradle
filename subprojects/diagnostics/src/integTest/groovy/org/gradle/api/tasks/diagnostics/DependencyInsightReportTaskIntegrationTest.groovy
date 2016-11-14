@@ -1137,4 +1137,40 @@ org:leaf3:1.0
           \\--- project :impl (*)
 """
     }
+
+    void "doesn't fail if a configuration is not resolvable"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+        mavenRepo.module("foo", "bar", '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                api.canBeResolved = false
+                compile.extendsFrom api
+            }
+            dependencies {
+                api 'foo:foo:1.0'
+                compile 'foo:bar:2.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo", "--configuration", "api"
+
+        then:
+        output.contains """configuration ':api' is not a resolvable configuration."""
+
+        when:
+        run "dependencyInsight", "--dependency", "foo", "--configuration", "compile"
+
+        then:
+        output.contains """:dependencyInsight
+foo:bar:2.0
+\\--- compile
+
+foo:foo:1.0
+\\--- compile"""
+    }
 }
