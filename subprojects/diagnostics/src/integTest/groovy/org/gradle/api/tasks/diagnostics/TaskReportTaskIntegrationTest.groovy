@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private final static String[] TASKS_REPORT_TASK = ['tasks'] as String[]
-    private final static String[] TASKS_DETAILED_REPORT_TASK = ['tasks', '--all'] as String[]
+    private final static String[] TASKS_DETAILED_REPORT_TASK = TASKS_REPORT_TASK + ['--all'] as String[]
     private final static String GROUP = 'Hello world'
 
     @Unroll
@@ -42,12 +42,11 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("""
-$groupHeader
+$helloWorldGroupHeader
 a
 """) == rendersGroupedTask
         output.contains("""
-Other tasks
------------
+$otherGroupHeader
 b
 """) == rendersUngroupedTask
         where:
@@ -71,8 +70,7 @@ b
 
         then:
         output.contains("""
-Other tasks
------------
+$otherGroupHeader
 a
 b
 """)
@@ -96,7 +94,7 @@ b
 
         then:
         output.contains("""
-$groupHeader
+$helloWorldGroupHeader
 a
 b
 """)
@@ -112,12 +110,11 @@ b
 
         then:
         output.contains("""
-$groupHeader
+$helloWorldGroupHeader
 a
 """)
         !output.contains("""
-Other tasks
------------
+$otherGroupHeader
 c
 """)
     }
@@ -132,14 +129,13 @@ c
 
         then:
         output.contains("""
-$groupHeader
+$helloWorldGroupHeader
 a
 sub1:a
 sub2:a
 """)
         output.contains("""
-Other tasks
------------
+$otherGroupHeader
 sub1:b
 sub2:b
 c
@@ -170,7 +166,7 @@ include 'sub2'
 
         then:
         output.contains """
-$groupHeader
+$helloWorldGroupHeader
 alpha - ALPHA_in_sub1
 """
     }
@@ -272,9 +268,18 @@ alpha - ALPHA_in_sub1
         """
     }
 
-    static String getGroupHeader() {
-        """$GROUP tasks
------------------"""
+    static String getHelloWorldGroupHeader() {
+        getGroupHeader(GROUP)
+    }
+
+    static String getOtherGroupHeader() {
+        getGroupHeader('Other')
+    }
+
+    private static String getGroupHeader(String group) {
+        String header = "$group tasks"
+        """$header
+${'-' * header.length()}"""
     }
 
     static String multiProjectBuild() {
