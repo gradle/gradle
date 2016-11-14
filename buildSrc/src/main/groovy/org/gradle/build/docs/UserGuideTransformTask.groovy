@@ -37,9 +37,9 @@ import org.w3c.dom.Element
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  *
- * TODO: This task is not cacheable yet because samples.xml is not an output and is written multiple times by different tasks.
  */
-public class UserGuideTransformTask extends DefaultTask {
+@CacheableTask
+class UserGuideTransformTask extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }
 
@@ -65,7 +65,7 @@ public class UserGuideTransformTask extends DefaultTask {
     @Input
     Set<String> tags = new LinkedHashSet()
 
-    final SampleElementValidator validator = new SampleElementValidator();
+    final SampleElementValidator validator = new SampleElementValidator()
 
     @Input String getJavadocUrl() {
         javadocUrl
@@ -191,8 +191,6 @@ public class UserGuideTransformTask extends DefaultTask {
             SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
             SampleLayoutHandler layoutHandler = new SampleLayoutHandler(srcDir)
 
-            samplesXml << { sample(id: sampleId, dir: srcDir) }
-
             String title = element.'@title'
 
             Element exampleElement = lastExampleElement
@@ -216,7 +214,7 @@ public class UserGuideTransformTask extends DefaultTask {
                     Element commandElement = doc.createElement('filename')
                     commandElement.appendChild(doc.createTextNode(file))
                     sourcefileTitle.appendChild(commandElement)
-                    exampleElement.appendChild(sourcefileTitle);
+                    exampleElement.appendChild(sourcefileTitle)
 
                     Element programListingElement = doc.createElement('programlisting')
                     if (file.endsWith('.gradle') || file.endsWith('.groovy') || file.endsWith('.java')) {
@@ -237,13 +235,7 @@ public class UserGuideTransformTask extends DefaultTask {
                 } else if (child.name() == 'output') {
                     String args = child.'@args'
                     String outputFile = child.'@outputFile' ?: "${sampleId}.out"
-                    boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
-                    boolean ignoreLineOrder = child.'@ignoreLineOrder' ?: false
-                    boolean expectFailure = child.'@expectFailure' ?: false
                     boolean hidden = child.'@hidden' ?: false
-
-                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
-                                           ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure) }
 
                     if (!hidden) {
                         Element outputTitle = doc.createElement("para")
@@ -258,13 +250,9 @@ public class UserGuideTransformTask extends DefaultTask {
                         screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                         exampleElement.appendChild(screenElement)
                     }
-                } else if (child.name() == 'test') {
-                    String args = child.'@args'
-                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
                 } else if (child.name() == 'layout') {
                     String args = child.'@after'
-                    Element sampleElement = samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
-                    layoutHandler.handle(child.text(), exampleElement, sampleElement)
+                    layoutHandler.handle(child.text(), exampleElement)
                 }
 
                 locationHandler.processSampleLocation(exampleElement)
@@ -272,9 +260,6 @@ public class UserGuideTransformTask extends DefaultTask {
             element.parentNode.insertBefore(exampleElement, element)
             element.parentNode.removeChild(element)
         }
-
-        File samplesFile = new File(destFile.parentFile, 'samples.xml')
-        samplesXmlProvider.write(samplesFile, true)
     }
 
     void applyConditionalChunks(Document doc) {

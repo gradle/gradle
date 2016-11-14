@@ -35,7 +35,7 @@ import org.gradle.api.tasks.PathSensitivity
 class IntegrationTest extends DistributionTest {
 
     IntegrationTest() {
-        dependsOn { requiresSamples ? ':docs:userguideDocbook' : null }
+        dependsOn { requiresSamples ? ':docs:extractSamples' : null }
     }
 
     @Input
