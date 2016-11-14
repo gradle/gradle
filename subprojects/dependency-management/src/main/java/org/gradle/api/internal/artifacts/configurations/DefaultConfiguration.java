@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -43,8 +42,8 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DefaultAttributeContainer;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.artifacts.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -80,15 +79,14 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
@@ -592,7 +590,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
         if (hasAttributes()) {
-            copiedConfiguration.attributes(configurationAttributes.attributes);
+            for (Attribute<?> attribute : configurationAttributes.keySet()) {
+                Object value = configurationAttributes.getAttribute(attribute);
+                copiedConfiguration.attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
+            }
         }
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
@@ -774,18 +775,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    private static void assertAttributeConstraints(Object value, Attribute<?> attribute) {
-        if (value == null) {
-            throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
-        }
-        if (!attribute.getType().isAssignableFrom(value.getClass())) {
-            throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
-        }
-    }
-
-
     @Override
     public <T> Configuration attribute(Attribute<T> key, T value) {
+        validateMutation(MutationType.ATTRIBUTES);
         configurationAttributes.attribute(key, value);
         return this;
     }
@@ -802,9 +794,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attributes(Map<?, ?> attributes) {
+        validateMutation(MutationType.ATTRIBUTES);
         for (Map.Entry<?, ?> entry : attributes.entrySet()) {
             Object rawKey = entry.getKey();
-            Attribute<Object> key = Cast.uncheckedCast(asAttribute(rawKey));
+            Attribute<Object> key = uncheckedCast(asAttribute(rawKey));
             Object value = entry.getValue();
             configurationAttributes.attribute(key, value);
         }
@@ -951,123 +944,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private static Attribute<String> stringAttribute(String name) {
         return Attribute.of(name, String.class);
-    }
-
-    private class DefaultAttributeContainer implements AttributeContainerInternal {
-
-        private Map<Attribute<?>, Object> attributes;
-
-        private void ensureAttributes() {
-            if (this.attributes == null) {
-                this.attributes = Maps.newHashMap();
-            }
-        }
-
-        @Override
-        public Set<Attribute<?>> keySet() {
-            if (attributes == null) {
-                return Collections.emptySet();
-            }
-            return attributes.keySet();
-        }
-
-        @Override
-        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-            validateMutation(MutationType.ATTRIBUTES);
-            assertAttributeConstraints(value, key);
-            ensureAttributes();
-            checkInsertionAllowed(key);
-            attributes.put(key, value);
-            return this;
-        }
-
-        private <T> void checkInsertionAllowed(Attribute<T> key) {
-            for (Attribute<?> attribute : attributes.keySet()) {
-                String name = key.getName();
-                if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
-                    throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
-                        + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
-                        + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
-                }
-            }
-        }
-
-        @Override
-        public <T> T getAttribute(Attribute<T> key) {
-            return Cast.uncheckedCast(attributes == null ? null : attributes.get(key));
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return attributes == null;
-        }
-
-        @Override
-        public boolean contains(Attribute<?> key) {
-            return attributes != null && attributes.containsKey(key);
-        }
-
-        public AttributeContainer asImmutable() {
-            if (attributes == null) {
-                return EMPTY;
-            }
-            return new ImmutableAttributes(attributes);
-        }
-    }
-
-    private static class ImmutableAttributes implements AttributeContainerInternal {
-
-        private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
-            @Override
-            public int compare(Attribute<?> o1, Attribute<?> o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        };
-        private final Map<Attribute<?>, Object> attributes;
-
-        private ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
-            this.attributes = attributes;
-        }
-
-        @Override
-        public Set<Attribute<?>> keySet() {
-            return attributes.keySet();
-        }
-
-        @Override
-        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-            throw new UnsupportedOperationException("Mutation of attributes returned by Configuration#getAttributes() is not allowed");
-        }
-
-        @Override
-        public <T> T getAttribute(Attribute<T> key) {
-            return Cast.uncheckedCast(attributes.get(key));
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public boolean contains(Attribute<?> key) {
-            return attributes.containsKey(key);
-        }
-
-        @Override
-        public AttributeContainer asImmutable() {
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            if (attributes != null) {
-                TreeMap<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
-                sorted.putAll(attributes);
-                return sorted.toString();
-            }
-            return "{}";
-        }
     }
 
 }
