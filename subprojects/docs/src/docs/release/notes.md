@@ -19,16 +19,16 @@ When generating project reports with the [Project Reports Plugin](userguide/proj
 In previous versions of Gradle, a custom task class overriding a property from a base class couldn't reliably change the type of the property via annotations. It is now possible to change an `@InputFiles` property to `@Classpath` or an `@OutputFile` to `@OutputDirectory`. This can be useful when extending or working around problems with custom tasks that you do not control.
 
     class BrokenTask extends DefaultTask {
-        @Input def inputFile // wrong, task depends on the contents of inputFile
-        @OutputFile def outputFile // wrong, this is a directory 
+        @InputFile File inputFile // wrong, task does not depend on the contents of this file.
+        @OutputDirectory File outputDir
+        @TaskAction void generate() { ... }
     }
 
     class FixedTask extends BrokenTask {
-        @InputFile def inputFile
-        @OutputDirectory def outputFile
+        @Internal File inputFile // fixed, internal properties are ignored in up-to-date checks.
     }
 
-In the above example, `FixedTask.inputFile` will be an `@InputFile` and `FixedTask.outputFile` will be an `@OutputDirectory`.
+In the above example, `FixedTask.inputFile` will be a ignored in up-to-date checks.
 
 ## Promoted features
 
