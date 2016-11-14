@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
-
-import java.util.Set;
-
 public interface ResolvedArtifactResults {
-    Set<ResolvedArtifact> getArtifacts();
+    /**
+     * Returns all artifacts visited during graph traversal
+     */
+    ResolvedArtifactSet getArtifacts();
 
-    Set<ResolvedArtifact> getArtifacts(long id);
+    /**
+     * Returns the set of artifacts with the given id.
+     */
+    ResolvedArtifactSet getArtifacts(long id);
 }

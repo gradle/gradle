@@ -17,11 +17,15 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.AttributesSchema;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -40,11 +44,10 @@ import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.util.CollectionUtils.collect;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
@@ -80,13 +83,26 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     @Override
     public Set<File> getFiles() {
         ensureResolved(true);
-        Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
-        return collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
+        final Set<File> result = new LinkedHashSet<File>();
+        resolveResult.artifactResults.getArtifacts().visit(new ArtifactVisitor() {
             @Override
-            public File transform(ResolvedArtifact resolvedArtifact) {
-                return resolvedArtifact.getFile();
+            public void visitArtifact(ResolvedArtifact artifact) {
+                result.add(artifact.getFile());
+            }
+
+            @Override
+            public boolean includeFiles() {
+                return true;
+            }
+
+            @Override
+            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, FileCollection files) {
+                for (File file : files) {
+                    result.add(file);
+                }
             }
         });
+        return result;
     }
 
     @Override

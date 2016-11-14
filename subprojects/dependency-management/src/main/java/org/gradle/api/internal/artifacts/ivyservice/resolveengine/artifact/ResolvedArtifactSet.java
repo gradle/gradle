@@ -17,33 +17,27 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.ResolvedArtifact;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * Collects the file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
+ * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
-public interface FileDependencyResults {
+public interface ResolvedArtifactSet {
     /**
-     * Returns the direct dependencies of the root node.
+     * Returns the resolved artifacts in this set, if any.
      */
-    Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles();
+    Set<ResolvedArtifact> getArtifacts();
 
     /**
-     * Returns the file dependencies, if any, attached to the given node.
-     */
-    Set<ResolvedArtifactSet> getFiles(Long node);
-
-    /**
-     * Collects the build dependencies to build all of the files seen during traversal.
+     * Collects the build dependencies required to build the artifacts in this set.
      */
     void collectBuildDependencies(Collection<? super Buildable> dest);
 
     /**
-     * Returns all file dependencies seen during traversal.
+     * Visits the contents of this set.
      */
-    Set<ResolvedArtifactSet> getFiles();
+    void visit(ArtifactVisitor visitor);
 }

@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
@@ -178,7 +177,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, newHashSet(artifactResults.getArtifacts(decoder.readSmallLong())));
+                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifacts(decoder.readSmallLong()).getArtifacts());
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

@@ -29,21 +29,19 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     private Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
 
     // Artifact State : held for the life of a build
-    private Set<ResolvedArtifact> artifacts;
-    private Map<Long, Set<ResolvedArtifact>> resolvedArtifactsById;
+    private ArtifactBackedArtifactSet allArtifacts;
+    private Map<Long, ArtifactBackedArtifactSet> resolvedArtifactsById;
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts() {
+    public ResolvedArtifactSet getArtifacts() {
         assertArtifactsResolved();
-        return newLinkedHashSet(artifacts);
+        return allArtifacts;
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts(long id) {
+    public ResolvedArtifactSet getArtifacts(long id) {
         assertArtifactsResolved();
-        Set<ResolvedArtifact> a = resolvedArtifactsById.get(id);
-        assert a != null : "Unable to find artifacts for id: " + id;
-        return a;
+        return resolvedArtifactsById.get(id);
     }
 
     public void addArtifactSet(ArtifactSet artifactSet) {
@@ -51,14 +49,15 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     }
 
     public void resolveNow() {
-        if (artifacts == null) {
-            artifacts = newLinkedHashSet();
+        if (allArtifacts == null) {
+            Set<ResolvedArtifact> artifacts = newLinkedHashSet();
             resolvedArtifactsById = newLinkedHashMap();
             for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
                 Set<ResolvedArtifact> resolvedArtifacts = entry.getValue().getArtifacts();
                 artifacts.addAll(resolvedArtifacts);
-                resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
+                resolvedArtifactsById.put(entry.getKey(), new ArtifactBackedArtifactSet(resolvedArtifacts));
             }
+            allArtifacts = new ArtifactBackedArtifactSet(artifacts);
 
             // Release ResolvedArtifactSet instances so we're not holding onto state
             artifactSets = null;
@@ -66,7 +65,7 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     }
 
     private void assertArtifactsResolved() {
-        if (artifacts == null) {
+        if (allArtifacts == null) {
             throw new IllegalStateException("Cannot access artifacts before they are explicitly resolved.");
         }
     }

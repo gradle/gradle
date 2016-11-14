@@ -23,6 +23,8 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -35,16 +37,17 @@ import java.util.Map;
 import java.util.Set;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, FileDependencyResults {
-    private final SetMultimap<Long, LocalFileDependencyMetadata> filesByConfiguration = LinkedHashMultimap.create();
-    private Map<FileCollectionDependency, LocalFileDependencyMetadata> rootFiles;
+    private final SetMultimap<Long, ResolvedArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
+    private Map<FileCollectionDependency, ResolvedArtifactSet> rootFiles;
 
     @Override
     public void start(DependencyGraphNode root) {
         Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
         rootFiles = Maps.newLinkedHashMap();
         for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            rootFiles.put(fileDependency.getSource(), fileDependency);
-            filesByConfiguration.put(root.getNodeId(), fileDependency);
+            LocalFileDependencyBackedArtifactSet artifacts = new LocalFileDependencyBackedArtifactSet(fileDependency);
+            rootFiles.put(fileDependency.getSource(), artifacts);
+            filesByConfiguration.put(root.getNodeId(), artifacts);
         }
     }
 
@@ -62,7 +65,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
                 if (edge.isTransitive()) {
                     Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
                     for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), fileDependency);
+                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), new LocalFileDependencyBackedArtifactSet(fileDependency));
                     }
                     break;
                 }
@@ -75,24 +78,24 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public Map<FileCollectionDependency, LocalFileDependencyMetadata> getFirstLevelFiles() {
+    public Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles() {
         return rootFiles;
     }
 
     @Override
-    public Set<LocalFileDependencyMetadata> getFiles(Long node) {
+    public Set<ResolvedArtifactSet> getFiles(Long node) {
         return filesByConfiguration.get(node);
     }
 
     @Override
-    public Set<LocalFileDependencyMetadata> getFiles() {
+    public Set<ResolvedArtifactSet> getFiles() {
         return ImmutableSet.copyOf(filesByConfiguration.values());
     }
 
     @Override
     public void collectBuildDependencies(Collection<? super Buildable> dest) {
-        for (LocalFileDependencyMetadata dependency : filesByConfiguration.values()) {
-            dest.add(dependency.getFiles());
+        for (ResolvedArtifactSet dependency : filesByConfiguration.values()) {
+            dependency.collectBuildDependencies(dest);
         }
     }
 }
