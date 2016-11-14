@@ -17,16 +17,21 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.AttributeMatchingStrategy;
+import org.gradle.api.AttributeValue;
 import org.gradle.api.AttributesSchema;
 import org.gradle.api.GradleException;
-import org.gradle.api.AttributeValue;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -44,6 +49,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -54,6 +60,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
         @Override
         public String apply(ConfigurationMetadata input) {
+            return input.getName();
+        }
+    };
+    private static final Function<Attribute<?>, String> ATTRIBUTE_NAME = new Function<Attribute<?>, String>() {
+        @Override
+        public String apply(Attribute<?> input) {
             return input.getName();
         }
     };
@@ -125,13 +137,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME)) + ". All of them match the client attributes " + fromConfigurationAttributes);
+                throwAmbiguousConfigurationSelectionError(fromConfigurationAttributes, matches, true);
             }
             matches = matcher.getPartialMatchs();
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME)) + ". All of them partially match the client attributes " + fromConfigurationAttributes);
+                throwAmbiguousConfigurationSelectionError(fromConfigurationAttributes, matches, false);
             }
 
         }
@@ -148,6 +160,64 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
         }
         return ImmutableSet.of(delegate);
+    }
+
+    private static int maxLength(Collection<String> strings) {
+        return Ordering.natural().max(Iterables.transform(strings, new Function<String, Integer>() {
+            @Override
+            public Integer apply(String input) {
+                return input.length();
+            }
+        }));
+    }
+
+    private static void throwAmbiguousConfigurationSelectionError(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, boolean fullMatch) {
+        Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
+        Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
+        StringBuilder sb = new StringBuilder("Cannot choose between the following configurations: ");
+        sb.append(ambiguousConfigurations);
+        if (fullMatch) {
+            sb.append(". All of them match the consumer attributes:");
+        } else {
+            sb.append(". All of them partially match the consumer attributes:");
+        }
+        sb.append("\n");
+        int maxConfLength = maxLength(ambiguousConfigurations);
+        // Sorted for reproducibility
+        for (final String ambiguousConf : ambiguousConfigurations) {
+            ConfigurationMetadata match = Iterables.find(matches, new Predicate<ConfigurationMetadata>() {
+                @Override
+                public boolean apply(ConfigurationMetadata input) {
+                    return ambiguousConf.equals(input.getName());
+                }
+            });
+            AttributeContainer producerAttributes = match.getAttributes();
+            Set<Attribute<?>> targetAttributes = producerAttributes.keySet();
+            Set<String> targetAttributeNames = Sets.newTreeSet(Iterables.transform(targetAttributes, ATTRIBUTE_NAME));
+            Set<Attribute<?>> allAttributes = Sets.union(fromConfigurationAttributes.keySet(), producerAttributes.keySet());
+            Set<String> commonAttributes = Sets.intersection(requestedAttributes, targetAttributeNames);
+            Set<String> consumerOnlyAttributes = Sets.difference(requestedAttributes, targetAttributeNames);
+            sb.append("   ").append("- Configuration '").append(StringUtils.rightPad(ambiguousConf + "'", maxConfLength + 1)).append(" :");
+            List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
+            List<String> values = new ArrayList<String>(sortedAttributes.size());
+            for (Attribute<?> attribute : sortedAttributes) {
+                String attributeName = attribute.getName();
+                String label;
+                if (commonAttributes.contains(attributeName)) {
+                    label = "      - " + "Required " + attributeName + " '" + fromConfigurationAttributes.getAttribute(attribute) + "' and found compatible value '" + producerAttributes.getAttribute(attribute) + "'.";
+                } else if (consumerOnlyAttributes.contains(attributeName)) {
+                    label = "      - " + "Required " + attributeName + " '" + fromConfigurationAttributes.getAttribute(attribute) + "' but no value provided.";
+                } else {
+                    label = "      - " + "Found " + attributeName + " '" + producerAttributes.getAttribute(attribute) + "' but wasn't required.";
+                }
+                values.add(label);
+
+            }
+            sb.append("\n");
+            sb.append(Joiner.on("\n").join(values));
+            sb.append("\n");
+        }
+        throw new IllegalArgumentException(sb.toString());
     }
 
     private static String getOrDefaultConfiguration(String configuration) {
@@ -394,7 +464,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         private List<ConfigurationMetadata> disambiguateUsingProducerSchema(List<ConfigurationMetadata> matchs) {
-            if (matchs.size()<2 || producerAttributeSchema==null) {
+            if (matchs.size() < 2 || producerAttributeSchema == null) {
                 return matchs;
             }
             // If we are reaching this point, it means that we have more than one match, so we need to
