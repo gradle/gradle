@@ -68,5 +68,10 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
                 return new WorkerDaemonResult(true, t);
             }
         }
+
+        @Override
+        public String getDescription() {
+            return runnableClass.getName();
+        }
     }
 }

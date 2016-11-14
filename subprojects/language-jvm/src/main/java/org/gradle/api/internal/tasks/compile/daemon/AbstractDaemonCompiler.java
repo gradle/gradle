@@ -72,6 +72,11 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         public WorkerDaemonResult execute(T spec) {
             return new WorkerDaemonResult(compiler.execute(spec).getDidWork(), null);
         }
+
+        @Override
+        public String getDescription() {
+            return compiler.getClass().getName();
+        }
     }
 
     // TODO Come up with a better way to set up the worker implementation classpath
