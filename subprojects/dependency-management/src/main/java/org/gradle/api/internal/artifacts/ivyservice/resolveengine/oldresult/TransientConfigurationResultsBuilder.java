@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
@@ -108,14 +109,14 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public TransientConfigurationResults load(final ResolvedContentsMapping mapping) {
+    public TransientConfigurationResults load(final ResolvedGraphResults graphResults, final ResolvedArtifactResults artifactResults) {
         synchronized (lock) {
             return cache.load(new Factory<TransientConfigurationResults>() {
                 public TransientConfigurationResults create() {
                     try {
                         return binaryData.read(new BinaryStore.ReadAction<TransientConfigurationResults>() {
                             public TransientConfigurationResults read(Decoder decoder) throws IOException {
-                                return deserialize(decoder, mapping);
+                                return deserialize(decoder, graphResults, artifactResults);
                             }
                         });
                     } finally {
@@ -130,7 +131,7 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedContentsMapping mapping) {
+    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, ResolvedArtifactResults artifactResults) {
         Timer clock = Timers.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
@@ -163,7 +164,7 @@ public class TransientConfigurationResultsBuilder {
                         if (dependency == null) {
                             throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
-                        firstLevelDependencies.put(mapping.getModuleDependency(id), dependency);
+                        firstLevelDependencies.put(graphResults.getModuleDependency(id), dependency);
                         break;
                     case PARENT_CHILD:
                         long parentId = decoder.readSmallLong();
@@ -177,7 +178,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifacts(decoder.readSmallLong())));
+                        child.addParentSpecificArtifacts(parent, newHashSet(artifactResults.getArtifacts(decoder.readSmallLong())));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

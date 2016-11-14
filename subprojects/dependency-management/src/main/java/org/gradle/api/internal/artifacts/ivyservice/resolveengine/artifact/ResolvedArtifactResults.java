@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 
 import java.util.Set;
 
-public interface ResolvedArtifactResults extends ResolvedArtifacts {
+public interface ResolvedArtifactResults {
+    Set<ResolvedArtifact> getArtifacts();
+
     Set<ResolvedArtifact> getArtifacts(long id);
 }

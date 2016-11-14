@@ -16,12 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.internal.Factory;
-
-import java.util.Set;
 
 public class TransientConfigurationResultsLoader implements Factory<TransientConfigurationResults> {
     private final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
@@ -36,18 +32,6 @@ public class TransientConfigurationResultsLoader implements Factory<TransientCon
 
     @Override
     public TransientConfigurationResults create() {
-        return transientConfigurationResultsBuilder.load(new ContentMapping());
-    }
-
-    private class ContentMapping implements ResolvedContentsMapping {
-        @Override
-        public Set<ResolvedArtifact> getArtifacts(long artifactSetId) {
-            return artifactResults.getArtifacts(artifactSetId);
-        }
-
-        @Override
-        public ModuleDependency getModuleDependency(long nodeId) {
-            return graphResults.getModuleDependency(nodeId);
-        }
+        return transientConfigurationResultsBuilder.load(graphResults, artifactResults);
     }
 }
