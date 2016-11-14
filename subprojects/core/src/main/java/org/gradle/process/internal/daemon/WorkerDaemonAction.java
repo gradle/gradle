@@ -20,4 +20,6 @@ import java.io.Serializable;
 
 public interface WorkerDaemonAction<T> extends Serializable {
     WorkerDaemonResult execute(T spec);
+
+    String getDescription();
 }

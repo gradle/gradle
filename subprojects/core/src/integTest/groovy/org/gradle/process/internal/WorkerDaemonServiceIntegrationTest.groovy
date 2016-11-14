@@ -229,8 +229,8 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains("Starting process 'Gradle Worker Daemon 1'.")
         output.contains("Successfully started process 'Gradle Worker Daemon 1'")
-        output.contains("Executing org.gradle.process.internal.daemon.WorkerDaemonRunnableExecutor\$WrappedDaemonRunnable")
-        output.contains("Successfully executed org.gradle.process.internal.daemon.WorkerDaemonRunnableExecutor\$WrappedDaemonRunnable")
+        output.contains("Executing org.gradle.test.TestRunnable in worker daemon")
+        output.contains("Successfully executed org.gradle.test.TestRunnable in worker daemon")
     }
 
     String getUnrecognizedOptionError() {

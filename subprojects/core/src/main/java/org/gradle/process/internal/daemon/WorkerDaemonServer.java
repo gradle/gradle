@@ -24,12 +24,12 @@ public class WorkerDaemonServer implements WorkerDaemonProtocol {
     @Override
     public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
         try {
-            LOGGER.info("Executing {} in worker daemon.", action);
+            LOGGER.info("Executing {} in worker daemon.", action.getDescription());
             WorkerDaemonResult result = action.execute(spec);
-            LOGGER.info("Successfully executed {} in worker daemon.", action);
+            LOGGER.info("Successfully executed {} in worker daemon.", action.getDescription());
             return result;
         } catch (Throwable t) {
-            LOGGER.info("Exception executing {} in worker daemon: {}.", action, t);
+            LOGGER.info("Exception executing {} in worker daemon: {}.", action.getDescription(), t);
             return new WorkerDaemonResult(true, t);
         }
     }
