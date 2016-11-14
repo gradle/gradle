@@ -195,7 +195,6 @@ ext {
     removedProjects = ['sonar']
 }
 
-apply from: "gradle/buildReceipt.gradle"
 apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
@@ -323,6 +322,7 @@ task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
     group = 'build'
     with project(":distributions").binDistImage
+    with project(":distributions").versionInfo
     installDirPropertyName = 'gradle_installPath'
 }
 

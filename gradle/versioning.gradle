@@ -5,59 +5,45 @@ if (buildTypes.promotionBuild.active) {
 ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestoneNumber.toInteger() : null
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
-boolean timestampedVersion
-if (project.hasProperty("timestampedVersion")) {
-    def value = project.property("timestampedVersion")
-    timestampedVersion = value != "false"
-} else {
-    timestampedVersion = gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")
-}
 if ((milestoneNumber != null && rcNumber != null) ||
         (rcNumber != null && finalRelease) ||
         (milestoneNumber != null && finalRelease)) {
     throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
-
 if (incomingDistributionsBuildReceipt) {
     ext.baseVersion = incomingDistributionsBuildReceipt.baseVersion
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
-    ext.devBuild = false
 } else {
-    ext.devBuild = milestoneNumber == null && rcNumber == null && !finalRelease && !timestampedVersion;
     ext.baseVersion = rootProject.file("version.txt").text.trim()
 
-    if (devBuild) {
-        ext.buildTimestamp = "unknown";
+    def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+    timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+    Date buildTime
+    if (project.hasProperty("buildTimestamp")) {
+        buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-        timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
-        Date buildTime
-        if (project.hasProperty("buildTimestamp")) {
-            buildTime = timestampFormat.parse(buildTimestamp)
-        } else {
-            File timestampFile = file("$buildDir/timestamp.txt")
-            if (timestampFile.isFile()) {
-                boolean uptodate = true
-                def modified = timestampFile.lastModified()
-                project(':core').fileTree('src/main').visit {fte ->
-                    if (fte.file.isFile() && fte.lastModified > modified) {
-                        uptodate = false
-                        fte.stopVisiting()
-                    }
+        File timestampFile = file("$buildDir/timestamp.txt")
+        if (timestampFile.isFile()) {
+            boolean uptodate = true
+            def modified = timestampFile.lastModified()
+            project(':core').fileTree('src/main').visit {fte ->
+                if (fte.file.isFile() && fte.lastModified > modified) {
+                    uptodate = false
+                    fte.stopVisiting()
                 }
-                if (!uptodate) {
-                    timestampFile.setLastModified(new Date().time)
-                }
-            } else {
-                timestampFile.parentFile.mkdirs()
-                timestampFile.createNewFile()
             }
-
-            buildTime = new Date(timestampFile.lastModified())
+            if (!uptodate) {
+                timestampFile.setLastModified(new Date().time)
+            }
+        } else {
+            timestampFile.parentFile.mkdirs()
+            timestampFile.createNewFile()
         }
-        ext.buildTimestamp = timestampFormat.format(buildTime)
+
+        buildTime = new Date(timestampFile.lastModified())
     }
+    ext.buildTimestamp = timestampFormat.format(buildTime)
 }
 
 version = baseVersion
@@ -69,14 +55,13 @@ if (finalRelease) {
     version += "-rc-$rcNumber"
 } else if (milestoneNumber != null) {
     version += "-milestone-$milestoneNumber"
-} else if (timestampedVersion) {
-    isSnapshot = true
-    version += "-$buildTimestamp"
 } else {
     isSnapshot = true
-    version += "-snapshot-1"
+    version += "-$buildTimestamp"
 }
 
+ext.testedVersion = isSnapshot ? "${baseVersion}-snapshot-1" : version
+
 if (buildTypes.promotionBuild.active) {
-    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot, dev build: $devBuild)"
+    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot, tested version: $testedVersion)"
 }

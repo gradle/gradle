@@ -1,6 +1,7 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -8,6 +9,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 /*
@@ -35,6 +37,9 @@ class ClasspathManifest extends DefaultTask {
     @Input
     List<String> optionalProjects = []
 
+    @Internal
+    List<Project> additionalProjects = []
+
     @OutputFile
     File getManifestFile() {
         return new File(project.generatedResourcesDir, "${project.archivesBaseName}-classpath.properties")
@@ -49,9 +54,9 @@ class ClasspathManifest extends DefaultTask {
 
     @Input
     String getProjects() {
-        return input.allDependencies.withType(ProjectDependency).collect {
+        return (input.allDependencies.withType(ProjectDependency).collect {
             it.dependencyProject.archivesBaseName
-        }.join(',')
+        } + additionalProjects*.archivesBaseName).join(',')
     }
 
     Properties createProperties() {
