@@ -37,13 +37,13 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
     }
 
     @Unroll
-    def "can override @Internal with #inputType"() {
+    def "can override @Internal with @#inputType.simpleName"() {
         buildFile << """
             class InternalBaseTask extends BaseTask {
                 @Internal def input
             }
             class CustomTask extends InternalBaseTask {
-                @${inputType} def input
+                @${inputType.name} def input
             }
             custom {
                 input = ${inputValue}
@@ -61,19 +61,19 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
         result.assertTasksExecuted(":custom")
 
         where:
-        inputType           | inputValue
-        InputFile.name      | 'file("inputs/input")'
-        InputDirectory.name | 'file("inputs")'
-        InputFiles.name     | 'files("inputs")'
-        Input.name          | '{ file("inputs/input").text }'
+        inputType      | inputValue
+        InputFile      | 'file("inputs/input")'
+        InputDirectory | 'file("inputs")'
+        InputFiles     | 'files("inputs")'
+        Input          | '{ file("inputs/input").text }'
     }
 
 
     @Unroll
-    def "can override #inputType with @Internal"() {
+    def "can override @#inputType.simpleName with @Internal"() {
         buildFile << """
             class InputBaseTask extends BaseTask {
-                @${inputType} def input
+                @${inputType.name} def input
             }
             class CustomTask extends InputBaseTask {
                 @Internal def input
@@ -94,10 +94,10 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
         result.assertTasksSkipped(":custom")
 
         where:
-        inputType           | inputValue
-        InputFile.name      | 'file("inputs/input")'
-        InputDirectory.name | 'file("inputs")'
-        InputFiles.name     | 'files("inputs")'
-        Input.name          | '{ file("inputs/input").text }'
+        inputType      | inputValue
+        InputFile      | 'file("inputs/input")'
+        InputDirectory | 'file("inputs")'
+        InputFiles     | 'files("inputs")'
+        Input          | '{ file("inputs/input").text }'
     }
 }
