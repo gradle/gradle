@@ -28,8 +28,13 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
+import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.process.internal.JavaExecHandleFactory
@@ -64,6 +69,22 @@ class BuildSessionScopeServicesTest extends Specification {
         expect:
         registry.get(CacheRepository) instanceof DefaultCacheRepository
         registry.get(CacheRepository) == registry.get(CacheRepository)
+    }
+
+    def "provides a BuildOperationWorkerRegistry"() {
+        expect:
+        registry.get(BuildOperationWorkerRegistry) instanceof DefaultBuildOperationWorkerRegistry
+        registry.get(BuildOperationWorkerRegistry) == registry.get(BuildOperationWorkerRegistry)
+    }
+
+    def "provides a BuildOperationProcessor"() {
+        given:
+        _ * parent.get(StartParameter) >> Mock(StartParameter)
+        _ * parent.get(ExecutorFactory) >> Mock(ExecutorFactory)
+
+        expect:
+        registry.get(BuildOperationProcessor) instanceof DefaultBuildOperationProcessor
+        registry.get(BuildOperationProcessor) == registry.get(BuildOperationProcessor)
     }
 
     def "provides a WorkerProcessBuilder factory"() {
