@@ -56,11 +56,19 @@ class DefaultBuildOperationQueueTest extends Specification {
     }
 
     BuildOperationQueue operationQueue
+    DefaultBuildOperationWorkerRegistry workerRegistry
+    BuildOperationWorkerRegistry.Completion completion
 
     void setupQueue(int threads) {
-        def workerRegistry = new DefaultBuildOperationWorkerRegistry(threads);
+        workerRegistry = new DefaultBuildOperationWorkerRegistry(threads);
         ListeningExecutorService sameThreadExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threads))
-        operationQueue = new DefaultBuildOperationQueue(workerRegistry, sameThreadExecutor, new SimpleWorker())
+        completion = workerRegistry.operationStart()
+        operationQueue = new DefaultBuildOperationQueue(workerRegistry.current, sameThreadExecutor, new SimpleWorker())
+    }
+
+    def "cleanup"() {
+        completion.operationFinish()
+        workerRegistry.stop()
     }
 
     @Unroll

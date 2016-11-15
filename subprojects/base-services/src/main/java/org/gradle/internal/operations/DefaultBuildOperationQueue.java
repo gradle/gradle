@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final BuildOperationWorkerRegistry.Operation owner;
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
 
@@ -41,8 +41,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
     private final AtomicBoolean canceled = new AtomicBoolean();
 
-    DefaultBuildOperationQueue(BuildOperationWorkerRegistry buildOperationWorkerRegistry, ExecutorService executor, BuildOperationWorker<T> worker) {
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+    DefaultBuildOperationQueue(BuildOperationWorkerRegistry.Operation owner, ExecutorService executor, BuildOperationWorker<T> worker) {
+        this.owner = owner;
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
@@ -53,7 +53,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         if (waitingForCompletion.get()) {
             throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
-        OperationHolder operationHolder = new OperationHolder(operation);
+        OperationHolder operationHolder = new OperationHolder(owner, operation);
         ListenableFuture<?> future = executor.submit(operationHolder);
         operations.add(new QueuedOperation(operationHolder, future));
     }
@@ -145,10 +145,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     private class OperationHolder implements Runnable {
+        private final BuildOperationWorkerRegistry.Operation owner;
         private final T operation;
         private final AtomicBoolean started = new AtomicBoolean();
 
-        OperationHolder(T operation) {
+        OperationHolder(BuildOperationWorkerRegistry.Operation owner, T operation) {
+            this.owner = owner;
             this.operation = operation;
         }
 
@@ -162,7 +164,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBuildOperation() {
-            BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.operationStart();
+            BuildOperationWorkerRegistry.Completion workerLease = owner.operationStart();
             try {
                 worker.execute(operation);
             } finally {
