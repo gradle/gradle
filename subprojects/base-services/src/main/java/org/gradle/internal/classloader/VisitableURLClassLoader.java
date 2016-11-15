@@ -33,6 +33,10 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         super(classPath.getAsURLArray(), parent);
     }
 
+    public Class<?> injectClass(String name, byte[] bytes) {
+        return defineClass(name, bytes, 0, bytes.length);
+    }
+
     public void visit(ClassLoaderVisitor visitor) {
         URL[] urls = getURLs();
         visitor.visitSpec(new Spec(Arrays.asList(urls)));

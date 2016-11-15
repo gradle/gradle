@@ -28,10 +28,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.CollectionUtils;
@@ -60,9 +61,6 @@ import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
-
-    private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
-
     @Override
     protected <T> ClassBuilder<T> start(Class<T> type, ClassMetaData classMetaData) {
         return new ClassBuilderImpl<T>(type, classMetaData);
@@ -905,7 +903,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitEnd();
 
             byte[] bytecode = visitor.toByteArray();
-            return DEFINE_CLASS_METHOD.invoke(type.getClassLoader(), typeName, bytecode, 0, bytecode.length);
+
+            ClassLoader classLoader = type.getClassLoader();
+            if (classLoader instanceof VisitableURLClassLoader) {
+                VisitableURLClassLoader loader = (VisitableURLClassLoader) classLoader;
+                return (Class<? extends T>) loader.injectClass(typeName, bytecode);
+            }
+            // TODO: need to cache these, also rework boostrapping so that the Gradle runtime ClassLoader is-a VisitableURLClassLoader
+            VisitableURLClassLoader child = new VisitableURLClassLoader(classLoader, ClassPath.EMPTY);
+            return (Class<? extends T>) child.injectClass(typeName, bytecode);
         }
 
         private void writeGenericReturnTypeFields() {
