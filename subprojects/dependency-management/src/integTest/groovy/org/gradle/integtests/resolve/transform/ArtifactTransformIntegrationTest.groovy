@@ -16,54 +16,97 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class ArtifactTransformIntegrationTest extends AbstractIntegrationSpec {
+class ArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
+    def setup() {
+        buildFile << """
+allprojects {
+    configurations {
+        compile {
+            attributes usage: 'api'
+        }
+    }
+}
 
-    def "Can resolve transformed configuration with external dependency"() {
+@TransformInput(format = 'jar')
+class FileSizer extends ArtifactTransform {
+    private File output
+
+    @TransformOutput(format = 'size')
+    File getOutput() {
+        return output
+    }
+
+    void transform(File input) {
+        output = new File(outputDirectory, input.name + ".txt")
+        println "Transforming \${input} to \${output}"
+        output.text = String.valueOf(input.length())
+    }
+}
+
+"""
+    }
+
+    def "applies transforms to artifacts for external dependencies"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
         given:
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
-            apply plugin: 'java'
             repositories {
-                mavenCentral()
+                maven { url "${mavenRepo.uri}" }
             }
             dependencies {
-                compile 'com.google.guava:guava:19.0'
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
             }
 
-            ${fileHashConfigurationAndTransform()}
+            ${fileSizeConfigurationAndTransform()}
         """
 
         when:
         succeeds "resolve"
 
         then:
-        file("build/libs").assertContainsDescendants("guava-19.0.jar.md5")
-        file("build/libs/guava-19.0.jar.md5").text == "43bfc49bdc7324f6daaa60c1ee9f3972"
+        file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/libs/test-1.3.jar.txt").text == "4"
+        file("build/libs/test2-2.3.jar.txt").text == "2"
+        file("build/transformed").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/transformed/test-1.3.jar.txt").text == "4"
+        file("build/transformed/test2-2.3.jar.txt").text == "2"
     }
 
-    def "Can resolve transformed configuration with file dependency"() {
+    def "applies transforms to files from file dependencies"() {
         when:
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
-            apply plugin: 'java'
+            def a = file('a.jar')
+            a.text = '1234'
+            def b = file('b.jar')
+            b.text = '12'
+            
             dependencies {
-                compile gradleApi()
+                compile files(a, b)
             }
 
-            ${fileHashConfigurationAndTransform()}
+            ${fileSizeConfigurationAndTransform()}
         """
 
         succeeds "resolve"
 
         then:
-        file("build/libs").listFiles().count {it.name.contains('gradle') && it.name.endsWith('.jar.md5')} >= 1
+        file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
+        file("build/libs/a.jar.txt").text == "4"
+        file("build/libs/b.jar.txt").text == "2"
+        file("build/transformed").assertHasDescendants("a.jar.txt", "b.jar.txt")
+        file("build/transformed/a.jar.txt").text == "4"
+        file("build/transformed/b.jar.txt").text == "2"
     }
 
-    def "Can filter configuration from dependency"() {
+    // Documents existing behaviour, not desired behaviour
+    def "removes artifacts and files with format that does not match requested from the result"() {
         given:
         settingsFile << """
             rootProject.name = 'root'
@@ -72,38 +115,37 @@ class ArtifactTransformIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             project(':lib') {
-                apply plugin: 'java'
+                artifacts {
+                    compile file('lib.jar')
+                    compile file('lib.classes')
+                    compile file('lib')
+                }
             }
 
             project(':app') {
                 configurations {
-                    filter {
-                        format = 'noArtifactOrTransformAvailable'
+                    compile {
+                        format = 'jar'
                     }
                 }
 
                 dependencies {
-                    filter project(':lib')
+                    compile project(':lib')
                 }
 
-                task resolve(type: Copy) {
-                    dependsOn configurations.filter
-                    from configurations.filter.incoming.artifacts*.file
-                    into "\${buildDir}/libs"
+                task resolve {
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib.jar']
+                    }
                 }
             }
         """
 
-        file("lib/src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
+        expect:
         succeeds "resolve"
-
-        then:
-        !file("app/build/libs").exists()
     }
 
-    def "Can transform configuration from dependency"() {
+    def "applies transforms to artifacts from project dependencies"() {
         given:
         settingsFile << """
             rootProject.name = 'root'
@@ -111,103 +153,55 @@ class ArtifactTransformIntegrationTest extends AbstractIntegrationSpec {
             include 'app'
         """
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
             project(':lib') {
-                apply plugin: 'java'
+                task jar1(type: Jar) {
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {
+                    archiveName = 'lib2.jar'
+                }
+
+                artifacts {
+                    compile jar1, jar2
+                }
             }
 
             project(':app') {
-                configurations {
-                    transform {
-                        format = 'classpath'
-                        resolutionStrategy.registerTransform(JarTransform) {
-                            outputDirectory = project.file("\${buildDir}/transformed")
-                        }
-                    }
-                }
 
                 dependencies {
-                    transform project(':lib')
+                    compile project(':lib')
                 }
 
-                task resolve(type: Copy) {
-                    dependsOn configurations.transform
-                    from configurations.transform.incoming.artifacts*.file
-                    into "\${buildDir}/libs"
-                }
-            }
-
-            @TransformInput(format = 'jar')
-            class JarTransform extends ArtifactTransform {
-                private File jar
-
-                @TransformOutput(format = 'classpath')
-                File getClasspathElement() {
-                    jar
-                }
-
-                void transform(File input) {
-                    jar = input
-                }
+                ${fileSizeConfigurationAndTransform()}
             }
         """
-
-        file("lib/src/main/java/Foo.java") << "public class Foo {}"
 
         when:
         succeeds "resolve"
 
         then:
-        file("app/build/libs/lib.jar").exists()
-        file("app/build/libs").listFiles().size() == 1
+        file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/libs/lib1.jar.txt").text == file("app/build/lib1.jar").length() as String
+        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/transformed/lib1.jar.txt").text == file("app/build/lib1.jar").length() as String
     }
 
-    def fileHashConfigurationAndTransform() {
+    def fileSizeConfigurationAndTransform() {
         """
-        buildscript {
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.google.guava:guava:19.0'
-            }
-        }
-
-        configurations {
-            hash {
-                extendsFrom(configurations.compile)
-                format = 'md5'
-                resolutionStrategy.registerTransform(FileHasher) {
-                    outputDirectory = project.file("\${buildDir}/transformed")
+            configurations {
+                compile {
+                    format = 'size'
+                    resolutionStrategy.registerTransform(FileSizer) {
+                        outputDirectory = project.file("\${buildDir}/transformed")
+                    }
                 }
             }
-        }
 
-        task resolve(type: Copy) {
-            from configurations.hash.incoming.artifacts*.file
-            into "\${buildDir}/libs"
-        }
-
-        @TransformInput(format = 'jar')
-        class FileHasher extends ArtifactTransform {
-            private File output
-
-            @TransformOutput(format = 'md5')
-            File getOutput() {
-                return output
+            task resolve(type: Copy) {
+                dependsOn configurations.compile
+                from configurations.compile.incoming.artifacts*.file
+                into "\${buildDir}/libs"
             }
-
-            void transform(File input) {
-                output = new File(outputDirectory, input.name + ".md5")
-                println "Transforming \${input} to \${output}"
-
-                if (!output.exists()) {
-                    def inputHash = com.google.common.io.Files.hash(input, com.google.common.hash.Hashing.md5())
-                    output << inputHash
-                }
-            }
-        }
-        """
+"""
     }
 }
