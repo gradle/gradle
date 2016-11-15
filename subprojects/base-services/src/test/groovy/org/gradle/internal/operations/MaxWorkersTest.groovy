@@ -39,6 +39,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             }
             start {
                 thread.blockUntil.worker1
+                def child2 = registry.operationStart()
                 processor.run(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -47,6 +48,7 @@ class MaxWorkersTest extends ConcurrentSpec {
                         }
                     })
                 })
+                child2.operationFinish()
             }
         }
 
@@ -67,6 +69,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         when:
         async {
             start {
+                def cl = registry.operationStart()
                 processor.run(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -77,6 +80,7 @@ class MaxWorkersTest extends ConcurrentSpec {
                         }
                     })
                 })
+                cl.operationFinish()
             }
             start {
                 thread.blockUntil.worker1

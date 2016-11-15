@@ -27,6 +27,6 @@ public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFac
 
     @Override
     public <T extends BuildOperation> BuildOperationQueue<T> create(StoppableExecutor executor, BuildOperationWorker<T> worker) {
-        return new DefaultBuildOperationQueue<T>(buildOperationWorkerRegistry, executor, worker);
+        return new DefaultBuildOperationQueue<T>(buildOperationWorkerRegistry.getCurrent(), executor, worker);
     }
 }
