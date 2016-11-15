@@ -36,7 +36,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putByte(byte b) {
         log("byte", b);
-        hasher.putLong(1);
+        hasher.putInt(1);
         hasher.putByte(b);
         return this;
     }
@@ -44,7 +44,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putBytes(byte[] bytes) {
         log("bytes", new ByteArrayToStringer(bytes));
-        hasher.putLong(bytes.length);
+        hasher.putInt(bytes.length);
         hasher.putBytes(bytes);
         return this;
     }
@@ -52,7 +52,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putBytes(byte[] bytes, int off, int len) {
         log("bytes", new ByteArrayToStringer(bytes, off, len));
-        hasher.putLong(len);
+        hasher.putInt(len);
         hasher.putBytes(bytes, off, len);
         return this;
     }
@@ -60,7 +60,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putInt(int i) {
         log("int", i);
-        hasher.putLong(4);
+        hasher.putInt(4);
         hasher.putInt(i);
         return this;
     }
@@ -68,7 +68,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putLong(long l) {
         log("long", l);
-        hasher.putLong(8);
+        hasher.putInt(8);
         hasher.putLong(l);
         return this;
     }
@@ -76,7 +76,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putDouble(double d) {
         log("double", d);
-        hasher.putLong(8);
+        hasher.putInt(8);
         hasher.putDouble(d);
         return this;
     }
@@ -84,7 +84,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putBoolean(boolean b) {
         log("boolean", b);
-        hasher.putLong(1);
+        hasher.putInt(1);
         hasher.putBoolean(b);
         return this;
     }
@@ -92,7 +92,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     @Override
     public TaskCacheKeyBuilder putString(CharSequence charSequence) {
         log("string", charSequence);
-        hasher.putLong(charSequence.length());
+        hasher.putInt(charSequence.length());
         hasher.putString(charSequence, Charsets.UTF_8);
         return this;
     }
