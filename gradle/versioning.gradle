@@ -23,25 +23,7 @@ if (incomingDistributionsBuildReceipt) {
     if (project.hasProperty("buildTimestamp")) {
         buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        File timestampFile = file("$buildDir/timestamp.txt")
-        if (timestampFile.isFile()) {
-            boolean uptodate = true
-            def modified = timestampFile.lastModified()
-            project(':core').fileTree('src/main').visit {fte ->
-                if (fte.file.isFile() && fte.lastModified > modified) {
-                    uptodate = false
-                    fte.stopVisiting()
-                }
-            }
-            if (!uptodate) {
-                timestampFile.setLastModified(new Date().time)
-            }
-        } else {
-            timestampFile.parentFile.mkdirs()
-            timestampFile.createNewFile()
-        }
-
-        buildTime = new Date(timestampFile.lastModified())
+        buildTime = new Date()
     }
     ext.buildTimestamp = timestampFormat.format(buildTime)
 }
