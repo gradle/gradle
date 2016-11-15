@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.util.GFileUtils
 
@@ -56,6 +57,7 @@ class TestTest extends AbstractConventionTaskTest {
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
 
+    private BuildOperationWorkerRegistry.Completion completion
     private FileCollection classpathMock = new SimpleFileCollection(new File("classpath"))
     private Test test
 
@@ -66,8 +68,13 @@ class TestTest extends AbstractConventionTaskTest {
         resultsDir = temporaryFolder.createDir("testResults")
         binResultsDir = temporaryFolder.createDir("binResults")
         reportDir = temporaryFolder.createDir("report")
+        completion = project.services.get(BuildOperationWorkerRegistry).operationStart()
 
         test = createTask(Test.class)
+    }
+
+    def cleanup() {
+        completion.operationFinish()
     }
 
     public ConventionTask getTask() {
