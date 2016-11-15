@@ -96,4 +96,42 @@ class MaxWorkersTest extends ConcurrentSpec {
         cleanup:
         registry?.stop()
     }
+
+    def "BuildOperationWorkerRegistry operations nested in BuildOperationProcessor operations borrow parent lease"() {
+        given:
+        def maxWorkers = 1
+        def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
+
+        when:
+        def outer = registry.operationStart()
+        processor.run(processorWorker, { queue ->
+            queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
+                @Override
+                void run() {
+                    def cl = registry.operationStart()
+                    thread.block()
+                    cl.operationFinish()
+                    instant.child1Finished
+                }
+            })
+            queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
+                @Override
+                void run() {
+                    def cl = registry.operationStart()
+                    instant.child2Started
+                    thread.block()
+                    cl.operationFinish()
+                }
+            })
+        })
+        outer.operationFinish()
+
+        then:
+        instant.child2Started > instant.child1Finished
+
+        cleanup:
+        registry?.stop()
+    }
 }
