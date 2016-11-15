@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
@@ -32,15 +33,23 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
+    DefaultBuildOperationWorkerRegistry workerRegistry
     BuildOperationProcessor buildOperationProcessor
+    BuildOperationWorkerRegistry.Completion completion
     Binary2JUnitXmlReportGenerator generator
 
     def generatorWithMaxThreads(int numThreads) {
-        def workersRegistry = new DefaultBuildOperationWorkerRegistry(numThreads)
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workersRegistry), new DefaultExecutorFactory(), numThreads)
+        workerRegistry = new DefaultBuildOperationWorkerRegistry(numThreads)
+        completion = workerRegistry.operationStart()
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), numThreads)
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
+    }
+
+    def "cleanup"() {
+        completion.operationFinish()
+        workerRegistry.stop();
     }
 
     @Unroll

@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
@@ -42,7 +43,20 @@ public abstract class NativeCompilerTest extends Specification {
     protected abstract List<String> getCompilerSpecificArguments(File includeDir)
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
-    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(new DefaultBuildOperationWorkerRegistry(1)), new DefaultExecutorFactory(), 1)
+
+    private DefaultBuildOperationWorkerRegistry workerRegistry = new DefaultBuildOperationWorkerRegistry(1)
+    private BuildOperationWorkerRegistry.Completion outerOperationCompletion
+
+    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), 1)
+
+    def "setup"() {
+        outerOperationCompletion = workerRegistry.operationStart()
+    }
+
+    def "cleanup"() {
+        outerOperationCompletion.operationFinish()
+        workerRegistry.stop()
+    }
 
     def "arguments include source file"() {
         given:
