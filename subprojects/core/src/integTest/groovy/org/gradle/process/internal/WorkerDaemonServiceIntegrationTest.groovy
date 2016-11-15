@@ -260,10 +260,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    String getTaskTypeUsingWorkerDaemon(String typeName) {
-        return getTaskTypeUsingWorkerDaemon().replaceAll("DaemonTask", typeName)
-    }
-
     String getTaskTypeUsingWorkerDaemon() {
         withParameterClassInBuildSrc()
 
