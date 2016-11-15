@@ -386,9 +386,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/testing/**'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
-    doFirst {
-        title = "Gradle API $version"
-    }
+    title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"
 }
 
