@@ -19,7 +19,16 @@ package org.gradle.build.docs
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.*
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.links.ClassLinkMetaData
 import org.gradle.build.docs.dsl.links.LinkMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
@@ -61,6 +70,18 @@ class UserGuideTransformTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     File snippetsDir
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    FileCollection sources
+
+    @PathSensitive(PathSensitivity.NONE)
+    @InputFile
+    File imports
+
+    @PathSensitive(PathSensitivity.NONE)
+    @InputFiles
+    FileCollection samplesList
 
     @Input
     Set<String> tags = new LinkedHashSet()
@@ -177,7 +198,6 @@ class UserGuideTransformTask extends DefaultTask {
         samplesXmlProvider.emptyDoc() << {
             samples()
         }
-        Element samplesXml = samplesXmlProvider.root.documentElement
         String lastTitle
         String lastId
         Element lastExampleElement

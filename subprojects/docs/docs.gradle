@@ -20,12 +20,14 @@ import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.ExtractSamplesTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.Docbook2Xhtml
+import org.gradle.build.docs.Xhtml2Pdf
 import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.plugins.pegdown.PegDown
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
@@ -117,6 +119,7 @@ tasks.withType(Docbook2Xhtml) {
     classpath = configurations.userGuideTask
     stylesheetsDir = userguideStyleSheets.destinationDir
 }
+
 tasks.withType(UserGuideTransformTask) {
     dependsOn samples, dslDocbook
     snippetsDir = samples.snippetsDir
@@ -131,6 +134,12 @@ tasks.withType(UserGuideTransformTask) {
         javadocUrl = '../javadoc'
         dsldocUrl = '../dsl'
     }
+
+    sources = files()
+    imports = defaultImports.importsDestFile
+    samplesList = files(samplesDocbook)
+
+    dependsOn samples, samplesDocbook, defaultImports
 }
 
 tasks.withType(AssembleDslDocTask) {
@@ -221,18 +230,12 @@ task dslMetaData(type: ExtractDslMetaDataTask) {
 }
 
 task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
-    inputs.files fileTree(dir: dslSrcDir, includes: ['*.xml']) withPropertyName "sources" withPathSensitivity PathSensitivity.RELATIVE
+    sources = fileTree(dir: dslSrcDir, includes: ['*.xml'])
     sourceFile = new File(dslSrcDir, 'dsl.xml')
     classMetaDataFile = dslMetaData.destFile
     pluginsMetaDataFile = new File(dslSrcDir, 'plugins.xml')
     destFile = new File(docbookSrc, 'dsl.xml')
     linksFile = new File(docbookSrc, 'api-links.bin')
-}
-
-task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
-    sourceFile = dslDocbook.destFile
-    destFile = new File(docbookSrc, 'dsl-standalone.xml')
-    dsldocUrl = '.'
 }
 
 task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
@@ -254,6 +257,12 @@ task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
 
     // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
     excludePackage 'org.gradle.platform.base.test'
+}
+
+task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
+    sourceFile = dslDocbook.destFile
+    destFile = new File(docbookSrc, 'dsl-standalone.xml')
+    dsldocUrl = '.'
 }
 
 task dslHtml(type: Docbook2Xhtml) {
@@ -282,23 +291,20 @@ task extractSamples(type: ExtractSamplesTask) {
 }
 
 // This is used in the distribution and for the online version
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [checkSectionIds, samples, samplesDocbook, defaultImports]) {
+task userguideDocbook(type: UserGuideTransformTask) {
     destFile = new File(docbookSrc, 'userguide.xml')
+    dependsOn checkSectionIds
 }
 
 // This is used for the PDF, where we need absolute links to the javadoc etc.
-task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
+task pdfUserguideDocbook(type: UserGuideTransformTask) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
 }
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml']) withPropertyName "sources" withPathSensitivity PathSensitivity.RELATIVE
-    inputs.file defaultImports.importsDestFile withPropertyName "defaultImports" withPathSensitivity PathSensitivity.NONE
-    inputs.file samplesDocbook withPropertyName "samplesList" withPathSensitivity PathSensitivity.NONE
-
+    sources = fileTree(dir: userguideSrcDir, includes: ['*.xml'])
     sourceFile new File(userguideSrcDir, 'userguide.xml')
-    websiteUrl 'http://www.gradle.org'
 }
 
 task userguideHtml(type: Docbook2Xhtml) {
@@ -332,10 +338,10 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
-    inputs.files fileTree(userguideSrcDir) {
+    images = fileTree(userguideSrcDir) {
         include 'img/*.png'
-    } withPropertyName "images" withPathSensitivity PathSensitivity.RELATIVE
-    inputs.files cssFiles withPropertyName "cssFiles" withPathSensitivity PathSensitivity.RELATIVE
+    }
+    css = cssFiles
     sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
@@ -415,8 +421,6 @@ task userguide {
     group = 'documentation'
 }
 
-import org.gradle.plugins.pegdown.PegDown
-
 task editReleaseNotes() {
     group = "release notes"
     doLast {
@@ -477,27 +481,4 @@ task docs {
 
 task docsZip(type: Zip) {
     from project.outputs.docs
-}
-
-class Xhtml2Pdf extends DefaultTask {
-    @InputFile
-    File sourceFile
-
-    @OutputFile
-    File destFile
-
-    @InputFiles
-    FileCollection classpath
-
-    @TaskAction
-    def transform() {
-        def uris = classpath.files.collect {it.toURI().toURL()}
-        def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
-        def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
-        renderer.setDocument(sourceFile)
-        renderer.layout()
-        destFile.withOutputStream {
-            renderer.createPDF(it)
-        }
-    }
 }

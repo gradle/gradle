@@ -27,6 +27,9 @@ import org.gradle.api.tasks.TaskAction
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
+/**
+ * Builds a samples.xml from the available samples.
+ */
 @CacheableTask
 class ExtractSamplesTask extends DefaultTask {
 
