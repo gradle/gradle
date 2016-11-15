@@ -945,35 +945,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             cachedResolverResults.getResolvedConfiguration().rethrowFailure();
             Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
             cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
-            return filterAndTransform(artifacts);
-        }
-
-        private Set<ResolvedArtifactResult> filterAndTransform(Set<ResolvedArtifactResult> artifacts) {
-            if (format == null) {
-                // this is a configuration without specific format
-                return artifacts;
-            }
-
-            Set<ResolvedArtifactResult> filteredArtifacts = new LinkedHashSet<ResolvedArtifactResult>();
-
-            // First attempt to locate artifacts with the correct format
-            for (ResolvedArtifactResult artifact : artifacts) {
-                if (artifact.getFormat().equals(format)) {
-                    filteredArtifacts.add(artifact);
-                } else {
-                    Transformer<File, File> transform = getResolutionStrategy().getTransform(artifact.getFormat(), format);
-                    if (transform != null) {
-                        // TODO: Parallel evaluation and caching
-                        File transformedFile = transform.transform(artifact.getFile());
-                        if (transformedFile != null) {
-                            ResolvedArtifactResult transformedArtifact = new DefaultResolvedArtifactResult(
-                                artifact.getId(), artifact.getType(), format, transformedFile);
-                            filteredArtifacts.add(transformedArtifact);
-                        }
-                    }
-                }
-            }
-            return filteredArtifacts;
+            return artifacts;
         }
     }
 
