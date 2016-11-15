@@ -405,7 +405,6 @@ class FileSizer extends ArtifactTransform {
 
     def "User gets a reasonable error message when a transformation throws exception"() {
         given:
-        executer.withStackTraceChecksDisabled()
         buildFile << """
             import org.gradle.api.artifacts.transform.*
 
@@ -445,16 +444,15 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        fails "resolve"
 
         then:
-        errorOutput.contains("Error while transforming 'guava-19.0.jar' to format 'md5' using 'TransformWithIllegalArgumentException' - Transform Implementation Missing!")
-        errorOutput.contains("IllegalArgumentException")
+        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Transform Implementation Missing!")
     }
 
     def "User gets a reasonable error message when a output property throws exception"() {
         given:
-        executer.withStackTraceChecksDisabled()
         buildFile << """
             import org.gradle.api.artifacts.transform.*
 
@@ -492,11 +490,11 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        fails "resolve"
 
         then:
-        errorOutput.contains("Error while transforming 'guava-19.0.jar' to format 'md5' using 'TransformWithIllegalArgumentException' - getOutput() Implementation Missing!")
-        errorOutput.contains("IllegalArgumentException")
+        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("getOutput() Implementation Missing!")
     }
 
     def "User gets a reasonable error message when a output property returns null"() {
@@ -538,11 +536,11 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        fails "resolve"
 
         then:
-        errorOutput.contains("Error while transforming 'guava-19.0.jar' to format 'md5' using 'ToNullTransform' - no output file created")
-
+        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'ToNullTransform'")
+        failure.assertHasCause("No output file created")
     }
 
     def "User gets a reasonable error message when a output property returns a non-existing file"() {
@@ -584,10 +582,11 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        fails "resolve"
 
         then:
-        errorOutput.contains("Error while transforming 'guava-19.0.jar' to format 'md5' using 'ToNullTransform' - expected output file 'this/file/does/not/exist' was not created")
+        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'ToNullTransform'")
+        failure.assertHasCause("Expected output file 'this/file/does/not/exist' was not created")
     }
 
     def fileSizeConfigurationAndTransform() {

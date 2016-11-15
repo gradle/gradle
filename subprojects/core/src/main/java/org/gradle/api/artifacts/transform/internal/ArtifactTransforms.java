@@ -20,15 +20,15 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.artifacts.transform.TransformInput;
 import org.gradle.api.artifacts.transform.TransformOutput;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -89,8 +89,6 @@ public class ArtifactTransforms {
     }
 
     private static class DependencyTransformTransformer implements Transformer<File, File> {
-        private static final Logger LOGGER = Logging.getLogger(DependencyTransformTransformer.class);
-
         private final ArtifactTransform artifactTransform;
         private final JavaMethod<? super ArtifactTransform, File> outputProperty;
         private final String outputFormat;
@@ -106,25 +104,19 @@ public class ArtifactTransforms {
             if (artifactTransform.getOutputDirectory() != null) {
                 artifactTransform.getOutputDirectory().mkdirs();
             }
-            File output = null;
+            File output;
             try {
                 artifactTransform.transform(file);
                 output = outputProperty.invoke(artifactTransform);
-                if (output == null) {
-                    reportError(file, "no output file created", null);
-                } else if (!output.exists()) {
-                    reportError(file, "expected output file '" + output.getPath() + "' was not created", null);
-                }
             } catch (Exception e) {
-                reportError(file, e.getMessage(), e);
+                throw new ArtifactTransformException(file, outputFormat, artifactTransform, e);
+            }
+            if (output == null) {
+                throw new ArtifactTransformException(file, outputFormat, artifactTransform, new FileNotFoundException("No output file created"));
+            } else if (!output.exists()) {
+                throw new ArtifactTransformException(file, outputFormat, artifactTransform, new FileNotFoundException("Expected output file '" + output.getPath() + "' was not created"));
             }
             return output;
-        }
-
-        private void reportError(File input, String message, Exception e) {
-            LOGGER.error(String.format("Error while transforming '%s' to format '%s' using '%s'%s",
-                input.getName(), outputFormat, artifactTransform.getClass().getSimpleName(),
-                message != null ? " - " + message : ""), e);
         }
     }
 
