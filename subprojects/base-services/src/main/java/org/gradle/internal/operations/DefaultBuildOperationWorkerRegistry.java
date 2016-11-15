@@ -25,9 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/**
- * Note that this class currently does not consider the build operations being run by {@link DefaultBuildOperationProcessor}.
- */
 public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorkerRegistry, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationWorkerRegistry.class);
     private final int maxWorkerCount;

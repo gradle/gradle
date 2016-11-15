@@ -31,7 +31,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 /**
- * Note that this class does not currently consider the build operations being run by {@link DefaultBuildOperationWorkerRegistry}.
+ * This class delegates worker leases management to {@link DefaultBuildOperationWorkerRegistry} and require that a current operation is in flight.
  */
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
