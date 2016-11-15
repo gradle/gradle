@@ -73,9 +73,9 @@ public class WorkerDaemonClientsManager {
 
     public void stop() {
         synchronized (lock) {
-            LOGGER.debug("Stopping {} compiler daemon(s).", allClients.size());
+            LOGGER.debug("Stopping {} worker daemon(s).", allClients.size());
             CompositeStoppable.stoppable(allClients).stop();
-            LOGGER.info("Stopped {} compiler daemon(s).", allClients.size());
+            LOGGER.info("Stopped {} worker daemon(s).", allClients.size());
             allClients.clear();
         }
     }
