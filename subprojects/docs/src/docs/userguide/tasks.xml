@@ -466,8 +466,9 @@
                     table below lists the available annotations and the corresponding property type you
                     can use with each one.
                 </para>
+
                 <table>
-                    <title>Incremental build annotations</title>
+                    <title>Incremental build property type annotations</title>
                     <thead>
                         <tr>
                             <th>Annotation</th>
@@ -557,42 +558,6 @@
                             an output.</td>
                     </tr>
 
-                    <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.SkipWhenEmpty"/></literal></td>
-                        <td/>
-                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
-                            to tell Gradle to skip the task if the corresponding iterable of files or
-                            directory are empty.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.Optional"/></literal></td>
-                        <td/>
-                        <td>Used with any of the other incremental build annotations listed in the
-                            <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
-                            This annotation disables validation checks on the corresponding property.
-                            See <link linkend="sec:task_input_output_validation">the section on validation</link>
-                            for more details.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.OrderSensitive"/></literal></td>
-                        <td/>
-                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
-                            to tell Gradle that a change in the order of the files should mark the task
-                            out-of-date.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.PathSensitive"/></literal></td>
-                        <td/>
-                        <td>Used with any input file property to tell Gradle to only consider the given
-                            part of the file paths as important. For example, if a property is annotated
-                            with <literal>@PathSensitive(PathSensitivity.NAME_ONLY)</literal>, then
-                            moving the files around without changing their contents will not make the
-                            task out-of-date.
-                        </td>
-                    </tr>
                     <tfoot>
                         <tr>
                             <td colspan="3"><emphasis role="bold">*</emphasis> In fact, <literal>File</literal>
@@ -608,6 +573,54 @@
                         </tr>
                     </tfoot>
                 </table>
+
+                <table>
+                    <title>Additional annotations used to further qualifying property type annotations</title>
+                    <thead>
+                        <tr>
+                            <th>Annotation</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.SkipWhenEmpty"/></literal></td>
+                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
+                            to tell Gradle to skip the task if the corresponding iterable of files or
+                            directory are empty.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Optional"/></literal></td>
+                        <td>Used with any of the property type annotations listed in the
+                            <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
+                            This annotation disables validation checks on the corresponding property.
+                            See <link linkend="sec:task_input_output_validation">the section on validation</link>
+                            for more details.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.OrderSensitive"/></literal></td>
+                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
+                            to tell Gradle that a change in the order of the files should mark the task
+                            out-of-date.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.PathSensitive"/></literal></td>
+                        <td>Used with any input file property to tell Gradle to only consider the given
+                            part of the file paths as important. For example, if a property is annotated
+                            with <literal>@PathSensitive(PathSensitivity.NAME_ONLY)</literal>, then
+                            moving the files around without changing their contents will not make the
+                            task out-of-date.
+                        </td>
+                    </tr>
+                </table>
+
+                <para>Annotations are inherited from all parent types including implemented interfaces.
+                    Property type annotations override any other property type annotation declared in a
+                    parent type. This way an <literal>@InputFile</literal> property can be turned into
+                    an <literal>@InputDirectory</literal> property in a child task type.
+                </para>
 
                 <para>The <apilink class="org.gradle.api.tasks.Console"/> and
                     <apilink class="org.gradle.api.tasks.Internal"/> annotations in the table are special
