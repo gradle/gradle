@@ -40,7 +40,7 @@ public interface WorkerDaemonExecutor {
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder
      * @return this builder
      */
-    WorkerDaemonExecutor forkOptions(Action<JavaForkOptions> forkOptionsAction);
+    WorkerDaemonExecutor forkOptions(Action<? super JavaForkOptions> forkOptionsAction);
 
     /**
      * Returns the {@link JavaForkOptions} object associated with this builder.
