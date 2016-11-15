@@ -35,11 +35,7 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
     <T extends TaskInternal> void addPlaceholderAction(String placeholderName, Class<T> type, Action<? super T> configure);
 
     /**
-     * Force the entire graph to come into existence.
-     *
-     * Tasks may have dependencies that are abstract (e.g. a dependency on a task _name_).
-     * Calling this method will force all task dependencies to be actualised, which may mean new tasks are
-     * created because of things like task rules etc.
+     * Force the task graph to come into existence.
      *
      * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
      */
@@ -48,7 +44,7 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
     /**
      * Performs work to discover more tasks.
      *
-     * This method differs from {@link #realize} in that it does not discover new tasks by traversing task dependencies.
+     * This method differs from {@link #realize} in that it does not realize the whole subtree.
      */
     void discoverTasks();
 
