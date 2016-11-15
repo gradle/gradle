@@ -27,6 +27,67 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
     private final static String GROUP = 'Hello world'
 
     @Unroll
+    def "always renders default tasks running #tasks"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build. [incubating]
+wrapper - Generates Gradle wrapper files. [incubating]
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in root project '$projectName'.
+components - Displays the components produced by root project '$projectName'. [incubating]
+dependencies - Displays all dependencies declared in root project '$projectName'.
+dependencyInsight - Displays the insight into a specific dependency in root project '$projectName'.
+dependentComponents - Displays the dependent components of components in root project '$projectName'. [incubating]
+help - Displays a help message.
+model - Displays the configuration model of root project '$projectName'. [incubating]
+projects - Displays the sub-projects of root project '$projectName'.
+properties - Displays the properties of root project '$projectName'.
+tasks - Displays the tasks runnable from root project '$projectName'.""")
+
+        where:
+        tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
+    }
+
+    @Unroll
+    def "always renders task rule running #tasks"() {
+        given:
+        buildFile << """
+            tasks.addRule("Pattern: ping<ID>") { String taskName ->
+                if (taskName.startsWith("ping")) {
+                    task(taskName) {
+                        doLast {
+                            println "Pinging: " + (taskName - 'ping')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+Rules
+-----
+Pattern: ping<ID>
+""")
+        where:
+        tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
+    }
+
+    @Unroll
     def "renders tasks with and without group running #tasks"() {
         given:
         buildFile << """
