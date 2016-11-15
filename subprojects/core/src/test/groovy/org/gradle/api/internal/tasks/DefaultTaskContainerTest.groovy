@@ -301,7 +301,7 @@ public class DefaultTaskContainerTest extends Specification {
         container.realize()
 
         then:
-        container.size() == 3
+        container.size() == 2
     }
 
     void "can add task via placeholder action"() {
