@@ -24,17 +24,15 @@ import java.io.Serializable;
 
 /**
  * Worker Daemon Executor.
- *
- * @param <T> Type of the action
  */
-public interface WorkerDaemonExecutor<T> {
+public interface WorkerDaemonExecutor {
     /**
      * Adds a set of files to the classpath associated with the daemon process.
      *
      * @param files - the files to add to the classpath
      * @return this builder
      */
-    WorkerDaemonExecutor<T> classpath(Iterable<File> files);
+    WorkerDaemonExecutor classpath(Iterable<File> files);
 
     /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
@@ -42,7 +40,7 @@ public interface WorkerDaemonExecutor<T> {
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder
      * @return this builder
      */
-    WorkerDaemonExecutor<T> forkOptions(Action<JavaForkOptions> forkOptionsAction);
+    WorkerDaemonExecutor forkOptions(Action<JavaForkOptions> forkOptionsAction);
 
     /**
      * Returns the {@link JavaForkOptions} object associated with this builder.
@@ -57,7 +55,7 @@ public interface WorkerDaemonExecutor<T> {
      * @param params - the parameters to use during construction
      * @return this builder
      */
-    WorkerDaemonExecutor<T> params(Serializable... params);
+    WorkerDaemonExecutor params(Serializable... params);
 
     /**
      * Synchronously executes the task in a daemon process.  Each call will execute in an idle daemon.  If no
