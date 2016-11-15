@@ -75,12 +75,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':announce:checkstyleIntegTestGroovy']
 
         gradle.addListener(new TaskExecutionAdapter() {
-
             @Override
-            void afterExecute(Task task, TaskState state) {
+            void beforeExecute(Task task) {
                 if (task.getPath() in tasksToInvestigateForCache) {
                     def buildScan = task.project.buildScan
-                    addTaskState(task, state)
                     task.inputs.properties.each { name, value ->
                         buildScan.value "${task.path}-input-${name}", String.valueOf(value)
                     }
@@ -111,11 +109,16 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             }
                         })
                     }
-                }
-                if (task.getPath() in tasksToInvestigateForCache) {
-                    addTaskState(task, state)
                     def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                     new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
+                }
+            }
+
+            @Override
+            void afterExecute(Task task, TaskState state) {
+                if (task.getPath() in tasksToInvestigateForCache) {
+                    def buildScan = task.project.buildScan
+                    addTaskState(task, state)
                 }
             }
 
