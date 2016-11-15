@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Set;
 
-public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExecutor<T> {
+public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExecutor {
     private final WorkerDaemonFactory workerDaemonFactory;
     private final JavaForkOptions javaForkOptions;
     private final Set<File> classpath = Sets.newLinkedHashSet();
@@ -51,13 +51,13 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     }
 
     @Override
-    public WorkerDaemonExecutor<T> classpath(Iterable<File> files) {
+    public WorkerDaemonExecutor classpath(Iterable<File> files) {
         GUtil.addToCollection(classpath, files);
         return this;
     }
 
     @Override
-    public WorkerDaemonExecutor<T> forkOptions(Action<JavaForkOptions> forkOptionsAction) {
+    public WorkerDaemonExecutor forkOptions(Action<JavaForkOptions> forkOptionsAction) {
         forkOptionsAction.execute(javaForkOptions);
         return this;
     }
@@ -68,7 +68,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     }
 
     @Override
-    public WorkerDaemonExecutor<T> params(Serializable... params) {
+    public WorkerDaemonExecutor params(Serializable... params) {
         this.params = params;
         return this;
     }
