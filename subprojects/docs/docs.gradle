@@ -134,12 +134,6 @@ tasks.withType(UserGuideTransformTask) {
         javadocUrl = '../javadoc'
         dsldocUrl = '../dsl'
     }
-
-    sources = files()
-    imports = defaultImports.importsDestFile
-    samplesList = files(samplesDocbook)
-
-    dependsOn samples, samplesDocbook, defaultImports
 }
 
 tasks.withType(AssembleDslDocTask) {
@@ -303,17 +297,24 @@ task pdfUserguideDocbook(type: UserGuideTransformTask) {
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    sources = fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    includes = files(samplesDocbook, 
+        defaultImports.importsDestFile, 
+        fileTree(dir: userguideSrcDir, includes: ['*.xml']))
+
+    dependsOn samples, samplesDocbook, defaultImports
+
     sourceFile new File(userguideSrcDir, 'userguide.xml')
 }
+
+def resourceFiles = fileTree(userguideSrcDir) {
+        include 'img/*.png'
+} + cssFiles
 
 task userguideHtml(type: Docbook2Xhtml) {
     source userguideDocbook
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
-    resources = fileTree(userguideSrcDir) {
-        include 'img/*.png'
-    } + cssFiles
+    resources = resourceFiles
     ext.entryPoint = "$destDir/userguide.html"
 }
 
@@ -321,9 +322,7 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
     source userguideDocbook
     destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'
-    resources = fileTree(userguideSrcDir) {
-        include 'img/*.png'
-    } + cssFiles
+    resources = resourceFiles
     ext.entryPoint = destFile
 }
 
@@ -331,20 +330,15 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
     source pdfUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
-    resources = fileTree(userguideSrcDir) {
-        include 'img/*.png'
-    } + cssFiles
+    resources = resourceFiles
     ext.entryPoint = destFile
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
-    images = fileTree(userguideSrcDir) {
-        include 'img/*.png'
-    }
-    css = cssFiles
     sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
+    resources = resourceFiles
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"

@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -35,7 +36,6 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
  *
@@ -73,15 +73,8 @@ class UserGuideTransformTask extends DefaultTask {
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    FileCollection sources
-
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFile
-    File imports
-
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFiles
-    FileCollection samplesList
+    @Optional
+    FileCollection includes
 
     @Input
     Set<String> tags = new LinkedHashSet()
