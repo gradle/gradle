@@ -55,7 +55,7 @@ class AbstractWorkerDaemonExecutorTest extends Specification {
         daemonForkOptions.maxHeapSize == "128m"
         daemonForkOptions.jvmArgs.contains("-Dfoo=bar")
         daemonForkOptions.jvmArgs.contains("-foo")
-        daemonForkOptions.jvmArgs.contains("-Xbootclasspath:/foo")
+        daemonForkOptions.jvmArgs.contains("-Xbootclasspath:${File.separator}foo".toString())
         daemonForkOptions.jvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
     }
 
