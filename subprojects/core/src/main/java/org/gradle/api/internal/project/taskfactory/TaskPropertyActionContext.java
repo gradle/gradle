@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
@@ -25,12 +23,6 @@ public interface TaskPropertyActionContext {
      * Returns the name of this property.
      */
     String getName();
-
-    /**
-     * Returns the annotation used to mark the property's type.
-     */
-    @Nullable
-    Class<? extends Annotation> getPropertyType();
 
     /**
      * Returns the declared type of this property. If the property has an instance variable,
