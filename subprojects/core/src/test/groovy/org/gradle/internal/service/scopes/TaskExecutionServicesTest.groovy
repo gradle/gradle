@@ -30,12 +30,9 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
-import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -76,15 +73,5 @@ class TaskExecutionServicesTest extends Specification {
 
         expect:
         services.get(TaskExecuter).is(services.get(TaskExecuter))
-    }
-
-    def "makes a BuildOperationProcessor available"() {
-        given:
-        _ * parent.get(StartParameter) >> Mock(StartParameter)
-        _ * parent.get(ExecutorFactory) >> Mock(ExecutorFactory)
-
-        expect:
-        services.get(BuildOperationProcessor) instanceof DefaultBuildOperationProcessor
-        services.get(BuildOperationProcessor).is(services.get(BuildOperationProcessor))
     }
 }
