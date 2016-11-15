@@ -68,6 +68,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':integTest:compileIntegTestGroovy',
             ':platformPlay:integTest',
             ':docs:userguideFragmentSrc',
+            ':docs:dslStandaloneDocbook',
+            ':docs:dslHtml',
             ':wrapper:integTest',
             ':internalAndroidPerformanceTesting:compileJava',
             ':launcher:compileTestFixturesGroovy',
