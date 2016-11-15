@@ -136,10 +136,10 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
             classpathBuilder.addAll(ClasspathUtil.getClasspathFiles(visibleClass.getClassLoader()));
         }
 
-        if (visibleClass.getPackage() != null) {
-            sharedPackagesBuilder.add(visibleClass.getPackage().getName());
-        } else {
+        if (visibleClass.getPackage() == null || "".equals(visibleClass.getPackage().getName())) {
             sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
+        } else {
+            sharedPackagesBuilder.add(visibleClass.getPackage().getName());
         }
     }
 }
