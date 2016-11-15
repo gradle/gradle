@@ -57,7 +57,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     }
 
     @Override
-    public WorkerDaemonExecutor forkOptions(Action<JavaForkOptions> forkOptionsAction) {
+    public WorkerDaemonExecutor forkOptions(Action<? super JavaForkOptions> forkOptionsAction) {
         forkOptionsAction.execute(javaForkOptions);
         return this;
     }
