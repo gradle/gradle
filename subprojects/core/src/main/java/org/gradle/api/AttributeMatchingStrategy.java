@@ -62,10 +62,10 @@ public interface AttributeMatchingStrategy<T> {
      * cases if you want to.
      *
      * @param requestedValue the value to compare against. Never null.
-     * @param compatibleValues the map of candidate values
+     * @param candidateValues the map of candidate values
      * @param <K> the type of the candidate
      * @return a list of best matches. Must never be empty.
      */
-    <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> compatibleValues);
+    <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> candidateValues);
 
 }

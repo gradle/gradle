@@ -69,8 +69,8 @@ public class DefaultConfigurationAttributesSchema implements org.gradle.api.Attr
         }
 
         @Override
-        public <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> compatibleValues) {
-            return ImmutableList.copyOf(compatibleValues.keySet());
+        public <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> candidateValues) {
+            return ImmutableList.copyOf(candidateValues.keySet());
         }
     }
 }

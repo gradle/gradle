@@ -87,12 +87,12 @@ class DefaultConfigurationAttributesSchemaTest extends Specification {
             }
 
             @Override
-            def <K> List<K> selectClosestMatch(AttributeValue<Map> optionalAttribute, Map<K, Map> compatibleValues) {
+            def <K> List<K> selectClosestMatch(AttributeValue<Map> optionalAttribute, Map<K, Map> candidateValues) {
                 optionalAttribute.whenPresent { requestedValue ->
-                    compatibleValues.findAll { it.value == requestedValue }*.getKey()
+                    candidateValues.findAll { it.value == requestedValue }*.getKey()
                 } whenMissing {
-                    [compatibleValues.keySet().first()]
-                } getOrElse { compatibleValues.keySet().toList() }
+                    [candidateValues.keySet().first()]
+                } getOrElse { candidateValues.keySet().toList() }
             }
         })
 

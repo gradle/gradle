@@ -381,11 +381,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   matchStrictly(buildType)
                   setMatchingStrategy(flavor, new AttributeMatchingStrategy<String>() {
                        boolean isCompatible(String req, String can) { req == can }
-                       public <K> List<K> selectClosestMatch(AttributeValue<String> value, Map<K, String> compatibleValues) {
+                       public <K> List<K> selectClosestMatch(AttributeValue<String> value, Map<K, String> candidateValues) {
                             value.whenPresent {
-                                compatibleValues.keySet() as List
+                                candidateValues.keySet() as List
                             } getOrElse {
-                                [compatibleValues.entrySet().sort { it.value }.first().key ]
+                                [candidateValues.entrySet().sort { it.value }.first().key ]
                             }
                        }
                   })
@@ -448,13 +448,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   matchStrictly(dummy)
                   setMatchingStrategy(arch, new AttributeMatchingStrategy<Arch>() {
                        boolean isCompatible(Arch req, Arch can) { req == can }
-                       public <K> List<K> selectClosestMatch(AttributeValue<Arch> requestedValue, Map<K, Arch> compatibleValues) {
+                       public <K> List<K> selectClosestMatch(AttributeValue<Arch> requestedValue, Map<K, Arch> candidateValues) {
                             requestedValue.whenPresent {
                                 // the consumer provided a value
-                                compatibleValues.keySet() as List
+                                candidateValues.keySet() as List
                             } getOrElse {
                                 // the consumer did not provide a value
-                                [compatibleValues.entrySet().sort { it.value.ordinal()}.last().key]
+                                [candidateValues.entrySet().sort { it.value.ordinal()}.last().key]
                             }
                        }
                   })
