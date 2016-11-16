@@ -49,7 +49,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final FileHasher hasher = Mock()
     final ClassLoaderCache classLoaderCache = Mock()
     final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
-        getLenientHash(classLoader) >> HashCode.fromLong(9999)
+        getStrictHash(classLoader) >> HashCode.fromLong(9999)
     }
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")
