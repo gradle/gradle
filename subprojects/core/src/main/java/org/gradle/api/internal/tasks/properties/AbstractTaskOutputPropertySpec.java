@@ -16,29 +16,23 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import groovy.lang.Closure;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.util.DeprecationLogger;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 
-abstract class AbstractTaskOutputPropertySpec extends AbstractTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
-    private final TaskOutputs taskOutputs;
+abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
     private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
     protected AbstractTaskOutputPropertySpec(TaskOutputs taskOutputs) {
-        this.taskOutputs = taskOutputs;
+        super(taskOutputs);
     }
 
     @Override
@@ -81,56 +75,8 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskPropertyBuilde
         return getPropertyName() + " (" + getCompareStrategy() + " " + snapshotNormalizationStrategy + ")";
     }
 
-    // --- Deprecated delegate methods
-
-    private TaskOutputs getTaskOutputs(String method) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskOutputs directly instead.", method));
-        return taskOutputs;
-    }
-
     public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
         return GenericFileCollectionSnapshotter.class;
-    }
-
-    @Override
-    public void upToDateWhen(Closure upToDateClosure) {
-        getTaskOutputs("upToDateWhen(Closure)").upToDateWhen(upToDateClosure);
-    }
-
-    @Override
-    public void upToDateWhen(Spec<? super Task> upToDateSpec) {
-        getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
-    }
-
-    @Override
-    public void cacheIf(Spec<? super Task> spec) {
-        getTaskOutputs("cacheIf(Spec)").cacheIf(spec);
-    }
-
-    @Override
-    public boolean getHasOutput() {
-        return getTaskOutputs("getHasOutput()").getHasOutput();
-    }
-
-    @Override
-    public FileCollection getFiles() {
-        return getTaskOutputs("getFiles()").getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public TaskOutputFilePropertyBuilder files(Object... paths) {
-        return getTaskOutputs("files(Object...)").files(paths);
-    }
-
-    @Override
-    public TaskOutputFilePropertyBuilder file(Object path) {
-        return getTaskOutputs("file(Object)").file(path);
-    }
-
-    @Override
-    public TaskOutputFilePropertyBuilder dir(Object path) {
-        return getTaskOutputs("dir(Object)").dir(path);
     }
 
     @Override

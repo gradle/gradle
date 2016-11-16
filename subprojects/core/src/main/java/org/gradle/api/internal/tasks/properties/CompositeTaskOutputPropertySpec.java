@@ -17,47 +17,58 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterators;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
-import static org.gradle.util.GUtil.uncheckedCall;
-
-public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements Iterable<CacheableTaskOutputFilePropertySpec> {
+public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec {
 
     private final CacheableTaskOutputFilePropertySpec.OutputType outputType;
-    private final Callable<Map<?, ?>> paths;
+    private final Object paths;
+    private final String taskName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(TaskOutputs taskOutputs, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Callable<Map<?, ?>> paths) {
+    public CompositeTaskOutputPropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Object[] paths) {
         super(taskOutputs);
+        this.taskName = taskName;
         this.resolver = resolver;
         this.outputType = outputType;
-        this.paths = paths;
+        this.paths = (paths != null && paths.length == 1)
+            ? paths[0]
+            : paths;
     }
 
     public CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
         return outputType;
     }
 
-    @Override
-    public Iterator<CacheableTaskOutputFilePropertySpec> iterator() {
-        final Iterator<? extends Map.Entry<?, ?>> iterator = uncheckedCall(paths).entrySet().iterator();
-        return new AbstractIterator<CacheableTaskOutputFilePropertySpec>() {
-            @Override
-            protected CacheableTaskOutputFilePropertySpec computeNext() {
-                if (iterator.hasNext()) {
-                    Map.Entry<?, ?> entry = iterator.next();
-                    String id = entry.getKey().toString();
-                    File file = resolver.resolve(entry.getValue());
-                    return new DefaultTaskOutputFilePropertySpec(CompositeTaskOutputPropertySpec.this, "." + id, file);
+    public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
+        Object unpackedPaths = GFileUtils.unpack(paths);
+        if (unpackedPaths == null) {
+            return Iterators.emptyIterator();
+        } else if (unpackedPaths instanceof Map) {
+            final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedPaths).entrySet().iterator();
+            return new AbstractIterator<TaskOutputFilePropertySpec>() {
+                @Override
+                protected TaskOutputFilePropertySpec computeNext() {
+                    if (iterator.hasNext()) {
+                        Map.Entry<?, ?> entry = iterator.next();
+                        String id = entry.getKey().toString();
+                        File file = resolver.resolve(entry.getValue());
+                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec.this, "." + id, file);
+                    }
+                    return endOfData();
                 }
-                return endOfData();
-            }
-        };
+            };
+        } else {
+            return Iterators.<TaskOutputFilePropertySpec>singletonIterator(
+                new NonCacheableTaskOutputPropertySpec(taskOutputs, taskName, this, resolver, unpackedPaths)
+            );
+        }
     }
 }

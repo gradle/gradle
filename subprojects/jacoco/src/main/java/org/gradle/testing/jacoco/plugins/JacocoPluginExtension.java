@@ -121,7 +121,7 @@ public class JacocoPluginExtension {
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
             }
         });
-        taskInternal.getOutputs().namedFiles(new Callable<Map<?, ?>>() {
+        taskInternal.getOutputs().files(new Callable<Map<?, ?>>() {
             @Override
             public Map<?, ?> call() throws Exception {
                 ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();

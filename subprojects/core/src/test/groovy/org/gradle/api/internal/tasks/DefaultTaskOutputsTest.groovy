@@ -124,7 +124,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register named output files"() {
-        when: outputs.namedFiles("fileA": "a", "fileB": "b")
+        when: outputs.files("fileA": "a", "fileB": "b")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
@@ -135,7 +135,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     @Unroll
     def "can register named #name with property name"() {
-        when: outputs."named${name.capitalize()}"("fileA": "a", "fileB": "b").withPropertyName("prop")
+        when: outputs."$name"("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
@@ -143,13 +143,13 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
-        name          | type
-        "files"       | FILE
-        "directories" | DIRECTORY
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
     }
 
     def "can register future named output files"() {
-        when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] })
+        when: outputs.files({ ["fileA": "a", "fileB": "b"] })
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
@@ -159,7 +159,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register future named output files with property name"() {
-        when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] }).withPropertyName("prop")
+        when: outputs.files({ ["fileA": "a", "fileB": "b"] }).withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']

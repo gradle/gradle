@@ -17,15 +17,52 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.api.tasks.TaskPropertyBuilder;
 
-public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements TaskOutputFilePropertySpec {
+public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputFilePropertySpec {
+
+    private final CompositeTaskOutputPropertySpec parent;
     private final FileCollection files;
 
-    public NonCacheableTaskOutputPropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, Object paths) {
+    public NonCacheableTaskOutputPropertySpec(TaskOutputs taskOutputs, String taskName, CompositeTaskOutputPropertySpec parent, FileResolver resolver, Object paths) {
         super(taskOutputs);
+        this.parent = parent;
         this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
+    }
+
+    @Override
+    public TaskPropertyBuilder withPropertyName(String propertyName) {
+        return parent.withPropertyName(propertyName);
+    }
+
+    @Override
+    public String getPropertyName() {
+        return parent.getPropertyName();
+    }
+
+    @Override
+    public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+        return parent.getSnapshotter();
+    }
+
+    @Override
+    public TaskFilePropertyCompareStrategy getCompareStrategy() {
+        return parent.getCompareStrategy();
+    }
+
+    @Override
+    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+        return parent.getSnapshotNormalizationStrategy();
+    }
+
+    @Override
+    public int compareTo(TaskPropertySpec o) {
+        return parent.compareTo(o);
     }
 
     @Override
