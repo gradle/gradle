@@ -107,7 +107,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         } else {
             parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
         }
-        return parentRegistry.createChild(project.getClassLoaderScope().createChild("plugins").lock());
+        return parentRegistry.createChild(project.getClassLoaderScope());
     }
 
     protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
