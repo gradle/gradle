@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class AmbiguousConfigurationSelectionError extends IllegalArgumentException {
+public class AmbiguousConfigurationSelectionException extends IllegalArgumentException {
     private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
         @Override
         public String apply(ConfigurationMetadata input) {
@@ -46,7 +46,7 @@ public class AmbiguousConfigurationSelectionError extends IllegalArgumentExcepti
         }
     };
 
-    public AmbiguousConfigurationSelectionError(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, boolean fullMatch) {
+    public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, boolean fullMatch) {
         super(generateMessage(fromConfigurationAttributes, matches, fullMatch));
     }
 

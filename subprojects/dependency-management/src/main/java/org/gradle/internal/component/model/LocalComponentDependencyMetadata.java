@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.AmbiguousConfigurationSelectionError;
+import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -107,13 +107,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionError(fromConfigurationAttributes, matches, true);
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, true);
             }
             matches = matcher.getPartialMatchs();
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionError(fromConfigurationAttributes, matches, false);
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, false);
             }
 
         }
