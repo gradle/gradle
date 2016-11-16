@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
+import static org.hamcrest.CoreMatchers.containsString
+
 @RunWith(FluidDependenciesResolveRunner)
 abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -474,7 +476,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, foo]. All of them partially match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [bar, foo]. All of them partially match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
@@ -581,7 +583,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' and found compatible value 'debug'.
    - Configuration 'foo' :
@@ -634,7 +636,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
@@ -703,7 +705,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [compile, debug]. All of them partially match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [compile, debug]. All of them partially match the consumer attributes:
    - Configuration 'compile' :
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
@@ -1018,7 +1020,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [foo, foo2]. All of them match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [foo, foo2]. All of them match the consumer attributes:
    - Configuration 'foo'  :
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
@@ -1032,7 +1034,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkRelease'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [bar, bar2]. All of them match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [bar, bar2]. All of them match the consumer attributes:
    - Configuration 'bar'  :
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra' but wasn't required.

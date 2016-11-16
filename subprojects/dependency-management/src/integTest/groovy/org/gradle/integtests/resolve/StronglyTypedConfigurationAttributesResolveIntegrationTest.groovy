@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve
 
+import static org.hamcrest.CoreMatchers.containsString
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -275,7 +277,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertThatCause(containsNormalizedString("""Cannot choose between the following configurations: [foo2, foo3]. All of them match the consumer attributes:
+        failure.assertThatCause(containsString("""Cannot choose between the following configurations: [foo2, foo3]. All of them match the consumer attributes:
    - Configuration 'foo2' :
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'free'.
