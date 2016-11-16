@@ -29,11 +29,14 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ArtifactTransformer {
     private final String format;
     private final ResolutionStrategyInternal resolutionStrategy;
+    private final Map<File, File> transformed = new HashMap<File, File>();
 
     public ArtifactTransformer(@Nullable String format, ResolutionStrategyInternal resolutionStrategy) {
         this.format = format;
@@ -58,7 +61,13 @@ public class ArtifactTransformer {
                 visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion(), new DefaultIvyArtifactName(artifact.getName(), format, artifact.getExtension()), artifact.getId(), new Factory<File>() {
                     @Override
                     public File create() {
-                        return transform.transform(artifact.getFile());
+                        File file = artifact.getFile();
+                        File transformedFile = transformed.get(file);
+                        if (transformedFile == null) {
+                            transformedFile = transform.transform(file);
+                            transformed.put(file, transformedFile);
+                        }
+                        return transformedFile;
                     }
                 }));
             }
@@ -70,15 +79,29 @@ public class ArtifactTransformer {
 
             @Override
             public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
-                List<File> transformed = new ArrayList<File>();
+                List<File> result = new ArrayList<File>();
                 for (File file : files) {
-                    Transformer<File, File> transform = resolutionStrategy.getTransform(Files.getFileExtension(file.getName()), format);
+                    String fileFormat = Files.getFileExtension(file.getName());
+                    if (format.equals(fileFormat)) {
+                        result.add(file);
+                        continue;
+                    }
+                    File transformedFile = transformed.get(file);
+                    if (transformedFile != null) {
+                        result.add(transformedFile);
+                        continue;
+                    }
+                    Transformer<File, File> transform = resolutionStrategy.getTransform(fileFormat, format);
                     if (transform == null) {
                         continue;
                     }
-                    transformed.add(transform.transform(file));
+                    transformedFile = transform.transform(file);
+                    transformed.put(file, transformedFile);
+                    result.add(transformedFile);
                 }
-                visitor.visitFiles(componentIdentifier, transformed);
+                if (!result.isEmpty()) {
+                    visitor.visitFiles(componentIdentifier, result);
+                }
             }
         };
     }

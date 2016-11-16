@@ -50,7 +50,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
             }
             task artifacts {
                 doLast {
-                    println configurations.compile.resolvedConfiguration.resolvedArtifacts
+                    println configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it.name }
                 }
             }
 """

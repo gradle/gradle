@@ -22,6 +22,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.io.File;
 
+/**
+ * A visitor over the contents of a {@link ResolvedArtifactSet}.
+ */
 public interface ArtifactVisitor {
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily downloaded.

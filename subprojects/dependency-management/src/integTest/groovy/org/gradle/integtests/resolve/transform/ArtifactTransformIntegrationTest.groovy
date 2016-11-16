@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class ArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -46,7 +46,7 @@ class FileSizer extends ArtifactTransform {
 
     void transform(File input) {
         output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input} to \${output}"
+        println "Transforming \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
     }
 }
@@ -189,13 +189,20 @@ class FileSizer extends ArtifactTransform {
         buildFile << """
             project(':lib') {
                 projectDir.mkdirs()
-                def txt = file('lib.size')
-                txt.text = 'some text'
-                def jar = file('lib.jar')
-                jar.text = 'some text'
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+                def file2 = file('lib2.size')
+                file2.text = 'some text'
+                def jar1 = file('lib1.jar')
+                jar1.text = 'some text'
+                def jar2 = file('lib2.jar')
+                jar2.text = 'some text'
                 
+                dependencies {
+                    compile files(file1, jar1)
+                }
                 artifacts {
-                    compile txt, jar
+                    compile file2, jar2
                 }
             }
 
@@ -211,11 +218,11 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
-        file("app/build/libs").assertHasDescendants("lib.jar.txt", "lib.size")
-        file("app/build/libs/lib.jar.txt").text == "9"
-        file("app/build/libs/lib.size").text == "some text"
-        file("app/build/transformed").assertHasDescendants("lib.jar.txt")
-        file("app/build/transformed/lib.jar.txt").text == "9"
+        file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.jar.txt", "lib2.size")
+        file("app/build/libs/lib1.jar.txt").text == "9"
+        file("app/build/libs/lib1.size").text == "some text"
+        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/transformed/lib1.jar.txt").text == "9"
     }
 
     def "result is applied for all query methods"() {
@@ -250,13 +257,21 @@ class FileSizer extends ArtifactTransform {
                         println "files 1: " + configurations.compile.collect { it.name }
                         println "files 2: " + configurations.compile.files.collect { it.name }
                         println "files 3: " + configurations.compile.incoming.files.collect { it.name }
-                        println "files 4: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
-                        println "files 5: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
-                        println "files 6: " + configurations.compile.resolve().collect { it.name }
-                        println "files 7: " + configurations.compile.files { true }.collect { it.name }
-                        println "files 8: " + configurations.compile.fileCollection { true }.collect { it.name }
-                        println "files 9: " + configurations.compile.incoming.artifacts.collect { it.file.name }
+                        println "files 4: " + configurations.compile.incoming.artifacts.collect { it.file.name }
+                        println "files 5: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
+                        println "files 6: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
+                        println "files 7: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
+                        println "files 8: " + configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name }
+                        println "files 9: " + configurations.compile.resolve().collect { it.name }
+                        println "files 10: " + configurations.compile.files { true }.collect { it.name }
+                        println "files 11: " + configurations.compile.fileCollection { true }.collect { it.name }
+                        println "files 12: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
+                        println "files 13: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
+                        println "files 14: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.collect { it.file.name }
+
                         println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.id }
+                        println "artifacts 2: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.id }
+                        println "artifacts 3: " + configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.id }
                     }
                 }
             }
@@ -275,10 +290,117 @@ class FileSizer extends ArtifactTransform {
         output.contains("files 7: [lib.size, lib.jar.txt]")
         output.contains("files 8: [lib.size, lib.jar.txt]")
         output.contains("files 9: [lib.size, lib.jar.txt]")
+        output.contains("files 10: [lib.size, lib.jar.txt]")
+        output.contains("files 11: [lib.size, lib.jar.txt]")
+        output.contains("files 12: [lib.size, lib.jar.txt]")
+        output.contains("files 13: [lib.size, lib.jar.txt]")
         output.contains("artifacts 1: [lib.size (project :lib), lib.jar (project :lib)]")
+        output.contains("artifacts 2: [lib.size (project :lib), lib.jar (project :lib)]")
+        output.contains("artifacts 3: [lib.size (project :lib), lib.jar (project :lib)]")
 
         file("app/build/transformed").assertHasDescendants("lib.jar.txt")
         file("app/build/transformed/lib.jar.txt").text == "9"
+    }
+
+    def "transformation is applied once only to each file"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def jar1 = file('lib-1.jar')
+                jar1.text = 'some text'
+                def jar2 = file('lib-2.jar')
+                jar2.text = 'some text'
+                dependencies {
+                    compile files(jar2)
+                }
+                artifacts {
+                    compile jar1
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                configurations {
+                    compile {
+                        format = 'size'
+                        resolutionStrategy.registerTransform(FileSizer) {
+                            outputDirectory = project.file("\${buildDir}/transformed")
+                        }
+                    }
+                }
+                task resolve {
+                    doLast {
+                        // Query a bunch of times
+                        println "files 1: " + configurations.compile.collect { it.name }
+                        println "files 2: " + configurations.compile.files.collect { it.name }
+                        println "files 3: " + configurations.compile.incoming.files.collect { it.name }
+                        println "files 4: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
+                        println "files 5: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
+                        println "files 6: " + configurations.compile.resolve().collect { it.name }
+                        println "files 7: " + configurations.compile.files { true }.collect { it.name }
+                        println "files 8: " + configurations.compile.fileCollection { true }.collect { it.name }
+                        println "files 9: " + configurations.compile.incoming.artifacts.collect { it.file.name }
+                        println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.id }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Transforming lib-1.jar to lib-1.jar.txt") == 1
+        output.count("Transforming lib-2.jar to lib-2.jar.txt") == 1
+    }
+
+    def "files are lazily downloaded and transformed when using ResolvedArtifact methods"() {
+        def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
+        def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url '${mavenHttpRepo.uri}' }
+            }
+            dependencies {
+                compile 'org.test:test1:1.0'
+                compile 'org.test:test2:2.0'
+            }
+            
+            ${fileSizeConfigurationAndTransform()}
+
+            def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
+            artifacts[0].file
+            
+            task query {
+                doLast {
+                    artifacts[1].file
+                }
+            }
+        """
+
+        when:
+        m1.pom.expectGet()
+        m1.artifact.expectGet()
+        m2.pom.expectGet()
+
+        succeeds "help"
+
+        then:
+        output.count("Transforming") == 1
+
+        when:
+        server.resetExpectations()
+        m2.artifact.expectGet()
+
+        succeeds "query"
+
+        then:
+        output.count("Transforming") == 2
     }
 
     def fileSizeConfigurationAndTransform() {
