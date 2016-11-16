@@ -88,7 +88,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     public void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
-        def links = ['basename', 'dirname', 'uname', 'which', 'sh', 'bash']
+        def links = ['basename', 'dirname', 'uname', 'which', 'sed', 'sh', 'bash']
         def binDir = file('fake-bin')
         try {
             def path
