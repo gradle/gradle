@@ -290,7 +290,7 @@ public interface ResolutionStrategy {
     /**
      * Register an artifact transformation.
      *
-     * @param type implementation type of the dependency transformation
+     * @param type implementation type of the artifact transformation
      * @param config a configuration action
      *
      * @see ArtifactTransform
