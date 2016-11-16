@@ -16,9 +16,14 @@
 
 package org.gradle.process.daemon;
 
+import org.gradle.api.Incubating;
+
 /**
  * Worker Daemon Service.
+ *
+ * @since 3.3
  */
+@Incubating
 public interface WorkerDaemonService {
     /**
      * Creates a {@link WorkerDaemonExecutor} for a Runnable that will execute in a daemon process.  The produced runnable

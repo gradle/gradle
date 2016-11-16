@@ -17,6 +17,7 @@
 package org.gradle.process.daemon;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
@@ -24,7 +25,10 @@ import java.io.Serializable;
 
 /**
  * Worker Daemon Executor.
+ *
+ * @since 3.3
  */
+@Incubating
 public interface WorkerDaemonExecutor {
     /**
      * Adds a set of files to the classpath associated with the daemon process.
