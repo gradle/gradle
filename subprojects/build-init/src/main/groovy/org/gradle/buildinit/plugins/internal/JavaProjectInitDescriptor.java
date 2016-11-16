@@ -16,41 +16,71 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-
-import java.util.Collections;
 
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
 
 public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+    private final DocumentationRegistry documentationRegistry;
+
     public JavaProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                      FileResolver fileResolver,
                                      TemplateLibraryVersionProvider libraryVersionProvider,
-                                     ProjectInitDescriptor globalSettingsDescriptor) {
+                                     ProjectInitDescriptor globalSettingsDescriptor,
+                                     DocumentationRegistry documentationRegistry) {
         super("java", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(testFramework);
-        templateOperationFactory.newTemplateOperation()
-            .withTemplate(gradleBuildTemplate(testFramework))
-            .withTarget("build.gradle")
-            .withDocumentationBindings(Collections.singletonMap("ref_userguide_java_tutorial", "tutorial_java_projects"))
-            .withBindings(Collections.singletonMap("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .withBindings(Collections.singletonMap("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
-            .withBindings(Collections.singletonMap("groovyVersion", libraryVersionProvider.getVersion("groovy")))
-            .withBindings(Collections.singletonMap("spockVersion", libraryVersionProvider.getVersion("spock")))
-            .withBindings(Collections.singletonMap("testngVersion", libraryVersionProvider.getVersion("testng")))
-            .create().generate();
-        TemplateOperation javalibraryTemplateOperation = sourceTemplateOperation();
-        whenNoSourcesAvailable(javalibraryTemplateOperation, testTemplateOperation(testFramework)).generate();
+
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
+            .fileComment("This generated file contains a sample Java project to get you started.")
+            .fileComment("For more details take a look at the Java Quickstart chapter in the Gradle")
+            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_java_projects"))
+            .plugin("Apply the java plugin to add support for Java", "java")
+            .dependency("The production code uses the SLF4J logging API at compile time",
+                "org.slf4j:slf4j-api:" + libraryVersionProvider.getVersion("slf4j"));
+        configure(buildScriptBuilder);
+        addTestFramework(testFramework, buildScriptBuilder);
+        buildScriptBuilder.create().generate();
+
+        TemplateOperation javaSourceTemplate = sourceTemplateOperation();
+        whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(testFramework)).generate();
+    }
+
+    private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {
+        switch (testFramework) {
+            case SPOCK:
+                buildScriptBuilder
+                    .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
+                    .testCompileDependency("Use the latest Groovy version for Spock testing",
+                        "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
+                    .testCompileDependency("Use the awesome Spock testing and specification framework even with Java",
+                        "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
+                        "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                break;
+            case TESTNG:
+                buildScriptBuilder
+                    .testCompileDependency("Use TestNG framework, also requires calling test.useTestNG() below",
+                        "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
+                    .configuration("Use TestNG for unit tests", "test.useTestNG()");
+                break;
+            default:
+                buildScriptBuilder
+                    .testCompileDependency("Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                break;
+        }
+    }
+
+    protected void configure(BuildScriptBuilder buildScriptBuilder) {
     }
 
     protected abstract TemplateOperation sourceTemplateOperation();
-
-    protected abstract String gradleBuildTemplate(BuildInitTestFramework testFramework);
 
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
 

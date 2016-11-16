@@ -16,23 +16,19 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
 public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescriptor {
-    public JavaApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, projectInitDescriptor);
+    public JavaApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor, DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, projectInitDescriptor, documentationRegistry);
     }
 
     @Override
-    protected String gradleBuildTemplate(BuildInitTestFramework testFramework) {
-        switch (testFramework) {
-            case SPOCK:
-                return "javaapp/spock-build.gradle.template";
-            case TESTNG:
-                return "javaapp/testng-build.gradle.template";
-            default:
-                return "javaapp/build.gradle.template";
-        }
+    protected void configure(BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder
+            .plugin("Apply the application plugin to add support for Java Applications", "application")
+            .configuration("Define the main class for the application", "mainClassName = 'App'");
     }
 
     @Override

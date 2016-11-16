@@ -16,31 +16,21 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
-                                            ProjectInitDescriptor globalSettingsDescriptor) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+                                            ProjectInitDescriptor globalSettingsDescriptor,
+                                            DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor, documentationRegistry);
     }
 
     @Override
     protected TemplateOperation sourceTemplateOperation() {
         return fromClazzTemplate("javalibrary/Library.java.template", "main");
-    }
-
-    @Override
-    protected String gradleBuildTemplate(BuildInitTestFramework testFramework) {
-        switch (testFramework) {
-            case SPOCK:
-                return "javalibrary/spock-build.gradle.template";
-            case TESTNG:
-                return "javalibrary/testng-build.gradle.template";
-            default:
-                return "javalibrary/build.gradle.template";
-        }
     }
 
     @Override
