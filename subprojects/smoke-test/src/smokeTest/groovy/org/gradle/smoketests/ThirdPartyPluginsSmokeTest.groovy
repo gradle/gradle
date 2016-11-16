@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -229,14 +228,11 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         runner('integrationTest').build()
     }
 
-    // This test is temporarily disabled until the gosu plugin is modified to use the
-    // new public worker API
-    @Ignore
     def 'gosu plugin'() { // Requires JDK 8 or later
         given:
         buildFile << """
             plugins {
-                id "org.gosu-lang.gosu" version "0.1.3"
+                id "org.gosu-lang.gosu" version "0.2.0"
             }
 
             apply plugin: "org.gosu-lang.gosu"
@@ -246,7 +242,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.10'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.2'
             }
             """.stripIndent()
 
