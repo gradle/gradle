@@ -77,7 +77,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             // ignore
         }
 
-        if (!(classAllowed(name))) {
+        if (!classAllowed(name)) {
             throw new ClassNotFoundException(name + " not found.");
         }
 
