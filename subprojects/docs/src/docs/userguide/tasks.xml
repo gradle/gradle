@@ -622,6 +622,11 @@
                     an <literal>@InputDirectory</literal> property in a child task type.
                 </para>
 
+                <para>Annotations on a property declared in a type override similar annotations declared
+                    by the superclass and in any implemented interface. Superclass annotations take
+                    precedence over annotations declared in implemented interfaces.
+                </para>
+
                 <para>The <apilink class="org.gradle.api.tasks.Console"/> and
                     <apilink class="org.gradle.api.tasks.Internal"/> annotations in the table are special
                     cases as they don’t declare either task inputs or task outputs. So why use them? It's
