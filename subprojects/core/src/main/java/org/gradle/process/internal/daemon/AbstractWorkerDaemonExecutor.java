@@ -38,7 +38,6 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     private final WorkerDaemonFactory workerDaemonFactory;
     private final JavaForkOptions javaForkOptions;
     private final Set<File> classpath = Sets.newLinkedHashSet();
-    private final Set<String> sharedPackages = Sets.newLinkedHashSet();
     private final Class<? extends T> implementationClass;
     private final Class<? extends WorkerDaemonProtocol> serverImplementationClass;
     private Serializable[] params = new Serializable[]{};
@@ -108,19 +107,15 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
                 return o.getClass();
             }
         });
-        return toDaemonOptions(implementationClass, paramTypes, javaForkOptions, classpath, sharedPackages);
+        return toDaemonOptions(implementationClass, paramTypes, javaForkOptions, classpath);
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages) {
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath) {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
         if (classpath != null) {
             classpathBuilder.addAll(classpath);
-        }
-
-        if (sharedPackages != null) {
-            sharedPackagesBuilder.addAll(sharedPackages);
         }
 
         addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder);
@@ -137,7 +132,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
 
     private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder) {
         if (visibleClass.getClassLoader() != null) {
-            classpathBuilder.addAll(ClasspathUtil.getClasspathFiles(visibleClass.getClassLoader()));
+            classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
         }
 
         if (visibleClass.getPackage() == null || "".equals(visibleClass.getPackage().getName())) {
