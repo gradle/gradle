@@ -186,6 +186,7 @@ include 'child'
                 Available values are:
                      basic
                      groovy-library
+                     java-application
                      java-library
                      pom
                      scala-library

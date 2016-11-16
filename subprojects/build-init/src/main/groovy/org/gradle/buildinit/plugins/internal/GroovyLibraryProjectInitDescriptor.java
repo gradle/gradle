@@ -18,7 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
+
+import java.util.Collections;
 
 public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -33,10 +34,10 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
         templateOperationFactory.newTemplateOperation()
             .withTemplate("groovylibrary/build.gradle.template")
             .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_groovy_tutorial", "tutorial_groovy_projects"))
-            .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
+            .withDocumentationBindings(Collections.singletonMap("ref_userguide_groovy_tutorial", "tutorial_groovy_projects"))
+            .withBindings(Collections.singletonMap("groovyVersion", libraryVersionProvider.getVersion("groovy")))
+            .withBindings(Collections.singletonMap("junitVersion", libraryVersionProvider.getVersion("junit")))
+            .withBindings(Collections.singletonMap("spockVersion", libraryVersionProvider.getVersion("spock")))
             .create().generate();
         TemplateOperation groovyLibTemplateOperation = fromClazzTemplate("groovylibrary/Library.groovy.template", "main");
         TemplateOperation groovyTestTemplateOperation = fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test");

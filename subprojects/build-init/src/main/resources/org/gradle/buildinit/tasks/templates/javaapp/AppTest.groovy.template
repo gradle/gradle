@@ -7,13 +7,13 @@
 
 import spock.lang.Specification
 
-class LibraryTest extends Specification {
-    def "someLibraryMethod returns true"() {
+class AppTest extends Specification {
+    def "application has a greeting"() {
         setup:
-        def lib = new Library()
+        def app = new App()
         when:
-        def result = lib.someLibraryMethod()
+        def result = app.greeting
         then:
-        result == true
+        result != null
     }
 }

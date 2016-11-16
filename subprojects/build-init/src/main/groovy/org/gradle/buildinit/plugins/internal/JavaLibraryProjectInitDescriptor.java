@@ -17,41 +17,22 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK;
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
-
-public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavaLibraryProjectInitDescriptor.class);
-
+public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
                                             ProjectInitDescriptor globalSettingsDescriptor) {
-        super("java", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
-        templateOperationFactory.newTemplateOperation()
-            .withTemplate(gradleBuildTemplate(testFramework))
-            .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
-            .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
-            .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
-            .withBindings(GUtil.map("testngVersion", libraryVersionProvider.getVersion("testng")))
-            .create().generate();
-        TemplateOperation javalibraryTemplateOperation = fromClazzTemplate("javalibrary/Library.java.template", "main");
-        whenNoSourcesAvailable(javalibraryTemplateOperation, testTemplateOperation(testFramework)).generate();
+    protected TemplateOperation sourceTemplateOperation() {
+        return fromClazzTemplate("javalibrary/Library.java.template", "main");
     }
 
-    private String gradleBuildTemplate(BuildInitTestFramework testFramework) {
+    @Override
+    protected String gradleBuildTemplate(BuildInitTestFramework testFramework) {
         switch (testFramework) {
             case SPOCK:
                 return "javalibrary/spock-build.gradle.template";
@@ -62,7 +43,8 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
         }
     }
 
-    private TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
+    @Override
+    protected TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
         switch (testFramework) {
             case SPOCK:
                 return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test", "groovy");
@@ -71,10 +53,5 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
             default:
                 return fromClazzTemplate("javalibrary/LibraryTest.java.template", "test");
         }
-    }
-
-    @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == SPOCK || testFramework == TESTNG;
     }
 }

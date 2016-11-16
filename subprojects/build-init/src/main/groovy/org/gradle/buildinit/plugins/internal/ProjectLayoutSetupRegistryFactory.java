@@ -30,6 +30,7 @@ public class ProjectLayoutSetupRegistryFactory {
         TemplateOperationFactory templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
         ProjectInitDescriptor simpleGlobalFilesBuildSettingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(templateOperationBuilder, fileResolver);
         registry.add(BuildInitTypeIds.JAVA_LIBRARY, new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
+        registry.add(BuildInitTypeIds.JAVA_APPLICATION, new JavaApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
         registry.add(BuildInitTypeIds.SCALA_LIBRARY, new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
         registry.add(BuildInitTypeIds.GROOVY_LIBRARY, new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
         registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(templateOperationBuilder, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));

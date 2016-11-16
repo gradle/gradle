@@ -17,7 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
+
+import java.util.Collections;
 
 public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor{
 
@@ -32,14 +33,14 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         templateOperationFactory.newTemplateOperation()
             .withTemplate("scalalibrary/build.gradle.template")
             .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_scala_plugin", "scala_plugin"))
-            .withBindings(GUtil.map("scalaVersion", libraryVersionProvider.getVersion("scala")))
-            .withBindings(GUtil.map("scalaLibraryVersion", libraryVersionProvider.getVersion("scala-library")))
-            .withBindings(GUtil.map("scalaTestModule", "scalatest_" + libraryVersionProvider.getVersion("scala")))
-            .withBindings(GUtil.map("scalaTestVersion", libraryVersionProvider.getVersion("scalatest")))
-            .withBindings(GUtil.map("scalaXmlModule", "scala-xml_" + libraryVersionProvider.getVersion("scala")))
-            .withBindings(GUtil.map("scalaXmlVersion", libraryVersionProvider.getVersion("scala-xml")))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
+            .withDocumentationBindings(Collections.singletonMap("ref_userguide_scala_plugin", "scala_plugin"))
+            .withBindings(Collections.singletonMap("scalaVersion", libraryVersionProvider.getVersion("scala")))
+            .withBindings(Collections.singletonMap("scalaLibraryVersion", libraryVersionProvider.getVersion("scala-library")))
+            .withBindings(Collections.singletonMap("scalaTestModule", "scalatest_" + libraryVersionProvider.getVersion("scala")))
+            .withBindings(Collections.singletonMap("scalaTestVersion", libraryVersionProvider.getVersion("scalatest")))
+            .withBindings(Collections.singletonMap("scalaXmlModule", "scala-xml_" + libraryVersionProvider.getVersion("scala")))
+            .withBindings(Collections.singletonMap("scalaXmlVersion", libraryVersionProvider.getVersion("scala-xml")))
+            .withBindings(Collections.singletonMap("junitVersion", libraryVersionProvider.getVersion("junit")))
             .create().generate();
         TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
         TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");
