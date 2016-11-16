@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -27,6 +28,7 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         renderer.output = textOutput
+        renderer.legendRenderer = Mock(LegendRenderer)
     }
 
     def "informs if no configurations"() {
@@ -78,7 +80,7 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
         renderer.complete()
 
         then:
-        1 * renderer.dependencyGraphRenderer.printLegend()
+        1 * renderer.legendRenderer.printLegend()
     }
 
     def "safely completes if no configurations"() {
