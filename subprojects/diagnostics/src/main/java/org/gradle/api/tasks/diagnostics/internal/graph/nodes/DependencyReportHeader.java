@@ -45,8 +45,8 @@ public class DependencyReportHeader implements RenderableDependency {
     }
 
     @Override
-    public boolean isResolvable() {
-        return dependency.isResolvable();
+    public ResolutionState getResolutionState() {
+        return dependency.isResolvable() ? ResolutionState.RESOLVED : ResolutionState.FAILED;
     }
 
     @Override

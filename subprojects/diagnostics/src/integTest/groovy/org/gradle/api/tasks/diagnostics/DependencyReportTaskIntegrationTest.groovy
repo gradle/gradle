@@ -29,6 +29,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 allprojects {
     configurations { compile; "default" { extendsFrom compile } }
+    configurations { zzz }
     group = "group"
     version = 1.0
 }
@@ -829,11 +830,24 @@ compile
         then:
         output.contains """
 api
-\\--- foo:foo:1.0
+\\--- foo:foo:1.0 (u)
 
 compile
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
+
+(u) - unresolved dependencies (belonging to a configuration not resolvable)
+"""
+
+        when:
+        run ":dependencies", "--configuration", "api"
+
+        then:
+        output.contains """
+api
+\\--- foo:foo:1.0 (u)
+
+(u) - unresolved dependencies (belonging to a configuration not resolvable)
 """
     }
 }

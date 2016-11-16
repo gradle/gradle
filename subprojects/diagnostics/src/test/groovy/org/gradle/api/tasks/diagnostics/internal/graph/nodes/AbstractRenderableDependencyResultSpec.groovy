@@ -61,7 +61,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
                 return selected
             }
 
-            boolean isResolvable() {
+            RenderableDependency.ResolutionState getResolutionState() {
                 throw new UnsupportedOperationException()
             }
 
