@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
@@ -159,9 +160,13 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List createDependencies(Configuration configuration) {
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        RenderableDependency root = new RenderableModuleResult(result.getRoot());
-        return createDependencyChildren(root, new HashSet<Object>());
+        if (configuration.isCanBeResolved()) {
+            ResolutionResult result = configuration.getIncoming().getResolutionResult();
+            RenderableDependency root = new RenderableModuleResult(result.getRoot());
+            return createDependencyChildren(root, new HashSet<Object>());
+        } else {
+            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<Object>());
+        }
     }
 
     private List createDependencyChildren(RenderableDependency dependency, final Set<Object> visited) {
@@ -208,8 +213,13 @@ public class JsonProjectDependencyRenderer {
     }
 
     private Set<ModuleIdentifier> collectModules(Configuration configuration) {
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        RenderableDependency root = new RenderableModuleResult(result.getRoot());
+        RenderableDependency root;
+        if (configuration.isCanBeResolved()) {
+            ResolutionResult result = configuration.getIncoming().getResolutionResult();
+            root = new RenderableModuleResult(result.getRoot());
+        } else {
+            root = new UnresolvableConfigurationResult(configuration);
+        }
         Set<ModuleIdentifier> modules = Sets.newHashSet();
         Set<ComponentIdentifier> visited = Sets.newHashSet();
         populateModulesWithChildDependencies(root, visited, modules);

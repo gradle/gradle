@@ -500,6 +500,42 @@ rootProject.name = 'root'
         compileConfiguration.dependencies[3].children[0].children[0].children.empty
     }
 
+    void "doesn't fail if a configuration is not resolvable"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+        mavenRepo.module("foo", "bar", '2.0').publish()
+
+        file("build.gradle") << """
+            apply plugin : 'project-report'
+
+repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                api.canBeResolved = false
+                compile.extendsFrom api
+            }
+            dependencies {
+                api 'foo:foo:1.0'
+                compile 'foo:bar:2.0'
+            }
+        """
+
+        when:
+        run "htmlDependencyReport"
+        def json = readGeneratedJson("root")
+        def apiConfiguration = json.project.configurations.find { it.name == "api" }
+
+        then:
+        apiConfiguration
+        apiConfiguration.dependencies.size() == 1
+        apiConfiguration.dependencies[0].name == "foo:foo:1.0"
+        apiConfiguration.dependencies[0].resolvable == 'UNRESOLVED'
+        apiConfiguration.dependencies[0].alreadyRendered == false
+        apiConfiguration.dependencies[0].hasConflict == false
+        apiConfiguration.dependencies[0].children.empty
+
+    }
+
     private def readGeneratedJson(fileNameWithoutExtension) {
         TestFile htmlReport = file("build/reports/project/dependencies/" + fileNameWithoutExtension + ".js")
         String content = htmlReport.getText("utf-8");
