@@ -1138,7 +1138,7 @@ org:leaf3:1.0
 """
     }
 
-    void "doesn't fail if a configuration is not resolvable"() {
+    void "fails a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 
@@ -1157,10 +1157,10 @@ org:leaf3:1.0
         """
 
         when:
-        run "dependencyInsight", "--dependency", "foo", "--configuration", "api"
+        fails "dependencyInsight", "--dependency", "foo", "--configuration", "api"
 
         then:
-        output.contains """configuration ':api' is not a resolvable configuration."""
+        failure.assertHasCause("Resolving configuration 'api' directly is not allowed")
 
         when:
         run "dependencyInsight", "--dependency", "foo", "--configuration", "compile"
