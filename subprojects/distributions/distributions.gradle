@@ -26,7 +26,6 @@ configurations.all {
 
 tasks.withType(AbstractArchiveTask).configureEach {
     baseName "gradle-kotlin-dsl"
-    version = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDir = rootProject.distsDir
