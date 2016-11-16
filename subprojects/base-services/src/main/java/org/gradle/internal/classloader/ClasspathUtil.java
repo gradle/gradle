@@ -17,11 +17,11 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -49,28 +49,21 @@ public class ClasspathUtil {
         }
     }
 
-    public static List<URL> getClasspath(ClassLoader classLoader) {
-        final List<URL> implementationClassPath = new ArrayList<URL>();
+    public static ClassPath getClasspath(ClassLoader classLoader) {
+        final List<File> implementationClassPath = new ArrayList<File>();
         new ClassLoaderVisitor() {
             @Override
             public void visitClassPath(URL[] classPath) {
-                implementationClassPath.addAll(Arrays.asList(classPath));
-            }
-        }.visit(classLoader);
-        return implementationClassPath;
-    }
-
-    public static Iterable<File> getClasspathFiles(ClassLoader classLoader) {
-        return CollectionUtils.collect(ClasspathUtil.getClasspath(classLoader), new Transformer<File, URL>() {
-            @Override
-            public File transform(URL url) {
-                try {
-                    return new File(url.toURI());
-                } catch (URISyntaxException e) {
-                    throw new UncheckedException(e);
+                for (URL url : classPath) {
+                    try {
+                        implementationClassPath.add(new File(url.toURI()));
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedException(e);
+                    }
                 }
             }
-        });
+        }.visit(classLoader);
+        return DefaultClassPath.of(implementationClassPath);
     }
 
     public static File getClasspathForClass(Class<?> targetClass) {

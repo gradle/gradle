@@ -41,7 +41,7 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
         this.workerImplementation = workerImplementation;
         this.builder = builder;
         builder.worker(new WorkerAction(workerImplementation));
-        builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
+        builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()).getAsURLs());
     }
 
     @Override
