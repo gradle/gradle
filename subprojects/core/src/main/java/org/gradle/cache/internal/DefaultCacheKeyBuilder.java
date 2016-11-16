@@ -77,7 +77,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     }
 
     private HashCode strictHashOf(ClassLoader classLoader) {
-        HashCode strictHash = classLoaderHierarchyHasher.getStrictHash(classLoader);
+        HashCode strictHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
         if (strictHash == null) {
             throw new IllegalArgumentException("Unknown classloader: " + classLoader);
         }

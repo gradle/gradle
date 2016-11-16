@@ -87,7 +87,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         HashCode sourceHashCode = hasher.hash(source.getResource());
         final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
         final String dslId = operation.getId();
-        HashCode classLoaderHash = classLoaderHierarchyHasher.getStrictHash(classLoader);
+        HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
         if (classLoaderHash == null) {
             throw new IllegalArgumentException("Unknown classloader: " + classLoader);
         }

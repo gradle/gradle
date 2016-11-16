@@ -42,7 +42,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         String taskClassName = taskClass.getName();
         currentExecution.setTaskClass(taskClassName);
-        HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getStrictHash(taskClass.getClassLoader());
+        HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader());
         currentExecution.setTaskClassLoaderHash(taskClassLoaderHash);
         HashCode taskActionsClassLoaderHash = calculateActionClassLoaderHash(taskActionClassLoaders, classLoaderHierarchyHasher);
         currentExecution.setTaskActionsClassLoaderHash(taskActionsClassLoaderHash);
@@ -63,7 +63,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         }
         Hasher hasher = Hashing.md5().newHasher();
         for (ClassLoader taskActionClassLoader : taskActionClassLoaders) {
-            HashCode actionLoaderHash = classLoaderHierarchyHasher.getStrictHash(taskActionClassLoader);
+            HashCode actionLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskActionClassLoader);
             if (actionLoaderHash == null) {
                 return null;
             }
