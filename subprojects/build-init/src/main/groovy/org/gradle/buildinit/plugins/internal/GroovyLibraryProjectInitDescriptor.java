@@ -53,6 +53,6 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
 
     @Override
     public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+        return testFramework == BuildInitTestFramework.SPOCK;
     }
 }
