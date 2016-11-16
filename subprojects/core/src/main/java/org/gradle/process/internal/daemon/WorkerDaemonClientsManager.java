@@ -15,10 +15,10 @@
  */
 package org.gradle.process.internal.daemon;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,7 +32,6 @@ public class WorkerDaemonClientsManager {
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
-    private final CompilerDaemonSimpleMemoryExpiration memoryExpiration = new CompilerDaemonSimpleMemoryExpiration(new MemoryInfo(), 0.05);
 
     private WorkerDaemonStarter workerDaemonStarter;
 
@@ -59,9 +58,6 @@ public class WorkerDaemonClientsManager {
     }
 
     public WorkerDaemonClient reserveNewClient(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
-        synchronized (lock) {
-            memoryExpiration.eventuallyExpireDaemons(forkOptions, idleClients, allClients);
-        }
         //allow the daemon to be started concurrently
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(serverImplementationClass, workingDir, forkOptions);
         synchronized (lock) {
@@ -82,6 +78,22 @@ public class WorkerDaemonClientsManager {
             CompositeStoppable.stoppable(allClients).stop();
             LOGGER.info("Stopped {} worker daemon(s).", allClients.size());
             allClients.clear();
+        }
+    }
+
+    /**
+     * Select idle daemon clients to stop.
+     *
+     * @param selectionFunction Gets all idle daemon clients, daemons of returned clients are stopped
+     */
+    public void selectIdleClientsToStop(Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> selectionFunction) {
+        synchronized (lock) {
+            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(idleClients));
+            idleClients.removeAll(clientsToStop);
+            allClients.removeAll(clientsToStop);
+            LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
+            CompositeStoppable.stoppable(clientsToStop).stop();
+            LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
         }
     }
 }

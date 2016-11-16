@@ -24,7 +24,7 @@ class WorkerDaemonManagerTest extends Specification {
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
 
-    @Subject manager = new WorkerDaemonManager(clientsManager)
+    @Subject manager = new WorkerDaemonManager(clientsManager, Stub(WorkerDaemonExpiration))
 
     def workingDir = new File("some-dir")
     def worker = Stub(WorkerDaemonAction)

@@ -26,10 +26,12 @@ import java.io.File;
 @ThreadSafe
 public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
 
-    private WorkerDaemonClientsManager clientsManager;
+    private final WorkerDaemonClientsManager clientsManager;
+    private final WorkerDaemonExpiration daemonExpiration;
 
-    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager) {
+    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, WorkerDaemonExpiration daemonExpiration) {
         this.clientsManager = clientsManager;
+        this.daemonExpiration = daemonExpiration;
     }
 
     @Override
@@ -38,6 +40,7 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
             public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
+                    daemonExpiration.eventuallyExpireDaemons(forkOptions.getMaxHeapSize());
                     client = clientsManager.reserveNewClient(serverImplementationClass, workingDir, forkOptions);
                 }
                 try {

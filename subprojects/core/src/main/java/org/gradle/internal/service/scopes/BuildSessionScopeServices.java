@@ -50,8 +50,10 @@ import org.gradle.process.daemon.WorkerDaemonService;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.daemon.DefaultWorkerDaemonService;
 import org.gradle.process.internal.daemon.WorkerDaemonClientsManager;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.process.internal.daemon.WorkerDaemonStarter;
+import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
@@ -123,8 +125,17 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    WorkerDaemonManager createWorkerDaemonManager(BuildOperationWorkerRegistry buildOperationWorkerRegistry, WorkerProcessFactory workerFactory, StartParameter startParameter) {
-        return new WorkerDaemonManager(new WorkerDaemonClientsManager(new WorkerDaemonStarter(buildOperationWorkerRegistry, workerFactory, startParameter)));
+    WorkerDaemonClientsManager createWrokerDaemonClientsManager(BuildOperationWorkerRegistry buildOperationWorkerRegistry, WorkerProcessFactory workerFactory, StartParameter startParameter) {
+        return new WorkerDaemonClientsManager(new WorkerDaemonStarter(buildOperationWorkerRegistry, workerFactory, startParameter));
+    }
+
+    WorkerDaemonExpiration createCompilerDaemonExpiration(WorkerDaemonClientsManager workerDaemonClientsManager)
+    {
+        return new WorkerDaemonExpiration(workerDaemonClientsManager, new MemoryInfo());
+    }
+
+    WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager, WorkerDaemonExpiration daemonExpiration) {
+        return new WorkerDaemonManager(workerDaemonClientsManager, daemonExpiration);
     }
 
     WorkerDaemonService createWorkerDaemonService(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {
