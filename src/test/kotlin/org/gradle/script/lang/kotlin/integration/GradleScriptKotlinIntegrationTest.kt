@@ -2,32 +2,18 @@ package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
-import org.gradle.script.lang.kotlin.support.classEntriesFor
-import org.gradle.script.lang.kotlin.support.retrieveKotlinBuildScriptModelFrom
-import org.gradle.script.lang.kotlin.support.zipTo
-
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 
 import java.io.File
 
-import java.lang.IllegalStateException
-
 import kotlin.test.assertNotEquals
 
-class GradleScriptKotlinIntegrationTest {
-
-    @JvmField
-    @Rule val projectDir = TemporaryFolder()
+class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
@@ -223,7 +209,7 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         assertBuildScriptModelClassPathContains(
-            buildSrcOutput())
+            buildSrcOutputFolder())
     }
 
     @Test
@@ -271,7 +257,7 @@ class GradleScriptKotlinIntegrationTest {
         assertThat(
             classPath,
             hasItems(
-                buildSrcOutput(),
+                buildSrcOutputFolder(),
                 existing("classes.jar")))
 
         val version = "[0-9.]+(-.+?)?"
@@ -326,110 +312,7 @@ class GradleScriptKotlinIntegrationTest {
             containsString("build.gradle.kts:5"))
     }
 
-    private fun withBuildSrc() {
-        withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
-            package build
-            class Foo {}
-        """)
-    }
-
-    private fun buildSrcOutput(): File =
-        existing("buildSrc/build/classes/main")
-
     private val fixturesRepository: File
         get() = File("fixtures/repository").absoluteFile
-
-    private fun withBuildScript(script: String) {
-        withBuildScriptIn(".", script)
-    }
-
-    private fun withBuildScriptIn(baseDir: String, script: String) {
-        withFile("$baseDir/settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
-        withFile("$baseDir/build.gradle.kts", script)
-    }
-
-    private fun withFile(fileName: String, text: String) {
-        file(fileName).writeText(text)
-    }
-
-    private fun withClassJar(fileName: String, vararg classes: Class<*>) =
-        zipTo(file(fileName), classEntriesFor(*classes))
-
-    private fun file(fileName: String) =
-        projectDir.run {
-            makeParentFoldersOf(fileName)
-            newFile(fileName)
-        }
-
-    private fun existing(relativePath: String) =
-        File(projectDir.root, relativePath).run {
-            canonicalFile
-        }
-
-    private fun TemporaryFolder.makeParentFoldersOf(fileName: String) {
-        File(root, fileName).parentFile.mkdirs()
-    }
-
-    private fun build(vararg arguments: String): BuildResult =
-        gradleRunner()
-            .withArguments(*arguments, "--stacktrace")
-            .build()
-
-    private fun buildFailureOutput() =
-        gradleRunner().withArguments("--stacktrace").buildAndFail().output
-
-    private fun gradleRunner() =
-        gradleRunnerFor(projectDir.root)
-
-    private fun assertBuildScriptModelClassPathContains(vararg files: File) {
-        assertThat(
-            kotlinBuildScriptModelCanonicalClassPath(),
-            hasItems(*files))
-    }
-
-    private fun kotlinBuildScriptModelCanonicalClassPath() =
-        kotlinBuildScriptModel().classPath.map { it.canonicalFile }
-
-    private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
-        withDaemonRegistry(customDaemonRegistry()) {
-            retrieveKotlinBuildScriptModelFrom(projectDir.root, customInstallation())!!
-        }
-
-    private fun customDaemonRegistry() =
-        File("build/custom/daemon-registry")
 }
 
-fun gradleRunnerFor(projectDir: File): GradleRunner =
-    GradleRunner
-        .create()
-        .withDebug(false)
-        .withGradleInstallation(customInstallation())
-        .withProjectDir(projectDir)
-
-private
-fun customInstallation() =
-    File("build/custom").listFiles()?.let {
-        it.singleOrNull { it.name.startsWith("gradle") } ?:
-            throw IllegalStateException(
-                "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
-    } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
-
-inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
-    withSystemProperty("org.gradle.daemon.registry.base", registryBase.absolutePath, block)
-
-inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
-    val originalValue = System.getProperty(key)
-    try {
-        System.setProperty(key, value)
-        return block()
-    } finally {
-        setOrClearProperty(key, originalValue)
-    }
-}
-
-fun setOrClearProperty(key: String, value: String?) {
-    when (value) {
-        null -> System.clearProperty(key)
-        else -> System.setProperty(key, value)
-    }
-}
