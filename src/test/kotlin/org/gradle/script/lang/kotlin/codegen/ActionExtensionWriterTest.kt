@@ -5,6 +5,7 @@ import org.gradle.api.plugins.PluginContainer
 
 import org.gradle.util.TextUtil.normaliseLineSeparators
 
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -30,7 +31,7 @@ class ActionExtensionWriterTest {
         assertThat(
             extensionsFor(
                 classNodeOf<Project>()),
-            endsWith("""
+            containsString("""
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.Action
