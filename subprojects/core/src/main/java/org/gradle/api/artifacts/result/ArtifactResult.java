@@ -37,9 +37,4 @@ public interface ArtifactResult {
      * Returns the type of this artifact.
      */
     Class<? extends Artifact> getType();
-
-    /**
-     * Identifier for the format of this artifact.
-     */
-    String getFormat();
 }
