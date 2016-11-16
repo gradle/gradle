@@ -45,7 +45,7 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
             .plugin("Apply the java plugin to add support for Java", "java")
             .dependency("The production code uses the SLF4J logging API at compile time",
                 "org.slf4j:slf4j-api:" + libraryVersionProvider.getVersion("slf4j"));
-        configure(buildScriptBuilder);
+        configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
         buildScriptBuilder.create().generate();
 
@@ -77,7 +77,7 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
         }
     }
 
-    protected void configure(BuildScriptBuilder buildScriptBuilder) {
+    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
     }
 
     protected abstract TemplateOperation sourceTemplateOperation();
