@@ -114,7 +114,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classLoader)
 
         then:
-        1 * classLoaderHierarchyHasher.getLenientHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
+        1 * classLoaderHierarchyHasher.getStrictHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
         0 * _
 
         and:
