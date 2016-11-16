@@ -16,7 +16,7 @@
 package org.gradle.process.internal.daemon;
 
 /**
- * A service that executes workers in a (potentially) long-lived process.
+ * A service that executes work in a (potentially) long-lived process.
  */
 public interface WorkerDaemon {
     <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec);
