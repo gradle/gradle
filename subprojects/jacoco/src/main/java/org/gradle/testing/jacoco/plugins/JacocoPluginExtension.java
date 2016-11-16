@@ -128,16 +128,16 @@ public class JacocoPluginExtension {
                 if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
                     File destinationFile = extension.getDestinationFile();
                     if (destinationFile != null) {
-                        builder.put("jacoco.destinationFile", destinationFile);
+                        builder.put("destinationFile", destinationFile);
                     }
                     File classDumpFile = extension.getClassDumpFile();
                     if (classDumpFile != null) {
-                        builder.put("jacoco.classDumpFile", classDumpFile);
+                        builder.put("classDumpFile", classDumpFile);
                     }
                 }
                 return builder.build();
             }
-        });
+        }).withPropertyName("jacocoFiles");
         taskInternal.prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {
