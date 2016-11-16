@@ -22,10 +22,12 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
@@ -38,6 +40,8 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
  * Simple dependency graph renderer that emits an ASCII tree.
  */
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
+    private LegendRenderer legendRenderer;
+
     private boolean hasConfigs;
     DependencyGraphRenderer dependencyGraphRenderer;
 
@@ -45,6 +49,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     public void startProject(Project project) {
         super.startProject(project);
         hasConfigs = false;
+        legendRenderer = new LegendRenderer(getTextOutput());
     }
 
     @Override
@@ -70,7 +75,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         }, true);
 
         NodeRenderer nodeRenderer = new SimpleNodeRenderer();
-        dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer);
+        dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer, legendRenderer);
     }
 
     private String getDescription(Configuration configuration) {
@@ -87,10 +92,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
             renderNow(root);
         } else {
-            // Create a resolvable copy for the purpose of showing dependencies only
-            Configuration copy = configuration.copy();
-            copy.setCanBeResolved(true);
-            render(copy);
+            renderNow(new UnresolvableConfigurationResult(configuration));
         }
     }
 
@@ -106,10 +108,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     @Override
     public void complete() {
-        if (dependencyGraphRenderer != null) {
-            dependencyGraphRenderer.printLegend();
-        }
-
+        legendRenderer.printLegend();
         super.complete();
     }
 

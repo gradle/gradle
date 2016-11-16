@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
@@ -205,7 +206,8 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         };
 
-        DependencyGraphRenderer dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer);
+        LegendRenderer legendRenderer = new LegendRenderer(output);
+        DependencyGraphRenderer dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer, legendRenderer);
 
         int i = 1;
         for (final RenderableDependency dependency : sortedDeps) {
@@ -217,8 +219,15 @@ public class DependencyInsightReportTask extends DefaultTask {
                         out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
                     }
 
-                    if (!dependency.isResolvable()) {
-                        out.withStyle(Failure).text(" FAILED");
+                    switch (dependency.getResolutionState()) {
+                        case FAILED:
+                            out.withStyle(Failure).text(" FAILED");
+                            break;
+                        case RESOLVED:
+                            break;
+                        case UNRESOLVED:
+                            out.withStyle(Failure).text(" (u)");
+                            break;
                     }
 
                 }
@@ -233,6 +242,6 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
 
-        dependencyGraphRenderer.printLegend();
+        legendRenderer.printLegend();
     }
 }

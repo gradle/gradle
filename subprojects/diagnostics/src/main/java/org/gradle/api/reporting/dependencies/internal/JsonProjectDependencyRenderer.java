@@ -177,7 +177,7 @@ public class JsonProjectDependencyRenderer {
                 ModuleIdentifier moduleIdentifier = getModuleIdentifier(childDependency);
                 map.put("module", moduleIdentifier == null ? null : moduleIdentifier.toString());
                 map.put("name", name);
-                map.put("resolvable", childDependency.isResolvable());
+                map.put("resolvable", childDependency.getResolutionState());
                 map.put("hasConflict", hasConflict);
                 map.put("alreadyRendered", alreadyRendered);
                 map.put("children", Collections.emptyList());
@@ -260,7 +260,7 @@ public class JsonProjectDependencyRenderer {
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(5);
                 map.put("name", replaceArrow(dependency.getName()));
                 map.put("description", dependency.getDescription());
-                map.put("resolvable", dependency.isResolvable());
+                map.put("resolvable", dependency.getResolutionState());
                 map.put("hasConflict", !name.equals(dependency.getName()));
                 map.put("children", createInsightDependencyChildren(dependency, new HashSet<Object>(), configuration));
                 return map;
@@ -282,7 +282,7 @@ public class JsonProjectDependencyRenderer {
 
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(6);
                 map.put("name", name);
-                map.put("resolvable", childDependency.isResolvable());
+                map.put("resolvable", childDependency.getResolutionState());
                 map.put("hasConflict", hasConflict);
                 map.put("alreadyRendered", alreadyRendered);
                 map.put("isLeaf", leaf);
