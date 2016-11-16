@@ -18,45 +18,12 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder
 import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder.ByteArrayToStringer
-import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter
-import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskOutputCacheEnabled) {
-
-        buildScan.buildFinished {
-            buildScan.value 'tasks-to-investigate-for-cache', tasksToInvestigateForCache.toString()
-            def addCacheLine = { name, part, total ->
-                def percentage = total ? (int) Math.round(100d * part / total) : null
-                if (part > 0) {
-                    buildScan.value(name, "${part}${percentage ? " (${percentage} %)" : ''}")
-                }
-            }
-
-            try {
-                def eventAdapter = gradle.services.get(TaskExecutionStatisticsEventAdapter)
-                def statistics = new TaskExecutionStatistics(eventAdapter.taskCounts, eventAdapter.cacheMissCount)
-                def skipped = statistics.getTasksCount(TaskExecutionOutcome.SKIPPED)
-                def upToDate = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE)
-                def fromCache = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE)
-                def executed = statistics.getTasksCount(TaskExecutionOutcome.EXECUTED)
-                def cacheable = statistics.cacheMissCount
-                def allTasks = statistics.allTasksCount
-                addCacheLine('TC_0 Tasks in build', allTasks, null)
-                addCacheLine('TC_1 Skipped', skipped, allTasks)
-                addCacheLine('TC_2 Up to date', upToDate, allTasks)
-                addCacheLine('TC_3 From cache', fromCache, allTasks)
-                addCacheLine('TC_4 Executed', executed, allTasks)
-                addCacheLine('TC_5 - Cache miss', cacheable, allTasks)
-                addCacheLine('TC_6 - Not cacheable', (executed - cacheable), allTasks)
-            } catch (Exception e) {
-                e.printStackTrace()
-            }
-        }
 
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
             ':core:compileTestGroovy',
