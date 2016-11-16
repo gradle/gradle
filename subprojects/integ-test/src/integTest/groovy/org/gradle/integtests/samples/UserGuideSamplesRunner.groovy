@@ -102,7 +102,6 @@ class UserGuideSamplesRunner extends Runner {
             return false
         }
         dirFilter ? run.subDir ==~ dirFilter : true
-        run.id == 'propertyListReport'
     }
 
     void run(RunNotifier notifier) {
