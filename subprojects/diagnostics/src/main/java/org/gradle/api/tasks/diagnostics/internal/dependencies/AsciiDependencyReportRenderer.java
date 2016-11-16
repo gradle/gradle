@@ -71,6 +71,9 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             public void execute(StyledTextOutput styledTextOutput) {
                 getTextOutput().withStyle(Identifier).text(configuration.getName());
                 getTextOutput().withStyle(Description).text(getDescription(configuration));
+                if (!configuration.isCanBeResolved()) {
+                    getTextOutput().withStyle(Info).text(" (n)");
+                }
             }
         }, true);
 

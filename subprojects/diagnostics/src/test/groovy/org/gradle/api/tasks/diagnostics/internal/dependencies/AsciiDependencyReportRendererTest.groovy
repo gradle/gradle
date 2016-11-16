@@ -44,8 +44,10 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
         Configuration configuration1 = Mock()
         configuration1.getName() >> 'config1'
         configuration1.getDescription() >> 'description'
+        configuration1.isCanBeResolved() >> true
         Configuration configuration2 = Mock()
         configuration2.getName() >> 'config2'
+        configuration2.isCanBeResolved() >> true
 
         when:
         renderer.startConfiguration(configuration1);

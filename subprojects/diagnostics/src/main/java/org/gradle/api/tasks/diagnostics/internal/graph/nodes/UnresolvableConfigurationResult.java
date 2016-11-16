@@ -47,7 +47,7 @@ public class UnresolvableConfigurationResult implements RenderableDependency {
 
     @Override
     public String getDescription() {
-        return configuration.getDescription();
+        return configuration.getDescription() + "(n)";
     }
 
     @Override

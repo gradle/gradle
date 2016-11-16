@@ -829,14 +829,14 @@ compile
 
         then:
         output.contains """
-api
-\\--- foo:foo:1.0 (u)
+api (n)
+\\--- foo:foo:1.0 (n)
 
 compile
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
 
-(u) - unresolved dependencies (belonging to a configuration not resolvable)
+(n) - Not resolved (configuration is not meant to be resolved)
 """
 
         when:
@@ -844,10 +844,10 @@ compile
 
         then:
         output.contains """
-api
-\\--- foo:foo:1.0 (u)
+api (n)
+\\--- foo:foo:1.0 (n)
 
-(u) - unresolved dependencies (belonging to a configuration not resolvable)
+(n) - Not resolved (configuration is not meant to be resolved)
 """
     }
 }
