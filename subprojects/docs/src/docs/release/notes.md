@@ -14,7 +14,9 @@ Add-->
 
 When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
 
-### Custom task property annotations can be overridden in subclasses
+### Incremental build improvements
+
+#### Custom task property annotations can be overridden in subclasses
 
 In previous versions of Gradle, a custom task class overriding a property from a base class couldn't reliably change the type of the property via annotations. It is now possible to change an `@InputFiles` property to `@Classpath` or an `@OutputFile` to `@OutputDirectory`. This can be useful when extending or working around problems with custom tasks that you do not control.
 
@@ -29,6 +31,26 @@ In previous versions of Gradle, a custom task class overriding a property from a
     }
 
 In the above example, `FixedTask.inputFile` will be a ignored in up-to-date checks.
+
+#### `@OutputFiles` and `@OutputDirectories` now take `Map` values
+
+It is now possible to declare task outputs by assigning a name  to individual output files or directories by declaring the property as a `Map`. This allows Gradle to identify each output when used with the upcoming [task output cache feature](userguide/task_output_cache.html). Tasks declaring `@OutputFiles` or `@OutputDirectories` as `FileCollections` (or any other type not implementing `Map`) are excluded from task output caching.
+
+Example:
+
+    class CustomTask extends DefaultTask {
+        @OutputFiles
+        Map<String, File> outputFiles
+        // ...
+    }
+
+Mapped output files and directories can also be registered via the preexisting `TaskOutputs.files()`, and the new `TaskOutputs.dirs()` methods. As with other similar methods, the actual files are resolved according to `Project.file()`.
+
+It is also possible to pass a `Map` embedded in a `Callable`, such as a closure, for lazy evaluation:
+
+    task customTask {
+        outputs.files { first: "one.txt", second: "two.txt" } withPropertyName "outputFiles"
+    }
 
 ## Promoted features
 

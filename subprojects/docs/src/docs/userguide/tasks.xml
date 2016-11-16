@@ -525,13 +525,13 @@
 
                     <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.OutputFiles"/></literal></td>
-                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td><literal>Map&lt;String, File&gt;</literal>** or <literal>Iterable&lt;File&gt;</literal>*</td>
                         <td>An iterable of output files (no directories)</td>
                     </tr>
 
                     <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.OutputDirectories"/></literal></td>
-                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td><literal>Map&lt;String, File&gt;</literal>** or <literal>Iterable&lt;File&gt;</literal>*</td>
                         <td>An iterable of output directories (no files)</td>
                     </tr>
 
@@ -569,6 +569,14 @@
                                 allowing for lazy evaluation of the property values. Be aware that the types
                                 <literal>FileCollection</literal> and <literal>FileTree</literal> are
                                 <literal>Iterable&lt;File&gt;</literal>s.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><emphasis role="bold">**</emphasis> Similar to the above,
+                                <literal>File</literal> can be any type accepted by
+                                <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>.
+                                The <literal>Map</literal> itself can be wrapped in <literal>Callable</literal>s,
+                                such as closures.
                             </td>
                         </tr>
                     </tfoot>
