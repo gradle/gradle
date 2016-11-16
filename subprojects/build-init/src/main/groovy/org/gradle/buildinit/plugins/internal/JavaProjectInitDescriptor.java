@@ -43,8 +43,8 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
             .fileComment("For more details take a look at the Java Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_java_projects"))
             .plugin("Apply the java plugin to add support for Java", "java")
-            .dependency("The production code uses the SLF4J logging API at compile time",
-                "org.slf4j:slf4j-api:" + libraryVersionProvider.getVersion("slf4j"));
+            .dependency("The production code uses Guava",
+                "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
         configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
         buildScriptBuilder.create().generate();
