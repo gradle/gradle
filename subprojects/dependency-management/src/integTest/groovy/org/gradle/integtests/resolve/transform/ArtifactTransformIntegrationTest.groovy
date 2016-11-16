@@ -406,33 +406,17 @@ class FileSizer extends ArtifactTransform {
     def "User gets a reasonable error message when a transformation throws exception"() {
         given:
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
+            def a = file('a.jar')
+            a.text = '1234'
 
-            apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
             dependencies {
-                compile 'com.google.guava:guava:19.0'
-            }
-
-            configurations {
-                hash {
-                    extendsFrom(configurations.compile)
-                    format = 'md5'
-                    resolutionStrategy.registerTransform(TransformWithIllegalArgumentException) { }
-                }
-            }
-
-            task resolve(type: Copy) {
-                from configurations.hash.incoming.artifacts*.file
-                into "\${buildDir}/libs"
+                compile files(a)
             }
 
             @TransformInput(format = 'jar')
             class TransformWithIllegalArgumentException extends ArtifactTransform {
 
-                @TransformOutput(format = 'md5')
+                @TransformOutput(format = 'size')
                 File getOutput() {
                     return null
                 }
@@ -441,160 +425,116 @@ class FileSizer extends ArtifactTransform {
                     throw new IllegalArgumentException("Transform Implementation Missing!")
                 }
             }
+            ${configurationAndTransform('TransformWithIllegalArgumentException')}
         """
 
         when:
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'TransformWithIllegalArgumentException'")
         failure.assertHasCause("Transform Implementation Missing!")
     }
 
     def "User gets a reasonable error message when a output property throws exception"() {
         given:
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
+            def a = file('a.jar')
+            a.text = '1234'
 
-            apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
             dependencies {
-                compile 'com.google.guava:guava:19.0'
-            }
-
-            configurations {
-                hash {
-                    extendsFrom(configurations.compile)
-                    format = 'md5'
-                    resolutionStrategy.registerTransform(TransformWithIllegalArgumentException) { }
-                }
-            }
-
-            task resolve(type: Copy) {
-                from configurations.hash.incoming.artifacts*.file
-                into "\${buildDir}/libs"
+                compile files(a)
             }
 
             @TransformInput(format = 'jar')
             class TransformWithIllegalArgumentException extends ArtifactTransform {
 
-                @TransformOutput(format = 'md5')
+                @TransformOutput(format = 'size')
                 File getOutput() {
                     throw new IllegalArgumentException("getOutput() Implementation Missing!")
                 }
 
                 void transform(File input) { }
             }
+            ${configurationAndTransform('TransformWithIllegalArgumentException')}
         """
 
         when:
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'TransformWithIllegalArgumentException'")
         failure.assertHasCause("getOutput() Implementation Missing!")
     }
 
     def "User gets a reasonable error message when a output property returns null"() {
         given:
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
+            def a = file('a.jar')
+            a.text = '1234'
 
-            apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
             dependencies {
-                compile 'com.google.guava:guava:19.0'
-            }
-
-            configurations {
-                hash {
-                    extendsFrom(configurations.compile)
-                    format = 'md5'
-                    resolutionStrategy.registerTransform(ToNullTransform) { }
-                }
-            }
-
-            task resolve(type: Copy) {
-                from configurations.hash.incoming.artifacts*.file
-                into "\${buildDir}/libs"
+                compile files(a)
             }
 
             @TransformInput(format = 'jar')
             class ToNullTransform extends ArtifactTransform {
 
-                @TransformOutput(format = 'md5')
+                @TransformOutput(format = 'size')
                 File getOutput() {
                     return null
                 }
 
                 void transform(File input) { }
             }
+            ${configurationAndTransform('ToNullTransform')}
         """
 
         when:
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'ToNullTransform'")
+        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'ToNullTransform'")
         failure.assertHasCause("No output file created")
     }
 
     def "User gets a reasonable error message when a output property returns a non-existing file"() {
         given:
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
+            def a = file('a.jar')
+            a.text = '1234'
 
-            apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
             dependencies {
-                compile 'com.google.guava:guava:19.0'
-            }
-
-            configurations {
-                hash {
-                    extendsFrom(configurations.compile)
-                    format = 'md5'
-                    resolutionStrategy.registerTransform(ToNullTransform) { }
-                }
-            }
-
-            task resolve(type: Copy) {
-                from configurations.hash.incoming.artifacts*.file
-                into "\${buildDir}/libs"
+                compile files(a)
             }
 
             @TransformInput(format = 'jar')
             class ToNullTransform extends ArtifactTransform {
 
-                @TransformOutput(format = 'md5')
+                @TransformOutput(format = 'size')
                 File getOutput() {
                     return new File('this/file/does/not/exist')
                 }
 
                 void transform(File input) { }
             }
+            ${configurationAndTransform('ToNullTransform')}
         """
 
         when:
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'guava-19.0.jar' to format 'md5' using 'ToNullTransform'")
+        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'ToNullTransform'")
         failure.assertHasCause("Expected output file 'this/file/does/not/exist' was not created")
     }
 
-    def fileSizeConfigurationAndTransform() {
+    def configurationAndTransform(String transformImplementation) {
         """
             configurations {
                 compile {
                     format = 'size'
-                    resolutionStrategy.registerTransform(FileSizer) {
+                    resolutionStrategy.registerTransform($transformImplementation) {
                         outputDirectory = project.file("\${buildDir}/transformed")
                     }
                 }
@@ -605,5 +545,9 @@ class FileSizer extends ArtifactTransform {
                 into "\${buildDir}/libs"
             }
 """
+    }
+
+    def fileSizeConfigurationAndTransform() {
+        configurationAndTransform('FileSizer')
     }
 }
