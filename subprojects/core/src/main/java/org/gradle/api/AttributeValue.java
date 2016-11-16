@@ -103,16 +103,16 @@ public class AttributeValue<T> {
     }
 
     /**
-     * Returns true if this attribute value is missing.
-     * @return true if this attribute value is missing.
+     * Returns true if this attribute value is unknown.
+     * @return true if this attribute value is unknown.
      */
     public boolean isUnknown() {
         return false;
     }
 
     /**
-     * Returns true if this attribute value is unknown.
-     * @return true if this attribute value is unknown.
+     * Returns true if this attribute value is missing.
+     * @return true if this attribute value is missing.
      */
     public boolean isMissing() {
         return false;
