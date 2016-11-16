@@ -29,7 +29,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
     def taskActionsLoaderHash = Hashing.md5().hashBytes(taskLoaderHash.asBytes())
     def taskLoader = SimpleTask.getClassLoader()
     def hasher = Mock(ClassLoaderHierarchyHasher) {
-        getStrictHash(taskLoader) >> taskLoaderHash
+        getClassLoaderHash(taskLoader) >> taskLoaderHash
     }
 
     def "up-to-date when task is the same"() {
