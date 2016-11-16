@@ -39,11 +39,6 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     }
 
     @Override
-    public String toString() {
-        return id.toString();
-    }
-
-    @Override
     public ClassLoaderScope createChild(String name) {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
