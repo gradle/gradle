@@ -221,7 +221,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                         case RESOLVED:
                             break;
                         case UNRESOLVED:
-                            out.withStyle(Failure).text(" (u)");
+                            out.withStyle(Failure).text(" (n)");
                             break;
                     }
 

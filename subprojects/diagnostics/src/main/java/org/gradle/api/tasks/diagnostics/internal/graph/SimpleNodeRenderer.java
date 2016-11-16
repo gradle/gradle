@@ -36,7 +36,7 @@ public class SimpleNodeRenderer implements NodeRenderer {
                 }
                 break;
             case UNRESOLVED:
-                output.withStyle(Info).text(" (u)");
+                output.withStyle(Info).text(" (n)");
                 break;
         }
     }

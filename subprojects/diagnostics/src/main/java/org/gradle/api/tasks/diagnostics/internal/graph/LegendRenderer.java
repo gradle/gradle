@@ -36,7 +36,7 @@ public class LegendRenderer {
         }
         if (hasUnresolvableConfigurations) {
             output.println();
-            output.withStyle(Info).println("(u) - unresolved dependencies (belonging to a configuration not resolvable)");
+            output.withStyle(Info).println("(n) - Not resolved (configuration is not meant to be resolved)");
         }
     }
 
