@@ -126,7 +126,7 @@ To restore the previous behavior of tracking only the path of the working direct
 
 The annotated type of a property (`@InputFile`, `@OutputFile`, etc) for a custom task is now determined by the class hierarchy when conflicting types are present. In previous Gradle releases, the way the conflict was resolved was unspecified. This change affects incremental builds and may cause Gradle to treat a property as a different kind of input or output than it did.
 
-See [Custom task property annotations can be overridden in subclasses](#custom-task-property-annotations-can-be-overridden-in-subclasses) above for an example.
+See [Incremental build improvements](#incremental-build-improvements) above for an example.
 
 ### `LenientConfiguration.getFiles()` returns the same set of files as other dependency query methods
 
