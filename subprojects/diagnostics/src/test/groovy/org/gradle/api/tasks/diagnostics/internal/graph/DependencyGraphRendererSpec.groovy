@@ -25,6 +25,7 @@ class DependencyGraphRendererSpec extends Specification {
 
     private textOutput = new TestStyledTextOutput().ignoreStyle()
     private graphRenderer = new GraphRenderer(textOutput)
+    private legendRenderer = new LegendRenderer(textOutput)
     private renderer = new DependencyGraphRenderer(graphRenderer, new SimpleNodeRenderer(), legendRenderer)
 
     def "renders graph"() {
@@ -41,7 +42,7 @@ class DependencyGraphRendererSpec extends Specification {
 
         when:
         renderer.render(root)
-        renderer.printLegend()
+        legendRenderer.printLegend()
 
         then:
         textOutput.value.readLines() == [
@@ -66,7 +67,7 @@ class DependencyGraphRendererSpec extends Specification {
 
         when:
         renderer.render(root)
-        renderer.printLegend()
+        legendRenderer.printLegend()
 
         then:
         textOutput.value.readLines() == [

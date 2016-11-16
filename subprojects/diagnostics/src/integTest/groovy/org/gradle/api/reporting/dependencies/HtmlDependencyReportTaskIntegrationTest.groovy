@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import spock.lang.Issue
-
 /**
  * Integration tests for the HTML dependency report generation task
  */
@@ -67,21 +66,21 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies.size() == 1
         json.project.configurations[0].dependencies[0].module == "foo:baz"
         json.project.configurations[0].dependencies[0].name == "foo:baz:1.0"
-        json.project.configurations[0].dependencies[0].resolvable == true
+        json.project.configurations[0].dependencies[0].resolvable == 'RESOLVED'
         json.project.configurations[0].dependencies[0].alreadyRendered == false
         json.project.configurations[0].dependencies[0].hasConflict == false
         json.project.configurations[0].dependencies[0].children.size() == 2
 
         json.project.configurations[0].dependencies[0].children[0].module == "foo:bar"
         json.project.configurations[0].dependencies[0].children[0].name == "foo:bar:1.0"
-        json.project.configurations[0].dependencies[0].children[0].resolvable == true
+        json.project.configurations[0].dependencies[0].children[0].resolvable == 'RESOLVED'
         json.project.configurations[0].dependencies[0].children[0].alreadyRendered == false
         json.project.configurations[0].dependencies[0].children[0].hasConflict == false
         json.project.configurations[0].dependencies[0].children[0].children.empty
 
         json.project.configurations[0].dependencies[0].children[1].module == "foo:qix"
         json.project.configurations[0].dependencies[0].children[1].name == "foo:qix:1.0"
-        json.project.configurations[0].dependencies[0].children[1].resolvable == true
+        json.project.configurations[0].dependencies[0].children[1].resolvable == 'RESOLVED'
         json.project.configurations[0].dependencies[0].children[1].alreadyRendered == false
         json.project.configurations[0].dependencies[0].children[1].hasConflict == false
         json.project.configurations[0].dependencies[0].children[1].children.empty
@@ -90,7 +89,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[1].dependencies.size() == 1
         json.project.configurations[1].dependencies[0].module == "foo:bar"
         json.project.configurations[1].dependencies[0].name == "foo:bar:1.0"
-        json.project.configurations[1].dependencies[0].resolvable == true
+        json.project.configurations[1].dependencies[0].resolvable == 'RESOLVED'
         json.project.configurations[1].dependencies[0].alreadyRendered == false
         json.project.configurations[1].dependencies[0].hasConflict == false
         json.project.configurations[1].dependencies[0].children.empty
@@ -161,9 +160,9 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies.size() == 2
         json.project.configurations[0].dependencies[0].name == "foo:bar:1.0"
         json.project.configurations[0].dependencies[0].children[0].name == "foo:qix:1.0"
-        json.project.configurations[0].dependencies[0].children[0].resolvable == false
+        json.project.configurations[0].dependencies[0].children[0].resolvable == 'FAILED'
         json.project.configurations[0].dependencies[1].name == "grr:bzz:1.0"
-        json.project.configurations[0].dependencies[1].resolvable == false
+        json.project.configurations[0].dependencies[1].resolvable == 'FAILED'
     }
 
     def "conflictual dependencies are marked as such"() {
@@ -310,28 +309,28 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
         barInsight.size() == 2
         barInsight[0].name == 'foo:bar:2.0'
-        barInsight[0].resolvable == true
+        barInsight[0].resolvable == 'RESOLVED'
         barInsight[0].hasConflict == false
         barInsight[0].description == 'conflict resolution'
         barInsight[0].children.size() == 1
         barInsight[0].children[0].name == 'compile'
-        barInsight[0].children[0].resolvable == true
+        barInsight[0].children[0].resolvable == 'RESOLVED'
         barInsight[0].children[0].hasConflict == false
         barInsight[0].children[0].isLeaf == true
         barInsight[0].children[0].alreadyRendered == false
         barInsight[0].children[0].children.size() == 0
 
         barInsight[1].name == "foo:bar:1.0 \u27A1 2.0"
-        barInsight[1].resolvable == true
+        barInsight[1].resolvable == 'RESOLVED'
         barInsight[1].hasConflict == true
         barInsight[1].children.size() == 1
         barInsight[1].children[0].name == 'foo:baz:1.0'
-        barInsight[1].children[0].resolvable == true
+        barInsight[1].children[0].resolvable == 'RESOLVED'
         barInsight[1].children[0].isLeaf == false
         barInsight[1].children[0].alreadyRendered == false
         barInsight[1].children[0].children.size() == 1
         barInsight[1].children[0].children[0].name == 'compile'
-        barInsight[1].children[0].children[0].resolvable == true
+        barInsight[1].children[0].children[0].resolvable == 'RESOLVED'
         barInsight[1].children[0].children[0].hasConflict == false
         barInsight[1].children[0].children[0].isLeaf == true
         barInsight[1].children[0].children[0].alreadyRendered == false
@@ -340,11 +339,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def bazInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:baz' }).insight
         bazInsight.size() == 1
         bazInsight[0].name == 'foo:baz:1.0'
-        bazInsight[0].resolvable == true
+        bazInsight[0].resolvable == 'RESOLVED'
         bazInsight[0].hasConflict == false
         bazInsight[0].children.size() == 1
         bazInsight[0].children[0].name == 'compile'
-        bazInsight[0].children[0].resolvable == true
+        bazInsight[0].children[0].resolvable == 'RESOLVED'
         bazInsight[0].children[0].hasConflict == false
         bazInsight[0].children[0].isLeaf == true
         bazInsight[0].children[0].alreadyRendered == false
@@ -444,58 +443,58 @@ rootProject.name = 'root'
         compileConfiguration.dependencies.size() == 4
         compileConfiguration.dependencies[0].module == null
         compileConfiguration.dependencies[0].name == "project :a"
-        compileConfiguration.dependencies[0].resolvable == true
+        compileConfiguration.dependencies[0].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[0].alreadyRendered == false
         compileConfiguration.dependencies[0].hasConflict == false
         compileConfiguration.dependencies[0].children.size() == 1
         compileConfiguration.dependencies[0].children[0].module == "foo:bar"
         compileConfiguration.dependencies[0].children[0].name == "foo:bar:1.0 \u27A1 2.0"
-        compileConfiguration.dependencies[0].children[0].resolvable == true
+        compileConfiguration.dependencies[0].children[0].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[0].children[0].alreadyRendered == false
         compileConfiguration.dependencies[0].children[0].hasConflict == true
         compileConfiguration.dependencies[0].children[0].children.empty
 
         compileConfiguration.dependencies[1].module == null
         compileConfiguration.dependencies[1].name == "project :b"
-        compileConfiguration.dependencies[1].resolvable == true
+        compileConfiguration.dependencies[1].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[1].alreadyRendered == false
         compileConfiguration.dependencies[1].hasConflict == false
         compileConfiguration.dependencies[1].children.size() == 1
         compileConfiguration.dependencies[1].children[0].module == "foo:bar"
         compileConfiguration.dependencies[1].children[0].name == "foo:bar:0.5.dont.exist \u27A1 2.0"
-        compileConfiguration.dependencies[1].children[0].resolvable == true
+        compileConfiguration.dependencies[1].children[0].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[1].children[0].alreadyRendered == false
         compileConfiguration.dependencies[1].children[0].hasConflict == true
         compileConfiguration.dependencies[1].children[0].children.empty
 
         compileConfiguration.dependencies[2].module == null
         compileConfiguration.dependencies[2].name == "project :a:c"
-        compileConfiguration.dependencies[2].resolvable == true
+        compileConfiguration.dependencies[2].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[2].alreadyRendered == false
         compileConfiguration.dependencies[2].hasConflict == false
         compileConfiguration.dependencies[2].children.size() == 1
         compileConfiguration.dependencies[2].children[0].module == "foo:bar"
         compileConfiguration.dependencies[2].children[0].name == "foo:bar:2.0"
-        compileConfiguration.dependencies[2].children[0].resolvable == true
+        compileConfiguration.dependencies[2].children[0].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[2].children[0].alreadyRendered == false
         compileConfiguration.dependencies[2].children[0].hasConflict == false
         compileConfiguration.dependencies[2].children[0].children.empty
 
         compileConfiguration.dependencies[3].module == null
         compileConfiguration.dependencies[3].name == "project :d"
-        compileConfiguration.dependencies[3].resolvable == true
+        compileConfiguration.dependencies[3].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[3].alreadyRendered == false
         compileConfiguration.dependencies[3].hasConflict == false
         compileConfiguration.dependencies[3].children.size() == 1
         compileConfiguration.dependencies[3].children[0].module == null
         compileConfiguration.dependencies[3].children[0].name == "project :e"
-        compileConfiguration.dependencies[3].children[0].resolvable == true
+        compileConfiguration.dependencies[3].children[0].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[3].children[0].alreadyRendered == false
         compileConfiguration.dependencies[3].children[0].hasConflict == false
         compileConfiguration.dependencies[3].children[0].children.size() == 1
         compileConfiguration.dependencies[3].children[0].children[0].module == "foo:bar"
         compileConfiguration.dependencies[3].children[0].children[0].name == "foo:bar:2.0"
-        compileConfiguration.dependencies[3].children[0].children[0].resolvable == true
+        compileConfiguration.dependencies[3].children[0].children[0].resolvable == 'RESOLVED'
         compileConfiguration.dependencies[3].children[0].children[0].alreadyRendered == false
         compileConfiguration.dependencies[3].children[0].children[0].hasConflict == false
         compileConfiguration.dependencies[3].children[0].children[0].children.empty
