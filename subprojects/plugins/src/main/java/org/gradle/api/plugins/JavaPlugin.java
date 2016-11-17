@@ -53,10 +53,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String JAR_TASK_NAME = "jar";
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
+    public static final String API_CONFIGURATION_NAME = "api";
+    public static final String API_COMPILE_CONFIGURATION_NAME = "apiCompile";
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
+    public static final String TEST_API_CONFIGURATION_NAME = "testApi";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
