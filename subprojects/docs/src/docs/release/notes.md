@@ -148,6 +148,7 @@ We would like to thank the following community members for making contributions 
  - [David Illsley](https://github.com/davidillsley) - Update docs to indicate use of HTTPS maven central (#774)
  - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
  - [John Martel](https://github.com/johnmartel) - Print links to project reports on CLI (#762)
+ - [Jörn Huxhorn](https://github.com/huxi) - Fix "Connection refused" integTest assertions (#788)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
