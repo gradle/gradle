@@ -117,7 +117,7 @@ class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     }
 
     private String classloaderHash(ClassLoader loader) {
-        def hash = hasher.getStrictHash(loader)
+        def hash = hasher.getClassLoaderHash(loader)
         if (hash != null) {
             new ByteArrayToStringer(hash.asBytes()).toString()
         } else {
