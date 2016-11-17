@@ -20,6 +20,7 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 
 class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
 
+    static final NUMBER_PATTERN = /\d+(?:\.\d+)?/
     static final TIME_PATTERN = /\d+(?:\.\d+)? ms/
 
     def 'cache init script plain text output'() {
@@ -70,6 +71,37 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
         when:
         def result = runner('-I', 'taskCacheInit.gradle', 'build').build()
         def actualLines = result.output.split("\n").collect { it.replaceAll(TIME_PATTERN, "TIME") }
+
+        then:
+        result.task(':compileJava').outcome == FROM_CACHE
+        expectedLines.each { expectedLine ->
+            assert actualLines.contains(expectedLine)
+        }
+    }
+
+    def 'cache init script CSV output'() {
+        given:
+        def expectedLines = """
+            "Build time",746
+            "Outcome","Cacheable","Task","Package","Count","Sum","Mean","StdDev","Min","Max"
+            "FROM_CACHE","Cacheable","Jar","org.gradle.api.tasks.bundling",1,3,3.0,0.0,3,3
+            "FROM_CACHE","Cacheable","JavaCompile (*)","org.gradle.api.tasks.compile",1,4,4.0,0.0,4,4
+            "UP_TO_DATE","Not cacheable","DefaultTask","org.gradle.api",5,0,0.0,0.0,0,0
+            "UP_TO_DATE","Not cacheable","GroovyCompile","org.gradle.api.tasks.compile",2,0,0.0,0.0,0,0
+            "UP_TO_DATE","Not cacheable","JavaCompile","org.gradle.api.tasks.compile",1,1,1.0,0.0,1,1
+            "UP_TO_DATE","Not cacheable","Test","org.gradle.api.tasks.testing",1,1,1.0,0.0,1,1
+            "UP_TO_DATE","Not cacheable","ProcessResources","org.gradle.language.jvm.tasks",2,2,1.0,0.0,1,1
+        """.stripIndent().split("\n").findAll { !it.empty }.collect { it.replaceAll(NUMBER_PATTERN, "NUMBER") }
+
+        useSample("cache-init-scripts")
+
+        // Prepare the cache
+        runner('-I', 'taskCacheInit.gradle', 'build').build()
+        runner('clean').build()
+
+        when:
+        def result = runner('-I', 'taskCacheInit.gradle', 'build', '-Dcsv').build()
+        def actualLines = result.output.split("\n").collect { it.replaceAll(NUMBER_PATTERN, "NUMBER") }
 
         then:
         result.task(':compileJava').outcome == FROM_CACHE
