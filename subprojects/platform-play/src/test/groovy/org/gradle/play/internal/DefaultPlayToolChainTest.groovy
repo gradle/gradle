@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration
 import org.gradle.process.internal.daemon.WorkerDaemonManager
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
@@ -40,7 +41,8 @@ class DefaultPlayToolChainTest extends Specification {
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Stub(PlayPlatform)
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
-    def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
+    WorkerDaemonExpiration workerDaemonExpiration = Stub()
+    def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDaemonExpiration)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -45,13 +46,15 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
+    private final WorkerDaemonExpiration workerDaemonExpiration;
 
-    public DefaultPlayToolChain(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
+    public DefaultPlayToolChain(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDaemonExpiration workerDaemonExpiration) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
+        this.workerDaemonExpiration = workerDaemonExpiration;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
+            return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, workerDaemonExpiration, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }

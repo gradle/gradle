@@ -18,6 +18,7 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -25,15 +26,18 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import java.io.File;
 
 public class PlayApplicationRunner {
+    private final WorkerDaemonExpiration workerDaemonExpiration;
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(WorkerDaemonExpiration workerDaemonExpiration, WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
+        this.workerDaemonExpiration = workerDaemonExpiration;
         this.workerFactory = workerFactory;
         this.adapter = adapter;
     }
 
     public PlayApplicationRunnerToken start(PlayRunSpec spec) {
+        workerDaemonExpiration.eventuallyExpireDaemons(spec.getForkOptions().getMemoryMaximumSize());
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
