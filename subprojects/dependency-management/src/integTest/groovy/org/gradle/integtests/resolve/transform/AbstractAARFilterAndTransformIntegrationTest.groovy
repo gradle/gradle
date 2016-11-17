@@ -44,9 +44,11 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
         TRANSFORM           // Transform artifacts on-demand during filtering (performance/issues/206)
     }
 
-    //used to turn of test code which would not compile if the feature is not there
-    def availableFeatures() {
-        []
+    /**
+     * Override to reduce the test scenario to only use a limited set of filter/transform features
+     */
+    def enabledFeatures() {
+        [Feature.FILTER_LOCAL, Feature.FILTER_EXTERNAL, Feature.TRANSFORM]
     }
 
     def setup() {
@@ -57,9 +59,6 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
             include 'android-app'
         """.stripIndent()
 
-        if (availableFeatures().contains(Feature.TRANSFORM)) {
-            buildFile << 'import org.gradle.api.artifacts.transform.*'
-        }
         buildFile << """
             ${javaLibWithClassFolderArtifact('java-lib')}
             ${mockedAndroidLib('android-lib')}
@@ -72,24 +71,42 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def javaLibWithClassFolderArtifact(String name) {
+        // "Source" code
+        file("$name/classes/main/foo.txt") << "something"
+        file("$name/classes/main/bar/baz.txt") << "something"
         // Publish an external version as JAR
         mavenRepo.module("org.gradle", "ext-$name").publish()
 
         """
         project(':$name') {
-            apply plugin: 'java'
-
+            configurations.create('default')
             configurations {
                 compileClassesAndResources
-
+                runtime
             }
-            configurations.default.extendsFrom = [configurations.compileClassesAndResources] //setter removes extendFrom(runtime)
+            configurations.default.extendsFrom = [configurations.compileClassesAndResources]
+
+
+            task classes(type: Copy) {
+                from file('classes/main')
+                into file('build/classes/main')
+            }
+
+            task jar(type: Zip) {
+                dependsOn classes
+                from classes.destinationDir
+                destinationDir = file('build/libs')
+                baseName = '$name'
+                extension = 'jar'
+            }
 
             artifacts {
-                compileClassesAndResources(compileJava.destinationDir) {
+                compileClassesAndResources(classes.destinationDir) {
                     ${formatInLocalArtifact('classes')}
                     builtBy classes
                 }
+
+                runtime jar
             }
         }
         """
@@ -98,7 +115,6 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     def mockedAndroidLib(String name) {
         // "Source" code
         file("$name/classes/main/foo.txt") << "something"
-        file("$name/classes/main/bar/baz.txt") << "something"
         file("$name/classes/main/bar/baz.txt") << "something"
         // Manifest and zipped code
         def aarImage = file('android-lib/aar-image')
@@ -218,7 +234,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def aarTransform() {
-        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
             return ""
         }
         """
@@ -273,7 +289,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def jarTransform() {
-        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
             return ""
         }
         """
@@ -314,7 +330,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def classFolderTransform() {
-        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
             return ""
         }
         """
@@ -337,7 +353,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def  registerTransform(String implementationName) {
-        if (!availableFeatures().contains(Feature.TRANSFORM)) {
+        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
             return ""
         }
         """
@@ -349,7 +365,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def formatInConfiguration(String formatName) {
-        if (!availableFeatures().contains(Feature.FILTER_LOCAL) && !availableFeatures().contains(Feature.FILTER_EXTERNAL)) {
+        if (!enabledFeatures().contains(Feature.FILTER_LOCAL) && !enabledFeatures().contains(Feature.FILTER_EXTERNAL)) {
             return ""
         }
         """
@@ -358,7 +374,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def formatInLocalArtifact(String formatName) {
-        if (!availableFeatures().contains(Feature.FILTER_LOCAL)) {
+        if (!enabledFeatures().contains(Feature.FILTER_LOCAL)) {
             return ""
         }
         """

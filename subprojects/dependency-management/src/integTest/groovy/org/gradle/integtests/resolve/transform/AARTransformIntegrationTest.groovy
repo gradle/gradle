@@ -18,10 +18,6 @@ package org.gradle.integtests.resolve.transform;
 
 public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
-    def availableFeatures(){
-        [Feature.FILTER_LOCAL, Feature.FILTER_EXTERNAL, Feature.TRANSFORM]
-    }
-
     // processClasspath filtering and transformation
 
     def "processClasspath includes jars from published java module"() {

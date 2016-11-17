@@ -21,6 +21,10 @@ import spock.lang.Unroll;
 @Unroll
 public class AARClassicIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
+    def enabledFeatures() {
+        []
+    }
+
     // compileClassesAndResources (unfiltered, no transformations)
 
     def "compileClassesAndResources references class folder from local java library"() {
