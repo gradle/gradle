@@ -47,7 +47,6 @@ public class DefaultUcrtLocator implements UcrtLocator {
     };
     private static final String REGISTRY_ROOTPATH_KIT = "Microsoft\\Windows Kits\\Installed Roots";
     private static final String REGISTRY_KIT_10 = "KitsRoot10";
-    private static final String VERSION_KIT_10 = "10";
     private static final String VERSION_USER = "user";
 
     private static final String NAME_USER = "User-provided UCRT";
@@ -83,9 +82,6 @@ public class DefaultUcrtLocator implements UcrtLocator {
     }
 
     private void locateUcrtsInRegistry(String baseKey) {
-        String[] versions = {
-                VERSION_KIT_10
-        };
         String[] keys = {
                 REGISTRY_KIT_10
         };
@@ -97,8 +93,9 @@ public class DefaultUcrtLocator implements UcrtLocator {
                 String[] versionDirs = getUcrtVersionDirs(ucrtDir);
                 if (versionDirs.length > 0) {
                     for (String versionDir : versionDirs) {
-                        LOGGER.debug("Found ucrt {} ({}) at {}", versions[i], versionDir, ucrtDir);
-                        putUcrt(new Ucrt(ucrtDir, VersionNumber.parse(versions[i]), NAME_KIT + " " + versions[i], UcrtVersionNumber.parse(versionDir)));
+                        VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
+                        LOGGER.debug("Found ucrt {} at {}", version.toString(), ucrtDir);
+                        putUcrt(new Ucrt(ucrtDir, NAME_KIT + " " + version.getMajor(), version));
                     }
                 } else {
                     LOGGER.debug("Ignoring candidate ucrt directory {} as it does not look like a ucrt installation.", ucrtDir);
@@ -117,9 +114,10 @@ public class DefaultUcrtLocator implements UcrtLocator {
         String[] versionDirs = getUcrtVersionDirs(ucrtDir);
         if (versionDirs.length > 0) {
             for (String versionDir : versionDirs) {
-                LOGGER.debug("Found ucrt {} ({}) at {}", VERSION_USER, versionDir, ucrtDir);
+                VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
+                LOGGER.debug("Found ucrt {} ({}) at {}", version.toString(), versionDir, ucrtDir);
                 if (!foundUcrts.containsKey(ucrtDir)) {
-                    putUcrt(new Ucrt(ucrtDir, VersionNumber.parse(VERSION_USER), NAME_USER, UcrtVersionNumber.parse(versionDir)));
+                    putUcrt(new Ucrt(ucrtDir, NAME_USER, version));
                 }
             }
             return new UcrtFound(getBestUcrt(candidate));
@@ -249,10 +247,7 @@ public class DefaultUcrtLocator implements UcrtLocator {
     private static class DescendingUcrtVersionComparator implements Comparator<Ucrt> {
         @Override
         public int compare(Ucrt o1, Ucrt o2) {
-            int cmp = o2.getBaseVersion().compareTo(o1.getBaseVersion());
-            return cmp == 0
-                ? o2.getVersion().compareTo(o1.getVersion())
-                : cmp;
+            return o2.getVersion().compareTo(o1.getVersion());
         }
     }
 }

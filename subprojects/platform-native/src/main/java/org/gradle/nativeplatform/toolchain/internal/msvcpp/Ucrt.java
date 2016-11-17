@@ -25,13 +25,11 @@ import java.io.File;
 
 public class Ucrt implements Named {
     private final File baseDir;
-    private final VersionNumber baseVersion;
     private final String name;
-    private final UcrtVersionNumber version;
+    private final VersionNumber version;
 
-    public Ucrt(File baseDir, VersionNumber baseVersion, String name, UcrtVersionNumber version) {
+    public Ucrt(File baseDir, String name, VersionNumber version) {
         this.baseDir = baseDir;
-        this.baseVersion = baseVersion;
         this.name = name;
         this.version = version;
     }
@@ -44,11 +42,7 @@ public class Ucrt implements Named {
         return name;
     }
 
-    public VersionNumber getBaseVersion() {
-        return baseVersion;
-    }
-
-    public UcrtVersionNumber getVersion() {
+    public VersionNumber getVersion() {
         return version;
     }
 
@@ -87,9 +81,6 @@ public class Ucrt implements Named {
         if (!baseDir.equals(ucrt.baseDir)) {
             return false;
         }
-        if (!baseVersion.equals(ucrt.baseVersion)) {
-            return false;
-        }
         if (!name.equals(ucrt.name)) {
             return false;
         }
@@ -100,7 +91,6 @@ public class Ucrt implements Named {
     @Override
     public int hashCode() {
         int result = baseDir.hashCode();
-        result = 31 * result + baseVersion.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + version.hashCode();
         return result;
