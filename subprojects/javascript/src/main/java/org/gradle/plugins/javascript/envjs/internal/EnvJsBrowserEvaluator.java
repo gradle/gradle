@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluator;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +31,15 @@ import java.io.Writer;
 
 public class EnvJsBrowserEvaluator implements BrowserEvaluator {
 
+    private final WorkerDaemonExpiration workerDaemonExpiration;
     private final RhinoWorkerHandleFactory rhinoWorkerHandleFactory;
     private final Iterable<File> rhinoClasspath;
     private final LogLevel logLevel;
     private final File workingDir;
     private final Factory<File> envJsFactory;
 
-    public EnvJsBrowserEvaluator(RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, Factory<File> envJsFactory, LogLevel logLevel, File workingDir) {
+    public EnvJsBrowserEvaluator(WorkerDaemonExpiration workerDaemonExpiration, RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, Factory<File> envJsFactory, LogLevel logLevel, File workingDir) {
+        this.workerDaemonExpiration = workerDaemonExpiration;
         this.rhinoWorkerHandleFactory = rhinoWorkerHandleFactory;
         this.rhinoClasspath = rhinoClasspath;
         this.envJsFactory = envJsFactory;
@@ -45,8 +48,8 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
     }
 
     public void evaluate(String url, Writer writer) {
+        workerDaemonExpiration.eventuallyExpireDaemons();
         EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
-
         final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
 
         try {

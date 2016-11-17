@@ -35,6 +35,7 @@ import org.gradle.plugins.javascript.jshint.internal.JsHintSpec;
 import org.gradle.plugins.javascript.jshint.internal.JsHintWorker;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -54,6 +55,11 @@ public class JsHint extends SourceTask {
 
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected WorkerDaemonExpiration getWorkerDaemonExpiration() {
         throw new UnsupportedOperationException();
     }
 
@@ -97,6 +103,7 @@ public class JsHint extends SourceTask {
     public void doJsHint() {
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
 
+        getWorkerDaemonExpiration().eventuallyExpireDaemons();
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
         JsHintProtocol worker = handleFactory.create(getRhinoClasspath(), JsHintProtocol.class, JsHintWorker.class, logLevel, getProject().getProjectDir());
 

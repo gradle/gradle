@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.internal.Factory;
@@ -36,6 +37,7 @@ import org.gradle.plugins.javascript.rhino.RhinoExtension;
 import org.gradle.plugins.javascript.rhino.RhinoPlugin;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -48,6 +50,11 @@ public class EnvJsPlugin implements Plugin<Project> {
     @Inject
     public EnvJsPlugin(WorkerProcessFactory workerProcessBuilderFactory) {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
+    }
+
+    @Inject
+    protected WorkerDaemonExpiration getWorkerDaemonExpiration() {
+        throw new UnsupportedOperationException();
     }
 
     public void apply(final Project project) {
@@ -84,7 +91,8 @@ public class EnvJsPlugin implements Plugin<Project> {
                                 return envJsExtension.getJs().getSingleFile();
                             }
                         };
-                        return new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.getClasspath(), envJsFactory, project.getGradle().getStartParameter().getLogLevel(), workDir);
+                        LogLevel logLevel = project.getGradle().getStartParameter().getLogLevel();
+                        return new EnvJsBrowserEvaluator(getWorkerDaemonExpiration(), handleFactory, rhinoExtension.getClasspath(), envJsFactory, logLevel, workDir);
                     }
                 });
             }
