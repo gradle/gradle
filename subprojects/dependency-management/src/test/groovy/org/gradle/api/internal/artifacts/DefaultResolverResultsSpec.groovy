@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import spock.lang.Specification
 
@@ -30,6 +31,7 @@ class DefaultResolverResultsSpec extends Specification {
     private projectConfigurationResult = Mock(ResolvedLocalComponentsResult)
     private fileDependenciesResult = Mock(FileDependencyResults)
     private artifactResults = Mock(ArtifactResults)
+    private visitedArtifactsResults = Mock(VisitedArtifactsResults)
     private fatalFailure = Mock(ResolveException)
     private results = new DefaultResolverResults()
 
@@ -57,15 +59,34 @@ class DefaultResolverResultsSpec extends Specification {
         then:
         def ex3 = thrown(ResolveException)
         ex3 == fatalFailure
+
+        when:
+        results.visitedArtifacts
+
+        then:
+        def ex4 = thrown(ResolveException)
+        ex4 == fatalFailure
     }
 
     def "provides resolve results"() {
         when:
-        results.graphResolved(resolutionResult, projectConfigurationResult, fileDependenciesResult)
+        results.graphResolved(resolutionResult, projectConfigurationResult, visitedArtifactsResults, fileDependenciesResult)
+
+        then:
+        results.resolutionResult == resolutionResult
+        results.resolvedLocalComponents == projectConfigurationResult
+        results.visitedArtifacts == visitedArtifactsResults
+        results.fileDependencies == fileDependenciesResult
+
+        when:
         results.artifactsResolved(resolvedConfiguration, artifactResults)
 
         then:
-        results.resolvedConfiguration == resolvedConfiguration
         results.resolutionResult == resolutionResult
+        results.resolvedLocalComponents == projectConfigurationResult
+        results.visitedArtifacts == visitedArtifactsResults
+        results.fileDependencies == fileDependenciesResult
+        results.resolvedConfiguration == resolvedConfiguration
+        results.artifactResults == artifactResults
     }
 }

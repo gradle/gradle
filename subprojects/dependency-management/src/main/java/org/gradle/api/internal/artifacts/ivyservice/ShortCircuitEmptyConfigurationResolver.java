@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
@@ -76,8 +77,11 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(false);
-        results.graphResolved(emptyResult, emptyProjectResult, new FileDependencyCollectingGraphVisitor());
+        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor();
+        FileDependencyCollectingGraphVisitor emptyFiles = new FileDependencyCollectingGraphVisitor();
+        DefaultResolvedArtifactsBuilder emptyArtifacts = new DefaultResolvedArtifactsBuilder(false);
+        emptyArtifacts.finishArtifacts();
+        results.graphResolved(emptyResult, emptyProjectResult, emptyArtifacts, emptyFiles);
     }
 
     @Override

@@ -69,7 +69,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getFileDependencies());
+        results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getVisitedArtifacts(), results.getFileDependencies());
     }
 
     @Override

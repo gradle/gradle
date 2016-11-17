@@ -44,10 +44,10 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
@@ -454,11 +454,12 @@ class DefaultConfigurationSpec extends Specification {
         def resolutionResults = Mock(ResolutionResult)
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         def fileDependenciesResult = Mock(FileDependencyResults)
+        def visitedArtifactResults = Mock(VisitedArtifactsResults)
         def artifactResults = Mock(ArtifactResults)
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
         _ * resolver.resolveGraph(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
-            resolverResults.graphResolved(resolutionResults, localComponentsResult, fileDependenciesResult)
+            resolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactResults, fileDependenciesResult)
             resolverResults.artifactsResolved(resolvedConfiguration, artifactResults)
         }
     }
@@ -497,12 +498,12 @@ class DefaultConfigurationSpec extends Specification {
         def artifactTaskDependencies = Mock(TaskDependency)
         def fileDependency = Mock(FileCollection)
         def fileDependencyTaskDependencies = Mock(TaskDependency)
-        def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         def fileDependenciesResult = Mock(FileDependencyResults)
+        def visitedArtifacts = Mock(VisitedArtifactsResults)
         def artifacts = Mock(ResolvedArtifactSet)
 
         given:
-        _ * localComponentsResult.collectArtifactBuildDependencies(_) >> { it[0].add(artifactTaskDependencies) }
+        _ * visitedArtifacts.collectBuildDependencies(_) >> { it[0].add(artifactTaskDependencies) }
         _ * fileDependenciesResult.files >> artifacts
         _ * artifacts.collectBuildDependencies(_) >> { it[0].add(fileDependency) }
         _ * fileDependency.buildDependencies >> fileDependencyTaskDependencies
@@ -511,7 +512,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         _ * resolver.resolveBuildDependencies(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
-            resolverResults.graphResolved(localComponentsResult, fileDependenciesResult)
+            resolverResults.graphResolved(visitedArtifacts, fileDependenciesResult)
         }
 
         expect:
@@ -939,11 +940,11 @@ class DefaultConfigurationSpec extends Specification {
     def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         localComponentsResult.resolvedProjectConfigurations >> []
-        localComponentsResult.componentBuildDependencies >> new DefaultTaskDependency()
+        def visitedArtifactResults = Mock(VisitedArtifactsResults)
         def artifactResult = Mock(ArtifactResults)
         def fileDependenciesResult = Mock(FileDependencyResults)
         resolver.resolveGraph(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
-            res.graphResolved(resolutionResult, localComponentsResult, fileDependenciesResult)
+            res.graphResolved(resolutionResult, localComponentsResult, visitedArtifactResults, fileDependenciesResult)
         }
         resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.artifactsResolved(resolvedConfiguration, artifactResult)
@@ -1003,7 +1004,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(FileDependencyResults))
+            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(VisitedArtifactsResults), Stub(FileDependencyResults))
         }
         0 * resolver._
     }
@@ -1023,7 +1024,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         1 * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(Stub(ResolvedLocalComponentsResult), Stub(FileDependencyResults))
+            r.graphResolved(Stub(VisitedArtifactsResults), Stub(FileDependencyResults))
         }
         0 * resolver._
     }
@@ -1043,7 +1044,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(FileDependencyResults))
+            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(VisitedArtifactsResults), Stub(FileDependencyResults))
         }
         0 * resolver._
 
@@ -1076,7 +1077,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         1 * resolver.resolveBuildDependencies(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(Stub(ResolvedLocalComponentsResult), Stub(FileDependencyResults))
+            r.graphResolved(Stub(VisitedArtifactsResults), Stub(FileDependencyResults))
         }
         0 * resolver._
 
@@ -1089,7 +1090,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(FileDependencyResults))
+            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(VisitedArtifactsResults), Stub(FileDependencyResults))
         }
         1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.artifactsResolved(Stub(ResolvedConfiguration), Stub(ArtifactResults))
@@ -1112,7 +1113,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
-            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(FileDependencyResults))
+            r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(VisitedArtifactsResults), Stub(FileDependencyResults))
         }
         1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.artifactsResolved(Stub(ResolvedConfiguration), Stub(ArtifactResults))

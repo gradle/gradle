@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public class DefaultResolverResults implements ResolverResults {
@@ -31,6 +32,7 @@ public class DefaultResolverResults implements ResolverResults {
     private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private Object artifactResolveState;
     private FileDependencyResults fileDependencyResults;
+    private VisitedArtifactsResults visitedArtifactsResults;
 
     @Override
     public boolean hasError() {
@@ -45,40 +47,50 @@ public class DefaultResolverResults implements ResolverResults {
 
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
-        assertHasArtifacts();
+        assertHasArtifactResult();
         return resolvedConfiguration;
     }
 
     @Override
     public ArtifactResults getArtifactResults() {
-        assertHasArtifacts();
+        assertHasArtifactResult();
         return artifactResults;
     }
 
     @Override
     public ResolutionResult getResolutionResult() {
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
-        if (resolutionResult == null) {
-            throw new IllegalStateException("Resolution result has not been attached.");
-        }
+        assertHasGraphResult();
         return resolutionResult;
     }
 
     @Override
     public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        assertHasLocalResult();
+        assertHasGraphResult();
         return resolvedLocalComponentsResult;
     }
 
     @Override
     public FileDependencyResults getFileDependencies() {
-        assertHasLocalResult();
+        assertHasVisitResult();
         return fileDependencyResults;
     }
 
-    private void assertHasLocalResult() {
+    @Override
+    public VisitedArtifactsResults getVisitedArtifacts() {
+        assertHasVisitResult();
+        return visitedArtifactsResults;
+    }
+
+    private void assertHasVisitResult() {
+        if (fatalFailure != null) {
+            throw fatalFailure;
+        }
+        if (fileDependencyResults == null) {
+            throw new IllegalStateException("Resolution result has not been attached.");
+        }
+    }
+
+    private void assertHasGraphResult() {
         if (fatalFailure != null) {
             throw fatalFailure;
         }
@@ -87,25 +99,27 @@ public class DefaultResolverResults implements ResolverResults {
         }
     }
 
-    private void assertHasArtifacts() {
+    private void assertHasArtifactResult() {
         if (resolvedConfiguration == null) {
             throw new IllegalStateException("Resolution artifacts have not been attached.");
         }
     }
 
     @Override
-    public void graphResolved(ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(VisitedArtifactsResults artifactResults, FileDependencyResults fileDependencyResults) {
         this.fileDependencyResults = fileDependencyResults;
-        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
+        this.visitedArtifactsResults = artifactResults;
+        this.resolvedLocalComponentsResult = null;
         this.resolutionResult = null;
         this.fatalFailure = null;
     }
 
     @Override
-    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactsResults artifactsResults, FileDependencyResults fileDependencyResults) {
         this.resolutionResult = resolutionResult;
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.fileDependencyResults = fileDependencyResults;
+        this.visitedArtifactsResults = artifactsResults;
         this.fatalFailure = null;
     }
 

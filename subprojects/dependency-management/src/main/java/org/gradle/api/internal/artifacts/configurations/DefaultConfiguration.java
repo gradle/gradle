@@ -481,7 +481,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             results = cachedResolverResults;
         }
         List<Object> buildDependencies = new ArrayList<Object>();
-        results.getResolvedLocalComponents().collectArtifactBuildDependencies(buildDependencies);
+        results.getVisitedArtifacts().collectBuildDependencies(buildDependencies);
         results.getFileDependencies().getFiles().collectBuildDependencies(buildDependencies);
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         taskDependency.setValues(buildDependencies);

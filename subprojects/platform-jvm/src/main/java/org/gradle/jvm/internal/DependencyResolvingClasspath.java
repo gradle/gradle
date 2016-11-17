@@ -165,7 +165,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void visitArtifacts(DependencyGraphNode parent, DependencyGraphNode child, ArtifactSet artifacts) {
+        public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
             artifactResults.addArtifactSet(artifacts);
         }
 
