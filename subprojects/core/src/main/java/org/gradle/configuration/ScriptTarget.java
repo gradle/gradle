@@ -34,6 +34,8 @@ public interface ScriptTarget {
      */
     void attachScript(Script script);
 
+    void setScript(Script script);
+
     String getClasspathBlockName();
 
     Class<? extends BasicScript> getScriptClass();

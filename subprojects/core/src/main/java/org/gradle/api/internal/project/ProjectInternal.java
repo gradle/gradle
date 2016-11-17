@@ -93,7 +93,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
 
     ClassLoaderScope getBaseClassLoaderScope();
 
+    void attachScript(groovy.lang.Script script);
+
     void setScript(groovy.lang.Script script);
+
+    groovy.lang.Script getScript();
 
     void addDeferredConfiguration(Runnable configuration);
 

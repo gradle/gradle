@@ -70,6 +70,11 @@ public class DefaultScriptTarget implements ScriptTarget {
     }
 
     @Override
+    public void setScript(Script script) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void addConfiguration(Runnable runnable, boolean deferrable) {
         runnable.run();
     }

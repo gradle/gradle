@@ -192,6 +192,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final AttributesSchema configurationAttributesSchema;
 
+    private groovy.lang.Script buildScript;
+
     public DefaultProject(String name,
                           ProjectInternal parent,
                           File projectDir,
@@ -349,9 +351,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getBuildscript().getSourceFile();
     }
 
-    public void setScript(groovy.lang.Script buildScript) {
+    public void attachScript(groovy.lang.Script buildScript) {
         extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
             ExtensibleDynamicObject.Location.BeforeConvention);
+    }
+
+    public void setScript(groovy.lang.Script buildScript) {
+        this.buildScript = buildScript;
+    }
+
+    public groovy.lang.Script getScript() {
+        return buildScript;
     }
 
     public ScriptSource getBuildScriptSource() {

@@ -66,6 +66,11 @@ public class ProjectScriptTarget implements ScriptTarget {
 
     @Override
     public void attachScript(Script script) {
+        target.attachScript(script);
+    }
+
+    @Override
+    public void setScript(Script script) {
         target.setScript(script);
     }
 

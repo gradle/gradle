@@ -125,8 +125,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> true
-        1 * scriptRunner.script >> script
-        1 * target.setScript(script)
+        2 * scriptRunner.script >> script
+        1 * target.attachScript(script)
         0 * target.addDeferredConfiguration(_)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
         0 * scriptRunner._
@@ -148,7 +148,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> false
-        0 * target.setScript(_)
+        1 * scriptRunner.script >> script
+        0 * target.attachScript(_)
         0 * target.addDeferredConfiguration(_)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
         0 * scriptRunner._
@@ -170,8 +171,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> true
-        1 * scriptRunner.script >> script
-        1 * target.setScript(script)
+        2 * scriptRunner.script >> script
+        1 * target.attachScript(script)
         1 * target.addDeferredConfiguration(_)
         0 * scriptRunner._
 
@@ -192,7 +193,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> false
-        0 * target.setScript(_)
+        1 * scriptRunner.script >> script
+        0 * target.attachScript(_)
         1 * target.addDeferredConfiguration(_)
         0 * scriptRunner._
 
@@ -214,7 +216,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.runDoesSomething >> false
         _ * scriptRunner.hasMethods >> false
         0 * scriptRunner._
-        0 * target.setScript(_)
+        0 * target.attachScript(_)
         0 * target.addDeferredConfiguration(_)
 
         then:

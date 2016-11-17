@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -125,9 +124,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private TaskExecutionList loadPreviousExecutions(final TaskInternal task) {
         boolean contextCreated = AsyncCacheAccessContext.createWhenMissing();
-        ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
-        ClassLoader taskClassLoader = task.getClass().getClassLoader();
-        MultiParentClassLoader serializerClassLoader = new MultiParentClassLoader(projectClassLoader, taskClassLoader);
+        ProjectInternal project = Cast.cast(ProjectInternal.class, task.getProject());
+        ClassLoader serializerClassLoader;
+        if (null == project.getScript()) {
+            serializerClassLoader = project.getClassLoaderScope().getLocalClassLoader();
+        } else {
+            serializerClassLoader = project.getScript().getClass().getClassLoader();
+        }
         try {
             serializer.setClassLoader(serializerClassLoader);
             List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
