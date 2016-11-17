@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
@@ -26,7 +27,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class FindBugsWorkerManager {
-    public FindBugsResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) throws IOException, InterruptedException {
+    public FindBugsResult runWorker(File workingDir, WorkerDaemonExpiration workerDaemonExpiration, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) throws IOException, InterruptedException {
+        workerDaemonExpiration.eventuallyExpireDaemons(spec.getMaxHeapSize());
         FindBugsWorker worker = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
         return worker.runFindbugs(spec);
     }
