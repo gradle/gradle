@@ -273,7 +273,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
                 def list = $list
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
                 def additionalForkOptions = {}
-                def workerId = "1"
                 def runnableClass = TestRunnable.class
 
                 @Inject
@@ -284,9 +283,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void executeTask() {
                     workerDaemons.daemonRunnable(runnableClass)
-                        .forkOptions {
-                            it.systemProperty("org.gradle.workerId", workerId)
-                        }
                         .forkOptions(additionalForkOptions)
                         .params(list.collect { it as String }, new File(outputFileDirPath), new Foo())
                         .execute()
