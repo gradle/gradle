@@ -29,12 +29,21 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
     }
 
     def "processClasspath includes jars from file dependencies"() {
+        given:
+        buildFile << """
+            file('android-app/a').mkdir()
+            def b = file('android-app/a/b.class')
+            b.text = 'b'
+            ant.zip(destfile: 'android-app/a.jar') {
+                fileset(dir: 'android-app/a')
+            }
+        """
+
         when:
-        dependency "gradleApi()"
+        dependency "files('a.jar')"
 
         then:
-        artifacts('processClasspath').count {it.contains('gradle') && it.endsWith('.jar')} >= 1
-        !output.contains('.jar/classes')
+        artifacts('processClasspath') == ['/android-app/a.jar']
     }
 
     def "processClasspath includes classes.jar from published android module"() {
@@ -80,12 +89,21 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
     }
 
     def "processClasses includes class folders from file dependencies"() {
+        given:
+        buildFile << """
+            file('android-app/a').mkdir()
+            def b = file('android-app/a/b.class')
+            b.text = 'b'
+            ant.zip(destfile: 'android-app/a.jar') {
+                fileset(dir: 'android-app/a')
+            }
+        """
+
         when:
-        dependency "gradleApi()"
+        dependency "files('a.jar')"
 
         then:
-        artifacts('processClasses').count {it.contains('gradle') && it.endsWith('.jar/classes')} >= 1
-        !output.contains('.jar\n')
+        artifacts('processClasses') == ['/android-app/transformed/a.jar/classes']
     }
 
     def "processClasses includes class folders from projects and libraries"() {
