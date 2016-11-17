@@ -156,10 +156,24 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def sourceSet = project.sourceSets.create('custom')
 
         then:
+        def api = project.configurations.customApi
+        !api.transitive
+        !api.visible
+        api.extendsFrom == [] as Set
+        api.description == "API dependencies for source set 'custom'."
+
+        and:
+        def apiCompile = project.configurations.customApiCompile
+        !apiCompile.transitive
+        !apiCompile.visible
+        apiCompile.extendsFrom == [api] as Set
+        apiCompile.description == "API compile classpath for source set 'custom'."
+
+        and:
         def compile = project.configurations.customCompile
         compile.transitive
         !compile.visible
-        compile.extendsFrom == [] as Set
+        compile.extendsFrom == [api] as Set
         compile.description == "Dependencies for source set 'custom'."
 
         and:
