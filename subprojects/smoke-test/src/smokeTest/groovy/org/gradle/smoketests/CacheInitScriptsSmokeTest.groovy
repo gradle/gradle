@@ -49,7 +49,7 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
                 FROM_CACHE - 2 tasks took 10 ms (avg 5.00 ms, stddev 0.00 ms, min 5 ms, max 5 ms)
                   Cacheable - 2 tasks took 10 ms (avg 5.00 ms, stddev 0.00 ms, min 5 ms, max 5 ms)
                     org.gradle.api.tasks.bundling.Jar - 1 task took 5 ms
-                    org.gradle.api.tasks.compile.JavaCompile - 1 task took 5 ms
+                    org.gradle.api.tasks.compile.JavaCompile (*) - 1 task took 5 ms
                 UP_TO_DATE - 11 tasks took 5 ms (avg 0.45 ms, stddev 0.66 ms, min 0 ms, max 2 ms)
                   Not cacheable - 11 tasks took 5 ms (avg 0.45 ms, stddev 0.66 ms, min 0 ms, max 2 ms)
                     org.gradle.api.DefaultTask - 5 tasks took 0 ms (avg 0.00 ms, stddev 0.00 ms, min 0 ms, max 0 ms)
@@ -57,6 +57,8 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
                     org.gradle.api.tasks.compile.JavaCompile - 1 task took 1 ms
                     org.gradle.api.tasks.testing.Test - 1 task took 2 ms
                     org.gradle.language.jvm.tasks.ProcessResources - 2 tasks took 1 ms (avg 0.50 ms, stddev 0.50 ms, min 0 ms, max 1 ms)
+
+              (*) denotes tasks with custom actions
         """.stripIndent().split("\n").findAll { !it.empty }.collect { it.replaceAll(TIME_PATTERN, "TIME") }
 
         useSample("cache-init-scripts")
