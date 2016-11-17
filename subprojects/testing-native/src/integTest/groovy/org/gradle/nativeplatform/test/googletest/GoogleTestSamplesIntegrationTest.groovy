@@ -36,7 +36,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     def "googleTest"() {
         given:
-        // On windows, GoogleTest sample only works out of the box with VS2013
+        // On windows, GoogleTest sample only works out of the box with VS2013 and VS2015
         assumeTrue(!OperatingSystem.current().windows || isVisualCpp2013() || isVisualCpp2015())
 
         sample googleTest
