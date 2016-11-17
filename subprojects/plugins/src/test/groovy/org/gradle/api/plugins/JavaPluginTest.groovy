@@ -60,10 +60,30 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         javaPlugin.apply(project)
 
         when:
+        def api = project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
+
+        then:
+        api.extendsFrom == toSet()
+        !api.visible
+        !api.transitive
+        !api.canBeResolved
+        !api.canBeConsumed
+
+        when:
+        def apiCompile = project.configurations.getByName(JavaPlugin.API_COMPILE_CONFIGURATION_NAME)
+
+        then:
+        apiCompile.extendsFrom == toSet(api)
+        !apiCompile.visible
+        !apiCompile.transitive
+        apiCompile.canBeConsumed
+        apiCompile.canBeResolved
+
+        when:
         def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
 
         then:
-        compile.extendsFrom == toSet()
+        compile.extendsFrom == toSet(api)
         !compile.visible
         compile.transitive
 
@@ -92,10 +112,11 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         compileClasspath.transitive
 
         when:
+        def testApi = project.configurations.getByName(JavaPlugin.TEST_API_CONFIGURATION_NAME)
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
 
         then:
-        testCompile.extendsFrom == toSet(compile)
+        testCompile.extendsFrom == toSet(testApi, compile)
         !testCompile.visible
         testCompile.transitive
 
