@@ -21,16 +21,17 @@ import spock.lang.Issue
 @Issue("gradle/gradle#855")
 class CheckstylePluginClasspathIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        writeBuildFile()
+        writeBuildFiles()
         writeConfigFile()
         goodCode()
     }
 
     def "accepts throwing exception from other project"() {
+        expect:
         succeeds("checkstyleMain")
     }
 
-    private void writeBuildFile() {
+    private void writeBuildFiles() {
         file("settings.gradle") << """
 include "api"
 include "client"
@@ -45,19 +46,22 @@ subprojects {
         mavenCentral()
     }
 
-    checkstyle.toolVersion = "0.7.2"
+    checkstyle {
+        toolVersion = "7.2"
+        configFile rootProject.file("checkstyle.xml")
+    }
 }
 
 project("client") {
     dependencies {
-        compile project("api")
+        compile project(":api")
     }
 }
         """
     }
 
     private void writeConfigFile() {
-        file("config/checkstyle/checkstyle.xml") << """
+        file("checkstyle.xml") << """
 <!DOCTYPE module PUBLIC
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
@@ -70,21 +74,23 @@ project("client") {
     }
 
     private void goodCode() {
-        file("api/src/main/java/csbug/Exn.java") << """
-package csbug;
+        file("api/src/main/java/org/gradle/FooException.java") << """
+package org.gradle;
 
-class Exn extends Exception { }
+class FooException extends Exception { }
         """
 
-        file("client/src/main/java/csbug/Iface.java") << """
-package csbug;
+        file("client/src/main/java/org/gradle/Iface.java") << """
+package org.gradle;
 
 interface Iface {
     /**
-     * @throws Exn
-     * @throws IllegalArgumentException
+     * Method Description.
+     *
+     * @throws FooException whenever
+     * @throws IllegalArgumentException otherwise
      */
-    void foo() throws Exn;
+    void foo() throws FooException;
 }
         """
     }
