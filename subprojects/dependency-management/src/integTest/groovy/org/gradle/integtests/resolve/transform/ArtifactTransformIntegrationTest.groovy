@@ -513,7 +513,7 @@ class FileSizer extends ArtifactTransform {
 
                 @TransformOutput(format = 'size')
                 File getOutput() {
-                    return new File('this/file/does/not/exist')
+                    return new File('this_file_does_not.exist')
                 }
 
                 void transform(File input) { }
@@ -526,7 +526,7 @@ class FileSizer extends ArtifactTransform {
 
         then:
         failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'ToNullTransform'")
-        failure.assertHasCause("Expected output file 'this/file/does/not/exist' was not created")
+        failure.assertHasCause("Expected output file 'this_file_does_not.exist' was not created")
     }
 
     def configurationAndTransform(String transformImplementation) {

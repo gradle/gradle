@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.util.TextUtil
 
 /**
  * Overview of Configurations and 'formats' used in this scenario:
@@ -402,7 +403,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
         assert succeeds('printArtifacts')
 
         def result = []
-        output.eachLine { line ->
+        TextUtil.normaliseFileSeparators(output).eachLine { line ->
             if (line.startsWith("/")) {
                 result.add(line)
             }
