@@ -32,6 +32,7 @@ import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 /**
@@ -42,12 +43,14 @@ public class DefaultTestExecuter implements TestExecuter {
     private final ActorFactory actorFactory;
     private final ModuleRegistry moduleRegistry;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerDaemonExpiration workerDaemonExpiration;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, WorkerDaemonExpiration workerDaemonExpiration, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.workerDaemonExpiration = workerDaemonExpiration;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class DefaultTestExecuter implements TestExecuter {
         final BuildOperationWorkerRegistry.Operation currentOperation = buildOperationWorkerRegistry.getCurrent();
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
+                return new ForkingTestClassProcessor(workerDaemonExpiration, workerFactory, testInstanceFactory, testTask,
                     testTask.getClasspath(), testFramework.getWorkerConfigurationAction(), moduleRegistry, currentOperation);
             }
         };
