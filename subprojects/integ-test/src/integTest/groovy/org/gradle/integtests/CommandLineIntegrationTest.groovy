@@ -26,6 +26,7 @@ import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -147,6 +148,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": """
