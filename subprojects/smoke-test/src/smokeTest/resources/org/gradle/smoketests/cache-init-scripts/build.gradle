@@ -1,0 +1,4 @@
+apply from: "overlappingTaskOutputsStatsInit.gradle"
+apply from: "taskCacheDetailedStatsInit.gradle"
+
+apply plugin: 'groovy'
