@@ -30,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -102,8 +101,6 @@ public class DefaultUcrtLocator implements UcrtLocator {
                 }
             } catch (MissingRegistryEntryException e) {
                 // Ignore the version if the string cannot be read
-            } catch (NativeIntegrationUnavailableException e) {
-                // Ignore when Windows Registry is not available as on Linux for exemple
             }
         }
     }

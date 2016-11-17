@@ -100,7 +100,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     public void setUcrtDir(Object ucrtDirPath) {
         this.ucrtDir = resolve(ucrtDirPath);
     }
-    
+
     @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
@@ -123,10 +123,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             availability = new ToolChainAvailability();
             checkAvailable(availability);
         }
-        UcrtLocator.SearchResult ucrtSearchResult = ucrtLocator.locateUcrts(ucrtDir);
-        if (ucrtSearchResult.isAvailable()) {
-            ucrt = ucrtSearchResult.getUcrt();
-        }
+
         return availability;
     }
 
@@ -144,6 +141,15 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         availability.mustBeAvailable(windowsSdkSearchResult);
         if (windowsSdkSearchResult.isAvailable()) {
             windowsSdk = windowsSdkSearchResult.getSdk();
+        }
+
+        UcrtLocator.SearchResult ucrtSearchResult = ucrtLocator.locateUcrts(ucrtDir);
+        // Universal CRT is required for VS2015
+        if (visualCpp != null && visualCpp.getVersion().getMajor() >= 14) {
+            availability.mustBeAvailable(ucrtSearchResult);
+        }
+        if (ucrtSearchResult.isAvailable()) {
+            ucrt = ucrtSearchResult.getUcrt();
         }
     }
 
