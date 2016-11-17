@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.TreeVisitor;
@@ -86,10 +87,9 @@ public class DefaultUcrtLocator implements UcrtLocator {
                 REGISTRY_KIT_10
         };
 
-        for (int i = 0; i != keys.length; ++i) {
+        for (String key : keys) {
             try {
-//FIXME         File ucrtDir = GFileUtils.canonicalise(new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, keys[i])));
-                File ucrtDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, keys[i]));
+                File ucrtDir = FileUtils.canonicalize(new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, key)));
                 String[] versionDirs = getUcrtVersionDirs(ucrtDir);
                 if (versionDirs.length > 0) {
                     for (String versionDir : versionDirs) {
@@ -109,8 +109,7 @@ public class DefaultUcrtLocator implements UcrtLocator {
     }
 
     private SearchResult locateUserSpecifiedUcrt(File candidate) {
-//FIXME        File ucrtDir = GFileUtils.canonicalise(candidate);
-        File ucrtDir = candidate;
+        File ucrtDir = FileUtils.canonicalize(candidate);
         String[] versionDirs = getUcrtVersionDirs(ucrtDir);
         if (versionDirs.length > 0) {
             for (String versionDir : versionDirs) {
