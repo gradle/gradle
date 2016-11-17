@@ -149,6 +149,7 @@ We would like to thank the following community members for making contributions 
  - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
  - [John Martel](https://github.com/johnmartel) - Print links to project reports on CLI (#762)
  - [Jörn Huxhorn](https://github.com/huxi) - Fix "Connection refused" integTest assertions (#788)
+ - [Punyashloka Biswal](https://github.com/punya) - Fix Checkstyle classpath is set incorrectly for multi-project builds (#855)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
