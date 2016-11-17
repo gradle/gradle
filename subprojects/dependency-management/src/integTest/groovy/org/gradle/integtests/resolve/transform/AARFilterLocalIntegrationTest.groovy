@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.transform;
 
 public class AARFilterLocalIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
-    def availableFeatures() {
+    def enabledFeatures() {
         [Feature.FILTER_LOCAL]
     }
 
