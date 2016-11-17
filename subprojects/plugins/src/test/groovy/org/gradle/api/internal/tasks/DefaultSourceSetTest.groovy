@@ -116,6 +116,8 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.runtimeConfigurationName, equalTo("setNameRuntime"))
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("setNameCompileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("setNameCompileClasspath"))
+        assertThat(sourceSet.apiConfigurationName, equalTo("setNameApi"))
+        assertThat(sourceSet.apiCompileConfigurationName, equalTo("setNameApiCompile"))
     }
 
     @Test public void mainSourceSetUsesSpecialCaseNames() {
@@ -133,6 +135,8 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.runtimeConfigurationName, equalTo("runtime"))
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("compileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("compileClasspath"))
+        assertThat(sourceSet.apiConfigurationName, equalTo("api"))
+        assertThat(sourceSet.apiCompileConfigurationName, equalTo("apiCompile"))
     }
 
     @Test public void canConfigureResources() {
