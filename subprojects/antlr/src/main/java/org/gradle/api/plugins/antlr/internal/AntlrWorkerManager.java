@@ -18,6 +18,7 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
@@ -25,8 +26,8 @@ import java.io.File;
 
 public class AntlrWorkerManager {
 
-    public AntlrResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-
+    public AntlrResult runWorker(File workingDir, WorkerDaemonExpiration workerDaemonExpiration, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
+        workerDaemonExpiration.eventuallyExpireDaemons(spec.getMaxHeapSize());
         AntlrWorker antlrWorker = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
         return antlrWorker.runAntlr(spec);
     }
