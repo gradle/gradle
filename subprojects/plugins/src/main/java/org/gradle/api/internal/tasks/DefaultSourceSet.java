@@ -24,6 +24,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
@@ -111,20 +112,30 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getCompileConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "Compile");
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.COMPILE_CONFIGURATION_NAME));
     }
 
     public String getRuntimeConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "Runtime");
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.RUNTIME_CONFIGURATION_NAME));
     }
 
     public String getCompileOnlyConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "CompileOnly");
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME));
     }
 
     @Override
     public String getCompileClasspathConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "CompileClasspath");
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+    }
+
+    @Override
+    public String getApiConfigurationName() {
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.API_CONFIGURATION_NAME));
+    }
+
+    @Override
+    public String getApiCompileConfigurationName() {
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.API_COMPILE_CONFIGURATION_NAME));
     }
 
     public SourceSetOutput getOutput() {
