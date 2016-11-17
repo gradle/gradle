@@ -466,11 +466,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
+        assertResolvingAllowed();
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
             // Force graph resolution as this is required to calculate build dependencies
             resolveToStateOrLater(GRAPH_RESOLVED);
         }
-        assertResolvingAllowed();
         ResolverResults results;
         if (getState() == State.UNRESOLVED) {
             // Traverse graph
@@ -482,7 +482,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         List<Object> buildDependencies = new ArrayList<Object>();
         results.getVisitedArtifacts().collectBuildDependencies(buildDependencies);
-        results.getFileDependencies().getFiles().collectBuildDependencies(buildDependencies);
+        results.getVisitedFileDependencies().getFiles().collectBuildDependencies(buildDependencies);
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         taskDependency.setValues(buildDependencies);
         return taskDependency;

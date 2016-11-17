@@ -50,7 +50,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def visitedArtifacts = results.visitedArtifacts
         visitedArtifacts.collectBuildDependencies(buildDeps)
 
-        def fileDependencyResults = results.fileDependencies
+        def fileDependencyResults = results.visitedFileDependencies
         fileDependencyResults.files.collectBuildDependencies(buildDeps)
 
         buildDeps.empty
@@ -81,7 +81,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def visitedArtifacts = results.visitedArtifacts
         visitedArtifacts.collectBuildDependencies(buildDeps)
 
-        def fileDependencyResults = results.fileDependencies
+        def fileDependencyResults = results.visitedFileDependencies
         fileDependencyResults.files.collectBuildDependencies(buildDeps)
 
         buildDeps.empty

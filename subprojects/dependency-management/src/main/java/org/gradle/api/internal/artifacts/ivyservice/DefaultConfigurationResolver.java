@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
@@ -137,10 +137,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private static class ArtifactResolveState {
         final ResolvedGraphResults graphResults;
         final DefaultResolvedArtifactsBuilder artifactsBuilder;
-        final FileDependencyResults fileDependencyResults;
+        final VisitedFileDependencyResults fileDependencyResults;
         final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
 
-        ArtifactResolveState(ResolvedGraphResults graphResults, DefaultResolvedArtifactsBuilder artifactsBuilder, FileDependencyResults fileDependencyResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
+        ArtifactResolveState(ResolvedGraphResults graphResults, DefaultResolvedArtifactsBuilder artifactsBuilder, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
             this.graphResults = graphResults;
             this.artifactsBuilder = artifactsBuilder;
             this.fileDependencyResults = fileDependencyResults;

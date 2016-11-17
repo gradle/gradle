@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
@@ -31,7 +31,7 @@ public class DefaultResolverResults implements ResolverResults {
     private ResolveException fatalFailure;
     private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private Object artifactResolveState;
-    private FileDependencyResults fileDependencyResults;
+    private VisitedFileDependencyResults fileDependencyResults;
     private VisitedArtifactsResults visitedArtifactsResults;
 
     @Override
@@ -70,7 +70,7 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public FileDependencyResults getFileDependencies() {
+    public VisitedFileDependencyResults getVisitedFileDependencies() {
         assertHasVisitResult();
         return fileDependencyResults;
     }
@@ -106,7 +106,7 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void graphResolved(VisitedArtifactsResults artifactResults, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults) {
         this.fileDependencyResults = fileDependencyResults;
         this.visitedArtifactsResults = artifactResults;
         this.resolvedLocalComponentsResult = null;
@@ -115,7 +115,7 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactsResults artifactsResults, FileDependencyResults fileDependencyResults) {
+    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults) {
         this.resolutionResult = resolutionResult;
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.fileDependencyResults = fileDependencyResults;

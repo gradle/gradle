@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.specs.Specs
@@ -37,7 +37,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     private artifactResults = Mock(ArtifactResults)
     private resolutionResult = Mock(ResolutionResult)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
-    private fileDependenciesResult = Mock(FileDependencyResults)
+    private fileDependenciesResult = Mock(VisitedFileDependencyResults)
     private visitedArtifactResults = Mock(VisitedArtifactsResults)
     private context = Mock(ConfigurationInternal.class)
     private results = new DefaultResolverResults()

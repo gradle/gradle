@@ -35,7 +35,7 @@ import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
@@ -65,12 +65,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final ResolvedArtifactResults artifactResults;
-    private final FileDependencyResults fileDependencyResults;
+    private final VisitedFileDependencyResults fileDependencyResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
     private final ArtifactTransformer artifactTransformer;
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
-                                       ResolvedArtifactResults artifactResults, FileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+                                       ResolvedArtifactResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;

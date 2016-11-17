@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
@@ -54,17 +54,17 @@ public interface ResolverResults {
     /**
      * Returns details of the file dependencies in the resolved dependency graph.
      */
-    FileDependencyResults getFileDependencies();
+    VisitedFileDependencyResults getVisitedFileDependencies();
 
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
-    void graphResolved(VisitedArtifactsResults artifactResults, FileDependencyResults fileDependencyResults);
+    void graphResolved(VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults);
 
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
-    void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactsResults artifactsResults, FileDependencyResults fileDependencyResults);
+    void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults);
 
     void failed(ResolveException failure);
 

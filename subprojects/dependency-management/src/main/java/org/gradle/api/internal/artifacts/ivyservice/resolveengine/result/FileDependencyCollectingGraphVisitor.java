@@ -21,7 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -34,7 +34,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import java.util.Map;
 import java.util.Set;
 
-public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, FileDependencyResults {
+public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, VisitedFileDependencyResults {
     private final SetMultimap<Long, ResolvedArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
     private Map<FileCollectionDependency, ResolvedArtifactSet> rootFiles;
 
