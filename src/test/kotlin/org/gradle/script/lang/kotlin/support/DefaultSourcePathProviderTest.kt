@@ -25,11 +25,12 @@ class DefaultSourcePathProviderTest : FolderBasedTest() {
             }
         }
 
-        val environment = mapOf(
-            "projectRoot" to folder("project"),
-            "gradleHome" to folder("gradle"))
+        val request = KotlinBuildScriptModelRequest(
+            projectDir = folder("project"),
+            gradleInstallation =  folder("gradle"))
 
-        val sourcePath = DefaultSourcePathProvider.sourcePathFor(EmptyKotlinBuildScriptModel, environment)
+        val emptyModel = StandardKotlinBuildScriptModel(emptyList())
+        val sourcePath = DefaultSourcePathProvider.sourcePathFor(request, emptyModel)
         assertThat(
             sourcePath,
             hasItems(

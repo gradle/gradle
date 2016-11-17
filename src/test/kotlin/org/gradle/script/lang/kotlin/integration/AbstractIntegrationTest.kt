@@ -1,8 +1,9 @@
 package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelRequest
 import org.gradle.script.lang.kotlin.support.classEntriesFor
-import org.gradle.script.lang.kotlin.support.retrieveKotlinBuildScriptModelFrom
+import org.gradle.script.lang.kotlin.support.fetchKotlinBuildScriptModelFor
 import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
@@ -100,7 +101,10 @@ open class AbstractIntegrationTest {
 
     protected fun kotlinBuildScriptModelFor(projectDir: File): KotlinBuildScriptModel =
         withDaemonRegistry(customDaemonRegistry()) {
-            retrieveKotlinBuildScriptModelFrom(projectDir, customInstallation())!!
+            fetchKotlinBuildScriptModelFor(
+                KotlinBuildScriptModelRequest(
+                    projectDir = projectDir,
+                    gradleInstallation = customInstallation()))!!
         }
 
     private fun customDaemonRegistry() =

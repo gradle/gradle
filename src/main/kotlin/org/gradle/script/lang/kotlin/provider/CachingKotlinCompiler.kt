@@ -28,7 +28,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.support.GradleKotlinScriptDependenciesResolver.Companion.implicitImports
+import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
 
@@ -135,7 +135,7 @@ class CachingKotlinCompiler(
             override fun <TF> getDependenciesFor(file: TF, project: Project, previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
                 object : KotlinScriptExternalDependencies {
                     override val imports: Iterable<String>
-                        get() = implicitImports
+                        get() = ImplicitImports.list
                     override val classpath: Iterable<File>
                         get() = classPath.asFiles
                 }

@@ -16,19 +16,8 @@
 
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.KotlinScriptHandler
-
-import org.gradle.api.Project
-
-abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(project) {
-
-    /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
-     */
-    override fun buildscript(configuration: KotlinScriptHandler.() -> Unit) {
-        KotlinScriptHandler(project.buildscript).configuration()
-    }
+object ImplicitImports {
+    val list = listOf(
+        "org.gradle.api.plugins.*",
+        "org.gradle.script.lang.kotlin.*")
 }

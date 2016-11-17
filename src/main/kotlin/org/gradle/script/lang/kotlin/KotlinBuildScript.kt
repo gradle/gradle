@@ -16,7 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.script.lang.kotlin.support.GradleKotlinScriptDependenciesResolver
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptDependenciesResolver
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.script.ScriptTemplateDefinition
  * Base class for Kotlin build scripts.
  */
 @ScriptTemplateDefinition(
-    resolver = GradleKotlinScriptDependenciesResolver::class,
+    resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
 abstract class KotlinBuildScript(project: Project) : Project by project {
 
