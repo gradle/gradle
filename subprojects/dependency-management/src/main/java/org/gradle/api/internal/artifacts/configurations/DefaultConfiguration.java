@@ -907,6 +907,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return DefaultConfiguration.this.fileCollection(Specs.<Dependency>satisfyAll());
         }
 
+        @Override
+        public FileCollection getFiles(String format) {
+            return getFiles();
+        }
+
         public DependencySet getDependencies() {
             return getAllDependencies();
         }
@@ -935,10 +940,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            cachedResolverResults.getResolvedConfiguration().rethrowFailure();
-            Set<ResolvedArtifactResult> artifacts = new LinkedHashSet<ResolvedArtifactResult>();
-            cachedResolverResults.getArtifactResults().collectArtifacts(artifacts);
-            return artifacts;
+            return cachedResolverResults.getArtifactResults().collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
         }
     }
 

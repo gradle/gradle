@@ -60,6 +60,14 @@ public interface ResolvableDependencies {
     FileCollection getFiles();
 
     /**
+     * Returns a view of this set containing files with the given format.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    FileCollection getFiles(String format);
+
+    /**
      * Returns the set of dependencies which will be resolved.
      *
      * @return the dependencies. Never null.

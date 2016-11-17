@@ -111,6 +111,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             }
         }
 
+        @Override
         public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getArtifacts(dependencySpec);
@@ -128,6 +129,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             }
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getFirstLevelModuleDependencies(dependencySpec);
@@ -145,6 +147,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             }
         }
 
+        @Override
         public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
             try {
                 return lenientConfiguration.getUnresolvedModuleDependencies();
@@ -162,6 +165,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             }
         }
 
+        @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             try {
                 return lenientConfiguration.getFiles(dependencySpec);
@@ -302,14 +306,17 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             this.configuration = configuration;
         }
 
+        @Override
         public boolean hasError() {
             return true;
         }
 
+        @Override
         public LenientConfiguration getLenientConfiguration() {
             throw wrapException(e, configuration);
         }
 
+        @Override
         public void rethrowFailure() throws ResolveException {
             throw wrapException(e, configuration);
         }
@@ -319,29 +326,33 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             throw wrapException(e, configuration);
         }
 
+        @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
             throw wrapException(e, configuration);
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
             throw wrapException(e, configuration);
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             throw wrapException(e, configuration);
         }
 
+        @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
             throw wrapException(e, configuration);
         }
 
         @Override
-        public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) throws ResolveException {
+        public <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
             throw wrapException(e, configuration);
         }
 
         @Override
-        public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+        public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
             throw wrapException(e, configuration);
         }
     }

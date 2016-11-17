@@ -54,9 +54,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        Set<File> files = new LinkedHashSet<File>();
-        configuration.collectFiles(dependencySpec, files);
-        return files;
+        return configuration.collectFiles(dependencySpec, new LinkedHashSet<File>());
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {

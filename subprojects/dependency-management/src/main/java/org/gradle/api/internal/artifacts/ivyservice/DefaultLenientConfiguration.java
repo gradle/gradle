@@ -161,7 +161,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     /**
      * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
      */
-    public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
+    @Override
+    public <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+        rethrowFailure();
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
         try {
             visitArtifacts(dependencySpec, visitor);
@@ -174,12 +176,15 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         if (!visitor.failures.isEmpty()) {
             throw new ArtifactResolveException("files", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
         }
+        return dest;
     }
 
     /**
      * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
      */
-    public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+    @Override
+    public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
+        rethrowFailure();
         ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
         try {
             visitArtifacts(Specs.<Dependency>satisfyAll(), visitor);
@@ -189,6 +194,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
         if (!visitor.failures.isEmpty()) {
             throw new ArtifactResolveException("artifacts", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
         }
+        return dest;
     }
 
     @Override
@@ -288,11 +294,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     }
 
     private static class ResolvedFilesCollectingVisitor extends Visitor {
-        private final Collection<File> files;
+        private final Collection<? super File> files;
         private final List<Throwable> failures = new ArrayList<Throwable>();
         private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
 
-        ResolvedFilesCollectingVisitor(Collection<File> files) {
+        ResolvedFilesCollectingVisitor(Collection<? super File> files) {
             this.files = files;
         }
 

@@ -111,41 +111,6 @@ class FileSizer extends ArtifactTransform {
         file("build/transformed/b.jar.txt").text == "2"
     }
 
-    // Documents existing behaviour, not desired behaviour
-    def "removes artifacts and files with format that does not match requested from the result"() {
-        given:
-        buildFile << """
-            project(':lib') {
-                artifacts {
-                    compile file('lib.jar')
-                    compile file('lib.classes')
-                    compile file('lib')
-                }
-            }
-
-            project(':app') {
-                configurations {
-                    compile {
-                        format = 'jar'
-                    }
-                }
-
-                dependencies {
-                    compile project(':lib')
-                }
-
-                task resolve {
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib.jar']
-                    }
-                }
-            }
-        """
-
-        expect:
-        succeeds "resolve"
-    }
-
     def "applies transforms to artifacts from project dependencies"() {
         given:
         buildFile << """

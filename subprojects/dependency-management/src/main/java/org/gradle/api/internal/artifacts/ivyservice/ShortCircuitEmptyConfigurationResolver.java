@@ -91,11 +91,13 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     private static class EmptyResults implements ArtifactResults {
         @Override
-        public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
+        public <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+            return dest;
         }
 
         @Override
-        public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+        public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
+            return dest;
         }
     }
 
