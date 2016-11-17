@@ -245,4 +245,29 @@ public interface SourceSet {
      */
     @Incubating
     String getCompileClasspathConfigurationName();
+
+    /**
+     * Returns the name of the API configuration for this source set. The API configuration
+     * contains dependencies which are exported by this source set, and is not transitive
+     * by default. This configuration is not meant to be resolved and should only contain
+     * dependencies that are required when compiling against this component.
+     *
+     * @return The API configuration name
+     *
+     * @since 3.3
+     */
+    @Incubating
+    String getApiConfigurationName();
+
+    /**
+     * Returns the name of the configuration that should be used when compiling against the API
+     * of this component. This configuration is meant to be consumed by other components when
+     * they need to compile against it.
+     *
+     * @return The API compile configuration name
+     *
+     * @since 3.3
+     */
+    @Incubating
+    String getApiCompileConfigurationName();
 }
