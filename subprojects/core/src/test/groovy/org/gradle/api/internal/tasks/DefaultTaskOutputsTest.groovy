@@ -148,24 +148,34 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    def "can register future named output files"() {
-        when: outputs.files({ ["fileA": "a", "fileB": "b"] })
+    @Unroll
+    def "can register future named output #name"() {
+        when: outputs."$name"({ [one: "a", two: "b"] })
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
+        outputs.fileProperties*.propertyName == ['$1.one', '$1.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
+        outputs.fileProperties*.outputType == [type, type]
+        where:
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
     }
 
-    def "can register future named output files with property name"() {
-        when: outputs.files({ ["fileA": "a", "fileB": "b"] }).withPropertyName("prop")
+    @Unroll
+    def "can register future named output #name with property name"() {
+        when: outputs."$name"({ [one: "a", two: "b"] }).withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
+        outputs.fileProperties*.propertyName == ['prop.one', 'prop.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
+        outputs.fileProperties*.outputType == [type, type]
+        where:
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
     }
 
     public void canRegisterOutputFiles() {
