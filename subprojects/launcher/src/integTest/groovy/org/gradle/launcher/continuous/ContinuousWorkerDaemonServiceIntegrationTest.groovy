@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.util.TextUtil
 
 class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinuousIntegrationTest {
