@@ -16,32 +16,10 @@
 
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
-
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-
 import java.io.File
-
-data class KotlinBuildScriptModelRequest(
-    val projectDir: File,
-    val gradleInstallation: File,
-    val scriptFile: File? = null,
-    val javaHome: File? = null,
-    val jvmOptions: List<String> = emptyList())
-
-interface KotlinBuildScriptModelProvider {
-    fun modelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel?
-}
 
 interface SourcePathProvider {
     fun sourcePathFor(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel): Collection<File>
-}
-
-object DefaultKotlinBuildScriptModelProvider : KotlinBuildScriptModelProvider {
-
-    override fun modelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
-        fetchKotlinBuildScriptModelFor(request)
 }
 
 object DefaultSourcePathProvider : SourcePathProvider {
@@ -72,33 +50,3 @@ object DefaultSourcePathProvider : SourcePathProvider {
             emptyList()
 }
 
-fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
-    withConnectionFrom(connectorFor(request.projectDir, request.gradleInstallation)) {
-        model(KotlinBuildScriptModel::class.java)?.run {
-            setJavaHome(request.javaHome)
-            setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
-            request.scriptFile?.let {
-                withArguments("-P$scriptFileProperty=${it.canonicalPath}")
-            }
-            get()
-        }
-    }
-
-private val modelSpecificJvmOptions =
-    listOf("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
-
-internal val scriptFileProperty = "org.gradle.script.lang.kotlin.provider.script"
-
-fun connectorFor(projectDir: File, gradleInstallation: File): GradleConnector =
-    GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation)
-
-inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
-    connector.connect().use(block)
-
-inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
-    try {
-        return block(this)
-    } finally {
-        close()
-    }
-}

@@ -1,16 +1,10 @@
 package org.gradle.script.lang.kotlin.integration
 
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelRequest
 import org.gradle.script.lang.kotlin.support.classEntriesFor
-import org.gradle.script.lang.kotlin.support.fetchKotlinBuildScriptModelFor
 import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-
-import org.hamcrest.CoreMatchers.hasItems
-import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -34,9 +28,10 @@ open class AbstractIntegrationTest {
         withFile("$baseDir/build.gradle.kts", script)
     }
 
-    protected fun withFile(fileName: String, text: String) {
-        file(fileName).writeText(text)
-    }
+    protected fun withFile(fileName: String, text: String = "") =
+        file(fileName).apply {
+            writeText(text)
+        }
 
     protected fun withBuildSrc() {
         withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
@@ -80,35 +75,6 @@ open class AbstractIntegrationTest {
 
     private fun gradleRunner() =
         gradleRunnerFor(projectRoot)
-
-    protected fun assertBuildScriptModelClassPathContains(vararg files: File) {
-        assertThat(
-            kotlinBuildScriptModelCanonicalClassPath(),
-            hasItems(*files))
-    }
-
-    protected fun buildSrcOutputFolder(): File =
-        existing("buildSrc/build/classes/main")
-
-    protected fun kotlinBuildScriptModelCanonicalClassPath() =
-        kotlinBuildScriptModelCanonicalClassPathFor(projectDir.root)
-
-    protected fun kotlinBuildScriptModelCanonicalClassPathFor(projectDir: File) =
-        kotlinBuildScriptModelFor(projectDir).classPath.map(File::getCanonicalFile)
-
-    protected fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
-        kotlinBuildScriptModelFor(projectDir.root)
-
-    protected fun kotlinBuildScriptModelFor(projectDir: File): KotlinBuildScriptModel =
-        withDaemonRegistry(customDaemonRegistry()) {
-            fetchKotlinBuildScriptModelFor(
-                KotlinBuildScriptModelRequest(
-                    projectDir = projectDir,
-                    gradleInstallation = customInstallation()))!!
-        }
-
-    private fun customDaemonRegistry() =
-        File("build/custom/daemon-registry")
 }
 
 fun gradleRunnerFor(projectDir: File): GradleRunner =
@@ -118,7 +84,6 @@ fun gradleRunnerFor(projectDir: File): GradleRunner =
         .withGradleInstallation(customInstallation())
         .withProjectDir(projectDir)
 
-private
 fun customInstallation() =
     File("build/custom").listFiles()?.let {
         it.singleOrNull { it.name.startsWith("gradle") } ?:

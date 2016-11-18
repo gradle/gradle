@@ -104,8 +104,6 @@ interface KotlinBuildScriptDependenciesAssembler {
 internal
 object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependenciesAssembler {
 
-    private val modelProvider: KotlinBuildScriptModelProvider = DefaultKotlinBuildScriptModelProvider
-
     private val sourcePathProvider: SourcePathProvider = DefaultSourcePathProvider
 
     override fun assembleDependenciesFrom(environment: Environment,
@@ -147,7 +145,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         sourcePathProvider.sourcePathFor(request, response)
 
     private fun modelFor(request: KotlinBuildScriptModelRequest) =
-        modelProvider.modelFor(request)
+        fetchKotlinBuildScriptModelFor(request)
 }
 
 internal
