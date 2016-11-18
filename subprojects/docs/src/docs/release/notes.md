@@ -48,7 +48,7 @@ Example:
 
 From the Gradle DSL, output files and directories can be registered with names using the pre-existing <a href="javadoc/org/gradle/api/tasks/TaskOutputs.html#files(java.lang.Object...)">`TaskOutputs.files()`</a> and the new <a href="javadoc/org/gradle/api/tasks/TaskOutputs.html#dirs(java.lang.Object...)">`TaskOutputs.dirs()`</a> methods via a `Map`. As with other similar methods, the values of the `Map` are resolved according to <a href="dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)">`Project.file()`</a>.
 
-It is also possible to pass a `Map` returning `Callable`, such as a Groovy Closure, for lazy evaluation:
+It is also possible to pass a `Callable`, such as a Groovy Closure, returning a `Map` for lazy evaluation:
 
     task customTask {
         outputs.files({ 
