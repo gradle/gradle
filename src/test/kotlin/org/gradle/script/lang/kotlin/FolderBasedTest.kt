@@ -13,8 +13,20 @@ abstract class FolderBasedTest {
     fun withFolders(folders: FoldersDslExpression) =
         tempFolder.root.withFolders(folders)
 
-    fun folder(path: String): File =
-        File(tempFolder.root, path).canonicalFile
+    fun folder(path: String) =
+        existing(path).apply {
+            assert(isDirectory)
+        }
+
+    fun file(path: String) =
+        existing(path).apply {
+            assert(isFile)
+        }
+
+    private fun existing(path: String): File =
+        File(tempFolder.root, path).canonicalFile.apply {
+            assert(exists())
+        }
 }
 
 typealias FoldersDslExpression = FoldersDsl.() -> Unit
@@ -30,7 +42,7 @@ class FoldersDsl(val root: File) {
     operator fun String.unaryPlus(): File =
         asCanonicalFile().apply { mkdirs() }
 
-    fun withFile(fileName: String, content: String) =
+    fun withFile(fileName: String, content: String = "") =
         fileName.asCanonicalFile().apply { parentFile.mkdirs() }.writeText(content)
 
     private fun String.asCanonicalFile(): File =

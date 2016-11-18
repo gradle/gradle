@@ -115,14 +115,14 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         }
 
     private fun modelRequestFrom(environment: Environment, scriptFile: File?): KotlinBuildScriptModelRequest? {
-        val projectRoot = environment["projectRoot"] as? File
+        val importedProjectRoot = environment["projectRoot"] as? File
         val gradleHome = environment["gradleHome"] as? File
-        if (projectRoot != null && gradleHome != null) {
+        if (importedProjectRoot != null && gradleHome != null) {
             @Suppress("unchecked_cast")
             val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
             val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
             return KotlinBuildScriptModelRequest(
-                projectDir = projectRoot,
+                projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
                 scriptFile = scriptFile,
                 gradleInstallation = gradleHome,
                 javaHome = gradleJavaHome,
@@ -145,4 +145,25 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
 
     private fun modelFor(request: KotlinBuildScriptModelRequest) =
         modelProvider.modelFor(request)
+}
+
+internal
+fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
+
+    fun isProjectRoot(dir: File) = File(dir, "settings.gradle").isFile
+
+    tailrec fun test(dir: File): File =
+        when {
+            dir == importedProjectRoot -> importedProjectRoot
+            isProjectRoot(dir) -> dir
+            else -> {
+                val parentDir = dir.parentFile
+                when (parentDir) {
+                    null, dir -> scriptFile.parentFile // external project
+                    else -> test(parentDir)
+                }
+            }
+        }
+
+    return test(scriptFile.parentFile)
 }
