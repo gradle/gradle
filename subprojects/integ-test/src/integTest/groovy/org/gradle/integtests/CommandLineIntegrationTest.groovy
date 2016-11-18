@@ -28,6 +28,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Ignore
 
 public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
@@ -147,6 +148,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": """
