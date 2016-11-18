@@ -178,6 +178,20 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
+    @Unroll
+    def "fails when #name registers mapped file with null key"() {
+        when:
+        outputs."$name"({ [(null): "a"] }).withPropertyName("prop")
+        outputs.fileProperties
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Mapped output property 'prop' has null key"
+        where:
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
+    }
+
     public void canRegisterOutputFiles() {
         when:
         outputs.file('a')

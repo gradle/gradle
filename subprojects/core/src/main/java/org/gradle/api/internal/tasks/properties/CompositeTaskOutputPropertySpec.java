@@ -58,7 +58,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 protected TaskOutputFilePropertySpec computeNext() {
                     if (iterator.hasNext()) {
                         Map.Entry<?, ?> entry = iterator.next();
-                        String id = entry.getKey().toString();
+                        Object key = entry.getKey();
+                        if (key == null) {
+                            throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", getPropertyName()));
+                        }
+                        String id = key.toString();
                         File file = resolver.resolve(entry.getValue());
                         return new CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec.this, "." + id, file);
                     }
