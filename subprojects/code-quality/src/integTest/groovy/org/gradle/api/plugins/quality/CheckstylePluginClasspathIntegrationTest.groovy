@@ -15,11 +15,14 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import spock.lang.Issue
 
 @Issue("gradle/gradle#855")
-class CheckstylePluginClasspathIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ CheckstyleCoverage.ALL })
+class CheckstylePluginClasspathIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         writeBuildFiles()
         writeConfigFile()
@@ -47,7 +50,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "6.19"
+        toolVersion = '$version'
         configFile rootProject.file("checkstyle.xml")
     }
 }
@@ -90,7 +93,7 @@ interface Iface {
      * @throws FooException whenever
      * @throws IllegalArgumentException otherwise
      */
-    void foo() throws FooException;
+    void foo() throws FooException, IllegalArgumentException;
 }
         """
     }
