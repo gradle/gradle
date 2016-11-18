@@ -220,25 +220,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
-        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
-        apiConfiguration.setVisible(false);
-        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
-        apiConfiguration.setCanBeResolved(false);
-        apiConfiguration.setCanBeConsumed(false);
-        apiConfiguration.setTransitive(false);
-
-        Configuration apiCompileConfiguration = configurations.maybeCreate(sourceSet.getApiCompileConfigurationName());
-        apiCompileConfiguration.setVisible(false);
-        apiCompileConfiguration.setDescription("API compile classpath for " + sourceSet + ".");
-        apiCompileConfiguration.setCanBeResolved(true);
-        apiCompileConfiguration.setCanBeConsumed(true);
-        apiCompileConfiguration.setTransitive(false);
-        apiCompileConfiguration.extendsFrom(apiConfiguration);
-
         Configuration compileConfiguration = configurations.maybeCreate(sourceSet.getCompileConfigurationName());
         compileConfiguration.setVisible(false);
         compileConfiguration.setDescription("Dependencies for " + sourceSet + ".");
-        compileConfiguration.extendsFrom(apiConfiguration);
 
         Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
@@ -254,6 +238,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSet + ".");
+        compileClasspathConfiguration.setCanBeConsumed(false);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
