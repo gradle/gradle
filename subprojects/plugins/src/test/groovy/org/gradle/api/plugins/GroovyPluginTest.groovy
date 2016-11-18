@@ -37,13 +37,12 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
     def "adds groovy configuration to the project"() {
         given:
         groovyPlugin.apply(project)
-        def apiConfiguration = project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
 
         when:
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
 
         then:
-        configuration.extendsFrom == [apiConfiguration] as Set
+        configuration.extendsFrom == [] as Set
         !configuration.visible
         configuration.transitive
     }
