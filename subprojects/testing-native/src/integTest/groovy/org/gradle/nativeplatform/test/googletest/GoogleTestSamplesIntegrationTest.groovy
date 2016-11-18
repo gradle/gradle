@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import org.junit.Rule
 import static org.junit.Assume.*
 
@@ -35,6 +36,9 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
     }
 
     def "googleTest"() {
+        // Ignoring Visual Studio toolchain tests gradle/gradle#893
+        Assume.assumeFalse(toolChain.isVisualCpp())
+
         given:
         // On windows, GoogleTest sample only works out of the box with VS2013 and VS2015
         assumeTrue(!OperatingSystem.current().windows || isVisualCpp2013() || isVisualCpp2015())
