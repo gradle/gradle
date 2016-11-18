@@ -33,6 +33,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':plugins:integTest',
             ':pluginUse:integTest',
             ':integTest:compileIntegTestGroovy',
+            ':integTest:integTest',
             ':platformPlay:integTest',
             ':docs:userguideFragmentSrc',
             ':docs:dslStandaloneDocbook',
