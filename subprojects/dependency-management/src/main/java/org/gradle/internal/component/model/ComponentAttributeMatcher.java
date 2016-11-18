@@ -142,7 +142,7 @@ public class ComponentAttributeMatcher {
         List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
         for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
             MatchDetails details = entry.getValue();
-            if (details.isPartialMatch && !details.hasAllAttributes) {
+            if (!details.failure && !details.matchesByAttribute.isEmpty() && !details.hasAllAttributes) {
                 matchs.add(entry.getKey());
             }
         }
@@ -182,8 +182,8 @@ public class ComponentAttributeMatcher {
         private final Map<Attribute<Object>, Object> matchesByAttribute = Maps.newHashMap();
         private final boolean hasAllAttributes;
 
+        private boolean failure;
         private boolean isFullMatch;
-        private boolean isPartialMatch;
 
         private MatchDetails(boolean hasAllAttributes) {
             this.hasAllAttributes = hasAllAttributes;
@@ -195,8 +195,8 @@ public class ComponentAttributeMatcher {
             if (attributeCompatible) {
                 matchesByAttribute.put(attribute, provided);
             }
+            failure |= !attributeCompatible;
             isFullMatch &= attributeCompatible;
-            isPartialMatch |= attributeCompatible;
         }
     }
 }

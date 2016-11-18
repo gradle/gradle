@@ -1379,4 +1379,61 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         notExecuted ':b:barJar', ':c:barJar'
 
     }
+
+    def "incompatible matches are excluded from selection"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug, extra: 'EXTRA')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    create 'default'
+                    foo {
+                       attributes($freeDebug)
+                    }
+                    bar {
+                       attributes($freeRelease)
+                    }
+                }
+                task defaultJar(type: Jar) {
+                   baseName = 'b-default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    'default' defaultJar
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:defaultJar', ':b:barJar'
+
+    }
+
 }

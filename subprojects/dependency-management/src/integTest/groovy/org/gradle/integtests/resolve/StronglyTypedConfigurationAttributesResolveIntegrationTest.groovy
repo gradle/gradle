@@ -517,4 +517,5 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         notExecuted ':b:fooJar', ':c:fooJar'
     }
 
+
 }
