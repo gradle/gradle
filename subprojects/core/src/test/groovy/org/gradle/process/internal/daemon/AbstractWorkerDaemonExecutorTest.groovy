@@ -77,7 +77,13 @@ class AbstractWorkerDaemonExecutorTest extends Specification {
         }
 
         @Override
-        void execute() {
+        def WorkSpec getSpec() {
+            return null
+        }
+
+        @Override
+        def WorkerDaemonAction getAction() {
+            return null
         }
 
         public Set<File> getClasspath() {

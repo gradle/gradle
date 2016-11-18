@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.daemon.WorkerDaemonExecutionException;
 import org.gradle.process.daemon.WorkerDaemonExecutor;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.CollectionUtils;
@@ -73,14 +74,6 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
         return this;
     }
 
-    protected Set<File> getClasspath() {
-        return classpath;
-    }
-
-    protected Set<String> getSharedPackages() {
-        return sharedPackages;
-    }
-
     protected Class<? extends T> getImplementationClass() {
         return implementationClass;
     }
@@ -89,15 +82,26 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
         return params;
     }
 
-    protected WorkerDaemonFactory getWorkerDaemonFactory() {
-        return workerDaemonFactory;
+    abstract WorkSpec getSpec();
+
+    abstract WorkerDaemonAction getAction();
+
+    @Override
+    public void execute() {
+        final WorkSpec spec = getSpec();
+        final WorkerDaemonAction action = getAction();
+        try {
+            WorkerDaemon daemon = workerDaemonFactory.getDaemon(serverImplementationClass, getForkOptions().getWorkingDir(), getDaemonForkOptions());
+            WorkerDaemonResult result = daemon.execute(action, spec);
+            if (!result.isSuccess()) {
+                throw result.getException();
+            }
+        } catch (Throwable t) {
+            throw new WorkerDaemonExecutionException("A failure occurred while executing " + action.getDescription(), t);
+        }
     }
 
-    protected Class<? extends WorkerDaemonProtocol> getServerImplementationClass() {
-        return serverImplementationClass;
-    }
-
-    protected DaemonForkOptions getDaemonForkOptions() {
+    DaemonForkOptions getDaemonForkOptions() {
         Iterable<Class<?>> paramTypes = CollectionUtils.collect(getParams(), new Transformer<Class<?>, Object>() {
             @Override
             public Class<?> transform(Object o) {

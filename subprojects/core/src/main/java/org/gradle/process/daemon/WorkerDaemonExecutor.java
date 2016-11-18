@@ -64,6 +64,8 @@ public interface WorkerDaemonExecutor {
     /**
      * Synchronously executes the work in a daemon process.  Each call will execute in an idle daemon.  If no
      * idle daemons are available, a new daemon will be started.
+     *
+     * @throws WorkerDaemonExecutionException when a failure occurs while executing the work.
      */
     void execute();
 }

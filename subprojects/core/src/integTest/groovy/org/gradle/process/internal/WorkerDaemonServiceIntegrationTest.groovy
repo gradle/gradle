@@ -100,6 +100,9 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         fails("runInDaemon")
 
         then:
+        failureHasCause("A failure occurred while executing RunnableThatFails")
+
+        and:
         failureHasCause("Failure from runnable")
     }
 
@@ -122,7 +125,10 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains(unrecognizedOptionError)
 
         and:
-        failure.assertHasCause("Failed to run Gradle Worker Daemon")
+        failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
+
+        and:
+        failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
     def "re-uses an existing idle daemon" () {
