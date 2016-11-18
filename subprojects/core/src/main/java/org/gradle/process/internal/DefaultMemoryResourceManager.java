@@ -57,12 +57,12 @@ public class DefaultMemoryResourceManager implements MemoryResourceManager {
 
     @Override
     public void requestFreeMemory(long memoryAmountBytes) {
-        synchronized (lock) {
-            long claimedFreeMemory = memoryThresholdInBytes + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
-            long toReleaseMemory = claimedFreeMemory;
-            long freeMemory = memoryInfo.getFreePhysicalMemory();
-            LOGGER.debug("{} memory claimed, {} free", claimedFreeMemory, freeMemory);
-            if (freeMemory < claimedFreeMemory) {
+        long claimedFreeMemory = memoryThresholdInBytes + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
+        long toReleaseMemory = claimedFreeMemory;
+        long freeMemory = memoryInfo.getFreePhysicalMemory();
+        LOGGER.debug("{} memory claimed, {} free", claimedFreeMemory, freeMemory);
+        if (freeMemory < claimedFreeMemory) {
+            synchronized (lock) {
                 for (MemoryResourceHolder holder : holders) {
                     long released = holder.attemptToRelease(toReleaseMemory);
                     toReleaseMemory -= released;
@@ -72,7 +72,7 @@ public class DefaultMemoryResourceManager implements MemoryResourceManager {
                     }
                 }
             }
-            LOGGER.debug("{} memory claimed, {} released, {} free", claimedFreeMemory, claimedFreeMemory - toReleaseMemory, freeMemory);
         }
+        LOGGER.debug("{} memory claimed, {} released, {} free", claimedFreeMemory, claimedFreeMemory - toReleaseMemory, freeMemory);
     }
 }
