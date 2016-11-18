@@ -53,7 +53,7 @@ import org.gradle.process.internal.daemon.WorkerDaemonClientsManager;
 import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.process.internal.daemon.WorkerDaemonStarter;
-import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.daemon.health.memory
+package org.gradle.process.internal.health.memory
 
 import spock.lang.Specification
 import spock.lang.Unroll

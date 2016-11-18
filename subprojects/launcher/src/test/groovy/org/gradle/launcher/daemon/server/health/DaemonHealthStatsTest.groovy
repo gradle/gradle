@@ -20,7 +20,7 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
-import org.gradle.process.internal.daemon.health.memory.MemoryInfo
+import org.gradle.process.internal.health.memory.MemoryInfo
 import spock.lang.Specification
 
 class DaemonHealthStatsTest extends Specification {

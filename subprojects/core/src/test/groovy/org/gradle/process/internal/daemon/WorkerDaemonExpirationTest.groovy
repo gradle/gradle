@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
-import org.gradle.process.internal.daemon.health.memory.MemoryInfo
+import org.gradle.process.internal.health.memory.MemoryInfo
 import spock.lang.Specification
 
 class WorkerDaemonExpirationTest extends Specification {
@@ -25,7 +25,7 @@ class WorkerDaemonExpirationTest extends Specification {
     def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'])
     def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'])
     def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
-    def memoryInfo = Mock(MemoryInfo) { getTotalPhysicalMemory() >> gb(8) }
+    def memoryInfo = Mock(MemoryInfo) { getTotalPhysicalMemory() >> MemoryAmount.ofGigaBytes(8).bytes }
     def daemonStarter = Mock(WorkerDaemonStarter) {
         startDaemon(_, _, _) >> { Class<? extends WorkerDaemonProtocol> impl, File workDir, DaemonForkOptions forkOptions ->
             Mock(WorkerDaemonClient) {

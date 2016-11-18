@@ -23,7 +23,7 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.MemoryInfo;
 
 import java.util.concurrent.ScheduledExecutorService;
 

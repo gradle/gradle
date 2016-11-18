@@ -19,8 +19,8 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.process.internal.daemon.health.memory.MaximumHeapHelper;
-import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.MaximumHeapHelper;
+import org.gradle.process.internal.health.memory.MemoryInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
