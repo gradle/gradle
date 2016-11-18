@@ -260,6 +260,15 @@ public interface SourceSet {
     String getApiConfigurationName();
 
     /**
+     * Returns the name of the implementation configuration for this source set. The implementation
+     * configuration should contain dependencies which are specific to the implementation of the component
+     * (internal APIs).
+     * @return The configuration name
+     */
+    @Incubating
+    String getImplementationConfigurationName();
+
+    /**
      * Returns the name of the configuration that should be used when compiling against the API
      * of this component. This configuration is meant to be consumed by other components when
      * they need to compile against it.
