@@ -30,9 +30,11 @@ import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
+    private final String format;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, String format) {
         this.configuration = configuration;
+        this.format = format;
     }
 
     public boolean hasError() {
@@ -54,7 +56,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.collectFiles(dependencySpec, new LinkedHashSet<File>());
+        return configuration.select(dependencySpec, format).collectFiles(new LinkedHashSet<File>());
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {

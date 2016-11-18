@@ -32,7 +32,9 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -69,7 +71,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getVisitedArtifacts(), results.getVisitedFileDependencies());
+        results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getVisitedArtifacts());
     }
 
     @Override
@@ -83,7 +85,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
-        results.artifactsResolved(wrappedConfiguration, results.getArtifactResults());
+        results.artifactsResolved(wrappedConfiguration, results.getVisitedArtifacts());
     }
 
     private static ResolveException wrapException(Throwable e, ResolveContext resolveContext) {
@@ -297,7 +299,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class BrokenResolvedConfiguration implements ResolvedConfiguration, ArtifactResults {
+    private static class BrokenResolvedConfiguration implements ResolvedConfiguration, VisitedArtifactSet, SelectedArtifactSet {
         private final Throwable e;
         private final ConfigurationInternal configuration;
 
@@ -347,7 +349,22 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, String format) {
+            return this;
+        }
+
+        @Override
+        public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
+            throw wrapException(e, configuration);
+        }
+
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor) {
+            throw wrapException(e, configuration);
+        }
+
+        @Override
+        public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
             throw wrapException(e, configuration);
         }
 

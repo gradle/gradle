@@ -32,8 +32,11 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
@@ -81,7 +84,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         FileDependencyCollectingGraphVisitor emptyFiles = new FileDependencyCollectingGraphVisitor();
         DefaultResolvedArtifactsBuilder emptyArtifacts = new DefaultResolvedArtifactsBuilder(false);
         emptyArtifacts.finishArtifacts();
-        results.graphResolved(emptyResult, emptyProjectResult, emptyArtifacts, emptyFiles);
+        results.graphResolved(emptyResult, emptyProjectResult, new BuildDependenciesOnlyVisitedArtifactSet(emptyArtifacts, emptyFiles));
     }
 
     @Override
@@ -93,9 +96,23 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
     }
 
-    private static class EmptyResults implements ArtifactResults {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
         @Override
-        public <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, String format) {
+            return this;
+        }
+
+        @Override
+        public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
+            return dest;
+        }
+
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor) {
+        }
+
+        @Override
+        public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
             return dest;
         }
 

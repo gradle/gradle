@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public interface ResolverResults {
@@ -32,14 +30,9 @@ public interface ResolverResults {
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns details of the resolved artifacts.
+     * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution and replaced with a new instance.
      */
-    ArtifactResults getArtifactResults();
-
-    /**
-     * Returns details of the artifacts visited during dependency graph resolution.
-     */
-    VisitedArtifactsResults getVisitedArtifacts();
+    VisitedArtifactSet getVisitedArtifacts();
 
     /**
      * Returns the dependency graph resolve result.
@@ -52,19 +45,14 @@ public interface ResolverResults {
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
     /**
-     * Returns details of the file dependencies in the resolved dependency graph.
+     * Marks the dependency graph resolution as successful, with the given result.
      */
-    VisitedFileDependencyResults getVisitedFileDependencies();
+    void graphResolved(VisitedArtifactSet visitedArtifacts);
 
     /**
      * Marks the dependency graph resolution as successful, with the given result.
      */
-    void graphResolved(VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults);
-
-    /**
-     * Marks the dependency graph resolution as successful, with the given result.
-     */
-    void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults);
+    void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactSet visitedArtifacts);
 
     void failed(ResolveException failure);
 
@@ -81,5 +69,5 @@ public interface ResolverResults {
     /**
      * Marks artifact resolution as successful, clearing state provided by {@link #retainState(Object)}.
      */
-    void artifactsResolved(ResolvedConfiguration resolvedConfiguration, ArtifactResults artifactResults);
+    void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts);
 }

@@ -33,11 +33,13 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.specs.Spec;
@@ -60,24 +62,53 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultLenientConfiguration implements LenientConfiguration, ArtifactResults {
+public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
     private final CacheLockingManager cacheLockingManager;
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final VisitedArtifactsResults visitedArtifacts;
     private final ResolvedArtifactResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
     private final ArtifactTransformer artifactTransformer;
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
-                                       ResolvedArtifactResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+                                       ResolvedArtifactResults artifactResults, VisitedArtifactsResults visitedArtifacts, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
+        this.visitedArtifacts = visitedArtifacts;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransformer = artifactTransformer;
+    }
+
+    @Override
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, String format) {
+        return new SelectedArtifactSet() {
+            @Override
+            public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
+                visitedArtifacts.collectBuildDependencies(dest);
+                fileDependencyResults.getFiles().collectBuildDependencies(dest);
+                return dest;
+            }
+
+            @Override
+            public void visitArtifacts(ArtifactVisitor visitor) {
+                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, visitor);
+            }
+
+            @Override
+            public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
+                return DefaultLenientConfiguration.this.collectFiles(dependencySpec, dest);
+            }
+
+            @Override
+            public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
+                return DefaultLenientConfiguration.this.collectArtifacts(dependencySpec, dest);
+            }
+        };
     }
 
     public boolean hasError() {
@@ -161,8 +192,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     /**
      * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
      */
-    @Override
-    public <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+    private <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
         rethrowFailure();
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
         try {
@@ -182,12 +212,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Artifa
     /**
      * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
      */
-    @Override
-    public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
+    private <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
         rethrowFailure();
         ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
         try {
-            visitArtifacts(Specs.<Dependency>satisfyAll(), visitor);
+            visitArtifacts(dependencySpec, visitor);
         } catch (Throwable t) {
             visitor.failures.add(t);
         }

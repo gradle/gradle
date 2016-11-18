@@ -339,7 +339,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return doGetFiles(Specs.<Dependency>satisfyAll());
+        return doGetFiles(Specs.<Dependency>satisfyAll(), format);
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -467,28 +467,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         assertResolvingAllowed();
-        if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
-            // Force graph resolution as this is required to calculate build dependencies
-            resolveToStateOrLater(GRAPH_RESOLVED);
-        }
-        ResolverResults results;
-        if (getState() == State.UNRESOLVED) {
-            // Traverse graph
-            results = new DefaultResolverResults();
-            resolver.resolveBuildDependencies(this, results);
-        } else {
-            // Otherwise, already have a result, so reuse it
-            results = cachedResolverResults;
-        }
-        List<Object> buildDependencies = new ArrayList<Object>();
-        results.getVisitedArtifacts().collectBuildDependencies(buildDependencies);
-        results.getVisitedFileDependencies().getFiles().collectBuildDependencies(buildDependencies);
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.setValues(buildDependencies);
-        return taskDependency;
+        return doGetTaskDependency(Specs.<Dependency>satisfyAll(), format);
     }
 
-    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec) {
+    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, String format) {
+        synchronized (resolutionLock) {
+            if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+                // Force graph resolution as this is required to calculate build dependencies
+                resolveToStateOrLater(GRAPH_RESOLVED);
+            }
+            ResolverResults results;
+            if (getState() == State.UNRESOLVED) {
+                // Traverse graph
+                results = new DefaultResolverResults();
+                resolver.resolveBuildDependencies(this, results);
+            } else {
+                // Otherwise, already have a result, so reuse it
+                results = cachedResolverResults;
+            }
+            List<Object> buildDependencies = new ArrayList<Object>();
+            results.getVisitedArtifacts().select(dependencySpec, format).collectBuildDependencies(buildDependencies);
+            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+            taskDependency.setValues(buildDependencies);
+            return taskDependency;
+        }
+    }
+
+    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec, String format) {
         synchronized (resolutionLock) {
             ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
             resolvedConfiguration.rethrowFailure();
@@ -736,7 +741,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public TaskDependency getBuildDependencies() {
-            return DefaultConfiguration.this.getBuildDependencies();
+            return doGetTaskDependency(dependencySpec, format);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -748,7 +753,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            return doGetFiles(dependencySpec);
+            return doGetFiles(dependencySpec, format);
         }
     }
 
@@ -940,7 +945,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            return cachedResolverResults.getArtifactResults().collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
+            return cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), format).collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
         }
     }
 
