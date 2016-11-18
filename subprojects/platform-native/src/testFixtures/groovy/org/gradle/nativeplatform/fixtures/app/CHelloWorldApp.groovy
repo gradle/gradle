@@ -104,6 +104,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     SourceFile getAlternateMainSource() {
         sourceFile("c", "main.c", """
+            #include <stdio.h>
             #include "hello.h"
 
             int main () {
