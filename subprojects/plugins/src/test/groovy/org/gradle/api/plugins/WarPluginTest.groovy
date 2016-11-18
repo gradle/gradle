@@ -49,20 +49,10 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         providedCompileConfiguration.transitive
 
         when:
-        def apiConfiguration = project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
-
-        then:
-        apiConfiguration.extendsFrom == [] as Set
-        !apiConfiguration.visible
-        !apiConfiguration.transitive
-        !apiConfiguration.canBeResolved
-        !apiConfiguration.canBeConsumed
-
-        when:
         def compileConfiguration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
 
         then:
-        compileConfiguration.extendsFrom  == [apiConfiguration, providedCompileConfiguration] as Set
+        compileConfiguration.extendsFrom  == [providedCompileConfiguration] as Set
         !compileConfiguration.visible
         compileConfiguration.transitive
 
