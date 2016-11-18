@@ -10,3 +10,7 @@ It does not include any new features. We recommend anyone upgrading from an olde
 ## Additional upgrade instructions
 
 If you are upgrading from Gradle 3.2 and using the [Gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html), re-run `./gradlew wrapper` and commit the result to avoid a misconfigured wrapper script.
+
+## Known issues
+
+Known issues are problems that were discovered post release that are directly related to changes made in this release.
