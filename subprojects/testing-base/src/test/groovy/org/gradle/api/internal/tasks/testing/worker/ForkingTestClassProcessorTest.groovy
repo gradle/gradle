@@ -25,7 +25,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration
+import org.gradle.process.internal.MemoryResourceManager
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessFactory
@@ -39,7 +39,7 @@ class ForkingTestClassProcessorTest extends Specification {
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry)
     BuildOperationWorkerRegistry.Operation owner = Mock(BuildOperationWorkerRegistry.Operation)
     @Subject
-        processor = Spy(ForkingTestClassProcessor, constructorArgs: [Stub(WorkerDaemonExpiration), workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry, owner])
+        processor = Spy(ForkingTestClassProcessor, constructorArgs: [Stub(MemoryResourceManager), workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry, owner])
 
     def "acquires worker lease and starts worker process on first test"() {
         def test1 = Mock(TestClassRunInfo)

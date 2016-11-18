@@ -17,11 +17,13 @@
 package org.gradle.process.internal.daemon
 
 import org.gradle.process.internal.health.memory.MemoryInfo
+import org.gradle.process.internal.health.memory.MemoryAmount
 import spock.lang.Specification
 
 class WorkerDaemonExpirationTest extends Specification {
 
     def workingDir = new File("some-dir")
+    def defaultOptions = new DaemonForkOptions(null, null, ['default-options'])
     def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'])
     def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'])
     def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
@@ -37,55 +39,33 @@ class WorkerDaemonExpirationTest extends Specification {
         }
     }
     def clientsManager = new WorkerDaemonClientsManager(daemonStarter)
-    def expiration = new WorkerDaemonExpiration(clientsManager, memoryInfo, 0.25)
+    def expiration = new WorkerDaemonExpiration(clientsManager, memoryInfo)
 
-    def "does not expire worker daemons when enough system memory available"() {
+    def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {
         given:
-        def client1 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, twoGbOptions)
-        def client2 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, twoGbOptions)
+        def client1 = reserveNewClient(twoGbOptions)
+        def client2 = reserveNewClient(twoGbOptions)
 
         and:
         clientsManager.release(client1)
         clientsManager.release(client2)
 
         when:
-        expiration.eventuallyExpireDaemons('1g')
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(1).bytes)
 
         then:
-        1 * memoryInfo.getFreePhysicalMemory() >> gb(3)
-        0 * client1.stop()
-        0 * client2.stop()
-
-        and:
-        clientsManager.reserveIdleClient(twoGbOptions) == client1
-    }
-
-    def "expires least recently used idle worker daemon to free system memory when requesting a new one"() {
-        given:
-        def client1 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, twoGbOptions)
-        def client2 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, twoGbOptions)
-
-        and:
-        clientsManager.release(client1)
-        clientsManager.release(client2)
-
-        when:
-        expiration.eventuallyExpireDaemons('1g')
-
-        then:
-        1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
         1 * client1.stop()
         0 * client2.stop()
 
         and:
-        clientsManager.reserveIdleClient(twoGbOptions) == client2
+        reserveIdleClient(twoGbOptions) == client2
     }
 
-    def "expires enough idle worker daemons to fit requested one in system memory"() {
+    def "expires enough idle worker daemons to release requested memory"() {
         given:
-        def client1 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, threeGbOptions)
-        def client2 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, twoGbOptions)
-        def client3 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, oneGbOptions)
+        def client1 = reserveNewClient(threeGbOptions)
+        def client2 = reserveNewClient(twoGbOptions)
+        def client3 = reserveNewClient(oneGbOptions)
 
         and:
         clientsManager.release(client1)
@@ -93,44 +73,42 @@ class WorkerDaemonExpirationTest extends Specification {
         clientsManager.release(client3)
 
         when:
-        expiration.eventuallyExpireDaemons('4g')
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(4).bytes)
 
         then:
-        1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
         1 * client1.stop()
         1 * client2.stop()
         0 * client3.stop()
 
         and:
-        clientsManager.reserveIdleClient(oneGbOptions) == client3
+        reserveIdleClient(oneGbOptions) == client3
     }
 
-    def "expires all idle daemons to fit requested one in system memory"() {
+    def "expires all idle daemons when requested memory is equal than what all daemons consume"() {
         given:
-        def client1 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, oneGbOptions)
-        def client2 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, threeGbOptions)
+        def client1 = reserveNewClient(oneGbOptions)
+        def client2 = reserveNewClient(threeGbOptions)
 
         and:
         clientsManager.release(client1)
         clientsManager.release(client2)
 
         when:
-        expiration.eventuallyExpireDaemons('4g')
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(4).bytes)
 
         then:
-        1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
         1 * client1.stop()
         1 * client2.stop()
 
         and:
-        clientsManager.reserveIdleClient(twoGbOptions) == null
+        reserveIdleClient(twoGbOptions) == null
     }
 
-    def "expires all idle worker daemons when requested one require more than total system memory"() {
+    def "expires all idle worker daemons when requested memory is larger than what all daemons consume"() {
         given:
-        def client1 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, oneGbOptions)
-        def client2 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, twoGbOptions)
-        def client3 = clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, threeGbOptions)
+        def client1 = reserveNewClient(oneGbOptions)
+        def client2 = reserveNewClient(twoGbOptions)
+        def client3 = reserveNewClient(threeGbOptions)
 
         and:
         clientsManager.release(client1)
@@ -138,16 +116,35 @@ class WorkerDaemonExpirationTest extends Specification {
         clientsManager.release(client3)
 
         when:
-        expiration.eventuallyExpireDaemons('12g')
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(12).bytes)
 
         then:
-        1 * memoryInfo.getFreePhysicalMemory() >> gb(1)
         1 * client1.stop()
         1 * client2.stop()
         1 * client3.stop()
 
         and:
-        clientsManager.reserveIdleClient(twoGbOptions) == null
+        reserveIdleClient(twoGbOptions) == null
+    }
+
+    def "expires idle worker daemons with default heap size settings"() {
+        given:
+        def client1 = reserveNewClient(defaultOptions)
+        def client2 = reserveNewClient(defaultOptions)
+
+        and:
+        clientsManager.release(client1)
+        clientsManager.release(client2)
+
+        when:
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(1).bytes)
+
+        then:
+        1 * client1.stop()
+        0 * client2.stop()
+
+        and:
+        reserveIdleClient(defaultOptions) == client2
     }
 
     private WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
@@ -156,13 +153,5 @@ class WorkerDaemonExpirationTest extends Specification {
 
     private WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {
         return clientsManager.reserveIdleClient(forkOptions)
-    }
-
-    private static long gb(long gb) {
-        gb * 1024 * 1024 * 1024
-    }
-
-    private static long mb(long mb) {
-        mb * 1024 * 1024
     }
 }

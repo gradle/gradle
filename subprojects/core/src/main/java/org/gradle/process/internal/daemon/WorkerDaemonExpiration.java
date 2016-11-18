@@ -19,56 +19,29 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.process.internal.MemoryResourceHolder;
 import org.gradle.process.internal.health.memory.MaximumHeapHelper;
 import org.gradle.process.internal.health.memory.MemoryInfo;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class WorkerDaemonExpiration {
+public class WorkerDaemonExpiration implements MemoryResourceHolder {
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
 
-    // Reasonable minimal threshold 384M
-    private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024;
-
     private final WorkerDaemonClientsManager clientsManager;
-    private final MemoryInfo memoryInfo;
     private final MaximumHeapHelper maximumHeapHelper;
-    private final long memoryThresholdInBytes;
 
     public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, MemoryInfo memoryInfo) {
-        this(clientsManager, memoryInfo, 0.05);
-    }
-
-    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, MemoryInfo memoryInfo, double minFreeMemoryPercentage) {
-        Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
-        Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
         this.clientsManager = Preconditions.checkNotNull(clientsManager);
-        this.memoryInfo = Preconditions.checkNotNull(memoryInfo);
-        this.maximumHeapHelper = new MaximumHeapHelper(memoryInfo);
-        this.memoryThresholdInBytes = Math.max(MIN_THRESHOLD_BYTES, (long) (memoryInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage));
+        this.maximumHeapHelper = new MaximumHeapHelper(Preconditions.checkNotNull(memoryInfo));
     }
 
-    /**
-     * Eventually expire daemons.
-     *
-     * Call this before spawning new processes in order to keep resource usage under a sensible threshold.
-     */
-    public void eventuallyExpireDaemons() {
-        eventuallyExpireDaemons(null);
-    }
-
-    /**
-     * Eventually expire daemons.
-     *
-     * Call this before spawning new processes in order to keep resource usage under a sensible threshold.
-     *
-     * @param requestedFreeMemory String notation of requested free memory, e.g. {@literal "512M"} or {@literal "4g"}
-     */
-    public void eventuallyExpireDaemons(String requestedFreeMemory) {
-        long requestedFreeMemoryBytes = maximumHeapHelper.getMaximumHeapSize(requestedFreeMemory);
-        clientsManager.selectIdleClientsToStop(new SimpleMemoryExpirationSelector(requestedFreeMemoryBytes));
+    @Override
+    public long attemptToRelease(long memoryAmountBytes) throws IllegalArgumentException {
+        SimpleMemoryExpirationSelector selector = new SimpleMemoryExpirationSelector(memoryAmountBytes);
+        clientsManager.selectIdleClientsToStop(selector);
+        return selector.getReleasedBytes();
     }
 
     /**
@@ -79,28 +52,34 @@ public class WorkerDaemonExpiration {
      */
     private class SimpleMemoryExpirationSelector implements Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> {
 
-        private final long requestedFreeMemoryBytes;
+        private final long memoryBytesToRelease;
+        private long releasedBytes;
 
-        public SimpleMemoryExpirationSelector(long requestedFreeMemoryBytes) {
-            this.requestedFreeMemoryBytes = requestedFreeMemoryBytes;
+        public SimpleMemoryExpirationSelector(long memoryBytesToRelease) {
+            this.memoryBytesToRelease = memoryBytesToRelease;
         }
 
         @Override
         public List<WorkerDaemonClient> transform(List<WorkerDaemonClient> idleClients) {
-            long anticipatedFreeMemory = memoryInfo.getFreePhysicalMemory() - requestedFreeMemoryBytes;
-            if (anticipatedFreeMemory < memoryThresholdInBytes) {
-                List<WorkerDaemonClient> toExpire = new ArrayList<WorkerDaemonClient>();
-                for (WorkerDaemonClient idleClient : idleClients) {
-                    LOGGER.info("Expire {} to free some system memory", idleClient);
-                    toExpire.add(idleClient);
-                    anticipatedFreeMemory += maximumHeapHelper.getMaximumHeapSize(idleClient.getForkOptions().getMaxHeapSize());
-                    if (anticipatedFreeMemory >= memoryThresholdInBytes) {
-                        break;
-                    }
+            List<WorkerDaemonClient> toExpire = new ArrayList<WorkerDaemonClient>();
+            for (WorkerDaemonClient idleClient : idleClients) {
+                LOGGER.info("Expire {} to free some system memory", idleClient);
+                toExpire.add(idleClient);
+                long freed = getMemoryUsage(idleClient);
+                releasedBytes += freed;
+                if (releasedBytes >= memoryBytesToRelease) {
+                    break;
                 }
-                return toExpire;
             }
-            return Collections.emptyList();
+            return toExpire;
+        }
+
+        private long getMemoryUsage(WorkerDaemonClient idleClient) {
+            return maximumHeapHelper.getMaximumHeapSize(idleClient.getForkOptions().getMaxHeapSize());
+        }
+
+        public long getReleasedBytes() {
+            return releasedBytes;
         }
     }
 }

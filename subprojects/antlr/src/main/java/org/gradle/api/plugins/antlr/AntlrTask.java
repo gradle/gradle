@@ -35,7 +35,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
+import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.GFileUtils;
 
@@ -185,7 +185,7 @@ public class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected WorkerDaemonExpiration getWorkerDaemonExpiration() {
+    protected MemoryResourceManager getMemoryResourceManager() {
         throw new UnsupportedOperationException();
     }
 
@@ -222,7 +222,7 @@ public class AntlrTask extends SourceTask {
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
         AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceDirectorySet);
-        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerDaemonExpiration(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
+        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getMemoryResourceManager(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluate(result);
     }
 

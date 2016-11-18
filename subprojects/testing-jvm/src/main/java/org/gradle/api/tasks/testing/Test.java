@@ -94,7 +94,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
+import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
 
@@ -224,7 +224,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     @Inject
-    protected WorkerDaemonExpiration getWorkerDaemonExpiration() {
+    protected MemoryResourceManager getMemoryResourceManager() {
         throw new UnsupportedOperationException();
     }
 
@@ -615,7 +615,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getWorkerDaemonExpiration(), getServices().get(BuildOperationWorkerRegistry.class));
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getMemoryResourceManager(), getServices().get(BuildOperationWorkerRegistry.class));
         }
 
         JavaVersion javaVersion = getJavaVersion();

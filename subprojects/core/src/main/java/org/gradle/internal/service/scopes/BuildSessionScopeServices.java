@@ -47,7 +47,9 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.daemon.WorkerDaemonService;
+import org.gradle.process.internal.DefaultMemoryResourceManager;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.daemon.DefaultWorkerDaemonService;
 import org.gradle.process.internal.daemon.WorkerDaemonClientsManager;
 import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
@@ -125,13 +127,18 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
+    MemoryResourceManager createMemoryResourceManager() {
+        return new DefaultMemoryResourceManager(new MemoryInfo(), 0.05);
+    }
+
     WorkerDaemonClientsManager createWrokerDaemonClientsManager(BuildOperationWorkerRegistry buildOperationWorkerRegistry, WorkerProcessFactory workerFactory, StartParameter startParameter) {
         return new WorkerDaemonClientsManager(new WorkerDaemonStarter(buildOperationWorkerRegistry, workerFactory, startParameter));
     }
 
-    WorkerDaemonExpiration createCompilerDaemonExpiration(WorkerDaemonClientsManager workerDaemonClientsManager)
-    {
-        return new WorkerDaemonExpiration(workerDaemonClientsManager, new MemoryInfo());
+    WorkerDaemonExpiration createCompilerDaemonExpiration(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryResourceManager memoryResourceManager) {
+        WorkerDaemonExpiration workerDaemonExpiration = new WorkerDaemonExpiration(workerDaemonClientsManager, new MemoryInfo());
+        memoryResourceManager.register(workerDaemonExpiration);
+        return workerDaemonExpiration;
     }
 
     WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager, WorkerDaemonExpiration daemonExpiration) {

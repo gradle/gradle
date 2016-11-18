@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration
+import org.gradle.process.internal.MemoryResourceManager
 import org.gradle.process.internal.daemon.WorkerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
@@ -41,7 +41,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
-    WorkerDaemonExpiration workerDaemonExpiration = Stub()
+    MemoryResourceManager memoryResourceManager= Stub()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -54,7 +54,7 @@ class DefaultPlayToolProviderTest extends Specification {
         _ * playPlatform.getPlayVersion() >> playVersion
 
         when:
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, workerDaemonExpiration, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, memoryResourceManager, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
         def runner = playToolProvider.get(PlayApplicationRunner.class)
 
         then:
@@ -72,7 +72,7 @@ class DefaultPlayToolProviderTest extends Specification {
     def "cannot create tool provider for unsupported play versions"() {
         when:
         _ * playPlatform.getPlayVersion() >> playVersion
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, workerDaemonExpiration, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, memoryResourceManager, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
@@ -89,7 +89,7 @@ class DefaultPlayToolProviderTest extends Specification {
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
         _ * playPlatform.getPlayVersion() >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, workerDaemonExpiration, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, memoryResourceManager, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
 
         when:
         playToolProvider.newCompiler(UnknownCompileSpec.class)

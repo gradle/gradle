@@ -25,7 +25,8 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
+import org.gradle.process.internal.MemoryResourceManager;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -43,14 +44,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
     private final BuildOperationWorkerRegistry.Operation owner;
-    private final WorkerDaemonExpiration workerDaemonExpiration;
+    private final MemoryResourceManager memoryResourceManager;
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private BuildOperationWorkerRegistry.Completion workerCompletion;
 
-    public ForkingTestClassProcessor(WorkerDaemonExpiration workerDaemonExpiration, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry.Operation owner) {
-        this.workerDaemonExpiration = workerDaemonExpiration;
+    public ForkingTestClassProcessor(MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry.Operation owner) {
+        this.memoryResourceManager = memoryResourceManager;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -83,7 +84,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         options.copyTo(builder.getJavaCommand());
         buildConfigAction.execute(builder);
 
-        workerDaemonExpiration.eventuallyExpireDaemons(options.getMaxHeapSize());
+        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(options.getMaxHeapSize()));
         workerProcess = builder.build();
         workerProcess.start();
 

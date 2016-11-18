@@ -18,7 +18,8 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
+import org.gradle.process.internal.MemoryResourceManager;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
@@ -26,8 +27,8 @@ import java.io.File;
 
 public class AntlrWorkerManager {
 
-    public AntlrResult runWorker(File workingDir, WorkerDaemonExpiration workerDaemonExpiration, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-        workerDaemonExpiration.eventuallyExpireDaemons(spec.getMaxHeapSize());
+    public AntlrResult runWorker(File workingDir, MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
+        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getMaxHeapSize()));
         AntlrWorker antlrWorker = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
         return antlrWorker.runAntlr(spec);
     }
@@ -39,7 +40,7 @@ public class AntlrWorkerManager {
         if (antlrClasspath != null) {
             builder.applicationClasspath(antlrClasspath);
         }
-        builder.sharedPackages(new String[] {"antlr", "org.antlr"});
+        builder.sharedPackages(new String[]{"antlr", "org.antlr"});
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());

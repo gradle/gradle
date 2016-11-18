@@ -18,7 +18,8 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
+import org.gradle.process.internal.MemoryResourceManager;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -26,18 +27,18 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import java.io.File;
 
 public class PlayApplicationRunner {
-    private final WorkerDaemonExpiration workerDaemonExpiration;
+    private final MemoryResourceManager memoryResourceManager;
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(WorkerDaemonExpiration workerDaemonExpiration, WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
-        this.workerDaemonExpiration = workerDaemonExpiration;
+    public PlayApplicationRunner(MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
+        this.memoryResourceManager = memoryResourceManager;
         this.workerFactory = workerFactory;
         this.adapter = adapter;
     }
 
     public PlayApplicationRunnerToken start(PlayRunSpec spec) {
-        workerDaemonExpiration.eventuallyExpireDaemons(spec.getForkOptions().getMemoryMaximumSize());
+        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getForkOptions().getMemoryMaximumSize()));
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 

@@ -26,7 +26,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.actor.Actor
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration
+import org.gradle.process.internal.MemoryResourceManager
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
@@ -46,7 +46,7 @@ class DefaultTestExecuterTest extends Specification {
     Project project = Mock()
     BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock()
 
-    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory, moduleRegistry, Stub(WorkerDaemonExpiration), buildOperationWorkerRegistry)
+    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory, moduleRegistry, Stub(MemoryResourceManager), buildOperationWorkerRegistry)
 
     def setup() {
         _ * testTask.testFramework >> testFramework

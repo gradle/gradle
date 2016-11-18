@@ -22,20 +22,20 @@ import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompiler;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
+import org.gradle.process.internal.MemoryResourceManager;
 
 import java.io.File;
 
 public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
 
-    private final WorkerDaemonExpiration workerDaemonExpiration;
+    private final MemoryResourceManager memoryResourceManager;
     private final RhinoWorkerHandleFactory rhinoWorkerHandleFactory;
     private final Iterable<File> rhinoClasspath;
     private final LogLevel logLevel;
     private final File workingDir;
 
-    public RhinoCoffeeScriptCompiler(WorkerDaemonExpiration workerDaemonExpiration, RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, LogLevel logLevel, File workingDir) {
-        this.workerDaemonExpiration = workerDaemonExpiration;
+    public RhinoCoffeeScriptCompiler(MemoryResourceManager memoryResourceManager, RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, LogLevel logLevel, File workingDir) {
+        this.memoryResourceManager = memoryResourceManager;
         this.rhinoWorkerHandleFactory = rhinoWorkerHandleFactory;
         this.rhinoClasspath = rhinoClasspath;
         this.logLevel = logLevel;
@@ -43,7 +43,7 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
     }
 
     public WorkResult compile(CoffeeScriptCompileSpec spec) {
-        workerDaemonExpiration.eventuallyExpireDaemons();
+        memoryResourceManager.requestFreeMemory(0);
         CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
         compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
 
