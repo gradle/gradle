@@ -32,9 +32,11 @@ In previous versions of Gradle, a custom task class overriding a property from a
 
 In the above example, `FixedTask.inputFile` will be a ignored in up-to-date checks.
 
-#### `@OutputFiles` and `@OutputDirectories` now take `Map` values
+#### `@OutputFiles` and `@OutputDirectories` are allowed on `Map` properties
 
-It is now possible to declare task outputs by assigning a name  to individual output files or directories by declaring the property as a `Map`. This allows Gradle to identify each output when used with the upcoming [task output cache feature](userguide/task_output_cache.html). Tasks declaring `@OutputFiles` or `@OutputDirectories` as `FileCollections` (or any other type not implementing `Map`) are excluded from task output caching.
+It is now possible to declare multiple task outputs with names from a single task property. Most tasks use singular output annotations (`@OutputFile` or `@OutputDirectory`) and are unaffected by this change.
+ 
+This change allows a plugin author to identify each output uniquely, so Gradle can accurately capture and restore a task's outputs when used with the upcoming [task output cache feature](userguide/task_output_cache.html). Tasks declaring `@OutputFiles` or `@OutputDirectories` as `FileCollection`s (or any other type not implementing `Map`) will continue to work, but they will exclude the task from output caching.
 
 Example:
 
@@ -44,12 +46,15 @@ Example:
         // ...
     }
 
-Mapped output files and directories can also be registered via the preexisting `TaskOutputs.files()`, and the new `TaskOutputs.dirs()` methods. As with other similar methods, the actual files are resolved according to `Project.file()`.
+From the Gradle DSL, output files and directories can be registered with names using the pre-existing <a href="javadoc/org/gradle/api/tasks/TaskOutputs.html#files(java.lang.Object...)">`TaskOutputs.files()`</a> and the new <a href="javadoc/org/gradle/api/tasks/TaskOutputs.html#dirs(java.lang.Object...)">`TaskOutputs.dirs()`</a> methods via a `Map`. As with other similar methods, the values of the `Map` are resolved according to <a href="dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)">`Project.file()`</a>.
 
-It is also possible to pass a `Map` embedded in a `Callable`, such as a closure, for lazy evaluation:
+It is also possible to pass a `Map` returning `Callable`, such as a Groovy Closure, for lazy evaluation:
 
     task customTask {
-        outputs.files { first: "one.txt", second: "two.txt" } withPropertyName "outputFiles"
+        outputs.files({ 
+            first: "one.txt", 
+            second: "two.txt" 
+        }).withPropertyName("outputFiles")
     }
 
 ## Promoted features
