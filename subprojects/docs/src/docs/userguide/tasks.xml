@@ -631,7 +631,7 @@
                 </para>
 
                 <para>Annotations on a property declared in a type override similar annotations declared
-                    by the superclass and in any implemented interface. Superclass annotations take
+                    by the superclass and in any implemented interfaces. Superclass annotations take
                     precedence over annotations declared in implemented interfaces.
                 </para>
 
