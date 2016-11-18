@@ -39,35 +39,35 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected void headSection(Html html) {
         String rootDir = getDepth() == 0 ? "" : "../";
         html.meta()
-                .httpEquiv("Content-Type")
-                .content("text/html; charset=utf-8");
+            .httpEquiv("Content-Type")
+            .content("text/html; charset=utf-8");
         html.link()
-                .rel("stylesheet")
-                .type("text/css")
-                .href(rootDir + "css/style.css")
-                .end();
+            .rel("stylesheet")
+            .type("text/css")
+            .href(rootDir + "css/style.css")
+            .end();
         html.script()
-                .src(rootDir + "js/jquery.min-1.11.0.js")
-                .end();
+            .src(rootDir + "js/jquery.min-1.11.0.js")
+            .end();
         html.script()
-                .src(rootDir + "js/flot-0.8.1-min.js")
-                .end();
+            .src(rootDir + "js/flot-0.8.1-min.js")
+            .end();
         html.script()
-                .src(rootDir + "js/flot.selection.min.js")
-                .end();
+            .src(rootDir + "js/flot.selection.min.js")
+            .end();
         html.script()
-                .src(rootDir + "js/report.js")
-                .end();
+            .src(rootDir + "js/report.js")
+            .end();
         html.script()
-                .src(rootDir + "js/performanceGraph.js")
-                .end();
+            .src(rootDir + "js/performanceGraph.js")
+            .end();
     }
 
     protected void footer(Html html) {
         html.div()
-                .id("footer")
-                .text(String.format("Generated at %s by %s", format.executionTimestamp(), GradleVersion.current()))
-                .end();
+            .id("footer")
+            .text(String.format("Generated at %s by %s", format.executionTimestamp(), GradleVersion.current()))
+            .end();
     }
 
     public static class NavigationItem {
@@ -153,7 +153,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 if (data.isEmpty()) {
                     values.add(null);
                 } else {
-                    Amount<T> value = data.getAverage();
+                    Amount<T> value = data.getMedian();
                     values.add(data);
                     if (min == null || value.compareTo(min) < 0) {
                         min = value;
@@ -173,7 +173,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     td().text("").end();
                     td().text("").end();
                 } else {
-                    Amount<T> value = data.getAverage();
+                    Amount<T> value = data.getMedian();
                     Amount<T> stddev = data.getStandardError();
                     String classAttr = "numeric";
                     if (value.equals(min)) {
@@ -184,13 +184,13 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     }
                     td()
                         .classAttr(classAttr)
-                        .title("avg: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + stddev + ", values: " + data)
+                        .title("median: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + stddev + ", values: " + data)
                         .text(value.format())
-                    .end();
+                        .end();
                     td()
                         .classAttr("numeric more-detail")
                         .text("s: " + stddev.format())
-                    .end();
+                        .end();
                 }
             }
         }

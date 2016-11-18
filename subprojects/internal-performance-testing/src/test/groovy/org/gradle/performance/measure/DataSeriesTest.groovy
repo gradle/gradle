@@ -27,6 +27,7 @@ class DataSeriesTest extends Specification {
 
         expect:
         series.average == v2
+        series.median == v2
         series.min == v1
         series.max == v3
         series.standardError == DataAmount.bytes(8360.92)
@@ -42,6 +43,7 @@ class DataSeriesTest extends Specification {
         expect:
         series.size() == 3
         series.average == v2
+        series.average == v2
         series.min == v1
         series.max == v3
     }
@@ -52,6 +54,7 @@ class DataSeriesTest extends Specification {
         expect:
         series.empty
         series.average == null
+        series.median == null
         series.min == null
         series.max == null
         series.standardError == null

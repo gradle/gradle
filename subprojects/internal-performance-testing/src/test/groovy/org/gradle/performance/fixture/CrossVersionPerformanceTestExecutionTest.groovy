@@ -56,7 +56,7 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    def "fails when average execution time for current release is larger than average execution time for previous releases"() {
+    def "fails when median execution time for current release is larger than median execution time for previous releases"() {
         given:
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
@@ -77,7 +77,7 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.startsWith("Speed ${result.displayName}: we're slower than 1.0.")
-        e.message.contains('Difference: 10.333 ms slower (10.333 ms), 10.33%')
+        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.848 ms')
         !e.message.contains('1.3')
     }
 
@@ -121,7 +121,7 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.startsWith("Memory ${result.displayName}: we need more memory than 1.2.")
-        e.message.contains('Difference: 0.667 B more (0.667 B), 0.07%')
+        e.message.contains('Difference: 1 B more (1 B), 0.10%, max regression: 0.848 B')
         !e.message.contains('than 1.0')
     }
 
@@ -146,9 +146,9 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.contains("Speed ${result.displayName}: we're slower than 1.2.")
-        e.message.contains('Difference: 10.333 ms slower (10.333 ms)')
+        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.848 ms')
         e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
-        e.message.contains('Difference: 100.333 B more (100.333 B)')
+        e.message.contains('Difference: 100 B more (1E+2 B), 10.00%, max regression: 0.848 B')
         !e.message.contains('than 1.0')
     }
 
