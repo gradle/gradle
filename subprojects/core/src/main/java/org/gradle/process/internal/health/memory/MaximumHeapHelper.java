@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.jvm.Jvm;
 
 import java.util.Arrays;
@@ -39,7 +38,7 @@ public class MaximumHeapHelper {
      * @see #getDefaultMaximumHeapSize()
      */
     public long getMaximumHeapSize(String heapSizeNotation) {
-        long parsed = parseHeapSize(heapSizeNotation);
+        long parsed = MemoryAmount.parseNotation(heapSizeNotation);
         if (parsed != -1) {
             return parsed;
         }
@@ -64,44 +63,23 @@ public class MaximumHeapHelper {
 
         if (Jvm.current().isIbmJvm()) {
             long totalMemoryHalf = totalPhysicalMemory / 2;
-            long halfGB = parseHeapSize("512m");
+            long halfGB = MemoryAmount.parseNotation("512m");
             return totalMemoryHalf > halfGB ? halfGB : totalMemoryHalf;
         }
 
         long totalMemoryFourth = totalPhysicalMemory / 4;
-        long oneGB = parseHeapSize("1g");
+        long oneGB = MemoryAmount.parseNotation("1g");
         switch (getJvmBitMode()) {
             case 32:
                 return totalMemoryFourth > oneGB ? oneGB : totalMemoryFourth;
             case 64:
             default:
                 if (isServerJvm()) {
-                    long thirtyTwoGB = parseHeapSize("32g");
+                    long thirtyTwoGB = MemoryAmount.parseNotation("32g");
                     return totalMemoryFourth > thirtyTwoGB ? thirtyTwoGB : totalMemoryFourth;
                 }
                 return totalMemoryFourth > oneGB ? oneGB : totalMemoryFourth;
         }
-    }
-
-    private long parseHeapSize(String heapSizeNotation) {
-        if (heapSizeNotation == null) {
-            return -1;
-        }
-        String normalized = heapSizeNotation.toLowerCase(Locale.US).trim();
-        if (normalized.isEmpty()) {
-            return -1;
-        }
-        try {
-            if (normalized.endsWith("m")) {
-                return Long.parseLong(normalized.substring(0, normalized.length() - 1)) * 1024 * 1024;
-            }
-            if (normalized.endsWith("g")) {
-                return Long.parseLong(normalized.substring(0, normalized.length() - 1)) * 1024 * 1024 * 1024;
-            }
-        } catch (NumberFormatException ex) {
-            throw new InvalidUserDataException("Cannot parse heap size: " + heapSizeNotation, ex);
-        }
-        throw new InvalidUserDataException("Cannot parse heap size: " + heapSizeNotation);
     }
 
     private int getJvmBitMode() {
