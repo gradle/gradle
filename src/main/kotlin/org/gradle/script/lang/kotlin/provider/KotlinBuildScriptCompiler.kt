@@ -34,6 +34,7 @@ import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.util.*
 
+internal
 class KotlinBuildScriptCompiler(
     val kotlinCompiler: CachingKotlinCompiler,
     scriptSource: ScriptSource,

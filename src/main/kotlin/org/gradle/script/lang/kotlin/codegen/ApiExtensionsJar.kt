@@ -22,14 +22,17 @@ import org.gradle.script.lang.kotlin.support.zipTo
 
 import java.io.File
 
+internal
 fun generateActionExtensionsJar(outputFile: File, apiJar: File, onProgress: () -> Unit) {
     ApiExtensionsJarGenerator(onProgress = onProgress).generate(outputFile, apiJar)
 }
 
+internal
 interface KotlinFileCompiler {
     fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>)
 }
 
+internal
 class ApiExtensionsJarGenerator(
     val compiler: KotlinFileCompiler = StandardKotlinFileCompiler,
     val onProgress: () -> Unit = {}) {
@@ -74,6 +77,7 @@ class ApiExtensionsJarGenerator(
         MarkdownKDocProvider.fromResource("/doc/ActionExtensions.md")
 }
 
+internal
 object StandardKotlinFileCompiler : KotlinFileCompiler {
     override fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>) {
         compileToDirectory(
