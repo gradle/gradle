@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
 
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -79,6 +78,7 @@ allprojects {
                 task resolve {
                     doLast {
                         assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                     }
                 }
             }
@@ -92,7 +92,6 @@ allprojects {
     }
 
     // Documents existing matching behaviour, not desired behaviour
-    @Ignore
     def "can create a view that selects different artifacts from the same dependency graph"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -133,14 +132,14 @@ allprojects {
                 task resolve {
                     doLast {
                         def result = configurations.compile.incoming.getFiles('classes')
-                        assert result.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert result.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                     }
                 }
             }
         """
 
         m1.ivy.expectGet()
-        m1.getArtifact(name: 'some-classes', type: 'classes').expectGet()
+        m1.getArtifact(name: 'some-jar', type: 'jar').expectGet()
 
         expect:
         succeeds "resolve"

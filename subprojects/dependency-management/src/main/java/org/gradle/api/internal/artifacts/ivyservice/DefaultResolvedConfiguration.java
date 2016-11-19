@@ -71,6 +71,8 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         rethrowFailure();
-        return configuration.getResolvedArtifacts();
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+        configuration.select(Specs.<Dependency>satisfyAll(), format).visitArtifacts(visitor);
+        return visitor.artifacts;
     }
 }

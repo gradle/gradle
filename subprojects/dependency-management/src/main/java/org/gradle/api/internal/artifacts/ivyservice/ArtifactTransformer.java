@@ -36,16 +36,14 @@ import java.util.List;
 import java.util.Map;
 
 public class ArtifactTransformer {
-    private final String format;
     private final ResolutionStrategyInternal resolutionStrategy;
     private final Map<File, File> transformed = new HashMap<File, File>();
 
-    public ArtifactTransformer(@Nullable String format, ResolutionStrategyInternal resolutionStrategy) {
-        this.format = format;
+    public ArtifactTransformer(ResolutionStrategyInternal resolutionStrategy) {
         this.resolutionStrategy = resolutionStrategy;
     }
 
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor) {
+    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable final String format) {
         if (format == null) {
             return visitor;
         }

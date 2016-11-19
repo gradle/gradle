@@ -62,6 +62,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
+    private final String format;
     private final CacheLockingManager cacheLockingManager;
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
@@ -70,9 +71,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
     private final ArtifactTransformer artifactTransformer;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
-                                       VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, String format, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
         this.configuration = configuration;
+        this.format = format;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
@@ -82,7 +83,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, String format) {
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final String format) {
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
@@ -93,17 +94,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
-                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, visitor);
+                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, format, visitor);
             }
 
             @Override
             public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-                return DefaultLenientConfiguration.this.collectFiles(dependencySpec, dest);
+                return DefaultLenientConfiguration.this.collectFiles(dependencySpec, format, dest);
             }
 
             @Override
             public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-                return DefaultLenientConfiguration.this.collectArtifacts(dependencySpec, dest);
+                return DefaultLenientConfiguration.this.collectArtifacts(dependencySpec, format, dest);
             }
         };
     }
@@ -124,12 +125,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             }
             throw new ResolveException(configuration.toString(), failures);
         }
-    }
-
-    public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitArtifacts(Specs.<Dependency>satisfyAll(), visitor);
-        return visitor.artifacts;
     }
 
     private TransientConfigurationResults loadTransientGraphResults() {
@@ -181,7 +176,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
         FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, visitor);
+        visitArtifacts(dependencySpec, format, visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }
@@ -189,11 +184,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     /**
      * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
      */
-    private <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+    private <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, String format, T dest) throws ResolveException {
         rethrowFailure();
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
         try {
-            visitArtifacts(dependencySpec, visitor);
+            visitArtifacts(dependencySpec, format, visitor);
             // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts. This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
             // File dependencies and artifacts are currently treated separately as a migration step
             visitor.addArtifacts();
@@ -209,11 +204,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     /**
      * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
      */
-    private <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(Spec<? super Dependency> dependencySpec, T dest) throws ResolveException {
+    private <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(Spec<? super Dependency> dependencySpec, String format, T dest) throws ResolveException {
         rethrowFailure();
         ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
         try {
-            visitArtifacts(dependencySpec, visitor);
+            visitArtifacts(dependencySpec, format, visitor);
         } catch (Throwable t) {
             visitor.failures.add(t);
         }
@@ -233,7 +228,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitArtifacts(dependencySpec, visitor);
+        visitArtifacts(dependencySpec, format, visitor);
         return filterUnresolved(visitor.artifacts);
     }
 
@@ -265,8 +260,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, ArtifactVisitor visitor) {
-        visitor = artifactTransformer.visitor(visitor);
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, String format, ArtifactVisitor visitor) {
+        visitor = artifactTransformer.visitor(visitor, format);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
@@ -303,23 +298,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return loadTransientGraphResults().getRootNode().getPublicView().getChildren();
     }
 
-    private static class Visitor implements ArtifactVisitor {
-        @Override
-        public void visitArtifact(ResolvedArtifact artifact) {
-        }
-
-        @Override
-        public boolean includeFiles() {
-            return false;
-        }
-
-        @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private static class ResolvedFilesCollectingVisitor extends Visitor {
+    private static class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
         private final Collection<? super File> files;
         private final List<Throwable> failures = new ArrayList<Throwable>();
         private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
@@ -361,7 +340,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
     }
 
-    private static class ResolvedArtifactCollectingVisitor extends Visitor {
+    private static class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
         private final Collection<? super ResolvedArtifactResult> artifacts;
         private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
         private final Set<File> seenFiles = new HashSet<File>();
@@ -406,15 +385,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             } catch (Throwable t) {
                 failures.add(t);
             }
-        }
-    }
-
-    private static class ArtifactCollectingVisitor extends Visitor {
-        final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
-
-        @Override
-        public void visitArtifact(ResolvedArtifact artifact) {
-            this.artifacts.add(artifact);
         }
     }
 

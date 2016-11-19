@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class ArtifactTransformerTest extends Specification {
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
-    def transformer = new ArtifactTransformer("classpath", resolutionStrategy)
+    def transformer = new ArtifactTransformer(resolutionStrategy)
 
     def "forwards artifact whose type matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
@@ -36,7 +36,7 @@ class ArtifactTransformerTest extends Specification {
         artifact.type >> "classpath"
 
         when:
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -56,7 +56,7 @@ class ArtifactTransformerTest extends Specification {
         artifact.type >> "zip"
 
         when:
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -93,7 +93,7 @@ class ArtifactTransformerTest extends Specification {
         resolutionStrategy.getTransform("lib", "classpath") >> null
 
         when:
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -106,7 +106,7 @@ class ArtifactTransformerTest extends Specification {
         def file = new File("thing.classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitFiles(id, [file])
 
         then:
@@ -122,7 +122,7 @@ class ArtifactTransformerTest extends Specification {
         def transformedFile = new File("thing.classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitFiles(id, [file])
 
         then:
@@ -138,7 +138,7 @@ class ArtifactTransformerTest extends Specification {
         def file = new File("thing.lib")
 
         when:
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitFiles(id, [file])
 
         then:
@@ -159,7 +159,7 @@ class ArtifactTransformerTest extends Specification {
         resolutionStrategy.getTransform("zip", "classpath") >> transform
         transform.transform(file1) >> transformedFile1
 
-        def transformVisitor = transformer.visitor(visitor)
+        def transformVisitor = transformer.visitor(visitor, "classpath")
         transformVisitor.visitFiles(id, [file1])
 
         when:
@@ -170,14 +170,14 @@ class ArtifactTransformerTest extends Specification {
         0 * _
 
         when:
-        transformer.visitor(visitor).visitFiles(id, [file1])
+        transformer.visitor(visitor, "classpath").visitFiles(id, [file1])
 
         then:
         1 * visitor.visitFiles(id, [transformedFile1])
         0 * _
 
         when:
-        transformer.visitor(visitor).visitFiles(id, [file1, file2])
+        transformer.visitor(visitor, "classpath").visitFiles(id, [file1, file2])
 
         then:
         1 * resolutionStrategy.getTransform("zip", "classpath") >> transform
@@ -186,7 +186,7 @@ class ArtifactTransformerTest extends Specification {
         0 * _
 
         when:
-        transformer.visitor(visitor).visitFiles(id, [file1, file2])
+        transformer.visitor(visitor, "classpath").visitFiles(id, [file1, file2])
 
         then:
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
