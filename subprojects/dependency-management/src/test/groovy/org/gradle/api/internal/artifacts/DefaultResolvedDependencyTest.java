@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedArtifactSet;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -124,7 +125,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule(), artifactStub, context.mock(ComponentArtifactIdentifier.class), artifactSource);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

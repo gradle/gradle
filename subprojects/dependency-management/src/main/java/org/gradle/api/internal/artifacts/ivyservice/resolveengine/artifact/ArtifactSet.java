@@ -16,17 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.tasks.TaskDependency;
-
-import java.util.Collection;
-import java.util.Set;
-
 public interface ArtifactSet {
 
     long getId();
 
-    Set<ResolvedArtifact> getArtifacts();
-
-    void collectBuildDependencies(Collection<? super TaskDependency> dependencies);
+    ResolvedArtifactSet getArtifacts();
 }

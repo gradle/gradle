@@ -18,12 +18,12 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
 
 class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
@@ -80,8 +80,8 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
-        // Dependencies are handled separately
+    public TaskDependency getBuildDependencies() {
+        return TaskDependencies.EMPTY;
     }
 
     @Override

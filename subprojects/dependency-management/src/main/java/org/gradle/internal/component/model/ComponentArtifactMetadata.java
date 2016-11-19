@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.util.Collection;
-
 /**
  * Meta-data for an artifact that belongs to some component.
  */
@@ -42,7 +40,7 @@ public interface ComponentArtifactMetadata {
     IvyArtifactName getName();
 
     /**
-     * Collects the build dependencies of this artifact, which are the tasks required to build this artifact
+     * Collects the build dependencies of this artifact, which are required to build this artifact
      */
-    void collectBuildDependencies(Collection<? super TaskDependency> dependencies);
+    TaskDependency getBuildDependencies();
 }

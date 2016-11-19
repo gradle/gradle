@@ -23,13 +23,12 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 /**
@@ -80,17 +79,17 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        List<TaskDependency> buildDependencies = new ArrayList<TaskDependency>(buildableArtifactSets.size());
-        for (ArtifactSet artifacts : buildableArtifactSets) {
-            artifacts.collectBuildDependencies(buildDependencies);
-        }
-
+        Set<TaskDependency> buildDependencies = newHashSetWithExpectedSize(buildableArtifactSets.size());
         Set<ResolvedArtifact> artifacts = newLinkedHashSet();
         Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+
         for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
-            Set<ResolvedArtifact> resolvedArtifacts = entry.getValue().getArtifacts();
-            artifacts.addAll(resolvedArtifacts);
-            resolvedArtifactsById.put(entry.getKey(), ArtifactBackedArtifactSet.of(resolvedArtifacts));
+            ResolvedArtifactSet resolvedArtifacts = entry.getValue().getArtifacts();
+            artifacts.addAll(resolvedArtifacts.getArtifacts());
+            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
+            if (buildableArtifactSets.contains(entry.getValue())) {
+                resolvedArtifacts.collectBuildDependencies(buildDependencies);
+            }
         }
         ResolvedArtifactSet allArtifacts = ArtifactBackedArtifactSet.of(artifacts);
 

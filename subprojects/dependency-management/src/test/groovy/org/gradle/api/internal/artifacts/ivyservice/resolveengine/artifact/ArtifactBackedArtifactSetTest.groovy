@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import org.gradle.api.Buildable
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
 class ArtifactBackedArtifactSetTest extends Specification {
-    def artifact1 = Mock(ResolvedArtifact)
-    def artifact2 = Mock(ResolvedArtifact)
-    def artifact3 = Mock(ResolvedArtifact)
+    def artifact1 = Mock(TestArtifact)
+    def artifact2 = Mock(TestArtifact)
+    def artifact3 = Mock(TestArtifact)
 
     def "factory method returns specialized sets for zero and one elements"() {
         expect:
@@ -64,4 +66,32 @@ class ArtifactBackedArtifactSetTest extends Specification {
         1 * visitor.visitArtifact(artifact1)
         0 * _
     }
+
+    def "collects build dependencies"() {
+        def deps1 = Stub(TaskDependency)
+        def deps2 = Stub(TaskDependency)
+        def set1 = ArtifactBackedArtifactSet.of([artifact1, artifact2])
+        def set2 = ArtifactBackedArtifactSet.of([artifact1])
+
+        given:
+        artifact1.buildDependencies >> deps1
+        artifact2.buildDependencies >> deps2
+
+        when:
+        def buildDeps = []
+        set1.collectBuildDependencies(buildDeps)
+
+        then:
+        buildDeps == [deps1, deps2]
+
+        when:
+        buildDeps = []
+        set2.collectBuildDependencies(buildDeps)
+
+        then:
+        buildDeps == [deps1]
+    }
+
+    interface TestArtifact extends ResolvedArtifact, Buildable { }
+
 }

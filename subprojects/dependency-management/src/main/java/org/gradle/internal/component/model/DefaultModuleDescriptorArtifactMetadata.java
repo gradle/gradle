@@ -22,8 +22,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
-import java.util.Collection;
-
 public class DefaultModuleDescriptorArtifactMetadata implements ModuleDescriptorArtifactMetadata {
     private final DefaultModuleComponentArtifactMetadata delegate;
 
@@ -52,7 +50,7 @@ public class DefaultModuleDescriptorArtifactMetadata implements ModuleDescriptor
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
-        delegate.collectBuildDependencies(dependencies);
+    public TaskDependency getBuildDependencies() {
+        return delegate.getBuildDependencies();
     }
 }

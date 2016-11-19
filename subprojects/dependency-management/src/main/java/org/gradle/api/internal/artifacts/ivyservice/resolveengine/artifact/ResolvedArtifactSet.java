@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +35,7 @@ public interface ResolvedArtifactSet {
     /**
      * Collects the build dependencies required to build the artifacts in this set.
      */
-    void collectBuildDependencies(Collection<? super Buildable> dest);
+    void collectBuildDependencies(Collection<? super TaskDependency> dest);
 
     /**
      * Visits the contents of this set.
@@ -49,7 +49,7 @@ public interface ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super Buildable> dest) {
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         }
 
         @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -45,7 +46,7 @@ class ArtifactTransformerTest extends Specification {
 
     def "applies transform lazily to artifact whose type does not matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
-        def artifact = Stub(ResolvedArtifact)
+        def artifact = Stub(TestArtifact)
         def transform = Mock(Transformer)
         def file = new File("thing.zip")
         def transformedFile = new File("thing.classpath")
@@ -191,4 +192,6 @@ class ArtifactTransformerTest extends Specification {
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
         0 * _
     }
+
+    interface TestArtifact extends ResolvedArtifact, Buildable { }
 }

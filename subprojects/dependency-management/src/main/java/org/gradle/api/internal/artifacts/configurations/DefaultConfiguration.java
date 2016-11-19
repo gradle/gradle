@@ -62,7 +62,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -487,9 +487,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             List<Object> buildDependencies = new ArrayList<Object>();
             results.getVisitedArtifacts().select(dependencySpec, format).collectBuildDependencies(buildDependencies);
-            DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-            taskDependency.setValues(buildDependencies);
-            return taskDependency;
+            return TaskDependencies.of(buildDependencies);
         }
     }
 

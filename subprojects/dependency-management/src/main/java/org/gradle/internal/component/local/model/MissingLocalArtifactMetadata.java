@@ -18,11 +18,11 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
  * Represents an unknown local artifact, referenced from a dependency definition.
@@ -69,7 +69,8 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
+    public TaskDependency getBuildDependencies() {
+        return TaskDependencies.EMPTY;
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
-import java.util.Collection;
 
 public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
@@ -91,7 +90,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
-        dependencies.add(publishArtifact.getBuildDependencies());
+    public TaskDependency getBuildDependencies() {
+        return publishArtifact.getBuildDependencies();
     }
 }

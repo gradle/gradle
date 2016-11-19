@@ -19,15 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
     private final ResolvedArtifactSet allArtifacts;
     private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
-    private final List<TaskDependency> buildDependencies;
+    private final Collection<TaskDependency> buildDependencies;
 
-    public DefaultResolvedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById, List<TaskDependency> buildDependencies) {
+    public DefaultResolvedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById, Collection<TaskDependency> buildDependencies) {
         this.allArtifacts = allArtifacts;
         this.resolvedArtifactsById = resolvedArtifactsById;
         this.buildDependencies = buildDependencies;

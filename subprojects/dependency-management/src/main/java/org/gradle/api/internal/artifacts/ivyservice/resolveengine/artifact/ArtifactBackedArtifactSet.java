@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Collection;
 import java.util.Set;
@@ -46,7 +47,10 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super Buildable> dest) {
+    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        for (ResolvedArtifact artifact : artifacts) {
+            dest.add(((Buildable) artifact).getBuildDependencies());
+        }
     }
 
     @Override
@@ -74,7 +78,8 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super Buildable> dest) {
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+            dest.add(((Buildable) artifact).getBuildDependencies());
         }
     }
 }

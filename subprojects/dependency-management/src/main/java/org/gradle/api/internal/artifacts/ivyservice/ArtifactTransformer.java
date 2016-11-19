@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.io.Files;
+import org.gradle.api.Buildable;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -24,6 +25,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 
@@ -58,7 +60,8 @@ public class ArtifactTransformer {
                 if (transform == null) {
                     return;
                 }
-                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion(), new DefaultIvyArtifactName(artifact.getName(), format, artifact.getExtension()), artifact.getId(), new Factory<File>() {
+                TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
+                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), new DefaultIvyArtifactName(artifact.getName(), format, artifact.getExtension()), artifact.getId(), buildDependencies, new Factory<File>() {
                     @Override
                     public File create() {
                         File file = artifact.getFile();

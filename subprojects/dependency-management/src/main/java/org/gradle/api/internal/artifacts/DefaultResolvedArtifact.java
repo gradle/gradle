@@ -15,30 +15,41 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact {
-    private final ResolvedModuleVersion owner;
+public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
+    private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
+    private final TaskDependency buildDependencies;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, Factory<File> artifactSource) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
+        this.buildDependencies = buildDependencies;
         this.artifactSource = artifactSource;
     }
 
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
+    }
+
     public ResolvedModuleVersion getModuleVersion() {
-        return owner;
+        return new DefaultResolvedModuleVersion(owner);
     }
 
     @Override
@@ -60,13 +71,12 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        return other.owner.getId().equals(owner.getId())
-                && other.artifactId.equals(artifactId);
+        return other.owner.equals(owner) && other.artifactId.equals(artifactId);
     }
 
     @Override
     public int hashCode() {
-        return owner.getId().hashCode() ^ artifactId.hashCode();
+        return owner.hashCode() ^ artifactId.hashCode();
     }
 
     public String getName() {

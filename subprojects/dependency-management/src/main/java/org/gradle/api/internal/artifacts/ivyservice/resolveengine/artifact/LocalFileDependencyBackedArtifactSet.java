@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.Collection;
@@ -37,8 +37,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super Buildable> dest) {
-        dest.add(dependencyMetadata.getFiles());
+    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        dest.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
     @Override
