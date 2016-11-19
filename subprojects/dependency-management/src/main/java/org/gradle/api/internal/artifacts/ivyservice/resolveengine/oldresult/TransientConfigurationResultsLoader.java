@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.internal.Factory;
 
 public class TransientConfigurationResultsLoader implements Factory<TransientConfigurationResults> {
     private final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
-    private final ResolvedArtifactResults artifactResults;
+    private final VisitedArtifactsResults artifactResults;
     private final ResolvedGraphResults graphResults;
 
-    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults, ResolvedArtifactResults artifactResults) {
+    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults, VisitedArtifactsResults artifactResults) {
         this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
         this.artifactResults = artifactResults;
         this.graphResults = graphResults;

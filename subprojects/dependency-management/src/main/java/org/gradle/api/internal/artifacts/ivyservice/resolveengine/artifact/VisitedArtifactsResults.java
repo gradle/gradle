@@ -21,5 +21,18 @@ import org.gradle.api.tasks.TaskDependency;
 import java.util.Collection;
 
 public interface VisitedArtifactsResults {
+    /**
+     * Collects the build dependencies for all artifacts
+     */
     void collectBuildDependencies(Collection<? super TaskDependency> dest);
+
+    /**
+     * Returns all artifacts visited during graph traversal
+     */
+    ResolvedArtifactSet getArtifacts();
+
+    /**
+     * Returns the set of artifacts with the given id.
+     */
+    ResolvedArtifactSet getArtifacts(long id);
 }

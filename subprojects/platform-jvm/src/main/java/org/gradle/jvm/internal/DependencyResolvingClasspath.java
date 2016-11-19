@@ -25,8 +25,9 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -82,7 +83,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public Set<File> getFiles() {
         ensureResolved(true);
         final Set<File> result = new LinkedHashSet<File>();
-        resolveResult.artifactResults.getArtifacts().visit(new ArtifactVisitor() {
+        resolveResult.artifactsResults.getArtifacts().visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(ResolvedArtifact artifact) {
                 result.add(artifact.getFile());
@@ -106,8 +107,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     @Override
     public TaskDependency getBuildDependencies() {
         ensureResolved(false);
+
+        List<TaskDependency> taskDependencies = new ArrayList<TaskDependency>();
+        resolveResult.artifactsResults.collectBuildDependencies(taskDependencies);
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.add(resolveResult.buildDependencies);
+        taskDependency.add(taskDependencies);
         return taskDependency;
     }
 
@@ -133,9 +137,9 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
-        public final List<Object> buildDependencies = new ArrayList<Object>();
         public final List<Throwable> notFound = new LinkedList<Throwable>();
-        public final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
+        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(true);
+        public VisitedArtifactsResults artifactsResults;
 
         @Override
         public void start(DependencyGraphNode root) {
@@ -161,13 +165,12 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-            artifactResults.addArtifactSet(artifacts);
-            artifacts.collectBuildDependencies(buildDependencies);
+            artifactsBuilder.visitArtifacts(from, to, artifacts);
         }
 
         @Override
         public void finishArtifacts() {
-            artifactResults.resolveNow();
+            artifactsResults = artifactsBuilder.complete();
         }
     }
 }

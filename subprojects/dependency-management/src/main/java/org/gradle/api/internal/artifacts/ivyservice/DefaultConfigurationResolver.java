@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
@@ -90,7 +90,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor();
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, fileDependenciesVisitor, artifactsVisitor, attributesSchema);
-        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor, fileDependenciesVisitor));
+        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor));
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -117,33 +117,34 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema);
 
-        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsBuilder, fileDependencyVisitor));
+        VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
+        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsResults, fileDependencyVisitor));
 
-        results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsBuilder, fileDependencyVisitor, oldTransientModelBuilder));
+        results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsResults, fileDependencyVisitor, oldTransientModelBuilder));
     }
 
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) {
         ArtifactResolveState resolveState = (ArtifactResolveState) results.getArtifactResolveState();
         ResolvedGraphResults graphResults = resolveState.graphResults;
-        ResolvedArtifactResults artifactResults = resolveState.artifactsBuilder.resolve();
+        VisitedArtifactsResults artifactResults = resolveState.artifactsResults;
         TransientConfigurationResultsBuilder transientConfigurationResultsBuilder = resolveState.transientConfigurationResultsBuilder;
 
         Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
         ArtifactTransformer transformer = new ArtifactTransformer(configuration.getFormat(), configuration.getResolutionStrategy());
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.artifactsBuilder, resolveState.fileDependencyResults, transientConfigurationResultsFactory, transformer);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, transformer);
         results.artifactsResolved(new DefaultResolvedConfiguration(result, configuration.getFormat()), result);
     }
 
     private static class ArtifactResolveState {
         final ResolvedGraphResults graphResults;
-        final DefaultResolvedArtifactsBuilder artifactsBuilder;
+        final VisitedArtifactsResults artifactsResults;
         final VisitedFileDependencyResults fileDependencyResults;
         final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
 
-        ArtifactResolveState(ResolvedGraphResults graphResults, DefaultResolvedArtifactsBuilder artifactsBuilder, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
+        ArtifactResolveState(ResolvedGraphResults graphResults, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
             this.graphResults = graphResults;
-            this.artifactsBuilder = artifactsBuilder;
+            this.artifactsResults = artifactsResults;
             this.fileDependencyResults = fileDependencyResults;
             this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
         }

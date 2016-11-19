@@ -16,57 +16,35 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.tasks.TaskDependency;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newLinkedHashSet;
+public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
+    private final ResolvedArtifactSet allArtifacts;
+    private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
+    private final List<TaskDependency> buildDependencies;
 
-public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
-    // Transient state: held between resolving graph and resolving actual artifacts
-    private Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
+    public DefaultResolvedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById, List<TaskDependency> buildDependencies) {
+        this.allArtifacts = allArtifacts;
+        this.resolvedArtifactsById = resolvedArtifactsById;
+        this.buildDependencies = buildDependencies;
+    }
 
-    // Artifact State : held for the life of a build
-    private ResolvedArtifactSet allArtifacts;
-    private Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
+    @Override
+    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        dest.addAll(buildDependencies);
+    }
 
     @Override
     public ResolvedArtifactSet getArtifacts() {
-        assertArtifactsResolved();
         return allArtifacts;
     }
 
     @Override
     public ResolvedArtifactSet getArtifacts(long id) {
-        assertArtifactsResolved();
         return resolvedArtifactsById.get(id);
-    }
-
-    public void addArtifactSet(ArtifactSet artifactSet) {
-        artifactSets.put(artifactSet.getId(), artifactSet);
-    }
-
-    public void resolveNow() {
-        if (allArtifacts == null) {
-            Set<ResolvedArtifact> artifacts = newLinkedHashSet();
-            resolvedArtifactsById = newLinkedHashMap();
-            for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
-                Set<ResolvedArtifact> resolvedArtifacts = entry.getValue().getArtifacts();
-                artifacts.addAll(resolvedArtifacts);
-                resolvedArtifactsById.put(entry.getKey(), ArtifactBackedArtifactSet.of(resolvedArtifacts));
-            }
-            allArtifacts = ArtifactBackedArtifactSet.of(artifacts);
-
-            // Release ResolvedArtifactSet instances so we're not holding onto state
-            artifactSets = null;
-        }
-    }
-
-    private void assertArtifactsResolved() {
-        if (allArtifacts == null) {
-            throw new IllegalStateException("Cannot access artifacts before they are explicitly resolved.");
-        }
     }
 }

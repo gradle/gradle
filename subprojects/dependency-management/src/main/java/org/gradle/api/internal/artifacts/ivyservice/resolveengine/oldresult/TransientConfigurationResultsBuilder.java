@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
@@ -108,7 +108,7 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public TransientConfigurationResults load(final ResolvedGraphResults graphResults, final ResolvedArtifactResults artifactResults) {
+    public TransientConfigurationResults load(final ResolvedGraphResults graphResults, final VisitedArtifactsResults artifactResults) {
         synchronized (lock) {
             return cache.load(new Factory<TransientConfigurationResults>() {
                 public TransientConfigurationResults create() {
@@ -130,7 +130,7 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, ResolvedArtifactResults artifactResults) {
+    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, VisitedArtifactsResults artifactResults) {
         Timer clock = Timers.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();

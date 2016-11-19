@@ -34,7 +34,6 @@ import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
@@ -66,19 +65,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final CacheLockingManager cacheLockingManager;
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
-    private final VisitedArtifactsResults visitedArtifacts;
-    private final ResolvedArtifactResults artifactResults;
+    private final VisitedArtifactsResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
     private final ArtifactTransformer artifactTransformer;
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
-                                       ResolvedArtifactResults artifactResults, VisitedArtifactsResults visitedArtifacts, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+                                       VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
-        this.visitedArtifacts = visitedArtifacts;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransformer = artifactTransformer;
@@ -89,7 +86,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-                visitedArtifacts.collectBuildDependencies(dest);
+                artifactResults.collectBuildDependencies(dest);
                 fileDependencyResults.getFiles().collectBuildDependencies(dest);
                 return dest;
             }
