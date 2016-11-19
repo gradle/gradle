@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -110,9 +110,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         List<TaskDependency> taskDependencies = new ArrayList<TaskDependency>();
         resolveResult.artifactsResults.collectBuildDependencies(taskDependencies);
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.add(taskDependencies);
-        return taskDependency;
+        return TaskDependencies.of(taskDependencies);
     }
 
     private void ensureResolved(boolean failFast) {
