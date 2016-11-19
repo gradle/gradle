@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -301,11 +300,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Override
         public Set<String> getExtendsFrom() {
             return delegate.getExtendsFrom();
-        }
-
-        @Override
-        public TaskDependency getArtifactBuildDependencies() {
-            return delegate.getArtifactBuildDependencies();
         }
 
         @Override

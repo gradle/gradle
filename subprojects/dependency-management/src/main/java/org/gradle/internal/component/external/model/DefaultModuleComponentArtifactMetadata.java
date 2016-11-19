@@ -20,7 +20,10 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.IvyArtifactName;
+
+import java.util.Collection;
 
 public class DefaultModuleComponentArtifactMetadata implements ModuleComponentArtifactMetadata {
     private final DefaultModuleComponentArtifactIdentifier id;
@@ -38,19 +41,28 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
         return id.toString();
     }
 
+    @Override
     public ModuleComponentArtifactIdentifier getId() {
         return id;
     }
 
+    @Override
     public ComponentIdentifier getComponentId() {
         return id.getComponentIdentifier();
     }
 
+    @Override
     public ArtifactIdentifier toArtifactIdentifier() {
         return new DefaultArtifactIdentifier(id);
     }
 
+    @Override
     public IvyArtifactName getName() {
         return id.getName();
+    }
+
+    @Override
+    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
+        // Nothing
     }
 }

@@ -18,8 +18,11 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+
+import java.util.Collection;
 
 public class DefaultModuleDescriptorArtifactMetadata implements ModuleDescriptorArtifactMetadata {
     private final DefaultModuleComponentArtifactMetadata delegate;
@@ -46,5 +49,10 @@ public class DefaultModuleDescriptorArtifactMetadata implements ModuleDescriptor
     @Override
     public IvyArtifactName getName() {
         return delegate.getName();
+    }
+
+    @Override
+    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
+        delegate.collectBuildDependencies(dependencies);
     }
 }

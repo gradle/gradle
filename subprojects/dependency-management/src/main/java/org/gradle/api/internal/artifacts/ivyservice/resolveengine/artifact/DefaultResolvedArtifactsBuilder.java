@@ -34,7 +34,7 @@ import java.util.Set;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor, VisitedArtifactsResults {
     private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
     private final boolean buildProjectDependencies;
-    private Set<LocalConfigurationMetadata> requiredNodes = new HashSet<LocalConfigurationMetadata>();
+    private Set<ArtifactSet> requiredArtifacts = new HashSet<ArtifactSet>();
     private List<TaskDependency> buildDependencies;
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
@@ -49,17 +49,18 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         if (!buildProjectDependencies) {
             return;
         }
-
-        // Collect the build dependencies in 2 steps: collect the nodes while traversing and at the end of traversal unpack the build dependencies for each
-        // We need to discard the node to avoid keeping strong references
-        // This is a migration step to move the knowledge of the build dependencies into the artifact set
-
-        ConfigurationMetadata configurationMetadata = to.getMetadata();
-        if (!(configurationMetadata instanceof LocalConfigurationMetadata) || requiredNodes.contains(configurationMetadata)) {
+        if (requiredArtifacts.contains(artifacts)) {
             return;
         }
 
-        LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
+        // Collect the build dependencies in 2 steps: collect the artifact sets while traversing and at the end of traversal unpack the build dependencies for each
+        // We need to discard the artifact sets to avoid keeping strong references
+
+        ConfigurationMetadata configurationMetadata = to.getMetadata();
+        if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
+            return;
+        }
+
         if (from.getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
             // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
             ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) from.getOwner().getComponentId();
@@ -68,16 +69,16 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             }
         }
 
-        requiredNodes.add(localConfigurationMetadata);
+        requiredArtifacts.add(artifacts);
     }
 
     @Override
     public void finishArtifacts() {
-        buildDependencies = new ArrayList<TaskDependency>(requiredNodes.size());
-        for (LocalConfigurationMetadata metadata : requiredNodes) {
-            buildDependencies.add(metadata.getArtifactBuildDependencies());
+        buildDependencies = new ArrayList<TaskDependency>(requiredArtifacts.size());
+        for (ArtifactSet artifacts : requiredArtifacts) {
+            artifacts.collectBuildDependencies(buildDependencies);
         }
-        requiredNodes.clear();
+        requiredArtifacts.clear();
     }
 
     @Override

@@ -16,8 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.Buildable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -37,6 +38,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Set;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
@@ -80,11 +82,10 @@ public class IncludedBuildDependencyMetadataBuilder {
                 originalConfiguration.isCanBeConsumed(),
                 originalConfiguration.isCanBeResolved());
 
-            final Set<String> targetTasks = determineTargetTasks(originalConfiguration);
-
             Set<ComponentArtifactMetadata> artifacts = originalConfiguration.getArtifacts();
             for (ComponentArtifactMetadata originalArtifact : artifacts) {
                 File artifactFile = ((LocalComponentArtifactMetadata) originalArtifact).getFile();
+                Set<String> targetTasks = getArtifactTasks(originalArtifact);
                 CompositeProjectComponentArtifactMetadata artifact = new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
                 compositeComponentMetadata.addArtifact(configurationName, artifact);
             }
@@ -109,27 +110,16 @@ public class IncludedBuildDependencyMetadataBuilder {
         return new CompositeProjectComponentArtifactMetadata(project, artifactMetaData.getName(), artifactFile, getArtifactTasks(artifactMetaData));
     }
 
-    private Set<String> determineTargetTasks(LocalConfigurationMetadata configuration) {
-        Set<String> taskNames = Sets.newLinkedHashSet();
-        for (ComponentArtifactMetadata artifactMetaData : configuration.getArtifacts()) {
-            addArtifactTasks(taskNames, artifactMetaData);
-        }
-        return taskNames;
-    }
-
     private Set<String> getArtifactTasks(ComponentArtifactMetadata artifactMetaData) {
-        Set<String> taskNames = Sets.newLinkedHashSet();
-        addArtifactTasks(taskNames, artifactMetaData);
-        return taskNames;
-    }
-
-    private void addArtifactTasks(Set<String> taskNames, ComponentArtifactMetadata artifactMetaData) {
-        if (artifactMetaData instanceof Buildable) {
-            Buildable publishArtifact = (Buildable) artifactMetaData;
-            Set<? extends Task> dependencies = publishArtifact.getBuildDependencies().getDependencies(null);
-            for (Task dependency : dependencies) {
-                taskNames.add(dependency.getPath());
+        Set<String> taskPaths = Sets.newLinkedHashSet();
+        ArrayList<TaskDependency> dependencies = Lists.newArrayList();
+        artifactMetaData.collectBuildDependencies(dependencies);
+        for (TaskDependency dependency : dependencies) {
+            Set<? extends Task> tasks = dependency.getDependencies(null);
+            for (Task task : tasks) {
+                taskPaths.add(task.getPath());
             }
         }
+        return taskPaths;
     }
 }

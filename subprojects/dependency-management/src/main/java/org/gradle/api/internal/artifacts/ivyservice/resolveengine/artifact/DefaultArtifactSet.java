@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -30,6 +31,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +58,14 @@ public class DefaultArtifactSet implements ArtifactSet {
 
     public long getId() {
         return id;
+    }
+
+    @Override
+    public void collectBuildDependencies(Collection<? super TaskDependency> dependencies) {
+        // Should consider exclusions
+        for (ComponentArtifactMetadata artifact : artifacts) {
+            artifact.collectBuildDependencies(dependencies);
+        }
     }
 
     public Set<ResolvedArtifact> getArtifacts() {

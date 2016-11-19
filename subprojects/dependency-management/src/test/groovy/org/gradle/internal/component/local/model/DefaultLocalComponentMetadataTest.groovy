@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.AttributesSchema
-import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
@@ -233,42 +232,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").files == [files2] as Set
         metadata.getConfiguration("child1").files == [files1, files2, files3] as Set
         metadata.getConfiguration("child2").files == [files1] as Set
-    }
-
-    def "collects build dependencies for artifacts attached to configuration and its parents"() {
-        def artifact1 = artifactName()
-        def artifact2 = artifactName()
-        def artifact3 = artifactName()
-        def file1 = new File("artifact-1.zip")
-        def file2 = new File("artifact-2.zip")
-        def file3 = new File("artifact-3.zip")
-        def buildDeps1 = Stub(TaskDependency)
-        def buildDeps2 = Stub(TaskDependency)
-        def buildDeps3 = Stub(TaskDependency)
-        def task1 = Stub(Task)
-        def task2 = Stub(Task)
-        def task3 = Stub(Task)
-
-        given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
-        addConfiguration("child2", ["conf1"])
-
-        buildDeps1.getDependencies(_) >> [task1]
-        buildDeps2.getDependencies(_) >> [task2]
-        buildDeps3.getDependencies(_) >> [task3]
-
-        when:
-        addArtifact("conf1", artifact1, file1, buildDeps1)
-        addArtifact("conf2", artifact2, file2, buildDeps2)
-        addArtifact("child1", artifact3, file3, buildDeps3)
-
-        then:
-        metadata.getConfiguration("conf1").artifactBuildDependencies.getDependencies(null) == [task1] as Set
-        metadata.getConfiguration("conf2").artifactBuildDependencies.getDependencies(null) == [task2] as Set
-        metadata.getConfiguration("child1").artifactBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
-        metadata.getConfiguration("child2").artifactBuildDependencies.getDependencies(null) == [task1] as Set
     }
 
     def "can add dependencies"() {

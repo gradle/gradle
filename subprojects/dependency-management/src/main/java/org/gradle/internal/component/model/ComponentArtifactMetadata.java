@@ -18,6 +18,9 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.tasks.TaskDependency;
+
+import java.util.Collection;
 
 /**
  * Meta-data for an artifact that belongs to some component.
@@ -37,4 +40,9 @@ public interface ComponentArtifactMetadata {
      * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible way.
      */
     IvyArtifactName getName();
+
+    /**
+     * Collects the build dependencies of this artifact, which are the tasks required to build this artifact
+     */
+    void collectBuildDependencies(Collection<? super TaskDependency> dependencies);
 }

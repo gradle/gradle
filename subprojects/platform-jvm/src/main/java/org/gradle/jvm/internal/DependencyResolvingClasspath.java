@@ -35,14 +35,13 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -107,7 +106,9 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     @Override
     public TaskDependency getBuildDependencies() {
         ensureResolved(false);
-        return resolveResult.taskDependency;
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        taskDependency.add(resolveResult.buildDependencies);
+        return taskDependency;
     }
 
     private void ensureResolved(boolean failFast) {
@@ -132,7 +133,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
-        public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        public final List<Object> buildDependencies = new ArrayList<Object>();
         public final List<Throwable> notFound = new LinkedList<Throwable>();
         public final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
@@ -142,12 +143,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitNode(DependencyGraphNode resolvedConfiguration) {
-            ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
-            if (configurationMetadata instanceof LocalConfigurationMetadata) {
-                TaskDependency directBuildDependencies = ((LocalConfigurationMetadata) configurationMetadata).getArtifactBuildDependencies();
-                taskDependency.add(directBuildDependencies);
-            }
-
             for (DependencyGraphEdge dependency : resolvedConfiguration.getOutgoingEdges()) {
                 ModuleVersionResolveException failure = dependency.getFailure();
                 if (failure != null) {
@@ -167,6 +162,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         @Override
         public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
             artifactResults.addArtifactSet(artifacts);
+            artifacts.collectBuildDependencies(buildDependencies);
         }
 
         @Override
