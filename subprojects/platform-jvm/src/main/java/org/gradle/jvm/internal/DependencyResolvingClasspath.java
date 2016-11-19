@@ -109,7 +109,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ensureResolved(false);
 
         List<TaskDependency> taskDependencies = new ArrayList<TaskDependency>();
-        resolveResult.artifactsResults.collectBuildDependencies(taskDependencies);
+        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(taskDependencies);
         return TaskDependencies.of(taskDependencies);
     }
 

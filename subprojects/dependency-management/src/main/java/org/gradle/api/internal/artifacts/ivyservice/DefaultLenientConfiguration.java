@@ -86,7 +86,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-                artifactResults.collectBuildDependencies(dest);
+                artifactResults.getArtifacts().collectBuildDependencies(dest);
                 fileDependencyResults.getFiles().collectBuildDependencies(dest);
                 return dest;
             }

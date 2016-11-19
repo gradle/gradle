@@ -41,7 +41,7 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     private class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
         @Override
         public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-            artifactsResults.collectBuildDependencies(dest);
+            artifactsResults.getArtifacts().collectBuildDependencies(dest);
             fileDependencyResults.getFiles().collectBuildDependencies(dest);
             return dest;
         }

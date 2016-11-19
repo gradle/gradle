@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
@@ -28,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 /**
@@ -79,20 +76,19 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        Set<TaskDependency> buildDependencies = newHashSetWithExpectedSize(buildableArtifactSets.size());
-        Set<ResolvedArtifact> artifacts = newLinkedHashSet();
+        Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
         Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
 
         for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
             ResolvedArtifactSet resolvedArtifacts = entry.getValue().getArtifacts();
-            artifacts.addAll(resolvedArtifacts.getArtifacts());
-            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
-            if (buildableArtifactSets.contains(entry.getValue())) {
-                resolvedArtifacts.collectBuildDependencies(buildDependencies);
+            if (!buildableArtifactSets.contains(entry.getValue())) {
+                resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
             }
+            allArtifactSets.add(resolvedArtifacts);
+            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
         }
-        ResolvedArtifactSet allArtifacts = ArtifactBackedArtifactSet.of(artifacts);
+        ResolvedArtifactSet allArtifacts = CompositeArtifactSet.of(allArtifactSets);
 
-        return new DefaultResolvedArtifactResults(allArtifacts, resolvedArtifactsById, buildDependencies);
+        return new DefaultResolvedArtifactResults(allArtifacts, resolvedArtifactsById);
     }
 }
