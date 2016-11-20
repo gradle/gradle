@@ -24,6 +24,7 @@ import org.gradle.api.AttributeContainer;
 import org.gradle.api.AttributesSchema;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
@@ -470,7 +471,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return doGetTaskDependency(Specs.<Dependency>satisfyAll(), format);
     }
 
-    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, String format) {
+    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, @Nullable String format) {
         synchronized (resolutionLock) {
             if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
                 // Force graph resolution as this is required to calculate build dependencies
@@ -491,11 +492,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec, String format) {
+    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec, @Nullable String format) {
         synchronized (resolutionLock) {
-            ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
-            resolvedConfiguration.rethrowFailure();
-            return resolvedConfiguration.getFiles(dependencySpec);
+            resolveToStateOrLater(ARTIFACTS_RESOLVED);
+            return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, format).collectFiles(new LinkedHashSet<File>());
         }
     }
 
@@ -718,28 +718,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     class ConfigurationFileCollection extends AbstractFileCollection {
-        private Spec<? super Dependency> dependencySpec;
+        private final String format;
+        private final Spec<? super Dependency> dependencySpec;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
+            this.format = null;
         }
 
-        public ConfigurationFileCollection(Closure dependencySpecClosure) {
-            this.dependencySpec = Specs.convertClosureToSpec(dependencySpecClosure);
+        private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec, @Nullable String format) {
+            assertResolvingAllowed();
+            this.format = format;
+            this.dependencySpec = dependencySpec;
         }
 
-        public ConfigurationFileCollection(final Set<Dependency> dependencies) {
-            this.dependencySpec = new Spec<Dependency>() {
+        private ConfigurationFileCollection(Closure dependencySpecClosure) {
+            this(Specs.convertClosureToSpec(dependencySpecClosure));
+        }
+
+        private ConfigurationFileCollection(final Set<Dependency> dependencies) {
+            this(new Spec<Dependency>() {
                 public boolean isSatisfiedBy(Dependency element) {
                     return dependencies.contains(element);
                 }
-            };
+            });
         }
 
         @Override
         public TaskDependency getBuildDependencies() {
-            return doGetTaskDependency(dependencySpec, format);
+            return doGetTaskDependency(dependencySpec, format != null ? format : DefaultConfiguration.this.format);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -747,11 +755,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getDisplayName() {
-            return DefaultConfiguration.this + " dependencies";
+            return DefaultConfiguration.this.getDisplayName();
         }
 
         public Set<File> getFiles() {
-            return doGetFiles(dependencySpec, format);
+            return doGetFiles(dependencySpec, format != null ? format : DefaultConfiguration.this.format);
         }
     }
 
@@ -907,12 +915,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public FileCollection getFiles() {
-            return DefaultConfiguration.this.fileCollection(Specs.<Dependency>satisfyAll());
+            return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         }
 
         @Override
         public FileCollection getFiles(String format) {
-            return getFiles();
+            return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), format);
         }
 
         public DependencySet getDependencies() {

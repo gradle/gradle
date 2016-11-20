@@ -17,7 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.junit.runner.RunWith
 
+@RunWith(FluidDependenciesResolveRunner)
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -32,6 +35,24 @@ allprojects {
         compile {
             attributes usage: 'api'
         }
+    }
+    task utilJar {
+        outputs.file("\${project.name}-util.jar")
+    }
+    task jar {
+        outputs.file("\${project.name}.jar")
+    }
+    task utilClasses {
+        outputs.file("\${project.name}-util.classes")
+    }
+    task classes {
+        outputs.file("\${project.name}.classes")
+    }
+    task dir {
+        outputs.file("\${project.name}")
+    }
+    task utilDir {
+        outputs.file("\${project.name}-util")
     }
 }
 """
@@ -54,13 +75,15 @@ allprojects {
             }
             project(':lib') {
                 dependencies {
-                    compile files('lib-util.jar', 'lib-util.classes', 'lib-util')
+                    compile utilJar.outputs.files
+                    compile utilClasses.outputs.files
+                    compile utilDir.outputs.files
                     compile 'org:test:1.0'
                 }
                 artifacts {
-                    compile file('lib.jar')
-                    compile file('lib.classes')
-                    compile file('lib')
+                    compile file: file('lib.jar'), builtBy: jar
+                    compile file: file('lib.classes'), builtBy: classes
+                    compile file: file('lib'), builtBy: dir
                 }
             }
 
@@ -76,9 +99,13 @@ allprojects {
                 }
 
                 task resolve {
+                    inputs.files configurations.compile
                     doLast {
                         assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                     }
                 }
             }
@@ -89,6 +116,7 @@ allprojects {
 
         expect:
         succeeds "resolve"
+//        result.assertTasksExecuted(":lib:jar", ":lib:utilJar", ":app:resolve")
     }
 
     // Documents existing matching behaviour, not desired behaviour
@@ -108,13 +136,15 @@ allprojects {
             }
             project(':lib') {
                 dependencies {
-                    compile files('lib-util.jar', 'lib-util.classes', 'lib-util')
+                    compile utilJar.outputs.files
+                    compile utilClasses.outputs.files
+                    compile utilDir.outputs.files
                     compile 'org:test:1.0'
                 }
                 artifacts {
-                    compile file('lib.jar')
-                    compile file('lib.classes')
-                    compile file('lib')
+                    compile file: file('lib.jar'), builtBy: jar
+                    compile file: file('lib.classes'), builtBy: classes
+                    compile file: file('lib'), builtBy: dir
                 }
             }
 
@@ -130,18 +160,20 @@ allprojects {
                 }
 
                 task resolve {
+                    def files = configurations.compile.incoming.getFiles('classes')
+                    inputs.files files
                     doLast {
-                        def result = configurations.compile.incoming.getFiles('classes')
-                        assert result.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'some-classes-1.0.classes']
                     }
                 }
             }
         """
 
         m1.ivy.expectGet()
-        m1.getArtifact(name: 'some-jar', type: 'jar').expectGet()
+        m1.getArtifact(name: 'some-classes', type: 'classes').expectGet()
 
         expect:
         succeeds "resolve"
+//        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":app:resolve")
     }
 }

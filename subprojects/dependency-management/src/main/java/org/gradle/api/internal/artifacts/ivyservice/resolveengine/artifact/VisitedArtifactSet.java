@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.specs.Spec;
 
@@ -29,7 +30,7 @@ public interface VisitedArtifactSet {
      * Not every query is available on the value returned from this method. Details are progressively refined during resolution and more queries become available.
      *
      * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
-     * @param format Select only those artifacts which have the given format.
+     * @param format When not null, select only those artifacts which have the given format.
      */
-    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, String format);
+    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, @Nullable String format);
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -34,7 +35,7 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     }
 
     @Override
-    public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, String format) {
+    public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, @Nullable String format) {
         return new BuildDependenciesOnlySelectedArtifactSet();
     }
 

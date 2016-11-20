@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
@@ -32,7 +33,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
     private final String format;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, String format) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, @Nullable String format) {
         this.configuration = configuration;
         this.format = format;
     }

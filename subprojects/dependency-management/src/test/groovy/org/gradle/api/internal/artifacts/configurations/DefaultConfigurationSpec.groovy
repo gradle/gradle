@@ -278,14 +278,9 @@ class DefaultConfigurationSpec extends Specification {
     def "resolves files"() {
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        def resolvedConfiguration = Mock(ResolvedConfiguration)
 
         given:
-        expectResolved(resolvedConfiguration);
-
-        and:
-        resolvedConfiguration.hasError() >> false
-        resolvedConfiguration.getFiles(_) >> fileSet
+        expectResolved(fileSet);
 
         when:
         def resolved = configuration.resolve()
@@ -297,15 +292,10 @@ class DefaultConfigurationSpec extends Specification {
 
     def "get as path throws failure resolving"() {
         def configuration = conf()
-        def resolvedConfiguration = Mock(ResolvedConfiguration)
         def failure = new RuntimeException()
 
         given:
-        expectResolved(resolvedConfiguration);
-
-        and:
-        resolvedConfiguration.hasError() >> true
-        resolvedConfiguration.rethrowFailure() >> { throw failure }
+        expectResolved(failure)
 
         when:
         configuration.getResolvedConfiguration()
@@ -414,45 +404,50 @@ class DefaultConfigurationSpec extends Specification {
         configuration.state == RESOLVED
     }
 
-    def "resolves as resolved configuration"() {
-        def configuration = conf()
-        def resolvedConfiguration = Mock(ResolvedConfiguration)
-
-        given:
-        expectResolved(resolvedConfiguration)
-
-        when:
-        def r = configuration.getResolvedConfiguration()
-
-        then:
-        r == resolvedConfiguration
-        configuration.state == RESOLVED
-    }
-
     def "multiple resolves use cached result"() {
         def configuration = conf()
-        def resolvedConfiguration = Mock(ResolvedConfiguration)
 
         given:
-        expectResolved(resolvedConfiguration)
+        expectResolved([] as Set)
 
         when:
         def r = configuration.getResolvedConfiguration()
 
         then:
         configuration.getResolvedConfiguration() == r
+        configuration.state == RESOLVED
     }
 
     private prepareForFilesBySpec(Set<File> fileSet) {
-        def resConfig = Mock(ResolvedConfiguration)
-        expectResolved(resConfig)
-        1 * resConfig.getFiles(_ as Spec) >> fileSet
+        expectResolved(fileSet)
     }
 
-    private void expectResolved(ResolvedConfiguration resolvedConfiguration) {
-        def resolutionResults = Mock(ResolutionResult)
-        def localComponentsResult = Mock(ResolvedLocalComponentsResult)
-        def visitedArtifactSet = Mock(VisitedArtifactSet)
+    private void expectResolved(Set<File> files) {
+        def resolutionResults = Stub(ResolutionResult)
+        def localComponentsResult = Stub(ResolvedLocalComponentsResult)
+        def visitedArtifactSet = Stub(VisitedArtifactSet)
+
+        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+            collectFiles(_) >> { it[0].addAll(files); return it[0] }
+        }
+
+        _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
+        _ * resolver.resolveGraph(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
+            resolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactSet)
+            resolverResults.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifactSet)
+        }
+    }
+
+    private void expectResolved(Throwable failure) {
+        def resolutionResults = Stub(ResolutionResult)
+        def localComponentsResult = Stub(ResolvedLocalComponentsResult)
+        def visitedArtifactSet = Stub(VisitedArtifactSet)
+        def resolvedConfiguration = Stub(ResolvedConfiguration)
+
+        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+            collectFiles(_) >> { throw failure }
+        }
+        _ * resolvedConfiguration.hasError() >> true
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
         _ * resolver.resolveGraph(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
@@ -932,6 +927,11 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
+
+        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+            collectFiles(_) >> { return it[0] }
+        }
+
         resolver.resolveGraph(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.graphResolved(resolutionResult, localComponentsResult, visitedArtifactSet)
         }
@@ -1125,19 +1125,15 @@ class DefaultConfigurationSpec extends Specification {
 
     def "resolving configuration twice returns the same result objects"() {
         def config = conf("conf")
-        def result = Mock(ResolutionResult)
-        def resolvedConfiguration = Mock(ResolvedConfiguration)
-        def resolvedFiles = Mock(Set)
 
         when:
-        resolves(config, result, resolvedConfiguration)
+        expectResolved([new File("result")] as Set)
 
         def previousFiles = config.files
         def previousResolutionResult = config.incoming.resolutionResult
         def previousResolvedConfiguration = config.resolvedConfiguration
 
         then:
-        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
         config.state == RESOLVED
 
@@ -1147,22 +1143,18 @@ class DefaultConfigurationSpec extends Specification {
         def nextResolvedConfiguration = config.resolvedConfiguration
 
         then:
-        0 * resolver.resolveGraph(_)
-        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
+        0 * resolver._
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
-        previousResolutionResult == result
-        nextResolutionResult == result
+        previousResolutionResult == nextResolutionResult
 
         // We get back the same resolved configuration
-        previousResolvedConfiguration == resolvedConfiguration
-        nextResolvedConfiguration == resolvedConfiguration
+        previousResolvedConfiguration == nextResolvedConfiguration
 
         // And the same files
-        previousFiles == resolvedFiles
-        nextFiles == resolvedFiles
+        previousFiles == nextFiles
     }
 
     def "copied configuration is not resolved"() {
