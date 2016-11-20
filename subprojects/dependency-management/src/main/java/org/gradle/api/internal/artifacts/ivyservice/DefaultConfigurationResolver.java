@@ -90,7 +90,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor();
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, fileDependenciesVisitor, artifactsVisitor, attributesSchema);
-        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor));
+        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy());
+        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor, transformer));
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -118,7 +119,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema);
 
         VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
-        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsResults, fileDependencyVisitor));
+        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy());
+        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsResults, fileDependencyVisitor, transformer));
 
         results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsResults, fileDependencyVisitor, oldTransientModelBuilder));
     }

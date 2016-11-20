@@ -26,6 +26,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
+            include 'ui'
             include 'app'
         """
 
@@ -86,6 +87,11 @@ allprojects {
                     compile file: file('lib'), builtBy: dir
                 }
             }
+            project(':ui') {
+                artifacts {
+                    compile file: file('ui.classes'), builtBy: classes
+                }
+            }
 
             project(':app') {
                 configurations {
@@ -95,17 +101,26 @@ allprojects {
                 }
 
                 dependencies {
-                    compile project(':lib')
+                    compile project(':lib'), project(':ui')
                 }
 
                 task resolve {
                     inputs.files configurations.compile
                     doLast {
                         assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        
+                        // These do not include files from file dependencies
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ['lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == ['lib.jar', 'some-jar-1.0.jar']
+
                         assert configurations.compile.incoming.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolve().collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                     }
                 }
             }
@@ -116,7 +131,8 @@ allprojects {
 
         expect:
         succeeds "resolve"
-//        result.assertTasksExecuted(":lib:jar", ":lib:utilJar", ":app:resolve")
+        // Currently builds all file dependencies
+        result.assertTasksExecuted(":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
     }
 
     // Documents existing matching behaviour, not desired behaviour
@@ -147,6 +163,11 @@ allprojects {
                     compile file: file('lib'), builtBy: dir
                 }
             }
+            project(':ui') {
+                artifacts {
+                    compile file: file('ui.jar'), builtBy: jar
+                }
+            }
 
             project(':app') {
                 configurations {
@@ -156,7 +177,7 @@ allprojects {
                 }
 
                 dependencies {
-                    compile project(':lib')
+                    compile project(':lib'), project(':ui')
                 }
 
                 task resolve {
@@ -174,6 +195,7 @@ allprojects {
 
         expect:
         succeeds "resolve"
-//        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":app:resolve")
+        // Currently builds all file dependencies
+        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
     }
 }

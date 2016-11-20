@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class NoBuildDependenciesArtifactSetTest extends Specification {
@@ -42,5 +43,28 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def buildDeps = []
         wrapper.collectBuildDependencies(buildDeps)
         buildDeps.empty
+    }
+
+    def "selects artifacts"() {
+        def spec = Stub(Spec)
+        def set1 = Stub(ResolvedArtifactSet)
+        def selected1 = Stub(ResolvedArtifactSet)
+        def set2 = Stub(ResolvedArtifactSet)
+        def set3 = Stub(ResolvedArtifactSet)
+
+        given:
+        set1.select(spec) >> selected1
+        set2.select(spec) >> set2
+        set3.select(spec) >> ResolvedArtifactSet.EMPTY
+
+        expect:
+        def wrapper1 = NoBuildDependenciesArtifactSet.of(set1)
+        wrapper1.select(spec) instanceof NoBuildDependenciesArtifactSet
+
+        def wrapper2 = NoBuildDependenciesArtifactSet.of(set2)
+        wrapper2.select(spec).is(wrapper2)
+
+        def wrapper3 = NoBuildDependenciesArtifactSet.of(set3)
+        wrapper3.select(spec) == ResolvedArtifactSet.EMPTY
     }
 }

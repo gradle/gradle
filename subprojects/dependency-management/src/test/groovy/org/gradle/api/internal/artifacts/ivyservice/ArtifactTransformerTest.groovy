@@ -193,5 +193,35 @@ class ArtifactTransformerTest extends Specification {
         0 * _
     }
 
+    def "selects artifacts with requested format"() {
+        def artifact1 = Stub(ResolvedArtifact)
+        def artifact2 = Stub(ResolvedArtifact)
+
+        given:
+        artifact1.type >> "classes"
+        artifact2.type >> "jar"
+
+        expect:
+        def spec = transformer.select("classes")
+        spec.isSatisfiedBy(artifact1)
+        !spec.isSatisfiedBy(artifact2)
+    }
+
+    def "selects artifacts with format that can be transformed to requested format"() {
+        def artifact1 = Stub(ResolvedArtifact)
+        def artifact2 = Stub(ResolvedArtifact)
+
+        given:
+        artifact1.type >> "jar"
+        artifact2.type >> "dll"
+        resolutionStrategy.getTransform("jar", "classes") >> Stub(Transformer)
+        resolutionStrategy.getTransform("dll", "classes") >> null
+
+        expect:
+        def spec = transformer.select("classes")
+        spec.isSatisfiedBy(artifact1)
+        !spec.isSatisfiedBy(artifact2)
+    }
+
     interface TestArtifact extends ResolvedArtifact, Buildable { }
 }

@@ -25,6 +25,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -43,6 +45,24 @@ public class ArtifactTransformer {
         this.resolutionStrategy = resolutionStrategy;
     }
 
+    /**
+     * Returns a spec that selects artifacts with the given format, or which can be transformed into the given format.
+     */
+    public Spec<ResolvedArtifact> select(@Nullable final String format) {
+        if (format == null) {
+            return Specs.satisfyAll();
+        }
+        return new Spec<ResolvedArtifact>() {
+            @Override
+            public boolean isSatisfiedBy(ResolvedArtifact artifact) {
+                return artifact.getType().equals(format) || resolutionStrategy.getTransform(artifact.getType(), format) != null;
+            }
+        };
+    }
+
+    /**
+     * Returns a visitor that transforms files and artifacts to the given format and then forwards the results to the given visitor.
+     */
     public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable final String format) {
         if (format == null) {
             return visitor;

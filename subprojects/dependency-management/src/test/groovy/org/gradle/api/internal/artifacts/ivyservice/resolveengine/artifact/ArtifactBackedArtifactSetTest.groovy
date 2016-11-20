@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
@@ -65,6 +66,36 @@ class ArtifactBackedArtifactSetTest extends Specification {
         then:
         1 * visitor.visitArtifact(artifact1)
         0 * _
+    }
+
+    def "selects matching artifacts"() {
+        def spec = Stub(Spec)
+        def artifact4 = Mock(TestArtifact)
+
+        given:
+        spec.isSatisfiedBy(artifact1) >> true
+        spec.isSatisfiedBy(artifact2) >> false
+        spec.isSatisfiedBy(artifact3) >> false
+        spec.isSatisfiedBy(artifact4) >> true
+
+        expect:
+
+        // Singletons
+        def set1 = ArtifactBackedArtifactSet.of([artifact1])
+        set1.select(spec).is(set1)
+
+        ArtifactBackedArtifactSet.of([artifact2]).select(spec) == ResolvedArtifactSet.EMPTY
+
+        // Composites
+        def set2 = ArtifactBackedArtifactSet.of([artifact1, artifact2, artifact3]).select(spec)
+        set2 instanceof ArtifactBackedArtifactSet.SingletonSet
+        set2.artifacts == [artifact1] as Set
+
+        ArtifactBackedArtifactSet.of([artifact2, artifact3]).select(spec) == ResolvedArtifactSet.EMPTY
+
+        def set3 = ArtifactBackedArtifactSet.of([artifact1, artifact2, artifact4]).select(spec)
+        set3 instanceof ArtifactBackedArtifactSet
+        set3.artifacts == [artifact1, artifact4] as Set
     }
 
     def "collects build dependencies"() {

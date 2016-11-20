@@ -19,8 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactTransformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.Collection;
@@ -28,22 +31,42 @@ import java.util.Collection;
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
     private final VisitedArtifactsResults artifactsResults;
     private final VisitedFileDependencyResults fileDependencyResults;
+    private final ArtifactTransformer artifactTransformer;
 
-    public BuildDependenciesOnlyVisitedArtifactSet(VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults) {
+    public BuildDependenciesOnlyVisitedArtifactSet(VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, ArtifactTransformer artifactTransformer) {
         this.artifactsResults = artifactsResults;
         this.fileDependencyResults = fileDependencyResults;
+        this.artifactTransformer = artifactTransformer;
     }
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, @Nullable String format) {
-        return new BuildDependenciesOnlySelectedArtifactSet();
+        Spec<ResolvedArtifact> spec = artifactTransformer.select(format);
+        ResolvedArtifactSet selectedArtifacts;
+        ResolvedArtifactSet selectedFiles;
+        if (spec == Specs.<ResolvedArtifact>satisfyAll()) {
+            selectedArtifacts = artifactsResults.getArtifacts();
+            selectedFiles = fileDependencyResults.getFiles();
+        } else {
+            selectedArtifacts = artifactsResults.getArtifacts().select(spec);
+            selectedFiles = fileDependencyResults.getFiles().select(spec);
+        }
+        return new BuildDependenciesOnlySelectedArtifactSet(selectedArtifacts, selectedFiles);
     }
 
-    private class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
+    private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
+        private final ResolvedArtifactSet selectedArtifacts;
+        private final ResolvedArtifactSet selectedFiles;
+
+        BuildDependenciesOnlySelectedArtifactSet(ResolvedArtifactSet selectedArtifacts, ResolvedArtifactSet selectedFiles) {
+            this.selectedArtifacts = selectedArtifacts;
+            this.selectedFiles = selectedFiles;
+        }
+
         @Override
         public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-            artifactsResults.getArtifacts().collectBuildDependencies(dest);
-            fileDependencyResults.getFiles().collectBuildDependencies(dest);
+            selectedArtifacts.collectBuildDependencies(dest);
+            selectedFiles.collectBuildDependencies(dest);
             return dest;
         }
 

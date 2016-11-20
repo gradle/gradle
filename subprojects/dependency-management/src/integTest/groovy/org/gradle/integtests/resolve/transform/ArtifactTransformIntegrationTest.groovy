@@ -92,9 +92,10 @@ class FileSizer extends ArtifactTransform {
             a.text = '1234'
             def b = file('b.jar')
             b.text = '12'
+            task jars
 
             dependencies {
-                compile files(a, b)
+                compile files([a, b]) { builtBy jars }
             }
 
             ${fileSizeConfigurationAndTransform()}
@@ -103,6 +104,9 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        result.assertTasksExecuted(":jars", ":resolve")
+
+        and:
         file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/libs/a.jar.txt").text == "4"
         file("build/libs/b.jar.txt").text == "2"
@@ -143,6 +147,9 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+
+        and:
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
         file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")

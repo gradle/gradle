@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Collection;
@@ -34,6 +35,18 @@ public class NoBuildDependenciesArtifactSet implements ResolvedArtifactSet {
             return set;
         }
         return new NoBuildDependenciesArtifactSet(set);
+    }
+
+    @Override
+    public ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec) {
+        ResolvedArtifactSet selected = set.select(artifactSpec);
+        if (selected == set) {
+            return this;
+        }
+        if (selected == EMPTY || set instanceof NoBuildDependenciesArtifactSet) {
+            return selected;
+        }
+        return new NoBuildDependenciesArtifactSet(selected);
     }
 
     @Override

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class CompositeArtifactSetTest extends Specification {
@@ -59,5 +60,39 @@ class CompositeArtifactSetTest extends Specification {
         then:
         1 * set2.visit(visitor)
         0 * _
+    }
+
+    def "selects artifacts"() {
+        def spec = Stub(Spec)
+        def set1 = Mock(ResolvedArtifactSet)
+        def set2 = Mock(ResolvedArtifactSet)
+        def selected1 = Mock(ResolvedArtifactSet)
+        def selected2 = Mock(ResolvedArtifactSet)
+
+        given:
+        set1.select(spec) >> selected1
+        set2.select(spec) >> selected2
+
+        expect:
+        def selected = CompositeArtifactSet.of([set1, set2]).select(spec)
+        selected instanceof CompositeArtifactSet
+        selected.sets == [selected1, selected2]
+    }
+
+    def "flattens empty sets when selecting artifacts"() {
+        def spec = Stub(Spec)
+        def set1 = Mock(ResolvedArtifactSet)
+        def set2 = Mock(ResolvedArtifactSet)
+        def set3 = Mock(ResolvedArtifactSet)
+        def selected1 = Mock(ResolvedArtifactSet)
+
+        given:
+        set1.select(spec) >> selected1
+        set2.select(spec) >> ResolvedArtifactSet.EMPTY
+        set3.select(spec) >> ResolvedArtifactSet.EMPTY
+
+        expect:
+        CompositeArtifactSet.of([set1, set2]).select(spec) == selected1
+        CompositeArtifactSet.of([set2, set3]).select(spec) == ResolvedArtifactSet.EMPTY
     }
 }
