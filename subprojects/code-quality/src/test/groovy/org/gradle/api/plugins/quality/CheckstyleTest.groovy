@@ -41,6 +41,7 @@ class CheckstyleTest extends Specification {
             !ignoreFailures
             showViolations
             maxErrors == 0
+            maxWarnings == 0
         }
     }
 

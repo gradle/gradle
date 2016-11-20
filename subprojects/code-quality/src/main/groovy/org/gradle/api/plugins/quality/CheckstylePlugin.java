@@ -105,6 +105,12 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
                 return extension.getMaxErrors();
             }
         });
+        taskMapping.map("maxWarnings", new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return extension.getMaxWarnings();
+            }
+        });
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

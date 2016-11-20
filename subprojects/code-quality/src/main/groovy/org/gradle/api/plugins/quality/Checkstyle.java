@@ -59,6 +59,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private final CheckstyleReports reports;
     private boolean ignoreFailures;
     private int maxErrors;
+    private int maxWarnings;
     private boolean showViolations = true;
 
 
@@ -253,6 +254,21 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     public void setMaxErrors(int maxErrors) {
         this.maxErrors = maxErrors;
+    }
+
+    /**
+     * The maximum number of warnings that are tolerated before breaking the build
+     * or setting the failure property.
+     *
+     * @return the maximum number of warnings allowed
+     */
+    @Console
+    public int getMaxWarnings() {
+        return maxWarnings;
+    }
+
+    public void setMaxWarnings(int maxWarnings) {
+        this.maxWarnings = maxWarnings;
     }
 
     /**

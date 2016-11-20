@@ -35,6 +35,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private int maxErrors;
+    private int maxWarnings;
     private boolean showViolations = true;
 
     public CheckstyleExtension(Project project) {
@@ -94,6 +95,22 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     public void setMaxErrors(int maxErrors) {
         this.maxErrors = maxErrors;
+    }
+
+    /**
+     * The maximum number of warnings that are tolerated before breaking the build
+     * or setting the failure property. Defaults to <tt>Integer.MAX_VALUE</tt>.
+     * <p>
+     * Example: maxWarnings = 1000
+     *
+     * @return the maximum number of warnings allowed
+     */
+    public int getMaxWarnings() {
+        return maxWarnings;
+    }
+
+    public void setMaxWarnings(int maxWarnings) {
+        this.maxWarnings = maxWarnings;
     }
 
     /**
