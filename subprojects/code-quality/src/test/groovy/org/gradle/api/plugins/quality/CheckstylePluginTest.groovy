@@ -85,6 +85,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert !ignoreFailures
             assert showViolations
             assert maxErrors == 0
+            assert maxWarnings == 0
         }
     }
 
@@ -131,6 +132,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             ignoreFailures = true
             showViolations = true
             maxErrors = 1
+            maxWarnings = 1000
         }
 
         expect:
@@ -156,6 +158,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert ignoreFailures
             assert showViolations
             assert maxErrors == 1
+            assert maxWarnings == 1000
         }
     }
 

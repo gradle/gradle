@@ -36,6 +36,10 @@
                 <td>maxErrors</td>
                 <td><literal>0</literal></td>
             </tr>
+            <tr>
+                <td>maxWarnings</td>
+                <td><literal>Integer.MAX_VALUE</literal></td>
+            </tr>
         </table>
     </section>
     <section>
