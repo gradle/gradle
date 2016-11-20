@@ -1,5 +1,5 @@
 package org.gradle.sample;
 
-public interface PersonLike {
+public interface Named {
     String getName();
 }

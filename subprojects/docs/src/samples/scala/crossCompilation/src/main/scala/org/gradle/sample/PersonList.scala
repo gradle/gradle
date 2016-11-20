@@ -1,5 +1,5 @@
 package org.gradle.sample
 
 object PersonList {
-  def find(name: String): PersonLike = new JavaPerson(name)
+  def find(name: String): Named = new JavaPerson(name)
 }

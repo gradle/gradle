@@ -8,7 +8,7 @@ import org.scalatest.junit.JUnitRunner
 class PersonSpec extends FunSpec {
   describe("person creation") {
     it("should successfully create a person") {
-      def person: PersonLike = new Person(List("bob", "smith"))
+      def person: Named = new Person(List("bob", "smith"))
       person
     }
   }

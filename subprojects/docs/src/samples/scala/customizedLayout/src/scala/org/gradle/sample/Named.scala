@@ -1,5 +1,5 @@
 package org.gradle.sample
 
-trait PersonLike {
+trait Named {
   def names: List[String]
 }
