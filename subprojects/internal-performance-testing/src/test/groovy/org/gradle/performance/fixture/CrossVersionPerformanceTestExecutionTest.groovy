@@ -100,58 +100,6 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    def "fails when average heap usage for current release is larger than average heap usage for previous releases"() {
-        given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
-
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
-
-        and:
-        result.current << operation(totalMemoryUsed: 1000)
-        result.current << operation(totalMemoryUsed: 1001)
-        result.current << operation(totalMemoryUsed: 1001)
-
-        when:
-        result.assertCurrentVersionHasNotRegressed()
-
-        then:
-        AssertionError e = thrown()
-        e.message.startsWith("Memory ${result.displayName}: we need more memory than 1.2.")
-        e.message.contains('Difference: 1 B more (1 B), 0.10%, max regression: 0.848 B')
-        !e.message.contains('than 1.0')
-    }
-
-    def "fails when both heap usage and execution time have regressed"() {
-        given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 150)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000, totalTime: 100)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 150)
-
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
-
-        and:
-        result.current << operation(totalMemoryUsed: 1100, totalTime: 110)
-        result.current << operation(totalMemoryUsed: 1100, totalTime: 110)
-        result.current << operation(totalMemoryUsed: 1101, totalTime: 111)
-
-        when:
-        result.assertCurrentVersionHasNotRegressed()
-
-        then:
-        AssertionError e = thrown()
-        e.message.contains("Speed ${result.displayName}: we're slower than 1.2.")
-        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.848 ms')
-        e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
-        e.message.contains('Difference: 100 B more (1E+2 B), 10.00%, max regression: 0.848 B')
-        !e.message.contains('than 1.0')
-    }
-
     def "fails when a previous operation fails"() {
         given:
         result.baseline("1.0").results << operation(failure: new RuntimeException())
@@ -190,53 +138,6 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.startsWith("Some builds have failed.")
-    }
-
-    def "fails if one of the baseline version is faster and the other needs less memory"() {
-        given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 100)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 100)
-
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 150)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 150)
-
-        and:
-        result.current << operation(totalMemoryUsed: 1100, totalTime: 125)
-        result.current << operation(totalMemoryUsed: 1100, totalTime: 125)
-
-        when:
-        result.assertCurrentVersionHasNotRegressed()
-
-        then:
-        AssertionError e = thrown()
-        e.message.contains("Speed ${result.displayName}: we're slower than 1.0.")
-        e.message.contains('Difference: 25 ms slower')
-        e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
-        e.message.contains('Difference: 100 B more')
-        e.message.count(result.displayName) == 2
-    }
-
-    def "fails if all of the baseline versions are better in every respect"() {
-        given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 120)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 120)
-
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, totalTime: 150)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, totalTime: 150)
-
-        and:
-        result.current << operation(totalMemoryUsed: 1300, totalTime: 200)
-        result.current << operation(totalMemoryUsed: 1300, totalTime: 200)
-
-        when:
-        result.assertCurrentVersionHasNotRegressed()
-
-        then:
-        AssertionError e = thrown()
-        e.message.contains("Speed ${result.displayName}: we're slower than 1.0.")
-        e.message.contains("Speed ${result.displayName}: we're slower than 1.2.")
-        e.message.contains("Memory ${result.displayName}: we need more memory than 1.0.")
-        e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
     }
 
     def "can lookup the results for a baseline version"() {

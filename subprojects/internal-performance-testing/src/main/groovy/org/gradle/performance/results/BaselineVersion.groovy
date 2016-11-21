@@ -18,10 +18,8 @@ package org.gradle.performance.results
 
 import groovy.transform.CompileStatic
 import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 
-import static PrettyCalculator.toBytes
 import static PrettyCalculator.toMillis
 
 @CompileStatic
@@ -60,42 +58,11 @@ class BaselineVersion implements VersionResults {
         }
     }
 
-    String getMemoryStatsAgainst(String displayName, MeasuredOperationList current) {
-        def sb = new StringBuilder()
-        def currentVersionMedian = current.totalMemoryUsed.median
-        def thisVersionMedian = results.totalMemoryUsed.median
-        if (currentVersionMedian && thisVersionMedian) {
-            if (currentVersionMedian > thisVersionMedian) {
-                sb.append("Memory $displayName: we need more memory than $version.\n")
-            } else {
-                sb.append("Memory $displayName: AWESOME! we need less memory than $version :D\n")
-            }
-
-            def diff = currentVersionMedian - thisVersionMedian
-            def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionMedian, thisVersionMedian)}%, max regression: ${getMaxMemoryRegression(current).format()}\n")
-            sb.append(current.memoryStats)
-            sb.append(results.memoryStats)
-            sb.append("\n")
-            sb.toString()
-        } else {
-            sb.append("Memory measurement is not available (probably due to a build failure)")
-        }
-    }
-
     boolean fasterThan(MeasuredOperationList current) {
         results.totalTime && current.totalTime.median - results.totalTime.median > getMaxExecutionTimeRegression(current)
     }
 
-    boolean usesLessMemoryThan(MeasuredOperationList current) {
-        results.totalMemoryUsed && current.totalMemoryUsed.median - results.totalMemoryUsed.median > getMaxMemoryRegression(current)
-    }
-
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
         (results.totalTime.standardErrorOfMean + current.totalTime.standardErrorOfMean) / 2 * NUM_STANDARD_ERRORS_FROM_MEAN
-    }
-
-    Amount<DataAmount> getMaxMemoryRegression(MeasuredOperationList current) {
-        (results.totalMemoryUsed.standardErrorOfMean + current.totalMemoryUsed.standardErrorOfMean) / 2 * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 }

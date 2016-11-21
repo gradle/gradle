@@ -130,9 +130,6 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
 
     def generateRootProject() {
         def templates = [] + (subprojectNames.empty ? subProjectTemplates : rootProjectTemplates)
-        if (!templates.empty) {
-            templates.addAll(['measurement-plugin'])
-        }
         generateProject(rootProject,
                 subprojects: subprojectNames,
                 projectDir: destDir,

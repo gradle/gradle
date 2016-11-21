@@ -70,10 +70,6 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
         format(totalTime)
     }
 
-    String getMemoryStats() {
-        format(totalMemoryUsed)
-    }
-
     private String format(DataSeries<?> measurement) {
         """  ${name} median: ${measurement.median.format()} min: ${measurement.min.format()}, max: ${measurement.max.format()}, se: ${measurement.standardError.format()}, sem: ${measurement.standardErrorOfMean.format()}
   > ${measurement.collect { it.format() }}

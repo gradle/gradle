@@ -16,9 +16,9 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.results.DataReporter
@@ -48,7 +48,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         this.reporter = dataReporter
         this.experimentRunner = experimentRunner
         this.buildContext = buildContext
-        this.gradleDistribution = new ForkingUnderDevelopmentGradleDistribution(buildContext)
+        this.gradleDistribution = new UnderDevelopmentGradleDistribution(buildContext)
     }
 
     public void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {

@@ -113,8 +113,4 @@ public class IntegrationTestBuildContext {
         return new TestFile(new File(path));
     }
 
-    public void configure(GradleExecuter gradleExecuter) {
-        // do nothing by default
-    }
-
 }

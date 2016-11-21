@@ -63,17 +63,6 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                     end();
 
-                    div().classAttr("charts");
-                        h3().text("Average heap usage").end();
-                        String heapUsageChartId = "heapUsageChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
-                        div().id(heapUsageChartId).classAttr("chart");
-                            p().text("Loading...").end();
-                        end();
-                        script();
-                            text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.heapUsage }, 'heap usage', 'mb', '" + heapUsageChartId + "');");
-                        end();
-                    end();
-
                     div().classAttr("details");
                         String url = "tests/" + testHistory.getId() + ".html";
                         a().href(url).text("details...").end();

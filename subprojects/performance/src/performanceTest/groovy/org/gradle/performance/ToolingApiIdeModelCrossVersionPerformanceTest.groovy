@@ -36,7 +36,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         experiment(template, "get $template EclipseProject model") {
             warmUpCount = 20
             invocationCount = 30
-            sleepAfterTestRoundMillis = 25
             // rebaselined because of https://github.com/gradle/performance/issues/99
             targetVersions = ['3.2-rc-1']
             action {
@@ -135,7 +134,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
             }*/
             warmUpCount = 20
             invocationCount = 30
-            sleepAfterTestRoundMillis = 25
             targetVersions = targetGradleVersions
             action {
                 def version = tapiClass(GradleVersion).current().version
