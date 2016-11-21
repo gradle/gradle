@@ -24,7 +24,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'('''
-                apply plugin: org.gradle.api.plugins.JavaLibraryPlugin
+                apply plugin: 'java-library'
                 dependencies {
                     api project(':b')
                 }
@@ -40,7 +40,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         subproject('b') {
             'build.gradle'('''
-                apply plugin: org.gradle.api.plugins.JavaLibraryPlugin
+                apply plugin: 'java-library'
             ''')
             src {
                 main {
@@ -63,7 +63,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         subproject('a') {
             'build.gradle'('''
-                apply plugin: org.gradle.api.plugins.JavaLibraryPlugin
+                apply plugin: 'java-library'
                 dependencies {
                     api project(':b')
                 }
@@ -118,7 +118,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         subproject('b') {
             'build.gradle'('''
-                apply plugin: org.gradle.api.plugins.JavaLibraryPlugin
+                apply plugin: 'java-library'
             ''')
             src {
                 main {
@@ -140,7 +140,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     def "doesn't allow declaring dependencies using the 'compile' configuration"() {
         file('settings.gradle') << 'include "b"'
         buildFile << '''
-            apply plugin: org.gradle.api.plugins.JavaLibraryPlugin
+            apply plugin: 'java-library'
 
             dependencies {
                 compile project(':b')
