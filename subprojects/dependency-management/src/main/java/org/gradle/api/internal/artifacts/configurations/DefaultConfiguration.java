@@ -157,6 +157,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeResolved = true;
     private AttributeContainerInternal configurationAttributes;
     private final ImmutableAttributesFactory attributesFactory;
+    private String lockMessage;
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -728,6 +729,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void validateMutation(MutationType type) {
+        if (lockMessage != null) {
+            throw new InvalidUserDataException(lockMessage);
+        }
         if (resolvedState == ARTIFACTS_RESOLVED) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
