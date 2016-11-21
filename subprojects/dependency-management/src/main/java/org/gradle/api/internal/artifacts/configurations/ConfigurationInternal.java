@@ -33,7 +33,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     void removeMutationValidator(MutationValidator validator);
 
-
     /**
      * Locks a configuration, making it effectively immutable. Any attempt to mutate this configuration
      * will throw an exception with the provided error message.
