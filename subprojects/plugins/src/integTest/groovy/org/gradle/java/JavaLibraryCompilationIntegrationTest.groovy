@@ -154,6 +154,135 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "The 'compile' configuration should not be used to declare dependencies. Please use 'api' or 'implementation' instead."
     }
 
+    def "recompiles consumer if API dependency of producer changed"() {
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    api 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/build.gradle').text = file('b/build.gradle').text.replace(/api 'org.gradle.test:shared:1.0'/, '''
+            // update an API dependency
+            api 'org.gradle.test:shared:1.1'
+        ''')
+
+        then:
+        succeeds ':a:compileJava', 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+    }
+
+    def "doesn't recompile consumer if implementation dependency of producer changed"() {
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    implementation 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/build.gradle').text = file('b/build.gradle').text.replace(/implementation 'org.gradle.test:shared:1.0'/, '''
+            // update an API dependency
+            implementation 'org.gradle.test:shared:1.1'
+        ''')
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        skipped ':a:compileJava'
+    }
+
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
         file("settings.gradle") << "include '$name'\n"
         def subprojectDir = file(name)
