@@ -35,8 +35,9 @@ class ReproduciblePropertiesWriter {
     static void store(Properties properties, File file, String comment = null) {
         def sw = new StringWriter()
         properties.store(sw, null)
-        String lineSeparator = System.lineSeparator()
-        def content = sw.toString().split(lineSeparator).findAll { !it.startsWith("#") }.join(lineSeparator)
+        String systemLineSeparator = System.lineSeparator()
+        String lineSeparator = "\n" // Use LF to have the same result on Windows and on Linux
+        def content = sw.toString().split(systemLineSeparator).findAll { !it.startsWith("#") }.join(lineSeparator)
         file.parentFile.mkdirs()
         file.withWriter("8859_1") { BufferedWriter bw ->
             if (comment) {
