@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Attribute;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -64,6 +65,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+    public static final Attribute<String> USAGE = Attribute.of("org.gradle.usage", String.class);
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -155,7 +157,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
-        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute("usage", "api");
+        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE, "api");
 
     }
 
