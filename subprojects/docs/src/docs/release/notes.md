@@ -59,7 +59,7 @@ It is also possible to pass a `Callable`, such as a Groovy Closure, returning a 
 
 ### Visual Studio 2015 Support
 
-It is now possible to compile native application with the Visual C++ toolchain packaged with all version of Visual Studio 2015.
+It is now possible to compile native application with the Visual C++ toolchain packaged with all versions of Visual Studio 2015.
 With this release, Gradle will locate the [Universal C Runtime](https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx) required by the Visual C++ toolchain.
 
 ## Promoted features
