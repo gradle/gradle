@@ -16,9 +16,12 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.internal.os.OperatingSystem
 import org.junit.runner.RunWith
+import spock.lang.IgnoreIf
 
 @RunWith(UserGuideSamplesRunner.class)
+@IgnoreIf({ OperatingSystem.current().isWindows() })
 class UserGuideSamplesIntegrationTest {
     /*
     Important info:
