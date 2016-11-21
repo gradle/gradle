@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 
+import static org.gradle.api.plugins.JavaPlugin.USAGE;
+
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
  * the API and implementation dependencies of a library.</p>
@@ -67,7 +69,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiCompileConfiguration.setCanBeResolved(true);
         apiCompileConfiguration.setCanBeConsumed(true);
         apiCompileConfiguration.setTransitive(false);
-        apiCompileConfiguration.attribute("usage", "api");
+        apiCompileConfiguration.attribute(USAGE, "api");
         apiCompileConfiguration.extendsFrom(apiConfiguration);
 
         Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
