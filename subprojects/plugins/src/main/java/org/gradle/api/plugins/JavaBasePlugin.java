@@ -64,6 +64,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.SingleMessageLogger;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -324,6 +325,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BUILD_TASK_NAME);
+        buildTask.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
+                    task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
+                }
+            }
+        });
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
