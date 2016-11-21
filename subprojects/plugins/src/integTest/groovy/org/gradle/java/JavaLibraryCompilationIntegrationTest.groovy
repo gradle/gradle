@@ -137,6 +137,23 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
     }
 
+    def "doesn't allow declaring dependencies using the 'compile' configuration"() {
+        file('settings.gradle') << 'include "b"'
+        buildFile << '''
+            apply plugin: org.gradle.api.plugins.JavaLibraryPlugin
+
+            dependencies {
+                compile project(':b')
+            }
+        '''
+
+        when:
+        fails 'tasks'
+
+        then:
+        failure.assertHasCause "The 'compile' configuration should not be used to declare dependencies. Please use 'api' or 'implementation' instead."
+    }
+
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
         file("settings.gradle") << "include '$name'\n"
         def subprojectDir = file(name)
