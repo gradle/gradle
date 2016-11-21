@@ -59,7 +59,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private final CheckstyleReports reports;
     private boolean ignoreFailures;
     private int maxErrors;
-    private int maxWarnings;
+    private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
 
