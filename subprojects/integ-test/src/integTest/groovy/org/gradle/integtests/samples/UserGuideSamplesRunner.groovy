@@ -251,7 +251,11 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
         samplesByDir.get('webApplication/customized')*.allowDeprecation = true
         samplesByDir.get('webApplication/quickstart')*.allowDeprecation = true
-        samplesByDir.get('native-binaries/cunit')*.expectFailure = true
+        if (OperatingSystem.current().isWindows()) {
+            samplesByDir.get('native-binaries/cunit').find { it.id == "completeCUnitExample" }.expectFailure = true
+            samplesByDir.get('native-binaries/cunit').find { it.id == "nativeAssembleDependentComponents" }.expectFailure = true
+            samplesByDir.get('native-binaries/cunit').find { it.id == "nativeBuildDependentComponents" }.expectFailure = true
+        }
 
         def java6CrossCompilation = ['java', 'groovy', 'scala'].collectMany {
             samplesByDir.get(it + '/crossCompilation')
