@@ -25,6 +25,10 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 
+/**
+ * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
+ * the API and implementation dependencies of a library.</p>
+ */
 public class JavaLibraryPlugin implements Plugin<Project> {
 
     @Override
@@ -44,7 +48,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
                 JavaCompile javaCompile = (JavaCompile) project.getTasks().findByName(sourceSet.getCompileJavaTaskName());
                 project.getArtifacts().add(sourceSet.getApiCompileConfigurationName(), ImmutableMap.of(
                     "file", javaCompile.getDestinationDir(),
-                    "builtBy", javaCompile ));
+                    "builtBy", javaCompile));
             }
         });
     }
@@ -75,8 +79,8 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
         compileConfiguration.extendsFrom(implementationConfiguration);
-        ((ConfigurationInternal)compileConfiguration).lock(
-            "The '" + compileConfiguration.getName() +"' configuration should not be used to declare dependencies. Please use '" + sourceSet.getApiConfigurationName()
+        ((ConfigurationInternal) compileConfiguration).lock(
+            "The '" + compileConfiguration.getName() + "' configuration should not be used to declare dependencies. Please use '" + sourceSet.getApiConfigurationName()
                 + "' or '" + implementationConfiguration.getName() + "' instead.");
     }
 }
