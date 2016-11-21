@@ -268,9 +268,8 @@ configurations {
 }
 
 def patchedExternalModulesDir = new File(buildDir, "external/files")
-def patchedExternalModules = fileTree(patchedExternalModulesDir) {
-    builtBy 'patchExternalModules'
-}
+def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
+patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
     externalModules 'org.gradle:gradle-script-kotlin:0.4.1'
