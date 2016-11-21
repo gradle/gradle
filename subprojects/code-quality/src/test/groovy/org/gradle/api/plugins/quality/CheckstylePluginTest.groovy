@@ -85,7 +85,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert !ignoreFailures
             assert showViolations
             assert maxErrors == 0
-            assert maxWarnings == 0
+            assert maxWarnings == Integer.MAX_VALUE
         }
     }
 
