@@ -11,6 +11,7 @@ if (!hasProperty('java7Home')) {
 if (java7Home) {
     def jvm = Jvm.forHome(file(java7Home))
     tasks.withType(AbstractCompile) {
+        // TODO (CACHE): This is a workaround until we handle fork options properly for up-to-date checks
         inputs.property("platform.name", "java7")
         inputs.property("options.forkOptions.executable", null)
         options.with {
