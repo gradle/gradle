@@ -403,4 +403,21 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
     }
+
+    def "modifying inputs during execution fails the build"() {
+        given:
+        buildFile << """
+            compileJava {
+                sourceCompatibility = 1.6
+                doFirst {
+                    sourceCompatibility = 1.7
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        withTaskCache().fails '-Dorg.gradle.tasks.inputs.check.change.during.execution=true', 'compileJava'
+
+        failure.assertHasDescription('The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs.')
+    }
 }
