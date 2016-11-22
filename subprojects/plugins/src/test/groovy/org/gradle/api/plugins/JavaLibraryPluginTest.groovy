@@ -55,7 +55,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !apiCompile.visible
         apiCompile.extendsFrom == [api] as Set
         apiCompile.canBeConsumed
-        apiCompile.canBeResolved
+        !apiCompile.canBeResolved
 
         when:
         def implementation = project.configurations.getByName(JavaPlugin.IMPL_CONFIGURATION_NAME)
