@@ -19,7 +19,6 @@ package org.gradle.api.plugins.antlr.internal;
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.MemoryResourceManager;
-import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
@@ -28,7 +27,7 @@ import java.io.File;
 public class AntlrWorkerManager {
 
     public AntlrResult runWorker(File workingDir, MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getMaxHeapSize()));
+        memoryResourceManager.requestFreeMemory(0);
         AntlrWorker antlrWorker = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
         return antlrWorker.runAntlr(spec);
     }

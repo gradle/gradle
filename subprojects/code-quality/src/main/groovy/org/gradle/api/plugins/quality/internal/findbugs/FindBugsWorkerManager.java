@@ -19,7 +19,6 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.MemoryResourceManager;
-import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
@@ -29,7 +28,7 @@ import java.util.Arrays;
 
 public class FindBugsWorkerManager {
     public FindBugsResult runWorker(File workingDir, MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) throws IOException, InterruptedException {
-        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getMaxHeapSize()));
+        memoryResourceManager.requestFreeMemory(0);
         FindBugsWorker worker = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
         return worker.runFindbugs(spec);
     }

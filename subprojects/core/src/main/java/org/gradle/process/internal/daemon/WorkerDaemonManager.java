@@ -42,7 +42,7 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
             public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
-                    memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(forkOptions.getMaxHeapSize()));
+                    memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(forkOptions.getMinHeapSize()));
                     client = clientsManager.reserveNewClient(serverImplementationClass, workingDir, forkOptions);
                 }
                 try {

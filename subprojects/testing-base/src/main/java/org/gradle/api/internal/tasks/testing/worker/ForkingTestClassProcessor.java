@@ -84,7 +84,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         options.copyTo(builder.getJavaCommand());
         buildConfigAction.execute(builder);
 
-        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(options.getMaxHeapSize()));
+        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(options.getMinHeapSize()));
         workerProcess = builder.build();
         workerProcess.start();
 

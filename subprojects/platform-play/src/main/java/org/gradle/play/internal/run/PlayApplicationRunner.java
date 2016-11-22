@@ -38,7 +38,7 @@ public class PlayApplicationRunner {
     }
 
     public PlayApplicationRunnerToken start(PlayRunSpec spec) {
-        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getForkOptions().getMemoryMaximumSize()));
+        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getForkOptions().getMemoryInitialSize()));
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
