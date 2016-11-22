@@ -65,7 +65,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration apiCompileConfiguration = configurations.maybeCreate(sourceSet.getApiCompileConfigurationName());
         apiCompileConfiguration.setVisible(false);
         apiCompileConfiguration.setDescription("API compile classpath for " + sourceSet + ".");
-        apiCompileConfiguration.setCanBeResolved(true);
+        apiCompileConfiguration.setCanBeResolved(false);
         apiCompileConfiguration.setCanBeConsumed(true);
         apiCompileConfiguration.setTransitive(false);
         apiCompileConfiguration.attribute(USAGE, "api");
