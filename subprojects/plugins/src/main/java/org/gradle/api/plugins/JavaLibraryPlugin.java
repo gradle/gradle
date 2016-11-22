@@ -61,7 +61,6 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
         apiConfiguration.setCanBeResolved(false);
         apiConfiguration.setCanBeConsumed(false);
-        apiConfiguration.setTransitive(false);
 
         Configuration apiCompileConfiguration = configurations.maybeCreate(sourceSet.getApiCompileConfigurationName());
         apiCompileConfiguration.setVisible(false);
