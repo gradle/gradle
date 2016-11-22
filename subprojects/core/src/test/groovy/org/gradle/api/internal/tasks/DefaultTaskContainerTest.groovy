@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.*
+import org.gradle.api.Action
+import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Rule
+import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
@@ -272,36 +277,24 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "actualizes task graph"() {
         given:
-        def task = addTask("a")
-        def aTaskDependency = Mock(TaskDependency)
-        task.getTaskDependencies() >> aTaskDependency
-
-        def Task b = this.task("b")
-        taskFactory.createTask(singletonMap(Task.TASK_NAME, "b")) >> b
-
-        def bTaskDependency = Mock(TaskDependency, name: "bTaskDependency")
-        b.getTaskDependencies() >> bTaskDependency
-
-        bTaskDependency.getDependencies(b) >> Collections.emptySet()
-
-        aTaskDependency.getDependencies(task) >> { container.create("b"); Collections.singleton(b) }
-        task.dependsOn("b")
+        def aTask = addTask("a")
+        def bTask = addTask("b")
+        aTask.dependsOn(bTask)
 
         addPlaceholderTask("c")
         def cTask = this.task("c", DefaultTask)
-        def cTaskDependency = Mock(TaskDependencyInternal)
-        cTask.getTaskDependencies() >> cTaskDependency
-        cTaskDependency.getDependencies(_) >> []
-
         1 * taskFactory.create("c", DefaultTask) >> { cTask }
 
-        assert container.size() == 1
+        assert container.size() == 2
 
         when:
         container.realize()
 
         then:
-        container.size() == 2
+        0 * aTask.getTaskDependencies()
+        0 * bTask.getTaskDependencies()
+        0 * cTask.getTaskDependencies()
+        container.size() == 3
     }
 
     void "can add task via placeholder action"() {
