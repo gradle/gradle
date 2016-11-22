@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
+import org.gradle.process.internal.MemoryResourceManager
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -24,7 +25,7 @@ class WorkerDaemonManagerTest extends Specification {
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
 
-    @Subject manager = new WorkerDaemonManager(clientsManager, Stub(WorkerDaemonExpiration))
+    @Subject manager = new WorkerDaemonManager(clientsManager, Stub(MemoryResourceManager))
 
     def workingDir = new File("some-dir")
     def worker = Stub(WorkerDaemonAction)

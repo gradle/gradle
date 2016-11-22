@@ -141,8 +141,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return workerDaemonExpiration;
     }
 
-    WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager, WorkerDaemonExpiration daemonExpiration) {
-        return new WorkerDaemonManager(workerDaemonClientsManager, daemonExpiration);
+    WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryResourceManager memoryResourceManager) {
+        return new WorkerDaemonManager(workerDaemonClientsManager, memoryResourceManager);
     }
 
     WorkerDaemonService createWorkerDaemonService(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {
