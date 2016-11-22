@@ -251,12 +251,12 @@ alpha - ALPHA_in_sub1
         buildScript """
             model {
                 tasks {
-                    create("t1") {
+                    create('a') {
                         group = '$GROUP'
-                        description = "from model rule"
+                        description = "from model rule 1"
                     }
-                    create("t2") {
-                        description = "from model rule"
+                    create('b') {
+                        description = "from model rule 2"
                     }
                 }
             }
@@ -266,13 +266,42 @@ alpha - ALPHA_in_sub1
         succeeds tasks
 
         and:
-        output.contains("t1 - from model rule") == rendersGroupedTask
-        output.contains("t2 - from model rule") == rendersUngroupedTask
+        output.contains("a - from model rule 1") == rendersGroupedTask
+        output.contains("b - from model rule 2") == rendersUngroupedTask
 
         where:
         tasks                      | rendersGroupedTask | rendersUngroupedTask
         TASKS_REPORT_TASK          | true               | false
         TASKS_DETAILED_REPORT_TASK | true               | true
+    }
+
+    @Unroll
+    def "task report includes tasks with dependencies defined via model rules running #tasks"() {
+        when:
+        buildScript """
+            model {
+                tasks {
+                    create('a')
+                    create('b') {
+                        dependsOn 'b'
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds tasks
+
+        output.contains("""
+$otherGroupHeader
+a
+b
+""") == rendersTasks
+
+        where:
+        tasks                      | rendersTasks
+        TASKS_REPORT_TASK          | false
+        TASKS_DETAILED_REPORT_TASK | true
     }
 
     def "task report includes task container rule based tasks defined via model rule"() {
@@ -322,6 +351,48 @@ alpha - ALPHA_in_sub1
 
         then:
         succeeds TASKS_DETAILED_REPORT_TASK
+    }
+
+    @Unroll
+    def "renders tasks with dependencies created by model rules running #tasks"() {
+        when:
+        buildScript """
+            model {
+                tasks {
+                    create('a')
+                }
+            }
+
+            task b {
+                dependsOn 'a'
+            }
+
+            task c
+
+            model {
+                tasks {
+                    create('d') {
+                        dependsOn c
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds tasks
+
+        output.contains("""
+$otherGroupHeader
+a
+b
+c
+d
+""") == rendersTasks
+
+        where:
+        tasks                      | rendersTasks
+        TASKS_REPORT_TASK          | false
+        TASKS_DETAILED_REPORT_TASK | true
     }
 
     protected static String getBuildScriptContent() {
