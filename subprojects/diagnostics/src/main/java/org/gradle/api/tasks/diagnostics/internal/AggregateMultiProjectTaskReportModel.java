@@ -62,8 +62,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     }
 
     private boolean isVisible(String group) {
-        boolean visible = GUtil.isTrue(group);
-        return visible || (!visible && detail);
+        return detail || GUtil.isTrue(group);
     }
 
     @Override
