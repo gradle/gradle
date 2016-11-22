@@ -23,22 +23,31 @@ import org.gradle.process.internal.health.memory.MemoryInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryResourceManager implements MemoryResourceManager {
 
     private static final Logger LOGGER = Logging.getLogger(MemoryResourceManager.class);
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M
+    private static final int MONITOR_CHECK_INITIAL_DELAY_SECONDS = 5;
+    private static final int MONITOR_CHECK_INTERVAL_SECONDS = 5;
 
     private final MemoryInfo memoryInfo;
     private final long memoryThresholdInBytes;
     private final Object lock = new Object();
     private final List<MemoryResourceHolder> holders = new ArrayList<MemoryResourceHolder>();
 
-    public DefaultMemoryResourceManager(MemoryInfo memoryInfo, double minFreeMemoryPercentage) {
+    public DefaultMemoryResourceManager(ScheduledExecutorService scheduledExecutorService, MemoryInfo memoryInfo, double minFreeMemoryPercentage) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
         this.memoryInfo = Preconditions.checkNotNull(memoryInfo);
         this.memoryThresholdInBytes = Math.max(MIN_THRESHOLD_BYTES, (long) (memoryInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage));
+        scheduleMonitoringThread(scheduledExecutorService);
+    }
+
+    private void scheduleMonitoringThread(ScheduledExecutorService scheduledExecutorService) {
+        scheduledExecutorService.scheduleAtFixedRate(new FreeMemoryCheck(), MONITOR_CHECK_INITIAL_DELAY_SECONDS, MONITOR_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
@@ -58,8 +67,12 @@ public class DefaultMemoryResourceManager implements MemoryResourceManager {
     @Override
     public void requestFreeMemory(long memoryAmountBytes) {
         long claimedFreeMemory = memoryThresholdInBytes + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
-        long toReleaseMemory = claimedFreeMemory;
         long freeMemory = memoryInfo.getFreePhysicalMemory();
+        doRequestFreeMemory(claimedFreeMemory, freeMemory);
+    }
+
+    private void doRequestFreeMemory(long claimedFreeMemory, long freeMemory) {
+        long toReleaseMemory = claimedFreeMemory;
         LOGGER.debug("{} memory claimed, {} free", claimedFreeMemory, freeMemory);
         if (freeMemory < claimedFreeMemory) {
             synchronized (lock) {
@@ -74,5 +87,15 @@ public class DefaultMemoryResourceManager implements MemoryResourceManager {
             }
         }
         LOGGER.debug("{} memory claimed, {} released, {} free", claimedFreeMemory, claimedFreeMemory - toReleaseMemory, freeMemory);
+    }
+
+    private class FreeMemoryCheck implements Runnable {
+        @Override
+        public void run() {
+            long freeMemory = memoryInfo.getFreePhysicalMemory();
+            if (freeMemory < memoryThresholdInBytes) {
+                doRequestFreeMemory(memoryThresholdInBytes, freeMemory);
+            }
+        }
     }
 }

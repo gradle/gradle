@@ -20,10 +20,12 @@ import org.gradle.process.internal.health.memory.MemoryInfo
 import org.gradle.process.internal.health.memory.MemoryAmount
 import spock.lang.Specification
 
+import java.util.concurrent.ScheduledExecutorService
+
 class MemoryResourceManagerTest extends Specification {
 
     def memoryInfo = Mock(MemoryInfo) { getTotalPhysicalMemory() >> MemoryAmount.ofGigaBytes(8).bytes }
-    def memoryResourceManager = new DefaultMemoryResourceManager(memoryInfo, 0.25)
+    def memoryResourceManager = new DefaultMemoryResourceManager(Stub(ScheduledExecutorService), memoryInfo, 0.25)
 
     def "does not attempt to release memory when claiming 0 memory and free system memory is below threshold"() {
         given:

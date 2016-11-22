@@ -61,6 +61,9 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
 import org.gradle.util.GradleVersion;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
@@ -127,8 +130,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    MemoryResourceManager createMemoryResourceManager() {
-        return new DefaultMemoryResourceManager(new MemoryInfo(), 0.05);
+    ScheduledExecutorService createScheduledExecutorService() {
+        return Executors.newScheduledThreadPool(1);
+    }
+
+    MemoryResourceManager createMemoryResourceManager(ScheduledExecutorService scheduledExecutorService) {
+        return new DefaultMemoryResourceManager(scheduledExecutorService, new MemoryInfo(), 0.05);
     }
 
     WorkerDaemonClientsManager createWrokerDaemonClientsManager(BuildOperationWorkerRegistry buildOperationWorkerRegistry, WorkerProcessFactory workerFactory, StartParameter startParameter) {
