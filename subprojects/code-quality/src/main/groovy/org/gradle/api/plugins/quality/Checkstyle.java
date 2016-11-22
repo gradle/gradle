@@ -247,7 +247,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @return the maximum number of errors allowed
      */
-    @Console
+    @Input
     public int getMaxErrors() {
         return maxErrors;
     }
@@ -262,7 +262,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @return the maximum number of warnings allowed
      */
-    @Console
+    @Input
     public int getMaxWarnings() {
         return maxWarnings;
     }
