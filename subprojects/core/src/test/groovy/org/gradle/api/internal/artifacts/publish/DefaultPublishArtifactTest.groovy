@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.publish
 
-import org.gradle.api.Attribute
 import org.gradle.api.Task
 
 public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
@@ -55,32 +54,6 @@ public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
 
         then:
         publishArtifact.buildDependencies.getDependencies(null) == [task] as Set
-    }
-
-    def "can add attributes to artifact"() {
-        given:
-        def publishArtifact = new DefaultPublishArtifact("name", "extension", "type", null, null, null)
-        def artifactType = Attribute.of('artifactType', String)
-
-        when:
-        publishArtifact.attributes.attribute(artifactType, 'jar')
-
-        then:
-        publishArtifact.attributes.contains(artifactType)
-        publishArtifact.attributes.getAttribute(artifactType) == 'jar'
-    }
-
-    def "can add strongly-typed attributes to artifact"() {
-        given:
-        def publishArtifact = new DefaultPublishArtifact("name", "extension", "type", null, null, null)
-        def artifactType = Attribute.of(ArtifactType)
-
-        when:
-        publishArtifact.attributes.attribute(artifactType, ArtifactType.JAR)
-
-        then:
-        publishArtifact.attributes.contains(artifactType)
-        publishArtifact.attributes.getAttribute(artifactType) == ArtifactType.JAR
     }
 
     enum ArtifactType {
