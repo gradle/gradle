@@ -43,6 +43,21 @@ public class DefaultOriginMetadata implements OriginMetadata {
     }
 
     @Override
+    public String toString() {
+        return "origin{" +
+            "path='" + path + '\'' +
+            ", type='" + type + '\'' +
+            ", gradleVersion='" + gradleVersion + '\'' +
+            ", creationTime=" + creationTime +
+            ", executionTime=" + executionTime +
+            ", rootPath='" + rootPath + '\'' +
+            ", operatingSystem='" + operatingSystem + '\'' +
+            ", hostName='" + hostName + '\'' +
+            ", userName='" + userName + '\'' +
+            '}';
+    }
+
+    @Override
     public long getCreationTime() {
         return creationTime;
     }
