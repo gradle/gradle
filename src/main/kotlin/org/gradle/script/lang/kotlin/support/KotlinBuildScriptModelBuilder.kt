@@ -53,7 +53,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private fun buildSrcClassPathOf(project: Project) =
         ClasspathUtil
             .getClasspath(project.buildscript.classLoader)
-            .map { File(it.file) }
+            .asFiles
             .filter { it.isDirectory }
 }
 
