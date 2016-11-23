@@ -30,6 +30,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.tasksToRun = ['eclipse']
         runner.targetVersions = targetVersions
         runner.useDaemon = true
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -38,10 +39,10 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions
-        "small"           | ['3.3-20161028000018+0000']
-        "multi"           | ['3.3-20161028000018+0000']
-        "lotDependencies" | ['3.3-20161028000018+0000']
+        testProject       | targetVersions              | maxMemory
+        "small"           | ['3.3-20161028000018+0000'] | '128m'
+        "multi"           | ['3.3-20161028000018+0000'] | '256m'
+        "lotDependencies" | ['3.3-20161028000018+0000'] | '256m'
     }
 
     @Unroll("Project '#testProject' idea")
@@ -52,6 +53,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.tasksToRun = ['idea']
         runner.targetVersions = targetVersions
         runner.useDaemon = true
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -60,9 +62,9 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions
-        "small"           | ['3.3-20161028000018+0000']
-        "multi"           | ['3.3-20161028000018+0000']
-        "lotDependencies" | ['3.3-20161028000018+0000']
+        testProject       | targetVersions              | maxMemory
+        "small"           | ['3.3-20161028000018+0000'] | '128m'
+        "multi"           | ['3.3-20161028000018+0000'] | '256m'
+        "lotDependencies" | ['3.3-20161028000018+0000'] | '256m'
     }
 }

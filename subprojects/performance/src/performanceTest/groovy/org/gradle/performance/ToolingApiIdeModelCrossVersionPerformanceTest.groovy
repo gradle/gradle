@@ -40,7 +40,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
             targetVersions = ['3.2-rc-1']
             action {
                 def model = model(tapiClass(EclipseProject))
-                    .setJvmArguments(createDefaultJvmOptions()).get()
+                    .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -86,7 +86,11 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["smallOldJava", "mediumOldJava", "bigOldJava", "lotDependencies"]
+        template            | maxMemory
+        "smallOldJava"      | '128m'
+        "mediumOldJava"     | '256m'
+        "bigOldJava"        | '512m'
+        "lotDependencies"   | '256m'
     }
 
     private static void sendCommand(String command, int port) {
@@ -134,11 +138,12 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
             }*/
             warmUpCount = 20
             invocationCount = 30
-            targetVersions = targetGradleVersions
+            targetVersions = ['3.2']
+
             action {
                 def version = tapiClass(GradleVersion).current().version
                 def model = model(tapiClass(IdeaProject))
-                    .setJvmArguments(createDefaultJvmOptions()).get()
+                    .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
@@ -181,12 +186,11 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        // rebaselined because of https://github.com/gra
-        template          | targetGradleVersions
-        "smallOldJava"    | ['3.2-rc-1']
-        "mediumOldJava"   | ['3.2-rc-1']
-        "bigOldJava"      | ['3.2-rc-1']
-        "lotDependencies" | ['3.2-rc-1']
+        template            | maxMemory
+        "smallOldJava"      | '128m'
+        "mediumOldJava"     | '256m'
+        "bigOldJava"        | '512m'
+        "lotDependencies"   | '256m'
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

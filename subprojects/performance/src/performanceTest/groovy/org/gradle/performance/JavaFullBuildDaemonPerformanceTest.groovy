@@ -31,7 +31,7 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
         runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']
         runner.targetVersions = targetVersions
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -40,11 +40,8 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject | targetVersions
-        // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        "small"     | ['3.2-rc-1']
-        "multi"     | ['3.2-rc-1']
+        testProject | targetVersions    | maxMemory
+        "small"     | ['3.2-rc-1']      | '128m'
+        "multi"     | ['3.2-rc-1']      | '256m'
     }
 }

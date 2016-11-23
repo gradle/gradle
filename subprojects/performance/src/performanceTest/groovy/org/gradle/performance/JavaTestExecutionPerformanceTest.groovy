@@ -27,7 +27,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.tasksToRun = gradleTasks
         runner.targetVersions = targetVersions
         runner.useDaemon = true
-        runner.gradleOpts = ['-Xms1G', '-Xmx1G']
+        runner.gradleOpts = ['-Xms256m', '-Xmx256m']
 
         when:
         def result = runner.run()
@@ -49,7 +49,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.tasksToRun = gradleTasks
         runner.targetVersions = ['2.11', '3.3-20161028000018+0000']
         runner.useDaemon = true
-        runner.gradleOpts = ['-Xms1G', '-Xmx1G']
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.buildExperimentListener = new JavaOldModelSourceFileUpdater(10)
 
         when:
@@ -59,8 +59,8 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        template          | size     | description              | gradleTasks
-        'mediumWithJUnit' | 'medium' | 'incremental test build' | ['test']
-        'largeWithJUnit'  | 'large'  | 'incremental test build' | ['test']
+        template          | size     | description              | gradleTasks   | maxMemory
+        'mediumWithJUnit' | 'medium' | 'incremental test build' | ['test']      | '256m'
+        'largeWithJUnit'  | 'large'  | 'incremental test build' | ['test']      | '512m'
     }
 }

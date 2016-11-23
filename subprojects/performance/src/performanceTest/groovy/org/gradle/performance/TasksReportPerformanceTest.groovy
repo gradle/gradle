@@ -35,6 +35,7 @@ class TasksReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "$reportType.description $testProject"
         runner.testProject = testProject
         runner.tasksToRun = reportType.tasks
+        runner.gradleOpts = ['-Xms256m', '-Xmx256m']
         runner.targetVersions = ['3.3-20161028000018+0000']
 
         when:

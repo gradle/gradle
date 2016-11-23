@@ -37,8 +37,9 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.tasksToRun = ['build']
         runner.targetVersions = ['last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
-        runner.warmUpRuns = 6
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.warmUpRuns = 9
+        runner.runs = 10
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
@@ -53,9 +54,9 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         where:
         testProject                   | parallelWorkers
         "nativeMonolithic"            | 0
-        "nativeMonolithic"            | 4
+        "nativeMonolithic"            | 12
         "nativeMonolithicOverlapping" | 0
-        "nativeMonolithicOverlapping" | 4
+        "nativeMonolithicOverlapping" | 12
     }
 
     @Unroll('Project #buildSize native build #changeType')
@@ -64,11 +65,11 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
-        runner.args = ["--parallel", "--max-workers=4"]
+        runner.args = ["--parallel", "--max-workers=12"]
         runner.targetVersions = targetVersions
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
-        runner.warmUpRuns = 6
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.warmUpRuns = 9
         //the content changing code below assumes an even number of runs
         runner.runs = 10
         if (runner.honestProfiler.enabled) {

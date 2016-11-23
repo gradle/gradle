@@ -30,6 +30,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.targetVersions = targetVersions
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -38,10 +39,10 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions
-        "small"           | ['3.3-20161028000018+0000']
-        "multi"           | ['3.3-20161028000018+0000']
-        "lotDependencies" | ['3.3-20161028000018+0000']
+        testProject       | targetVersions              | maxMemory
+        "small"           | ['3.3-20161028000018+0000'] | '128m'
+        "multi"           | ['3.3-20161028000018+0000'] | '256m'
+        "lotDependencies" | ['3.3-20161028000018+0000'] | '256m'
     }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")
@@ -50,7 +51,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "up-to-date full build Java build $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.targetVersions = ['3.3-20161028000018+0000']
         runner.useDaemon = true
         when:
@@ -59,6 +60,8 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         then:
         result.assertCurrentVersionHasNotRegressed()
         where:
-        testProject << ["bigOldJava", "lotDependencies"]
+        testProject       |  maxMemory
+        "bigOldJava"      | '1G'
+        "lotDependencies" | '256m'
     }
 }
