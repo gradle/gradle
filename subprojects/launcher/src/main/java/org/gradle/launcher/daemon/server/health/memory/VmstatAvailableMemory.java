@@ -25,7 +25,6 @@ import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -55,24 +54,24 @@ public class VmstatAvailableMemory implements AvailableMemory {
     }
 
     private List<String> getVmstatOutput() {
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        ExecHandleBuilder builder = new DefaultExecActionFactory(new IdentityFileResolver()).newExec();
-        builder.setWorkingDir(new File(".").getAbsolutePath());
-        builder.setCommandLine(VMSTAT_EXECUTABLE_PATH);
-        builder.setStandardOutput(buffer.getOutputStream());
-        builder.build().start().waitForFinish().assertNormalExitValue();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(buffer.getInputStream()));
-        List<String> lines = Lists.newArrayList();
         try {
+            StreamByteBuffer buffer = new StreamByteBuffer();
+            ExecHandleBuilder builder = new DefaultExecActionFactory(new IdentityFileResolver()).newExec();
+            builder.setWorkingDir(new File(".").getAbsolutePath());
+            builder.setCommandLine(VMSTAT_EXECUTABLE_PATH);
+            builder.setStandardOutput(buffer.getOutputStream());
+            builder.build().start().waitForFinish().assertNormalExitValue();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(buffer.getInputStream()));
+            List<String> lines = Lists.newArrayList();
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
             }
-        } catch (IOException e) {
+            return lines;
+        } catch (Exception e) {
             throw new UnsupportedOperationException("Unable to read memory info from " + VMSTAT_EXECUTABLE_PATH, e);
         }
-        return lines;
     }
 
     /**
