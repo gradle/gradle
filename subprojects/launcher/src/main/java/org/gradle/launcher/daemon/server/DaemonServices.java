@@ -54,6 +54,7 @@ import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.memory.MemoryStatusBroadcaster;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
@@ -120,8 +121,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager);
     }
 
-    protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy) {
-        return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy);
+    protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
+        return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, listenerManager);
     }
 
     protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonMemoryStatus memoryStatus) {
@@ -130,10 +131,6 @@ public class DaemonServices extends DefaultServiceRegistry {
 
     protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, ScheduledExecutorService scheduledExecutorService) {
         return new DaemonHealthStats(runningStats, scheduledExecutorService);
-    }
-
-    protected ScheduledExecutorService createScheduledExecutorService() {
-        return Executors.newScheduledThreadPool(1);
     }
 
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {

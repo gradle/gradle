@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
-import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
+import org.gradle.launcher.daemon.server.health.memory.MemoryStatus
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
@@ -27,34 +27,41 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
 
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
     private static final long ONE_GIG = 1024 * 1024 * 1024
-    private final MemoryInfo mockMemoryInfo = Mock(MemoryInfo)
+    private final MemoryStatus mockMemoryStatus = Mock(MemoryStatus)
 
     def setup() {
-        _ * mockMemoryInfo.totalPhysicalMemory >> { 16 * ONE_GIG }
+        _ * mockMemoryStatus.totalPhysicalMemory >> { 16 * ONE_GIG }
     }
 
     def "minimum threshold is enforced"() {
         given:
-        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 0)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
-        expect:
+        when:
+        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
+
+        then:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
     }
 
     def "maximum threshold is enforced"() {
         given:
-        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 1)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
-        expect:
+        when:
+        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
+
+        then:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
     }
 
     def "daemon should expire when memory falls below threshold"() {
         given:
-        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 1)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        1 * mockMemoryInfo.freePhysicalMemory >> { 0 }
+        1 * mockMemoryStatus.freePhysicalMemory >> { 0 }
+        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -64,10 +71,11 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "daemon should not expire when memory is above threshold"() {
         given:
-        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 0)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
-        1 * mockMemoryInfo.getFreePhysicalMemory() >> { ONE_GIG }
+        1 * mockMemoryStatus.getFreePhysicalMemory() >> { ONE_GIG }
+        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -77,7 +85,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "strategy does not accept negative threshold"() {
         when:
-        new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, -1)
+        new LowMemoryDaemonExpirationStrategy(-1)
 
         then:
         thrown IllegalArgumentException
@@ -85,7 +93,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "strategy does not accept percentage greater than 1"() {
         when:
-        new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 1.1)
+        new LowMemoryDaemonExpirationStrategy(1.1)
 
         then:
         thrown IllegalArgumentException
@@ -93,9 +101,20 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "strategy does not accept NaN percentage"() {
         when:
-        new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, Double.NaN)
+        new LowMemoryDaemonExpirationStrategy(Double.NaN)
 
         then:
         thrown IllegalArgumentException
+    }
+
+    def "does not expire when no memory status notification is received" () {
+        given:
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
+        _ * mockMemoryStatus.freePhysicalMemory >> { 0 }
+
+        expect:
+        DaemonExpirationResult result = expirationStrategy.checkExpiration()
+        result.status == DO_NOT_EXPIRE
+        Strings.isNullOrEmpty(result.reason)
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.daemon.server.health.memory.MemoryStatusBroadcaster;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
@@ -40,6 +41,8 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     @Override
@@ -88,6 +91,14 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
 
         ClassLoaderCache createClassLoaderCache() {
             return new ClassLoaderCache();
+        }
+
+        ScheduledExecutorService createScheduledExecutorService() {
+            return Executors.newScheduledThreadPool(1);
+        }
+
+        MemoryStatusBroadcaster createMemoryStatusBroadcaster(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+            return new MemoryStatusBroadcaster(scheduledExecutorService, listenerManager);
         }
     }
 
