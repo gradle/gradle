@@ -20,7 +20,6 @@ import groovy.json.JsonSlurper
 import org.apache.commons.io.output.NullOutputStream
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -55,7 +54,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     private static final String WITH_PLUGIN_LABEL = "with plugin"
     private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
 
-    protected final IntegrationTestBuildContext buildContext = new PerformanceTestBuildContext()
+    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
 
     PrintStream originalSystemErr

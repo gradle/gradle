@@ -148,7 +148,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean checkDeprecations = true;
 
     private TestFile tmpDir;
-    private boolean cleanTempDirOnShutdown;
     private DurationMeasurement durationMeasurement;
     private boolean reuseUserHomeServices;
     private boolean outputCapturingEnabled = true;
@@ -169,7 +168,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         this.buildContext = buildContext;
         gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         daemonBaseDir = buildContext.getDaemonBaseDir();
-        buildContext.configure(this);
     }
 
     protected Logger getLogger() {
@@ -654,7 +652,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     public void cleanup() {
         cleanupIsolatedDaemons();
-        cleanupTmpDir();
     }
 
     protected void cleanupIsolatedDaemons() {
@@ -663,26 +660,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
             } catch (Exception e) {
                 getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
-            }
-
-            // remove daemon registry just in case the daemon registry directory gets reused
-            new File(baseDir, "registry.bin").delete();
-            new File(baseDir, "registry.bin.lock").delete();
-        }
-    }
-
-    protected void cleanupTmpDir() {
-        if (cleanTempDirOnShutdown && tmpDir != null) {
-            if (tmpDir.exists()) {
-                try {
-                    tmpDir.deleteDir();
-                } catch (Exception e) {
-                    getLogger().warn("Problem cleaning up temp directory " + tmpDir, e);
-                } finally {
-                    tmpDir = null;
-                }
-            } else {
-                tmpDir = null;
             }
         }
     }
@@ -1072,11 +1049,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter withFullDeprecationStackTraceDisabled() {
         fullDeprecationStackTrace = false;
-        return this;
-    }
-
-    public GradleExecuter withCleanupTempDirectory(boolean flag) {
-        cleanTempDirOnShutdown = flag;
         return this;
     }
 

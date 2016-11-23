@@ -80,7 +80,7 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     void assertEveryBuildSucceeds() {
-        if (whatToCheck() != Checks.NONE) {
+        if (whatToCheck().exceptions()) {
             LOGGER.info("Asserting all builds have succeeded...");
             assert failures.collect { it.exception }.empty: "Some builds have failed."
         }
@@ -88,16 +88,9 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
 
     void assertCurrentVersionHasNotRegressed(Flakiness flakiness=Flakiness.not_flaky) {
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
-        def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
-        if (slower && larger && whatToCheck().speed() && whatToCheck().memory()) {
-            throwAssertionErrorIfNotFlaky(flakiness, "$slower\n$larger")
-        }
         if (slower && whatToCheck().speed()) {
             throwAssertionErrorIfNotFlaky(flakiness, slower)
-        }
-        if (larger && whatToCheck().memory()) {
-            throwAssertionErrorIfNotFlaky(flakiness, larger)
         }
     }
 
