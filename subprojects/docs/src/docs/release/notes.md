@@ -61,6 +61,10 @@ It is also possible to pass a `Callable`, such as a Groovy Closure, returning a 
         }).withPropertyName("outputFiles")
     }
 
+#### Tasks loaded via custom classloaders are never up-to-date
+
+Since 3.0 Gradle tracks the implementation of a task's type, and marks tasks out-of-date when it detects changes. But it can only do this reliably with task types that were loaded via Gradle's own classloaders. From this version Gradle will always mark tasks loaded via custom classloaders as out-of-date. This also applies to tasks that have custom actions attached that were loaded via a custom classloader.
+
 ### Visual Studio 2015 Support
 
 It is now possible to compile native application with the Visual C++ toolchain packaged with all versions of Visual Studio 2015.
