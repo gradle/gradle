@@ -10,6 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Improved performance of tasks report
+
+In previous versions of Gradle, the [tasks report](userguide/tutorial_gradle_command_line.html#sec:obtaining_information_about_your_build) suffered from poor execution performance especially in large multi-project builds with many sub projects. This version of Gradle improves the tasks report generation performance significantly. In the wake of this change, the report now renders tasks based on different rules. By default, the report shows only those tasks which have been assigned to a task group, so-called _visible_ tasks. Tasks which have not been assigned to a task group, so-called _hidden_ tasks, can be included in the report by enabling the command line option `--all`. Task dependencies are not rendered as indented task nodes anymore.
+
 ### Clickable links to project reports
 
 When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
