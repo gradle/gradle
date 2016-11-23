@@ -20,15 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -113,6 +113,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     LoggingManagerInternal createLoggingManager() {
-        return LoggingServiceRegistry.newCommandLineProcessLogging().newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManagerInternal = LoggingServiceRegistry.newEmbeddableLogging().newInstance(LoggingManagerInternal.class);
+        loggingManagerInternal.captureSystemSources();
+        return loggingManagerInternal;
     }
 }
