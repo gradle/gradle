@@ -18,8 +18,9 @@ package org.gradle.api.internal.tasks.cache.origin;
 
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public interface OriginMetadataReader {
-    OriginMetadata readFrom(InputStream inputStream);
+    OriginMetadata readFrom(InputStream inputStream) throws IOException;
 }

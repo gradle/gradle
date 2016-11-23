@@ -49,6 +49,8 @@ import org.gradle.api.internal.tasks.cache.OutputPreparingTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TarTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataReader;
+import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataWriter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
@@ -201,7 +203,7 @@ public class TaskExecutionServices {
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
         return new OutputPreparingTaskOutputPacker(
             new GZipTaskOutputPacker(
-                new TarTaskOutputPacker(fileSystem, originMetadataWriter, originMetadataReader)
+                new TarTaskOutputPacker(fileSystem, new DefaultOriginMetadataWriter(), new DefaultOriginMetadataReader())
             )
         );
     }

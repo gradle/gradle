@@ -18,8 +18,9 @@ package org.gradle.api.internal.tasks.cache.origin;
 
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 public interface OriginMetadataWriter {
-    void writeTo(OriginMetadata originMetadata, OutputStream outputStream);
+    void writeTo(OriginMetadata originMetadata, OutputStream outputStream) throws IOException;
 }

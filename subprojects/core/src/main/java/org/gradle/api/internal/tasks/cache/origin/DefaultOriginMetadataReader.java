@@ -18,11 +18,18 @@ package org.gradle.api.internal.tasks.cache.origin;
 
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 public class DefaultOriginMetadataReader implements OriginMetadataReader {
     @Override
-    public OriginMetadata readFrom(InputStream inputStream) {
-        return null;
+    public OriginMetadata readFrom(InputStream inputStream) throws IOException {
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        return new DefaultOriginMetadata(properties.getProperty("path"),
+            properties.getProperty("type"),
+            properties.getProperty("gradleVersion"),
+            Long.valueOf(properties.getProperty("creationTime")));
     }
 }

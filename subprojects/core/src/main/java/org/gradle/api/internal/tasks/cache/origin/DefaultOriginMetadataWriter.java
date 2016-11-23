@@ -18,11 +18,18 @@ package org.gradle.api.internal.tasks.cache.origin;
 
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Properties;
 
 public class DefaultOriginMetadataWriter implements OriginMetadataWriter {
     @Override
-    public void writeTo(OriginMetadata originMetadata, OutputStream outputStream) {
-
+    public void writeTo(OriginMetadata originMetadata, OutputStream outputStream) throws IOException {
+        Properties properties = new Properties();
+        properties.setProperty("type", originMetadata.getType());
+        properties.setProperty("path", originMetadata.getPath());
+        properties.setProperty("gradleVersion", originMetadata.getGradleVersion());
+        properties.setProperty("creationTime", Long.toString(originMetadata.getCreationTime()));
+        properties.store(outputStream, "origin metadata");
     }
 }
