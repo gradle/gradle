@@ -43,29 +43,29 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         def classFile1 = file('build/classes/main/Main.class')
         def classFile2 = file('build/classes/main/Redundant.class')
         def jarFile = file('build/libs/test.jar')
-        def taskName = ':jar'
+        def taskPath = ':jar'
 
         settingsFile << "rootProject.name = 'test'"
         buildFile << "apply plugin: 'java'"
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.contains(taskName)
+        result.executedTasks.contains(taskPath)
         classFile1.assertIsFile()
         classFile2.assertIsFile()
-        new JarTestFixture(jarFile).hasDescendants('Main.class', 'Redundant.class')
+        hasDescendants(jarFile, 'Main.class', 'Redundant.class')
 
         when:
         GFileUtils.forceDelete(sourceFile2)
-        succeeds taskName
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskName)
+        executedAndNotSkipped(taskPath)
         classFile1.assertIsFile()
         classFile2.assertDoesNotExist()
-        new JarTestFixture(jarFile).hasDescendants('Main.class')
+        hasDescendants(jarFile, 'Main.class')
     }
 
     @NotYetImplemented
@@ -76,7 +76,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         sourceFile2 << 'b'
         def targetFile1 = file('target/source.txt')
         def targetFile2 = file('target/source.txt')
-        def taskName = ':copyAll'
+        def taskPath = ':copyAll'
 
         buildFile << """
             task copy1(type: Copy) {
@@ -95,20 +95,24 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.containsAll(taskName, ':copy1', ':copy2')
+        result.executedTasks.containsAll(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
+        long targetFile1LastModified = targetFile1.lastModified()
+        long targetFile2LastModified = targetFile2.lastModified()
 
         when:
-        succeeds taskName
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskName, ':copy1', ':copy2')
+        executedAndNotSkipped(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
+        targetFile1.lastModified() != targetFile1LastModified
+        targetFile2.lastModified() != targetFile2LastModified
     }
 
     @NotYetImplemented
@@ -120,7 +124,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         sourceFile2 << 'b'
         def targetFile1 = file('target/source1.txt')
         def targetFile2 = file('target/source2.txt')
-        def taskName = ':copy'
+        def taskPath = ':copy'
 
         buildFile << """
             task copy(type: Copy) {
@@ -130,19 +134,19 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.contains(taskName)
+        result.executedTasks.contains(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
         when:
         GFileUtils.forceDelete(sourceFile2)
-        succeeds taskName
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskName)
+        executedAndNotSkipped(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertDoesNotExist()
     }
@@ -156,7 +160,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         sourceFile2 << 'b'
         def targetFile1 = file('target/source1.txt')
         def targetFile2 = file('target/source2.txt')
-        def taskName = ':customCopy'
+        def taskPath = ':customCopy'
 
         buildFile << """
             task customCopy(type: CustomCopy) {
@@ -182,10 +186,10 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.contains(taskName)
+        result.executedTasks.contains(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -195,10 +199,10 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
                 targetDir = file('newTarget')
             }
         """
-        succeeds taskName
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskName)
+        executedAndNotSkipped(taskPath)
         targetFile1.assertDoesNotExist()
         targetFile2.assertDoesNotExist()
         file('newTarget/source1.txt').assertIsFile()
@@ -213,7 +217,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         sourceFile2 << 'b'
         def targetFile1 = file('target1/source.txt')
         def targetFile2 = file('target2/source.txt')
-        def taskName = ':copyAll'
+        def taskPath = ':copyAll'
 
         buildFile << """
             task copy1(type: Copy) {
@@ -232,10 +236,10 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.containsAll(taskName, ':copy1', ':copy2')
+        result.executedTasks.containsAll(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -244,10 +248,10 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
             def reducedTaskDependencies = copyAll.taskDependencies.getDependencies(copyAll) - copy2
             copyAll.dependsOn = reducedTaskDependencies
         """
-        succeeds taskName
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskName, ':copy1')
+        executedAndNotSkipped(taskPath, ':copy1')
         notExecuted(':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertDoesNotExist()
@@ -262,30 +266,47 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         sourceFile2 << 'b'
         def targetFile1 = file('target/source1.txt')
         def targetFile2 = file('target/source2.txt')
-        def taskName = ':copy'
+        def taskPath = ':customCopy'
 
         buildFile << """
-            task copy(type: Copy) {
-                from file('source')
-                into file('target')
+            task customCopy(type: CustomCopy) {
+                sourceDir = fileTree('source')
+                targetDir = file('target')
+            }
+
+            class CustomCopy extends DefaultTask {
+                @InputFiles
+                @SkipWhenEmpty
+                FileTree sourceDir
+
+                @OutputDirectory
+                File targetDir
+
+                @TaskAction
+                void copyFiles() {
+                    project.copy {
+                        from sourceDir
+                        into targetDir
+                    }
+                }
             }
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.contains(taskName)
+        result.executedTasks.contains(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
         when:
         GFileUtils.forceDelete(sourceFile1)
         GFileUtils.forceDelete(sourceFile2)
-        succeeds taskName
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskName)
+        executedAndNotSkipped(taskPath)
         targetFile1.assertDoesNotExist()
         targetFile2.assertDoesNotExist()
     }
@@ -299,7 +320,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         sourceFile2 << 'b'
         def targetFile1 = file('target/source1.txt')
         def targetFile2 = file('target/source2.txt')
-        def taskName = ':copy'
+        def taskPath = ':copy'
 
         buildFile << """
             task copy(type: Copy) {
@@ -309,14 +330,18 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskName)
+        def result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.contains(taskName)
+        result.executedTasks.contains(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
+        long targetFile1LastModified = targetFile1.lastModified()
+        long targetFile2LastModified = targetFile2.lastModified()
 
         when:
+        def newTaskPath = ':newCopy'
+
         buildFile << """
             tasks.remove(copy)
 
@@ -325,15 +350,22 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
                 into file('target')
             }
         """
-        succeeds 'newCopy'
+        GFileUtils.forceDelete(sourceFile2)
+        succeeds newTaskPath
 
         then:
-        executedAndNotSkipped(':newCopy')
+        executedAndNotSkipped(newTaskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
+        targetFile1.lastModified() != targetFile1LastModified
+        targetFile2.lastModified() != targetFile2LastModified
     }
 
     private ExecutionResult runWithMostRecentFinalRelease(String... tasks) {
         mostRecentFinalReleaseExecuter.withTasks(tasks).run()
+    }
+
+    static boolean hasDescendants(File jarFile, String... relativePaths) {
+        new JarTestFixture(jarFile).hasDescendants(relativePaths)
     }
 }
