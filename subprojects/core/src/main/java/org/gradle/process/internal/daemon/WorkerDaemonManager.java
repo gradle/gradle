@@ -17,8 +17,6 @@ package org.gradle.process.internal.daemon;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.process.internal.MemoryResourceManager;
-import org.gradle.process.internal.health.memory.MemoryAmount;
 
 import java.io.File;
 
@@ -29,11 +27,9 @@ import java.io.File;
 public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
 
     private final WorkerDaemonClientsManager clientsManager;
-    private final MemoryResourceManager memoryResourceManager;
 
-    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, MemoryResourceManager memoryResourceManager) {
+    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager) {
         this.clientsManager = clientsManager;
-        this.memoryResourceManager = memoryResourceManager;
     }
 
     @Override
@@ -42,7 +38,6 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
             public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
-                    memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(forkOptions.getMinHeapSize()));
                     client = clientsManager.reserveNewClient(serverImplementationClass, workingDir, forkOptions);
                 }
                 try {

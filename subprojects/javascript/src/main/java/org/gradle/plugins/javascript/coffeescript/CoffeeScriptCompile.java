@@ -30,7 +30,6 @@ import org.gradle.plugins.javascript.coffeescript.compile.internal.DefaultCoffee
 import org.gradle.plugins.javascript.coffeescript.compile.internal.rhino.RhinoCoffeeScriptCompiler;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
-import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -45,11 +44,6 @@ public class CoffeeScriptCompile extends SourceTask {
 
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected MemoryResourceManager getMemoryResourceManager() {
         throw new UnsupportedOperationException();
     }
 
@@ -104,7 +98,7 @@ public class CoffeeScriptCompile extends SourceTask {
         spec.setOptions(getOptions());
 
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
-        CoffeeScriptCompiler compiler = new RhinoCoffeeScriptCompiler(getMemoryResourceManager(), handleFactory, getRhinoClasspath(), logLevel, getProject().getProjectDir());
+        CoffeeScriptCompiler compiler = new RhinoCoffeeScriptCompiler(handleFactory, getRhinoClasspath(), logLevel, getProject().getProjectDir());
 
         setDidWork(compiler.compile(spec).getDidWork());
     }

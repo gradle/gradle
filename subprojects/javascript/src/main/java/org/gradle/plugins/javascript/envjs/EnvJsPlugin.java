@@ -37,7 +37,6 @@ import org.gradle.plugins.javascript.rhino.RhinoExtension;
 import org.gradle.plugins.javascript.rhino.RhinoPlugin;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
-import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -46,12 +45,10 @@ import java.util.concurrent.Callable;
 
 public class EnvJsPlugin implements Plugin<Project> {
     private final WorkerProcessFactory workerProcessBuilderFactory;
-    private final MemoryResourceManager memoryResourceManager;
 
     @Inject
-    public EnvJsPlugin(WorkerProcessFactory workerProcessBuilderFactory, MemoryResourceManager memoryResourceManager) {
+    public EnvJsPlugin(WorkerProcessFactory workerProcessBuilderFactory) {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
-        this.memoryResourceManager = memoryResourceManager;
     }
 
     public void apply(final Project project) {
@@ -89,7 +86,7 @@ public class EnvJsPlugin implements Plugin<Project> {
                             }
                         };
                         LogLevel logLevel = project.getGradle().getStartParameter().getLogLevel();
-                        return new EnvJsBrowserEvaluator(memoryResourceManager, handleFactory, rhinoExtension.getClasspath(), envJsFactory, logLevel, workDir);
+                        return new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.getClasspath(), envJsFactory, logLevel, workDir);
                     }
                 });
             }

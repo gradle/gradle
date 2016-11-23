@@ -18,12 +18,11 @@ package org.gradle.play.internal.run;
 
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayApplicationRunnerFactory {
-    public static PlayApplicationRunner create(PlayPlatform playPlatform, MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory) {
-        return new PlayApplicationRunner(memoryResourceManager, workerFactory, createPlayRunAdapter(playPlatform));
+    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory) {
+        return new PlayApplicationRunner(workerFactory, createPlayRunAdapter(playPlatform));
     }
 
     public static VersionedPlayRunAdapter createPlayRunAdapter(PlayPlatform playPlatform) {

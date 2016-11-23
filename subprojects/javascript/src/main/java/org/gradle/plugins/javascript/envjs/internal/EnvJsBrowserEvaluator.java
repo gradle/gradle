@@ -22,7 +22,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluator;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.process.internal.MemoryResourceManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,15 +30,13 @@ import java.io.Writer;
 
 public class EnvJsBrowserEvaluator implements BrowserEvaluator {
 
-    private final MemoryResourceManager memoryResourceManager;
     private final RhinoWorkerHandleFactory rhinoWorkerHandleFactory;
     private final Iterable<File> rhinoClasspath;
     private final LogLevel logLevel;
     private final File workingDir;
     private final Factory<File> envJsFactory;
 
-    public EnvJsBrowserEvaluator(MemoryResourceManager memoryResourceManager, RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, Factory<File> envJsFactory, LogLevel logLevel, File workingDir) {
-        this.memoryResourceManager = memoryResourceManager;
+    public EnvJsBrowserEvaluator(RhinoWorkerHandleFactory rhinoWorkerHandleFactory, Iterable<File> rhinoClasspath, Factory<File> envJsFactory, LogLevel logLevel, File workingDir) {
         this.rhinoWorkerHandleFactory = rhinoWorkerHandleFactory;
         this.rhinoClasspath = rhinoClasspath;
         this.envJsFactory = envJsFactory;
@@ -48,7 +45,6 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
     }
 
     public void evaluate(String url, Writer writer) {
-        memoryResourceManager.requestFreeMemory(0);
         EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
         final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
 

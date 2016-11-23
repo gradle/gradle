@@ -18,8 +18,6 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.MemoryResourceManager;
-import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -27,18 +25,15 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import java.io.File;
 
 public class PlayApplicationRunner {
-    private final MemoryResourceManager memoryResourceManager;
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
-        this.memoryResourceManager = memoryResourceManager;
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
     }
 
     public PlayApplicationRunnerToken start(PlayRunSpec spec) {
-        memoryResourceManager.requestFreeMemory(MemoryAmount.parseNotation(spec.getForkOptions().getMemoryInitialSize()));
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 

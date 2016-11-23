@@ -52,7 +52,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -111,11 +110,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     @Inject
     public WorkerProcessFactory getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected MemoryResourceManager getMemoryResourceManager() {
         throw new UnsupportedOperationException();
     }
 
@@ -237,7 +231,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         getLogging().captureStandardOutput(LogLevel.DEBUG);
         getLogging().captureStandardError(LogLevel.DEBUG);
 
-        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), getMemoryResourceManager(), getWorkerProcessBuilderFactory(), getFindbugsClasspath(), spec);
+        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getFindbugsClasspath(), spec);
         evaluateResult(result);
     }
 

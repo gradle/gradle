@@ -17,8 +17,6 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.process.internal.MemoryResourceManager;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -34,6 +32,7 @@ import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.TreeVisitor;
 
@@ -44,7 +43,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     private final FileResolver fileResolver;
     private final WorkerDaemonManager compilerDaemonManager;
-    private final MemoryResourceManager memoryResourceManager;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final PlayPlatform targetPlatform;
     private final Set<File> twirlClasspath;
@@ -52,12 +50,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> javaScriptClasspath;
 
     public DefaultPlayToolProvider(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager,
-                                   MemoryResourceManager memoryResourceManager, WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
+                                   WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
-        this.memoryResourceManager = memoryResourceManager;
         this.targetPlatform = targetPlatform;
         this.twirlClasspath = twirlClasspath;
         this.routesClasspath = routesClasspath;
@@ -84,7 +81,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T> T get(Class<T> toolType) {
         if (PlayApplicationRunner.class.isAssignableFrom(toolType)) {
-            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, memoryResourceManager, workerProcessBuilderFactory));
+            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, workerProcessBuilderFactory));
         }
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }

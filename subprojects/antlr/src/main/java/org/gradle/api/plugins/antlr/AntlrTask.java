@@ -35,7 +35,6 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.GFileUtils;
 
@@ -184,11 +183,6 @@ public class AntlrTask extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    protected MemoryResourceManager getMemoryResourceManager() {
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
     public void execute(IncrementalTaskInputs inputs) {
         final Set<File> grammarFiles = new HashSet<File>();
@@ -222,7 +216,7 @@ public class AntlrTask extends SourceTask {
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
         AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceDirectorySet);
-        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getMemoryResourceManager(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
+        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluate(result);
     }
 

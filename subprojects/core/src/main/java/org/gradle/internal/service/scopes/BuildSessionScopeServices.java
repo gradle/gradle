@@ -98,7 +98,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                    TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
+                                                    TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
+                                                    MemoryResourceManager memoryResourceManager) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
@@ -107,7 +108,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             startParameter.getGradleUserHomeDir(),
             temporaryFileProvider,
             execHandleFactory,
-            jvmVersionDetector);
+            jvmVersionDetector,
+            memoryResourceManager);
     }
 
     ClassPathRegistry createClassPathRegistry() {
@@ -148,8 +150,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return workerDaemonExpiration;
     }
 
-    WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryResourceManager memoryResourceManager) {
-        return new WorkerDaemonManager(workerDaemonClientsManager, memoryResourceManager);
+    WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager) {
+        return new WorkerDaemonManager(workerDaemonClientsManager);
     }
 
     WorkerDaemonService createWorkerDaemonService(WorkerDaemonManager workerDaemonManager, FileResolver fileResolver) {

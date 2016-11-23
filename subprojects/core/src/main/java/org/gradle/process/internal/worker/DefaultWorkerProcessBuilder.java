@@ -23,9 +23,12 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.process.internal.MemoryResourceManager;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -48,6 +51,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<String>();
     private final Set<File> applicationClasspath = new LinkedHashSet<File>();
+    private final MemoryResourceManager memoryResourceManager;
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private String baseName = "Gradle Worker";
@@ -55,11 +59,12 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private int connectTimeoutSeconds;
     private List<URL> implementationClassPath;
 
-    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory) {
+    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory, MemoryResourceManager memoryResourceManager) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.server = server;
         this.idGenerator = idGenerator;
         this.workerFactory = workerFactory;
+        this.memoryResourceManager = memoryResourceManager;
     }
 
     public int getConnectTimeoutSeconds() {
@@ -169,6 +174,34 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
         workerProcess.setExecHandle(execHandle);
 
-        return workerProcess;
+        return new MemoryClaimingWorkerProcess(workerProcess, memoryResourceManager, MemoryAmount.parseNotation(javaCommand.getMinHeapSize()));
+    }
+
+    private static class MemoryClaimingWorkerProcess implements WorkerProcess {
+        private final WorkerProcess delegate;
+        private final MemoryResourceManager memoryResourceManager;
+        private final long memoryAmount;
+
+        private MemoryClaimingWorkerProcess(WorkerProcess delegate, MemoryResourceManager memoryResourceManager, long memoryAmount) {
+            this.delegate = delegate;
+            this.memoryResourceManager = memoryResourceManager;
+            this.memoryAmount = memoryAmount;
+        }
+
+        @Override
+        public WorkerProcess start() {
+            memoryResourceManager.requestFreeMemory(memoryAmount);
+            return delegate.start();
+        }
+
+        @Override
+        public ObjectConnection getConnection() {
+            return delegate.getConnection();
+        }
+
+        @Override
+        public ExecResult waitForStop() {
+            return delegate.waitForStop();
+        }
     }
 }

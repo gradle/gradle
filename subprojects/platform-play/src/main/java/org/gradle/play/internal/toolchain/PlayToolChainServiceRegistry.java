@@ -19,11 +19,10 @@ package org.gradle.play.internal.toolchain;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.process.internal.MemoryResourceManager;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
@@ -51,8 +50,8 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class ProjectScopeCompileServices {
-        PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, MemoryResourceManager memoryResourceManager) {
-            return new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory, memoryResourceManager);
+        PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
+            return new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory);
         }
     }
 }
