@@ -62,10 +62,10 @@ public interface WorkerDaemonExecutor {
     WorkerDaemonExecutor params(Serializable... params);
 
     /**
-     * Synchronously executes the work in a daemon process.  Each call will execute in an idle daemon.  If no
+     * Synchronously executes the work in a daemon process.  Each call will execute in an idle daemon that meets the requirements set on this builder.  If no
      * idle daemons are available, a new daemon will be started.
      *
      * @throws WorkerDaemonExecutionException when a failure occurs while executing the work.
      */
-    void execute();
+    void execute() throws WorkerDaemonExecutionException;
 }

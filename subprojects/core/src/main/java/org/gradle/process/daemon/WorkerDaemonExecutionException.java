@@ -17,16 +17,16 @@
 package org.gradle.process.daemon;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
  * Indicates that a failure occurred during execution of work in a worker daemon.
+ *
+ * @since 3.3
  */
-@Contextual
+@Contextual @Incubating
 public class WorkerDaemonExecutionException extends GradleException {
-    public WorkerDaemonExecutionException() {
-    }
-
     public WorkerDaemonExecutionException(String message, Throwable cause) {
         super(message, cause);
     }
