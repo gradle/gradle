@@ -55,10 +55,12 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
     void upToDateWhen(Spec<? super Task> upToDateSpec);
 
     /**
-     * <p>Cache the results of the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
-     * during configuration. If the Spec is not satisfied, the results of the task will not be cached.</p>
+     * <p>Cache the results of the task only if the given spec is satisfied. If the spec is not satisfied,
+     * the results of the task will not be cached.</p>
      *
-     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
+     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code false},
+     * or if any of the predicates passed to {@link #doNotCacheIf(Spec)} returns {@code true}. If neither is specified the task will
+     * only be cached if the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
      *
      * @param spec specifies if the results of the task should be cached.
      *
@@ -66,6 +68,21 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      */
     @Incubating
     void cacheIf(Spec<? super Task> spec);
+
+    /**
+     * <p>Disable caching the results of the task if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the spec is not satisfied, the results of the task will be cached according to {@link #cacheIf(Spec)}.</p>
+     *
+     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code true},
+     * or if any of the predicates passed to {@link #cacheIf(Spec)} returns {@code false}. If neither is specified the task will
+     * only be cached if the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
+     *
+     * @param spec specifies if the results of the task should not be cached.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    void doNotCacheIf(Spec<? super Task> spec);
 
     /**
      * Returns true if this task has declared any outputs. Note that a task may be able to produce output files and
