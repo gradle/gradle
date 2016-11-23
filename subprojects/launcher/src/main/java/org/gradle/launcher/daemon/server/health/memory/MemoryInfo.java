@@ -20,7 +20,7 @@ import org.gradle.internal.os.OperatingSystem;
 
 import static org.gradle.launcher.daemon.server.health.memory.MBeanAttributeProvider.getMbeanAttribute;
 
-public class MemoryInfo {
+public class MemoryInfo implements MemoryStatus {
 
     private final long totalMemory; //this does not change
 
@@ -31,6 +31,7 @@ public class MemoryInfo {
     /**
      * Max memory that this process can commit in bytes. Always returns the same value because maximum memory is determined at jvm start.
      */
+    @Override
     public long getMaxMemory() {
         return totalMemory;
     }
@@ -38,6 +39,7 @@ public class MemoryInfo {
     /**
      * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is <= {@link #getMaxMemory()}
      */
+    @Override
     public long getCommittedMemory() {
         //querying runtime for each invocation
         return Runtime.getRuntime().totalMemory();
@@ -48,6 +50,7 @@ public class MemoryInfo {
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
+    @Override
     public long getTotalPhysicalMemory() {
         return getMbeanAttribute("java.lang:type=OperatingSystem", "TotalPhysicalMemorySize", Long.class);
     }
@@ -57,6 +60,7 @@ public class MemoryInfo {
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
+    @Override
     public long getFreePhysicalMemory() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
@@ -65,5 +69,9 @@ public class MemoryInfo {
             return new MeminfoAvailableMemory().get();
         }
         return new MBeanAvailableMemory().get();
+    }
+
+    public MemoryStatus getSnapshot() {
+        return new MemoryStatusSnapshot(getMaxMemory(), getCommittedMemory(), getTotalPhysicalMemory(), getFreePhysicalMemory());
     }
 }

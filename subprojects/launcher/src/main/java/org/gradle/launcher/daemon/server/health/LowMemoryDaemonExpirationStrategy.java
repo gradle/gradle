@@ -22,14 +22,19 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.health.memory.MemoryInfo;
+import org.gradle.launcher.daemon.server.health.memory.MemoryStatus;
+import org.gradle.launcher.daemon.server.health.memory.MemoryStatusListener;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
 /** An expiry strategy which only triggers when system memory falls below a threshold. */
-public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    private final MemoryInfo memoryInfo;
-    protected final long memoryThresholdInBytes;
+public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy, MemoryStatusListener {
+    private ReentrantLock lock = new ReentrantLock();
+    private MemoryStatus memoryStatus;
+    private final double minFreeMemoryPercentage;
+    private long memoryThresholdInBytes;
     private static final Logger LOG = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
 
     public static final String EXPIRATION_REASON = "to reclaim system memory";
@@ -38,12 +43,10 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     public static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024;
     public static final long MAX_THRESHOLD_BYTES = 1024 * 1024 * 1024;
 
-    public LowMemoryDaemonExpirationStrategy(MemoryInfo memoryInfo, double minFreeMemoryPercentage) {
+    public LowMemoryDaemonExpirationStrategy(double minFreeMemoryPercentage) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
-
-        this.memoryInfo = Preconditions.checkNotNull(memoryInfo);
-        this.memoryThresholdInBytes = normalizeThreshold((long) (memoryInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
+        this.minFreeMemoryPercentage = minFreeMemoryPercentage;
     }
 
     private long normalizeThreshold(final long thresholdIn, final long minValue, final long maxValue) {
@@ -51,12 +54,32 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     }
 
     public DaemonExpirationResult checkExpiration() {
-        long freeMem = memoryInfo.getFreePhysicalMemory();
-        if (freeMem < memoryThresholdInBytes) {
-            LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(memoryThresholdInBytes));
-            return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
-        } else {
-            return DaemonExpirationResult.NOT_TRIGGERED;
+        lock.lock();
+        try {
+            if (memoryStatus != null) {
+                long freeMem = memoryStatus.getFreePhysicalMemory();
+                if (freeMem < memoryThresholdInBytes) {
+                    LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(memoryThresholdInBytes));
+                    return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
+                }
+            }
+        } finally {
+            lock.unlock();
         }
+        return DaemonExpirationResult.NOT_TRIGGERED;
+
+    }
+
+    @Override
+    public void onMemoryStatusNotification(MemoryStatus memoryStatus) {
+        lock.lock();
+        try {
+            LOG.debug("Received memory status update: " + memoryStatus.toString());
+            this.memoryStatus = memoryStatus;
+            this.memoryThresholdInBytes = normalizeThreshold((long) (memoryStatus.getTotalPhysicalMemory() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
+        } finally {
+            lock.unlock();
+        }
+
     }
 }
