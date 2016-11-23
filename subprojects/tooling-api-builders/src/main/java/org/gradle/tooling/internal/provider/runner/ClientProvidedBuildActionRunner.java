@@ -59,6 +59,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
         buildController.configure();
     }
+
     private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle) {
         forceFullConfiguration(gradle);
 
