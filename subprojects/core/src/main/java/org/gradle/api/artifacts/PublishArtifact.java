@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.AttributeContainer;
 import org.gradle.api.Buildable;
 
 import java.io.File;
@@ -75,5 +74,4 @@ public interface PublishArtifact extends Buildable {
      */
     Date getDate();
 
-    AttributeContainer getAttributes();
 }
