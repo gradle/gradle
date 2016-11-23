@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-public interface TaskCacheKey {
-    String getHashCode();
-    OriginMetadata getOrigin();
+public interface OriginMetadata {
+    String getPath();
+    String getType();
+    String getGradleVersion();
+    long getCreationTime();
 }

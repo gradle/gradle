@@ -35,20 +35,20 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
+    public void pack(OriginMetadata originMetadata, TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
         GZIPOutputStream gzipOutput = new GZIPOutputStream(output);
         try {
-            delegate.pack(taskOutputs, gzipOutput);
+            delegate.pack(originMetadata, taskOutputs, gzipOutput);
         } finally {
             gzipOutput.close();
         }
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+    public OriginMetadata unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
         GZIPInputStream gzipInput = new GZIPInputStream(input);
         try {
-            delegate.unpack(taskOutputs, gzipInput);
+            return delegate.unpack(taskOutputs, gzipInput);
         } finally {
             gzipInput.close();
         }

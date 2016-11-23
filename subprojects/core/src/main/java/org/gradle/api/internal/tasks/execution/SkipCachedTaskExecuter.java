@@ -25,6 +25,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.cache.DefaultOriginMetadata;
+import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
@@ -33,6 +35,7 @@ import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,8 +100,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                         boolean found = getCache().load(cacheKey, new TaskOutputReader() {
                                             @Override
                                             public void readFrom(InputStream input) throws IOException {
-                                                packer.unpack(taskOutputs, input);
+                                                OriginMetadata originMetadata = packer.unpack(taskOutputs, input);
                                                 LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
+                                                LOGGER.info("Origin for {}: {}", task, originMetadata);
                                             }
                                         });
                                         if (found) {
@@ -140,7 +144,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         getCache().store(cacheKey, new TaskOutputWriter() {
                             @Override
                             public void writeTo(OutputStream output) throws IOException {
-                                packer.pack(taskOutputs, output);
+                                OriginMetadata originMetadata = new DefaultOriginMetadata(task.getPath(), task.getClass().getCanonicalName(), GradleVersion.current().getVersion(), System.currentTimeMillis());
+                                packer.pack(originMetadata, taskOutputs, output);
                             }
                         });
                     } catch (Exception e) {

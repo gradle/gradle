@@ -69,7 +69,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
+    public void pack(OriginMetadata originMetadata, TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
         Closer closer = Closer.create();
         TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
         outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
@@ -179,11 +179,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+    public OriginMetadata unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
         Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
-            unpack(taskOutputs, tarInput);
+            return unpack(taskOutputs, tarInput);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
         } finally {
@@ -191,13 +191,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput) throws IOException {
+    private OriginMetadata unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
+        OriginMetadata originMetadata = DefaultOriginMetadata.NULL;
         TarEntry entry;
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
@@ -234,6 +235,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 throw new IOException(String.format("Could not set modification time for '%s'", outputFile));
             }
         }
+        return originMetadata;
     }
 
     private static void storeModificationTime(TarEntry entry, long lastModified) {

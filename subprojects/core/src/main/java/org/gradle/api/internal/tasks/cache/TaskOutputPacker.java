@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface TaskOutputPacker {
-    void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException;
+    void pack(OriginMetadata originMetadata, TaskOutputsInternal taskOutputs, OutputStream output) throws IOException;
 
-    void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException;
+    OriginMetadata unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException;
 }
