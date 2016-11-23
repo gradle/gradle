@@ -84,9 +84,6 @@ Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. 
 
 ### Eclipse
 
-Building the Gradle project with Eclipse is currently limited due to Eclipse's lacking Groovy support.
-We recommend using IntelliJ IDEA.
-
 1. You will need Eclipse 4.5 (Mars)
 2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
 3. Make sure you have a Java 8 compatible JRE configured in your workspace
