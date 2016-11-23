@@ -69,6 +69,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         try {
             final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            configureLogging(loggingManager, connection);
 
             try {
                 // Read serialized worker
@@ -100,6 +101,11 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         return null;
+    }
+
+    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
+        WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
+        loggingManager.addOutputEventListener(new WorkerOutputEventListener(workerLoggingProtocol));
     }
 
     MessagingServices createClient() {
