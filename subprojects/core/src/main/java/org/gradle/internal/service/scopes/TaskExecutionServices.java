@@ -201,7 +201,7 @@ public class TaskExecutionServices {
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
         return new OutputPreparingTaskOutputPacker(
             new GZipTaskOutputPacker(
-                new TarTaskOutputPacker(fileSystem)
+                new TarTaskOutputPacker(fileSystem, originMetadataWriter, originMetadataReader)
             )
         );
     }

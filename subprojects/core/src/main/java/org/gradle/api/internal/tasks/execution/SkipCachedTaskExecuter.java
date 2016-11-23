@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.cache.DefaultOriginMetadata;
+import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadata;
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;

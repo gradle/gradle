@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.api.internal.tasks.cache.origin;
+
+import org.gradle.api.internal.tasks.cache.OriginMetadata;
 
 public class DefaultOriginMetadata implements OriginMetadata {
     private final String path;
     private final String type;
     private final String gradleVersion;
     private final long creationTime;
-
-    final static OriginMetadata NULL = new DefaultOriginMetadata("unknown", "unknown", "unknown", 0);
 
     public DefaultOriginMetadata(String path, String type, String gradleVersion, long creationTime) {
         this.path = path;

@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.api.internal.tasks.cache.origin;
 
-public interface TaskCacheKey {
-    String getHashCode();
+import org.gradle.api.internal.tasks.cache.OriginMetadata;
+
+import java.io.OutputStream;
+
+public class DefaultOriginMetadataWriter implements OriginMetadataWriter {
+    @Override
+    public void writeTo(OriginMetadata originMetadata, OutputStream outputStream) {
+
+    }
 }

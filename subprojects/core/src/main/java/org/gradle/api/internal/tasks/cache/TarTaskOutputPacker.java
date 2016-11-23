@@ -34,6 +34,8 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
@@ -57,15 +59,20 @@ import java.util.regex.Pattern;
  * fractional nanoseconds into the group ID of the file.
  */
 public class TarTaskOutputPacker implements TaskOutputPacker {
+    private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
     private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
+    private final OriginMetadataWriter originMetadataWriter;
+    private final OriginMetadataReader originMetadataReader;
 
-    public TarTaskOutputPacker(FileSystem fileSystem) {
+    public TarTaskOutputPacker(FileSystem fileSystem, OriginMetadataWriter originMetadataWriter, OriginMetadataReader originMetadataReader) {
         this.directoryWalkerFactory = new DefaultDirectoryWalkerFactory(JavaVersion.current(), fileSystem);
         this.fileSystem = fileSystem;
+        this.originMetadataWriter = originMetadataWriter;
+        this.originMetadataReader = originMetadataReader;
     }
 
     @Override
@@ -76,11 +83,23 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
         outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
+            packMetadata(originMetadata, outputStream);
             pack(taskOutputs, outputStream);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
         } finally {
             closer.close();
+        }
+    }
+
+    private void packMetadata(OriginMetadata originMetadata, TarOutputStream outputStream) throws IOException {
+        TarEntry entry = new TarEntry(METADATA_PATH);
+        entry.setMode(UnixStat.FILE_FLAG);
+        outputStream.putNextEntry(entry);
+        try {
+            originMetadataWriter.writeTo(originMetadata, outputStream);
+        } finally {
+            outputStream.closeEntry();
         }
     }
 
@@ -198,42 +217,52 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 return propertySpec.getPropertyName();
             }
         });
-        OriginMetadata originMetadata = DefaultOriginMetadata.NULL;
+        OriginMetadata originMetadata = null;
         TarEntry entry;
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
-            Matcher matcher = PROPERTY_PATH.matcher(name);
-            if (!matcher.matches()) {
-                throw new IllegalStateException("Cached result format error, invalid contents: " + name);
-            }
-            String propertyName = matcher.group(1);
-            CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
-            if (propertySpec == null) {
-                throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
-            }
 
-            File specRoot = propertySpec.getOutputFile();
-            String path = matcher.group(2);
-            File outputFile;
-            if (Strings.isNullOrEmpty(path)) {
-                outputFile = specRoot;
+            if (name.equals(METADATA_PATH)) {
+                // handle metadata
+                originMetadata = originMetadataReader.readFrom(tarInput);
             } else {
-                outputFile = new File(specRoot, path);
-            }
-            if (entry.isDirectory()) {
-                if (propertySpec.getOutputType() != OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output directory property: " + propertyName);
+                // handle output property
+                Matcher matcher = PROPERTY_PATH.matcher(name);
+                if (!matcher.matches()) {
+                    throw new IllegalStateException("Cached result format error, invalid contents: " + name);
                 }
-                FileUtils.forceMkdir(outputFile);
-            } else {
-                Files.asByteSink(outputFile).writeFrom(tarInput);
+                String propertyName = matcher.group(1);
+                CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
+                if (propertySpec == null) {
+                    throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
+                }
+
+                File specRoot = propertySpec.getOutputFile();
+                String path = matcher.group(2);
+                File outputFile;
+                if (Strings.isNullOrEmpty(path)) {
+                    outputFile = specRoot;
+                } else {
+                    outputFile = new File(specRoot, path);
+                }
+                if (entry.isDirectory()) {
+                    if (propertySpec.getOutputType() != OutputType.DIRECTORY) {
+                        throw new IllegalStateException("Property should be an output directory property: " + propertyName);
+                    }
+                    FileUtils.forceMkdir(outputFile);
+                } else {
+                    Files.asByteSink(outputFile).writeFrom(tarInput);
+                }
+                //noinspection OctalInteger
+                fileSystem.chmod(outputFile, entry.getMode() & 0777);
+                long lastModified = getModificationTime(entry);
+                if (!outputFile.setLastModified(lastModified)) {
+                    throw new IOException(String.format("Could not set modification time for '%s'", outputFile));
+                }
             }
-            //noinspection OctalInteger
-            fileSystem.chmod(outputFile, entry.getMode() & 0777);
-            long lastModified = getModificationTime(entry);
-            if (!outputFile.setLastModified(lastModified)) {
-                throw new IOException(String.format("Could not set modification time for '%s'", outputFile));
-            }
+        }
+        if (originMetadata == null) {
+            throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
         return originMetadata;
     }

@@ -24,7 +24,7 @@ import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePr
 
 class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
-    def packer = new TarTaskOutputPacker(fileSystem)
+    def packer = new TarTaskOutputPacker(fileSystem, originMetadataWriter, originMetadataReader)
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
