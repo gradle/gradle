@@ -23,7 +23,6 @@ import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
@@ -34,8 +33,6 @@ import spock.lang.Unroll
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DefaultBuildOperationWorkerRegistry workerRegistry
-    BuildOperationWorkerRegistry.Completion completion
     BuildOperationProcessor buildOperationProcessor
     DefaultTestReport report
     final TestFile reportDir = tmpDir.file('report')
@@ -43,15 +40,8 @@ class DefaultTestReportTest extends Specification {
     final TestResultsProvider testResultProvider = Mock()
 
     def reportWithMaxThreads(int numThreads) {
-        workerRegistry = new DefaultBuildOperationWorkerRegistry(numThreads)
-        completion = workerRegistry.operationStart()
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), numThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(Stub(BuildOperationWorkerRegistry)), new DefaultExecutorFactory(), numThreads)
         return new DefaultTestReport(buildOperationProcessor)
-    }
-
-    def "cleanup"() {
-        completion.operationFinish()
-        workerRegistry.stop()
     }
 
     def generatesReportWhenThereAreNoTestResults() {
