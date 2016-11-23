@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.tasks.TaskDependency;
@@ -32,6 +34,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependency buildDependencies;
+    private final AttributeContainer attributes;
     private Factory<File> artifactSource;
     private File file;
 
@@ -41,6 +44,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
         this.artifactSource = artifactSource;
+        this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact);
     }
 
     @Override
@@ -93,6 +97,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
 
     public String getClassifier() {
         return artifact.getClassifier();
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
     }
 
     public File getFile() {

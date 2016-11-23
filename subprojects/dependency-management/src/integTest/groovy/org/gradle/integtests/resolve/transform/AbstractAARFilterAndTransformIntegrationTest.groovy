@@ -370,7 +370,7 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
             return ""
         }
         """
-        attributes type: '$formatName'
+        attributes artifactType: '$formatName'
         """
     }
 
