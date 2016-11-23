@@ -47,7 +47,7 @@ public interface TaskPropertyActionContext {
     /**
      * Record annotations encountered during parsing the property's methods and instance field.
      */
-    void addAnnotations(Annotation[] declaredAnnotations);
+    void addAnnotations(Iterable<? extends Annotation> declaredAnnotations);
 
     /**
      * Returns whether the given annotation is present on the field or any of the methods declaring the property.

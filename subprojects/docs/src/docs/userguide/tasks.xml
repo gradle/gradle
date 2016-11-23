@@ -508,6 +508,8 @@
                             different names for the same files. It is similar to annotating the property
                             with `@OrderSensitive` and `@PathSensitive(RELATIVE)`, but it will also
                             ignore the names of JAR files directly added to the classpath.
+                            To stay compatible with Gradle versions before 3.2, classpath properties
+                            should also be annotated with <literal>@InputFiles</literal>.
                         </td>
                     </tr>
 

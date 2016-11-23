@@ -20,14 +20,20 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.InputFiles;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
-public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHandler {
+public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
+    }
+
+    @Override
+    public Class<? extends Annotation> getOverriddenAnnotationType() {
+        return InputFiles.class;
     }
 
     @Override

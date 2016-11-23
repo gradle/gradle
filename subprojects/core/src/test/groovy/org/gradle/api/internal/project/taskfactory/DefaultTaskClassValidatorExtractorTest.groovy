@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -174,5 +176,55 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         where:
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
+    }
+
+    class ClasspathPropertyTask extends DefaultTask {
+        @Classpath @InputFiles FileCollection inputFiles1
+        @InputFiles @Classpath FileCollection inputFiles2
+    }
+
+    // Third-party plugins that need to support Gradle versions both pre- and post-3.2
+    // need to declare their @Classpath properties as @InputFiles as well
+    @Issue("https://github.com/gradle/gradle/issues/913")
+    def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
+        def extractor = new DefaultTaskClassValidatorExtractor(new ClasspathPropertyAnnotationHandler())
+
+        when:
+        def validator = extractor.extractValidator(ClasspathPropertyTask)
+
+        then:
+        validator.validatedProperties*.name as List == ["inputFiles1", "inputFiles2"]
+        validator.validatedProperties*.propertyType as List == [Classpath, Classpath]
+    }
+
+    class BaseClasspathPropertyTask extends DefaultTask {
+        @Classpath FileCollection overriddenClasspath
+        @InputFiles FileCollection overriddenInputFiles
+    }
+
+    class OverridingClasspathPropertyTask extends BaseClasspathPropertyTask {
+        @InputFiles
+        @Override
+        FileCollection getOverriddenClasspath() {
+            return super.getOverriddenClasspath()
+        }
+
+        @Classpath
+        @Override
+        FileCollection getOverriddenInputFiles() {
+            return super.getOverriddenInputFiles()
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/913")
+    def "@Classpath does not take precedence over @InputFiles when overriding properties in child type"() {
+        def extractor = new DefaultTaskClassValidatorExtractor(new ClasspathPropertyAnnotationHandler())
+
+        when:
+        def validator = extractor.extractValidator(OverridingClasspathPropertyTask)
+
+        then:
+        validator.validatedProperties*.name as List == ["overriddenClasspath", "overriddenInputFiles"]
+        validator.validatedProperties*.propertyType as List == [InputFiles, Classpath]
     }
 }

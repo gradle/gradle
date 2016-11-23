@@ -17,11 +17,14 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import groovy.lang.GroovyObject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
@@ -43,6 +46,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -71,18 +75,31 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
     );
 
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
+    private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
 
     public DefaultTaskClassValidatorExtractor(PropertyAnnotationHandler... customAnnotationHandlers) {
         this(Arrays.asList(customAnnotationHandlers));
     }
 
     public DefaultTaskClassValidatorExtractor(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers) {
-        this.annotationHandlers = Maps.uniqueIndex(Iterables.concat(HANDLERS, customAnnotationHandlers), new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
+        Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
+        this.annotationHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
                 return handler.getAnnotationType();
             }
         });
+        this.annotationOverrides = collectAnnotationOverrides(allAnnotationHandlers);
+    }
+
+    private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<PropertyAnnotationHandler> allAnnotationHandlers) {
+        ImmutableSetMultimap.Builder<Class<? extends Annotation>, Class<? extends Annotation>> builder = ImmutableSetMultimap.builder();
+        for (PropertyAnnotationHandler handler : allAnnotationHandlers) {
+            if (handler instanceof OverridingPropertyAnnotationHandler) {
+                builder.put(((OverridingPropertyAnnotationHandler) handler).getOverriddenAnnotationType(), handler.getAnnotationType());
+            }
+        }
+        return builder.build();
     }
 
     @Override
@@ -99,6 +116,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
     }
 
     private <T> void parseProperties(final TaskPropertyInfo parent, Class<T> type, ImmutableSet.Builder<TaskPropertyInfo> validatedPropertiesBuilder, ImmutableSet.Builder<String> nonAnnotatedPropertiesBuilder, Queue<TypeEntry> queue) {
+        final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
         final Map<String, DefaultTaskPropertyActionContext> propertyContexts = Maps.newHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
             @Override
@@ -117,14 +135,34 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
 
                     DefaultTaskPropertyActionContext propertyContext = propertyContexts.get(propertyName);
                     if (propertyContext == null) {
-                        propertyContext = new DefaultTaskPropertyActionContext(annotationHandlers.keySet(), parent, propertyName, method);
+                        propertyContext = new DefaultTaskPropertyActionContext(propertyTypeAnnotations, parent, propertyName, method);
                         propertyContexts.put(propertyName, propertyContext);
                     }
-                    propertyContext.addAnnotations(method.getDeclaredAnnotations());
+
+                    final List<Annotation> declaredAnnotations = Lists.newArrayList(method.getDeclaredAnnotations());
                     if (field != null) {
                         propertyContext.setInstanceVariableField(field);
-                        propertyContext.addAnnotations(field.getDeclaredAnnotations());
+                        Collections.addAll(declaredAnnotations, field.getDeclaredAnnotations());
                     }
+
+                    // Discard overridden property type annotations when an overriding annotation is also present
+                    propertyContext.addAnnotations(Iterables.filter(declaredAnnotations, new Predicate<Annotation>() {
+                        @Override
+                        public boolean apply(Annotation input) {
+                            Class<? extends Annotation> annotationType = input.annotationType();
+                            if (!propertyTypeAnnotations.contains(annotationType)) {
+                                return true;
+                            }
+                            for (Class<? extends Annotation> overridingAnnotation : annotationOverrides.get(annotationType)) {
+                                for (Annotation declaredAnnotation : declaredAnnotations) {
+                                    if (declaredAnnotation.annotationType().equals(overridingAnnotation)) {
+                                        return false;
+                                    }
+                                }
+                            }
+                            return true;
+                        }
+                    }));
                 }
             }
         });
@@ -213,7 +251,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public void addAnnotations(Annotation[] declaredAnnotations) {
+        public void addAnnotations(Iterable<? extends Annotation> declaredAnnotations) {
             for (Annotation annotation : declaredAnnotations) {
                 Class<? extends Annotation> annotationType = annotation.annotationType();
                 // Record the most specific property type annotation only
