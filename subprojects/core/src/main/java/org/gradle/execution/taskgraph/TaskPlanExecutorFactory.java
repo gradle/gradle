@@ -21,22 +21,22 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
-    private final int maxWorkers;
+    private final int parallelThreads;
     private final ExecutorFactory executorFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
 
-    public TaskPlanExecutorFactory(int maxWorkers, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
-        this.maxWorkers = maxWorkers;
+    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+        this.parallelThreads = parallelThreads;
         this.executorFactory = executorFactory;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
     }
 
     public TaskPlanExecutor create() {
-        if (maxWorkers < 1) {
-            throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", maxWorkers));
+        if (parallelThreads < 1) {
+            throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
-        if (maxWorkers > 1) {
-            return new ParallelTaskPlanExecutor(maxWorkers, executorFactory, buildOperationWorkerRegistry);
+        if (parallelThreads > 1) {
+            return new ParallelTaskPlanExecutor(parallelThreads, executorFactory, buildOperationWorkerRegistry);
         }
         return new DefaultTaskPlanExecutor(buildOperationWorkerRegistry);
     }

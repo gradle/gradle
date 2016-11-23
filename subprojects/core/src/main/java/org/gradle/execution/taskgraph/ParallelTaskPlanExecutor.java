@@ -28,18 +28,18 @@ import java.util.concurrent.Executor;
 
 class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(ParallelTaskPlanExecutor.class);
-    private final int maxWorkers;
+    private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
 
-    public ParallelTaskPlanExecutor(int maxWorkers, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
         this.executorFactory = executorFactory;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
-        if (maxWorkers < 2) {
-            throw new IllegalArgumentException("Not a valid number of parallel workers: " + maxWorkers);
+        if (numberOfParallelExecutors < 2) {
+            throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
-        this.maxWorkers = maxWorkers;
+        this.executorCount = numberOfParallelExecutors;
     }
 
     @Override
@@ -55,9 +55,9 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     }
 
     private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor) {
-        LOGGER.debug("Using {} parallel executor threads", maxWorkers);
+        LOGGER.debug("Using {} parallel executor threads", executorCount);
 
-        for (int i = 1; i < maxWorkers; i++) {
+        for (int i = 1; i < executorCount; i++) {
             Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
             executor.execute(worker);
         }
