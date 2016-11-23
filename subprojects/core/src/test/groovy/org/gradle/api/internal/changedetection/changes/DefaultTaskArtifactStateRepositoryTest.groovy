@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.changes
 
+import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
@@ -81,8 +82,10 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner)
         fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
-        def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
-        SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
+        def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
+            getClassLoaderHash(_) >> HashCode.fromInt(123)
+        }
+        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         fileCollectionSnapshotter.registerSerializers(serializerRegistry);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher)
