@@ -25,6 +25,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.specs.Spec;
@@ -68,23 +69,26 @@ public class ArtifactTransformer {
      * and then forwards the results to the given visitor.
      */
     public ArtifactVisitor visitor(final ArtifactVisitor visitor, AttributeContainer attributes) {
-        final String format = getTypeAttribute(attributes);
-        if (format == null) {
+        final String requestedType = getTypeAttribute(attributes);
+        if (requestedType == null) {
             return visitor;
         }
         return new ArtifactVisitor() {
             @Override
             public void visitArtifact(final ResolvedArtifact artifact) {
-                if (artifact.getType().equals(format)) {
+                // TODO:DAZ Use an attribute-matching strategy here
+                String artifactType = getTypeAttribute(artifact.getAttributes());
+                if (requestedType.equals(artifactType)) {
                     visitor.visitArtifact(artifact);
                     return;
                 }
-                final Transformer<File, File> transform = resolutionStrategy.getTransform(artifact.getType(), format);
+                // TODO:DAZ Express artifact transformations in terms of attributes
+                final Transformer<File, File> transform = resolutionStrategy.getTransform(artifactType, requestedType);
                 if (transform == null) {
                     return;
                 }
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
-                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), new DefaultIvyArtifactName(artifact.getName(), format, artifact.getExtension()), artifact.getId(), buildDependencies, new Factory<File>() {
+                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), new DefaultIvyArtifactName(artifact.getName(), requestedType, artifact.getExtension()), artifact.getId(), buildDependencies, new Factory<File>() {
                     @Override
                     public File create() {
                         File file = artifact.getFile();
@@ -108,7 +112,7 @@ public class ArtifactTransformer {
                 List<File> result = new ArrayList<File>();
                 for (File file : files) {
                     String fileFormat = Files.getFileExtension(file.getName());
-                    if (format.equals(fileFormat)) {
+                    if (requestedType.equals(fileFormat)) {
                         result.add(file);
                         continue;
                     }
@@ -117,7 +121,7 @@ public class ArtifactTransformer {
                         result.add(transformedFile);
                         continue;
                     }
-                    Transformer<File, File> transform = resolutionStrategy.getTransform(fileFormat, format);
+                    Transformer<File, File> transform = resolutionStrategy.getTransform(fileFormat, requestedType);
                     if (transform == null) {
                         continue;
                     }
@@ -132,9 +136,8 @@ public class ArtifactTransformer {
         };
     }
 
-    // TODO:DAZ This String attribute doesn't match the strongly typed ArtifactType attribute produced for `ResolvedArtifact`
     private String getTypeAttribute(AttributeContainer attributes) {
-        Attribute<String> typeAttribute = Attribute.of("type", String.class);
+        Attribute<String> typeAttribute = Attribute.of(DefaultArtifactAttributes.TYPE_ATTRIBUTE, String.class);
         return attributes.getAttribute(typeAttribute);
     }
 }

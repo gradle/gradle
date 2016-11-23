@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
@@ -43,4 +44,7 @@ public interface ResolvedArtifact {
 
     @Incubating
     ComponentArtifactIdentifier getId();
+
+    @Incubating
+    AttributeContainer getAttributes();
 }

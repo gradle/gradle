@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.Attribute
+import org.gradle.api.AttributeContainer
 import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.DefaultAttributeContainer
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import spock.lang.Specification
@@ -33,10 +36,10 @@ class ArtifactTransformerTest extends Specification {
         def artifact = Stub(ResolvedArtifact)
 
         given:
-        artifact.type >> "classpath"
+        artifact.attributes >> typeAttributes("classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -53,10 +56,10 @@ class ArtifactTransformerTest extends Specification {
         def transformedArtifact = null
 
         given:
-        artifact.type >> "zip"
+        artifact.attributes >> typeAttributes("zip")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -89,11 +92,11 @@ class ArtifactTransformerTest extends Specification {
         def artifact = Stub(ResolvedArtifact)
 
         given:
-        artifact.type >> "lib"
+        artifact.attributes >> typeAttributes("lib")
         resolutionStrategy.getTransform("lib", "classpath") >> null
 
         when:
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -106,7 +109,7 @@ class ArtifactTransformerTest extends Specification {
         def file = new File("thing.classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitFiles(id, [file])
 
         then:
@@ -122,7 +125,7 @@ class ArtifactTransformerTest extends Specification {
         def transformedFile = new File("thing.classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitFiles(id, [file])
 
         then:
@@ -138,7 +141,7 @@ class ArtifactTransformerTest extends Specification {
         def file = new File("thing.lib")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitFiles(id, [file])
 
         then:
@@ -159,7 +162,7 @@ class ArtifactTransformerTest extends Specification {
         resolutionStrategy.getTransform("zip", "classpath") >> transform
         transform.transform(file1) >> transformedFile1
 
-        def transformVisitor = transformer.visitor(visitor, "classpath")
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitFiles(id, [file1])
 
         when:
@@ -170,14 +173,14 @@ class ArtifactTransformerTest extends Specification {
         0 * _
 
         when:
-        transformer.visitor(visitor, "classpath").visitFiles(id, [file1])
+        transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1])
 
         then:
         1 * visitor.visitFiles(id, [transformedFile1])
         0 * _
 
         when:
-        transformer.visitor(visitor, "classpath").visitFiles(id, [file1, file2])
+        transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
 
         then:
         1 * resolutionStrategy.getTransform("zip", "classpath") >> transform
@@ -186,7 +189,7 @@ class ArtifactTransformerTest extends Specification {
         0 * _
 
         when:
-        transformer.visitor(visitor, "classpath").visitFiles(id, [file1, file2])
+        transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
 
         then:
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
@@ -202,7 +205,7 @@ class ArtifactTransformerTest extends Specification {
         artifact2.type >> "jar"
 
         expect:
-        def spec = transformer.select("classes")
+        def spec = transformer.select(typeAttributes("classes"))
         spec.isSatisfiedBy(artifact1)
         !spec.isSatisfiedBy(artifact2)
     }
@@ -218,9 +221,14 @@ class ArtifactTransformerTest extends Specification {
         resolutionStrategy.getTransform("dll", "classes") >> null
 
         expect:
-        def spec = transformer.select("classes")
+        def spec = transformer.select(typeAttributes("classes"))
         spec.isSatisfiedBy(artifact1)
         !spec.isSatisfiedBy(artifact2)
+    }
+
+    private static AttributeContainer typeAttributes(String artifactType) {
+        def typeAttribute = Attribute.of("artifactType", String.class)
+        new DefaultAttributeContainer().attribute(typeAttribute, artifactType.toString())
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }

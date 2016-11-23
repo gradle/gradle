@@ -96,7 +96,7 @@ allprojects {
             project(':app') {
                 configurations {
                     compile {
-                        attributes type: 'jar'
+                        attributes artifactType: 'jar'
                     }
                 }
 
@@ -123,7 +123,7 @@ allprojects {
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         
                         // Get a view specifying the default type
-                        assert configurations.compile.incoming.getFiles(type: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.getFiles(artifactType: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         
                         // Get a view without overriding the type
                         assert configurations.compile.incoming.getFiles(otherAttribute: 'anything').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
@@ -178,7 +178,7 @@ allprojects {
             project(':app') {
                 configurations {
                     compile {
-                        attributes type: 'jar'
+                        attributes artifactType: 'jar'
                     }
                 }
 
@@ -187,7 +187,7 @@ allprojects {
                 }
 
                 task resolve {
-                    def files = configurations.compile.incoming.getFiles(type: 'classes')
+                    def files = configurations.compile.incoming.getFiles(artifactType: 'classes')
                     inputs.files files
                     doLast {
                         assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'some-classes-1.0.classes']
