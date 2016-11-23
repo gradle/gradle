@@ -473,6 +473,79 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         "dir"    | "file" | "Expected 'PATH' to be a directory"
     }
 
+    def "task loaded with custom classloader is not cached"() {
+        file("input.txt").text = "data"
+        buildFile << """
+            def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.*
+                import org.gradle.api.tasks.*
+
+                @CacheableTask
+                class CustomTask extends DefaultTask {
+                    @InputFile File input
+                    @OutputFile File output
+                    @TaskAction action() {
+                        output.parentFile.mkdirs()
+                        output.text = input.text
+                    }
+                }
+            '''
+
+            task customTask(type: CustomTask) {
+                input = file("input.txt")
+                output = file("build/output.txt")
+            }
+        """
+
+        when:
+        withTaskCache().succeeds "customTask", "--info"
+        then:
+        output.contains "Not caching task ':customTask' because no valid cache key was generated"
+    }
+
+    def "task with custom action loaded with custom classloader is not cached"() {
+        file("input.txt").text = "data"
+        buildFile << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File input
+                @OutputFile File output
+                @TaskAction action() {
+                    output.parentFile.mkdirs()
+                    output.text = input.text
+                }
+            }
+
+            def CustomTaskAction = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.*
+
+                class CustomTaskAction implements Action<Task> {
+                    static Action<Task> create() {
+                        return new CustomTaskAction()
+                    }
+
+                    @Override
+                    void execute(Task task) {
+                    }
+                }
+            '''
+
+            task customTask(type: CustomTask) {
+                input = file("input.txt")
+                output = file("build/output.txt")
+                doFirst(CustomTaskAction.create())
+            }
+        """
+
+        when:
+        withTaskCache().succeeds "customTask", "--info"
+        then:
+        output.contains "Not caching task ':customTask' because no valid cache key was generated"
+    }
+
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
     }

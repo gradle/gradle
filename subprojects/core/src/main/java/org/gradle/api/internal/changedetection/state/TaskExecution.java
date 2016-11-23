@@ -119,6 +119,10 @@ public abstract class TaskExecution {
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
     public TaskCacheKey calculateCacheKey() {
+        if (taskClassLoaderHash == null || taskActionsClassLoaderHash == null) {
+            return null;
+        }
+
         TaskCacheKeyBuilder builder = new DefaultTaskCacheKeyBuilder();
         builder.putString(taskClass);
         builder.putBytes(taskClassLoaderHash.asBytes());
