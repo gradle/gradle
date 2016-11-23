@@ -171,6 +171,19 @@ class PluginBuilder {
         this
     }
 
+    PluginBuilder addNonConstructablePlugin(String id = "test-plugin", String className = "TestPlugin") {
+        addPluginSource(id, className, """
+            package $packageName
+
+            class $className implements $Plugin.name<$Project.name> {
+                $className() { throw new RuntimeException("broken plugin") }
+                void apply($Project.name project) {
+                }
+            }
+        """)
+        this
+    }
+
     PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
         addPlugin("project.task(\"$taskName\") { doLast { println \"$message\" } }", id, className)
         this
