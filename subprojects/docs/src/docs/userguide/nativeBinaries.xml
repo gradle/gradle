@@ -257,6 +257,7 @@
             The build script for the sample is the following:
         </para>
         <sample id="nativeDependentComponentsSample" dir="native-binaries/cunit" title="Sample build" includeLocation="true">
+            <sourcefile file="build.gradle" snippet="terse-example"/>
         </sample>
 
         <section id="sec:dependents_report">
@@ -267,6 +268,7 @@
                 The following is an example of running <userinput>gradle dependentComponents</userinput> on the sample project:
             </para>
             <sample id="nativeDependentComponentsReport" dir="native-binaries/cunit" title="Dependent components report">
+                <output args="dependentComponents"/>
             </sample>
             <note>
                 See <apilink class="org.gradle.api.reporting.dependents.DependentComponentsReport"/> API documentation for more details.
@@ -276,16 +278,19 @@
                 to see all dependents by using the <literal>--all</literal> option:
             </para>
             <sample id="nativeDependentComponentsReportAll" dir="native-binaries/cunit" title="Dependent components report">
+                <output args="dependentComponents --all"/>
             </sample>
             <para>
                 Here is the corresponding report for the <literal>operators</literal> component, showing dependents of all its binaries:
             </para>
             <sample id="nativeAssembleDependentComponentsReport" dir="native-binaries/cunit" title="Report of components that depends on the operators component">
+                <output args="dependentComponents --component operators"/>
             </sample>
             <para>
                 Here is the corresponding report for the <literal>operators</literal> component, showing dependents of all its binaries, including test suites:
             </para>
             <sample id="nativeBuildDependentComponentsReport" dir="native-binaries/cunit" title="Report of components that depends on the operators component, including test suites">
+                <output args="dependentComponents --test-suites --component operators"/>
             </sample>
         </section>
 
@@ -306,6 +311,7 @@
                 of the "operators" component, you would run the <userinput>assembleDependentsOperatorsPassingStaticLibrary</userinput> task:
             </para>
             <sample id="nativeAssembleDependentComponents" dir="native-binaries/cunit" title="Assemble components that depends on the passing/static binary of the operators component">
+                <output args="assembleDependentsOperatorsPassingStaticLibrary"/>
             </sample>
             <para>
                 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
@@ -333,6 +339,7 @@
                 of the "operators" component, you would run the <userinput>buildDependentsOperatorsPassingStaticLibrary</userinput> task:
             </para>
             <sample id="nativeBuildDependentComponents" dir="native-binaries/cunit" title="Build components that depends on the passing/static binary of the operators component">
+                <output args="buildDependentsOperatorsPassingStaticLibrary"/>
             </sample>
             <para>
                 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.
@@ -1019,6 +1026,7 @@
             </para>
             <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>
+                <output args='-q runOperatorsTestFailingCUnitExe' expectFailure="true"/>
             </sample>
         </section>
 
