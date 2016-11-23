@@ -17,8 +17,18 @@
 package org.gradle.api.internal.tasks.cache;
 
 public interface OriginMetadata {
+    // What created the output?
     String getPath();
     String getType();
     String getGradleVersion();
+
+    // When was the output created?
     long getCreationTime();
+    long getExecutionTime();
+
+    // Where was it originally created?
+    String getRootPath();
+    String getOperatingSystem();
+    String getHostName();
+    String getUserName();
 }

@@ -144,7 +144,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         getCache().store(cacheKey, new TaskOutputWriter() {
                             @Override
                             public void writeTo(OutputStream output) throws IOException {
-                                OriginMetadata originMetadata = new DefaultOriginMetadata(task.getPath(), task.getClass().getCanonicalName(), GradleVersion.current().getVersion(), System.currentTimeMillis());
+                                // TODO: Get OS/user name/host name
+                                OriginMetadata originMetadata =
+                                    new DefaultOriginMetadata(task.getPath(), task.getClass().getCanonicalName(), GradleVersion.current().getVersion(), System.currentTimeMillis(), clock.getElapsedMillis(), task.getProject().getRootDir().getAbsolutePath(),
+                                        "OS", "hostname", "user.name");
+                                LOGGER.debug("Packing {} with {}", task.getPath(), originMetadata);
                                 packer.pack(originMetadata, taskOutputs, output);
                             }
                         });

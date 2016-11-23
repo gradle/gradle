@@ -30,6 +30,11 @@ public class DefaultOriginMetadataWriter implements OriginMetadataWriter {
         properties.setProperty("path", originMetadata.getPath());
         properties.setProperty("gradleVersion", originMetadata.getGradleVersion());
         properties.setProperty("creationTime", Long.toString(originMetadata.getCreationTime()));
+        properties.setProperty("executionTime", Long.toString(originMetadata.getExecutionTime()));
+        properties.setProperty("rootPath", originMetadata.getRootPath());
+        properties.setProperty("operatingSystem", originMetadata.getOperatingSystem());
+        properties.setProperty("hostName", originMetadata.getHostName());
+        properties.setProperty("userName", originMetadata.getUserName());
         properties.store(outputStream, "origin metadata");
     }
 }

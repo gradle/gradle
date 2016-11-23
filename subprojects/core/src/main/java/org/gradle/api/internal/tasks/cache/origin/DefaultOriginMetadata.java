@@ -23,12 +23,23 @@ public class DefaultOriginMetadata implements OriginMetadata {
     private final String type;
     private final String gradleVersion;
     private final long creationTime;
+    private final long executionTime;
 
-    public DefaultOriginMetadata(String path, String type, String gradleVersion, long creationTime) {
+    private final String rootPath;
+    private final String operatingSystem;
+    private final String hostName;
+    private final String userName;
+
+    public DefaultOriginMetadata(String path, String type, String gradleVersion, long creationTime, long executionTime, String rootPath, String operatingSystem, String hostName, String userName) {
         this.path = path;
         this.type = type;
         this.gradleVersion = gradleVersion;
         this.creationTime = creationTime;
+        this.executionTime = executionTime;
+        this.rootPath = rootPath;
+        this.operatingSystem = operatingSystem;
+        this.hostName = hostName;
+        this.userName = userName;
     }
 
     @Override
@@ -49,5 +60,30 @@ public class DefaultOriginMetadata implements OriginMetadata {
     @Override
     public String getGradleVersion() {
         return gradleVersion;
+    }
+
+    @Override
+    public long getExecutionTime() {
+        return executionTime;
+    }
+
+    @Override
+    public String getRootPath() {
+        return rootPath;
+    }
+
+    @Override
+    public String getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    @Override
+    public String getHostName() {
+        return hostName;
+    }
+
+    @Override
+    public String getUserName() {
+        return userName;
     }
 }

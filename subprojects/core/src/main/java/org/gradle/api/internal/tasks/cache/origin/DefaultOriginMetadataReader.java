@@ -30,6 +30,11 @@ public class DefaultOriginMetadataReader implements OriginMetadataReader {
         return new DefaultOriginMetadata(properties.getProperty("path"),
             properties.getProperty("type"),
             properties.getProperty("gradleVersion"),
-            Long.valueOf(properties.getProperty("creationTime")));
+            Long.valueOf(properties.getProperty("creationTime")),
+            Long.valueOf(properties.getProperty("executionTime")),
+            properties.getProperty("rootPath"),
+            properties.getProperty("operatingSystem"),
+            properties.getProperty("hostName"),
+            properties.getProperty("userName"));
     }
 }
