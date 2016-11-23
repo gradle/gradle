@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url']
+def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url'] ?: System.getProperty('gradle.cache.remote.url')
 if (remoteCacheUrl) {
     gradle.taskCaching.useCacheFactory(new org.gradle.cache.tasks.http.HttpTaskOutputCacheFactory(new URI(remoteCacheUrl)))
 } else {
