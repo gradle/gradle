@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
@@ -261,9 +260,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, ArtifactVisitor visitor) {
-        Attribute<String> typeAttribute = Attribute.of("type", String.class);
-        String format = attributes.getAttribute(typeAttribute);
-        visitor = artifactTransformer.visitor(visitor, format);
+        visitor = artifactTransformer.visitor(visitor, attributes);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
