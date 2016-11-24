@@ -798,13 +798,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Configuration attributes(Map<?, ?> attributes) {
         validateMutation(MutationType.ATTRIBUTES);
+        populateAttributesFromMap(attributes, configurationAttributes);
+        return this;
+    }
+
+    private void populateAttributesFromMap(Map<?, ?> attributes, AttributeContainer attributeContainer) {
         for (Map.Entry<?, ?> entry : attributes.entrySet()) {
             Object rawKey = entry.getKey();
             Attribute<Object> key = uncheckedCast(asAttribute(rawKey));
             Object value = entry.getValue();
-            configurationAttributes.attribute(key, value);
+            attributeContainer.attribute(key, value);
         }
-        return this;
     }
 
     private static Attribute<?> asAttribute(Object rawKey) {
@@ -911,7 +915,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public FileCollection getFiles(String format) {
+        public FileCollection getFiles(Map<?, ?> attributes) {
+            AttributeContainer attributeContainer = new DefaultAttributeContainer();
+            populateAttributesFromMap(attributes, attributeContainer);
+            String format = attributeContainer.getAttribute(stringAttribute("type"));
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), format);
         }
 

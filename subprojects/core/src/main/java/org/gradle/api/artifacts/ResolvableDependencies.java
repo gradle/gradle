@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -60,12 +61,12 @@ public interface ResolvableDependencies {
     FileCollection getFiles();
 
     /**
-     * Returns a view of this set containing files with the given format.
+     * Returns a view of this set containing files matching the requested attributes.
      *
      * @since 3.3
      */
     @Incubating
-    FileCollection getFiles(String format);
+    FileCollection getFiles(Map<?, ?> attributes);
 
     /**
      * Returns the set of dependencies which will be resolved.
