@@ -25,8 +25,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 
-import static org.gradle.api.plugins.JavaPlugin.USAGE;
-
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
  * the API and implementation dependencies of a library.</p>
@@ -68,18 +66,14 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiCompileConfiguration.setCanBeResolved(false);
         apiCompileConfiguration.setCanBeConsumed(true);
         apiCompileConfiguration.setTransitive(false);
-        apiCompileConfiguration.attribute(USAGE, "api");
+        apiCompileConfiguration.attribute(JavaBasePlugin.Usage.USAGE_ATTRIBUTE, JavaBasePlugin.Usage.FOR_COMPILE);
         apiCompileConfiguration.extendsFrom(apiConfiguration);
 
         Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
-        implementationConfiguration.setVisible(false);
-        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSet + ".");
-        implementationConfiguration.setCanBeConsumed(false);
-        implementationConfiguration.setCanBeResolved(false);
         implementationConfiguration.extendsFrom(apiConfiguration);
 
         Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
-        compileConfiguration.extendsFrom(implementationConfiguration);
+        apiConfiguration.extendsFrom(compileConfiguration);
         ((ConfigurationInternal) compileConfiguration).lock(
             "The '" + compileConfiguration.getName() + "' configuration should not be used to declare dependencies. Please use '" + sourceSet.getApiConfigurationName()
                 + "' or '" + implementationConfiguration.getName() + "' instead.");
