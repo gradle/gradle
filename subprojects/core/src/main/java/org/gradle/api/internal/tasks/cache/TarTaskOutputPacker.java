@@ -95,7 +95,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private void packMetadata(OriginMetadata originMetadata, TarOutputStream outputStream) throws IOException {
         TarEntry entry = new TarEntry(METADATA_PATH);
-        entry.setMode(UnixStat.FILE_FLAG);
+        entry.setMode(UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         originMetadataWriter.writeTo(originMetadata, baos);
         entry.setSize(baos.size());
