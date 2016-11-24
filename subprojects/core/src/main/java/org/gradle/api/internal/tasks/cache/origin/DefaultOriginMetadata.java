@@ -100,4 +100,56 @@ public class DefaultOriginMetadata implements OriginMetadata {
     public String getUserName() {
         return userName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultOriginMetadata that = (DefaultOriginMetadata) o;
+
+        if (creationTime != that.creationTime) {
+            return false;
+        }
+        if (executionTime != that.executionTime) {
+            return false;
+        }
+        if (!path.equals(that.path)) {
+            return false;
+        }
+        if (!type.equals(that.type)) {
+            return false;
+        }
+        if (!gradleVersion.equals(that.gradleVersion)) {
+            return false;
+        }
+        if (!rootPath.equals(that.rootPath)) {
+            return false;
+        }
+        if (!operatingSystem.equals(that.operatingSystem)) {
+            return false;
+        }
+        if (!hostName.equals(that.hostName)) {
+            return false;
+        }
+        return userName.equals(that.userName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = path.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + gradleVersion.hashCode();
+        result = 31 * result + (int) (creationTime ^ (creationTime >>> 32));
+        result = 31 * result + (int) (executionTime ^ (executionTime >>> 32));
+        result = 31 * result + rootPath.hashCode();
+        result = 31 * result + operatingSystem.hashCode();
+        result = 31 * result + hostName.hashCode();
+        result = 31 * result + userName.hashCode();
+        return result;
+    }
 }

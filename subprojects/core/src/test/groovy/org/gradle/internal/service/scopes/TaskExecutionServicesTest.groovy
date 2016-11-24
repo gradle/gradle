@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.CacheBuilder
@@ -49,6 +50,7 @@ class TaskExecutionServicesTest extends Specification {
         given:
         CacheRepository cacheRepository = Mock()
         CacheBuilder cacheBuilder = Mock()
+
         _ * parent.get(Gradle) >> gradle
         _ * parent.get(GradleInternal) >> gradle
         gradle.getTaskGraph() >> Mock(TaskGraphExecuter)
@@ -70,6 +72,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.getAll(FileCollectionSnapshotter) >> []
         _ * parent.get(TimeProvider) >> Mock(TimeProvider)
         _ * parent.get(InetAddressFactory) >> Mock(InetAddressFactory)
+        gradle.getRootProject() >> Mock(ProjectInternal)
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder

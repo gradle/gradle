@@ -85,6 +85,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
 import java.util.List;
 
 public class TaskExecutionServices {
@@ -215,7 +216,8 @@ public class TaskExecutionServices {
         );
     }
 
-    OriginMetadataConverter createOriginMetadataConverter(TimeProvider timeProvider, InetAddressFactory inetAddressFactory) {
-        return new OriginMetadataConverter(timeProvider, inetAddressFactory, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
+    OriginMetadataConverter createOriginMetadataConverter(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
+        File rootDir = gradleInternal.getRootProject().getRootDir();
+        return new OriginMetadataConverter(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
     }
 }

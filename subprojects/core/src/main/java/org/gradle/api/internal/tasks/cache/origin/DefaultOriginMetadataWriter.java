@@ -25,6 +25,7 @@ import java.util.Properties;
 public class DefaultOriginMetadataWriter implements OriginMetadataWriter {
     @Override
     public void writeTo(OriginMetadata originMetadata, OutputStream outputStream) throws IOException {
+        // TODO: Replace this with something better
         Properties properties = new Properties();
         properties.setProperty("type", originMetadata.getType());
         properties.setProperty("path", originMetadata.getPath());

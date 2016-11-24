@@ -25,16 +25,25 @@ import java.util.Properties;
 public class DefaultOriginMetadataReader implements OriginMetadataReader {
     @Override
     public OriginMetadata readFrom(InputStream inputStream) throws IOException {
+        // TODO: Replace this with something better
         Properties properties = new Properties();
         properties.load(inputStream);
-        return new DefaultOriginMetadata(properties.getProperty("path"),
-            properties.getProperty("type"),
-            properties.getProperty("gradleVersion"),
-            Long.valueOf(properties.getProperty("creationTime")),
-            Long.valueOf(properties.getProperty("executionTime")),
-            properties.getProperty("rootPath"),
-            properties.getProperty("operatingSystem"),
-            properties.getProperty("hostName"),
-            properties.getProperty("userName"));
+        return new DefaultOriginMetadata(get(properties, "path"),
+            get(properties, "type"),
+            get(properties, "gradleVersion"),
+            Long.valueOf(get(properties, "creationTime")),
+            Long.valueOf(get(properties, "executionTime")),
+            get(properties, "rootPath"),
+            get(properties, "operatingSystem"),
+            get(properties, "hostName"),
+            get(properties, "userName"));
+    }
+
+    private String get(Properties properties, String name) {
+        String value = properties.getProperty(name);
+        if (value == null) {
+            throw new IllegalStateException(String.format("Cached result format error, key '%s' missing from origin metadata", name));
+        }
+        return value;
     }
 }

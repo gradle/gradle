@@ -22,15 +22,19 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
+
 public class OriginMetadataConverter {
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
     private final String operatingSystem;
     private final TimeProvider timeProvider;
     private final GradleVersion gradleVersion;
+    private final File rootDir;
 
-    public OriginMetadataConverter(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, String userName, String operatingSystem, GradleVersion gradleVersion) {
+    public OriginMetadataConverter(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion) {
         this.inetAddressFactory = inetAddressFactory;
+        this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
         this.timeProvider = timeProvider;
@@ -43,7 +47,7 @@ public class OriginMetadataConverter {
             gradleVersion.getVersion(),
             timeProvider.getCurrentTime(),
             elapsedTime,
-            task.getProject().getRootDir().getAbsolutePath(),
+            rootDir.getAbsolutePath(),
             operatingSystem,
             inetAddressFactory.getHostname(),
             userName);
