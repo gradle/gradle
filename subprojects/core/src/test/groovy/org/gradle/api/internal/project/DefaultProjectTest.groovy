@@ -563,7 +563,7 @@ class DefaultProjectTest {
         project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
 
-        project.script = createScriptForMethodMissingTest('projectScript')
+        project.attachScript(createScriptForMethodMissingTest('projectScript'))
         assertEquals('projectScript', project.scriptMethod(testConfigureClosure))
     }
 

@@ -124,9 +124,15 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private TaskExecutionList loadPreviousExecutions(final TaskInternal task) {
         boolean contextCreated = AsyncCacheAccessContext.createWhenMissing();
-        ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
+        ProjectInternal project = Cast.cast(ProjectInternal.class, task.getProject());
+        ClassLoader serializerClassLoader;
+        if (null == project.getScript()) {
+            serializerClassLoader = project.getClassLoaderScope().getLocalClassLoader();
+        } else {
+            serializerClassLoader = project.getScript().getClass().getClassLoader();
+        }
         try {
-            serializer.setClassLoader(projectClassLoader);
+            serializer.setClassLoader(serializerClassLoader);
             List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
             TaskExecutionList result = new TaskExecutionList();
             if (history != null) {

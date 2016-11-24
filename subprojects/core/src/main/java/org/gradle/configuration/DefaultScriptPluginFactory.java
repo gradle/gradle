@@ -170,6 +170,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             if (!runner.getRunDoesSomething()) {
                 return;
             }
+            if (scriptTarget.getSupportsMethodInheritance()) {
+                scriptTarget.setScript(runner.getScript());
+            }
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
