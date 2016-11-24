@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.actor.Actor
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
@@ -44,8 +45,9 @@ class DefaultTestExecuterTest extends Specification {
     FileCollection testClasspath = Mock()
     Project project = Mock()
     BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock()
+    BuildOperationExecutor buildOperationExecutor = Mock()
 
-    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory, moduleRegistry, buildOperationWorkerRegistry)
+    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory, moduleRegistry, buildOperationWorkerRegistry, buildOperationExecutor)
 
     def setup() {
         _ * testTask.testFramework >> testFramework

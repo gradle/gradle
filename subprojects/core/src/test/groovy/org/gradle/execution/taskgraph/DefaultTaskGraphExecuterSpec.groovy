@@ -28,12 +28,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
-import org.gradle.internal.progress.BuildOperationExecutor
-import org.gradle.internal.progress.BuildOperationInternal
-import org.gradle.internal.progress.InternalBuildListener
-import org.gradle.internal.progress.OperationResult
-import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -42,7 +37,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def project = ProjectBuilder.builder().build()
     def listenerManager = new DefaultListenerManager()
     def executer = Mock(TaskExecuter)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, Stub(TimeProvider), Stub(BuildOperationExecutor))
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor)
 
     def "notifies task listener as tasks are executed"() {
         def listener = Mock(TaskExecutionListener)
@@ -84,135 +80,6 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         1 * listener.beforeExecute(a)
         1 * listener.afterExecute(a, a.state)
         0 * listener._
-    }
-
-    def "notifies internal task listener as tasks are executed"() {
-        def listener = Mock(InternalBuildListener)
-        def a = task("a")
-        def failure = new RuntimeException()
-        def b = brokenTask("b", failure)
-
-        given:
-        listenerManager.addListener(listener)
-        taskExecuter.addTasks([a, b])
-
-        when:
-        taskExecuter.execute()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent startEvent ->
-            assert operation.payload.task == a
-        }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult result ->
-            assert operation.payload.task == a
-            assert result.failure == null
-        }
-
-        then:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent startEvent ->
-            assert operation.payload.task == b
-        }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult result ->
-            assert operation.payload.task == b
-            assert result.failure == failure
-        }
-        0 * listener._
-    }
-
-    def "wraps notification of internal listener around public listener"() {
-        def listener1 = Mock(InternalBuildListener)
-        def listener2 = Mock(TaskExecutionListener)
-        def a = task("a")
-        def b = task("b")
-
-        given:
-        listenerManager.addListener(listener1)
-        listenerManager.addListener(listener2)
-        taskExecuter.addTasks([a, b])
-
-        when:
-        taskExecuter.execute()
-
-        then:
-        1 * listener1.started({it.payload.task == a}, _)
-
-        then:
-        1 * listener2.beforeExecute(a)
-        1 * listener2.afterExecute(a, a.state)
-
-        then:
-        1 * listener1.finished({it.payload.task == a}, _)
-
-        then:
-        1 * listener1.started({it.payload.task == b}, _)
-
-        then:
-        1 * listener2.beforeExecute(b)
-        1 * listener2.afterExecute(b, b.state)
-
-        then:
-        1 * listener1.finished({it.payload.task == b}, _)
-        0 * listener1._
-        0 * listener2._
-    }
-
-    def "notifies internal listener of completion when public listener fails on task start"() {
-        def listener1 = Mock(InternalBuildListener)
-        def listener2 = Mock(TaskExecutionListener)
-        def failure = new RuntimeException()
-        def a = task("a")
-
-        given:
-        listenerManager.addListener(listener1)
-        listenerManager.addListener(listener2)
-        taskExecuter.addTasks([a])
-
-        when:
-        taskExecuter.execute()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * listener1.started({it.payload.task == a}, _)
-
-        then:
-        1 * listener2.beforeExecute(a) >> { throw failure }
-
-        then:
-        1 * listener1.finished({it.payload.task == a}, _)
-        0 * listener1._
-        0 * listener2._
-    }
-
-    def "notifies internal listener of completion when public listener fails on task complete"() {
-        def listener1 = Mock(InternalBuildListener)
-        def listener2 = Mock(TaskExecutionListener)
-        def failure = new RuntimeException()
-        def a = task("a")
-
-        given:
-        listenerManager.addListener(listener1)
-        listenerManager.addListener(listener2)
-        taskExecuter.addTasks([a])
-
-        when:
-        taskExecuter.execute()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * listener1.started({it.payload.task == a}, _)
-
-        then:
-        1 * listener2.beforeExecute(a)
-        1 * listener2.afterExecute(a, a.state) >> { throw failure }
-
-        then:
-        1 * listener1.finished({it.payload.task == a}, _)
-        0 * listener1._
-        0 * listener2._
     }
 
     def "stops running tasks and fails with exception when build is cancelled"() {

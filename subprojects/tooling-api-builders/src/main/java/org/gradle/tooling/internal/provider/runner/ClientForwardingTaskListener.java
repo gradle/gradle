@@ -35,6 +35,8 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEve
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Task listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
@@ -45,6 +47,7 @@ class ClientForwardingTaskListener implements InternalBuildListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private final InternalBuildListener delegate;
+    private final Set<Object> skipEvents = new HashSet<Object>();
 
     ClientForwardingTaskListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, InternalBuildListener delegate) {
         this.eventConsumer = eventConsumer;
@@ -54,12 +57,19 @@ class ClientForwardingTaskListener implements InternalBuildListener {
 
     @Override
     public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
-        if (buildOperation.getPayload() instanceof TaskOperationInternal) {
+        if (skipEvents.contains(buildOperation.getParentId())) {
+            skipEvents.add(buildOperation.getId());
+            return;
+        }
+
+        if (buildOperation.getOperationDescriptor() instanceof TaskOperationInternal) {
             if (clientSubscriptions.isSendTaskProgressEvents()) {
-                TaskInternal task = ((TaskOperationInternal) buildOperation.getPayload()).getTask();
+                TaskInternal task = ((TaskOperationInternal) buildOperation.getOperationDescriptor()).getTask();
                 eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, task)));
+            } else {
+                // Discard this operation and all children
+                skipEvents.add(buildOperation.getId());
             }
-            // Otherwise discard
         } else {
             delegate.started(buildOperation, startEvent);
         }
@@ -67,12 +77,13 @@ class ClientForwardingTaskListener implements InternalBuildListener {
 
     @Override
     public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-        if (buildOperation.getPayload() instanceof TaskOperationInternal) {
-            if (clientSubscriptions.isSendTaskProgressEvents()) {
-                TaskInternal task = ((TaskOperationInternal) buildOperation.getPayload()).getTask();
-                eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), toTaskResult(task, finishEvent)));
-            }
-            // Otherwise discard
+        if (skipEvents.remove(buildOperation.getId())) {
+            return;
+        }
+
+        if (buildOperation.getOperationDescriptor() instanceof TaskOperationInternal) {
+            TaskInternal task = ((TaskOperationInternal) buildOperation.getOperationDescriptor()).getTask();
+            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), toTaskResult(task, finishEvent)));
         } else {
             delegate.finished(buildOperation, finishEvent);
         }
