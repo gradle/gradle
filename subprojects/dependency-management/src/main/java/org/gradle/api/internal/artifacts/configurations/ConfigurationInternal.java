@@ -32,4 +32,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void addMutationValidator(MutationValidator validator);
 
     void removeMutationValidator(MutationValidator validator);
+
+    String getFormat();
 }

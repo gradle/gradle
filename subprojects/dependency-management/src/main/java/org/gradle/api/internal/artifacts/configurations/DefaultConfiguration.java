@@ -124,7 +124,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean visible = true;
     private boolean transitive = true;
-    private String format;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
     private ConfigurationsProvider configurationsProvider;
@@ -273,15 +272,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    @Override
     public String getFormat() {
-        return format;
-    }
-
-    @Override
-    public Configuration setFormat(String format) {
-        this.format = format;
-        return this;
+        return configurationAttributes.getAttribute(stringAttribute("type"));
     }
 
     public String getDescription() {
@@ -340,7 +332,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return doGetFiles(Specs.<Dependency>satisfyAll(), format);
+        return doGetFiles(Specs.<Dependency>satisfyAll(), getFormat());
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -468,7 +460,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         assertResolvingAllowed();
-        return doGetTaskDependency(Specs.<Dependency>satisfyAll(), format);
+        return doGetTaskDependency(Specs.<Dependency>satisfyAll(), getFormat());
     }
 
     private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, @Nullable String format) {
@@ -747,7 +739,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public TaskDependency getBuildDependencies() {
-            return doGetTaskDependency(dependencySpec, format != null ? format : DefaultConfiguration.this.format);
+            return doGetTaskDependency(dependencySpec, format != null ? format : DefaultConfiguration.this.getFormat());
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -759,7 +751,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            return doGetFiles(dependencySpec, format != null ? format : DefaultConfiguration.this.format);
+            return doGetFiles(dependencySpec, format != null ? format : DefaultConfiguration.this.getFormat());
         }
     }
 
@@ -951,7 +943,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            return cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), format).collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
+            return cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), getFormat()).collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
         }
     }
 

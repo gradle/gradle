@@ -71,15 +71,20 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
     private final ArtifactTransformer artifactTransformer;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, String format, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
         this.configuration = configuration;
-        this.format = format;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransformer = artifactTransformer;
+        // TODO:DAZ Should use attributes here
+        this.format = configuration.getFormat();
+    }
+
+    public String getFormat() {
+        return format;
     }
 
     @Override

@@ -134,8 +134,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
         ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy());
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, configuration.getFormat(), cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, transformer);
-        results.artifactsResolved(new DefaultResolvedConfiguration(result, configuration.getFormat()), result);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, transformer);
+        results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
     }
 
     private static class ArtifactResolveState {
