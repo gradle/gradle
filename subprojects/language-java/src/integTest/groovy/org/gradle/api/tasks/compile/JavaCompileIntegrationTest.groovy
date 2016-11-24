@@ -273,4 +273,48 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":test"
         file("build/classes/main/com/Example/Foo.class").file
     }
+
+    def "implementation dependencies should not leak into compile classpath of consuner"() {
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        def other10 = mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
+
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+        allprojects {
+            apply plugin: 'java'
+
+            repositories {
+               maven { url '$mavenRepo.uri' }
+            }
+        }
+
+        task checkClasspath {
+            doLast {
+                def compileClasspath = project(':a').compileJava.classpath.files*.name
+                assert compileClasspath.contains('b.jar')
+                assert compileClasspath.contains('other-1.0.jar')
+                assert !compileClasspath.contains('shared-1.0.jar')
+            }
+        }
+        """
+
+        file('a/build.gradle') << '''
+            dependencies {
+                implementation project(':b')
+            }
+        '''
+        file('b/build.gradle') << '''
+            dependencies {
+                compile 'org.gradle.test:other:1.0' // using the old 'compile' makes it leak into compile classpath
+                implementation 'org.gradle.test:shared:1.0' // but not using 'implementation'
+            }
+        '''
+
+        when:
+        run 'checkClasspath'
+
+        then:
+        noExceptionThrown()
+    }
 }
