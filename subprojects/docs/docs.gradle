@@ -297,8 +297,8 @@ task pdfUserguideDocbook(type: UserGuideTransformTask) {
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    includes = files(samplesDocbook, 
-        defaultImports.importsDestFile, 
+    includes = files(samplesDocbook,
+        defaultImports.importsDestFile,
         fileTree(dir: userguideSrcDir, includes: ['*.xml']))
 
     dependsOn samples, samplesDocbook, defaultImports
@@ -353,7 +353,7 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (javaVersion.isJava8Compatible()) {
+    if (!java7Home && javaVersion.isJava8Compatible()) {
         options.addStringOption 'Xdoclint:none', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
