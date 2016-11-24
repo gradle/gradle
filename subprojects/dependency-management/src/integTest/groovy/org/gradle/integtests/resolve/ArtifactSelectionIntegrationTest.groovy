@@ -181,7 +181,7 @@ allprojects {
                 }
 
                 task resolve {
-                    def files = configurations.compile.incoming.getFiles('classes')
+                    def files = configurations.compile.incoming.getFiles(type: 'classes')
                     inputs.files files
                     doLast {
                         assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'some-classes-1.0.classes']
