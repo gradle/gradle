@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import org.gradle.testing.performance.generator.DependencyGenerator
+import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
@@ -116,6 +117,11 @@ task lotProjectDependencies(type: JvmProjectGeneratorTask, description: 'Generat
 }
 
 task manyProjects(type: JvmProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 0
+}
+
+task ktsManyProjects(type: KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
 }
