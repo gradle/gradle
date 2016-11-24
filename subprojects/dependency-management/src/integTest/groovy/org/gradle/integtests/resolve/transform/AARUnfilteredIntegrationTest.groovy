@@ -19,55 +19,45 @@ package org.gradle.integtests.resolve.transform
 import spock.lang.Unroll;
 
 @Unroll
-public class AARClassicIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
+class AARUnfilteredIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
-    def enabledFeatures() {
-        []
-    }
-
-    // compileClassesAndResources (unfiltered, no transformations)
-
-    def "compileClassesAndResources references class folder from local java library"() {
+    def "resolves class folder directly from local java library"() {
         when:
         dependency "project(':java-lib')"
 
         then:
-        artifacts('compileClassesAndResources') == ['/java-lib/build/classes/main']
+        artifacts() == ['/java-lib/build/classes/main']
         executed ":java-lib:classes"
         notExecuted ':java-lib:jar'
     }
 
-    def "compileClassesAndResources references classes folder and manifest from local android library"() {
+    def "resolves classes folder and manifest directly from local android library"() {
         when:
         dependency "project(':android-lib')"
 
         then:
-        artifacts('compileClassesAndResources') == ['/android-lib/build/classes/main', '/android-lib/aar-image/AndroidManifest.xml']
+        artifacts() == ['/android-lib/build/classes/main', '/android-lib/aar-image/AndroidManifest.xml']
         executed ":android-lib:classes"
         notExecuted ":android-lib:jar"
         notExecuted ":android-lib:aar"
     }
 
-    // Working with jars, using 'runtime' instead of 'compileClassesAndResources'
-
-    def "compile references jar from local java library"() {
+    def "resolves jar from local java library via runtime configuration"() {
         when:
-        dependency "project(':java-lib')"
-        dependency "runtime", "project(path: ':java-lib', configuration: 'runtime')" //need to declare 'runtime' as it is not teh default here anymore
+        dependency "project(path: ':java-lib', configuration: 'runtime')" //need to declare 'runtime' as it is not teh default here anymore
 
         then:
-        artifacts('runtime') == ['/java-lib/build/libs/java-lib.jar']
+        artifacts() == ['/java-lib/build/libs/java-lib.jar']
         executed ":java-lib:classes"
         executed ':java-lib:jar'
     }
 
-    def "compile references classes.jar from local android library"() {
+    def "resolves classes.jar directly from local android library via runtime configuration"() {
         when:
-        dependency "project(':java-lib')"
-        dependency "runtime", "project(path: ':android-lib', configuration: 'runtime')"
+        dependency "project(path: ':android-lib', configuration: 'runtime')"
 
         then:
-        artifacts('runtime') == ['/android-lib/aar-image/classes.jar']
+        artifacts() == ['/android-lib/aar-image/classes.jar']
         executed ":android-lib:classes"
         executed ":android-lib:jar"
         notExecuted ":android-lib:aar"

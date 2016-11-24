@@ -16,19 +16,17 @@
 
 package org.gradle.integtests.resolve.transform;
 
-public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
+class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
-    // processClasspath filtering and transformation
-
-    def "processClasspath includes jars from published java module"() {
+    def "classpath artifacts include jars from published java module"() {
         when:
         dependency "'org.gradle:ext-java-lib:1.0'"
 
         then:
-        artifacts('processClasspath') == ['/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar']
+        artifacts('classpath') == ['/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar']
     }
 
-    def "processClasspath includes jars from file dependencies"() {
+    def "classpath artifacts include jars from file dependencies"() {
         given:
         buildFile << """
             file('android-app/a').mkdir()
@@ -43,18 +41,18 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "files('a.jar')"
 
         then:
-        artifacts('processClasspath') == ['/android-app/a.jar']
+        artifacts('classpath') == ['/android-app/a.jar']
     }
 
-    def "processClasspath includes classes.jar from published android module"() {
+    def "classpath artifacts include classes.jar extracted from published android module"() {
         when:
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processClasspath') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar']
+        artifacts('classpath') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar']
     }
 
-    def "processClasspath includes class folders from local libraries and jars from published java module"() {
+    def "classpath artifacts include class folders from local libraries and jars from published java module"() {
         when:
         dependency "project(':java-lib')"
         dependency "project(':android-lib')"
@@ -62,7 +60,7 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processClasspath') == [
+        artifacts('classpath') == [
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
             '/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar',
@@ -72,23 +70,23 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
 
     // processClasses filtering and transformation
 
-    def "processClasses includes class folder from published java modules"() {
+    def "classes artifacts include class folder from published java modules"() {
         when:
         dependency "'org.gradle:ext-java-lib:1.0'"
 
         then:
-        artifacts('processClasses') == ['/android-app/transformed/ext-java-lib-1.0.jar/classes']
+        artifacts('classes') == ['/android-app/transformed/ext-java-lib-1.0.jar/classes']
     }
 
-    def "processClasses includes class folder from published android modules"() {
+    def "classes artifacts include class folder extracted from published android modules"() {
         when:
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processClasses') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedClassesJar']
+        artifacts('classes') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedClassesJar']
     }
 
-    def "processClasses includes class folders from file dependencies"() {
+    def "classes artifacts include class folders extracted from jar file dependencies"() {
         given:
         buildFile << """
             file('android-app/a').mkdir()
@@ -103,10 +101,10 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "files('a.jar')"
 
         then:
-        artifacts('processClasses') == ['/android-app/transformed/a.jar/classes']
+        artifacts('classes') == ['/android-app/transformed/a.jar/classes']
     }
 
-    def "processClasses includes class folders from projects and libraries"() {
+    def "classes artifacts include class folders from projects and libraries"() {
         when:
         dependency "project(':java-lib')"
         dependency "project(':android-lib')"
@@ -114,7 +112,7 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processClasses') == [
+        artifacts('classes') == [
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
             '/android-app/transformed/ext-java-lib-1.0.jar/classes',
@@ -130,7 +128,10 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "'org.gradle:ext-java-lib:1.0'"
 
         then:
-        artifacts('processManifests') == []
+        artifacts('android-manifest') == []
+
+        and:
+        executedTasks == [":android-app:printArtifacts"]
     }
 
     def "manifest returned for local android library"() {
@@ -138,7 +139,10 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "project(':android-lib')"
 
         then:
-        artifacts('processManifests') == ['/android-lib/aar-image/AndroidManifest.xml']
+        artifacts('android-manifest') == ['/android-lib/aar-image/AndroidManifest.xml']
+
+        and:
+        executedTasks == [":android-app:printArtifacts"]
     }
 
     def "manifest returned for published android module"() {
@@ -146,10 +150,10 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processManifests') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml']
+        artifacts('android-manifest') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml']
     }
 
-    def "manifests returned for a combination of aars and jars"() {
+    def "manifests returned for a combination of java and android libraries"() {
         when:
         dependency "project(':java-lib')"
         dependency "project(':android-lib')"
@@ -157,7 +161,7 @@ public class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIn
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processManifests') == [
+        artifacts('android-manifest') == [
             '/android-lib/aar-image/AndroidManifest.xml',
             '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml'
         ]

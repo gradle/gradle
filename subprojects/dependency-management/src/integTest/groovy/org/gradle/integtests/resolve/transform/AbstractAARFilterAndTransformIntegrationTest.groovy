@@ -17,40 +17,30 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.TextUtil
 
 /**
  * Overview of Configurations and 'formats' used in this scenario:
  *
- * Formats:
+ * Artifact types:
  * - aar                aar file
  * - jar                jar file
  * - classes            classes folder
  * - android-manifest   AndroidManifest.xml
  * - classpath          everything that can be in a JVM classpath (jar files, class folders, files treated as resources)
  *
- * Configurations:
- * - runtime                        behaves as runtime in Java plugin (e.g. packages classes in jars locally)
- * - compileClassesAndResources     provides all artifacts in its raw format (e.g. class folders, not jars)
+ * Producer configurations:
+ * - compile                        may provide classes-directory or jar file
+ * - runtime                        always provides jar file
+ * - publish                        provides jar file or AAR file for publishing
  *
- * - processClasspath               filters and transforms to 'classpath' format (e.g. keeps jars, but extracts 'classes.jar' from external AAR)
- * - processClasses                 filters and transforms to 'classes' format (e.g. extracts jars to class folders)
- * - processManifests               filters for 'android-manifest' format (no transformation for local libraries, extraction from aar)
+ * Registered transforms:
+ * - AarTransform                       extracts 'jar', 'classes', 'classpath' and 'android-manifest' from AAR
+ * - JarTransform                       extracts 'classes' from jar, and allows 'jar' artifact to be used as 'classpath' type
+ * - ClassesFolderClasspathTransform    allows 'classes' artifact to be used as 'classpath' type
  */
-abstract public class AbstractAARFilterAndTransformIntegrationTest extends AbstractDependencyResolutionTest {
-
-    enum Feature {
-        FILTER_LOCAL,       // Filter functionality - local artifacts (performance/issues/205)
-        FILTER_EXTERNAL,    // Filter functionality - external artifacts (performance/issues/206)
-        TRANSFORM           // Transform artifacts on-demand during filtering (performance/issues/206)
-    }
-
-    /**
-     * Override to reduce the test scenario to only use a limited set of filter/transform features
-     */
-    def enabledFeatures() {
-        [Feature.FILTER_LOCAL, Feature.FILTER_EXTERNAL, Feature.TRANSFORM]
-    }
+abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
         settingsFile << """
@@ -61,31 +51,52 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
         """.stripIndent()
 
         buildFile << """
-            ${javaLibWithClassFolderArtifact('java-lib')}
-            ${mockedAndroidLib('android-lib')}
-            ${mockedAndroidApp('android-app')}
+            ${localJavaLibrary('java-lib')}
+            ${localAndroidLibrary('android-lib')}
+            ${localAndroidApp('android-app')}
 
             ${aarTransform()}
             ${jarTransform()}
             ${classFolderTransform()}
         """.stripIndent()
+
+        publishJavaModule("ext-java-lib")
+        publishAndroidLibrary("ext-android-lib")
     }
 
-    def javaLibWithClassFolderArtifact(String name) {
+    private MavenModule publishJavaModule(String name) {
+        mavenRepo.module("org.gradle", name).publish()
+    }
+
+    private void publishAndroidLibrary(String name) {
         // "Source" code
         file("$name/classes/main/foo.txt") << "something"
         file("$name/classes/main/bar/baz.txt") << "something"
-        // Publish an external version as JAR
-        mavenRepo.module("org.gradle", "ext-$name").publish()
+        // Manifest and zipped code
+        def aarImage = file(name + '/aar-image')
+        aarImage.file('AndroidManifest.xml') << "<AndroidManifest/>"
+        file(name + '/classes').zipTo(aarImage.file('classes.jar'))
+
+        // Publish an external version as AAR
+        def module = mavenRepo.module("org.gradle", name).hasType('aar').publish()
+        module.artifactFile.delete()
+        aarImage.zipTo(module.artifactFile)
+    }
+
+    def localJavaLibrary(String name) {
+        // "Source" code
+        file("$name/classes/main/foo.txt") << "something"
+        file("$name/classes/main/bar/baz.txt") << "something"
 
         """
         project(':$name') {
             configurations.create('default')
             configurations {
-                compileClassesAndResources
+                compile
                 runtime
+                publish
             }
-            configurations.default.extendsFrom = [configurations.compileClassesAndResources]
+            configurations.default.extendsFrom = [configurations.compile]
 
 
             task classes(type: Copy) {
@@ -102,41 +113,33 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
             }
 
             artifacts {
-                compileClassesAndResources(classes.destinationDir) {
-                    ${formatInLocalArtifact('classes')}
+                compile(classes.destinationDir) {
+                    type 'classes'
                     builtBy classes
                 }
 
                 runtime jar
+                publish jar
             }
         }
         """
     }
 
-    def mockedAndroidLib(String name) {
+    def localAndroidLibrary(String name) {
         // "Source" code
         file("$name/classes/main/foo.txt") << "something"
         file("$name/classes/main/bar/baz.txt") << "something"
-        // Manifest and zipped code
-        def aarImage = file('android-lib/aar-image')
-        aarImage.file('AndroidManifest.xml') << "<AndroidManifest/>"
-        file('android-lib/classes').zipTo(aarImage.file('classes.jar'))
-
-        // Publish an external version as AAR
-        def module = mavenRepo.module("org.gradle", "ext-$name").hasType('aar').publish()
-        module.artifactFile.delete()
-        aarImage.zipTo(module.artifactFile)
 
         """
         project(':$name') {
             apply plugin: 'base'
 
             configurations {
-                compileClassesAndResources
-                runtime //compiles JAR as in Java plugin
-                compileAAR
+                compile
+                runtime
+                publish
             }
-            configurations.default.extendsFrom = [configurations.compileClassesAndResources]
+            configurations.default.extendsFrom = [configurations.compile]
 
             task classes(type: Copy) {
                 from file('classes/main')
@@ -159,23 +162,22 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
             }
 
             artifacts {
-                compileClassesAndResources(classes.destinationDir) {
-                    ${formatInLocalArtifact('classes')}
+                compile(classes.destinationDir) {
+                    type 'classes'
                     builtBy classes
                 }
-                compileClassesAndResources(file('aar-image/AndroidManifest.xml')) {
-                    ${formatInLocalArtifact('android-manifest')}
+                compile(file('aar-image/AndroidManifest.xml')) {
+                    type 'android-manifest'
                 }
 
                 runtime jar
-
-                compileAAR aar
+                publish aar
             }
         }
         """
     }
 
-    def mockedAndroidApp(String name) {
+    def localAndroidApp(String name) {
         file('android-app').mkdirs()
 
         """
@@ -183,40 +185,14 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
             apply plugin: 'base'
 
             configurations {
-                compileClassesAndResources
-                runtime
+                resolve
+            }
 
-                // configurations with filtering/transformation over 'compile'
-                processClasspath {
-                    extendsFrom(compileClassesAndResources)
-                    ${formatInConfiguration('classpath')} // 'classes' or 'jar'
-                    resolutionStrategy {
-                        ${registerTransform('AarExtractor')}
-                        ${registerTransform('JarTransform')}
-                        ${registerTransform('ClassesFolderClasspathTransform')}
-                    }
-                }
-                processClasses {
-                    extendsFrom(compileClassesAndResources)
-                    ${formatInConfiguration('classes')}
-                    resolutionStrategy {
-                        ${registerTransform('AarExtractor')}
-                        ${registerTransform('JarTransform')}
-                    }
-                }
-                processJar {
-                    extendsFrom(compileClassesAndResources)
-                    ${formatInConfiguration('jar')}
-                    resolutionStrategy {
-                        ${registerTransform('AarExtractor')}
-                    }
-                }
-                processManifests {
-                    extendsFrom(compileClassesAndResources)
-                    ${formatInConfiguration('android-manifest')}
-                    resolutionStrategy {
-                        ${registerTransform('AarExtractor')}
-                    }
+            configurations.all {
+                resolutionStrategy {
+                    ${registerTransform('AarExtractor')}
+                    ${registerTransform('JarTransform')}
+                    ${registerTransform('ClassesFolderClasspathTransform')}
                 }
             }
 
@@ -224,10 +200,16 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
                 maven { url '${mavenRepo.uri}' }
             }
 
+            def requestedArtifactType = findProperty('requestedArtifactType')
+            def configurationView = 
+                requestedArtifactType == null 
+                    ? configurations.resolve.incoming.getFiles()
+                    : configurations.resolve.incoming.getFiles(artifactType: requestedArtifactType)
+            
             task printArtifacts {
-                dependsOn configurations[configuration]
+                dependsOn configurationView
                 doLast {
-                    configurations[configuration].incoming.artifacts.each { println it.file.absolutePath - rootDir }
+                    configurationView.each { println it.absolutePath - rootDir }
                 }
             }
         }
@@ -235,9 +217,6 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def aarTransform() {
-        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
-            return ""
-        }
         """
         @TransformInput(format = 'aar')
         class AarExtractor extends ArtifactTransform {
@@ -290,9 +269,6 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def jarTransform() {
-        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
-            return ""
-        }
         """
         @TransformInput(format = 'jar')
         class JarTransform extends ArtifactTransform {
@@ -331,9 +307,6 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def classFolderTransform() {
-        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
-            return ""
-        }
         """
         @TransformInput(format = 'classes')
         class ClassesFolderClasspathTransform extends ArtifactTransform {
@@ -354,9 +327,6 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
     }
 
     def  registerTransform(String implementationName) {
-        if (!enabledFeatures().contains(Feature.TRANSFORM)) {
-            return ""
-        }
         """
         registerTransform($implementationName) {
             outputDirectory = project.file("transformed")
@@ -365,40 +335,20 @@ abstract public class AbstractAARFilterAndTransformIntegrationTest extends Abstr
         """
     }
 
-    def formatInConfiguration(String formatName) {
-        if (!enabledFeatures().contains(Feature.FILTER_LOCAL) && !enabledFeatures().contains(Feature.FILTER_EXTERNAL)) {
-            return ""
-        }
-        """
-        attributes artifactType: '$formatName'
-        """
-    }
-
-    def formatInLocalArtifact(String formatName) {
-        if (!enabledFeatures().contains(Feature.FILTER_LOCAL)) {
-            return ""
-        }
-        """
-        type '$formatName'
-        """
-    }
-
     def dependency(String notation) {
-        dependency('compileClassesAndResources', notation)
-    }
-
-    def dependency(String configuration, String notation) {
         buildFile << """
             project(':android-app') {
                 dependencies {
-                    $configuration $notation
+                    resolve ${notation}
                 }
             }
         """
     }
 
-    def artifacts(String configuration) {
-        executer.withArgument("-Pconfiguration=$configuration")
+    def artifacts(String artifactType = null) {
+        if (artifactType != null) {
+            executer.withArgument("-PrequestedArtifactType=$artifactType")
+        }
 
         assert succeeds('printArtifacts')
 

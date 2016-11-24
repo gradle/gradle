@@ -16,21 +16,27 @@
 
 package org.gradle.integtests.resolve.transform;
 
-public class AARFilterLocalIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
+class AARFilterArtifactsIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
 
-    def enabledFeatures() {
-        [Feature.FILTER_LOCAL]
+    def "jar artifacts are resolved for published java module and local java configuration"() {
+        when:
+        dependency "project(path: ':java-lib', configuration: 'runtime')"
+        dependency "'org.gradle:ext-java-lib:1.0'"
+
+        then:
+        artifacts('jar') == [
+            '/java-lib/build/libs/java-lib.jar',
+            '/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar'
+        ]
     }
 
-    def "processClasses includes class folders from local libraries"() {
+    def "classes artifacts are resolved for local android and java libraries"() {
         when:
         dependency "project(':java-lib')"
         dependency "project(':android-lib')"
-        dependency "'org.gradle:ext-java-lib:1.0'"
-        dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('processClasses') == [
+        artifacts('classes') == [
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main'
         ]
