@@ -33,7 +33,7 @@ import static org.gradle.util.CollectionUtils.collect;
 /**
  * The real delegate of the plugins {} block.
  *
- * The PluginUseScriptBlockTransformer interacts with this type.
+ * The {@link PluginUseScriptBlockMetadataExtractor} interacts with this type.
  */
 public class PluginRequestCollector {
 
