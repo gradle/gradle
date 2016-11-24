@@ -73,6 +73,7 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.WrapUtil;
@@ -103,6 +104,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
     private final ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
     private final ResolutionStrategyInternal resolutionStrategy;
@@ -141,14 +143,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeResolved = true;
     private final DefaultAttributeContainer configurationAttributes = new DefaultAttributeContainer();
 
-    public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                ConfigurationResolver resolver, ListenerManager listenerManager,
+    public DefaultConfiguration(String path, String name,
+                                ConfigurationsProvider configurationsProvider,
+                                ConfigurationResolver resolver,
+                                ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
                                 ResolutionStrategyInternal resolutionStrategy,
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                FileCollectionFactory fileCollectionFactory, ComponentIdentifierFactory componentIdentifierFactory) {
+                                FileCollectionFactory fileCollectionFactory,
+                                ComponentIdentifierFactory componentIdentifierFactory,
+                                BuildOperationExecutor buildOperationExecutor) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -163,6 +169,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.componentIdentifierFactory = componentIdentifierFactory;
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        this.buildOperationExecutor = buildOperationExecutor;
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -408,18 +415,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw new IllegalStateException("Graph resolution already performed");
         }
 
-        ResolvableDependencies incoming = getIncoming();
-        performPreResolveActions(incoming);
+        buildOperationExecutor.run("Resolve " + this, new Runnable() {
+            @Override
+            public void run() {
+                ResolvableDependencies incoming = getIncoming();
+                performPreResolveActions(incoming);
 
-        resolver.resolveGraph(this, cachedResolverResults);
-        dependenciesModified = false;
-        resolvedState = GRAPH_RESOLVED;
+                resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
+                dependenciesModified = false;
+                resolvedState = GRAPH_RESOLVED;
 
-        // Mark all affected configurations as observed
-        markParentsObserved(requestedState);
-        markReferencedProjectConfigurationsObserved(requestedState);
+                // Mark all affected configurations as observed
+                markParentsObserved(requestedState);
+                markReferencedProjectConfigurationsObserved(requestedState);
 
-        dependencyResolutionListeners.getSource().afterResolve(incoming);
+                dependencyResolutionListeners.getSource().afterResolve(incoming);
+            }
+        });
     }
 
     private void performPreResolveActions(ResolvableDependencies incoming) {
@@ -564,7 +576,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

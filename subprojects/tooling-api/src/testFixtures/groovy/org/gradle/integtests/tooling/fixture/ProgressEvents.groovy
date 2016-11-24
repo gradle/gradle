@@ -18,7 +18,14 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.tooling.Failure
-import org.gradle.tooling.events.*
+import org.gradle.tooling.events.FailureResult
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.OperationResult
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 
@@ -61,11 +68,12 @@ class ProgressEvents implements ProgressListener {
                         assert duplicateName == null
                     }
 
-                    Operation operation = new Operation(descriptor)
-                    operations.add(operation)
-
                     // parent should also be running
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
+                    def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
+
+                    Operation operation = new Operation(parent, descriptor)
+                    operations.add(operation)
 
                     assert descriptor.displayName == descriptor.toString()
                     assert event.displayName == "${descriptor.displayName} started" as String
@@ -202,10 +210,12 @@ class ProgressEvents implements ProgressListener {
 
     static class Operation {
         final OperationDescriptor descriptor
+        final Operation parent
         OperationResult result
 
-        private Operation(OperationDescriptor descriptor) {
+        private Operation(Operation parent, OperationDescriptor descriptor) {
             this.descriptor = descriptor
+            this.parent = parent
         }
 
         @Override
