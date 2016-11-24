@@ -20,7 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ThreadSafe;
-import org.gradle.internal.dispatch.*;
+import org.gradle.internal.dispatch.BoundedDispatch;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ProxyDispatchAdapter;
+import org.gradle.internal.dispatch.ReflectionDispatch;
+import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.RemoteConnection;
@@ -31,13 +36,16 @@ import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MessageHubBackedObjectConnection implements ObjectConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
     private ConnectCompletion completion;
     private RemoteConnection<InterHubMessage> connection;
     private ClassLoader methodParamClassLoader;
-    private SerializerRegistry paramSerializers;
+    private List<SerializerRegistry> paramSerializers = new ArrayList<SerializerRegistry>();
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
         this.hub = new MessageHub(completion.toString(), executorFactory, new Action<Throwable>() {
@@ -73,7 +81,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     }
 
     public void useParameterSerializers(SerializerRegistry serializer) {
-        this.paramSerializers = serializer;
+        this.paramSerializers.add(serializer);
     }
 
     public void connect() {
@@ -81,12 +89,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
             methodParamClassLoader = getClass().getClassLoader();
         }
 
-        MethodArgsSerializer argsSerializer;
-        if (paramSerializers != null) {
-            argsSerializer = new DefaultMethodArgsSerializer(paramSerializers);
-        } else {
-            argsSerializer = new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader);
-        }
+        MethodArgsSerializer argsSerializer = new DefaultMethodArgsSerializer(paramSerializers, new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader));
 
         StatefulSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
                 new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
