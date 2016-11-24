@@ -168,26 +168,6 @@ public interface Configuration extends FileCollection {
     Configuration setTransitive(boolean t);
 
     /**
-     * Returns the format of this configuration.
-     *
-     * @return the format or null if not specified.
-     * @since 3.3
-     */
-    @Incubating @Nullable
-    String getFormat();
-
-    /**
-     * Sets the format of the artifacts this configuration is handling. Can be null if this configuration does not deal with a
-     * specific format.
-     *
-     * @param format the format id
-     * @return this configuration
-     * @since 3.3
-     */
-    @Incubating
-    Configuration setFormat(@Nullable String format);
-
-    /**
      * Returns the description for this configuration.
      *
      * @return the description. May be null.

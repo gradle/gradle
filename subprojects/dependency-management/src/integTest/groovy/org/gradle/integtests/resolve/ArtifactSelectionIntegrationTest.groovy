@@ -96,7 +96,7 @@ allprojects {
             project(':app') {
                 configurations {
                     compile {
-                        format = 'jar'
+                        attributes type: 'jar'
                     }
                 }
 
@@ -172,7 +172,7 @@ allprojects {
             project(':app') {
                 configurations {
                     compile {
-                        format = 'jar'
+                        attributes type: 'jar'
                     }
                 }
 
