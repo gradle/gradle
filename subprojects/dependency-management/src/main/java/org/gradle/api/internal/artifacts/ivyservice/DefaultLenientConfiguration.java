@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Attribute;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -62,7 +64,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
-    private final String format;
     private final CacheLockingManager cacheLockingManager;
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
@@ -79,16 +80,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransformer = artifactTransformer;
-        // TODO:DAZ Should use attributes here
-        this.format = configuration.getFormat();
-    }
-
-    public String getFormat() {
-        return format;
     }
 
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final String format) {
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainer attributes) {
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
@@ -99,17 +94,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
-                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, format, visitor);
+                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, visitor);
             }
 
             @Override
             public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-                return DefaultLenientConfiguration.this.collectFiles(dependencySpec, format, dest);
+                return DefaultLenientConfiguration.this.collectFiles(dependencySpec, attributes, dest);
             }
 
             @Override
             public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-                return DefaultLenientConfiguration.this.collectArtifacts(dependencySpec, format, dest);
+                return DefaultLenientConfiguration.this.collectArtifacts(dependencySpec, attributes, dest);
             }
         };
     }
@@ -181,7 +176,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
         FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, format, visitor);
+        visitArtifacts(dependencySpec, configuration.getAttributes(), visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }
@@ -189,11 +184,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     /**
      * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
      */
-    private <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, String format, T dest) throws ResolveException {
+    private <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, T dest) throws ResolveException {
         rethrowFailure();
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
         try {
-            visitArtifacts(dependencySpec, format, visitor);
+            visitArtifacts(dependencySpec, attributes, visitor);
             // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts. This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
             // File dependencies and artifacts are currently treated separately as a migration step
             visitor.addArtifacts();
@@ -209,11 +204,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     /**
      * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
      */
-    private <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(Spec<? super Dependency> dependencySpec, String format, T dest) throws ResolveException {
+    private <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, T dest) throws ResolveException {
         rethrowFailure();
         ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
         try {
-            visitArtifacts(dependencySpec, format, visitor);
+            visitArtifacts(dependencySpec, attributes, visitor);
         } catch (Throwable t) {
             visitor.failures.add(t);
         }
@@ -233,7 +228,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitArtifacts(dependencySpec, format, visitor);
+        visitArtifacts(dependencySpec, configuration.getAttributes(), visitor);
         return filterUnresolved(visitor.artifacts);
     }
 
@@ -265,7 +260,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, String format, ArtifactVisitor visitor) {
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, ArtifactVisitor visitor) {
+        Attribute<String> typeAttribute = Attribute.of("type", String.class);
+        String format = attributes.getAttribute(typeAttribute);
         visitor = artifactTransformer.visitor(visitor, format);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
