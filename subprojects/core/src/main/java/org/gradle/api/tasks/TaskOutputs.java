@@ -59,8 +59,8 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * the results of the task will not be cached.</p>
      *
      * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code false},
-     * or if any of the predicates passed to {@link #doNotCacheIf(Spec)} returns {@code true}. If neither is specified the task will
-     * only be cached if the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
+     * or if any of the predicates passed to {@link #doNotCacheIf(Spec)} returns {@code true}. If {@code cacheIf()} is not specified,
+     * the task will not be cached unless the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
      *
      * @param spec specifies if the results of the task should be cached.
      *
@@ -74,8 +74,7 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * during configuration. If the spec is not satisfied, the results of the task will be cached according to {@link #cacheIf(Spec)}.</p>
      *
      * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code true},
-     * or if any of the predicates passed to {@link #cacheIf(Spec)} returns {@code false}. If neither is specified the task will
-     * only be cached if the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
+     * or if any of the predicates passed to {@link #cacheIf(Spec)} returns {@code false}.</p>
      *
      * @param spec specifies if the results of the task should not be cached.
      *
