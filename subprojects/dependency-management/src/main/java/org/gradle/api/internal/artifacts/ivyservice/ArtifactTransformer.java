@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.io.Files;
+import org.gradle.api.Attribute;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Buildable;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -46,9 +48,10 @@ public class ArtifactTransformer {
     }
 
     /**
-     * Returns a spec that selects artifacts with the given format, or which can be transformed into the given format.
+     * Returns a spec that selects artifacts matching the supplied attributes, or which can be transformed to match.
      */
-    public Spec<ResolvedArtifact> select(@Nullable final String format) {
+    public Spec<ResolvedArtifact> select(AttributeContainer attributes) {
+        final String format = getTypeAttribute(attributes);
         if (format == null) {
             return Specs.satisfyAll();
         }
@@ -61,9 +64,11 @@ public class ArtifactTransformer {
     }
 
     /**
-     * Returns a visitor that transforms files and artifacts to the given format and then forwards the results to the given visitor.
+     * Returns a visitor that transforms files and artifacts to match the requested attributes
+     * and then forwards the results to the given visitor.
      */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable final String format) {
+    public ArtifactVisitor visitor(final ArtifactVisitor visitor, AttributeContainer attributes) {
+        final String format = getTypeAttribute(attributes);
         if (format == null) {
             return visitor;
         }
@@ -125,5 +130,11 @@ public class ArtifactTransformer {
                 }
             }
         };
+    }
+
+    // TODO:DAZ This String attribute doesn't match the strongly typed ArtifactType attribute produced for `ResolvedArtifact`
+    private String getTypeAttribute(AttributeContainer attributes) {
+        Attribute<String> typeAttribute = Attribute.of("type", String.class);
+        return attributes.getAttribute(typeAttribute);
     }
 }
