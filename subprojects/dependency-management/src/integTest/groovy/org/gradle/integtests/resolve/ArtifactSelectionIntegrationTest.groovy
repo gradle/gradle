@@ -121,6 +121,12 @@ allprojects {
                         assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        
+                        // Get a view specifying the default type
+                        assert configurations.compile.incoming.getFiles(type: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        
+                        // Get a view without overriding the type
+                        assert configurations.compile.incoming.getFiles(otherAttribute: 'anything').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                     }
                 }
             }

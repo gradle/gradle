@@ -912,7 +912,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public FileCollection getFiles(Map<?, ?> attributeMap) {
-            AttributeContainerInternal attributes = new DefaultAttributeContainer();
+            AttributeContainerInternal attributes = configurationAttributes.copy();
             populateAttributesFromMap(attributeMap, attributes);
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), attributes);
         }
