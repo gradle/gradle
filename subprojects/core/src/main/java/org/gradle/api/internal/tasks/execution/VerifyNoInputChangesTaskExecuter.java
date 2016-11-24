@@ -24,12 +24,12 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 
-public class VerifyNoInputChangesDuringExecutionTaskExecuter implements TaskExecuter {
+public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
 
     private TaskExecuter delegate;
     private TaskArtifactStateRepository repository;
 
-    public VerifyNoInputChangesDuringExecutionTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter delegate) {
+    public VerifyNoInputChangesTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter delegate) {
         this.delegate = delegate;
         this.repository = repository;
     }

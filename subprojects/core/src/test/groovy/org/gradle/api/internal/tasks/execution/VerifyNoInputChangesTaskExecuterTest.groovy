@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.cache.TaskCacheKey
 import spock.lang.Specification
 
-class VerifyNoInputChangesDuringExecutionTaskExecuterTest extends Specification {
+class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
     private TaskArtifactStateRepository repository = Mock()
     private TaskExecuter delegate = Mock()
@@ -37,7 +37,7 @@ class VerifyNoInputChangesDuringExecutionTaskExecuterTest extends Specification 
     private TaskArtifactState after = Mock()
     private TaskStateInternal state = new TaskStateInternal("task")
     private TaskExecutionContext context = Mock()
-    private VerifyNoInputChangesDuringExecutionTaskExecuter executer = new VerifyNoInputChangesDuringExecutionTaskExecuter(repository, delegate)
+    private VerifyNoInputChangesTaskExecuter executer = new VerifyNoInputChangesTaskExecuter(repository, delegate)
 
     def 'no exception if inputs do not change'() {
         when:

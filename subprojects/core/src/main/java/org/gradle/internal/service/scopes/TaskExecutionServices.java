@@ -63,7 +63,7 @@ import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
-import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesDuringExecutionTaskExecuter;
+import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesTaskExecuter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
@@ -144,7 +144,7 @@ public class TaskExecutionServices {
 
     private static TaskExecuter createVerifyNoInputChangesExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskExecuter delegate) {
         if ("true".equalsIgnoreCase(startParameter.getSystemPropertiesArgs().get("org.gradle.tasks.inputs.check.change.during.execution"))) {
-            return new VerifyNoInputChangesDuringExecutionTaskExecuter(repository, delegate);
+            return new VerifyNoInputChangesTaskExecuter(repository, delegate);
         } else {
             return delegate;
         }
