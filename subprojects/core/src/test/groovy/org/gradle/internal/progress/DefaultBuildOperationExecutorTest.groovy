@@ -31,7 +31,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def "fires events when operation starts and finishes successfully"() {
         def action = Mock(Factory)
         def progressLogger = Mock(ProgressLogger)
-        def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").build()
+        def descriptor = "some-thing"
+        def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").operationDescriptor(descriptor).build()
         def id
 
         when:
@@ -47,6 +48,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.id != null
             assert operation.parentId == null
             assert operation.displayName == "<some-operation>"
+            assert operation.operationDescriptor == descriptor
             assert start.startTime == 123L
         }
 
@@ -65,7 +67,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         then:
         1 * timeProvider.currentTime >> 124L
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.parentId == null
             assert operation.id == id
+            assert operation.displayName == "<some-operation>"
+            assert operation.operationDescriptor == descriptor
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == null

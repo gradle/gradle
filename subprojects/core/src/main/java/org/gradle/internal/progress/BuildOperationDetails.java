@@ -24,10 +24,12 @@ import org.gradle.api.Nullable;
 public class BuildOperationDetails {
     private final String displayName;
     private final String progressDisplayName;
+    private final Object operationDescriptor;
 
-    private BuildOperationDetails(String displayName, String progressDisplayName) {
+    private BuildOperationDetails(String displayName, String progressDisplayName, Object operationDescriptor) {
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
+        this.operationDescriptor = operationDescriptor;
     }
 
     /**
@@ -50,6 +52,14 @@ public class BuildOperationDetails {
         return progressDisplayName;
     }
 
+    /**
+     * Arbitrary metadata for the operation.
+     */
+    @Nullable
+    public Object getOperationDescriptor() {
+        return operationDescriptor;
+    }
+
     public static Builder displayName(String displayName) {
         return new Builder(displayName);
     }
@@ -57,6 +67,7 @@ public class BuildOperationDetails {
     public static class Builder {
         private final String displayName;
         private String progressDisplayName;
+        private Object operationDescriptor;
 
         private Builder(String displayName) {
             this.displayName = displayName;
@@ -67,8 +78,13 @@ public class BuildOperationDetails {
             return this;
         }
 
+        public Builder operationDescriptor(Object descriptor) {
+            this.operationDescriptor = descriptor;
+            return this;
+        }
+
         public BuildOperationDetails build() {
-            return new BuildOperationDetails(displayName, progressDisplayName);
+            return new BuildOperationDetails(displayName, progressDisplayName, operationDescriptor);
         }
     }
 }

@@ -148,10 +148,10 @@ class ClientForwardingTestListener implements TestListenerInternal, InternalBuil
 
     @Override
     public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getPayload() instanceof TaskOperationInternal)) {
+        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationInternal)) {
             return;
         }
-        TaskInternal task = ((TaskOperationInternal) buildOperation.getPayload()).getTask();
+        TaskInternal task = ((TaskOperationInternal) buildOperation.getOperationDescriptor()).getTask();
         if (!(task instanceof Test)) {
             return;
         }
@@ -160,7 +160,7 @@ class ClientForwardingTestListener implements TestListenerInternal, InternalBuil
 
     @Override
     public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-        if (!(buildOperation.getPayload() instanceof TaskOperationInternal)) {
+        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationInternal)) {
             return;
         }
         runningTasks.remove(buildOperation.getId());
