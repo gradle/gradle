@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Attribute;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -40,6 +39,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.plugins.JavaBasePlugin.Usage.FOR_COMPILE;
+import static org.gradle.api.plugins.JavaBasePlugin.Usage.USAGE_ATTRIBUTE;
+
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
@@ -55,17 +57,17 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
     public static final String API_CONFIGURATION_NAME = "api";
-    public static final String IMPL_CONFIGURATION_NAME = "implementation";
+    public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
     public static final String API_COMPILE_CONFIGURATION_NAME = "apiCompile";
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+    public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
-    public static final Attribute<String> USAGE = Attribute.of("org.gradle.usage", String.class);
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -148,16 +150,16 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
+        Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
 
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
-        compileTestsConfiguration.extendsFrom(compileConfiguration);
+        compileTestsConfiguration.extendsFrom(implementationConfiguration);
 
         configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
-        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE, "api");
+        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
 
     }
 
