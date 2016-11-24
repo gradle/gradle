@@ -16,27 +16,14 @@
 
 package org.gradle.api.execution.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 
 public final class TaskOperationInternal {
-    private final Object id;
-    private final Object parentId;
+    // TODO: should include only immutable state here
     private final TaskInternal task;
 
-    public TaskOperationInternal(Object id, Object parentId, TaskInternal task) {
-        this.id = id;
-        this.parentId = parentId;
+    public TaskOperationInternal(TaskInternal task) {
         this.task = task;
-    }
-
-    public Object getId() {
-        return id;
-    }
-
-    @Nullable
-    public Object getParentId() {
-        return parentId;
     }
 
     public TaskInternal getTask() {

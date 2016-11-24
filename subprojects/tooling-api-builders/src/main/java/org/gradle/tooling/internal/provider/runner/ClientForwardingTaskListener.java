@@ -16,15 +16,23 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.*;
+import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
+import org.gradle.tooling.internal.provider.events.DefaultFailure;
+import org.gradle.tooling.internal.provider.events.DefaultTaskDescriptor;
+import org.gradle.tooling.internal.provider.events.DefaultTaskFailureResult;
+import org.gradle.tooling.internal.provider.events.DefaultTaskFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
+import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 
 import java.util.Collections;
 
@@ -33,38 +41,54 @@ import java.util.Collections;
  *
  * @since 2.5
  */
-class ClientForwardingTaskListener implements InternalTaskExecutionListener {
-
+class ClientForwardingTaskListener implements InternalBuildListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
+    private final InternalBuildListener delegate;
 
-    ClientForwardingTaskListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
+    ClientForwardingTaskListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, InternalBuildListener delegate) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
+        this.delegate = delegate;
     }
 
     @Override
-    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(taskOperation)));
+    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+        if (buildOperation.getPayload() instanceof TaskOperationInternal) {
+            if (clientSubscriptions.isSendTaskProgressEvents()) {
+                TaskInternal task = ((TaskOperationInternal) buildOperation.getPayload()).getTask();
+                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, task)));
+            }
+            // Otherwise discard
+        } else {
+            delegate.started(buildOperation, startEvent);
+        }
     }
 
     @Override
-    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(result.getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask(), result)));
+    public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+        if (buildOperation.getPayload() instanceof TaskOperationInternal) {
+            if (clientSubscriptions.isSendTaskProgressEvents()) {
+                TaskInternal task = ((TaskOperationInternal) buildOperation.getPayload()).getTask();
+                eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), toTaskResult(task, finishEvent)));
+            }
+            // Otherwise discard
+        } else {
+            delegate.finished(buildOperation, finishEvent);
+        }
     }
 
-    private DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {
-        TaskInternal task = taskOperation.getTask();
-        Object id = taskOperation.getId();
-        String displayName = "Task " + task.getPath();
+    private DefaultTaskDescriptor toTaskDescriptor(BuildOperationInternal buildOperation, TaskInternal task) {
+        Object id = buildOperation.getId();
+        String displayName = buildOperation.getDisplayName();
         String taskPath = task.getPath();
-        Object parentId = getParentId(taskOperation);
+        Object parentId = getParentId(buildOperation);
         return new DefaultTaskDescriptor(id, taskPath, displayName, parentId);
     }
 
-    private Object getParentId(TaskOperationInternal taskOperation) {
+    private Object getParentId(BuildOperationInternal buildOperation) {
         // only set the BuildOperation as the parent if the Tooling API Consumer is listening to build progress events
-        return clientSubscriptions.isSendBuildProgressEvents() ? taskOperation.getParentId() : null;
+        return clientSubscriptions.isSendBuildProgressEvents() ? buildOperation.getParentId() : null;
     }
 
     private static AbstractTaskResult toTaskResult(TaskInternal task, OperationResult result) {

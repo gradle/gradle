@@ -21,11 +21,24 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildAction;
 
 public class SubscribableBuildActionRunner implements BuildActionRunner {
-    private BuildActionRunner delegate;
+    private static final InternalBuildListener NO_OP = new InternalBuildListener() {
+        @Override
+        public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+        }
+
+        @Override
+        public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+        }
+    };
+    private final BuildActionRunner delegate;
 
     public SubscribableBuildActionRunner(BuildActionRunner delegate) {
         this.delegate = delegate;
@@ -36,12 +49,16 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
         if (clientSubscriptions.isSendTestProgressEvents()) {
             gradle.addListener(new ClientForwardingTestListener(eventConsumer, clientSubscriptions));
         }
-        if (clientSubscriptions.isSendTaskProgressEvents()) {
-            gradle.addListener(new ClientForwardingTaskListener(eventConsumer, clientSubscriptions));
+        if (!clientSubscriptions.isSendBuildProgressEvents() && !clientSubscriptions.isSendTaskProgressEvents()) {
+            return;
         }
+
+        InternalBuildListener buildListener = NO_OP;
         if (clientSubscriptions.isSendBuildProgressEvents()) {
-            gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
+            buildListener = new ClientForwardingBuildListener(eventConsumer);
         }
+        buildListener = new ClientForwardingTaskListener(eventConsumer, clientSubscriptions, buildListener);
+        gradle.addListener(buildListener);
     }
 
     @Override

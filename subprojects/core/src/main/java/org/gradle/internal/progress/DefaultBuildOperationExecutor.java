@@ -18,11 +18,11 @@ package org.gradle.internal.progress;
 
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.time.TimeProvider;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -71,7 +71,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         currentOperation.set(new OperationDetails(parent, id));
         try {
             long startTime = timeProvider.getCurrentTime();
-            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getDisplayName());
+            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getDisplayName(), null);
             listener.started(operation, new OperationStartEvent(startTime));
 
             T result = null;

@@ -23,7 +23,6 @@ import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -38,6 +37,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
@@ -65,7 +66,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final TimeProvider timeProvider;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
+    private final InternalBuildListener buildOperationListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
@@ -77,7 +78,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        internalTaskListeners = listenerManager.createAnonymousBroadcaster(InternalTaskExecutionListener.class);
+        buildOperationListeners = listenerManager.getBroadcaster(InternalBuildListener.class);
         taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
     }
 
@@ -225,17 +226,18 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         @Override
         public void execute(TaskInternal task) {
             Object id = OperationIdGenerator.generateId(task);
-            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentOperationId, task);
+            TaskOperationInternal taskOperation = new TaskOperationInternal(task);
+            BuildOperationInternal buildOperation = new BuildOperationInternal(id, parentOperationId, "Task " + task.getPath(), taskOperation);
             TaskStateInternal state = task.getState();
             long startTime = timeProvider.getCurrentTime();
-            internalTaskListeners.getSource().beforeExecute(taskOperation, new OperationStartEvent(startTime));
+            buildOperationListeners.started(buildOperation, new OperationStartEvent(startTime));
             try {
                 taskListeners.getSource().beforeExecute(task);
                 taskExecuter.execute(task, task.getState(), new DefaultTaskExecutionContext());
                 taskListeners.getSource().afterExecute(task, state);
             } finally {
                 long endTime = timeProvider.getCurrentTime();
-                internalTaskListeners.getSource().afterExecute(taskOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
+                buildOperationListeners.finished(buildOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
             }
         }
     }

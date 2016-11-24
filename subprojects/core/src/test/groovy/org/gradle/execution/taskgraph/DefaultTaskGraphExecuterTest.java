@@ -21,7 +21,6 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -35,11 +34,12 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
@@ -80,15 +80,17 @@ public class DefaultTaskGraphExecuterTest {
     @Before
     public void setUp() {
         root = TestUtil.create(temporaryFolder).rootProject();
+        final InternalBuildListener listener = context.mock(InternalBuildListener.class);
         context.checking(new Expectations(){{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
-            one(listenerManager).createAnonymousBroadcaster(InternalTaskExecutionListener.class);
-            will(returnValue(new ListenerBroadcast<InternalTaskExecutionListener>(InternalTaskExecutionListener.class)));
+            one(listenerManager).getBroadcaster(InternalBuildListener.class);
+            will(returnValue(listener));
             allowing(cancellationToken).isCancellationRequested();
             allowing(buildOperationExecutor).getCurrentOperationId();
+            ignoring(listener);
         }});
         taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, new TrueTimeProvider(), buildOperationExecutor);
     }

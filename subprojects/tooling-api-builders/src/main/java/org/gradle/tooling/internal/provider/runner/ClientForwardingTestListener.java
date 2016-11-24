@@ -16,8 +16,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -26,11 +26,20 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.*;
+import org.gradle.tooling.internal.provider.events.AbstractTestResult;
+import org.gradle.tooling.internal.provider.events.DefaultFailure;
+import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
+import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
+import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
+import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +48,7 @@ import java.util.Map;
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestListener implements TestListenerInternal, InternalTaskExecutionListener {
+class ClientForwardingTestListener implements TestListenerInternal, InternalBuildListener {
 
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
@@ -97,7 +106,7 @@ class ClientForwardingTestListener implements TestListenerInternal, InternalTask
 
     private String getTaskPath(TestDescriptorInternal givenDescriptor) {
         TestDescriptorInternal descriptor = givenDescriptor;
-        while(descriptor.getOwnerBuildOperationId() == null && descriptor.getParent()!=null){
+        while (descriptor.getOwnerBuildOperationId() == null && descriptor.getParent() != null) {
             descriptor = descriptor.getParent();
         }
         return runningTasks.get(descriptor.getOwnerBuildOperationId());
@@ -138,14 +147,22 @@ class ClientForwardingTestListener implements TestListenerInternal, InternalTask
     }
 
     @Override
-    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
-        if(taskOperation.getTask() instanceof Test){
-            runningTasks.put(taskOperation.getId(), taskOperation.getTask().getPath());
+    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+        if (!(buildOperation.getPayload() instanceof TaskOperationInternal)) {
+            return;
         }
+        TaskInternal task = ((TaskOperationInternal) buildOperation.getPayload()).getTask();
+        if (!(task instanceof Test)) {
+            return;
+        }
+        runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
-    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
-        runningTasks.remove(taskOperation.getId());
+    public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+        if (!(buildOperation.getPayload() instanceof TaskOperationInternal)) {
+            return;
+        }
+        runningTasks.remove(buildOperation.getId());
     }
 }

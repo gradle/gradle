@@ -21,11 +21,13 @@ public final class BuildOperationInternal {
     private final Object id;
     private final Object parentId;
     private final String displayName;
+    private final Object payload;
 
-    public BuildOperationInternal(Object id, Object parentId, String displayName) {
+    public BuildOperationInternal(Object id, Object parentId, String displayName, Object payload) {
         this.id = id;
         this.parentId = parentId;
         this.displayName = displayName;
+        this.payload = payload;
     }
 
     public Object getId() {
@@ -39,5 +41,9 @@ public final class BuildOperationInternal {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public Object getPayload() {
+        return payload;
     }
 }

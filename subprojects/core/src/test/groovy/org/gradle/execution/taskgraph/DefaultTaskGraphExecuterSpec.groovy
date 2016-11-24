@@ -19,8 +19,6 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
-import org.gradle.api.execution.internal.InternalTaskExecutionListener
-import org.gradle.api.execution.internal.TaskOperationInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -28,12 +26,14 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
-import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.BuildOperationInternal
+import org.gradle.internal.progress.InternalBuildListener
 import org.gradle.internal.progress.OperationResult
 import org.gradle.internal.progress.OperationStartEvent
+import org.gradle.internal.time.TimeProvider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -87,7 +87,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     }
 
     def "notifies internal task listener as tasks are executed"() {
-        def listener = Mock(InternalTaskExecutionListener)
+        def listener = Mock(InternalBuildListener)
         def a = task("a")
         def failure = new RuntimeException()
         def b = brokenTask("b", failure)
@@ -102,27 +102,27 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * listener.beforeExecute(_, _) >> { TaskOperationInternal operation, OperationStartEvent startEvent ->
-            assert operation.task == a
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent startEvent ->
+            assert operation.payload.task == a
         }
-        1 * listener.afterExecute(_, _) >> { TaskOperationInternal operation, OperationResult result ->
-            assert operation.task == a
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult result ->
+            assert operation.payload.task == a
             assert result.failure == null
         }
 
         then:
-        1 * listener.beforeExecute(_, _) >> { TaskOperationInternal operation, OperationStartEvent startEvent ->
-            assert operation.task == b
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent startEvent ->
+            assert operation.payload.task == b
         }
-        1 * listener.afterExecute(_, _) >> { TaskOperationInternal operation, OperationResult result ->
-            assert operation.task == b
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult result ->
+            assert operation.payload.task == b
             assert result.failure == failure
         }
         0 * listener._
     }
 
     def "wraps notification of internal listener around public listener"() {
-        def listener1 = Mock(InternalTaskExecutionListener)
+        def listener1 = Mock(InternalBuildListener)
         def listener2 = Mock(TaskExecutionListener)
         def a = task("a")
         def b = task("b")
@@ -136,30 +136,30 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         taskExecuter.execute()
 
         then:
-        1 * listener1.beforeExecute({it.task == a}, _)
+        1 * listener1.started({it.payload.task == a}, _)
 
         then:
         1 * listener2.beforeExecute(a)
         1 * listener2.afterExecute(a, a.state)
 
         then:
-        1 * listener1.afterExecute({it.task == a}, _)
+        1 * listener1.finished({it.payload.task == a}, _)
 
         then:
-        1 * listener1.beforeExecute({it.task == b}, _)
+        1 * listener1.started({it.payload.task == b}, _)
 
         then:
         1 * listener2.beforeExecute(b)
         1 * listener2.afterExecute(b, b.state)
 
         then:
-        1 * listener1.afterExecute({it.task == b}, _)
+        1 * listener1.finished({it.payload.task == b}, _)
         0 * listener1._
         0 * listener2._
     }
 
     def "notifies internal listener of completion when public listener fails on task start"() {
-        def listener1 = Mock(InternalTaskExecutionListener)
+        def listener1 = Mock(InternalBuildListener)
         def listener2 = Mock(TaskExecutionListener)
         def failure = new RuntimeException()
         def a = task("a")
@@ -175,19 +175,19 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * listener1.beforeExecute({it.task == a}, _)
+        1 * listener1.started({it.payload.task == a}, _)
 
         then:
         1 * listener2.beforeExecute(a) >> { throw failure }
 
         then:
-        1 * listener1.afterExecute({it.task == a}, _)
+        1 * listener1.finished({it.payload.task == a}, _)
         0 * listener1._
         0 * listener2._
     }
 
     def "notifies internal listener of completion when public listener fails on task complete"() {
-        def listener1 = Mock(InternalTaskExecutionListener)
+        def listener1 = Mock(InternalBuildListener)
         def listener2 = Mock(TaskExecutionListener)
         def failure = new RuntimeException()
         def a = task("a")
@@ -203,14 +203,14 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * listener1.beforeExecute({it.task == a}, _)
+        1 * listener1.started({it.payload.task == a}, _)
 
         then:
         1 * listener2.beforeExecute(a)
         1 * listener2.afterExecute(a, a.state) >> { throw failure }
 
         then:
-        1 * listener1.afterExecute({it.task == a}, _)
+        1 * listener1.finished({it.payload.task == a}, _)
         0 * listener1._
         0 * listener2._
     }
