@@ -33,7 +33,7 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
         // currently we just allow a single compilation thread at a time (per compiler daemon)
         // one problem to solve when allowing multiple threads is how to deal with memory requirements specified by compile tasks
-        BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.operationStart();
+        BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.getCurrent().operationStart();
         try {
             return workerProcess.execute(action, spec);
         } finally {

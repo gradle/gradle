@@ -241,6 +241,47 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Successfully executed org.gradle.test.TestRunnable in worker daemon")
     }
 
+    def "throws if used from a thread with no current build operation"() {
+        given:
+        withRunnableClassInBuildSrc()
+
+        and:
+        buildFile << '''
+            class DaemonTaskUsingCustomThreads extends DaemonTask {
+                @TaskAction
+                void executeTask() {
+                    def thrown = null
+                    def customThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                workerDaemons.daemonRunnable(runnableClass)
+                                    .forkOptions(additionalForkOptions)
+                                    .params(list.collect { it as String }, new File(outputFileDirPath), new Foo())
+                                    .execute()
+                            } catch(Exception ex) {
+                                thrown = ex
+                            }
+                        }
+                    })
+                    customThread.start()
+                    customThread.join()
+                    if(thrown) {
+                        throw thrown
+                    }
+                }
+            }
+            
+            task runInDaemon(type: DaemonTaskUsingCustomThreads)
+        '''.stripIndent()
+
+        when:
+        fails 'runInDaemon'
+
+        then:
+        failure.assertHasCause 'No build operation associated with the current thread'
+    }
+
     String getUnrecognizedOptionError() {
         def jvm = Jvm.current()
         if (jvm.ibmJvm) {
