@@ -30,7 +30,8 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.args = runnerArgs
-        runner.targetVersions = ['3.2']
+        runner.targetVersions = ['last']
+        runner.useDaemon = true
 
         when:
         def result = runner.run()
