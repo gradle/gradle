@@ -119,8 +119,6 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -146,6 +144,8 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -232,13 +232,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
-    protected ProjectEvaluator createProjectEvaluator() {
+    protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-            new PluginsProjectConfigureActions(get(CachingServiceLocator.class)),
-            new BuildScriptProcessor(get(ScriptPluginFactory.class)),
+            new PluginsProjectConfigureActions(cachingServiceLocator),
+            new BuildScriptProcessor(scriptPluginFactory),
             new DelayedConfigurationActions()
         );
-        return new LifecycleProjectEvaluator(withActionsEvaluator);
+        return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
     protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(ServiceRegistry registry) {
