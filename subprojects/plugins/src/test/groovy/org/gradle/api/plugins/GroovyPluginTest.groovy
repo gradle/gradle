@@ -39,12 +39,21 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         groovyPlugin.apply(project)
 
         when:
-        def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+        def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
 
         then:
-        configuration.extendsFrom == [] as Set
-        !configuration.visible
-        configuration.transitive
+        compile.extendsFrom == [] as Set
+        !compile.visible
+        compile.transitive
+
+        when:
+        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        implementation.extendsFrom == [compile] as Set
+        !implementation.visible
+        !implementation.canBeConsumed
+        !implementation.canBeResolved
     }
 
     def "adds Groovy convention to each source set"() {
