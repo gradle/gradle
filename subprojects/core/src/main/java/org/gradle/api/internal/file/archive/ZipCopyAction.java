@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
+import org.gradle.api.internal.file.copy.SortingCopyActionDecorator;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -41,15 +42,18 @@ public class ZipCopyAction implements CopyAction {
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;
     private final String encoding;
+    private final boolean reproducible;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean reproducible) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
         this.encoding = encoding;
+        this.reproducible = reproducible;
     }
 
-    public WorkResult execute(final CopyActionProcessingStream stream) {
+    public WorkResult execute(final CopyActionProcessingStream originalStream) {
+        final CopyActionProcessingStream stream = new SortingCopyActionDecorator(originalStream);
         final ZipOutputStream zipOutStr;
 
         try {
@@ -96,7 +100,7 @@ public class ZipCopyAction implements CopyAction {
         private void visitFile(FileCopyDetails fileDetails) {
             try {
                 ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setTime(fileDetails.getLastModified());
+                archiveEntry.setTime(reproducible ? 0 : fileDetails.getLastModified());
                 archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
@@ -110,7 +114,7 @@ public class ZipCopyAction implements CopyAction {
             try {
                 // Trailing slash in name indicates that entry is a directory
                 ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
-                archiveEntry.setTime(dirDetails.getLastModified());
+                archiveEntry.setTime(reproducible ? 0 : dirDetails.getLastModified());
                 archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
                 zipOutStr.closeEntry();

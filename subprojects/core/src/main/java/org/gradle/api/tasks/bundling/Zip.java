@@ -39,6 +39,7 @@ public class Zip extends AbstractArchiveTask {
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
     private boolean allowZip64;
     private String metadataCharset;
+    private boolean ignoreTimestamps = true;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
@@ -60,7 +61,7 @@ public class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset);
+        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset, ignoreTimestamps);
     }
 
     /**
@@ -140,5 +141,14 @@ public class Zip extends AbstractArchiveTask {
             throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
         }
         this.metadataCharset = metadataCharset;
+    }
+
+    @Input
+    public boolean isIgnoreTimestamps() {
+        return ignoreTimestamps;
+    }
+
+    public void setIgnoreTimestamps(boolean ignoreTimestamps) {
+        this.ignoreTimestamps = ignoreTimestamps;
     }
 }

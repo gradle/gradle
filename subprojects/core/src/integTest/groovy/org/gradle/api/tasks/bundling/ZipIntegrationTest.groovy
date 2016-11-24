@@ -16,6 +16,9 @@
 
 package org.gradle.api.tasks.bundling
 
+import com.google.common.hash.Funnels
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
@@ -159,6 +162,60 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         def garbledFileName = "file-%U00E9%U00F6"
         def theZip = new ZipTestFixture(file('build/test.zip'), 'UTF-8')
         theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
+    }
+
+    def "order of files is not important"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task zip(type: Zip) {
+                from files(${files.collect {"'${it}'"}.join(',')})
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+            }
+            """
+
+        when:
+        succeeds 'zip'
+
+        then:
+        fileHash('build/test.zip') == 'd2ba5ed628630c1fa24cf1eda494af3f'
+
+        where:
+        files << ['dir1/file1.txt', 'dir2/file2.txt', 'dir3/file3.txt'].permutations()
+
+    }
+
+    def "timestamps are ignored for reproducible jars"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task zip(type: Zip) {
+                from 'dir1'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+            }
+            """
+
+        when:
+        succeeds 'zip'
+
+        then:
+        def firstFileHash = fileHash('build/test.zip')
+
+        when:
+        file('dir1/file1.txt').makeOlder()
+        file('build/test.zip').delete()
+        succeeds 'zip'
+
+        then:
+        fileHash('build/test.zip') == firstFileHash
+    }
+
+    private String fileHash(String fileName) {
+        def hasher = Hashing.md5().newHasher()
+        Files.copy(file(fileName), Funnels.asOutputStream(hasher))
+        hasher.hash().toString()
     }
 
     @Unroll
