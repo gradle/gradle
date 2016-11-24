@@ -288,7 +288,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     String getName();
 
     /**
-     * Returns the description of this project.
+     * Returns a human-consumable display name for this project.
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the description of this project, if any.
      *
      * @return the description. May return null.
      */

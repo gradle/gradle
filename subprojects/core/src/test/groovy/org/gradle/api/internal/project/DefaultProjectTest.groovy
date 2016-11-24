@@ -779,9 +779,11 @@ def scriptMethod(Closure closure) {
     }
 
     @Test
-    void testHasUsefulToString() {
+    void testHasUsefulToStringAndDisplayName() {
         assertEquals('root project \'root\'', project.toString())
+        assertEquals('root project \'root\'', project.getDisplayName())
         assertEquals('project \':child1\'', child1.toString())
+        assertEquals('project \':child1\'', child1.getDisplayName())
         assertEquals('project \':child1:childchild\'', childchild.toString())
     }
 

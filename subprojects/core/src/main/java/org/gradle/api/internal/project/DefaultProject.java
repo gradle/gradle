@@ -650,7 +650,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return projectToEvaluate.evaluate();
     }
 
-    public String toString() {
+    @Override
+    public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
         if (parent == null) {
             builder.append("root ");
@@ -659,6 +660,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         builder.append(parent == null ? name : path);
         builder.append("'");
         return builder.toString();
+    }
+
+    public String toString() {
+        return getDisplayName();
     }
 
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {

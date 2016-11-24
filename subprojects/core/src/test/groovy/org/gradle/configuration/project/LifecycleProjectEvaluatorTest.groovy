@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.progress.BuildOperationExecutor
 import spock.lang.Specification
 
-public class LifecycleProjectEvaluatorTest extends Specification {
+class LifecycleProjectEvaluatorTest extends Specification {
     private project = Mock(ProjectInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
@@ -71,7 +71,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.setExecuting(false)
         1 * state.executed()
         1 * listener.afterEvaluate(project, state)
-        1 * buildOperationExecutor.run(_, _) >> { String, Runnable runnable -> runnable.run() }
+        1 * buildOperationExecutor.run(_, _) >> { String s, Runnable runnable -> runnable.run() }
     }
 
     void "notifies listeners and updates state on evaluation failure"() {
@@ -81,7 +81,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         evaluator.evaluate(project, state)
 
         then:
-        1 * buildOperationExecutor.run(_, _) >> { String, Runnable runnable -> runnable.run() }
+        1 * buildOperationExecutor.run(_, _) >> { String s, Runnable runnable -> runnable.run() }
         1 * delegate.evaluate(project, state) >> { throw failure }
 
         and:
@@ -102,7 +102,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         evaluator.evaluate(project, state)
 
         then:
-        1 * buildOperationExecutor.run(_, _) >> { String, Runnable runnable -> runnable.run() }
+        1 * buildOperationExecutor.run(_, _) >> { String s, Runnable runnable -> runnable.run() }
         1 * listener.beforeEvaluate(project) >> { throw failure }
         1 * state.executed({
             assertIsConfigurationFailure(it, failure)
@@ -125,7 +125,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.executed()
 
         then:
-        1 * buildOperationExecutor.run(_, _) >> { String, Runnable runnable -> runnable.run() }
+        1 * buildOperationExecutor.run(_, _) >> { String s, Runnable runnable -> runnable.run() }
         1 * listener.afterEvaluate(project, state) >> { throw failure }
         1 * state.executed({
             assertIsConfigurationFailure(it, failure)
@@ -160,7 +160,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
         _ * state.hasFailure() >> true
         0 * state.executed(_)
-        1 * buildOperationExecutor.run(_, _) >> { String, Runnable runnable -> runnable.run() }
+        1 * buildOperationExecutor.run(_, _) >> { String s, Runnable runnable -> runnable.run() }
     }
 
 }
