@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;

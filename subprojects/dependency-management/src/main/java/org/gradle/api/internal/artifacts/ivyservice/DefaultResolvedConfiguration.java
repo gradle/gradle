@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
@@ -30,12 +31,11 @@ import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
-    private final String format;
+    private final AttributeContainer attributes;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, AttributeContainer attributes) {
         this.configuration = configuration;
-        // TODO:DAZ Should use attributes here.
-        this.format = configuration.getFormat();
+        this.attributes = attributes;
     }
 
     public boolean hasError() {
@@ -57,7 +57,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.select(dependencySpec, format).collectFiles(new LinkedHashSet<File>());
+        return configuration.select(dependencySpec, attributes).collectFiles(new LinkedHashSet<File>());
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
@@ -73,7 +73,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         rethrowFailure();
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        configuration.select(Specs.<Dependency>satisfyAll(), format).visitArtifacts(visitor);
+        configuration.select(Specs.<Dependency>satisfyAll(), attributes).visitArtifacts(visitor);
         return visitor.artifacts;
     }
 }

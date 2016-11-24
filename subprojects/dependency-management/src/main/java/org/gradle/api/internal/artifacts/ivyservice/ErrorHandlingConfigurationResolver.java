@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
@@ -349,7 +350,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, String format) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainer attributes) {
             return this;
         }
 
