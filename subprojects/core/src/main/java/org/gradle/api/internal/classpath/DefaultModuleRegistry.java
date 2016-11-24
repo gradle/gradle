@@ -156,6 +156,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         suffixes.add(("/" + projectDirName + "/build/classes/main").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
         for (File file : classpath) {
             if (file.isDirectory()) {
                 for (String suffix : suffixes) {
