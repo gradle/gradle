@@ -204,4 +204,40 @@ allprojects {
         // Currently builds all file dependencies
         result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
     }
+
+    def "can create a view for configuration that has no attributes"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                artifacts {
+                    compile file: file('lib.jar'), builtBy: jar
+                    compile file: file('lib.classes'), builtBy: classes
+                    compile file: file('lib'), builtBy: dir
+                }
+            }
+
+            project(':app') {
+                configurations {
+                    noAttributes
+                }
+
+                dependencies {
+                    noAttributes project(path: ':lib', configuration: 'compile')
+                }
+
+                task resolve {
+                    def files = configurations.noAttributes.incoming.getFiles(artifactType: 'classes')
+                    inputs.files files
+                    doLast {
+                        assert files.collect { it.name } == ['lib.classes']
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "resolve"
+        // Currently builds all file dependencies
+        result.assertTasksExecuted(":lib:classes", ":app:resolve")
+    }
 }

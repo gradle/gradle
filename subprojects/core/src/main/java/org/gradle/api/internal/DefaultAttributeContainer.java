@@ -98,8 +98,10 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
 
     public DefaultAttributeContainer copy() {
         DefaultAttributeContainer container = new DefaultAttributeContainer();
-        container.ensureAttributes();
-        container.attributes.putAll(this.attributes);
+        if (!isEmpty()) {
+            container.ensureAttributes();
+            container.attributes.putAll(this.attributes);
+        }
         return container;
     }
 }
