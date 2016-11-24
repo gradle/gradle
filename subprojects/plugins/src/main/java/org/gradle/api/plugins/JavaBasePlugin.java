@@ -18,7 +18,9 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.Attribute;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -117,6 +119,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
+        registerProcessingAspect(project);
+    }
+
+    private void registerProcessingAspect(ProjectInternal project) {
+        project.getAttributesSchema().matchStrictly(Usage.USAGE_ATTRIBUTE);
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -204,7 +211,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("classesDir", new Callable<Object>() {
             public Object call() throws Exception {
-                String classesDirName = "classes/" +   sourceSet.getName();
+                String classesDirName = "classes/" + sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
             }
         });
@@ -222,7 +229,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
         Configuration compileConfiguration = configurations.maybeCreate(sourceSet.getCompileConfigurationName());
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription("Dependencies for " + sourceSet + ".");
+        compileConfiguration.setDescription("Dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getImplementationConfigurationName() + " ' instead).");
+
+        Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
+        implementationConfiguration.setVisible(false);
+        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSet + ".");
+        implementationConfiguration.setCanBeConsumed(false);
+        implementationConfiguration.setCanBeResolved(false);
+        implementationConfiguration.extendsFrom(compileConfiguration);
 
         Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
@@ -231,7 +245,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
         compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.extendsFrom(compileConfiguration);
+        compileOnlyConfiguration.extendsFrom(implementationConfiguration);
         compileOnlyConfiguration.setDescription("Compile dependencies for " + sourceSet + ".");
 
         Configuration compileClasspathConfiguration = configurations.maybeCreate(sourceSet.getCompileClasspathConfigurationName());
@@ -438,6 +452,56 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             for (BinarySpecInternal binary : bridgedBinaries.binaries) {
                 binaries.put(binary.getProjectScopedName(), binary);
             }
+        }
+    }
+
+    public interface Usage extends Named {
+        Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(Usage.class);
+
+        Usage FOR_COMPILE = usage("for compile");
+        Usage FOR_RUNTIME = usage("for runtime");
+
+    }
+
+    public static Usage usage(final String usage) {
+        return new UsageImpl(usage);
+    }
+
+    private static class UsageImpl implements Usage {
+        private final String usage;
+
+        public UsageImpl(String usage) {
+            this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return usage;
+        }
+
+        @Override
+        public String toString() {
+            return usage;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            UsageImpl usage1 = (UsageImpl) o;
+
+            return usage.equals(usage1.usage);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return usage.hashCode();
         }
     }
 }
