@@ -135,7 +135,7 @@ public class DefaultSourceSet implements SourceSet {
 
     @Override
     public String getImplementationConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.IMPL_CONFIGURATION_NAME));
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
     }
 
     @Override
