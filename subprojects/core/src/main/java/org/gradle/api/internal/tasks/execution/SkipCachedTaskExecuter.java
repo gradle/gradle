@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadata;
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
@@ -33,9 +32,9 @@ import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputReader;
 import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +51,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
+    private final OriginMetadataConverter originMetadataConverter;
     private TaskOutputCache cache;
 
-    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(OriginMetadataConverter originMetadataConverter, TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+        this.originMetadataConverter = originMetadataConverter;
         this.taskCaching = taskCaching;
         this.startParameter = startParameter;
         this.packer = packer;
@@ -144,11 +145,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         getCache().store(cacheKey, new TaskOutputWriter() {
                             @Override
                             public void writeTo(OutputStream output) throws IOException {
-                                // TODO: Get OS/user name/host name
                                 OriginMetadata originMetadata =
-                                    new DefaultOriginMetadata(task.getPath(), task.getClass().getCanonicalName(), GradleVersion.current().getVersion(), System.currentTimeMillis(), clock.getElapsedMillis(), task.getProject().getRootDir().getAbsolutePath(),
-                                        "OS", "hostname", "user.name");
-                                LOGGER.debug("Packing {} with {}", task.getPath(), originMetadata);
+                                    originMetadataConverter.convert(task, clock.getElapsedMillis());
+                                LOGGER.info("Packing {} with {}", task.getPath(), originMetadata);
                                 packer.pack(originMetadata, taskOutputs, output);
                             }
                         });

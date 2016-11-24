@@ -51,6 +51,7 @@ import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataReader;
 import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataWriter;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
@@ -67,6 +68,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
@@ -74,16 +76,20 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
 public class TaskExecutionServices {
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle) {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, OriginMetadataConverter originMetadataConverter) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -107,6 +113,7 @@ public class TaskExecutionServices {
                                             gradle.getTaskCaching(),
                                             packer,
                                             taskOutputsGenerationListener,
+                                            originMetadataConverter,
                                             createVerifyNoInputChangesExecuterIfNecessary(
                                                 startParameter,
                                                 repository,
@@ -126,9 +133,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, OriginMetadataConverter originMetadataConverter, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, taskOutputsGenerationListener, delegate);
+            return new SkipCachedTaskExecuter(originMetadataConverter, taskCaching, packer, startParameter, taskOutputsGenerationListener, delegate);
         } else {
             return delegate;
         }
@@ -206,5 +213,9 @@ public class TaskExecutionServices {
                 new TarTaskOutputPacker(fileSystem, new DefaultOriginMetadataWriter(), new DefaultOriginMetadataReader())
             )
         );
+    }
+
+    OriginMetadataConverter createOriginMetadataConverter(TimeProvider timeProvider, InetAddressFactory inetAddressFactory) {
+        return new OriginMetadataConverter(timeProvider, inetAddressFactory, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
     }
 }
