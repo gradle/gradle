@@ -34,8 +34,10 @@ import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.TimeProvider
 import spock.lang.Specification
 
 class TaskExecutionServicesTest extends Specification {
@@ -66,6 +68,8 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(DirectoryFileTreeFactory) >> Mock(DirectoryFileTreeFactory)
         _ * parent.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
         _ * parent.getAll(FileCollectionSnapshotter) >> []
+        _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+        _ * parent.get(InetAddressFactory) >> Mock(InetAddressFactory)
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder

@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,9 +96,12 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private void packMetadata(OriginMetadata originMetadata, TarOutputStream outputStream) throws IOException {
         TarEntry entry = new TarEntry(METADATA_PATH);
         entry.setMode(UnixStat.FILE_FLAG);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        originMetadataWriter.writeTo(originMetadata, baos);
+        entry.setSize(baos.size());
         outputStream.putNextEntry(entry);
         try {
-            originMetadataWriter.writeTo(originMetadata, outputStream);
+            outputStream.write(baos.toByteArray());
         } finally {
             outputStream.closeEntry();
         }

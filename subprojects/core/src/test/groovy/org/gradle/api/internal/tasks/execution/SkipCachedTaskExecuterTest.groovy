@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.cache.TaskOutputCache
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter
 import spock.lang.Specification
 
 public class SkipCachedTaskExecuterTest extends Specification {
@@ -48,6 +49,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
     def cacheKey = Mock(TaskCacheKey)
+    def originMetadataConverter = Mock(OriginMetadataConverter)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
     def executer = new SkipCachedTaskExecuter(originMetadataConverter, taskCaching, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
