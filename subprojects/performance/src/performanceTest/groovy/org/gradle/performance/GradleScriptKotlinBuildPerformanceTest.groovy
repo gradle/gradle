@@ -41,10 +41,9 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
 
         where:
         testProject       | runnerArgs
-        "ktsManyProjects" | []
-        "ktsManyProjects" | ['--parallel']
-        "ktsManyProjects" | ['--recompile-scripts']
-        "ktsManyProjects" | ['--recompile-scripts', '--parallel']
+        "ktsSmall"        | ['--recompile-scripts']
+        //"ktsManyProjects" | []
+        //"ktsManyProjects" | ['--recompile-scripts']
         testIdSuffix = runnerArgs.empty ? '' : " (${runnerArgs.join(', ')})"
         testId = "configuration of $testProject$testIdSuffix"
     }

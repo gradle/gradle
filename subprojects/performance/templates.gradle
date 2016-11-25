@@ -126,6 +126,9 @@ task ktsManyProjects(type: KtsProjectGeneratorTask) {
     sourceFiles = 0
 }
 
+task ktsSmall(type: KtsProjectGeneratorTask) {
+}
+
 task smallOldJava(type: JvmProjectGeneratorTask) {
     projects = 1
     subProjectTemplates = ['java-source', 'old-java-plugin']
