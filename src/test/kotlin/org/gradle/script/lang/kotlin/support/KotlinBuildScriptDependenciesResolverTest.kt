@@ -73,10 +73,10 @@ class KotlinBuildScriptDependenciesResolverTest {
         }
 
     private fun resolve(environment: Environment, previousDependencies: KotlinScriptExternalDependencies?) =
-        subject.resolve(EmptyScriptContents, environment, { s, m, p -> }, previousDependencies).get()
+        subject.resolve(EmptyScriptContents, environment, { _, _, _ -> }, previousDependencies).get()
 
     private fun environmentWithGetScriptSectionTokensReturning(sequence: Sequence<String>): Environment =
-        environmentWithGetScriptSectionTokens { charSequence, sectionName -> sequence }
+        environmentWithGetScriptSectionTokens { _, _ -> sequence }
 
     private fun environmentWithGetScriptSectionTokens(function: (CharSequence, String) -> Sequence<String>): Environment =
         mapOf("getScriptSectionTokens" to function)
