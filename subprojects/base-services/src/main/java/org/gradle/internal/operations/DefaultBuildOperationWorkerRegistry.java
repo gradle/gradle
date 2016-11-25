@@ -164,12 +164,11 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
         @Override
         public void operationFinish() {
+            if (Thread.currentThread() != ownerThread) {
+                // Not implemented - not yet required. Please implement if required
+                throw new UnsupportedOperationException("Must complete operation from owner thread.");
+            }
             synchronized (lock) {
-                if (Thread.currentThread() != ownerThread) {
-                    // Not implemented - not yet required. Please implement if required
-                    throw new UnsupportedOperationException("Must complete operation from owner thread.");
-                }
-
                 parent.releaseLease();
                 threads.remove(ownerThread, this);
                 lock.notifyAll();
