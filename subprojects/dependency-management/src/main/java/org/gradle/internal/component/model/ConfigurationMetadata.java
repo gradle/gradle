@@ -16,13 +16,13 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationMetadata {
+public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      */
@@ -52,8 +52,6 @@ public interface ConfigurationMetadata {
     boolean isCanBeConsumed();
 
     boolean isCanBeResolved();
-
-    AttributeContainer getAttributes();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

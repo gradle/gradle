@@ -17,8 +17,10 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.util.GUtil;
 
 import static com.google.common.base.Objects.equal;
@@ -36,6 +38,14 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         }
         String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
         return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+    }
+
+    public static DefaultIvyArtifactName forAttributeContainer(String name, AttributeContainer attributes) {
+        String type = attributes.getAttribute(DefaultArtifactAttributes.TYPE);
+        String extension = attributes.getAttribute(DefaultArtifactAttributes.EXTENSION);
+        String classifier = attributes.getAttribute(DefaultArtifactAttributes.CLASSIFIER);
+
+        return new DefaultIvyArtifactName(name, type, extension, classifier);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {

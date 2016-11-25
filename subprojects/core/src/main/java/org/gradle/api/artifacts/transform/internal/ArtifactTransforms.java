@@ -18,103 +18,90 @@ package org.gradle.api.artifacts.transform.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
-import org.gradle.api.artifacts.transform.TransformInput;
-import org.gradle.api.artifacts.transform.TransformOutput;
+import org.gradle.api.internal.AttributeContainerInternal;
+import org.gradle.api.internal.DefaultAttributeContainer;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 public class ArtifactTransforms {
     private final List<DependencyTransformRegistration> transforms = Lists.newArrayList();
 
-    public Transformer<File, File> getTransform(String from, String to) {
-        for (DependencyTransformRegistration transformReg : transforms) {
-            if (transformReg.from.equals(from) && transformReg.to.equals(to)) {
-                return transformReg.getTransformer();
-            }
-        }
-        return null;
-    }
-
     public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
-        TransformInput transformInput = type.getAnnotation(TransformInput.class);
-        if (transformInput == null) {
-            throw new RuntimeException("ArtifactTransform must statically declare input type using `@TransformInput`");
-        }
-        String from = transformInput.format();
+        ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
+        AttributeContainerInternal from = new DefaultAttributeContainer();
 
-        for (Class current = type; current != null; current = current.getSuperclass()) {
-            for (Method method : current.getDeclaredMethods()) {
-                TransformOutput transformOutput = method.getAnnotation(TransformOutput.class);
-                if (transformOutput == null || method.getParameterTypes().length > 0 || !method.getReturnType().equals(File.class)) {
-                    continue;
-                }
+        DefaultAttributeTransformTargetRegistry registry = new DefaultAttributeTransformTargetRegistry();
+        artifactTransform.configure(from, registry);
 
-                String to = transformOutput.format();
-                JavaMethod<? super ArtifactTransform, File> javaMethod = JavaReflectionUtil.method(File.class, method);
-                DependencyTransformRegistration registration = new DependencyTransformRegistration(from, to, type, javaMethod, config);
-                transforms.add(registration);
-            }
+        for (AttributeContainerInternal to : registry.getNewTargets()) {
+            DependencyTransformRegistration registration = new DependencyTransformRegistration(from.asImmutable(), to.asImmutable(), type, config);
+            transforms.add(registration);
         }
     }
 
-    private final class DependencyTransformRegistration {
-        final String from;
-        final String to;
+    public Iterable<DependencyTransformRegistration> getTransforms() {
+        return transforms;
+    }
+
+    public final class DependencyTransformRegistration {
+        final AttributeContainer from;
+        final AttributeContainer to;
         final Class<? extends ArtifactTransform> type;
-        final JavaMethod<? super ArtifactTransform, File> outputProperty;
         final Action<? super ArtifactTransform> config;
 
-        public DependencyTransformRegistration(String from, String to, Class<? extends ArtifactTransform> type, JavaMethod<? super ArtifactTransform, File> outputProperty, Action<? super ArtifactTransform> config) {
+        public DependencyTransformRegistration(AttributeContainer from, AttributeContainer to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
             this.from = from;
             this.to = to;
             this.type = type;
-            this.outputProperty = outputProperty;
             this.config = config;
+        }
+
+        public AttributeContainer getFrom() {
+            return from;
+        }
+
+        public AttributeContainer getTo() {
+            return to;
         }
 
         public Transformer<File, File> getTransformer() {
             ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
             config.execute(artifactTransform);
-            return new DependencyTransformTransformer(artifactTransform, outputProperty, to);
+            return new DependencyTransformTransformer(artifactTransform, to);
         }
     }
 
     private static class DependencyTransformTransformer implements Transformer<File, File> {
         private final ArtifactTransform artifactTransform;
-        private final JavaMethod<? super ArtifactTransform, File> outputProperty;
-        private final String outputFormat;
+        private final AttributeContainer outputAttributes;
 
-        private DependencyTransformTransformer(ArtifactTransform artifactTransform, JavaMethod<? super ArtifactTransform, File> outputProperty, String outputFormat) {
+        private DependencyTransformTransformer(ArtifactTransform artifactTransform, AttributeContainer outputAttributes) {
             this.artifactTransform = artifactTransform;
-            this.outputProperty = outputProperty;
-            this.outputFormat = outputFormat;
+            this.outputAttributes = outputAttributes;
         }
 
         @Override
-        public File transform(File file) {
+        public File transform(File input) {
             if (artifactTransform.getOutputDirectory() != null) {
                 artifactTransform.getOutputDirectory().mkdirs();
             }
             File output;
             try {
-                artifactTransform.transform(file);
-                output = outputProperty.invoke(artifactTransform);
+                output = artifactTransform.transform(input, outputAttributes);
             } catch (Exception e) {
-                throw new ArtifactTransformException(file, outputFormat, artifactTransform, e);
+                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, e);
             }
             if (output == null) {
-                throw new ArtifactTransformException(file, outputFormat, artifactTransform, new FileNotFoundException("No output file created"));
+                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("No output file created"));
             } else if (!output.exists()) {
-                throw new ArtifactTransformException(file, outputFormat, artifactTransform, new FileNotFoundException("Expected output file '" + output.getPath() + "' was not created"));
+                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("Expected output file '" + output.getPath() + "' was not created"));
             }
             return output;
         }

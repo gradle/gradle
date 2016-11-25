@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -42,7 +41,6 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -88,8 +86,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public Transformer<File, File> getTransform(String from, String to) {
-        return transforms.getTransform(from, to);
+    public Iterable<ArtifactTransforms.DependencyTransformRegistration> getTransforms() {
+        return transforms.getTransforms();
     }
 
     @Override

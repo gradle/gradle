@@ -36,7 +36,7 @@ import java.util.Set;
  */
 @Incubating
 @HasInternalProtocol
-public interface AttributeContainer {
+public interface AttributeContainer extends HasAttributes {
 
     /**
      * Returns the set of attribute keys of this container.

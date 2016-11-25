@@ -90,7 +90,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor();
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, fileDependenciesVisitor, artifactsVisitor, attributesSchema);
-        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy());
+        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy(), attributesSchema);
         result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor, transformer));
     }
 
@@ -119,7 +119,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema);
 
         VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
-        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy());
+        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy(), attributesSchema);
         results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsResults, fileDependencyVisitor, transformer));
 
         results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsResults, fileDependencyVisitor, oldTransientModelBuilder));
@@ -133,7 +133,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
-        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy());
+        ArtifactTransformer transformer = new ArtifactTransformer(configuration.getResolutionStrategy(), attributesSchema);
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, transformer);
         results.artifactsResolved(new DefaultResolvedConfiguration(result, configuration.getAttributes()), result);
     }

@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.AttributesSchema;
+import org.gradle.api.HasAttributes;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -27,13 +28,16 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -101,16 +105,17 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
         if (useConfigurationAttributes) {
-            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, targetComponent, fromConfigurationAttributes);
-            List<ConfigurationMetadata> matches = matcher.getFullMatchs();
+            AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : null;
+            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, getConfigurationsAsHasAttributes(targetComponent), fromConfigurationAttributes);
+            List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getFullMatchs());
             if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal((ConfigurationMetadata) matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
                 throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, true);
             }
-            matches = matcher.getPartialMatchs();
+            matches = Cast.uncheckedCast(matcher.getPartialMatchs());
             if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal((ConfigurationMetadata) matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
                 throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, false);
             }
@@ -129,6 +134,17 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
         }
         return ImmutableSet.of(delegate);
+    }
+
+    private Set<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
+        Set<HasAttributes> result = new HashSet<HasAttributes>();
+        for (String config : targetComponent.getConfigurationNames()) {
+            ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
+            if (configuration.isCanBeConsumed()) {
+                result.add(configuration);
+            }
+        }
+        return result;
     }
 
     private static String getOrDefaultConfiguration(String configuration) {

@@ -16,7 +16,9 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.io.File;
@@ -27,12 +29,12 @@ import java.io.File;
 @Contextual
 public class ArtifactTransformException extends GradleException {
 
-    public ArtifactTransformException(File input, String outputFormat, ArtifactTransform transform, Throwable cause) {
-        super(format(input, outputFormat, transform), cause);
+    public ArtifactTransformException(File input, AttributeContainer expectedAttributes, ArtifactTransform transform, Throwable cause) {
+        super(format(input, expectedAttributes, transform), cause);
     }
 
-    private static String format(File input, String outputFormat, ArtifactTransform transform) {
-        return String.format("Error while transforming '%s' to format '%s' using '%s'",
-            input.getName(), outputFormat, transform.getClass().getSimpleName());
+    private static String format(File input, AttributeContainer expectedAttributes, ArtifactTransform transform) {
+        return String.format("Error while transforming '%s' to match attributes '%s' using '%s'",
+            input.getName(), ((AttributeContainerInternal) expectedAttributes).asImmutable().toString(), transform.getClass().getSimpleName());
     }
 }

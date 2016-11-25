@@ -70,6 +70,21 @@ class ImmutableAttributes implements AttributeContainerInternal {
     }
 
     @Override
+    public AttributeContainer copy() {
+        AttributeContainer copy = new DefaultAttributeContainer();
+        for (Attribute<?> attribute : attributes.keySet()) {
+            Attribute<Object> castAttribute = Cast.uncheckedCast(attribute);
+            copy.attribute(castAttribute, attributes.get(castAttribute));
+        }
+        return copy;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return this;
+    }
+
+    @Override
     public String toString() {
         if (attributes != null) {
             TreeMap<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);

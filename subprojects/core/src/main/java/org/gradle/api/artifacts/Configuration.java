@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Attribute;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.HasAttributes;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -45,7 +45,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  */
 @HasInternalProtocol
-public interface Configuration extends FileCollection {
+public interface Configuration extends FileCollection, HasAttributes {
 
     /**
      * Returns the resolution strategy used by this configuration.
@@ -457,13 +457,6 @@ public interface Configuration extends FileCollection {
      */
     @Incubating
     Configuration attributes(Map<?, ?> attributes);
-
-    /**
-     * Returns this configuration attributes.
-     * @return the attribute set of this configuration
-     */
-    @Incubating
-    AttributeContainer getAttributes();
 
     /**
      * Returns the value of a configuration attribute, or <code>null</code> if not found
