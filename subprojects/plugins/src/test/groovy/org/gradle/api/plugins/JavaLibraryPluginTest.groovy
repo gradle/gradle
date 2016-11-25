@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -184,21 +183,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         defaultConfig.extendsFrom == toSet(runtime)
-    }
-
-    def "cannot add dependencies to `compile` configuration"() {
-        given:
-        def commonProject = TestUtil.createChildProject(project, "common")
-        javaLibraryPlugin.apply(project)
-
-        when:
-        project.dependencies {
-            compile commonProject
-        }
-
-        then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "The 'compile' configuration should not be used to declare dependencies. Please use 'api' or 'implementation' instead."
     }
 
     def "can declare API and implementation dependencies"() {

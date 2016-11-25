@@ -137,23 +137,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
     }
 
-    def "doesn't allow declaring dependencies using the 'compile' configuration"() {
-        file('settings.gradle') << 'include "b"'
-        buildFile << '''
-            apply plugin: 'java-library'
-
-            dependencies {
-                compile project(':b')
-            }
-        '''
-
-        when:
-        fails 'tasks'
-
-        then:
-        failure.assertHasCause "The 'compile' configuration should not be used to declare dependencies. Please use 'api' or 'implementation' instead."
-    }
-
     def "recompiles consumer if API dependency of producer changed"() {
         def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()

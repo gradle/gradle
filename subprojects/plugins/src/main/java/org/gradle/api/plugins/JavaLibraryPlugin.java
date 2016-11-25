@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 
@@ -74,8 +73,5 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
         apiConfiguration.extendsFrom(compileConfiguration);
-        ((ConfigurationInternal) compileConfiguration).lock(
-            "The '" + compileConfiguration.getName() + "' configuration should not be used to declare dependencies. Please use '" + sourceSet.getApiConfigurationName()
-                + "' or '" + implementationConfiguration.getName() + "' instead.");
     }
 }
