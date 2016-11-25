@@ -493,6 +493,8 @@ public class AvailableToolChains {
             switch (version.getMajor()) {
                 case 12:
                     return "vs2013";
+                case 14:
+                    return "vs2015";
                 default:
                     return "UNKNOWN";
             }
