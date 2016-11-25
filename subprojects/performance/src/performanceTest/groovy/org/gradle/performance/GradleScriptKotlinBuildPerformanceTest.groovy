@@ -26,12 +26,14 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
     @Unroll("Project '#testProject' with args #runnerArgs (first use)")
     def "build"() {
         given:
-        runner.testId = "first use $testProject"
+        runner.testId = "first use $testProject" + (recompileScripts ? ' (recompile-scripts)' : '')
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.args = runnerArgs
         runner.targetVersions = ['last']
         runner.useDaemon = true
+        if (recompileScripts) {
+            runner.args += ['--recompile-scripts']
+        }
 
         when:
         def result = runner.run()
@@ -40,8 +42,8 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runnerArgs
-        "ktsManyProjects" | ["--recompile-scripts"]
-        "ktsManyProjects" | []
+        testProject       | recompileScripts
+        "ktsManyProjects" | true
+        "ktsManyProjects" | false
     }
 }
