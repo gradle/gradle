@@ -17,17 +17,14 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.jvm.JvmBinaryRenderer;
-import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.JdkToolsInitializer;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
@@ -43,20 +40,16 @@ public class CompileServices implements PluginServiceRegistry {
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScopeCompileServices());
+        registration.addProvider(new GradleScopeCompileServices());
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
-    private static class BuildScopeCompileServices {
+    private static class GradleScopeCompileServices {
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
-        }
-
-        InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, Gradle gradle) {
-            return new InProcessCompilerDaemonFactory(classLoaderFactory, gradle.getGradleUserHomeDir());
         }
 
         GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
