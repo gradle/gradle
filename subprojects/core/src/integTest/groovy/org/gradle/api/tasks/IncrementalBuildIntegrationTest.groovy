@@ -939,7 +939,6 @@ task generate(type: TransformerTask) {
                 import org.gradle.api.*
                 import org.gradle.api.tasks.*
 
-                @CacheableTask
                 class CustomTask extends DefaultTask {
                     @InputFile File input
                     @OutputFile File output
@@ -973,7 +972,6 @@ task generate(type: TransformerTask) {
             import org.gradle.api.*
             import org.gradle.api.tasks.*
 
-            @CacheableTask
             class CustomTask extends DefaultTask {
                 @InputFile File input
                 @OutputFile File output
