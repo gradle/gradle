@@ -104,4 +104,9 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
         }
         return container;
     }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return this;
+    }
 }

@@ -16,35 +16,39 @@
 
 package org.gradle.api.internal.artifacts.attributes;
 
+import com.google.common.io.Files;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DefaultAttributeContainer;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-public class DefaultArtifactAttributes {
+import java.io.File;
 
-    public static final String TYPE_ATTRIBUTE = "artifactType";
-    public static final String EXTENSION_ATTRIBUTE = "artifactExtension";
-    public static final String CLASSIFIER_ATTRIBUTE = "artifactClassifier";
+    public class DefaultArtifactAttributes {
+
+    public static final Attribute<String> TYPE = attributeType("artifactType");
+    public static final Attribute<String> EXTENSION = attributeType("artifactExtension");
+    public static final Attribute<String> CLASSIFIER = attributeType("artifactClassifier");
 
     public static AttributeContainer forIvyArtifactName(IvyArtifactName ivyArtifactName) {
-        return createAttributes(ivyArtifactName.getName(), ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier());
+        return createAttributes(ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier());
     }
 
     public static AttributeContainer forPublishArtifact(PublishArtifact artifact) {
-        return createAttributes(artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
+        return createAttributes(artifact.getType(), artifact.getExtension(), artifact.getClassifier());
     }
 
-    private static AttributeContainer createAttributes(String name, String type, String extension, String classifier) {
+    public static AttributeContainer forFile(File file) {
+        String extension = Files.getFileExtension(file.getName());
+        return createAttributes(extension, extension, "");
+    }
+
+    private static AttributeContainer createAttributes(String type, String extension, String classifier) {
         AttributeContainer attributes = new DefaultAttributeContainer();
-        attributes.attribute(attributeType(TYPE_ATTRIBUTE), type);
-        if (extension != null) {
-            attributes.attribute(attributeType(EXTENSION_ATTRIBUTE), extension);
-        }
-        if (classifier != null) {
-            attributes.attribute(attributeType(CLASSIFIER_ATTRIBUTE), classifier);
-        }
+        attributes.attribute(TYPE, type == null ? "" : type);
+        attributes.attribute(EXTENSION, extension == null ? "" : extension);
+        attributes.attribute(CLASSIFIER, classifier == null ? "" : classifier);
         return attributes;
     }
 

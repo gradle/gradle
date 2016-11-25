@@ -35,19 +35,23 @@ allprojects {
     }
 }
 
-@TransformInput(format = 'jar')
 class FileSizer extends ArtifactTransform {
     private File output
 
-    @TransformOutput(format = 'size')
-    File getOutput() {
-        return output
+    void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+        from.attribute(Attribute.of('artifactType', String), "jar")
+        targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
     }
 
-    void transform(File input) {
+    File transform(File input, AttributeContainer target) {
         output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
+        if (!output.exists()) {
+            println "Transforming \${input.name} to \${output.name}"
+            output.text = String.valueOf(input.length())
+        } else {
+            println "Transforming \${input.name} to \${output.name} (cached)"
+        }
+        return output
     }
 }
 
@@ -385,15 +389,14 @@ class FileSizer extends ArtifactTransform {
                 compile files(a)
             }
 
-            @TransformInput(format = 'jar')
             class TransformWithIllegalArgumentException extends ArtifactTransform {
 
-                @TransformOutput(format = 'size')
-                File getOutput() {
-                    return null
+                void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
-                void transform(File input) {
+                File transform(File input, AttributeContainer target) {
                     throw new IllegalArgumentException("Transform Implementation Missing!")
                 }
             }
@@ -404,39 +407,8 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
         failure.assertHasCause("Transform Implementation Missing!")
-    }
-
-    def "User gets a reasonable error message when a output property throws exception"() {
-        given:
-        buildFile << """
-            def a = file('a.jar')
-            a.text = '1234'
-
-            dependencies {
-                compile files(a)
-            }
-
-            @TransformInput(format = 'jar')
-            class TransformWithIllegalArgumentException extends ArtifactTransform {
-
-                @TransformOutput(format = 'size')
-                File getOutput() {
-                    throw new IllegalArgumentException("getOutput() Implementation Missing!")
-                }
-
-                void transform(File input) { }
-            }
-            ${configurationAndTransform('TransformWithIllegalArgumentException')}
-        """
-
-        when:
-        fails "resolve"
-
-        then:
-        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'TransformWithIllegalArgumentException'")
-        failure.assertHasCause("getOutput() Implementation Missing!")
     }
 
     def "User gets a reasonable error message when a output property returns null"() {
@@ -449,15 +421,16 @@ class FileSizer extends ArtifactTransform {
                 compile files(a)
             }
 
-            @TransformInput(format = 'jar')
             class ToNullTransform extends ArtifactTransform {
 
-                @TransformOutput(format = 'size')
-                File getOutput() {
-                    return null
+                void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
-                void transform(File input) { }
+                File transform(File input, AttributeContainer target) {
+                    return null
+                }
             }
             ${configurationAndTransform('ToNullTransform')}
         """
@@ -466,7 +439,7 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'ToNullTransform'")
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
         failure.assertHasCause("No output file created")
     }
 
@@ -480,15 +453,16 @@ class FileSizer extends ArtifactTransform {
                 compile files(a)
             }
 
-            @TransformInput(format = 'jar')
             class ToNullTransform extends ArtifactTransform {
 
-                @TransformOutput(format = 'size')
-                File getOutput() {
-                    return new File('this_file_does_not.exist')
+                void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
-                void transform(File input) { }
+                File transform(File input, AttributeContainer target) {
+                    return new File('this_file_does_not.exist')
+                }
             }
             ${configurationAndTransform('ToNullTransform')}
         """
@@ -497,7 +471,7 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause("Error while transforming 'a.jar' to format 'size' using 'ToNullTransform'")
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
         failure.assertHasCause("Expected output file 'this_file_does_not.exist' was not created")
     }
 
@@ -507,7 +481,7 @@ class FileSizer extends ArtifactTransform {
                 compile {
                     attributes artifactType: 'size'
                     resolutionStrategy.registerTransform($transformImplementation) {
-                        outputDirectory = project.file("\${buildDir}/transformed")
+                            outputDirectory = project.file("\${buildDir}/transformed")
                     }
                 }
             }

@@ -24,8 +24,8 @@ import org.gradle.api.AttributeMatchingStrategy;
 import org.gradle.api.AttributeValue;
 import org.gradle.api.AttributesSchema;
 import org.gradle.api.GradleException;
+import org.gradle.api.HasAttributes;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,19 +35,18 @@ import java.util.Set;
 public class ComponentAttributeMatcher {
     private final AttributesSchema consumerAttributeSchema;
     private final AttributesSchema producerAttributeSchema;
-    private final Map<ConfigurationMetadata, MatchDetails> matchDetails = Maps.newHashMap();
+    private final Map<HasAttributes, MatchDetails> matchDetails = Maps.newHashMap();
     private final AttributeContainer requestedAttributesContainer;
 
-    public ComponentAttributeMatcher(AttributesSchema consumerAttributeSchema, ComponentResolveMetadata targetComponent, AttributeContainer requestedAttributesContainer) {
+    public ComponentAttributeMatcher(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
+                                     Iterable<HasAttributes> candidates, //configAttributes + artifactAttributes
+                                     AttributeContainer requestedAttributesContainer) {
         this.consumerAttributeSchema = consumerAttributeSchema;
-        this.producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : null;
+        this.producerAttributeSchema = producerAttributeSchema;
         Set<Attribute<?>> requestedAttributeSet = requestedAttributesContainer.keySet();
-        for (String config : targetComponent.getConfigurationNames()) {
-            ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
-            if (configuration.isCanBeConsumed()) {
-                boolean hasAllAttributes = configuration.getAttributes().keySet().containsAll(requestedAttributeSet);
-                matchDetails.put(configuration, new MatchDetails(hasAllAttributes));
-            }
+        for (HasAttributes cand : candidates) {
+            boolean hasAllAttributes = cand.getAttributes().keySet().containsAll(requestedAttributeSet);
+            matchDetails.put(cand, new MatchDetails(hasAllAttributes));
         }
         this.requestedAttributesContainer = requestedAttributesContainer;
         doMatch();
@@ -55,8 +54,8 @@ public class ComponentAttributeMatcher {
 
     private void doMatch() {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requestedAttributesContainer.keySet());
-        for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
-            ConfigurationMetadata key = entry.getKey();
+        for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
+            HasAttributes key = entry.getKey();
             MatchDetails details = entry.getValue();
             AttributeContainer dependencyAttributesContainer = key.getAttributes();
             Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(dependencyAttributesContainer.keySet());
@@ -72,9 +71,9 @@ public class ComponentAttributeMatcher {
         }
     }
 
-    public List<ConfigurationMetadata> getFullMatchs() {
-        List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
-        for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
+    public List<? extends HasAttributes> getFullMatchs() {
+        List<HasAttributes> matchs = new ArrayList<HasAttributes>(1);
+        for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
             MatchDetails details = entry.getValue();
             if (details.isFullMatch && details.hasAllAttributes) {
                 matchs.add(entry.getKey());
@@ -83,9 +82,19 @@ public class ComponentAttributeMatcher {
         return disambiguateUsingClosestMatch(matchs);
     }
 
-    private List<ConfigurationMetadata> disambiguateUsingClosestMatch(List<ConfigurationMetadata> matchs) {
+    public boolean hasFailingMatches() {
+        for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
+            MatchDetails details = entry.getValue();
+            if (details.failure) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<HasAttributes> disambiguateUsingClosestMatch(List<HasAttributes> matchs) {
         if (matchs.size() > 1) {
-            List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
+            List<HasAttributes> remainingMatches = selectClosestMatches(matchs);
             if (remainingMatches != null) {
                 return disambiguateUsingProducerSchema(remainingMatches);
             }
@@ -93,7 +102,7 @@ public class ComponentAttributeMatcher {
         return matchs;
     }
 
-    private List<ConfigurationMetadata> disambiguateUsingProducerSchema(List<ConfigurationMetadata> matchs) {
+    private List<HasAttributes> disambiguateUsingProducerSchema(List<HasAttributes> matchs) {
         if (matchs.size() < 2 || producerAttributeSchema == null) {
             return matchs;
         }
@@ -101,7 +110,7 @@ public class ComponentAttributeMatcher {
         // ask the producer if it has any preference: so far only the consumer schema was used. Now
         // we need to take into consideration the producer schema
         Set<Attribute<?>> producerOnlyAttributes = Sets.newHashSet();
-        for (ConfigurationMetadata match : matchs) {
+        for (HasAttributes match : matchs) {
             AttributeContainer attributes = match.getAttributes();
             for (Attribute<?> attribute : attributes.keySet()) {
                 if (!requestedAttributesContainer.contains(attribute)) {
@@ -110,10 +119,10 @@ public class ComponentAttributeMatcher {
             }
         }
         Set<Attribute<?>> consumerAttributes = consumerAttributeSchema.getAttributes();
-        List<ConfigurationMetadata> remainingMatches = Lists.newArrayList(matchs);
-        Map<ConfigurationMetadata, Object> values = Maps.newHashMap();
+        List<HasAttributes> remainingMatches = Lists.newArrayList(matchs);
+        Map<HasAttributes, Object> values = Maps.newHashMap();
         for (Attribute<?> attribute : producerOnlyAttributes) {
-            for (ConfigurationMetadata match : matchs) {
+            for (HasAttributes match : matchs) {
                 Object maybeProvided = match.getAttributes().getAttribute(attribute);
                 if (maybeProvided != null) {
                     values.put(match, maybeProvided);
@@ -122,7 +131,7 @@ public class ComponentAttributeMatcher {
             if (!values.isEmpty()) {
                 AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(producerAttributeSchema.getMatchingStrategy(attribute));
                 AttributeValue<Object> absent = consumerAttributes.contains(attribute) ? AttributeValue.missing() : AttributeValue.unknown();
-                List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(absent, values);
+                List<HasAttributes> best = matchingStrategy.selectClosestMatch(absent, values);
                 remainingMatches.retainAll(best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
@@ -138,9 +147,9 @@ public class ComponentAttributeMatcher {
         return matchs;
     }
 
-    public List<ConfigurationMetadata> getPartialMatchs() {
-        List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
-        for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
+    public List<? extends HasAttributes> getPartialMatchs() {
+        List<HasAttributes> matchs = new ArrayList<HasAttributes>(1);
+        for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
             MatchDetails details = entry.getValue();
             if (!details.failure && !details.matchesByAttribute.isEmpty() && !details.hasAllAttributes) {
                 matchs.add(entry.getKey());
@@ -149,21 +158,21 @@ public class ComponentAttributeMatcher {
         return disambiguateUsingClosestMatch(matchs);
     }
 
-    private List<ConfigurationMetadata> selectClosestMatches(List<ConfigurationMetadata> fullMatches) {
+    private List<HasAttributes> selectClosestMatches(List<HasAttributes> fullMatches) {
         Set<Attribute<?>> requestedAttributes = requestedAttributesContainer.keySet();
         // if there's more than one compatible match, prefer the closest. However there's a catch.
         // We need to look at all candidates globally, and select the closest match for each attribute
         // then see if there's a non-empty intersection.
-        List<ConfigurationMetadata> remainingMatches = Lists.newArrayList(fullMatches);
-        Map<ConfigurationMetadata, Object> values = Maps.newHashMap();
+        List<HasAttributes> remainingMatches = Lists.newArrayList(fullMatches);
+        Map<HasAttributes, Object> values = Maps.newHashMap();
         for (Attribute<?> attribute : requestedAttributes) {
             Object requestedValue = requestedAttributesContainer.getAttribute(attribute);
-            for (ConfigurationMetadata match : fullMatches) {
+            for (HasAttributes match : fullMatches) {
                 Map<Attribute<Object>, Object> matchedAttributes = matchDetails.get(match).matchesByAttribute;
                 values.put(match, matchedAttributes.get(attribute));
             }
             AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
-            List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(AttributeValue.of(requestedValue), values);
+            List<HasAttributes> best = matchingStrategy.selectClosestMatch(AttributeValue.of(requestedValue), values);
             remainingMatches.retainAll(best);
             if (remainingMatches.isEmpty()) {
                 // the intersection is empty, so we cannot choose

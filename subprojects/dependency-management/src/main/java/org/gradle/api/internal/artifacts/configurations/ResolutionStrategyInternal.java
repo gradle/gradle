@@ -16,15 +16,13 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.transform.internal.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-
-import java.io.File;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
@@ -82,9 +80,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     void setMutationValidator(MutationValidator action);
 
     /**
-     * @param from format to transform from
-     * @param to format to transform to
-     * @return a transform that can transform between the two formats, null if no fitting transform is registered
+     * @return transforms registered with this resolution strategy
      */
-    Transformer<File, File> getTransform(String from, String to);
+    Iterable<ArtifactTransforms.DependencyTransformRegistration> getTransforms();
 }

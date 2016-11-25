@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.io.Files;
-import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
+import org.gradle.api.AttributesSchema;
 import org.gradle.api.Buildable;
+import org.gradle.api.HasAttributes;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.transform.internal.ArtifactTransforms;
+import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -32,34 +34,54 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ArtifactTransformer {
     private final ResolutionStrategyInternal resolutionStrategy;
+    private final AttributesSchema attributesSchema;
     private final Map<File, File> transformed = new HashMap<File, File>();
 
-    public ArtifactTransformer(ResolutionStrategyInternal resolutionStrategy) {
+    public ArtifactTransformer(ResolutionStrategyInternal resolutionStrategy, AttributesSchema attributesSchema) {
         this.resolutionStrategy = resolutionStrategy;
+        this.attributesSchema = attributesSchema;
+    }
+
+    private boolean matchArtifactsAttributes(HasAttributes artifact, AttributeContainer configuration) {
+        ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, null,
+            Collections.singleton(artifact), configuration);
+        return !matcher.hasFailingMatches();
+    }
+
+    private Transformer<File, File> getTransform(HasAttributes from, AttributeContainer to) {
+        for (ArtifactTransforms.DependencyTransformRegistration transformReg : resolutionStrategy.getTransforms()) {
+            if (matchArtifactsAttributes(from, transformReg.getFrom())
+                && matchArtifactsAttributes(to, transformReg.getTo())) {
+                return transformReg.getTransformer();
+            }
+        }
+        return null;
     }
 
     /**
      * Returns a spec that selects artifacts matching the supplied attributes, or which can be transformed to match.
      */
-    public Spec<ResolvedArtifact> select(AttributeContainer attributes) {
-        final String format = getTypeAttribute(attributes);
-        if (format == null) {
+    public Spec<ResolvedArtifact> select(final AttributeContainer attributes) {
+        if (attributes == null || attributes.isEmpty()) {
             return Specs.satisfyAll();
         }
         return new Spec<ResolvedArtifact>() {
             @Override
             public boolean isSatisfiedBy(ResolvedArtifact artifact) {
-                return artifact.getType().equals(format) || resolutionStrategy.getTransform(artifact.getType(), format) != null;
+                return matchArtifactsAttributes(artifact, attributes)
+                    || getTransform(artifact, attributes) != null;
             }
         };
     }
@@ -68,27 +90,27 @@ public class ArtifactTransformer {
      * Returns a visitor that transforms files and artifacts to match the requested attributes
      * and then forwards the results to the given visitor.
      */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, AttributeContainer attributes) {
-        final String requestedType = getTypeAttribute(attributes);
-        if (requestedType == null) {
+    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable final AttributeContainer attributes) {
+        if (attributes == null || attributes.isEmpty()) {
             return visitor;
         }
         return new ArtifactVisitor() {
             @Override
             public void visitArtifact(final ResolvedArtifact artifact) {
-                // TODO:DAZ Use an attribute-matching strategy here
-                String artifactType = getTypeAttribute(artifact.getAttributes());
-                if (requestedType.equals(artifactType)) {
+                if (matchArtifactsAttributes(artifact, attributes)) {
                     visitor.visitArtifact(artifact);
                     return;
                 }
-                // TODO:DAZ Express artifact transformations in terms of attributes
-                final Transformer<File, File> transform = resolutionStrategy.getTransform(artifactType, requestedType);
+                final Transformer<File, File> transform = getTransform(artifact, attributes);
                 if (transform == null) {
                     return;
                 }
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
-                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), new DefaultIvyArtifactName(artifact.getName(), requestedType, artifact.getExtension()), artifact.getId(), buildDependencies, new Factory<File>() {
+
+                AttributeContainer transformedAttributes = ((AttributeContainerInternal) attributes).copy();
+
+                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(),
+                    DefaultIvyArtifactName.forAttributeContainer(artifact.getName(), transformedAttributes), artifact.getId(), buildDependencies, new Factory<File>() {
                     @Override
                     public File create() {
                         File file = artifact.getFile();
@@ -110,34 +132,43 @@ public class ArtifactTransformer {
             @Override
             public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
                 List<File> result = new ArrayList<File>();
-                for (File file : files) {
-                    String fileFormat = Files.getFileExtension(file.getName());
-                    if (requestedType.equals(fileFormat)) {
-                        result.add(file);
-                        continue;
+                RuntimeException transformException = null;
+                try {
+                    for (File file : files) {
+                        try {
+                            HasAttributes fileWithAttributes = DefaultArtifactAttributes.forFile(file);
+                            if (matchArtifactsAttributes(fileWithAttributes, attributes)) {
+                                result.add(file);
+                                continue;
+                            }
+                            File transformedFile = transformed.get(file);
+                            if (transformedFile != null) {
+                                result.add(transformedFile);
+                                continue;
+                            }
+                            Transformer<File, File> transform = getTransform(fileWithAttributes, attributes);
+                            if (transform == null) {
+                                continue;
+                            }
+                            transformedFile = transform.transform(file);
+                            transformed.put(file, transformedFile);
+                            result.add(transformedFile);
+                        } catch (RuntimeException e) {
+                            transformException = e;
+                            break;
+                        }
                     }
-                    File transformedFile = transformed.get(file);
-                    if (transformedFile != null) {
-                        result.add(transformedFile);
-                        continue;
-                    }
-                    Transformer<File, File> transform = resolutionStrategy.getTransform(fileFormat, requestedType);
-                    if (transform == null) {
-                        continue;
-                    }
-                    transformedFile = transform.transform(file);
-                    transformed.put(file, transformedFile);
-                    result.add(transformedFile);
+                } catch (Throwable t) {
+                    //TODO JJ: this lets the wrapped visitor report issues during file access
+                    visitor.visitFiles(componentIdentifier, files);
+                }
+                if (transformException != null) {
+                    throw transformException;
                 }
                 if (!result.isEmpty()) {
                     visitor.visitFiles(componentIdentifier, result);
                 }
             }
         };
-    }
-
-    private String getTypeAttribute(AttributeContainer attributes) {
-        Attribute<String> typeAttribute = Attribute.of(DefaultArtifactAttributes.TYPE_ATTRIBUTE, String.class);
-        return attributes.getAttribute(typeAttribute);
     }
 }

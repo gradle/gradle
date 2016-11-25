@@ -16,16 +16,11 @@
 
 package org.gradle.api.artifacts.transform;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.api.AttributeContainer;
 
 /**
- * Declares the input type for an artifact transform.
+ * Registry to configure the output targets of an {@link ArtifactTransform}.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface TransformInput {
-    String format();
+public interface AttributeTransformTargetRegistry {
+    AttributeContainer newTarget();
 }
