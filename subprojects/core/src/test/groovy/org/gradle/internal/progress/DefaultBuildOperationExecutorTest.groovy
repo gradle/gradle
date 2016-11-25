@@ -199,6 +199,67 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
     }
 
+    def "multiple threads can run child operations concurrently"() {
+        def parentId
+        def id1
+        def id2
+
+        when:
+        operationExecutor.run("<main>", {
+            def parentOp = operationExecutor.currentOperation
+            parentId = parentOp.id
+            async {
+                start {
+                    def details = BuildOperationDetails.displayName("<thread-1>").parent(parentOp).build()
+                    operationExecutor.run(details, {
+                        instant.action1Started
+                        thread.blockUntil.action2Started
+                    } as Action)
+                }
+                start {
+                    thread.blockUntil.action1Started
+                    def details = BuildOperationDetails.displayName("<thread-2>").parent(parentOp).build()
+                    operationExecutor.run(details, {
+                        instant.action2Started
+                        thread.blockUntil.action1Finished
+                    } as Action)
+                }
+            }
+        } as Action)
+
+        then:
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id != null
+            assert operation.parentId == null
+            assert operation.displayName == "<main>"
+        }
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            id1 = operation.id
+            assert operation.id != null
+            assert operation.parentId == parentId
+            assert operation.displayName == "<thread-1>"
+        }
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            id2 = operation.id
+            assert operation.id != null
+            assert operation.parentId == parentId
+            assert operation.displayName == "<thread-2>"
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == id1
+            assert opResult.failure == null
+            instant.action1Finished
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == id2
+            assert opResult.failure == null
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == parentId
+            assert opResult.failure == null
+        }
+    }
+
     def "can query operation id from inside operation"() {
         def action1 = Mock(Action)
         def action2 = Mock(Action)
@@ -209,19 +270,19 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * action1.execute(_) >> {
-            assert operationExecutor.currentOperationId != null
-            id = operationExecutor.currentOperationId
+            assert operationExecutor.currentOperation.id != null
+            id = operationExecutor.currentOperation.id
             operationExecutor.run("<child>", action2)
         }
         1 * action2.execute(_) >> {
-            assert operationExecutor.currentOperationId != null
-            assert operationExecutor.currentOperationId != id
+            assert operationExecutor.currentOperation.id != null
+            assert operationExecutor.currentOperation.id != id
         }
     }
 
     def "cannot query operation id when no operation running"() {
         when:
-        operationExecutor.currentOperationId
+        operationExecutor.currentOperation
 
         then:
         IllegalStateException e = thrown()
@@ -239,7 +300,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             }
             thread.blockUntil.operationRunning
             try {
-                operationExecutor.currentOperationId
+                operationExecutor.currentOperation
             } finally {
                 instant.queried
             }

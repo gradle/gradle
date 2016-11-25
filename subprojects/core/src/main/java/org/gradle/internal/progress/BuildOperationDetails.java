@@ -22,11 +22,13 @@ import org.gradle.api.Nullable;
  * Meta-data about a build operation.
  */
 public class BuildOperationDetails {
+    private final BuildOperationExecutor.Operation parent;
     private final String displayName;
     private final String progressDisplayName;
     private final Object operationDescriptor;
 
-    private BuildOperationDetails(String displayName, String progressDisplayName, Object operationDescriptor) {
+    private BuildOperationDetails(BuildOperationExecutor.Operation parent, String displayName, String progressDisplayName, Object operationDescriptor) {
+        this.parent = parent;
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
         this.operationDescriptor = operationDescriptor;
@@ -60,12 +62,21 @@ public class BuildOperationDetails {
         return operationDescriptor;
     }
 
+    /**
+     * The parent for the operation, if any. When null, the operation of the current thread is used.
+     */
+    @Nullable
+    public BuildOperationExecutor.Operation getParent() {
+        return parent;
+    }
+
     public static Builder displayName(String displayName) {
         return new Builder(displayName);
     }
 
     public static class Builder {
         private final String displayName;
+        private BuildOperationExecutor.Operation parent;
         private String progressDisplayName;
         private Object operationDescriptor;
 
@@ -83,8 +94,13 @@ public class BuildOperationDetails {
             return this;
         }
 
+        public Builder parent(BuildOperationExecutor.Operation parent) {
+            this.parent = parent;
+            return this;
+        }
+
         public BuildOperationDetails build() {
-            return new BuildOperationDetails(displayName, progressDisplayName, operationDescriptor);
+            return new BuildOperationDetails(parent, displayName, progressDisplayName, operationDescriptor);
         }
     }
 }

@@ -104,7 +104,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create()));
+            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             taskExecutionPlan.clear();
@@ -208,15 +208,17 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class EventFiringTaskWorker implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
+        private final BuildOperationExecutor.Operation parentOperation;
 
-        EventFiringTaskWorker(TaskExecuter taskExecuter) {
+        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationExecutor.Operation parentOperation) {
             this.taskExecuter = taskExecuter;
+            this.parentOperation = parentOperation;
         }
 
         @Override
         public void execute(final TaskInternal task) {
             TaskOperationInternal taskOperation = new TaskOperationInternal(task);
-            BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getPath()).operationDescriptor(taskOperation).build();
+            BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getPath()).parent(parentOperation).operationDescriptor(taskOperation).build();
             buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {

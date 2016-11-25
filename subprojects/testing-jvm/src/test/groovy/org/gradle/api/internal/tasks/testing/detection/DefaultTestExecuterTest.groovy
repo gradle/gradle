@@ -58,6 +58,7 @@ class DefaultTestExecuterTest extends Specification {
         _ * resultProcessorActor.getProxy(_) >> resultProcessor
         _ * testTask.isScanForTestClasses() >> true
         _ * testFramework.getDetector() >> testFrameworkTestDetector
+        _ * buildOperationExecutor.currentOperation >> Stub(BuildOperationExecutor.Operation)
     }
 
     def "testClassDirectory for testclassdetector is configured before executing"() {

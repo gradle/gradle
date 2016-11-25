@@ -27,8 +27,13 @@ import org.gradle.internal.operations.BuildOperationContext;
  */
 public class TestBuildOperationExecutor implements BuildOperationExecutor {
     @Override
-    public Object getCurrentOperationId() {
-        throw new UnsupportedOperationException();
+    public Operation getCurrentOperation() {
+        return new Operation() {
+            @Override
+            public Object getId() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     @Override

@@ -33,6 +33,8 @@ import org.gradle.internal.operations.BuildOperationContext;
  *     <p>Generates progress logging events.</p>
  * </ul>
  *
+ * <p>Operations are executed synchronously.</p>
+ *
  * <p>This is intended to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}, to
  * allow both synchronous and asynchronous execution of build operations.
  */
@@ -67,9 +69,16 @@ public interface BuildOperationExecutor {
     void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action);
 
     /**
-     * Returns the id of the current operation.
+     * Returns the operation being run by the current thread.
      *
      * @throws IllegalStateException When the current thread is not executing an operation.
      */
-    Object getCurrentOperationId();
+    Operation getCurrentOperation();
+
+    /**
+     * A handle to an operation. Can be used to reference an operation from several threads to run nested operations.
+     */
+    interface Operation {
+        Object getId();
+    }
 }

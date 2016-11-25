@@ -42,12 +42,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public Object getCurrentOperationId() {
+    public Operation getCurrentOperation() {
         OperationDetails current = currentOperation.get();
         if (current == null) {
             throw new IllegalStateException("No operation is currently running.");
         }
-        return current.id;
+        return current;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
-        OperationDetails parent = currentOperation.get();
+        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : currentOperation.get();
         OperationIdentifier parentId = parent == null ? null : parent.id;
         OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
         currentOperation.set(new OperationDetails(parent, id));
@@ -115,13 +115,18 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }
     }
 
-    private static class OperationDetails {
+    private static class OperationDetails implements Operation {
         final OperationDetails parent;
         final OperationIdentifier id;
 
         OperationDetails(OperationDetails parent, OperationIdentifier id) {
             this.parent = parent;
             this.id = id;
+        }
+
+        @Override
+        public Object getId() {
+            return id;
         }
     }
 
