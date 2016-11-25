@@ -112,35 +112,55 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getCompileConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.COMPILE_CONFIGURATION_NAME));
+        String compileConfigurationName = JavaPlugin.COMPILE_CONFIGURATION_NAME;
+        return configurationNameOf(compileConfigurationName);
+    }
+
+    private String configurationNameOf(String baseName) {
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
     }
 
     public String getRuntimeConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.RUNTIME_CONFIGURATION_NAME));
+        return configurationNameOf(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
     }
 
     public String getCompileOnlyConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME));
+        return configurationNameOf(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
     }
 
     @Override
     public String getCompileClasspathConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+        return configurationNameOf(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
     }
 
     @Override
     public String getApiConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.API_CONFIGURATION_NAME));
+        return configurationNameOf(JavaPlugin.API_CONFIGURATION_NAME);
     }
 
     @Override
     public String getImplementationConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
+        return configurationNameOf(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
     }
 
     @Override
     public String getApiCompileConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(JavaPlugin.API_COMPILE_CONFIGURATION_NAME));
+        return configurationNameOf(JavaPlugin.API_COMPILE_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getRuntimeOnlyConfigurationName() {
+        return configurationNameOf(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getRuntimeClasspathConfigurationName() {
+        return configurationNameOf(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getRuntimeElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
     }
 
     public SourceSetOutput getOutput() {
