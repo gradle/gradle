@@ -241,7 +241,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.output.classesDir == new File(project.buildDir, 'classes/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.getOutput() builtBy(JavaPlugin.CLASSES_TASK_NAME)
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtime)
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
 
         when:
@@ -255,7 +255,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.output.classesDir == new File(project.buildDir, 'classes/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
         set.getOutput() builtBy(JavaPlugin.TEST_CLASSES_TASK_NAME)
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntime)
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/test'))
     }
@@ -273,7 +273,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.compileClasspath.is(project.configurations.customCompileClasspath)
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
         set.getOutput() builtBy('customClasses')
-        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntime))
+        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 
     def createsStandardTasksAndAppliesMappings() {
