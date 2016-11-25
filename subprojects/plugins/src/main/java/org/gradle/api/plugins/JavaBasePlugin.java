@@ -469,6 +469,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    /**
+     * Represents the usage of a configuration. Typical usages include compilation or runtime.
+     * This interface allows the user to customize usages by implementing this interface, or
+     * simply calling the {@link #usage(String)} method.
+     */
     public interface Usage extends Named {
         Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(Usage.class);
 
@@ -477,6 +482,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     }
 
+    /**
+     * Creates a simple named usage.
+     * @param usage the usage name
+     * @return a usage with the provided name
+     */
     public static Usage usage(final String usage) {
         return new UsageImpl(usage);
     }
