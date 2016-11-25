@@ -213,7 +213,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def sourceSetRuntimeClasspath = sourceSet.runtimeClasspath
         def sourceSetCompileClasspath = sourceSet.compileClasspath
         sourceSetCompileClasspath == compileClasspath
-        sourceSetRuntimeClasspath sameCollection(sourceSet.output + runtime)
+        sourceSetRuntimeClasspath sameCollection(sourceSet.output + runtimeClasspath)
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {
