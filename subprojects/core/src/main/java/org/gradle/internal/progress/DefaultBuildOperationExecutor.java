@@ -16,12 +16,14 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -49,22 +51,22 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public void run(String displayName, Runnable action) {
-        run(BuildOperationDetails.displayName(displayName).build(), Factories.toFactory(action));
+    public void run(String displayName, Action<? super BuildOperationContext> action) {
+        run(BuildOperationDetails.displayName(displayName).build(), Transformers.toTransformer(action));
     }
 
     @Override
-    public void run(BuildOperationDetails operationDetails, Runnable action) {
-        run(operationDetails, Factories.toFactory(action));
+    public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
+        run(operationDetails, Transformers.toTransformer(action));
     }
 
     @Override
-    public <T> T run(String displayName, Factory<T> factory) {
+    public <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory) {
         return run(BuildOperationDetails.displayName(displayName).build(), factory);
     }
 
     @Override
-    public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
+    public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
         OperationDetails parent = currentOperation.get();
         OperationIdentifier parentId = parent == null ? null : parent.id;
         OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
@@ -76,6 +78,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
             T result = null;
             Throwable failure = null;
+            BuildOperationContextImpl context = new BuildOperationContextImpl();
             try {
                 ProgressLogger progressLogger;
                 if (operationDetails.getProgressDisplayName() != null) {
@@ -88,18 +91,19 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                 }
 
                 try {
-                    result = factory.create();
+                    result = factory.transform(context);
                 } finally {
                     if (progressLogger != null) {
                         progressLogger.completed();
                     }
                 }
             } catch (Throwable t) {
+                context.failed(t);
                 failure = t;
             }
 
             long endTime = timeProvider.getCurrentTime();
-            listener.finished(operation, new OperationResult(startTime, endTime, failure));
+            listener.finished(operation, new OperationResult(startTime, endTime, context.failure));
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure);
@@ -115,9 +119,18 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         final OperationDetails parent;
         final OperationIdentifier id;
 
-        public OperationDetails(OperationDetails parent, OperationIdentifier id) {
+        OperationDetails(OperationDetails parent, OperationIdentifier id) {
             this.parent = parent;
             this.id = id;
+        }
+    }
+
+    private static class BuildOperationContextImpl implements BuildOperationContext {
+        Throwable failure;
+
+        @Override
+        public void failed(Throwable t) {
+            failure = t;
         }
     }
 }

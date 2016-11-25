@@ -19,7 +19,9 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
 
 @TargetGradleVersion(">=3.3")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -37,8 +39,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        def configureBuild = events.operation("Configure build")
+
         def configureRootProject = events.operation("Configure root project 'single'")
-        configureRootProject.parent == events.operation("Configure build")
+        configureRootProject.parent == configureBuild
+
+        configureBuild.children == [configureRootProject]
     }
 
     def "generates project configuration events for multi-project build"() {
@@ -68,6 +74,45 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureB = events.operation("Configure project ':b'")
         configureB.parent == configureBuild
+
+        configureBuild.children == [configureRoot, configureA, configureB]
+    }
+
+    def "generates project configuration events when configuration fails"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'multi'
+            include 'a', 'b'
+        """
+        file("a/build.gradle") << """
+            throw new RuntimeException("broken")
+"""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                        .addProgressListener(events)
+                        .run()
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message =~ /A problem occurred evaluating project ':a'/
+
+        def configureBuild = events.operation("Configure build")
+        configureBuild.failed
+
+        def configureRoot = events.operation("Configure root project 'multi'")
+        configureRoot.parent == configureBuild
+
+        def configureA = events.operation("Configure project ':a'")
+        configureA.parent == configureBuild
+        configureA.failed
+        configureA.failures[0].message == "A problem occurred configuring project ':a'."
+
+        configureBuild.children == [configureRoot, configureA]
     }
 
     def "generates events for nested project configuration"() {
@@ -95,14 +140,19 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        def configureBuild = events.operation("Configure build")
+
         def configureRoot = events.operation("Configure root project 'multi'")
-        configureRoot.parent == events.operation("Configure build")
+        configureRoot.parent == configureBuild
+        configureBuild.children == [configureRoot]
 
         def configureA = events.operation("Configure project ':a'")
         configureA.parent == configureRoot
+        configureRoot.children == [configureA]
 
         def configureB = events.operation("Configure project ':b'")
         configureB.parent == configureA
+        configureA.children == [configureB]
     }
 
     def "generates events for dependency resolution"() {
@@ -124,8 +174,64 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        events.operation("Resolve configuration ':compileClasspath'")
-        events.operation("Resolve configuration ':testCompileClasspath'")
+        def compileJava = events.operation("Task :compileJava")
+        def compileTestJava = events.operation("Task :compileTestJava")
+
+        def compileClasspath = events.operation("Resolve configuration ':compileClasspath'")
+        compileClasspath.parent == compileJava
+
+        def testCompileClasspath = events.operation("Resolve configuration ':testCompileClasspath'")
+        testCompileClasspath.parent == compileTestJava
+    }
+
+    def "generates events for failed dependency resolution"() {
+        given:
+        buildFile << """
+            allprojects { apply plugin: 'java' }
+            dependencies { compile 'thing:thing:1.0' }
+"""
+        file("src/main/java/Thing.java") << """class Thing { }"""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                        .addProgressListener(events)
+                        .forTasks("build")
+                        .run()
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message =~ /Could not resolve all dependencies for configuration ':compileClasspath'./
+
+        def compileClasspath = events.operation("Resolve configuration ':compileClasspath'")
+        compileClasspath.failed
+        compileClasspath.failures[0].message == "Could not resolve all dependencies for configuration ':compileClasspath'."
+    }
+
+    def "does not include dependency resolution that is a child of a task when task event are not included"() {
+        given:
+        buildFile << """
+            allprojects { apply plugin: 'java' }
+"""
+        file("src/main/java/Thing.java") << """class Thing { }"""
+        file("src/test/java/Thing.java") << """class ThingTest { }"""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                        .addProgressListener(events, OperationType.GENERIC)
+                        .forTasks("build")
+                        .run()
+        }
+
+        then:
+        !events.operations.find { it.name == "Resolve configuration ':compileClasspath'" }
+        events.operation("Run tasks").children.empty
     }
 
     def "generates events for interleaved project configuration and dependency resolution"() {
@@ -158,20 +264,27 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        def configureBuild = events.operation("Configure build")
+
         def configureRoot = events.operation("Configure root project 'multi'")
-        configureRoot.parent == events.operation("Configure build")
+        configureRoot.parent == configureBuild
+        configureBuild.children == [configureRoot]
 
         def resolveCompile = events.operation("Resolve configuration ':compile'")
         resolveCompile.parent == configureRoot
+        configureRoot.children == [resolveCompile]
 
         def configureA = events.operation("Configure project ':a'")
         configureA.parent == resolveCompile
+        resolveCompile.children == [configureA]
 
         def resolveCompileA = events.operation("Resolve configuration ':a:compile'")
         resolveCompileA.parent == configureA
+        configureA.children == [resolveCompileA]
 
         def configureB = events.operation("Configure project ':b'")
         configureB.parent == resolveCompileA
+        resolveCompileA.children == [configureB]
     }
 
 }

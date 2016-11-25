@@ -198,6 +198,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         def test = events.operation("Task :test")
         test.failed
         test.failures.size() == 1
+        test.failures[0].message == "Execution failed for task ':test'."
 
         events.failed == [test]
     }

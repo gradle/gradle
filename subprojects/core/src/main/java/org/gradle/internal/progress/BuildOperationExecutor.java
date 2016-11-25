@@ -17,7 +17,9 @@
 package org.gradle.internal.progress;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.internal.operations.BuildOperationContext;
 
 /**
  * Runs build operations. These are the pieces of work that make up a build. Build operations can be nested inside other
@@ -41,28 +43,28 @@ public interface BuildOperationExecutor {
      *
      * <p>Rethrows any exception thrown by the factory.</p>
      */
-    <T> T run(String displayName, Factory<T> factory);
+    <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory);
 
     /**
      * Runs the given build operation synchronously. Invokes the given factory from the current thread and returns the result.
      *
      * <p>Rethrows any exception thrown by the factory.</p>
      */
-    <T> T run(BuildOperationDetails operationDetails, Factory<T> factory);
+    <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory);
 
     /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.
      *
      * <p>Rethrows any exception thrown by the action.</p>
      */
-    void run(String displayName, Runnable action);
+    void run(String displayName, Action<? super BuildOperationContext> action);
 
     /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.
      *
      * <p>Rethrows any exception thrown by the action.</p>
      */
-    void run(BuildOperationDetails operationDetails, Runnable action);
+    void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action);
 
     /**
      * Returns the id of the current operation.

@@ -112,7 +112,7 @@ class ClientForwardingTaskListener implements InternalBuildListener {
         } else if (state.getSkipped()) {
             return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage());
         } else {
-            Throwable failure = state.getFailure();
+            Throwable failure = result.getFailure();
             if (failure == null) {
                 return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS");
             } else {

@@ -15,18 +15,18 @@
  */
 package org.gradle.configuration.project;
 
+import org.gradle.api.Action;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
- *
- * @see org.gradle.internal.service.scopes.BuildScopeServices#createProjectEvaluator()
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
@@ -45,10 +45,11 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return;
         }
 
-        buildOperationExecutor.run("Configure " + project.getDisplayName(), new Runnable() {
+        buildOperationExecutor.run("Configure " + project.getDisplayName(), new Action<BuildOperationContext>() {
             @Override
-            public void run() {
+            public void execute(BuildOperationContext buildOperationContext) {
                 doConfigure(project, state);
+                state.rethrowFailure();
             }
         });
     }

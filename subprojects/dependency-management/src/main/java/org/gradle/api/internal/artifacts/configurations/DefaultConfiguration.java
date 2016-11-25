@@ -73,6 +73,7 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
@@ -415,9 +416,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw new IllegalStateException("Graph resolution already performed");
         }
 
-        buildOperationExecutor.run("Resolve " + this, new Runnable() {
+        buildOperationExecutor.run("Resolve " + this, new Action<BuildOperationContext>() {
             @Override
-            public void run() {
+            public void execute(BuildOperationContext buildOperationContext) {
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
 

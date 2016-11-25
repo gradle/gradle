@@ -17,6 +17,8 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -25,9 +27,9 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -109,9 +111,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private BuildResult doBuild(final Stage upTo) {
-        return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
+        return buildOperationExecutor.run("Run build", new Transformer<BuildResult, BuildOperationContext>() {
             @Override
-            public BuildResult create() {
+            public BuildResult transform(BuildOperationContext buildOperationContext) {
                 Throwable failure = null;
                 try {
                     buildListener.buildStarted(gradle);
@@ -156,9 +158,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         if (stage == Stage.Load) {
             // Configure build
-            buildOperationExecutor.run("Configure build", new Runnable() {
+            buildOperationExecutor.run("Configure build", new Action<BuildOperationContext>() {
                 @Override
-                public void run() {
+                public void execute(BuildOperationContext buildOperationContext) {
                     buildConfigurer.configure(gradle);
 
                     if (!gradle.getStartParameter().isConfigureOnDemand()) {
@@ -180,9 +182,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Build;
 
         // Populate task graph
-        buildOperationExecutor.run("Calculate task graph", new Runnable() {
+        buildOperationExecutor.run("Calculate task graph", new Action<BuildOperationContext>() {
             @Override
-            public void run() {
+            public void execute(BuildOperationContext buildOperationContext) {
                 buildConfigurationActionExecuter.select(gradle);
                 if (gradle.getStartParameter().isConfigureOnDemand()) {
                     buildListener.projectsEvaluated(gradle);
@@ -191,9 +193,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         });
 
         // Execute build
-        buildOperationExecutor.run("Run tasks", new Runnable() {
+        buildOperationExecutor.run("Run tasks", new Action<BuildOperationContext>() {
             @Override
-            public void run() {
+            public void execute(BuildOperationContext buildOperationContext) {
                 buildExecuter.execute(gradle);
             }
         });

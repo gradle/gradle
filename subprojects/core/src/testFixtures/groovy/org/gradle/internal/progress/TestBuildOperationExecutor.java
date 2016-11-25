@@ -16,7 +16,10 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
+import org.gradle.internal.operations.BuildOperationContext;
 
 /**
  * A BuildOperationExecutor for tests.
@@ -29,22 +32,28 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
-        return factory.create();
+    public <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory) {
+        return factory.transform(new TestBuildOperationContext());
     }
 
     @Override
-    public <T> T run(String displayName, Factory<T> factory) {
-        return factory.create();
+    public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
+        return factory.transform(new TestBuildOperationContext());
     }
 
     @Override
-    public void run(BuildOperationDetails operationDetails, Runnable action) {
-        action.run();
+    public void run(String displayName, Action<? super BuildOperationContext> action) {
+        action.execute(new TestBuildOperationContext());
     }
 
     @Override
-    public void run(String displayName, Runnable action) {
-        action.run();
+    public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
+        action.execute(new TestBuildOperationContext());
+    }
+
+    private static class TestBuildOperationContext implements BuildOperationContext {
+        @Override
+        public void failed(@Nullable Throwable failure) {
+        }
     }
 }

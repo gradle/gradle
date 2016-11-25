@@ -23,10 +23,8 @@ import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.progress.BuildOperationDetails
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.internal.Factory
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -37,7 +35,7 @@ class BuildSourceBuilderTest extends Specification {
     def launcherFactory = Mock(GradleLauncherFactory)
     def classLoaderScope = Mock(ClassLoaderScope)
     def cacheRepository = Mock(CacheRepository)
-    def executor = Mock(BuildOperationExecutor)
+    def executor = new TestBuildOperationExecutor()
     def transformer = Mock(CachedClasspathTransformer)
     def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, classLoaderScope,  cacheRepository, executor, transformer])
 
@@ -55,7 +53,6 @@ class BuildSourceBuilderTest extends Specification {
         def cache = Mock(PersistentCache)
         def classpath = Mock(ClassPath)
         def launcher = Mock(GradleLauncher)
-        executor.run(_, _) >> { BuildOperationDetails details, Factory factory -> return factory.create() }
         launcherFactory.nestedInstance(_) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
         cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath

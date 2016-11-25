@@ -211,11 +211,15 @@ class ProgressEvents implements ProgressListener {
     static class Operation {
         final OperationDescriptor descriptor
         final Operation parent
+        final List<Operation> children = []
         OperationResult result
 
         private Operation(Operation parent, OperationDescriptor descriptor) {
             this.descriptor = descriptor
             this.parent = parent
+            if (parent != null) {
+                parent.children.add(this)
+            }
         }
 
         @Override

@@ -36,6 +36,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.time.Timer;
@@ -216,13 +217,14 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         public void execute(final TaskInternal task) {
             TaskOperationInternal taskOperation = new TaskOperationInternal(task);
             BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getPath()).operationDescriptor(taskOperation).build();
-            buildOperationExecutor.run(buildOperationDetails, new Runnable() {
+            buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
                 @Override
-                public void run() {
+                public void execute(BuildOperationContext buildOperationContext) {
                     TaskStateInternal state = task.getState();
                     taskListeners.getSource().beforeExecute(task);
                     taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
                     taskListeners.getSource().afterExecute(task, state);
+                    buildOperationContext.failed(state.getFailure());
                 }
             });
         }
