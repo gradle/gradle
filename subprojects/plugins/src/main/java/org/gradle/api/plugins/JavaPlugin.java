@@ -120,8 +120,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
+        Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
         runtimeConfiguration.getArtifacts().add(jarArtifact);
+        runtimeElementsConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
         project.getComponents().add(new JavaLibrary(jarArtifact, runtimeConfiguration.getAllDependencies()));
     }
@@ -161,6 +163,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
 
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         compileTestsConfiguration.extendsFrom(implementationConfiguration);
@@ -176,10 +179,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
         configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
-        configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
-        configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
         runtimeClasspathConfiguration.extendsFrom(runtimeElementsConfiguration);
 
         // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
