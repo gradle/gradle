@@ -18,16 +18,26 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheKeyBuilder;
 import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
+import org.gradle.util.HasherUtil;
 
+import java.io.NotSerializableException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import static java.lang.String.format;
 
 /**
  * The state for a single task execution.
@@ -36,7 +46,7 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
-    private Map<String, Object> inputProperties;
+    private Map<String, HashCode> inputPropertiesHash;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
@@ -91,12 +101,20 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
-    public Map<String, Object> getInputProperties() {
-        return inputProperties;
-    }
-
     public void setInputProperties(Map<String, Object> inputProperties) {
-        this.inputProperties = inputProperties;
+
+        SortedMap<String, HashCode> result = new TreeMap<String, HashCode>(new HashMap<String, HashCode>(inputProperties.size()));
+        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
+            Hasher hasher = Hashing.md5().newHasher();
+            Object value = entry.getValue();
+            try {
+                HasherUtil.putObject(hasher, value);
+            } catch (NotSerializableException e) {
+                throw new GradleException(format("Unable to hash task input properties. Property '%s' with value '%s' cannot be serialized.", entry.getKey(), entry.getValue()), e);
+            }
+            result.put(entry.getKey(), hasher.hash());
+        }
+        this.inputPropertiesHash = result;
     }
 
     /**
@@ -124,13 +142,13 @@ public abstract class TaskExecution {
         builder.putBytes(taskClassLoaderHash.asBytes());
         builder.putBytes(taskActionsClassLoaderHash.asBytes());
 
-        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
-
-        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
+        for (Map.Entry<String, HashCode> entry : inputPropertiesHash.entrySet()) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
             builder.appendToCacheKey(value);
         }
+
+        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
         for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
             builder.putString(entry.getKey());
@@ -143,6 +161,14 @@ public abstract class TaskExecution {
         }
 
         return builder.build();
+    }
+
+    public Map<String, HashCode> getInputPropertiesHash() {
+        return inputPropertiesHash;
+    }
+
+    public void setInputPropertiesHash(Map<String, HashCode> inputPropertiesHash) {
+        this.inputPropertiesHash = inputPropertiesHash;
     }
 
     private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {

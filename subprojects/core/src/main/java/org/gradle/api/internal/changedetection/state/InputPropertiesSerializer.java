@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.internal.serialize.*;
 
@@ -23,19 +24,19 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
-class InputPropertiesSerializer implements Serializer<Map<String, Object>> {
+class InputPropertiesSerializer implements Serializer<Map<String, HashCode>> {
 
-    private final MapSerializer<String, Object> serializer;
+    private final MapSerializer<String, HashCode> serializer;
 
     InputPropertiesSerializer(ClassLoader classloader) {
-        this.serializer = new MapSerializer<String, Object>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<Object>(classloader));
+        this.serializer = new MapSerializer<String, HashCode>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<HashCode>(classloader));
     }
 
-    public Map<String, Object> read(Decoder decoder) throws Exception {
+    public Map<String, HashCode> read(Decoder decoder) throws Exception {
         return serializer.read(decoder);
     }
 
-    public void write(Encoder encoder, Map<String, Object> properties) throws Exception {
+    public void write(Encoder encoder, Map<String, HashCode> properties) throws Exception {
         try {
             serializer.write(encoder, properties);
         } catch (MapSerializer.EntrySerializationException e) {

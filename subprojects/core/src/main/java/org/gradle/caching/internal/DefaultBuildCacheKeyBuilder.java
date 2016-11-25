@@ -16,19 +16,16 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import org.apache.commons.lang.SerializationUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.util.HasherUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.math.BigInteger;
-import java.util.Map;
+import java.io.NotSerializableException;
 
 /**
  * A builder for build cache keys.
@@ -43,64 +40,56 @@ public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
     @Override
     public BuildCacheKeyBuilder putByte(byte b) {
         log("byte", b);
-        hasher.putInt(1);
-        hasher.putByte(b);
+        HasherUtil.putByte(hasher, b);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putBytes(byte[] bytes) {
         log("bytes", new ByteArrayToStringer(bytes));
-        hasher.putInt(bytes.length);
-        hasher.putBytes(bytes);
+        HasherUtil.putBytes(hasher, bytes);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putBytes(byte[] bytes, int off, int len) {
         log("bytes", new ByteArrayToStringer(bytes, off, len));
-        hasher.putInt(len);
-        hasher.putBytes(bytes, off, len);
+        HasherUtil.putBytes(hasher, bytes, off, len);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putInt(int i) {
         log("int", i);
-        hasher.putInt(4);
-        hasher.putInt(i);
+        HasherUtil.putInt(hasher, i);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putLong(long l) {
         log("long", l);
-        hasher.putInt(8);
-        hasher.putLong(l);
+        HasherUtil.putLong(hasher, l);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putDouble(double d) {
         log("double", d);
-        hasher.putInt(8);
-        hasher.putDouble(d);
+        HasherUtil.putDouble(hasher, d);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putBoolean(boolean b) {
         log("boolean", b);
-        hasher.putInt(1);
-        hasher.putBoolean(b);
+        HasherUtil.putBoolean(hasher, b);
         return this;
     }
 
     @Override
     public BuildCacheKeyBuilder putString(CharSequence charSequence) {
         log("string", charSequence);
-        hasher.putInt(charSequence.length());
-        hasher.putString(charSequence, Charsets.UTF_8);
+        HasherUtil.putString(hasher, charSequence);
         return this;
     }
 
@@ -135,69 +124,12 @@ public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
     }
 
     public BuildCacheKeyBuilder appendToCacheKey(Object value) {
-
-        if (value == null) {
-            this.putString("$NULL");
-            return this;
+        try {
+            HasherUtil.putObject(hasher, value);
+        } catch (NotSerializableException e) {
+            throw new UncheckedIOException(e);
         }
 
-        if (value.getClass().isArray()) {
-            this.putString("Array");
-            for (int idx = 0, len = Array.getLength(value); idx < len; idx++) {
-                this.putInt(idx);
-                this.appendToCacheKey(Array.get(value, idx));
-            }
-            return this;
-        }
-
-        if (value instanceof Iterable) {
-            this.putString("Iterable");
-            int idx = 0;
-            for (Object elem : (Iterable<?>) value) {
-                this.putInt(idx);
-                this.appendToCacheKey(elem);
-                idx++;
-            }
-            return this;
-        }
-
-        if (value instanceof Map) {
-            this.putString("Map");
-            int idx = 0;
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                this.putInt(idx);
-                this.appendToCacheKey(entry.getKey());
-                this.appendToCacheKey(entry.getValue());
-                idx++;
-            }
-            return this;
-        }
-
-        if (value instanceof Boolean) {
-            this.putBoolean((Boolean) value);
-        } else if (value instanceof Long) {
-            this.putLong((Long) value);
-        } else if (value instanceof Integer) {
-            this.putInt((Integer) value);
-        } else if (value instanceof Short) {
-            this.putInt((Short) value);
-        } else if (value instanceof Byte) {
-            this.putInt((Byte) value);
-        } else if (value instanceof Double) {
-            this.putDouble((Double) value);
-        } else if (value instanceof Float) {
-            this.putDouble((Float) value);
-        } else if (value instanceof BigInteger) {
-            this.putBytes(((BigInteger) value).toByteArray());
-        } else if (value instanceof CharSequence) {
-            this.putString((CharSequence) value);
-        } else if (value instanceof Enum) {
-            this.putString(value.getClass().getName());
-            this.putString(((Enum) value).name());
-        } else {
-            byte[] bytes = SerializationUtils.serialize((Serializable) value);
-            this.putBytes(bytes);
-        }
         return this;
     }
 

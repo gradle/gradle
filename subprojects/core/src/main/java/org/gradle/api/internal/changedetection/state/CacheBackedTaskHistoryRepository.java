@@ -275,7 +275,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
             setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
             // Take copy of input properties map
-            setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
+            setInputPropertiesHash(new HashMap<String, HashCode>(taskExecutionSnapshot.getInputPropertiesHash()));
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
@@ -344,7 +344,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
                 getTaskActionsClassLoaderHash(),
-                new HashMap<String, Object>(getInputProperties()),
+                new HashMap<String, HashCode>(getInputPropertiesHash()),
                 inputFilesSnapshotIds,
                 discoveredFilesSnapshotId,
                 outputFilesSnapshotIds);
@@ -388,11 +388,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
 
                 boolean hasInputProperties = decoder.readBoolean();
-                Map<String, Object> inputProperties;
+                Map<String, HashCode> inputPropertiesHash;
                 if (hasInputProperties) {
-                    inputProperties = inputPropertiesSerializer.read(decoder);
+                    inputPropertiesHash = inputPropertiesSerializer.read(decoder);
                 } else {
-                    inputProperties = ImmutableMap.of();
+                    inputPropertiesHash = ImmutableMap.of();
                 }
                 return new TaskExecutionSnapshot(
                     taskClass,
@@ -400,7 +400,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     declaredOutputFilePaths,
                     taskClassLoaderHash,
                     taskActionsClassLoaderHash,
-                    inputProperties,
+                    inputPropertiesHash,
                     inputFilesSnapshotIds,
                     discoveredFilesSnapshotId,
                     outputFilesSnapshotIds
@@ -434,11 +434,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 for (String outputFile : execution.getDeclaredOutputFilePaths()) {
                     encoder.writeString(outputFile);
                 }
-                if (execution.getInputProperties() == null || execution.getInputProperties().isEmpty()) {
+                if (execution.getInputPropertiesHash() == null || execution.getInputPropertiesHash().isEmpty()) {
                     encoder.writeBoolean(false);
                 } else {
                     encoder.writeBoolean(true);
-                    inputPropertiesSerializer.write(encoder, execution.getInputProperties());
+                    inputPropertiesSerializer.write(encoder, execution.getInputPropertiesHash());
                 }
             }
 
