@@ -23,17 +23,15 @@ import spock.lang.Unroll
 @Category(BasicPerformanceTest)
 class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("Project '#testProject' with args #runnerArgs (first use)")
+    @Unroll("#testId")
     def "build"() {
         given:
-        runner.testId = "first use $testProject" + (recompileScripts ? ' (recompile-scripts)' : '')
+        runner.testId = testId
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.targetVersions = ['last']
+        runner.args = runnerArgs
         runner.useDaemon = true
-        if (recompileScripts) {
-            runner.args += ['--recompile-scripts']
-        }
 
         when:
         def result = runner.run()
@@ -42,8 +40,12 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | recompileScripts
-        "ktsManyProjects" | true
-        "ktsManyProjects" | false
+        testProject       | runnerArgs
+        "ktsManyProjects" | []
+        "ktsManyProjects" | ['--parallel']
+        "ktsManyProjects" | ['--recompile-scripts']
+        "ktsManyProjects" | ['--recompile-scripts', '--parallel']
+        testIdSuffix = runnerArgs.empty ? '' : " (${runnerArgs.join(', ')})"
+        testId = "configuration of $testProject$testIdSuffix"
     }
 }
