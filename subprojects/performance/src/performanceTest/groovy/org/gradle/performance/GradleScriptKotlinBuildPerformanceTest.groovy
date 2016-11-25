@@ -41,6 +41,7 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
 
         where:
         testProject       | runnerArgs
+        "ktsSmall"        | []
         "ktsSmall"        | ['--recompile-scripts']
         //"ktsManyProjects" | []
         //"ktsManyProjects" | ['--recompile-scripts']
