@@ -156,7 +156,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
     private final DefaultAttributeContainer configurationAttributes = new DefaultAttributeContainer();
-    private String lockMessage;
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -698,10 +697,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         childMutationValidators.remove(validator);
     }
 
-    @Override
-    public void lock(String message) {
-        this.lockMessage = message;
-    }
 
     private void validateParentMutation(MutationType type) {
         // Strategy changes in a parent configuration do not affect this configuration, or any of its children, in any way
@@ -721,9 +716,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void validateMutation(MutationType type) {
-        if (lockMessage != null) {
-            throw new InvalidUserDataException(lockMessage);
-        }
         if (resolvedState == ARTIFACTS_RESOLVED) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
