@@ -103,4 +103,6 @@ public interface FileTreeElement {
      * @return The Unix file permissions.
      */
     int getMode();
+
+    boolean isRealFile();
 }

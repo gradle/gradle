@@ -168,6 +168,11 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             }
             return unixMode;
         }
+
+        @Override
+        public boolean isRealFile() {
+            return false;
+        }
     }
 
     @Override

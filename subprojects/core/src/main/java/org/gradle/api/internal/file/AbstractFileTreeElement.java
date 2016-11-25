@@ -101,4 +101,9 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
             ? FileSystem.DEFAULT_DIR_MODE
             : FileSystem.DEFAULT_FILE_MODE;
     }
+
+    @Override
+    public boolean isRealFile() {
+        return true;
+    }
 }

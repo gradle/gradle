@@ -30,12 +30,16 @@ public class SortingCopyActionDecorator implements CopyActionProcessingStream  {
     }
 
     @Override
-    public void process(CopyActionProcessingStreamAction action) {
+    public void process(final CopyActionProcessingStreamAction action) {
         final ArrayList<FileCopyDetailsInternal> files = new ArrayList<FileCopyDetailsInternal>();
         stream.process(new CopyActionProcessingStreamAction() {
             @Override
             public void processFile(FileCopyDetailsInternal details) {
-                files.add(details);
+                if (details.isRealFile()) {
+                    files.add(details);
+                } else {
+                    action.processFile(details);
+                }
             }
         });
         Collections.sort(files, new Comparator<FileCopyDetailsInternal>() {

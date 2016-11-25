@@ -65,6 +65,11 @@ class MissingFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
+    public boolean isRealFile() {
+        return true;
+    }
+
+    @Override
     public long getLastModified() {
         return 0L;
     }
