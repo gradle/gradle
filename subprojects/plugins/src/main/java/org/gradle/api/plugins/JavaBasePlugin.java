@@ -241,7 +241,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + ".");
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getRuntimeClasspathConfigurationName() + " ' instead).");
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
         compileOnlyConfiguration.setVisible(false);
@@ -256,6 +256,19 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
+
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(sourceSet.getRuntimeOnlyConfigurationName());
+        runtimeOnlyConfiguration.setVisible(false);
+        runtimeOnlyConfiguration.setCanBeConsumed(false);
+        runtimeOnlyConfiguration.setCanBeResolved(false);
+        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSet + ".");
+
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(sourceSet.getRuntimeClasspathConfigurationName());
+        runtimeClasspathConfiguration.setVisible(false);
+        runtimeClasspathConfiguration.setCanBeConsumed(false);
+        runtimeClasspathConfiguration.setCanBeResolved(true);
+        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSet + ".");
+        runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration);
     }
 
     public void configureForSourceSet(final SourceSet sourceSet, AbstractCompile compile) {

@@ -85,6 +85,36 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         runtime.transitive
 
         when:
+        def runtimeOnly = project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
+
+        then:
+        runtimeOnly.transitive
+        !runtimeOnly.visible
+        !runtimeOnly.canBeConsumed
+        !runtimeOnly.canBeResolved
+        runtimeOnly.extendsFrom == [] as Set
+
+        when:
+        def runtimeElements = project.configurations.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        runtimeElements.transitive
+        !runtimeElements.visible
+        runtimeElements.canBeConsumed
+        !runtimeElements.canBeResolved
+        runtimeElements.extendsFrom == [implementation] as Set
+
+        when:
+        def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        runtimeClasspath.transitive
+        !runtimeClasspath.visible
+        !runtimeClasspath.canBeConsumed
+        runtimeClasspath.canBeResolved
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, runtimeElements] as Set
+
+        when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
@@ -109,20 +139,30 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompile.transitive
 
         when:
+        def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        testImplementation.extendsFrom == toSet(testCompile, implementation)
+        !testImplementation.visible
+        testImplementation.transitive
+
+        when:
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
 
         then:
-        testRuntime.extendsFrom == toSet(runtime, testCompile)
+        testRuntime.extendsFrom == toSet(runtime, testCompile, testImplementation)
         !testRuntime.visible
         testRuntime.transitive
 
         when:
-        def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+        def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
 
         then:
-        testImplementation.extendsFrom == toSet(testCompile)
-        !testImplementation.visible
-        testImplementation.transitive
+        testRuntimeOnly.transitive
+        !testRuntimeOnly.visible
+        !testRuntimeOnly.canBeConsumed
+        !testRuntimeOnly.canBeResolved
+        testRuntimeOnly.extendsFrom == [] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
@@ -139,6 +179,16 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileClasspath.extendsFrom == toSet(testCompileOnly)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
+
+        when:
+        def testRuntimeClasspath = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        testRuntimeClasspath.extendsFrom == toSet(testRuntime, testRuntimeOnly, testImplementation)
+        !testRuntimeClasspath.visible
+        testRuntimeClasspath.transitive
+        !testRuntimeClasspath.canBeConsumed
+        testRuntimeClasspath.canBeResolved
 
         when:
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
