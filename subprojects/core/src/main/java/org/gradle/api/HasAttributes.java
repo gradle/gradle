@@ -16,6 +16,10 @@
 
 package org.gradle.api;
 
+/**
+ * Represents something that carries attributes by utilizing an
+ * {@link AttributeContainer}
+ */
 @Incubating
 public interface HasAttributes {
 
