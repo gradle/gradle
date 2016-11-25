@@ -53,8 +53,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +103,7 @@ class RuntimeShadedJarCreator {
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new HashMap<String, List<String>>(), progressLogger);
+                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
                 jarOutputStream.finish();
             }
         });
@@ -162,12 +165,17 @@ class RuntimeShadedJarCreator {
         writeEntry(outputStream, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
+    /**
+     * Processing a directory is not yet reproducible - i.e. it can yield different results on different machines because the order how the files are read
+     * from disk is not predictable.
+     * Since this is currently only used in tests this is fine for now.
+     */
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
         new DirectoryFileTree(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 try {
-                    ZipEntry zipEntry = new ZipEntry(dirDetails.getPath() + "/");
+                    ZipEntry zipEntry = newZipEntry(dirDetails.getPath() + "/");
                     processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -177,7 +185,7 @@ class RuntimeShadedJarCreator {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 try {
-                    ZipEntry zipEntry = new ZipEntry(fileDetails.getPath());
+                    ZipEntry zipEntry = newZipEntry(fileDetails.getPath());
                     InputStream inputStream = fileDetails.open();
                     try {
                         processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
@@ -280,16 +288,34 @@ class RuntimeShadedJarCreator {
     }
 
     private void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
-        outputStream.putNextEntry(new ZipEntry(resourceFileName));
+        outputStream.putNextEntry(newZipEntry(resourceFileName));
         pipe(inputStream, outputStream, buffer);
         outputStream.closeEntry();
     }
 
     private void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
-        ZipEntry zipEntry = new ZipEntry(name);
+        ZipEntry zipEntry = newZipEntry(name);
         outputStream.putNextEntry(zipEntry);
         outputStream.write(content);
         outputStream.closeEntry();
+    }
+
+    private ZipEntry newZipEntry(String name) {
+        ZipEntry entry = new ZipEntry(name);
+        // Note that setting the January 1st 1980 (or even worse, "0", as time) won't work due
+        // to Java 8 doing some interesting time processing: It checks if this date is before January 1st 1980
+        // and if it is it starts setting some extra fields in the zip. Java 7 does not do that - but in the
+        // zip not the milliseconds are saved but values for each of the date fields - but no time zone. And
+        // 1980 is the first year which can be saved.
+        // If you use January 1st 1980 then it is treated as a special flag in Java 8.
+        // Moreover, only even seconds can be stored in the zip file. Java 8 uses the upper half of
+        // some other long to store the remaining millis while Java 7 doesn't do that. So make sure
+        // that your seconds are even.
+        Calendar calendar = new GregorianCalendar();
+        calendar.clear();
+        calendar.set(1980, Calendar.FEBRUARY, 1, 0, 0, 0);
+        entry.setTime(calendar.getTimeInMillis());
+        return entry;
     }
 
     private void processClassFile(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {

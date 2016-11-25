@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.runtimeshaded
 
+import com.google.common.hash.Hashing
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
@@ -25,6 +26,7 @@ import org.gradle.internal.IoActions
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -42,6 +44,7 @@ import java.util.jar.JarFile
 import static org.gradle.api.internal.runtimeshaded.RuntimeShadedJarCreator.ADDITIONAL_PROGRESS_STEPS
 
 @UsesNativeServices
+@CleanupTestDirectory(fieldName = "tmpDir")
 class RuntimeShadedJarCreatorTest extends Specification {
 
     @Rule
@@ -94,6 +97,43 @@ class RuntimeShadedJarCreatorTest extends Specification {
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         contents[0] == outputJar
+    }
+
+    def "creates a repoducible jar"() {
+        given:
+        def className = 'org/gradle/MyClass'
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def jarFile1 = inputFilesDir.file('lib1.jar')
+        createJarFileWithClassFiles(jarFile1, [className])
+        def jarFile2 = inputFilesDir.file('lib2.jar')
+        createJarFileWithClassFiles(jarFile2, [className])
+        def jarFile3 = inputFilesDir.file('lib3.jar')
+        def serviceType = 'org.gradle.internal.service.scopes.PluginServiceRegistry'
+        createJarFileWithProviderConfigurationFile(jarFile3, serviceType, 'org.gradle.api.internal.artifacts.DependencyServices')
+        def jarFile4 = inputFilesDir.file('lib4.jar')
+        createJarFileWithProviderConfigurationFile(jarFile4, serviceType, """
+# This is some same file
+# Ignore comment
+org.gradle.api.internal.tasks.CompileServices
+# Too many comments""")
+        def jarFile5 = inputFilesDir.file('lib5.jar')
+        createJarFileWithResources(jarFile5, [
+            'org/gradle/reporting/report.js',
+            'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
+            'aQute/libg/tuple/packageinfo',
+            'org/joda/time/tz/data/Africa/Abidjan',
+            'com/sun/jna/win32-amd64/jnidispatch.dll'])
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5])
+
+        then:
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
+
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        contents[0] == outputJar
+        Hashing.md5().newHasher().putBytes(outputJar.bytes).hash().toString() == "b0bf2edc908ee4b06f0f2daf03602ec5"
     }
 
     def "merges provider-configuration file with the same name"() {
