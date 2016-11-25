@@ -317,4 +317,118 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
     }
+
+    def "test runtime classpath includes implementation dependencies"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.4'
+                testCompile 'junit:junit:4.12' // not using testImplementation intentionaly, that's not what we want to test
+            }
+        '''
+        file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Text {
+                public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+        file('src/test/java/TextTest.java') << '''
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class TextTest {
+                @Test
+                public void testGreeting() {
+                    assertEquals("Hello, Cedric", Text.sayHello("cedric"));
+                }
+            }
+        '''
+
+        when:
+        run 'test'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test runtime classpath includes test implementation dependencies"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.4'
+                testImplementation 'junit:junit:4.12'
+            }
+        '''
+        file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Text {
+                public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+        file('src/test/java/TextTest.java') << '''
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class TextTest {
+                @Test
+                public void testGreeting() {
+                    assertEquals("Hello, Cedric", Text.sayHello("cedric"));
+                }
+            }
+        '''
+
+        when:
+        run 'test'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test compile classpath includes implementation dependencies"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.4'
+                testImplementation 'junit:junit:4.12'
+            }
+        '''
+        file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
+            public class Text {
+                public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
+            }
+        '''
+        file('src/test/java/TextTest.java') << '''import org.apache.commons.lang3.StringUtils;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class TextTest {
+                @Test
+                public void testGreeting() {
+                    assertEquals(StringUtils.capitalize("hello, Cedric"), Text.sayHello("cedric"));
+                }
+            }
+        '''
+
+        when:
+        run 'test'
+
+        then:
+        noExceptionThrown()
+    }
 }
