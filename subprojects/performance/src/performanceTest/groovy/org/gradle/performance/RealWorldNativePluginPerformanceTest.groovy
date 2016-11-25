@@ -142,7 +142,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         buildSize | changeType              | changedFile                       | changeClosure        | targetVersions
         "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['last']
         "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['last']
-        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['last']
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['3.3-20161125000031+0000']
     }
 
     void changeCSource(File file, String originalContent) {
