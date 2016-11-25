@@ -279,4 +279,33 @@ public interface SourceSet {
      */
     @Incubating
     String getApiCompileConfigurationName();
+
+    /**
+     * Returns the name of the configuration that contains dependencies that are only required
+     * at runtime of the component. Dependencies found in this configuration are visible to
+     * the runtime classpath of the component, but not to consumers.
+     *
+     * @return the runtime only configuration name
+     */
+    @Incubating
+    String getRuntimeOnlyConfigurationName();
+
+    /**
+     * Returns the name of the runtime classpath configuration of this component: the runtime
+     * classpath contains elements of the implementation, as well as runtime only elements.
+     *
+     * @return the name of the runtime classpath configuration
+     */
+    @Incubating
+    String getRuntimeClasspathConfigurationName();
+
+    /**
+     * Returns the name of the configuration containing elements that are stricly required
+     * at runtime. Consumers of this configuration will get all the mandatory elements for
+     * this component to execute at runtime.
+     *
+     * @return the name of the runtime elements configuration.
+     */
+    @Incubating
+    String getRuntimeElementsConfigurationName();
 }
