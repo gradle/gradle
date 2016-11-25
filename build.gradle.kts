@@ -44,7 +44,7 @@ apply {
 
 group = "org.gradle"
 
-version = "0.5.0"
+version = "0.6.0-SNAPSHOT"
 
 dependencies {
     compileOnly(gradleApi())
