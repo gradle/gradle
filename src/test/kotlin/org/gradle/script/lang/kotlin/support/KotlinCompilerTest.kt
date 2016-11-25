@@ -19,7 +19,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
 
         val sourceFile = newFile("DeepThought.kt").apply {
             writeText("""
-                package adams
+                package hhgttg
 
                 class DeepThought {
                     fun compute(): Int = 42
@@ -33,7 +33,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
 
         val answer =
             classLoaderFor(outputJar)
-                .loadClass("adams.DeepThought")
+                .loadClass("hhgttg.DeepThought")
                 .newInstance()
                 .run {
                     javaClass.getMethod("compute").invoke(this)
