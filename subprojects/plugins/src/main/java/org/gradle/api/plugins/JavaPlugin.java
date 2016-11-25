@@ -151,12 +151,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
+        Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
 
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         compileTestsConfiguration.extendsFrom(implementationConfiguration);
 
-        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
+        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration, testImplementationConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
         configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
