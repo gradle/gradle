@@ -287,4 +287,40 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
+    def "generates buildSrc events"() {
+        given:
+        file("buildSrc/settings.gradle") << "include 'a', 'b'"
+        file("buildSrc/build.gradle") << """
+            allprojects {   
+                apply plugin: 'java'
+            }
+            dependencies {
+                compile project(':a')
+                compile project(':b')
+            }
+"""
+        file("buildSrc/a/src/main/java/A.java") << "public class A {}"
+        file("buildSrc/b/src/main/java/B.java") << "public class B {}"
+
+        settingsFile << "rootProject.name = 'single'"
+        buildFile << """
+            new A()
+            new B()
+"""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                        .addProgressListener(events)
+                        .run()
+        }
+
+        then:
+        def buildSrc = events.operation("Build buildSrc")
+        buildSrc.children.find { it.descriptor.displayName == 'Configure build' }
+        buildSrc.children.find { it.descriptor.displayName == 'Run tasks' }
+    }
+
 }

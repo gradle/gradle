@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -103,11 +102,11 @@ import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultSettingsFinder;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -127,17 +126,13 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.progress.DefaultBuildOperationExecutor;
-import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -157,27 +152,16 @@ import org.gradle.profile.ProfileListener;
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
-
-    private final BuildSessionScopeServices sessionServices;
-    private final boolean singleUseSession;
-
     public static BuildScopeServices forSession(BuildSessionScopeServices sessionServices) {
-        return new BuildScopeServices(sessionServices, false);
-    }
-
-    public static BuildScopeServices singleSession(ServiceRegistry parent, StartParameter startParameter) {
-        return new BuildScopeServices(parent, startParameter);
+        return new BuildScopeServices(sessionServices);
     }
 
     protected BuildScopeServices(ServiceRegistry parent, StartParameter startParameter) {
-        this(new BuildSessionScopeServices(parent, startParameter, ClassPath.EMPTY), true);
+        this(new BuildSessionScopeServices(parent, startParameter, ClassPath.EMPTY));
     }
 
-    @VisibleForTesting
-    BuildScopeServices(final BuildSessionScopeServices sessionServices, boolean singleUseSession) {
+    private BuildScopeServices(final BuildSessionScopeServices sessionServices) {
         super(sessionServices);
-        this.sessionServices = sessionServices;
-        this.singleUseSession = singleUseSession;
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : sessionServices.getAll(PluginServiceRegistry.class)) {
@@ -201,10 +185,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
         return listenerManager.createChild();
-    }
-
-    protected BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
-        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(InternalBuildListener.class), timeProvider, progressLoggerFactory);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {
@@ -310,7 +290,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(PluginRepositoryFactory.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
                                                                 ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
@@ -318,7 +298,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
             new BuildSourceBuilder(
-                gradleLauncherFactory,
+                nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 cacheRepository,
                 buildOperationExecutor,
@@ -432,21 +412,5 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
         return new DefaultAuthenticationSchemeRegistry();
-    }
-
-    @Override
-    public void close() {
-        if (singleUseSession) {
-            // This song and dance is to let CompositeStoppable deal with making sure everything
-            // is closed when something errors while stopping
-            CompositeStoppable.stoppable(new Stoppable() {
-                @Override
-                public void stop() {
-                    BuildScopeServices.super.close();
-                }
-            }, sessionServices).stop();
-        } else {
-            super.close();
-        }
     }
 }
