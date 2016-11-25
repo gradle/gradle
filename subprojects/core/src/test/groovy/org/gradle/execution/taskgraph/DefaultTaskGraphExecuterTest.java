@@ -41,6 +41,7 @@ import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.Path;
 import org.gradle.util.TestClosure;
 import org.gradle.util.TestUtil;
 import org.hamcrest.Description;
@@ -564,6 +565,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(name));
             allowing(task).getPath();
             will(returnValue(":" + name));
+            allowing(task).getIdentityPath();
+            will(returnValue(Path.path(":" + name)));
             allowing(task).getState();
             will(returnValue(state));
             allowing((Task) task).getState();
@@ -574,8 +577,6 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new DefaultTaskDependency()));
             allowing(task).getShouldRunAfter();
             will(returnValue(new DefaultTaskDependency()));
-            allowing(task).getDidWork();
-            will(returnValue(true));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));
             will(new org.jmock.api.Action() {
                 public Object invoke(Invocation invocation) throws Throwable {

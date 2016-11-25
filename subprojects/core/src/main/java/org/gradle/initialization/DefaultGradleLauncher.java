@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -114,26 +113,21 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private BuildResult doBuild(final Stage upTo) {
-        return buildOperationExecutor.run("Run build", new Transformer<BuildResult, BuildOperationContext>() {
-            @Override
-            public BuildResult transform(BuildOperationContext buildOperationContext) {
-                Throwable failure = null;
-                try {
-                    buildListener.buildStarted(gradle);
-                    doBuildStages(upTo);
-                    flushPendingCacheOperations();
-                } catch (Throwable t) {
-                    failure = exceptionAnalyser.transform(t);
-                }
-                BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
-                buildListener.buildFinished(buildResult);
-                if (failure != null) {
-                    throw new ReportedException(failure);
-                }
+        Throwable failure = null;
+        try {
+            buildListener.buildStarted(gradle);
+            doBuildStages(upTo);
+            flushPendingCacheOperations();
+        } catch (Throwable t) {
+            failure = exceptionAnalyser.transform(t);
+        }
+        BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
+        buildListener.buildFinished(buildResult);
+        if (failure != null) {
+            throw new ReportedException(failure);
+        }
 
-                return buildResult;
-            }
-        });
+        return buildResult;
     }
 
     private void flushPendingCacheOperations() {

@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
@@ -77,4 +78,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
     void appendParallelSafeAction(Action<? super Task> action);
 
     boolean isHasCustomActions();
+
+    Path getIdentityPath();
 }

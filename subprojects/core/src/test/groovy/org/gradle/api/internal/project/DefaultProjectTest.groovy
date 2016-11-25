@@ -73,6 +73,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.Path
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JMock
@@ -211,6 +212,12 @@ class DefaultProjectTest {
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
             will(returnValue(listener))
+
+            allowing(build).getParent()
+            will(returnValue(null))
+
+            allowing(build).getIdentityPath()
+            will(returnValue(Path.ROOT))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
@@ -776,15 +783,6 @@ def scriptMethod(Closure closure) {
     @Test
     void testConfigureProjects() {
         checkConfigureProject('configure', [project, child1] as Set)
-    }
-
-    @Test
-    void testHasUsefulToStringAndDisplayName() {
-        assertEquals('root project \'root\'', project.toString())
-        assertEquals('root project \'root\'', project.getDisplayName())
-        assertEquals('project \':child1\'', child1.toString())
-        assertEquals('project \':child1\'', child1.getDisplayName())
-        assertEquals('project \':child1:childchild\'', childchild.toString())
     }
 
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {

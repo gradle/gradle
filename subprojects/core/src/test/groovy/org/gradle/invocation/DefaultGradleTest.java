@@ -24,12 +24,12 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -71,7 +71,7 @@ public class DefaultGradleTest {
     private final ServiceRegistry gradleServiceRegistryMock = context.mock(ServiceRegistry.class, "gradle");
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
-    private final Gradle parent = context.mock(Gradle.class, "parentBuild");
+    private final GradleInternal parent = context.mock(GradleInternal.class, "parentBuild");
     private final MultiParentClassLoader scriptClassLoaderMock = context.mock(MultiParentClassLoader.class);
     private final CurrentGradleInstallation currentGradleInstallationMock = context.mock(CurrentGradleInstallation.class);
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast = new ListenerBroadcast<BuildListener>(BuildListener.class);
@@ -127,7 +127,7 @@ public class DefaultGradleTest {
 
     @Test
     public void defaultValues() {
-        assertThat(gradle.getParent(), sameInstance(parent));
+        assertThat((GradleInternal) gradle.getParent(), sameInstance(parent));
         assertThat(gradle.getServices(), sameInstance(gradleServiceRegistryMock));
         assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
     }

@@ -60,4 +60,25 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         output.contains("user home dir: $dir")
         output.contains("build script code source: ${dir.toURI()}")
     }
+
+    def "nested build can have buildSrc"() {
+        given:
+        buildFile << """
+            task otherBuild(type:GradleBuild) {
+                dir = 'other'
+                startParameter.searchUpwards = false
+            }
+        """
+        file('other/buildSrc/src/main/java/Thing.java') << "class Thing { }"
+        file('other/build.gradle') << """
+            new Thing()
+        """
+
+        when:
+        run 'otherBuild'
+
+        then:
+        // TODO - Fix test fixtures to allow assertions on buildSrc tasks rather than relying on output scraping in tests
+        outputContains(":other:buildSrc:assemble")
+    }
 }

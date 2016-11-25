@@ -189,6 +189,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private String description;
 
     private final Path path;
+    private Path identityPath;
 
     private final AttributesSchema configurationAttributesSchema;
 
@@ -487,6 +488,18 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return path.toString();
     }
 
+    @Override
+    public Path getIdentityPath() {
+        if (identityPath == null) {
+            if (parent == null) {
+                identityPath = gradle.getIdentityPath();
+            } else {
+                identityPath = parent.getIdentityPath().resolve(name);
+            }
+        }
+        return identityPath;
+    }
+
     public int getDepth() {
         return depth;
     }
@@ -652,12 +665,15 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
-        if (parent == null) {
-            builder.append("root ");
+        if (parent == null && gradle.getParent() == null) {
+            builder.append("root project '");
+            builder.append(name);
+            builder.append('\'');
+        } else {
+            builder.append("project '");
+            builder.append(getIdentityPath());
+            builder.append("'");
         }
-        builder.append("project '");
-        builder.append(parent == null ? name : path);
-        builder.append("'");
         return builder.toString();
     }
 

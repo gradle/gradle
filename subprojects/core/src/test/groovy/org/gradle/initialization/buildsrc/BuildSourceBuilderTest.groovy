@@ -50,9 +50,9 @@ class BuildSourceBuilderTest extends Specification {
     }
 
     void "creates classpath when build src exists"() {
-        def cache = Mock(PersistentCache)
-        def classpath = Mock(ClassPath)
-        def launcher = Mock(GradleLauncher)
+        def cache = Stub(PersistentCache)
+        def classpath = Stub(ClassPath)
+        def launcher = Stub(GradleLauncher)
         buildFactory.nestedInstance(_) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
         cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath

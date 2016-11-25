@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.TaskCaching;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.util.Path;
 
 import java.util.Collection;
 
@@ -39,6 +41,8 @@ public interface GradleInternal extends Gradle {
      * {@inheritDoc}
      */
     ProjectInternal getRootProject();
+
+    GradleInternal getParent();
 
     /**
      * {@inheritDoc}
@@ -91,4 +95,19 @@ public interface GradleInternal extends Gradle {
     TaskCachingInternal getTaskCaching();
 
     void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
+
+    /**
+     * Returns a unique path for this build within the current Gradle invocation.
+     *
+     * @throws IllegalStateException When the path is not yet known. The path is often a function of the name of the root project, which is not known when this `Gradle` instance is created.
+     */
+    Path getIdentityPath() throws IllegalStateException;
+
+    /**
+     * Returns a unique path for this build within the current Gradle invocation, or null when not yet known
+     */
+    @Nullable
+    Path findIdentityPath();
+
+    void setIdentityPath(Path path);
 }

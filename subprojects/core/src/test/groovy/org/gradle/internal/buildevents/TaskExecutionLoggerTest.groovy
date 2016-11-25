@@ -16,63 +16,34 @@
 
 package org.gradle.internal.buildevents
 
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.invocation.Gradle
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.progress.LoggerProvider
+import org.gradle.util.Path
 import spock.lang.Specification
 
-public class TaskExecutionLoggerTest extends Specification {
+class TaskExecutionLoggerTest extends Specification {
 
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
-    def task = Mock(Task)
+    def task = Mock(TaskInternal)
     def state = Mock(TaskState)
     def progressLogger = Mock(ProgressLogger)
-    def gradle = Mock(Gradle)
     def loggerProvider = Stub(LoggerProvider) { getLogger() >> Stub(ProgressLogger) }
     def executionLogger = new TaskExecutionLogger(progressLoggerFactory, loggerProvider);
-    def project = Mock(Project)
 
     def setup() {
-        task.project >> project
-        project.gradle >> gradle
-        gradle.parent >> null
-        task.path >> ":path"
+        task.identityPath >> Path.path(":path")
     }
 
-    def "logs execution of task in root build"() {
+    def "logs execution of task"() {
         when:
         executionLogger.beforeExecute(task)
 
         then:
         interaction {
             startLogTaskExecution(':path')
-        }
-
-        when:
-        executionLogger.afterExecute(task, state);
-
-        then:
-        1 * state.skipMessage >> null
-        1 * progressLogger.completed(null)
-    }
-
-    def "logs execution of task in sub build"() {
-        def rootProject = Mock(Project)
-
-
-        when:
-        executionLogger.beforeExecute(task)
-
-        then:
-        interaction {
-            _ * gradle.parent >> Mock(Gradle)
-            _ * gradle.rootProject >> rootProject
-            _ * rootProject.name >> "build"
-            startLogTaskExecution(':build:path')
         }
 
         when:
