@@ -22,7 +22,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
                 package adams
 
                 class DeepThought {
-                    fun compute() = 42
+                    fun compute(): Int = 42
                 }
             """)
         }

@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
+import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
@@ -96,12 +97,17 @@ fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
                 put(outputConfigurationKey, output)
                 setModuleName(sourceFile.nameWithoutExtension)
                 addJvmClasspathRoots(classPath)
+                addJvmClasspathRoot(kotlinStdlibJar)
             }
             val environment = kotlinCoreEnvironmentFor(configuration, disposable)
             return compileBunchOfSources(environment)
         }
     }
 }
+
+private
+val kotlinStdlibJar: File
+    get() = PathUtil.getResourcePathForClass(Unit::class.java)
 
 private
 inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
