@@ -54,6 +54,8 @@
     <!-- Protocol types may only define constants in interfaces -->
     <suppress checks="InterfaceIsTypeCheck"
               files=".*[/\\]subprojects[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
+    <suppress checks="InterfaceIsTypeCheck"
+              files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]JavaBasePlugin.+"/>
 
 
 </suppressions>
