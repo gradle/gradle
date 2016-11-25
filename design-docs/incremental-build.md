@@ -243,3 +243,95 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 ### Other caches
 
 - `HashClassPathSnapshotter` uses an unbounded cache instantiated in [`GlobalScopeServices`](https://github.com/gradle/gradle/blob/56404fa2cd7c466d7a5e19e8920906beffa9f919/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/GlobalScopeServices.java#L211-L212)
+
+## Story: Cleanup stale output files from incremental task after Gradle version change
+
+When one changes Gradle versions or moves packages, output files from incremental tasks are not cleaned up, causing some tasks to be incorrectly considered `UP-TO-DATE`. 
+As a result, outputs from builds created by an earlier Gradle versions become stale and might cause side effects when further processing the output of the task.
+
+The issue is documented by [issue #821](https://github.com/gradle/gradle/issues/821).
+
+**Example:**
+
+A user compiles two Java source files, A and B, with Gradle version X via `compileJava`. The produced output are the class files C and D. Those class files might be packaged into
+ a JAR file via the `jar` task.
+
+Let's assume the user upgrades the version of Gradle to Y _and_ one of the input files is moved or deleted e.g. B is deleted (which might happen upon a branch change or refactoring of the code). 
+Gradle does not have a task history for the task `compileJava` as `.gradle` directory is based on the used Gradle version e.g. `./gradle/3.1` vs. `.gradle/3.2`. As a result `compileJava` would compile
+source file A but not B as it doesn't exist anymore. The output directory of the compilation task would still contain A and B which leads to an incorrect result.
+
+The goal of this story is to 1) detect this situation and 2) clean up any stale output. Java compilation is only one scenario exposing the issue - the implementation needs
+to take into consideration other task types and ad-hoc tasks defining inputs/outputs.
+
+### User visible changes
+
+Gradle detects and removes stale output files after a Gradle version change. Further processing of output files does not result in faulty behavior.
+
+### Implementation
+
+- Determine if task history cache exists in `.gradle/<version>` for corresponding Gradle version used to execute the build.
+    - If task history exists, then execute build based on existing input/output hashes. No additional action needed.
+    - If task history doesn't exist, then build has never been run with Gradle version or task history cache was deleted manually. Requires detection of existing stale files and potential deletion.
+- Detect output directories and files for all tasks in a build.
+    - Annotations considered: `@OutputDirectories`, `@OutputDirectory`, `@OutputFile`, `@OutputFiles`
+    - Programmatic assignments considered: `TaskOutputs.dir(Object)`, `TaskOutputs.file(Object)`, `TaskOutputs.files(Object...)`
+    - Create an index on disk that maps task path to outputs.
+    - Expose internal API for accessing the data structure.
+    - API reads data from index when starting a build.
+
+<!-- -->
+
+    public interface IncrementalOutputIndex {
+        /**
+         * Gets all output files mapped to the corresponding task path producing it.
+         */
+        Map<String, Set<File>> getOutputs();
+    
+        /**
+         * Gets output files for a specific task path.
+         */
+        Set<File> getOutputs(String taskPath);
+        
+        /**
+         * Adds output file to index for specific task.
+         */
+        void addOutput(File outputFile, String taskPath);
+        
+        /**
+         * Removes output file from index for specific task.
+         */
+        void removeOutput(File outputFile, String taskPath);
+        
+        /**
+         * Gets paths of task writing a given output directory or file.
+         */
+        Set<String> generatedBy(File outputFile);
+        
+        /**
+         * Identifies if at least two tasks write to the same output or write the same output files.
+         */
+        boolean hasOverlappingOutputs();
+    } 
+
+- Delete the outputs of all tasks if no overlapping outputs are detected.
+    - Retrieve all outputs mapped by task.
+    - Delete files and directories.
+- Failure to delete the output (e.g. due to a file lock) results in a failed build caused by a thrown exception. Correctness over faulty behavior.
+- Cleaning the output of a task works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`).
+- Out of scope for this story are the following aspects:
+    - If other tasks write to the same output directory then do not automatically clean the output directory as it may cause side effects.
+    - Renamed or removed tasks are not taken under consideration.
+
+### Test coverage
+
+- Gradle upgrade occurs and input files stay unchanged. No need to remove outputs.
+- Gradle upgrade occurs and inputs files removed. Stale outputs are removed.
+    - Stale outputs can be removed if located in `buildDir`.
+    - Stale outputs can be removed if located outside of `buildDir`.
+- All test cases work with a multi-project build executed in parallel mode.
+- A locked output file causes the build to fail with an appropriate error message.
+- Write a performance test case that shows the impact on build execution times for a small, medium and large project.
+
+### Open issues
+
+- What's the acceptable trade off between correctness and performance impact?
