@@ -16,13 +16,16 @@
 
 package org.gradle.integtests
 
+import com.google.common.io.Files
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.GFileUtils
+import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.util.GFileUtils.forceDelete
 
 class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,14 +37,9 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
-    def "sources files are removed indented for compilation"() {
+    def "production sources files are removed"() {
         given:
-        def sourceFile1 = file('src/main/java/Main.java')
-        sourceFile1 << 'public class Main {}'
-        def sourceFile2 = file('src/main/java/Redundant.java')
-        sourceFile2 << 'public class Redundant {}'
-        def classFile1 = file('build/classes/main/Main.class')
-        def classFile2 = file('build/classes/main/Redundant.class')
+        def javaProjectFixture = new JavaProjectFixture()
         def jarFile = file('build/libs/test.jar')
         def taskPath = ':jar'
 
@@ -53,19 +51,45 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.contains(taskPath)
-        classFile1.assertIsFile()
-        classFile2.assertIsFile()
-        hasDescendants(jarFile, 'Main.class', 'Redundant.class')
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertIsFile()
+        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
 
         when:
-        GFileUtils.forceDelete(sourceFile2)
+        forceDelete(javaProjectFixture.redundantSourceFile)
         succeeds taskPath
 
         then:
         executedAndNotSkipped(taskPath)
-        classFile1.assertIsFile()
-        classFile2.assertDoesNotExist()
-        hasDescendants(jarFile, 'Main.class')
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+    }
+
+    def "source files under buildSrc are removed"() {
+        given:
+        def javaProjectFixture = new JavaProjectFixture('buildSrc')
+        def jarFile = file('buildSrc/build/libs/buildSrc.jar')
+        def taskPath = ':help'
+
+        when:
+        def result = runWithMostRecentFinalRelease(taskPath)
+
+        then:
+        result.executedTasks.contains(taskPath)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertIsFile()
+        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+
+        when:
+        forceDelete(javaProjectFixture.redundantSourceFile)
+        succeeds taskPath
+
+        then:
+        executedAndNotSkipped(taskPath)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
     }
 
     @NotYetImplemented
@@ -142,7 +166,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
 
         when:
-        GFileUtils.forceDelete(sourceFile2)
+        forceDelete(sourceFile2)
         succeeds taskPath
 
         then:
@@ -301,8 +325,8 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
 
         when:
-        GFileUtils.forceDelete(sourceFile1)
-        GFileUtils.forceDelete(sourceFile2)
+        forceDelete(sourceFile1)
+        forceDelete(sourceFile2)
         succeeds taskPath
 
         then:
@@ -350,7 +374,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
                 into file('target')
             }
         """
-        GFileUtils.forceDelete(sourceFile2)
+        forceDelete(sourceFile2)
         succeeds newTaskPath
 
         then:
@@ -367,5 +391,55 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
 
     static boolean hasDescendants(File jarFile, String... relativePaths) {
         new JarTestFixture(jarFile).hasDescendants(relativePaths)
+    }
+
+    private class JavaProjectFixture {
+        private final String rootDirName
+        private final TestFile mainSourceFile
+        private final TestFile redundantSourceFile
+        private final TestFile mainClassFile
+        private final TestFile redundantClassFile
+
+        JavaProjectFixture() {
+            this(null)
+        }
+
+        JavaProjectFixture(String rootDirName) {
+            this.rootDirName = rootDirName
+            mainSourceFile = writeJavaSourceFile('Main')
+            redundantSourceFile = writeJavaSourceFile('Redundant')
+            mainClassFile = determineClassFile(mainSourceFile)
+            redundantClassFile = determineClassFile(redundantSourceFile)
+        }
+
+        private TestFile writeJavaSourceFile(String className) {
+            String sourceFilePath = "src/main/java/${className}.java"
+            sourceFilePath = prependRootDirName(sourceFilePath)
+            def sourceFile = StaleOutputGradleUpgradeIntegrationTest.this.file(sourceFilePath)
+            sourceFile << "public class $className {}"
+            sourceFile
+        }
+
+        private TestFile determineClassFile(File sourceFile) {
+            String classFilePath = "build/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
+            classFilePath = prependRootDirName(classFilePath)
+            StaleOutputGradleUpgradeIntegrationTest.this.file(classFilePath)
+        }
+
+        private String prependRootDirName(String filePath) {
+            rootDirName ? "$rootDirName/$filePath" : filePath
+        }
+
+        TestFile getRedundantSourceFile() {
+            redundantSourceFile
+        }
+
+        TestFile getMainClassFile() {
+            mainClassFile
+        }
+
+        TestFile getRedundantClassFile() {
+            redundantClassFile
+        }
     }
 }
