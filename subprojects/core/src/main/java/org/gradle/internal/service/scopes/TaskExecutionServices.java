@@ -143,7 +143,7 @@ public class TaskExecutionServices {
     }
 
     private static TaskExecuter createVerifyNoInputChangesExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskExecuter delegate) {
-        if ("true".equalsIgnoreCase(startParameter.getSystemPropertiesArgs().get("org.gradle.tasks.inputs.check.change.during.execution"))) {
+        if (Boolean.getBoolean("org.gradle.tasks.verifyinputs")) {
             return new VerifyNoInputChangesTaskExecuter(repository, delegate);
         } else {
             return delegate;
