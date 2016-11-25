@@ -24,7 +24,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -43,14 +43,14 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
     private final CacheRepository cacheRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
+        this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.cacheRepository = cacheRepository;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -113,6 +113,6 @@ public class BuildSourceBuilder {
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
         startParameterArg.setProfile(startParameter.isProfile());
-        return gradleLauncherFactory.nestedInstance(startParameterArg);
+        return nestedBuildFactory.nestedInstance(startParameterArg);
     }
 }

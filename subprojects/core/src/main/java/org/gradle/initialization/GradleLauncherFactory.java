@@ -34,22 +34,4 @@ public interface GradleLauncherFactory {
      * @param parent The parent service registry for this build.
      */
     GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parent);
-
-    /**
-     * Creates a nested {@link GradleLauncher} instance with the provided parameters.
-     * The new build session will be created for the launched build.
-     * The request context from the current build will be reused.
-     */
-    GradleLauncher nestedInstance(StartParameter startParameter);
-
-    /**
-     * Creates a nested {@link GradleLauncher} instance with the provided parameters.
-     * The launched build will use the provided build session scoped services.
-     * The request context from the current build will be reused.
-     *
-     * @param startParameter The settings for the build.
-     * @param buildSessionServices The parent service registry for this build.
-     */
-    GradleLauncher nestedInstance(StartParameter startParameter, ServiceRegistry buildSessionServices);
-
 }

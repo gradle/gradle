@@ -28,11 +28,14 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultGradleLauncher implements GradleLauncher {
@@ -53,21 +56,20 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
-    private final List<?> servicesToStopAtEndOfBuild;
+    private final ListenerManager globalListenerManager;
+    private final List<?> servicesToStop;
+    private final List<Stoppable> listeners = new ArrayList<Stoppable>();
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
 
-    /**
-     * Creates a new instance.
-     */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStopAtEndOfBuild) {
+                                 BuildScopeServices buildServices, ListenerManager globalListenerManager, List<?> servicesToStop) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -81,7 +83,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
-        this.servicesToStopAtEndOfBuild = servicesToStopAtEndOfBuild;
+        this.globalListenerManager = globalListenerManager;
+        this.servicesToStop = servicesToStop;
         loggingManager.start();
     }
 
@@ -212,6 +215,18 @@ public class DefaultGradleLauncher implements GradleLauncher {
         gradle.addListener(listener);
     }
 
+    @Override
+    public void addNestedListener(final Object listener) {
+        // Add the listener and remove when stopped
+        globalListenerManager.addListener(listener);
+        listeners.add(new Stoppable() {
+            @Override
+            public void stop() {
+                globalListenerManager.removeListener(listener);
+            }
+        });
+    }
+
     /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
@@ -235,7 +250,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     public void stop() {
         try {
             loggingManager.stop();
-            CompositeStoppable.stoppable(buildServices).add(servicesToStopAtEndOfBuild).stop();
+            CompositeStoppable.stoppable(listeners).add(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
         }
