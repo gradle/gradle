@@ -23,7 +23,6 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assume
 import org.junit.Rule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -47,9 +46,6 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "cunit"() {
-        // Ignoring Visual Studio toolchain tests gradle/gradle#892 and gradle/gradle#893
-        Assume.assumeFalse(toolChain.isVisualCpp())
-
         given:
         // Only run on Windows when using VisualCpp toolchain
         if (OperatingSystem.current().windows && !isVisualCpp()) {
