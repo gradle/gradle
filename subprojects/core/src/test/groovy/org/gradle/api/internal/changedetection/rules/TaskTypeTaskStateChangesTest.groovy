@@ -154,7 +154,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
 
         expect:
-        changes == ["Task ':test' has a custom action that was loaded with an unknown classloader during the previous execution"]
+        changes == ["Task ':test' had a custom action that was loaded with an unknown classloader during the previous execution"]
     }
 
     List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {

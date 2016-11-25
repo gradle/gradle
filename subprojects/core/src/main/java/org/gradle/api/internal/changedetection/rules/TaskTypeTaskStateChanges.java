@@ -91,7 +91,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
             return;
         }
         if (previousExecution.getTaskActionsClassLoaderHash() == null) {
-            changes.add(new DescriptiveChange("Task '%s' has a custom action that was loaded with an unknown classloader during the previous execution", taskPath));
+            changes.add(new DescriptiveChange("Task '%s' had a custom action that was loaded with an unknown classloader during the previous execution", taskPath));
             return;
         }
         if (!taskClassLoaderHash.equals(previousExecution.getTaskClassLoaderHash())) {
