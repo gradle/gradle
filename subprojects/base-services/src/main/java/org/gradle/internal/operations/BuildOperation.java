@@ -16,6 +16,9 @@
 
 package org.gradle.internal.operations;
 
+/**
+ * Represents some chunk of work.
+ */
 public interface BuildOperation {
     /**
      * Returns a human consumable name for this operation.
