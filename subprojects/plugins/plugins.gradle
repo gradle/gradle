@@ -26,6 +26,7 @@ dependencies {
     compile libraries.groovy
 
     compile project(':core')
+    compile project(':workers')
     compile project(':dependencyManagement')
     compile project(':reporting')
     compile project(':platformJvm')

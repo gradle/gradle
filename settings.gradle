@@ -86,6 +86,7 @@ include 'installationBeacon'
 include 'soak'
 include 'smokeTest'
 include 'compositeBuilds'
+include 'workers'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
