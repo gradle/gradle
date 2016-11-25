@@ -431,4 +431,41 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
     }
+
+    def "test runtime classpath includes test runtime only dependencies"() {
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compileonly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'runtimeonly', '1.0').publish()
+
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            apply plugin: 'java'
+
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            dependencies {
+                testImplementation 'org.gradle.test:compile:1.0'
+                testCompileOnly 'org.gradle.test:compileonly:1.0'
+                testRuntimeOnly 'org.gradle.test:runtimeonly:1.0'
+            }
+
+        task checkClasspath {
+            doLast {
+                def runtimeClasspath = test.classpath.files*.name
+                assert runtimeClasspath.contains('compile-1.0.jar')
+                assert !runtimeClasspath.contains('compileonly-1.0.jar')
+                assert runtimeClasspath.contains('runtimeonly-1.0.jar')
+            }
+        }
+        """
+
+        when:
+        run 'checkClasspath'
+
+        then:
+        noExceptionThrown()
+    }
 }
