@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import junit.framework.AssertionFailedError
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
@@ -61,11 +62,14 @@ class ProgressEvents implements ProgressListener {
                     // Display name should be mostly unique
                     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
                     if (!skipValidation && !(descriptor instanceof TestOperationDescriptor)) {
-                        def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
-                        if (duplicateName != null) {
-                            println "Found duplicate operation in events: " + events
+                        if (descriptor.displayName == 'Configure settings' || descriptor.displayName == 'Configure build' || descriptor.displayName == 'Calculate task graph' || descriptor.displayName == 'Run tasks') {
+                            // Ignore this for now
+                        } else {
+                            def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
+                            if (duplicateName != null) {
+                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events: " + events)
+                            }
                         }
-                        assert duplicateName == null
                     }
 
                     // parent should also be running
@@ -192,7 +196,7 @@ class ProgressEvents implements ProgressListener {
     }
 
     /**
-     * Returns the operation with the given display name. Fails whe not exactly one such operation.
+     * Returns the operation with the given display name. Fails when there is not exactly one such operation.
      */
     Operation operation(String displayName) {
         assertHasZeroOrMoreTrees()

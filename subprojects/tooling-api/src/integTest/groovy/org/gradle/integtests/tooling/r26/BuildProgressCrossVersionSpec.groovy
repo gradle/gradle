@@ -51,6 +51,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        events.assertIsABuild()
+
         def initScripts = events.operation("Run init scripts")
         initScripts.parent == events.operation("Run build")
     }
@@ -79,6 +81,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        events.assertIsABuild()
+
         def buildSrc = events.operation("Build buildSrc")
         buildSrc.parent == events.operation("Run build")
     }
