@@ -313,26 +313,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    def "generates buildSrc events"() {
+    def "generates events for buildSrc builds"() {
         given:
-        file("buildSrc/settings.gradle") << "include 'a', 'b'"
-        file("buildSrc/build.gradle") << """
-            allprojects {   
-                apply plugin: 'java'
-            }
-            dependencies {
-                compile project(':a')
-                compile project(':b')
-            }
-"""
-        file("buildSrc/a/src/main/java/A.java") << "public class A {}"
-        file("buildSrc/b/src/main/java/B.java") << "public class B {}"
-
-        settingsFile << "rootProject.name = 'single'"
-        buildFile << """
-            new A()
-            new B()
-"""
+        buildSrc()
+        javaProjectWithTests()
 
         when:
         def events = new ProgressEvents()
@@ -347,8 +331,87 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         def buildSrc = events.operation("Build buildSrc")
-        buildSrc.children.find { it.descriptor.displayName == 'Configure build' }
-        buildSrc.children.find { it.descriptor.displayName == 'Run tasks' }
+        def configureBuildSrc = buildSrc.child("Configure build")
+        configureBuildSrc.child("Configure project ':buildSrc'")
+        configureBuildSrc.child("Configure project ':buildSrc:a'")
+        configureBuildSrc.child("Configure project ':buildSrc:b'")
+
+        def buildSrcTasks = buildSrc.child("Run tasks")
+        buildSrcTasks.child("Task :buildSrc:compileJava").descriptor.name == ':buildSrc:compileJava'
+        buildSrcTasks.child("Task :buildSrc:a:compileJava").child("Resolve configuration ':buildSrc:a:compileClasspath'")
+        buildSrcTasks.child("Task :buildSrc:b:compileJava")
+
+        buildSrcTasks.child("Task :buildSrc:a:test").child("Gradle Test Run :buildSrc:a:test")
+        buildSrcTasks.child("Task :buildSrc:b:test")
+
+        when:
+        events.clear()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                        .addProgressListener(events, OperationType.TASK)
+                        .forTasks("build")
+                        .run()
+        }
+
+        then:
+        events.tasks.size() == events.operations.size()
+        events.operation("Task :buildSrc:a:compileJava")
+        events.operation("Task :buildSrc:a:test")
+        events.operation("Task :compileJava")
+        events.operation("Task :test")
+
+        when:
+        events.clear()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                        .addProgressListener(events, OperationType.TEST)
+                        .withArguments("--rerun-tasks")
+                        .forTasks("build")
+                        .run()
+        }
+
+        then:
+        events.tests.size() == events.operations.size()
+        events.operation("Gradle Test Run :buildSrc:a:test")
+        events.operation("Test ok(Test)")
+        events.operation("Gradle Test Run :test")
     }
 
+    def javaProjectWithTests() {
+        buildFile << """
+            allprojects { 
+                apply plugin: 'java'
+                repositories { mavenCentral() }
+                dependencies { testCompile 'junit:junit:4.12' }
+            }
+"""
+        file("src/main/java/Thing.java") << """class Thing { }"""
+        file("src/test/java/ThingTest.java") << """
+            public class ThingTest { 
+                @org.junit.Test
+                public void ok() { }
+            }
+        """
+    }
+
+    def buildSrc() {
+        file("buildSrc/settings.gradle") << "include 'a', 'b'"
+        file("buildSrc/build.gradle") << """
+            allprojects {   
+                apply plugin: 'java'
+                repositories { mavenCentral() }
+                dependencies { testCompile 'junit:junit:4.12' }
+            }
+            dependencies {
+                compile project(':a')
+                compile project(':b')
+            }
+"""
+        file("buildSrc/a/src/main/java/A.java") << "public class A {}"
+        file("buildSrc/a/src/test/java/Test.java") << "public class Test { @org.junit.Test public void ok() { } }"
+        file("buildSrc/b/src/main/java/B.java") << "public class B {}"
+        file("buildSrc/b/src/test/java/Test.java") << "public class Test { @org.junit.Test public void ok() { } }"
+    }
 }

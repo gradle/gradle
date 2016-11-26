@@ -200,9 +200,11 @@ class ProgressEvents implements ProgressListener {
      */
     Operation operation(String displayName) {
         assertHasZeroOrMoreTrees()
-        def byName = operations.find({it.descriptor.displayName == displayName})
-        assert byName != null
-        return byName
+        def operation = operations.find {it.descriptor.displayName == displayName}
+        if (operation == null) {
+            throw new AssertionFailedError("No operation with display name '$displayName' found in: $operations")
+        }
+        return operation
     }
 
     @Override
@@ -254,6 +256,14 @@ class ProgressEvents implements ProgressListener {
         List<Failure> getFailures() {
             assert result instanceof FailureResult
             return result.failures
+        }
+
+        Operation child(String displayName) {
+            def child = children.find { it.descriptor.displayName == displayName }
+            if (child == null) {
+                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName': $children")
+            }
+            return child
         }
     }
 }
