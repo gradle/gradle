@@ -117,7 +117,11 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalBuil
         while (descriptor.getOwnerBuildOperationId() == null && descriptor.getParent() != null) {
             descriptor = descriptor.getParent();
         }
-        return runningTasks.get(descriptor.getOwnerBuildOperationId());
+        String taskPath = runningTasks.get(descriptor.getOwnerBuildOperationId());
+        if (taskPath == null) {
+            throw new IllegalStateException("No parent task for test " + givenDescriptor);
+        }
+        return taskPath;
     }
 
     @Override
