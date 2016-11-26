@@ -54,6 +54,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.util.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -1460,7 +1461,7 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+        new DefaultConfiguration(Path.path(path), path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory, new TestBuildOperationExecutor())
     }
 

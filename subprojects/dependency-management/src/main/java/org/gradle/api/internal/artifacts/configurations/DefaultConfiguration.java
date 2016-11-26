@@ -77,6 +77,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -121,6 +122,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     };
 
+    private final Path identityPath;
     // These fields are not covered by mutation lock
     private final String path;
     private final String name;
@@ -144,7 +146,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeResolved = true;
     private final DefaultAttributeContainer configurationAttributes = new DefaultAttributeContainer();
 
-    public DefaultConfiguration(String path, String name,
+    public DefaultConfiguration(Path identityPath, String path, String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
@@ -156,6 +158,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 FileCollectionFactory fileCollectionFactory,
                                 ComponentIdentifierFactory componentIdentifierFactory,
                                 BuildOperationExecutor buildOperationExecutor) {
+        this.identityPath = identityPath;
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -549,7 +552,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
         builder.append("configuration '");
-        builder.append(path);
+        builder.append(identityPath);
         builder.append("'");
         return builder.toString();
     }
@@ -576,7 +579,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
+        DefaultConfiguration copiedConfiguration = new DefaultConfiguration(Path.path(identityPath.toString() + "Copy"), path + "Copy", name + "Copy",
             configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy

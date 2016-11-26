@@ -527,6 +527,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return this.path.absolutePath(path);
     }
 
+    @Override
+    public Path identityPath(String name) {
+        return getIdentityPath().resolve(name);
+    }
+
     public String relativeProjectPath(String path) {
         return this.path.relativePath(path);
     }
