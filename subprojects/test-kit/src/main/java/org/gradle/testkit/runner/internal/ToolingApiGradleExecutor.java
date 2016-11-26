@@ -31,11 +31,13 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.TaskFailureResult;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationResult;
+import org.gradle.tooling.events.task.TaskProgressEvent;
 import org.gradle.tooling.events.task.TaskSkippedResult;
 import org.gradle.tooling.events.task.TaskStartEvent;
 import org.gradle.tooling.events.task.TaskSuccessResult;
@@ -109,7 +111,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardOutput())));
             launcher.setStandardError(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardError())));
 
-            launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
+            launcher.addProgressListener(new TaskExecutionProgressListener(tasks), OperationType.TASK);
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));
             launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[0]));
@@ -192,11 +194,17 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         public void statusChanged(ProgressEvent event) {
             if (event instanceof TaskStartEvent) {
                 TaskStartEvent taskStartEvent = (TaskStartEvent) event;
+                if (!accept(taskStartEvent)) {
+                    return;
+                }
                 order.put(taskStartEvent.getDescriptor().getTaskPath(), tasks.size());
                 tasks.add(null);
             }
             if (event instanceof TaskFinishEvent) {
                 TaskFinishEvent taskFinishEvent = (TaskFinishEvent) event;
+                if (!accept(taskFinishEvent)) {
+                    return;
+                }
                 String taskPath = taskFinishEvent.getDescriptor().getTaskPath();
                 TaskOperationResult result = taskFinishEvent.getResult();
                 final Integer index = order.get(taskPath);
@@ -205,6 +213,11 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 }
                 tasks.set(index, determineBuildTask(result, taskPath));
             }
+        }
+
+        private boolean accept(TaskProgressEvent event) {
+            // Exclude tasks from `buildSrc`
+            return !event.getDescriptor().getTaskPath().startsWith(":buildSrc");
         }
 
         private BuildTask determineBuildTask(TaskOperationResult result, String taskPath) {
