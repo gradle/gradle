@@ -73,7 +73,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         currentOperation.set(new OperationDetails(parent, id));
         try {
             long startTime = timeProvider.getCurrentTime();
-            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
+            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getName(), operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
             listener.started(operation, new OperationStartEvent(startTime));
 
             T result = null;

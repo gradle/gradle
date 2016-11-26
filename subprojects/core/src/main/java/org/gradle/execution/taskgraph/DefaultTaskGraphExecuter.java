@@ -218,7 +218,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         @Override
         public void execute(final TaskInternal task) {
             TaskOperationInternal taskOperation = new TaskOperationInternal(task);
-            BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getIdentityPath()).parent(parentOperation).operationDescriptor(taskOperation).build();
+            BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).parent(parentOperation).operationDescriptor(taskOperation).build();
             buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {

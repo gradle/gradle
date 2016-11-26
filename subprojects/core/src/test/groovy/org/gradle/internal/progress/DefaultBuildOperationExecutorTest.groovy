@@ -34,7 +34,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         def action = Mock(Transformer)
         def progressLogger = Mock(ProgressLogger)
         def descriptor = "some-thing"
-        def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").operationDescriptor(descriptor).build()
+        def operationDetails = BuildOperationDetails.displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").operationDescriptor(descriptor).build()
         def id
 
         when:
@@ -49,6 +49,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             id = operation.id
             assert operation.id != null
             assert operation.parentId == null
+            assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
             assert operation.operationDescriptor == descriptor
             assert start.startTime == 123L
@@ -71,6 +72,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert operation.parentId == null
             assert operation.id == id
+            assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
             assert operation.operationDescriptor == descriptor
             assert opResult.startTime == 123L
@@ -258,6 +260,14 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.id == parentId
             assert opResult.failure == null
         }
+    }
+
+    def "cannot start child operation when parent has completed"() {
+        expect: false
+    }
+
+    def "child fails when parent completes while child is still running"() {
+        expect: false
     }
 
     def "can query operation id from inside operation"() {

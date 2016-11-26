@@ -21,6 +21,7 @@ import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class LifecycleProjectEvaluatorTest extends Specification {
@@ -33,7 +34,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
-        project.toString() >> "project1"
+        project.displayName >> "<project>"
+        project.identityPath >> Path.path(":project1")
     }
 
     void "nothing happens if project was already configured"() {
@@ -71,6 +73,10 @@ class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.setExecuting(false)
         1 * state.executed()
         1 * listener.afterEvaluate(project, state)
+
+        and:
+        buildOperationExecutor.operations[0].name == 'Project :project1'
+        buildOperationExecutor.operations[0].displayName == 'Configure project :project1'
     }
 
     void "notifies listeners and updates state on evaluation failure"() {
@@ -133,7 +139,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
     def assertIsConfigurationFailure(def it, def cause) {
         assert it instanceof ProjectConfigurationException
-        assert it.message == "A problem occurred configuring project1."
+        assert it.message == "A problem occurred configuring <project>."
         assert it.cause == cause
         true
     }

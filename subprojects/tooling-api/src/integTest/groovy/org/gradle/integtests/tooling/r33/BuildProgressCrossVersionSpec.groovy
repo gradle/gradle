@@ -43,7 +43,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureBuild = events.operation("Configure build")
 
-        def configureRootProject = events.operation("Configure root project 'single'")
+        def configureRootProject = events.operation("Configure project :")
         configureRootProject.parent == configureBuild
 
         configureBuild.children == [configureRootProject]
@@ -70,14 +70,17 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureBuild = events.operation("Configure build")
 
-        def configureRoot = events.operation("Configure root project 'multi'")
+        def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
+        configureRoot.descriptor.name == 'Project :'
 
-        def configureA = events.operation("Configure project ':a'")
+        def configureA = events.operation("Configure project :a")
         configureA.parent == configureBuild
+        configureA.descriptor.name == 'Project :a'
 
-        def configureB = events.operation("Configure project ':b'")
+        def configureB = events.operation("Configure project :b")
         configureB.parent == configureBuild
+        configureB.descriptor.name == 'Project :b'
 
         configureBuild.children == [configureRoot, configureA, configureB]
     }
@@ -110,10 +113,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def configureBuild = events.operation("Configure build")
         configureBuild.failed
 
-        def configureRoot = events.operation("Configure root project 'multi'")
+        def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
 
-        def configureA = events.operation("Configure project ':a'")
+        def configureA = events.operation("Configure project :a")
         configureA.parent == configureBuild
         configureA.failed
         configureA.failures[0].message == "A problem occurred configuring project ':a'."
@@ -150,15 +153,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureBuild = events.operation("Configure build")
 
-        def configureRoot = events.operation("Configure root project 'multi'")
+        def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
         configureBuild.children == [configureRoot]
 
-        def configureA = events.operation("Configure project ':a'")
+        def configureA = events.operation("Configure project :a")
         configureA.parent == configureRoot
         configureRoot.children == [configureA]
 
-        def configureB = events.operation("Configure project ':b'")
+        def configureB = events.operation("Configure project :b")
         configureB.parent == configureA
         configureA.children == [configureB]
     }
@@ -197,13 +200,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def compileTestJava = events.operation("Task :compileTestJava")
         def test = events.operation("Task :test")
 
-        def compileClasspath = events.operation("Resolve configuration ':compileClasspath'")
+        def compileClasspath = events.operation("Resolve dependencies :compileClasspath")
         compileClasspath.parent == compileJava
 
-        def testCompileClasspath = events.operation("Resolve configuration ':testCompileClasspath'")
+        def testCompileClasspath = events.operation("Resolve dependencies :testCompileClasspath")
         testCompileClasspath.parent == compileTestJava
 
-        def testRuntimeClasspath = events.operation("Resolve configuration ':testRuntime'")
+        def testRuntimeClasspath = events.operation("Resolve dependencies :testRuntime")
         testRuntimeClasspath.parent == test
     }
 
@@ -231,7 +234,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         events.assertIsABuild()
 
-        events.operation("Resolve configuration ':compileClasspath'")
+        events.operation("Resolve dependencies :compileClasspath")
         // TODO: currently not marked as failed
     }
 
@@ -292,23 +295,23 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureBuild = events.operation("Configure build")
 
-        def configureRoot = events.operation("Configure root project 'multi'")
+        def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
         configureBuild.children == [configureRoot]
 
-        def resolveCompile = events.operation("Resolve configuration ':compile'")
+        def resolveCompile = events.operation("Resolve dependencies :compile")
         resolveCompile.parent == configureRoot
         configureRoot.children == [resolveCompile]
 
-        def configureA = events.operation("Configure project ':a'")
+        def configureA = events.operation("Configure project :a")
         configureA.parent == resolveCompile
         resolveCompile.children == [configureA]
 
-        def resolveCompileA = events.operation("Resolve configuration ':a:compile'")
+        def resolveCompileA = events.operation("Resolve dependencies :a:compile")
         resolveCompileA.parent == configureA
         configureA.children == [resolveCompileA]
 
-        def configureB = events.operation("Configure project ':b'")
+        def configureB = events.operation("Configure project :b")
         configureB.parent == resolveCompileA
         resolveCompileA.children == [configureB]
     }
@@ -332,14 +335,18 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def buildSrc = events.operation("Build buildSrc")
         def configureBuildSrc = buildSrc.child("Configure build")
-        configureBuildSrc.child("Configure project ':buildSrc'")
-        configureBuildSrc.child("Configure project ':buildSrc:a'")
-        configureBuildSrc.child("Configure project ':buildSrc:b'")
+        configureBuildSrc.child("Configure project :buildSrc")
+        configureBuildSrc.child("Configure project :buildSrc:a")
+        configureBuildSrc.child("Configure project :buildSrc:b")
 
         def buildSrcTasks = buildSrc.child("Run tasks")
-        buildSrcTasks.child("Task :buildSrc:compileJava").descriptor.name == ':buildSrc:compileJava'
-        buildSrcTasks.child("Task :buildSrc:a:compileJava").child("Resolve configuration ':buildSrc:a:compileClasspath'")
-        buildSrcTasks.child("Task :buildSrc:b:compileJava")
+
+        def buildSrcCompileJava = buildSrcTasks.child("Task :buildSrc:compileJava")
+        buildSrcCompileJava.descriptor.name == ':buildSrc:compileJava'
+        buildSrcCompileJava.descriptor.taskPath == ':buildSrc:compileJava'
+
+        buildSrcTasks.child("Task :buildSrc:a:compileJava").child("Resolve dependencies :buildSrc:a:compileClasspath")
+        buildSrcTasks.child("Task :buildSrc:b:compileJava").child("Resolve dependencies :buildSrc:b:compileClasspath")
 
         buildSrcTasks.child("Task :buildSrc:a:test").child("Gradle Test Run :buildSrc:a:test")
         buildSrcTasks.child("Task :buildSrc:b:test")

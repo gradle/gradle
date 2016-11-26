@@ -60,6 +60,12 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         1 * listener.beforeExecute(b)
         1 * listener.afterExecute(b, b.state)
         0 * listener._
+
+        and:
+        buildOperationExecutor.operations[0].name == ":a"
+        buildOperationExecutor.operations[0].displayName == "Task :a"
+        buildOperationExecutor.operations[1].name == ":b"
+        buildOperationExecutor.operations[1].displayName == "Task :b"
     }
 
     def "notifies task listener when task fails"() {
@@ -134,6 +140,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def task(String name) {
         def mock = Mock(TaskInternal)
         _ * mock.name >> name
+        _ * mock.identityPath >> project.identityPath.resolve(name)
         _ * mock.project >> project
         _ * mock.state >> Stub(TaskStateInternal) {
             getFailure() >> null
@@ -152,6 +159,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def brokenTask(String name, RuntimeException failure) {
         def mock = Mock(TaskInternal)
         _ * mock.name >> name
+        _ * mock.identityPath >> project.identityPath.resolve(name)
         _ * mock.project >> project
         _ * mock.state >> Stub(TaskStateInternal) {
             getFailure() >> failure

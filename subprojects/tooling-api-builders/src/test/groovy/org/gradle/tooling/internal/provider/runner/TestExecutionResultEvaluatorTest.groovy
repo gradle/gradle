@@ -90,7 +90,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         def testTask = Mock(TaskInternal)
         1 * testTask.getPath() >> ":someproject:someTestTask"
-        def buildOperation = new BuildOperationInternal(1, 2, "<task>", new TaskOperationInternal(testTask))
+        def buildOperation = new BuildOperationInternal(1, 2, "<task>", "<task>", new TaskOperationInternal(testTask))
 
         when:
         evaluator.started(buildOperation, Mock(OperationStartEvent))

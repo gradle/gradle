@@ -24,14 +24,24 @@ import org.gradle.api.Nullable;
 public class BuildOperationDetails {
     private final BuildOperationExecutor.Operation parent;
     private final String displayName;
+    private final String name;
     private final String progressDisplayName;
     private final Object operationDescriptor;
 
-    private BuildOperationDetails(BuildOperationExecutor.Operation parent, String displayName, String progressDisplayName, Object operationDescriptor) {
+    private BuildOperationDetails(BuildOperationExecutor.Operation parent, String name, String displayName, String progressDisplayName, Object operationDescriptor) {
         this.parent = parent;
+        this.name = name;
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
         this.operationDescriptor = operationDescriptor;
+    }
+
+    /**
+     * Returns a short name for the operation. This is a short human consumable description of the operation that makes sense in the context of the parent operation.
+     * See TAPI {@code OperationDescriptor}.
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -76,12 +86,19 @@ public class BuildOperationDetails {
 
     public static class Builder {
         private final String displayName;
+        private String name;
         private BuildOperationExecutor.Operation parent;
         private String progressDisplayName;
         private Object operationDescriptor;
 
         private Builder(String displayName) {
             this.displayName = displayName;
+            this.name = displayName;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
         }
 
         public Builder progressDisplayName(String progressDisplayName) {
@@ -100,7 +117,7 @@ public class BuildOperationDetails {
         }
 
         public BuildOperationDetails build() {
-            return new BuildOperationDetails(parent, displayName, progressDisplayName, operationDescriptor);
+            return new BuildOperationDetails(parent, name, displayName, progressDisplayName, operationDescriptor);
         }
     }
 }

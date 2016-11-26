@@ -419,7 +419,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw new IllegalStateException("Graph resolution already performed");
         }
 
-        buildOperationExecutor.run("Resolve " + this, new Action<BuildOperationContext>() {
+        buildOperationExecutor.run("Resolve dependencies " + identityPath, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 ResolvableDependencies incoming = getIncoming();
