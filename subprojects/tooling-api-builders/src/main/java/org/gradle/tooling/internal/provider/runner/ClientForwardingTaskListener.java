@@ -92,9 +92,10 @@ class ClientForwardingTaskListener implements InternalBuildListener {
     private DefaultTaskDescriptor toTaskDescriptor(BuildOperationInternal buildOperation, TaskInternal task) {
         Object id = buildOperation.getId();
         String displayName = buildOperation.getDisplayName();
+        String taskIdentityPath = task.getIdentityPath().toString();
         String taskPath = task.getPath();
         Object parentId = getParentId(buildOperation);
-        return new DefaultTaskDescriptor(id, taskPath, displayName, parentId);
+        return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId);
     }
 
     private Object getParentId(BuildOperationInternal buildOperation) {
