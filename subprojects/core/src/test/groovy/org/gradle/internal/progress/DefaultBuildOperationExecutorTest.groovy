@@ -263,11 +263,40 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "cannot start child operation when parent has completed"() {
-        expect: false
+        def operation
+
+        given:
+        operationExecutor.run("parent", {
+            operation = operationExecutor.currentOperation
+        } as Action)
+
+        when:
+        operationExecutor.run(BuildOperationDetails.displayName("child").parent(operation).build(), {} as Action)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot start operation (child) as parent operation (parent) has already completed.'
     }
 
     def "child fails when parent completes while child is still running"() {
-        expect: false
+        when:
+        async {
+            operationExecutor.run("parent", {
+                def operation = operationExecutor.currentOperation
+                start {
+                    operationExecutor.run(BuildOperationDetails.displayName("child").parent(operation).build(), {
+                        instant.childStarted
+                        thread.blockUntil.parentCompleted
+                    } as Action)
+                }
+                thread.blockUntil.childStarted
+            } as Action)
+            instant.parentCompleted
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Parent operation (parent) completed before this operation (child).'
     }
 
     def "can query operation id from inside operation"() {

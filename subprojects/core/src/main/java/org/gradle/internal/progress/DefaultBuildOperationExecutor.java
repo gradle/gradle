@@ -26,6 +26,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.time.TimeProvider;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
@@ -67,10 +68,21 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
-        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : currentOperation.get();
-        OperationIdentifier parentId = parent == null ? null : parent.id;
+        OperationDetails operationBefore = currentOperation.get();
+        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : operationBefore;
+        OperationIdentifier parentId;
+        if (parent == null) {
+            parentId = null;
+        } else {
+            if (!parent.running.get()) {
+                throw new IllegalStateException(String.format("Cannot start operation (%s) as parent operation (%s) has already completed.", operationDetails.getDisplayName(), parent.operationDetails.getDisplayName()));
+            }
+            parentId = parent.id;
+        }
         OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
-        currentOperation.set(new OperationDetails(parent, id));
+        OperationDetails currentOperation = new OperationDetails(parent, id, operationDetails);
+        currentOperation.running.set(true);
+        this.currentOperation.set(currentOperation);
         try {
             long startTime = timeProvider.getCurrentTime();
             BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getName(), operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
@@ -97,6 +109,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                         progressLogger.completed();
                     }
                 }
+                if (parent != null && !parent.running.get()) {
+                    throw new IllegalStateException(String.format("Parent operation (%s) completed before this operation (%s).", parent.operationDetails.getDisplayName(), operationDetails.getDisplayName()));
+                }
             } catch (Throwable t) {
                 context.failed(t);
                 failure = t;
@@ -111,17 +126,21 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
             return result;
         } finally {
-            currentOperation.set(parent);
+            this.currentOperation.set(operationBefore);
+            currentOperation.running.set(false);
         }
     }
 
     private static class OperationDetails implements Operation {
+        final AtomicBoolean running = new AtomicBoolean();
         final OperationDetails parent;
         final OperationIdentifier id;
+        final BuildOperationDetails operationDetails;
 
-        OperationDetails(OperationDetails parent, OperationIdentifier id) {
+        OperationDetails(OperationDetails parent, OperationIdentifier id, BuildOperationDetails operationDetails) {
             this.parent = parent;
             this.id = id;
+            this.operationDetails = operationDetails;
         }
 
         @Override
