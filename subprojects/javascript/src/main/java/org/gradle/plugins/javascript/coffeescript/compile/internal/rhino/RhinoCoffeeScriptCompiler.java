@@ -41,7 +41,6 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
 
     public WorkResult compile(CoffeeScriptCompileSpec spec) {
         CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
-
         compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
 
         return new WorkResult() {

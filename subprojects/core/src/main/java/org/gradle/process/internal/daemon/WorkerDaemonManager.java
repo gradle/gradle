@@ -26,7 +26,7 @@ import java.io.File;
 @ThreadSafe
 public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
 
-    private WorkerDaemonClientsManager clientsManager;
+    private final WorkerDaemonClientsManager clientsManager;
 
     public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager) {
         this.clientsManager = clientsManager;

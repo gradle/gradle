@@ -46,7 +46,6 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
 
     public void evaluate(String url, Writer writer) {
         EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
-
         final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
 
         try {

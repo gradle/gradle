@@ -26,7 +26,6 @@ import java.io.File;
 public class AntlrWorkerManager {
 
     public AntlrResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-
         AntlrWorker antlrWorker = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
         return antlrWorker.runAntlr(spec);
     }
@@ -38,7 +37,7 @@ public class AntlrWorkerManager {
         if (antlrClasspath != null) {
             builder.applicationClasspath(antlrClasspath);
         }
-        builder.sharedPackages(new String[] {"antlr", "org.antlr"});
+        builder.sharedPackages(new String[]{"antlr", "org.antlr"});
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());

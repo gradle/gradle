@@ -17,7 +17,6 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -33,6 +32,7 @@ import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.TreeVisitor;
 
@@ -43,8 +43,8 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     private final FileResolver fileResolver;
     private final WorkerDaemonManager compilerDaemonManager;
+    private final WorkerProcessFactory workerProcessBuilderFactory;
     private final PlayPlatform targetPlatform;
-    private WorkerProcessFactory workerProcessBuilderFactory;
     private final Set<File> twirlClasspath;
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;

@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.internal.Factory;
@@ -84,7 +85,8 @@ public class EnvJsPlugin implements Plugin<Project> {
                                 return envJsExtension.getJs().getSingleFile();
                             }
                         };
-                        return new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.getClasspath(), envJsFactory, project.getGradle().getStartParameter().getLogLevel(), workDir);
+                        LogLevel logLevel = project.getGradle().getStartParameter().getLogLevel();
+                        return new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.getClasspath(), envJsFactory, logLevel, workDir);
                     }
                 });
             }

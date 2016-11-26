@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -28,6 +29,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def serverImpl = Stub(WorkerDaemonProtocol)
 
     @Subject manager = new WorkerDaemonClientsManager(starter)
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     def "does not reserve idle client when no clients"() {
         expect:

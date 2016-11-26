@@ -25,6 +25,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.process.internal.MemoryResourceManager;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 
 import java.io.File;
@@ -36,15 +37,18 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final File gradleUserHomeDir;
     private final JavaExecHandleFactory execHandleFactory;
     private final ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory;
+    private final MemoryResourceManager memoryResourceManager;
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
-                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
+                                       MemoryResourceManager memoryResourceManager) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
+        this.memoryResourceManager = memoryResourceManager;
         workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector);
     }
 
@@ -61,7 +65,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     }
 
     private DefaultWorkerProcessBuilder newWorker() {
-        DefaultWorkerProcessBuilder workerProcessBuilder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerFactory);
+        DefaultWorkerProcessBuilder workerProcessBuilder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerFactory, memoryResourceManager);
         workerProcessBuilder.setLogLevel(workerLogLevel);
         workerProcessBuilder.setGradleUserHomeDir(gradleUserHomeDir);
         workerProcessBuilder.setConnectTimeoutSeconds(connectTimeoutSeconds);
