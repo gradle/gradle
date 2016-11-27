@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Attribute;
 import org.gradle.api.AttributeContainer;
 import org.gradle.internal.Cast;
@@ -92,5 +93,22 @@ class ImmutableAttributes implements AttributeContainerInternal {
             return sorted.toString();
         }
         return "{}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ImmutableAttributes)) {
+            return false;
+        }
+        ImmutableAttributes that = (ImmutableAttributes) o;
+        return Objects.equal(attributes, that.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(attributes);
     }
 }
