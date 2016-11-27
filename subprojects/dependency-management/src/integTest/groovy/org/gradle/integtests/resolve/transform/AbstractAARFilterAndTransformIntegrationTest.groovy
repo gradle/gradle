@@ -218,34 +218,31 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def aarTransform() {
         """
-        @TransformInput(format = 'aar')
-        class AarExtractor extends ArtifactTransform {
+        class AarExtractor extends ArtifactTypeTransform {
             private Project files
 
             private File explodedAar
             private File explodedJar
-
-            @TransformOutput(format = 'jar')
-            File getClassesJar() {
-                new File(explodedAar, "classes.jar")
+            
+            String inputType = 'aar'
+            List<String> outputTypes = ['jar', 'classpath', 'classes', 'android-manifest']
+            
+            File transform(File input, String targetType) {
+                explodeAar(input)
+                switch (targetType) {
+                    case 'jar':
+                    case 'classpath':
+                        return new File(explodedAar, "classes.jar")
+                    case 'classes':
+                        return explodedJar
+                    case 'android-manifest':
+                        return new File(explodedAar, "AndroidManifest.xml")
+                    default:
+                        throw new IllegalArgumentException("Not a supported target type: " + targetType)
+                }
             }
 
-            @TransformOutput(format = 'classpath')
-            File getClasspathElement() {
-                getClassesJar()
-            }
-
-            @TransformOutput(format = 'classes')
-            File getClassesFolder() {
-                explodedJar
-            }
-
-            @TransformOutput(format = 'android-manifest')
-            File getManifest() {
-                new File(explodedAar, "AndroidManifest.xml")
-            }
-
-            void transform(File input) {
+            private void explodeAar(File input) {
                 assert input.name.endsWith('.aar')
 
                 explodedAar = new File(outputDirectory, input.name + '/explodedAar')
@@ -270,24 +267,28 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def jarTransform() {
         """
-        @TransformInput(format = 'jar')
-        class JarTransform extends ArtifactTransform {
+        class JarTransform extends ArtifactTypeTransform {
             private Project files
 
             private File jar
             private File classesFolder
 
-            @TransformOutput(format = 'classpath')
-            File getClasspathElement() {
-                jar
+            String inputType = 'jar'
+            List<String> outputTypes = ['classpath', 'classes']
+            
+            File transform(File input, String targetType) {
+                explodeJar(input)
+                switch (targetType) {
+                    case 'classpath':
+                        return jar
+                    case 'classes':
+                        return classesFolder
+                    default:
+                        throw new IllegalArgumentException("Not a supported target type: " + targetType)
+                }
             }
-
-            @TransformOutput(format = 'classes')
-            File getClassesFolder() {
-                classesFolder
-            }
-
-            void transform(File input) {
+            
+            private void explodeJar(File input) {
                 jar = input
 
                 //We could use a location based on the input, since the classes folder is similar for all consumers.
@@ -308,19 +309,17 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def classFolderTransform() {
         """
-        @TransformInput(format = 'classes')
-        class ClassesFolderClasspathTransform extends ArtifactTransform {
+        class ClassesFolderClasspathTransform extends ArtifactTypeTransform {
             private Project files
 
             private File classesFolder
-
-            @TransformOutput(format = 'classpath')
-            File getClasspathElement() {
-                classesFolder
-            }
-
-            void transform(File input) {
-                classesFolder = input
+            
+            String inputType = 'classes'
+            List<String> outputTypes = ['classpath']
+            
+            File transform(File input, String targetType) {
+                assert targetType == 'classpath'
+                return input
             }
         }
         """
