@@ -18,18 +18,28 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Attribute
 import org.gradle.api.AttributeContainer
+import org.gradle.api.AttributeMatchingStrategy
+import org.gradle.api.AttributeValue
+import org.gradle.api.AttributesSchema
 import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.DefaultAttributeContainer
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import spock.lang.Specification
 
 class ArtifactTransformerTest extends Specification {
+    public static final Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String.class)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
-    def transformer = new ArtifactTransformer(resolutionStrategy)
+    def attributesSchema = Stub(AttributesSchema) {
+        getMatchingStrategy(ARTIFACT_TYPE_ATTRIBUTE) >> new StrictMatchingStrategy()
+    }
+    def artifactTransforms = Mock(ArtifactTransforms)
+    def artifactAttributeMatcher = new ArtifactAttributeMatcher(attributesSchema);
+    def transformer = new ArtifactTransformer(artifactTransforms, artifactAttributeMatcher)
 
     def "forwards artifact whose type matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
@@ -63,7 +73,7 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitArtifact(artifact)
 
         then:
-        1 * resolutionStrategy.getTransform("zip", "classpath") >> transform
+        1 * artifactTransforms.getTransform(typeAttributes("zip"), typeAttributes("classpath")) >> transform
         1 * visitor.visitArtifact(_) >> { ResolvedArtifact a -> transformedArtifact = a }
         0 * _
 
@@ -129,7 +139,7 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
-        1 * resolutionStrategy.getTransform("zip", "classpath") >> transform
+        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> transform
         1 * transform.transform(file) >> transformedFile
         1 * visitor.visitFiles(id, [transformedFile])
         0 * _
@@ -145,7 +155,7 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
-        1 * resolutionStrategy.getTransform("lib", "classpath") >> null
+        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> null
         0 * _
     }
 
@@ -159,7 +169,8 @@ class ArtifactTransformerTest extends Specification {
         def transformedFile2 = new File("thing2.classpath")
 
         given:
-        resolutionStrategy.getTransform("zip", "classpath") >> transform
+        artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
+        artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
         transform.transform(file1) >> transformedFile1
 
         def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
@@ -183,7 +194,7 @@ class ArtifactTransformerTest extends Specification {
         transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
 
         then:
-        1 * resolutionStrategy.getTransform("zip", "classpath") >> transform
+        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
         1 * transform.transform(file2) >> transformedFile2
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
         0 * _
@@ -196,13 +207,13 @@ class ArtifactTransformerTest extends Specification {
         0 * _
     }
 
-    def "selects artifacts with requested format"() {
+    def "selects artifacts with requested attributes"() {
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
         given:
-        artifact1.type >> "classes"
-        artifact2.type >> "jar"
+        artifact1.attributes >> typeAttributes("classes")
+        artifact2.attributes >> typeAttributes("jar")
 
         expect:
         def spec = transformer.select(typeAttributes("classes"))
@@ -210,15 +221,16 @@ class ArtifactTransformerTest extends Specification {
         !spec.isSatisfiedBy(artifact2)
     }
 
-    def "selects artifacts with format that can be transformed to requested format"() {
+    def "selects artifacts with attributes that can be transformed to requested format"() {
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
         given:
-        artifact1.type >> "jar"
-        artifact2.type >> "dll"
-        resolutionStrategy.getTransform("jar", "classes") >> Stub(Transformer)
-        resolutionStrategy.getTransform("dll", "classes") >> null
+        artifact1.attributes >> typeAttributes("jar")
+        artifact2.attributes >> typeAttributes("dll")
+
+        artifactTransforms.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+        artifactTransforms.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
 
         expect:
         def spec = transformer.select(typeAttributes("classes"))
@@ -227,9 +239,22 @@ class ArtifactTransformerTest extends Specification {
     }
 
     private static AttributeContainer typeAttributes(String artifactType) {
-        def typeAttribute = Attribute.of("artifactType", String.class)
-        new DefaultAttributeContainer().attribute(typeAttribute, artifactType.toString())
+        def attributeContainer = new DefaultAttributeContainer()
+        attributeContainer.attribute(ARTIFACT_TYPE_ATTRIBUTE, artifactType.toString())
+        attributeContainer.asImmutable()
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }
+
+    class StrictMatchingStrategy implements AttributeMatchingStrategy<String> {
+        @Override
+        boolean isCompatible(String requestedValue, String candidateValue) {
+            return requestedValue == candidateValue
+        }
+
+        @Override
+        def <K> List<K> selectClosestMatch(AttributeValue<String> requestedValue, Map<K, String> candidateValues) {
+            return candidateValues.keySet();
+        }
+    }
 }

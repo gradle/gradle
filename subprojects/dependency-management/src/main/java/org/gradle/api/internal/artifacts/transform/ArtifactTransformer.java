@@ -24,8 +24,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
@@ -35,48 +33,35 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ArtifactTransformer {
-    private final ResolutionStrategyInternal resolutionStrategy;
-    private final AttributesSchema attributesSchema;
+    private final ArtifactTransforms artifactTransforms;
+    private final ArtifactAttributeMatcher attributeMatcher;
     private final Map<File, File> transformed = new HashMap<File, File>();
 
+    public ArtifactTransformer(ArtifactTransforms artifactTransforms, ArtifactAttributeMatcher attributeMatcher) {
+        this.artifactTransforms = artifactTransforms;
+        this.attributeMatcher = attributeMatcher;
+    }
+
     public ArtifactTransformer(ResolutionStrategyInternal resolutionStrategy, AttributesSchema attributesSchema) {
-        this.resolutionStrategy = resolutionStrategy;
-        this.attributesSchema = attributesSchema;
+        this.attributeMatcher = new ArtifactAttributeMatcher(attributesSchema);
+        this.artifactTransforms = new InstantiatingArtifactTransforms(resolutionStrategy, this.attributeMatcher);
     }
 
     private boolean matchArtifactsAttributes(HasAttributes artifact, AttributeContainer configuration) {
-        ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, null,
-            Collections.singleton(artifact), configuration);
-        return !matcher.hasFailingMatches();
+        return attributeMatcher.attributesMatch(artifact, configuration);
     }
 
     private Transformer<File, File> getTransform(HasAttributes from, AttributeContainer to) {
-        for (ArtifactTransformRegistrations.ArtifactTransformRegistration transformReg : resolutionStrategy.getTransforms()) {
-            if (matchArtifactsAttributes(from, transformReg.from)
-                && matchArtifactsAttributes(to, transformReg.to)) {
-                return createArtifactTransformer(transformReg);
-            }
-        }
-        return null;
-    }
-
-    private Transformer<File, File> createArtifactTransformer(ArtifactTransformRegistrations.ArtifactTransformRegistration registration) {
-        ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(registration.type);
-        registration.config.execute(artifactTransform);
-        return new ArtifactFileTransformer(artifactTransform, registration.to);
+        return artifactTransforms.getTransform(from.getAttributes(), to);
     }
 
     /**
@@ -181,38 +166,5 @@ public class ArtifactTransformer {
         };
     }
 
-
-    private static class ArtifactFileTransformer implements Transformer<File, File> {
-        private final ArtifactTransform artifactTransform;
-        private final AttributeContainer outputAttributes;
-
-        private ArtifactFileTransformer(ArtifactTransform artifactTransform, AttributeContainer outputAttributes) {
-            this.artifactTransform = artifactTransform;
-            this.outputAttributes = outputAttributes;
-        }
-
-        @Override
-        public File transform(File input) {
-            if (artifactTransform.getOutputDirectory() != null) {
-                artifactTransform.getOutputDirectory().mkdirs();
-            }
-            File output = doTransform(input);
-            if (output == null) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("No output file created"));
-            }
-            if (!output.exists()) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("Expected output file '" + output.getPath() + "' was not created"));
-            }
-            return output;
-        }
-
-        private File doTransform(File input) {
-            try {
-                return artifactTransform.transform(input, outputAttributes);
-            } catch (Exception e) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, e);
-            }
-        }
-    }
 
 }
