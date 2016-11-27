@@ -23,6 +23,6 @@ import org.gradle.api.Incubating;
  * Registry to configure the output targets of an {@link ArtifactTransform}.
  */
 @Incubating
-public interface AttributeTransformTargetRegistry {
+public interface ArtifactTransformTargets {
     AttributeContainer newTarget();
 }

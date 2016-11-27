@@ -36,7 +36,7 @@ public abstract class ArtifactTransform {
         this.outputDirectory = outputDirectory;
     }
 
-    public abstract void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry);
+    public abstract void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry);
 
     public File transform(File input, AttributeContainer target) {
         return input; //identity transform

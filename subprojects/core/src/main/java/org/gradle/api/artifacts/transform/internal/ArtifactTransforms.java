@@ -37,7 +37,7 @@ public class ArtifactTransforms {
         ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
         AttributeContainerInternal from = new DefaultAttributeContainer();
 
-        DefaultAttributeTransformTargetRegistry registry = new DefaultAttributeTransformTargetRegistry();
+        DefaultArtifactTransformTargets registry = new DefaultArtifactTransformTargets();
         artifactTransform.configure(from, registry);
 
         for (AttributeContainerInternal to : registry.getNewTargets()) {

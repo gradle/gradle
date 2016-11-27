@@ -18,13 +18,13 @@ package org.gradle.api.artifacts.transform.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.AttributeContainer;
-import org.gradle.api.artifacts.transform.AttributeTransformTargetRegistry;
+import org.gradle.api.artifacts.transform.ArtifactTransformTargets;
 import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.api.internal.DefaultAttributeContainer;
 
 import java.util.List;
 
-public class DefaultAttributeTransformTargetRegistry implements AttributeTransformTargetRegistry {
+public class DefaultArtifactTransformTargets implements ArtifactTransformTargets {
 
     private List<AttributeContainerInternal> newTargets;
 
