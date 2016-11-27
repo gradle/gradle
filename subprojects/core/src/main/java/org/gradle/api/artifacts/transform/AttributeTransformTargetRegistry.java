@@ -17,10 +17,12 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.AttributeContainer;
+import org.gradle.api.Incubating;
 
 /**
  * Registry to configure the output targets of an {@link ArtifactTransform}.
  */
+@Incubating
 public interface AttributeTransformTargetRegistry {
     AttributeContainer newTarget();
 }

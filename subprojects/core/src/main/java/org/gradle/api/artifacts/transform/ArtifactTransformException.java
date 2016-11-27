@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.internal.exceptions.Contextual;
 
@@ -27,6 +28,7 @@ import java.io.File;
  * An exception to report a problem during transformation execution.
  */
 @Contextual
+@Incubating
 public class ArtifactTransformException extends GradleException {
 
     public ArtifactTransformException(File input, AttributeContainer expectedAttributes, ArtifactTransform transform, Throwable cause) {
