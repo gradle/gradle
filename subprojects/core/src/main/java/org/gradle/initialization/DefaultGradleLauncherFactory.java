@@ -59,14 +59,13 @@ import java.util.List;
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ListenerManager globalListenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    private final NestedBuildTracker tracker;
     private final BuildProgressLogger buildProgressLogger;
+    private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
         this.globalListenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
-        tracker = new NestedBuildTracker();
 
         // Register default loggers
         buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
@@ -74,23 +73,19 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.useLogger(new DependencyResolutionLogger(progressLoggerFactory));
     }
 
-    private GradleLauncher createChildInstance(StartParameter startParameter, BuildSessionScopeServices buildSessionScopeServices, List<?> servicesToStop) {
-        if (tracker.getCurrentBuild() == null) {
-            throw new IllegalStateException("Must have a current build");
-        }
-
-        ServiceRegistry services = tracker.getCurrentBuild().getServices();
+    private GradleLauncher createChildInstance(StartParameter startParameter, GradleLauncher parent, BuildSessionScopeServices buildSessionScopeServices, List<?> servicesToStop) {
+        ServiceRegistry services = parent.getGradle().getServices();
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
-        return doNewInstance(startParameter, true, cancellationToken, requestMetaData, buildEventConsumer, buildSessionScopeServices, servicesToStop);
+        return doNewInstance(startParameter, parent, cancellationToken, requestMetaData, buildEventConsumer, buildSessionScopeServices, servicesToStop);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
-        if (tracker.getCurrentBuild() != null) {
+        if (rootBuild != null) {
             throw new IllegalStateException("Cannot have a current build");
         }
 
@@ -99,20 +94,27 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildSessionScopeServices sessionScopeServices = (BuildSessionScopeServices) parentRegistry;
 
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, false, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), sessionScopeServices, ImmutableList.of());
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, null, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), sessionScopeServices, ImmutableList.of(new Stoppable() {
+            @Override
+            public void stop() {
+                rootBuild = null;
+            }
+        }));
+        rootBuild = launcher;
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, boolean nestedInstance,
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, GradleLauncher parent,
                                                 BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, final BuildSessionScopeServices sessionScopeServices, List<?> servicesToStop) {
         BuildScopeServices serviceRegistry = BuildScopeServices.forSession(sessionScopeServices);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
-        serviceRegistry.add(NestedBuildFactory.class, new NestedBuildFactoryImpl(sessionScopeServices));
+        NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(sessionScopeServices);
+        serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
@@ -122,12 +124,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
         loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
-        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null) ? buildProgressLogger : LoggerProvider.NO_OP;
+        LoggerProvider loggerProvider = (parent == null) ? buildProgressLogger : LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
-        if (tracker.getCurrentBuild() == null) {
+        if (parent == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
-        listenerManager.addListener(tracker);
 
         if (startParameter.isTaskOutputCacheEnabled()) {
             listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
@@ -152,10 +153,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
-        SettingsLoader settingsLoader = nestedInstance ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+        SettingsLoader settingsLoader = parent != null ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+        GradleInternal parentBuild = parent == null ? null : parent.getGradle();
 
-        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
-        return new DefaultGradleLauncher(
+        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, parentBuild, startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
+        DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
             settingsLoader,
@@ -172,10 +174,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             globalListenerManager,
             servicesToStop
         );
+        nestedBuildFactory.setParent(gradleLauncher);
+        return gradleLauncher;
     }
 
     private class NestedBuildFactoryImpl implements NestedBuildFactory {
         private final BuildSessionScopeServices sessionScopeServices;
+        private DefaultGradleLauncher parent;
 
         public NestedBuildFactoryImpl(BuildSessionScopeServices sessionScopeServices) {
             this.sessionScopeServices = sessionScopeServices;
@@ -183,18 +188,22 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         @Override
         public GradleLauncher nestedInstance(StartParameter startParameter) {
-            return createChildInstance(startParameter, sessionScopeServices, ImmutableList.of());
+            return createChildInstance(startParameter, parent, sessionScopeServices, ImmutableList.of());
         }
 
         @Override
         public GradleLauncher nestedInstanceWithNewSession(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY);
-            return createChildInstance(startParameter, sessionScopeServices, ImmutableList.of(sessionScopeServices, new Stoppable() {
+            return createChildInstance(startParameter, parent, sessionScopeServices, ImmutableList.of(sessionScopeServices, new Stoppable() {
                 @Override
                 public void stop() {
                     userHomeDirServiceRegistry.release(userHomeServices);
                 }}));
+        }
+
+        public void setParent(DefaultGradleLauncher parent) {
+            this.parent = parent;
         }
     }
 }

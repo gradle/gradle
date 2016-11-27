@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
     def "handles properties which are not String when calling GradleBuild"() {
@@ -80,5 +82,64 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         then:
         // TODO - Fix test fixtures to allow assertions on buildSrc tasks rather than relying on output scraping in tests
         outputContains(":other:buildSrc:assemble")
+    }
+
+    @Rule BlockingHttpServer barrier = new BlockingHttpServer()
+
+    def "can run multiple GradleBuild tasks concurrently"() {
+        barrier.start()
+
+        given:
+
+        /**
+         * Setup a build where a `GradleBuild` task while another `GradleBuild` is currently running another build but has not yet finished running the settings file for that build.
+         */
+
+        settingsFile << """
+            rootProject.name = 'root'
+            include '1', '2', '3', '4'
+"""
+        buildFile << """
+            subprojects {
+                task otherBuild(type:GradleBuild) {
+                    dir = "\${rootProject.file('subprojects')}"
+                    tasks = ['log']
+                    startParameter.searchUpwards = false
+                }
+                otherBuild.doFirst {
+                    new URL("http://localhost:${barrier.port}/\${project.name}-started").text
+                }
+                otherBuild.doLast {
+                    new URL("http://localhost:${barrier.port}/\${project.name}-finished").text
+                }
+            }
+            task otherBuild(type:GradleBuild) {
+                dir = "main"
+                tasks = ['log']
+                startParameter.searchUpwards = false
+            }
+        """
+        file('main/settings.gradle') << """
+            ${barrier.callFromBuildScript("child-build-started")}
+            ${barrier.callFromBuildScript("child-build-finished")}
+        """
+        file('main/build.gradle') << """
+            assert gradle.parent.rootProject.name == 'root'
+            task log { }
+        """
+        file('subprojects/build.gradle') << """
+            assert gradle.parent.rootProject.name == 'root'
+            task log { }
+        """
+
+        barrier.expectConcurrentExecution("child-build-started", "1-started", "2-started", "3-started", "4-started")
+        barrier.expectConcurrentExecution("child-build-finished", "1-finished", "2-finished", "3-finished", "4-finished")
+
+        when:
+        executer.withArgument("--parallel")
+        run 'otherBuild'
+
+        then:
+        noExceptionThrown()
     }
 }
