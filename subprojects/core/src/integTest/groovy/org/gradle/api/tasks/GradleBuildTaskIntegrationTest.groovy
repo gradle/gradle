@@ -97,7 +97,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
 
         settingsFile << """
             rootProject.name = 'root'
-            include '1', '2', '3', '4'
+            include '1', '2'
 """
         buildFile << """
             subprojects {
@@ -132,8 +132,8 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             task log { }
         """
 
-        barrier.expectConcurrentExecution("child-build-started", "1-started", "2-started", "3-started", "4-started")
-        barrier.expectConcurrentExecution("child-build-finished", "1-finished", "2-finished", "3-finished", "4-finished")
+        barrier.expectConcurrentExecution("child-build-started", "1-started", "2-started")
+        barrier.expectConcurrentExecution("child-build-finished", "1-finished", "2-finished")
 
         when:
         executer.withArgument("--parallel")
