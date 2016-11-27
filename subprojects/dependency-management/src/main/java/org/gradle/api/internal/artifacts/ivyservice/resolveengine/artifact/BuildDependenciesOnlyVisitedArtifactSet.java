@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactTransformer;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 

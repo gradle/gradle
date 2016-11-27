@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Attribute
 import org.gradle.api.AttributeContainer
