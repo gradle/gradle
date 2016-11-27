@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.AttributeContainer;
 import org.gradle.api.AttributesSchema;
@@ -24,7 +24,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.transform.internal.ArtifactTransforms;
 import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;

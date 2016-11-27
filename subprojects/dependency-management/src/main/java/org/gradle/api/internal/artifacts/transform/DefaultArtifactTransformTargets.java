@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform.internal;
+package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.AttributeContainer;
