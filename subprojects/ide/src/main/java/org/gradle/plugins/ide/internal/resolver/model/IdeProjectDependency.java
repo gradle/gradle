@@ -40,7 +40,6 @@ public class IdeProjectDependency extends IdeDependency {
         return projectName;
     }
 
-    // TODO:DAZ Maybe add this to ProjectComponentIdentifier
     private static String determineProjectName(ProjectComponentIdentifier projectId) {
         assert !projectId.getBuild().isCurrentBuild();
         String projectPath = projectId.getProjectPath();

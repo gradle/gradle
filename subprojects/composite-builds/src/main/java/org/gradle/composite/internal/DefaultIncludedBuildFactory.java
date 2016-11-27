@@ -103,7 +103,6 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
             StartParameter includedBuildStartParam = buildStartParam.newBuild();
             includedBuildStartParam.setProjectDir(buildDirectory);
             includedBuildStartParam.setSearchUpwards(false);
-            // TODO:DAZ Consider if we still really need this
             includedBuildStartParam.setConfigureOnDemand(false);
             return includedBuildStartParam;
         }
