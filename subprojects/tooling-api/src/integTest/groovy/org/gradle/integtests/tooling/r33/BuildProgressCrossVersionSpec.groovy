@@ -253,7 +253,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events, OperationType.GENERIC)
+                        .addProgressListener(events, [OperationType.GENERIC] as Set)
                         .forTasks("build")
                         .run()
         }
@@ -358,7 +358,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events, OperationType.TASK)
+                        .addProgressListener(events, [OperationType.TASK] as Set)
                         .forTasks("build")
                         .run()
         }
@@ -375,7 +375,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events, OperationType.TEST)
+                        .addProgressListener(events, [OperationType.TEST] as Set)
                         .withArguments("--rerun-tasks")
                         .forTasks("build")
                         .run()
