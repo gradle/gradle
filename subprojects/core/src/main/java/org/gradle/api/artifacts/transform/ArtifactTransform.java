@@ -17,12 +17,14 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.AttributeContainer;
+import org.gradle.api.Incubating;
 
 import java.io.File;
 
 /**
  * Base class for artifact transformations.
  */
+@Incubating
 public abstract class ArtifactTransform {
     private File outputDirectory;
 
