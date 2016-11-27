@@ -38,7 +38,7 @@ public abstract class ArtifactTypeTransform extends ArtifactTransform {
     protected abstract File transform(File input, String outputType);
 
     @Override
-    public void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+    public void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
         from.attribute(ARTIFACT_TYPE_ATTRIBUTE, getInputType());
 
         for (String outputType : getOutputTypes()) {
