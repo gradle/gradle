@@ -171,6 +171,7 @@ We would like to thank the following community members for making contributions 
  - [Jörn Huxhorn](https://github.com/huxi) - Fix "Connection refused" integTest assertions (#788)
  - [Punyashloka Biswal](https://github.com/punya) - Fix Checkstyle classpath is set incorrectly for multi-project builds (#855)
  - [Dan Kim](https://github.com/deekim) - Use AssertionError in RetryFailure (#776)
+ - [Paul Balogh](https://github.com/javaducky) - Include `build.gradle` files in multi-project user guide documentation page (#915)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
