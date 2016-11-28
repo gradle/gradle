@@ -38,9 +38,9 @@ allprojects {
 class FileSizer extends ArtifactTransform {
     private File output
 
-    void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+    void configure(AttributeContainer from, ArtifactTransformTargets targets) {
         from.attribute(Attribute.of('artifactType', String), "jar")
-        targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
+        targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
     }
 
     File transform(File input, AttributeContainer target) {
@@ -391,9 +391,9 @@ class FileSizer extends ArtifactTransform {
 
             class TransformWithIllegalArgumentException extends ArtifactTransform {
 
-                void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
                     from.attribute(Attribute.of('artifactType', String), "jar")
-                    targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
                 File transform(File input, AttributeContainer target) {
@@ -423,9 +423,9 @@ class FileSizer extends ArtifactTransform {
 
             class ToNullTransform extends ArtifactTransform {
 
-                void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
                     from.attribute(Attribute.of('artifactType', String), "jar")
-                    targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
                 File transform(File input, AttributeContainer target) {
@@ -455,9 +455,9 @@ class FileSizer extends ArtifactTransform {
 
             class ToNullTransform extends ArtifactTransform {
 
-                void configure(AttributeContainer from, AttributeTransformTargetRegistry targetRegistry) {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
                     from.attribute(Attribute.of('artifactType', String), "jar")
-                    targetRegistry.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
                 File transform(File input, AttributeContainer target) {
