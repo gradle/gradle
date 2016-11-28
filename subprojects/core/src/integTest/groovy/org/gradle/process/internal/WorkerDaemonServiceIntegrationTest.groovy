@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 
 
 class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -221,6 +222,7 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
+    @Ignore("Flaky")
     def "worker daemon lifecycle is logged" () {
         withRunnableClassInBuildSrc()
 
