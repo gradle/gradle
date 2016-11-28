@@ -109,13 +109,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, getConfigurationsAsHasAttributes(targetComponent), fromConfigurationAttributes);
             List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getFullMatchs());
             if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal((ConfigurationMetadata) matches.get(0), fromConfigurationAttributes));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
                 throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, true);
             }
             matches = Cast.uncheckedCast(matcher.getPartialMatchs());
             if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal((ConfigurationMetadata) matches.get(0), fromConfigurationAttributes));
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
                 throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, false);
             }
