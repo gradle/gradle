@@ -38,7 +38,7 @@
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -g ./intTestHomeDir/worker-1 -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
           <param name="ui.gradleRunner.gradle.home" value="%teamcity.build.checkoutDir%/dogfood" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean :install -Pgradle_installPath=dogfood" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean :install -Pgradle_installPath=dogfood2" />
         </parameters>
       </runner>
       <runner id="RUNNER_3" name="QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE" type="gradle-runner">
