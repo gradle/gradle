@@ -36,7 +36,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         return new Operation() {
             @Override
             public Object getId() {
-                throw new UnsupportedOperationException();
+                return "current";
             }
         };
     }

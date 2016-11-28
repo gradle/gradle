@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,13 @@
 
 package org.gradle.api.execution.internal;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 
-public final class TaskOperationInternal {
-    private final TaskInternal task;
-    private final Object id;
-
-    public TaskOperationInternal(TaskInternal task, Object id) {
-        this.task = task;
-        this.id = id;
-    }
-
-    public TaskInternal getTask() {
-        return task;
-    }
-
-    public Object getId() {
-        return id;
-    }
+/**
+ * Used by build scans to collect some task details, and will be retired. Use {@link org.gradle.internal.progress.InternalBuildListener} instead.
+ */
+public interface InternalTaskExecutionListener {
+    void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent);
+    void afterExecute(TaskOperationInternal taskOperation, OperationResult result);
 }

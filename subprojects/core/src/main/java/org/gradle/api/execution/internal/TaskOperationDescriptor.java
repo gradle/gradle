@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,15 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 
-public final class TaskOperationInternal {
+public final class TaskOperationDescriptor {
+    // TODO: do not reference mutable state
     private final TaskInternal task;
-    private final Object id;
 
-    public TaskOperationInternal(TaskInternal task, Object id) {
+    public TaskOperationDescriptor(TaskInternal task) {
         this.task = task;
-        this.id = id;
     }
 
     public TaskInternal getTask() {
         return task;
-    }
-
-    public Object getId() {
-        return id;
     }
 }

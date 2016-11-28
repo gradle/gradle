@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.execution.internal.TaskOperationDescriptor;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -130,16 +130,16 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalBuil
 
     @Override
     public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationInternal)) {
+        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor)) {
             return;
         }
-        TaskInternal task = ((TaskOperationInternal) buildOperation.getOperationDescriptor()).getTask();
+        TaskInternal task = ((TaskOperationDescriptor) buildOperation.getOperationDescriptor()).getTask();
         runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
     public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationInternal)) {
+        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor)) {
             return;
         }
         runningTasks.remove(buildOperation.getId());
