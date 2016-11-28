@@ -43,16 +43,16 @@
       </runner>
       <runner id="RUNNER_3" name="QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE" type="gradle-runner">
         <parameters>
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion g ./intTestHomeDir -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
           <param name="ui.gradleRunner.gradle.home" value="%teamcity.build.checkoutDir%/dogfood" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean quickCheck" />
-          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="false" />
         </parameters>
       </runner>
       <runner id="RUNNER_4" name="CHECK_CLEAN_M2" type="simpleRunner">
