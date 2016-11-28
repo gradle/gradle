@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Configurations {
     public static Set<String> getNames(Collection<Configuration> configurations) {
-        Set<String> names = new HashSet<String>(configurations.size());
+        Set<String> names = new LinkedHashSet<String>(configurations.size());
         for (Configuration configuration : configurations) {
             names.add(configuration.getName());
         }
