@@ -33,6 +33,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 
 import java.io.File;
@@ -44,7 +45,7 @@ import java.util.Map;
 public class ArtifactTransformer {
     private final ArtifactTransforms artifactTransforms;
     private final ArtifactAttributeMatcher attributeMatcher;
-    private final Map<File, File> transformed = new HashMap<File, File>();
+    private final Map<Pair<File, AttributeContainer>, File> transformed = new HashMap<Pair<File, AttributeContainer>, File>();
 
     public ArtifactTransformer(ArtifactTransforms artifactTransforms, ArtifactAttributeMatcher attributeMatcher) {
         this.artifactTransforms = artifactTransforms;
@@ -84,34 +85,35 @@ public class ArtifactTransformer {
      * Returns a visitor that transforms files and artifacts to match the requested attributes
      * and then forwards the results to the given visitor.
      */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable final AttributeContainer attributes) {
+    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainer attributes) {
         if (attributes == null || attributes.isEmpty()) {
             return visitor;
         }
+        final AttributeContainer immutableAttributes = ((AttributeContainerInternal) attributes).asImmutable();
         return new ArtifactVisitor() {
             @Override
             public void visitArtifact(final ResolvedArtifact artifact) {
-                if (matchArtifactsAttributes(artifact, attributes)) {
+                if (matchArtifactsAttributes(artifact, immutableAttributes)) {
                     visitor.visitArtifact(artifact);
                     return;
                 }
-                final Transformer<File, File> transform = getTransform(artifact, attributes);
+                final Transformer<File, File> transform = getTransform(artifact, immutableAttributes);
                 if (transform == null) {
                     return;
                 }
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
-                AttributeContainer transformedAttributes = ((AttributeContainerInternal) attributes).copy();
+                AttributeContainer transformedAttributes = ((AttributeContainerInternal) immutableAttributes).copy();
 
                 visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(),
                     DefaultIvyArtifactName.forAttributeContainer(artifact.getName(), transformedAttributes), artifact.getId(), buildDependencies, new Factory<File>() {
                     @Override
                     public File create() {
                         File file = artifact.getFile();
-                        File transformedFile = transformed.get(file);
+                        File transformedFile = transformed.get(Pair.of(file, immutableAttributes));
                         if (transformedFile == null) {
                             transformedFile = transform.transform(file);
-                            transformed.put(file, transformedFile);
+                            transformed.put(Pair.of(file, immutableAttributes), transformedFile);
                         }
                         return transformedFile;
                     }
@@ -131,21 +133,21 @@ public class ArtifactTransformer {
                     for (File file : files) {
                         try {
                             HasAttributes fileWithAttributes = DefaultArtifactAttributes.forFile(file);
-                            if (matchArtifactsAttributes(fileWithAttributes, attributes)) {
+                            if (matchArtifactsAttributes(fileWithAttributes, immutableAttributes)) {
                                 result.add(file);
                                 continue;
                             }
-                            File transformedFile = transformed.get(file);
+                            File transformedFile = transformed.get(Pair.of(file, immutableAttributes));
                             if (transformedFile != null) {
                                 result.add(transformedFile);
                                 continue;
                             }
-                            Transformer<File, File> transform = getTransform(fileWithAttributes, attributes);
+                            Transformer<File, File> transform = getTransform(fileWithAttributes, immutableAttributes);
                             if (transform == null) {
                                 continue;
                             }
                             transformedFile = transform.transform(file);
-                            transformed.put(file, transformedFile);
+                            transformed.put(Pair.of(file, immutableAttributes), transformedFile);
                             result.add(transformedFile);
                         } catch (RuntimeException e) {
                             transformException = e;

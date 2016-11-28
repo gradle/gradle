@@ -333,6 +333,70 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming lib-2.jar to lib-2.jar.txt") == 1
     }
 
+    def "Transform is executed twice for the same file for two different targets"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class TransformWithMultipleTargets extends ArtifactTransform {
+
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "hash")
+                }
+
+                File transform(File input, AttributeContainer target) {
+                   
+                    if (target.getAttribute(Attribute.of('artifactType', String)).equals("size")) {
+                        def outSize = new File(outputDirectory, input.name + ".size")
+                        if (!outSize.exists()) {
+                            outSize.text = String.valueOf(input.length())
+                            println "Transforming to size"
+                        } 
+                        return outSize
+                    }
+                    if (target.getAttribute(Attribute.of('artifactType', String)).equals("hash")) {
+                        def outHash = new File(outputDirectory, input.name + ".hash")
+                        if (!outHash.exists()) {
+                            outHash.text = 'hash'
+                            println "Transforming to hash"
+                        } 
+                        return outHash
+                    }             
+                }
+            }
+            configurations {
+                compile {
+                    resolutionStrategy.registerTransform(TransformWithMultipleTargets) {
+                            outputDirectory = project.file("\${buildDir}/transformed")
+                    }
+                }
+            }
+            task resolve {
+                doLast {
+                    println "size file: " + configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name }
+                    println "hash file: " + configurations.compile.incoming.getFiles(artifactType: 'hash').collect { it.name }
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Transforming to size") == 1
+        output.count("size file: [a.jar.size]") == 1
+        output.count("Transforming to hash") == 1
+        output.count("hash file: [a.jar.hash]") == 1
+    }
+
     def "files are lazily downloaded and transformed when using ResolvedArtifact methods"() {
         def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
         def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
