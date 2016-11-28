@@ -19,7 +19,7 @@ package org.gradle.api.internal.plugins;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.internal.DefaultPluginId;
 
 @ThreadSafe
 public interface PluginRegistry {
@@ -35,7 +35,7 @@ public interface PluginRegistry {
      * Locates the plugin with the given id. Note that the id of the result may be different to the requested id.
      */
     @Nullable
-    PluginImplementation<?> lookup(PluginId pluginId);
+    PluginImplementation<?> lookup(DefaultPluginId pluginId);
 
     PluginRegistry createChild(ClassLoaderScope lookupScope);
 

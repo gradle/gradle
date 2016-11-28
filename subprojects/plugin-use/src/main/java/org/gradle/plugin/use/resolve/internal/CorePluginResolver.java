@@ -20,7 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.internal.DefaultPluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
@@ -35,7 +35,7 @@ public class CorePluginResolver implements PluginResolver {
     }
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
-        PluginId id = pluginRequest.getId();
+        DefaultPluginId id = pluginRequest.getId();
 
         if (!id.isQualified() || id.inNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
             PluginImplementation<?> plugin = pluginRegistry.lookup(id);

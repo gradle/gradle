@@ -39,8 +39,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.internal.DefaultPluginId;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.PluginId;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepository;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
@@ -167,7 +168,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         // It won't for arbitrary scripts though.
         for (final Map.Entry<Result, PluginId> entry : legacyActualPluginIds.entrySet()) {
             final PluginRequest request = entry.getKey().request;
-            final PluginId id = entry.getValue();
+            final DefaultPluginId id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
                 public void run() {
                     if (request.isApply()) {
