@@ -29,7 +29,7 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.testId = testId
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ['last']
+        runner.targetVersions = ['3.3-20161126000026+0000']
         runner.args = runnerArgs
         runner.useDaemon = true
 
@@ -43,8 +43,8 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         testProject       | runnerArgs
         "ktsSmall"        | []
         "ktsSmall"        | ['--recompile-scripts']
-        //"ktsManyProjects" | []
-        //"ktsManyProjects" | ['--recompile-scripts']
+        "ktsManyProjects" | []
+        "ktsManyProjects" | ['--recompile-scripts']
         testIdSuffix = runnerArgs.empty ? '' : " (${runnerArgs.join(', ')})"
         testId = "configuration of $testProject$testIdSuffix"
     }
