@@ -36,9 +36,9 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -g ./intTestHome/worker-2 -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
           <param name="ui.gradleRunner.gradle.home" value="%teamcity.build.checkoutDir%/dogfood" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean :install -Pgradle_installPath=dogfood2" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean :install -Pgradle_installPath=dogfood" />
         </parameters>
       </runner>
       <runner id="RUNNER_3" name="QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE" type="gradle-runner">
@@ -50,8 +50,8 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -g ./intTestHome/worker-2 -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
-          <param name="ui.gradleRunner.gradle.home" value="%teamcity.build.checkoutDir%/dogfood2" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-I ./gradle/buildScanInit.gradle -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.gradle.home" value="%teamcity.build.checkoutDir%/dogfood" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean quickCheck" />
         </parameters>
       </runner>
