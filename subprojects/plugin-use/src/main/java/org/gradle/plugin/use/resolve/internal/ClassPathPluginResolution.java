@@ -24,16 +24,17 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.PluginId;
 
 public class ClassPathPluginResolution implements PluginResolution {
 
-    private final PluginId pluginId;
+    private final DefaultPluginId pluginId;
     private final ClassLoaderScope parent;
     private final Factory<? extends ClassPath> classPathFactory;
     private final PluginInspector pluginInspector;
 
-    public ClassPathPluginResolution(PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory, PluginInspector pluginInspector) {
+    public ClassPathPluginResolution(DefaultPluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory, PluginInspector pluginInspector) {
         this.pluginId = pluginId;
         this.parent = parent;
         this.classPathFactory = classPathFactory;
