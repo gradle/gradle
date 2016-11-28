@@ -70,6 +70,14 @@ Since 3.0 Gradle tracks the implementation of a task's type, and marks tasks out
 It is now possible to compile native application with the Visual C++ toolchain packaged with all versions of Visual Studio 2015.
 With this release, Gradle will locate the [Universal C Runtime](https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx) required by the Visual C++ toolchain.
 
+### Tooling API generates more progress events
+
+The Tooling API now generates progress events for more build activity: 
+
+- Configuration of each project.
+- Resolution of each dependency configuration.
+- Progress events for `buildSrc` and composite builds.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
