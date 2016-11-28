@@ -100,7 +100,7 @@ public class ZipCopyAction implements CopyAction {
         private void visitFile(FileCopyDetails fileDetails) {
             try {
                 ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setTime(reproducible ? 0 : fileDetails.getLastModified());
+                archiveEntry.setTime(reproducible ? Zip.CONSTANT_TIME_FOR_ZIP_ENTRIES : fileDetails.getLastModified());
                 archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
@@ -114,7 +114,7 @@ public class ZipCopyAction implements CopyAction {
             try {
                 // Trailing slash in name indicates that entry is a directory
                 ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
-                archiveEntry.setTime(reproducible ? 0 : dirDetails.getLastModified());
+                archiveEntry.setTime(reproducible ? Zip.CONSTANT_TIME_FOR_ZIP_ENTRIES : dirDetails.getLastModified());
                 archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
                 zipOutStr.closeEntry();
