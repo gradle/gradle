@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.internal.DefaultPluginId;
 
 public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> {
 
-    private final PluginId pluginId;
+    private final DefaultPluginId pluginId;
     private final PotentialPlugin<? extends T> potentialPlugin;
 
-    public static <T> DefaultPotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
+    public static <T> DefaultPotentialPluginWithId<T> of(DefaultPluginId pluginId, PotentialPlugin<T> potentialPlugin) {
         return new DefaultPotentialPluginWithId<T>(pluginId, potentialPlugin);
     }
 
-    protected DefaultPotentialPluginWithId(PluginId pluginId, PotentialPlugin<? extends T> potentialPlugin) {
+    protected DefaultPotentialPluginWithId(DefaultPluginId pluginId, PotentialPlugin<? extends T> potentialPlugin) {
         this.pluginId = pluginId;
         this.potentialPlugin = potentialPlugin;
     }
@@ -40,7 +40,7 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
         return "id '" + pluginId + "'";
     }
 
-    public PluginId getPluginId() {
+    public DefaultPluginId getPluginId() {
         return pluginId;
     }
 
@@ -61,7 +61,7 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
     }
 
     @Override
-    public boolean isAlsoKnownAs(PluginId id) {
+    public boolean isAlsoKnownAs(DefaultPluginId id) {
         return false;
     }
 }

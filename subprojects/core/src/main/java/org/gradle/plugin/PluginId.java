@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.plugin;
 
 import org.gradle.api.Nullable;
-import org.gradle.plugin.internal.DefaultPluginId;
 
-public interface PluginImplementation<T> extends PotentialPlugin<T> {
-    String getDisplayName();
+public interface PluginId {
+    boolean isQualified();
 
-    /**
-     * An id for the plugin implementation, if known.
-     */
     @Nullable
-    DefaultPluginId getPluginId();
+    String getNamespace();
 
-    boolean isAlsoKnownAs(DefaultPluginId id);
+    String getName();
+
+    PluginId getUnqualified();
 }

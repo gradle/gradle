@@ -19,13 +19,13 @@ package org.gradle.plugin.internal
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
-import static org.gradle.plugin.internal.PluginId.validate
+import static DefaultPluginId.validate
 
 class PluginIdTest extends Specification {
 
     def "test validation matcher"() {
         expect:
-        PluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(input) == index
+        DefaultPluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(input) == index
 
         where:
         input     | index
@@ -54,23 +54,23 @@ class PluginIdTest extends Specification {
 
     def "is qualified"() {
         expect:
-        !new PluginId("foo").qualified
-        new PluginId("foo.bar").qualified
+        !new DefaultPluginId("foo").qualified
+        new DefaultPluginId("foo.bar").qualified
     }
 
     def "qualify if unqualified"() {
         expect:
-        new PluginId("foo").maybeQualify("bar").toString() == "bar.foo"
-        new PluginId("foo.bar").maybeQualify("bar").toString() == "foo.bar"
+        new DefaultPluginId("foo").maybeQualify("bar").toString() == "bar.foo"
+        new DefaultPluginId("foo.bar").maybeQualify("bar").toString() == "foo.bar"
     }
 
     def "equality"() {
         expect:
-        new PluginId("foo") Matchers.strictlyEqual(new PluginId("foo"))
-        new PluginId("foo.bar") Matchers.strictlyEqual(new PluginId("foo.bar"))
-        def qualified = new PluginId("foo").maybeQualify("some.org")
-        qualified Matchers.strictlyEqual(new PluginId("some.org.foo"))
-        new PluginId("foo") != new PluginId("foo.bar")
+        new DefaultPluginId("foo") Matchers.strictlyEqual(new DefaultPluginId("foo"))
+        new DefaultPluginId("foo.bar") Matchers.strictlyEqual(new DefaultPluginId("foo.bar"))
+        def qualified = new DefaultPluginId("foo").maybeQualify("some.org")
+        qualified Matchers.strictlyEqual(new DefaultPluginId("some.org.foo"))
+        new DefaultPluginId("foo") != new DefaultPluginId("foo.bar")
     }
 
 }
