@@ -24,16 +24,18 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.foundation.ProjectVersion1
 import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion1
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 import java.util.concurrent.TimeUnit
-
 /**
  This tests the multiproject sample with the GradleView mechanism.
  */
+@Requires(TestPrecondition.NOT_JDK_IBM)
 class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
