@@ -32,6 +32,11 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
 allprojects {
+    allprojects {
+        repositories {
+            ivy { url '${ivyHttpRepo.uri}' }
+        }
+    }
     configurations {
         compile {
             attributes usage: 'api'
@@ -69,11 +74,6 @@ allprojects {
                     .publish()
 
         buildFile << """
-            allprojects {
-                repositories {
-                    ivy { url '${ivyHttpRepo.uri}' }
-                }
-            }
             project(':lib') {
                 dependencies {
                     compile utilJar.outputs.files
@@ -151,11 +151,6 @@ allprojects {
                     .publish()
 
         buildFile << """
-            allprojects {
-                repositories {
-                    ivy { url '${ivyHttpRepo.uri}' }
-                }
-            }
             project(':lib') {
                 dependencies {
                     compile utilJar.outputs.files
@@ -205,6 +200,66 @@ allprojects {
         result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
     }
 
+    // Documents existing matching behaviour, not desired behaviour
+    def "can query the content of view before task graph is calculated"() {
+        given:
+        def m1 = ivyHttpRepo.module('org', 'test', '1.0')
+                    .artifact(name: 'some-jar', type: 'jar')
+                    .artifact(name: 'some-classes', type: 'classes')
+                    .artifact(name: 'some-lib', type: 'lib')
+                    .publish()
+
+        buildFile << """
+            project(':lib') {
+                dependencies {
+                    compile utilJar.outputs.files
+                    compile utilClasses.outputs.files
+                    compile utilDir.outputs.files
+                    compile 'org:test:1.0'
+                }
+                artifacts {
+                    compile file: file('lib.jar'), builtBy: jar
+                    compile file: file('lib.classes'), builtBy: classes
+                    compile file: file('lib'), builtBy: dir
+                }
+            }
+            project(':ui') {
+                artifacts {
+                    compile file: file('ui.jar'), builtBy: jar
+                }
+            }
+
+            project(':app') {
+                configurations {
+                    compile {
+                        attributes artifactType: 'jar'
+                    }
+                }
+
+                dependencies {
+                    compile project(':lib'), project(':ui')
+                }
+
+                task resolve {
+                    def files = configurations.compile.incoming.getFiles(artifactType: 'classes')
+                    files.each { println it.name }
+                    inputs.files files
+                    doLast {
+                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'some-classes-1.0.classes']
+                    }
+                }
+            }
+        """
+
+        m1.ivy.expectGet()
+        m1.getArtifact(name: 'some-classes', type: 'classes').expectGet()
+
+        expect:
+        succeeds "resolve"
+        // Currently builds all file dependencies
+        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
+    }
+
     def "can create a view for configuration that has no attributes"() {
         given:
         buildFile << """
@@ -237,7 +292,6 @@ allprojects {
 
         expect:
         succeeds "resolve"
-        // Currently builds all file dependencies
         result.assertTasksExecuted(":lib:classes", ":app:resolve")
     }
 }

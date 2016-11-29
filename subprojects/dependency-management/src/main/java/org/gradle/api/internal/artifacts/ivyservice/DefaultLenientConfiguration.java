@@ -71,8 +71,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final VisitedFileDependencyResults fileDependencyResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
     private final ArtifactTransformer artifactTransformer;
+    private final VisitedArtifactSet buildDependenciesSet;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer, VisitedArtifactSet buildDependenciesSet) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
@@ -80,6 +81,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransformer = artifactTransformer;
+        this.buildDependenciesSet = buildDependenciesSet;
     }
 
     @Override
@@ -87,8 +89,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-                artifactResults.getArtifacts().collectBuildDependencies(dest);
-                fileDependencyResults.getFiles().collectBuildDependencies(dest);
+                SelectedArtifactSet buildDependenciesSet = DefaultLenientConfiguration.this.buildDependenciesSet.select(dependencySpec, attributes);
+                buildDependenciesSet.collectBuildDependencies(dest);
                 return dest;
             }
 
