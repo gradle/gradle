@@ -411,7 +411,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                             details.incompatible()
                        }
 
-                       public <K> void selectClosestMatch(MultipleCandidatesDetails<String, K> details) {
+                       public void selectClosestMatch(MultipleCandidatesDetails<String> details) {
                             if (details.consumerValue.present) {
                                 details.candidateValues.keySet().each { details.closestMatch(it) }
                             } else {
@@ -485,7 +485,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                             details.incompatible()
                        }
 
-                       public <K> void selectClosestMatch(MultipleCandidatesDetails<Arch, K> details) {
+                       public void selectClosestMatch(MultipleCandidatesDetails<Arch> details) {
                             if (details.consumerValue.present) {
                                 details.candidateValues.keySet().each { details.closestMatch(it) }
                             } else {

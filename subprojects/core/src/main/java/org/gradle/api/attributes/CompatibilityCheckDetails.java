@@ -15,10 +15,37 @@
  */
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Provides context about attribute compatibility checks, and allows the user to define
+ * when an attribute is compatible with another.
+ *
+ * @param <T> the concrete type of the attribute
+ *
+ * @since 3.3
+ */
+@Incubating
 public interface CompatibilityCheckDetails<T> {
+    /**
+     * The value of the attribute as found on the consumer side.
+     * @return the value from the consumer
+     */
     AttributeValue<T> getConsumerValue();
+
+    /**
+     * The value of the attribute as found on the producer side.
+     * @return the value from the producer
+     */
     AttributeValue<T> getProducerValue();
 
+    /**
+     * Calling this method will indicate that the attributes are compatible.
+     */
     void compatible();
+
+    /**
+     * Calling this method will indicate that the attributes are incompatible.
+     */
     void incompatible();
 }

@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributeValue
 import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.HasAttributes
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import spock.lang.Specification
 
@@ -31,6 +32,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def strategy = schema.getMatchingStrategy(Attribute.of(String))
         def checkDetails = Mock(CompatibilityCheckDetails)
         def candidatesDetails = Mock(MultipleCandidatesDetails)
+        def key = Mock(HasAttributes)
 
         when:
         checkDetails.getConsumerValue() >> AttributeValue.of('foo')
@@ -52,11 +54,11 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         candidatesDetails.consumerValue >> AttributeValue.of("foo")
-        candidatesDetails.candidateValues >> [a: AttributeValue.of("foo")]
+        candidatesDetails.candidateValues >> [(key): AttributeValue.of("foo")]
         strategy.selectClosestMatch(candidatesDetails)
 
         then:
-        1 * candidatesDetails.closestMatch('a')
+        1 * candidatesDetails.closestMatch(key)
         0 * candidatesDetails._
     }
 
@@ -115,6 +117,9 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "can set a custom matching strategy"() {
         def attr = Attribute.of(Map)
+        def key1 = Mock(HasAttributes)
+        def key2 = Mock(HasAttributes)
+        def key3 = Mock(HasAttributes)
 
         given:
         schema.setMatchingStrategy(attr, new AttributeMatchingStrategy<Map>() {
@@ -133,7 +138,7 @@ class DefaultAttributesSchemaTest extends Specification {
             }
 
             @Override
-            def <K> void selectClosestMatch(MultipleCandidatesDetails<Map, K> details) {
+            def void selectClosestMatch(MultipleCandidatesDetails<Map> details) {
                 def optionalAttribute = details.consumerValue
                 def candidateValues = details.candidateValues
                 if (optionalAttribute.present) {
@@ -171,32 +176,32 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         candidateDetails.consumerValue >> AttributeValue.of([a: 'foo', b: 'bar'])
-        candidateDetails.candidateValues >> [1: AttributeValue.of([a: 'foo', b: 'bar']), 2: AttributeValue.of([c: 'foo', d: 'bar']), 3: AttributeValue.of([a: 'foo', b: 'bar'])]
+        candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
         strategy.selectClosestMatch(candidateDetails)
 
         then:
-        1 * candidateDetails.closestMatch(1)
-        1 * candidateDetails.closestMatch(3)
+        1 * candidateDetails.closestMatch(key1)
+        1 * candidateDetails.closestMatch(key3)
         0 * candidateDetails._
 
         when:
         candidateDetails.consumerValue >> AttributeValue.missing()
-        candidateDetails.candidateValues >> [1: AttributeValue.of([a: 'foo', b: 'bar']), 2: AttributeValue.of([c: 'foo', d: 'bar']), 3: AttributeValue.of([a: 'foo', b: 'bar'])]
+        candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
         strategy.selectClosestMatch(candidateDetails)
 
         then:
-        1 * candidateDetails.closestMatch(1)
+        1 * candidateDetails.closestMatch(key1)
         0 * candidateDetails._
 
         when:
         candidateDetails.consumerValue >> AttributeValue.unknown()
-        candidateDetails.candidateValues >> [1: AttributeValue.of([a: 'foo', b: 'bar']), 2: AttributeValue.of([c: 'foo', d: 'bar']), 3: AttributeValue.of([a: 'foo', b: 'bar'])]
+        candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
         strategy.selectClosestMatch(candidateDetails)
 
         then:
-        1 * candidateDetails.closestMatch(1)
-        1 * candidateDetails.closestMatch(2)
-        1 * candidateDetails.closestMatch(3)
+        1 * candidateDetails.closestMatch(key1)
+        1 * candidateDetails.closestMatch(key2)
+        1 * candidateDetails.closestMatch(key3)
         0 * candidateDetails._
     }
 }

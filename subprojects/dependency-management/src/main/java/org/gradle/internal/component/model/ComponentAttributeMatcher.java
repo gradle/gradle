@@ -141,7 +141,7 @@ public class ComponentAttributeMatcher {
                 AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(producerAttributeSchema.getMatchingStrategy(attribute));
                 final AttributeValue<Object> absent = consumerAttributes.contains(attribute) ? AttributeValue.missing() : AttributeValue.unknown();
                 final List<HasAttributes> best = new ArrayList<HasAttributes>();
-                MultipleCandidatesDetails<Object, HasAttributes> details = new MultipleCandidatesDetails<Object, HasAttributes>() {
+                MultipleCandidatesDetails<Object> details = new MultipleCandidatesDetails<Object>() {
                     @Override
                     public AttributeValue<Object> getConsumerValue() {
                         return absent;
@@ -200,7 +200,7 @@ public class ComponentAttributeMatcher {
             AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
             final AttributeValue<Object> requested = AttributeValue.of(requestedValue);
             final List<HasAttributes> best = new ArrayList<HasAttributes>();
-            MultipleCandidatesDetails<Object, HasAttributes> details = new MultipleCandidatesDetails<Object, HasAttributes>() {
+            MultipleCandidatesDetails<Object> details = new MultipleCandidatesDetails<Object>() {
                 @Override
                 public AttributeValue<Object> getConsumerValue() {
                     return requested;

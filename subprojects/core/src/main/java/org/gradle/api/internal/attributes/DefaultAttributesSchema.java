@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.Cast;
 
@@ -77,8 +78,8 @@ public class DefaultAttributesSchema implements AttributesSchema {
         }
 
         @Override
-        public <K> void selectClosestMatch(MultipleCandidatesDetails<T, K> details) {
-            for (K candidate : details.getCandidateValues().keySet()) {
+        public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
+            for (HasAttributes candidate : details.getCandidateValues().keySet()) {
                 details.closestMatch(candidate);
             }
         }
