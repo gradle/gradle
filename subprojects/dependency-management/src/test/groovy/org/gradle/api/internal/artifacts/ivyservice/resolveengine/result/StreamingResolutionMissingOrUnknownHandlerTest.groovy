@@ -29,7 +29,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
-class StreamingResolutionResultBuilderTest extends Specification {
+class StreamingResolutionMissingOrUnknownHandlerTest extends Specification {
 
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 

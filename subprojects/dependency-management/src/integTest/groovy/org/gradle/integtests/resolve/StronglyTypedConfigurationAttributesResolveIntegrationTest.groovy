@@ -141,19 +141,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, [
                     checkCompatibility: { details ->
-                        details.consumerValue.whenPresent { requested ->
-                            details.producerValue.whenPresent { candidate ->
-                                if (requested.value.equalsIgnoreCase(candidate.value)) {
-                                    details.compatible()
-                                } else {
-                                    details.incompatible()
-                                }
-                            } getOrElse {
-                                details.incompatible()
+                        if (details.consumerValue.present && details.producerValue.present) {
+                            if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
+                                details.compatible()
+                                return
                             }
-                        } getOrElse {
-                                details.incompatible()
                         }
+                        details.incompatible()
                     },
                     selectClosestMatch: { details ->
                         details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
@@ -226,19 +220,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, [
                     checkCompatibility: { details ->
-                        details.consumerValue.whenPresent { requested ->
-                            details.producerValue.whenPresent { candidate ->
-                                if (requested.value.equalsIgnoreCase(candidate.value)) {
-                                    details.compatible()
-                                } else {
-                                    details.incompatible()
-                                }
-                            } getOrElse {
-                                details.incompatible()
+                        if (details.consumerValue.present && details.producerValue.present) {
+                            if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
+                                details.compatible()
+                                return
                             }
-                        } getOrElse {
-                                details.incompatible()
                         }
+                        details.incompatible()
                     },
                     selectClosestMatch: { details ->
                         details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
@@ -322,19 +310,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, [
                     checkCompatibility: { details ->
-                        details.consumerValue.whenPresent { requested ->
-                            details.producerValue.whenPresent { candidate ->
-                                if (requested.value.equalsIgnoreCase(candidate.value)) {
-                                    details.compatible()
-                                } else {
-                                    details.incompatible()
-                                }
-                            } getOrElse {
-                                details.incompatible()
+                        if (details.consumerValue.present && details.producerValue.present) {
+                            if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
+                                details.compatible()
+                                return
                             }
-                        } getOrElse {
-                                details.incompatible()
                         }
+                        details.incompatible()
                     },
                     selectClosestMatch: { details ->
                         details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
@@ -422,25 +404,17 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   matchStrictly(buildType)
                   setMatchingStrategy(flavor, new AttributeMatchingStrategy<String>() {
                        void checkCompatibility(CompatibilityCheckDetails<String> details) {
-                            details.consumerValue.whenPresent { requested ->
-                                details.producerValue.whenPresent { candidate ->
-                                    if (requested.value == candidate.value) {
-                                        details.compatible()
-                                    } else {
-                                        details.incompatible()
-                                    }
-                                } getOrElse {
-                                    details.incompatible()
-                                }
-                            } getOrElse {
-                                    details.incompatible()
+                            if (details.consumerValue == details.producerValue) {
+                                details.compatible()
+                                return
                             }
+                            details.incompatible()
                        }
 
                        public <K> void selectClosestMatch(MultipleCandidatesDetails<String, K> details) {
-                            details.consumerValue.whenPresent {
+                            if (details.consumerValue.present) {
                                 details.candidateValues.keySet().each { details.closestMatch(it) }
-                            } getOrElse {
+                            } else {
                                 details.closestMatch(details.candidateValues.entrySet().sort { it.value.get() }.first().key)
                             }
                        }
@@ -503,25 +477,18 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   matchStrictly(dummy)
                   setMatchingStrategy(arch, new AttributeMatchingStrategy<Arch>() {
-                       void checkCompatibility(CompatibilityCheckDetails<String> details) {
-                            details.consumerValue.whenPresent { requested ->
-                                details.producerValue.whenPresent { candidate ->
-                                    if (requested.value == candidate.value) {
-                                        details.compatible()
-                                    } else {
-                                        details.incompatible()
-                                    }
-                                } getOrElse {
-                                    details.incompatible()
-                                }
-                            } getOrElse {
-                                    details.incompatible()
+                       void checkCompatibility(CompatibilityCheckDetails<Arch> details) {
+                            if (details.consumerValue == details.producerValue) {
+                                details.compatible()
+                                return
                             }
+                            details.incompatible()
                        }
+
                        public <K> void selectClosestMatch(MultipleCandidatesDetails<Arch, K> details) {
-                            details.consumerValue.whenPresent {
+                            if (details.consumerValue.present) {
                                 details.candidateValues.keySet().each { details.closestMatch(it) }
-                            } getOrElse {
+                            } else {
                                 details.closestMatch(details.candidateValues.entrySet().sort { it.value.get().ordinal() }.last().key)
                             }
                        }

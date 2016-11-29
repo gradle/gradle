@@ -16,9 +16,7 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 
 import java.util.NoSuchElementException;
 
@@ -122,135 +120,23 @@ public class AttributeValue<T> {
         return false;
     }
 
-    /**
-     * Configures a value to return if this attribute value is present. The transformer instance is passed
-     * the value of the attribute when called. This can be used to return a different value depending on
-     * the state of the attribute, as in this example:
-     * <p/>
-     * <code>
-     *     String result = attributeValue.whenPresent { String value ->
-     *         value.toUpperCase()
-     *     }.whenMissing {
-     *         'default'
-     *     }.whenUnknown {
-     *         'unknown
-     *     }.get()
-     * </code>
-     * <p/>
-     * Alternatively if the missing and default value are the same, it is possible to use the shortcut {@link DefaultingResultBuilder#getOrElse} method:
-     * <p/>
-     * <code>
-     *     String result = attributeValue.whenPresent { String value ->
-     *         value.toUpperCase()
-     *     }.getOrElse {
-     *         'default'
-     *     }
-     * </code>
-     * @param transformer the transformer
-     * @param <O> the type of the result
-     * @return a value producer
-     */
-    public <O> ResultBuilder<O> whenPresent(Transformer<O, T> transformer) {
-        return new Builder<O>(transformer);
-    }
-
-    /**
-     * Interface for builders supporting returning a default value in case value is missing or unknown.
-     * @param <O> the type of the result.
-     */
-    public interface DefaultingResultBuilder<O> {
-        /**
-         * Calls the transformer if the attribute value is present. If the attribute value is missing and that
-         * a missing generator was set, returns the generated missing value, otherwise calls the factory.
-         * @param factory the code to call if we couldn't generate a value
-         * @return the result of the generator
-         */
-        O getOrElse(Factory<O> factory);
-    }
-
-    /**
-     * Builder for producers with a present value generator.
-     * @param <O> the type of the result.
-     */
-    public interface ResultBuilder<O> extends DefaultingResultBuilder<O> {
-        /**
-         * Sets the factory that will be called if the attribute value is missing.
-         * @param factory the factory
-         * @return a builder allowing to set what happens if the value is unknown.
-         */
-        WithMissingResultBuilder<O> whenMissing(Factory<O> factory);
-    }
-
-    /**
-     * Builder for producers with a present value and missing value generator.
-     * @param <O> the type of the result.
-     */
-    public interface WithMissingResultBuilder<O> extends DefaultingResultBuilder<O> {
-        /**
-         * Sets the factory to be called if the attribute value is unknown.
-         * @param factory the factory
-         * @return a producer which can be called to get a transformed value.
-         */
-        ConfiguredResultBuilder<O> whenUnknown(Factory<O> factory);
-    }
-
-    /**
-     * Interface for builders which support generating an output.
-     * @param <O>
-     */
-    public interface ConfiguredResultBuilder<O> {
-        /**
-         * Generates a value depending on the attribute state. If is is present, it will call
-         * the transformer used when attribute values are present. If it is missing, it will
-         * call the missing generator, and if unknown, the unknown generator.
-         * @return the generated value
-         */
-        O get();
-    }
-
-    private class Builder<O> implements ResultBuilder<O>, WithMissingResultBuilder<O>, ConfiguredResultBuilder<O> {
-
-        private Transformer<O, T> whenPresent;
-        private Factory<O> whenMissing;
-        private Factory<O> whenUnknown;
-
-        public Builder(Transformer<O, T> transformer) {
-            this.whenPresent = transformer;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
         }
 
-        @Override
-        public O getOrElse(Factory<O> factory) {
-            // not delegating to getOrElse(O) to avoid computing the result if not necessary
-            if (isPresent()) {
-                return whenPresent.transform(AttributeValue.this.value);
-            } else if (isMissing() && whenMissing != null) {
-                return whenMissing.create();
-            }
-            return factory.create();
-        }
+        AttributeValue<?> that = (AttributeValue<?>) o;
 
-        @Override
-        public WithMissingResultBuilder<O> whenMissing(Factory<O> factory) {
-            this.whenMissing = factory;
-            return this;
-        }
+        return value != null ? value.equals(that.value) : that.value == null;
 
-        @Override
-        public ConfiguredResultBuilder<O> whenUnknown(Factory<O> factory) {
-            this.whenUnknown = factory;
-            return this;
-        }
+    }
 
-        @Override
-        public O get() {
-            if (value != null) {
-                return whenPresent.transform(value);
-            } else if (isMissing() && whenMissing != null) {
-                return whenMissing.create();
-            } else if (whenUnknown != null) {
-                return whenUnknown.create();
-            }
-            return null;
-        }
+    @Override
+    public int hashCode() {
+        return value != null ? value.hashCode() : 0;
     }
 }
