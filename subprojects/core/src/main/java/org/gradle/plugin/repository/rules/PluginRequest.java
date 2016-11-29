@@ -17,7 +17,7 @@
 package org.gradle.plugin.repository.rules;
 
 import org.gradle.api.Nullable;
-import org.gradle.plugin.PluginId;
+import org.gradle.plugin.use.PluginId;
 
 public interface PluginRequest {
     PluginId getId();

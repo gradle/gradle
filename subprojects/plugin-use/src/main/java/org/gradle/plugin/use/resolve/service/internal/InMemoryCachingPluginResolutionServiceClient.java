@@ -22,7 +22,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 import java.io.IOException;
@@ -92,10 +92,10 @@ public class InMemoryCachingPluginResolutionServiceClient implements PluginResol
     }
 
     public static class PluginIdentity {
-        final DefaultPluginId pluginId;
+        final PluginId pluginId;
         final String pluginVersion;
 
-        public PluginIdentity(DefaultPluginId pluginId, String pluginVersion) {
+        public PluginIdentity(PluginId pluginId, String pluginVersion) {
             this.pluginId = pluginId;
             this.pluginVersion = pluginVersion;
         }

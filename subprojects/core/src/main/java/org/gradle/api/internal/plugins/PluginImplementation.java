@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 
 public interface PluginImplementation<T> extends PotentialPlugin<T> {
     String getDisplayName();
@@ -26,7 +26,7 @@ public interface PluginImplementation<T> extends PotentialPlugin<T> {
      * An id for the plugin implementation, if known.
      */
     @Nullable
-    DefaultPluginId getPluginId();
+    PluginId getPluginId();
 
-    boolean isAlsoKnownAs(DefaultPluginId id);
+    boolean isAlsoKnownAs(PluginId id);
 }

@@ -25,12 +25,11 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 
@@ -51,7 +50,7 @@ public class ResolutionServiceResolver {
         this.pluginInspector = pluginInspector;
     }
 
-    PluginResolution buildPluginResolution(DefaultPluginId id, Factory<? extends ClassPath> classPathFactory) {
+    PluginResolution buildPluginResolution(PluginId id, Factory<? extends ClassPath> classPathFactory) {
         return new ClassPathPluginResolution(id, parentScope, classPathFactory, pluginInspector);
     }
 

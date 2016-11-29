@@ -21,7 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 
 public interface PluginManagerInternal extends PluginManager {
     void apply(PluginImplementation<?> plugin);
@@ -35,10 +35,10 @@ public interface PluginManagerInternal extends PluginManager {
     DomainObjectSet<PluginWithId> pluginsForId(String id);
 
     class PluginWithId {
-        final DefaultPluginId id;
+        final PluginId id;
         final Class<?> clazz;
 
-        public PluginWithId(DefaultPluginId id, Class<?> clazz) {
+        public PluginWithId(PluginId id, Class<?> clazz) {
             this.id = id;
             this.clazz = clazz;
         }

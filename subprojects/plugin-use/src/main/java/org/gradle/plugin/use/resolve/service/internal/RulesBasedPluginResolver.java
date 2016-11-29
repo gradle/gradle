@@ -18,7 +18,7 @@ package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.internal.Factories;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.repository.rules.PluginDependency;
 import org.gradle.plugin.repository.rules.PluginModuleOptions;
 import org.gradle.plugin.repository.rules.RuleBasedPluginResolution;
@@ -59,10 +59,10 @@ public class RulesBasedPluginResolver implements PluginResolver {
             result.found(getDescription(), resolution);
         } else {
             String name = pluginRequest.getId().getName();
-            final DefaultPluginId pluginId = DefaultPluginId.of(name);
+            final PluginId pluginId = PluginId.of(name);
             result.found(getDescription(), new PluginResolution() {
                 @Override
-                public DefaultPluginId getPluginId() {
+                public PluginId getPluginId() {
                     return pluginId;
                 }
 
