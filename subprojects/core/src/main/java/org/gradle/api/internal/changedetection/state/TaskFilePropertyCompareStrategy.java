@@ -21,7 +21,7 @@ import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.BuildCacheKeyBuilder;
+import org.gradle.cache.internal.BuildCacheKeyBuilder;
 
 import java.util.Iterator;
 import java.util.Map;

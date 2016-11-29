@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache;
 
-public interface BuildCacheKeyBuilder {
-    BuildCacheKeyBuilder putByte(byte b);
-    BuildCacheKeyBuilder putBytes(byte[] bytes);
-    BuildCacheKeyBuilder putBytes(byte[] bytes, int off, int len);
-    BuildCacheKeyBuilder putInt(int i);
-    BuildCacheKeyBuilder putLong(long l);
-    BuildCacheKeyBuilder putDouble(double d);
-    BuildCacheKeyBuilder putBoolean(boolean b);
-    BuildCacheKeyBuilder putString(CharSequence charSequence);
-    BuildCacheKey build();
+import org.gradle.StartParameter;
+import org.gradle.api.Incubating;
+
+/**
+ * Factory interface for build caching.
+ *
+ * @since 3.3
+ */
+@Incubating
+public interface BuildCacheFactory {
+    BuildCache createCache(StartParameter startParameter);
 }

@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.cache.config;
 
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.tasks.cache.BuildCacheFactory;
-import org.gradle.api.internal.tasks.cache.LocalDirectoryBuildCache;
-import org.gradle.api.internal.tasks.cache.BuildCache;
+import org.gradle.cache.BuildCache;
+import org.gradle.cache.BuildCacheFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.LocalDirectoryBuildCache;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 

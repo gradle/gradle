@@ -17,7 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.cache.BuildCacheFactory;
+import org.gradle.cache.BuildCacheFactory;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;

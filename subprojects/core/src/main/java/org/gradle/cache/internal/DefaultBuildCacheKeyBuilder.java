@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache.internal;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import org.gradle.cache.BuildCacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

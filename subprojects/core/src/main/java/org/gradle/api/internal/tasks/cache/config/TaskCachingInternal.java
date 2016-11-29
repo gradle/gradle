@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.cache.config;
 
-import org.gradle.api.internal.tasks.cache.BuildCacheFactory;
 import org.gradle.api.tasks.TaskCaching;
+import org.gradle.cache.BuildCacheFactory;
 
 public interface TaskCachingInternal extends TaskCaching {
     BuildCacheFactory getCacheFactory();

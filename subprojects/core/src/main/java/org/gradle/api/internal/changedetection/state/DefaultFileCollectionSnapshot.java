@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.BuildCacheKeyBuilder;
+import org.gradle.cache.internal.BuildCacheKeyBuilder;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Decoder;

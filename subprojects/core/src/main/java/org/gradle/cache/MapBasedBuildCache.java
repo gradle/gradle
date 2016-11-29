@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import java.io.ByteArrayInputStream;
@@ -23,8 +24,11 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Build cache implementation that delegates to a {@link ConcurrentMap}.
+ * Simple build cache implementation that delegates to a {@link ConcurrentMap}.
+ *
+ * @since 3.3
  */
+@Incubating
 public class MapBasedBuildCache implements BuildCache {
     private final String description;
     private final ConcurrentMap<String, byte[]> delegate;

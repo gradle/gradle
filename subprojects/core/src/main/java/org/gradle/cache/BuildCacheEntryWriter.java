@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache;
+
+import org.gradle.api.Incubating;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
- * Cache key identifying an entry in the build cache.
+ * Writer to serialize a build cache entry.
+ *
+ * @since 3.3
  */
-public interface BuildCacheKey {
+@Incubating
+public interface BuildCacheEntryWriter {
     /**
-     * Returns the string representation of the cache key.
+     * Serialize a build cache entry to the given stream.
      */
-    String getHashCode();
+    void writeTo(OutputStream output) throws IOException;
 }

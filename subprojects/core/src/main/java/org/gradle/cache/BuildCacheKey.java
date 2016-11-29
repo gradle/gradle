@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.gradle.api.Incubating;
 
 /**
- * A reader for build cache entries.
+ * Cache key identifying an entry in the build cache.
+ *
+ * @since 3.3
  */
-public interface BuildCacheEntryReader {
+@Incubating
+public interface BuildCacheKey {
     /**
-     * Read a build cache entry from the given input stream.
+     * Returns the string representation of the cache key.
      */
-    void readFrom(InputStream input) throws IOException;
+    String getHashCode();
 }

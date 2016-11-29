@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache.internal;
 
 import com.google.common.io.Closer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.BuildCache;
+import org.gradle.cache.BuildCacheEntryReader;
+import org.gradle.cache.BuildCacheEntryWriter;
+import org.gradle.cache.BuildCacheKey;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;

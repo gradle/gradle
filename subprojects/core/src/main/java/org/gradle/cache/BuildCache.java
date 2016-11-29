@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache;
+
+import org.gradle.api.Incubating;
 
 import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Cache protocol interface to be implemented by build cache backends.
+ *
+ * @since 3.3
  */
+@Incubating
 public interface BuildCache extends Closeable {
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.

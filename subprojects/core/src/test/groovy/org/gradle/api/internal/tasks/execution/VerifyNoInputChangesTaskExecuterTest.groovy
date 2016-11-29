@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.cache.BuildCacheKey
+import org.gradle.cache.BuildCacheKey
 import spock.lang.Specification
 
 class VerifyNoInputChangesTaskExecuterTest extends Specification {

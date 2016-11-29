@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.tasks.http
+package org.gradle.cache.http
 
-import org.gradle.api.internal.tasks.cache.BuildCacheKey
+import org.gradle.cache.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule

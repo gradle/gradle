@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.tasks.http;
+package org.gradle.cache.http;
 
 import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,10 +24,11 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.gradle.api.internal.tasks.cache.BuildCacheKey;
-import org.gradle.api.internal.tasks.cache.BuildCache;
-import org.gradle.api.internal.tasks.cache.BuildCacheEntryReader;
-import org.gradle.api.internal.tasks.cache.BuildCacheEntryWriter;
+import org.gradle.api.Incubating;
+import org.gradle.cache.BuildCache;
+import org.gradle.cache.BuildCacheEntryReader;
+import org.gradle.cache.BuildCacheEntryWriter;
+import org.gradle.cache.BuildCacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,10 @@ import java.net.URI;
  * Build cache implementation that delegates to a service accessible via HTTP.
  *
  * <p>Cache entries are loaded via {@literal GET} and stored via {@literal PUT} requests.</p>
+ *
+ * @since 3.3
  */
+@Incubating
 public class HttpBuildCache implements BuildCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCache.class);
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.tasks.http
+package org.gradle.cache.http
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ports.ReleasingPortAllocator

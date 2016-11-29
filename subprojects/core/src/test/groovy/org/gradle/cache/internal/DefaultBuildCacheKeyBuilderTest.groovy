@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache
+package org.gradle.cache.internal
 
 import spock.lang.Specification
 

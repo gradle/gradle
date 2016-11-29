@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.cache;
+
+import org.gradle.api.Incubating;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 /**
- * Writer to serialize a build cache entry.
+ * A reader for build cache entries.
+ *
+ * @since 3.3
  */
-public interface BuildCacheEntryWriter {
+@Incubating
+public interface BuildCacheEntryReader {
     /**
-     * Serialize a build cache entry to the given stream.
+     * Read a build cache entry from the given input stream.
      */
-    void writeTo(OutputStream output) throws IOException;
+    void readFrom(InputStream input) throws IOException;
 }
