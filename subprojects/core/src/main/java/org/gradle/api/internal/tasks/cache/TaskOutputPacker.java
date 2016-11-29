@@ -17,14 +17,15 @@
 package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface TaskOutputPacker {
-    void pack(OriginMetadata originMetadata, TaskOutputsInternal taskOutputs, OutputStream output) throws IOException;
+    void pack(TaskOutputsInternal taskOutputs, OutputStream output, OriginMetadataWriter originMetadataWriter) throws IOException;
 
-    void unpack(OriginMetadataProcessor processor, TaskOutputsInternal taskOutputs, InputStream input) throws IOException;
+    void unpack(TaskOutputsInternal taskOutputs, InputStream input, OriginMetadataReader originMetadataReader) throws IOException;
 }

@@ -18,7 +18,8 @@ package org.gradle.api.internal.tasks.cache;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 
@@ -38,12 +39,12 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(OriginMetadata originMetadata, TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
-        delegate.pack(originMetadata, taskOutputs, output);
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, OriginMetadataWriter originMetadataWriter) throws IOException {
+        delegate.pack(taskOutputs, output, originMetadataWriter);
     }
 
     @Override
-    public void unpack(OriginMetadataProcessor processor, TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, OriginMetadataReader originMetadataReader) throws IOException {
         for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
             CacheableTaskOutputFilePropertySpec property = (CacheableTaskOutputFilePropertySpec) propertySpec;
             File output = property.getOutputFile();
@@ -66,7 +67,7 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
                     throw new AssertionError();
             }
         }
-        delegate.unpack(processor, taskOutputs, input);
+        delegate.unpack(taskOutputs, input, originMetadataReader);
     }
 
     private static boolean makeDirectory(File output) throws IOException {

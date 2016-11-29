@@ -23,8 +23,15 @@ import java.io.OutputStream;
 import java.util.Properties;
 
 public class DefaultOriginMetadataWriter implements OriginMetadataWriter {
+
+    private final OriginMetadata originMetadata;
+
+    public DefaultOriginMetadataWriter(OriginMetadata originMetadata) {
+        this.originMetadata = originMetadata;
+    }
+
     @Override
-    public void writeTo(OriginMetadata originMetadata, OutputStream outputStream) throws IOException {
+    public void writeTo(OutputStream outputStream) throws IOException {
         // TODO: Replace this with something better
         Properties properties = new Properties();
         properties.setProperty("type", originMetadata.getType());

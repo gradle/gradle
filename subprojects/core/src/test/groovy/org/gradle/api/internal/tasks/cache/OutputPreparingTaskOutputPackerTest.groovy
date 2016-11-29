@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.cache
 
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader
 import spock.lang.Subject
 
 import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
@@ -27,7 +27,7 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def delegate = Mock(TarTaskOutputPacker)
     def packer = new OutputPreparingTaskOutputPacker(delegate)
     def input = Mock(InputStream)
-    def processor = Mock(OriginMetadataProcessor)
+    def metadataReader = Stub(OriginMetadataReader)
     def targetOutputFile
     def targetOutputDir
 
@@ -41,14 +41,14 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         targetOutputDir.file("sub-dir/data.txt") << "Some data"
 
         when:
-        packer.unpack(processor, taskOutputs, input)
+        packer.unpack(taskOutputs, input, metadataReader)
 
         then:
         1 * taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "testFile", outputFile: targetOutputFile),
             new TestProperty(propertyName: "testDir", outputFile: targetOutputDir)
         ] as SortedSet)
-        1 * delegate.unpack(processor, taskOutputs, input)
+        1 * delegate.unpack(taskOutputs, input, metadataReader)
         0 * _
 
         then:
@@ -61,14 +61,14 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         targetOutputDir.mkdirs()
 
         when:
-        packer.unpack(processor, taskOutputs, input)
+        packer.unpack(taskOutputs, input, metadataReader)
 
         then:
         1 * taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
             new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
         ] as SortedSet)
-        1 * delegate.unpack(processor, taskOutputs, input)
+        1 * delegate.unpack(taskOutputs, input, metadataReader)
         0 * _
 
         then:
@@ -78,14 +78,14 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
     def "creates necessary directories"() {
         when:
-        packer.unpack(processor, taskOutputs, input)
+        packer.unpack(taskOutputs, input, metadataReader)
 
         then:
         1 * taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
             new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
         ] as SortedSet)
-        1 * delegate.unpack(processor, taskOutputs, input)
+        1 * delegate.unpack(taskOutputs, input, metadataReader)
         0 * _
 
         then:
@@ -97,13 +97,13 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         targetOutputDir << "This should become a directory"
 
         when:
-        packer.unpack(processor, taskOutputs, input)
+        packer.unpack(taskOutputs, input, metadataReader)
 
         then:
         1 * taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "testDir", outputFile: targetOutputDir, outputType: DIRECTORY)
         ] as SortedSet)
-        1 * delegate.unpack(processor, taskOutputs, input)
+        1 * delegate.unpack(taskOutputs, input, metadataReader)
         0 * _
 
         then:
@@ -114,13 +114,13 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         targetOutputFile.createDir()
 
         when:
-        packer.unpack(processor, taskOutputs, input)
+        packer.unpack(taskOutputs, input, metadataReader)
 
         then:
         1 * taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "testFile", outputFile: targetOutputFile, outputType: FILE),
         ] as SortedSet)
-        1 * delegate.unpack(processor, taskOutputs, input)
+        1 * delegate.unpack(taskOutputs, input, metadataReader)
         0 * _
 
         then:

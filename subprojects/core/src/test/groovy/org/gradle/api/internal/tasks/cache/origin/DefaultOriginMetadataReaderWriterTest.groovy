@@ -16,16 +16,26 @@
 
 package org.gradle.api.internal.tasks.cache.origin
 
+import org.gradle.api.internal.tasks.cache.OriginMetadata
 import spock.lang.Specification
 
 class DefaultOriginMetadataReaderWriterTest extends Specification {
     def "metadata roundtrip"() {
-        def originMetadata = new DefaultOriginMetadata("path", "type", "3.0", 0, 10, "root", "os", "host", "user")
+        OriginMetadata originMetadata = new DefaultOriginMetadata("path", "type", "3.0", 0, 10, "root", "os", "host", "user")
         def baos = new ByteArrayOutputStream()
-        def writer = new DefaultOriginMetadataWriter()
-        writer.writeTo(originMetadata, baos)
-        def reader = new DefaultOriginMetadataReader()
-        def restored = reader.readFrom(new ByteArrayInputStream(baos.toByteArray()))
+
+        def writer = new DefaultOriginMetadataWriter(originMetadata)
+        writer.writeTo(baos)
+
+        OriginMetadata restored = null
+        def reader = new ProcessingOriginMetadataReader() {
+            @Override
+            protected void processMetadata(OriginMetadata metadata) {
+                readMetadata = metadata
+            }
+        }
+        reader.readFrom(new ByteArrayInputStream(baos.toByteArray()))
+
         expect:
         originMetadata == restored
         restored.path == "path"
