@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import org.gradle.plugin.internal.DefaultPluginId
+import org.gradle.plugin.use.PluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.junit.Rule
@@ -46,8 +46,8 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin = pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
-        plugin.pluginId == DefaultPluginId.of("somePlugin")
+        def plugin = pluginRegistry.lookup(PluginId.of("somePlugin"))
+        plugin.pluginId == PluginId.of("somePlugin")
         plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
         plugin.displayName == "id 'somePlugin'"
         plugin.asClass() == TestPlugin1
@@ -61,8 +61,8 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
 
         expect:
-        def plugin = pluginRegistry.lookup(DefaultPluginId.of("someRuleSource"))
-        plugin.pluginId == DefaultPluginId.of("someRuleSource")
+        def plugin = pluginRegistry.lookup(PluginId.of("someRuleSource"))
+        plugin.pluginId == PluginId.of("someRuleSource")
         plugin.type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
         plugin.displayName == "id 'someRuleSource'"
         plugin.asClass() == TestRuleSource
@@ -70,7 +70,7 @@ class DefaultPluginRegistryTest extends Specification {
 
     def "locate returns null for unknown id"() {
         expect:
-        pluginRegistry.lookup(DefaultPluginId.of("unknownId")) == null
+        pluginRegistry.lookup(PluginId.of("unknownId")) == null
     }
 
     def "can locate plugin implementation in org.gradle namespace using unqualified id"() {
@@ -82,13 +82,13 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def unqualified = pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
-        unqualified.pluginId == DefaultPluginId.of("org.gradle.somePlugin")
+        def unqualified = pluginRegistry.lookup(PluginId.of("somePlugin"))
+        unqualified.pluginId == PluginId.of("org.gradle.somePlugin")
         unqualified.displayName == "id 'org.gradle.somePlugin'"
         unqualified.asClass() == TestPlugin1
 
-        def qualified = pluginRegistry.lookup(DefaultPluginId.of("org.gradle.somePlugin"))
-        qualified.pluginId == DefaultPluginId.of("org.gradle.somePlugin")
+        def qualified = pluginRegistry.lookup(PluginId.of("org.gradle.somePlugin"))
+        qualified.pluginId == PluginId.of("org.gradle.somePlugin")
         unqualified.displayName == "id 'org.gradle.somePlugin'"
         qualified.asClass() == TestPlugin1
     }
@@ -98,7 +98,7 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.getResource("META-INF/gradle-plugins/org.gradle.thing.somePlugin.properties") >> { throw new RuntimeException() }
 
         expect:
-        pluginRegistry.lookup(DefaultPluginId.of("thing.somePlugin")) == null
+        pluginRegistry.lookup(PluginId.of("thing.somePlugin")) == null
     }
 
     def "plugin implementation with id in org.gradle namespace is also known by unqualified id"() {
@@ -109,13 +109,13 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def qualified = pluginRegistry.lookup(DefaultPluginId.of("org.gradle.somePlugin"))
-        qualified.isAlsoKnownAs(DefaultPluginId.of("org.gradle.somePlugin"))
-        qualified.isAlsoKnownAs(DefaultPluginId.of("somePlugin"))
+        def qualified = pluginRegistry.lookup(PluginId.of("org.gradle.somePlugin"))
+        qualified.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
+        qualified.isAlsoKnownAs(PluginId.of("somePlugin"))
 
-        def unqualified = pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
-        unqualified.isAlsoKnownAs(DefaultPluginId.of("org.gradle.somePlugin"))
-        unqualified.isAlsoKnownAs(DefaultPluginId.of("somePlugin"))
+        def unqualified = pluginRegistry.lookup(PluginId.of("somePlugin"))
+        unqualified.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
+        unqualified.isAlsoKnownAs(PluginId.of("somePlugin"))
     }
 
     def "plugin implementation is also known by all id mappings that reference that implementation"() {
@@ -127,13 +127,13 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin1 = pluginRegistry.lookup(DefaultPluginId.of("plugin-1"))
-        def plugin2 = pluginRegistry.lookup(DefaultPluginId.of("plugin-2"))
+        def plugin1 = pluginRegistry.lookup(PluginId.of("plugin-1"))
+        def plugin2 = pluginRegistry.lookup(PluginId.of("plugin-2"))
 
-        plugin1.isAlsoKnownAs(DefaultPluginId.of("plugin-1"))
-        plugin1.isAlsoKnownAs(DefaultPluginId.of("plugin-2"))
-        plugin2.isAlsoKnownAs(DefaultPluginId.of("plugin-1"))
-        plugin2.isAlsoKnownAs(DefaultPluginId.of("plugin-2"))
+        plugin1.isAlsoKnownAs(PluginId.of("plugin-1"))
+        plugin1.isAlsoKnownAs(PluginId.of("plugin-2"))
+        plugin2.isAlsoKnownAs(PluginId.of("plugin-1"))
+        plugin2.isAlsoKnownAs(PluginId.of("plugin-2"))
     }
 
     def "plugin implementation is not known by unknown id"() {
@@ -144,10 +144,10 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin = pluginRegistry.lookup(DefaultPluginId.of("thing.somePlugin"))
-        !plugin.isAlsoKnownAs(DefaultPluginId.of("somePlugin"))
-        !plugin.isAlsoKnownAs(DefaultPluginId.of("thing.other"))
-        !plugin.isAlsoKnownAs(DefaultPluginId.of("org.gradle.thing.somePlugin"))
+        def plugin = pluginRegistry.lookup(PluginId.of("thing.somePlugin"))
+        !plugin.isAlsoKnownAs(PluginId.of("somePlugin"))
+        !plugin.isAlsoKnownAs(PluginId.of("thing.other"))
+        !plugin.isAlsoKnownAs(PluginId.of("org.gradle.thing.somePlugin"))
     }
 
     def "plugin implementation is not known by id that maps to another implementation"() {
@@ -161,11 +161,11 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(BrokenPlugin.name) >> BrokenPlugin
 
         expect:
-        def plugin1 = pluginRegistry.lookup(DefaultPluginId.of("plugin-1"))
-        def plugin2 = pluginRegistry.lookup(DefaultPluginId.of("plugin-2"))
+        def plugin1 = pluginRegistry.lookup(PluginId.of("plugin-1"))
+        def plugin2 = pluginRegistry.lookup(PluginId.of("plugin-2"))
 
-        !plugin1.isAlsoKnownAs(DefaultPluginId.of("plugin-2"))
-        !plugin2.isAlsoKnownAs(DefaultPluginId.of("plugin-1"))
+        !plugin1.isAlsoKnownAs(PluginId.of("plugin-2"))
+        !plugin2.isAlsoKnownAs(PluginId.of("plugin-1"))
     }
 
     def "inspects imperative plugin implementation"() {
@@ -183,7 +183,7 @@ class DefaultPluginRegistryTest extends Specification {
 
         expect:
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
-        !plugin.isAlsoKnownAs(DefaultPluginId.of("org.gradle.some-plugin"))
+        !plugin.isAlsoKnownAs(PluginId.of("org.gradle.some-plugin"))
     }
 
     def "inspects class that has multiple id mappings"() {
@@ -195,9 +195,9 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin = pluginRegistry.lookup(DefaultPluginId.of("plugin-1"), classLoader)
-        plugin.isAlsoKnownAs(DefaultPluginId.of("plugin-1"))
-        plugin.isAlsoKnownAs(DefaultPluginId.of("plugin-2"))
+        def plugin = pluginRegistry.lookup(PluginId.of("plugin-1"), classLoader)
+        plugin.isAlsoKnownAs(PluginId.of("plugin-1"))
+        plugin.isAlsoKnownAs(PluginId.of("plugin-2"))
     }
 
     def "inspects class that has id mapping in org.gradle namespace"() {
@@ -208,9 +208,9 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin = pluginRegistry.lookup(DefaultPluginId.of("org.gradle.somePlugin"), classLoader)
-        plugin.isAlsoKnownAs(DefaultPluginId.of("somePlugin"))
-        plugin.isAlsoKnownAs(DefaultPluginId.of("org.gradle.somePlugin"))
+        def plugin = pluginRegistry.lookup(PluginId.of("org.gradle.somePlugin"), classLoader)
+        plugin.isAlsoKnownAs(PluginId.of("somePlugin"))
+        plugin.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
     }
 
     def "inspects class that is not a plugin implementation"() {
@@ -230,14 +230,14 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.getResource("META-INF/gradle-plugins/noImpl.properties") >> url
 
         when:
-        pluginRegistry.lookup(DefaultPluginId.of("noImpl"))
+        pluginRegistry.lookup(PluginId.of("noImpl"))
 
         then:
         InvalidPluginException e = thrown()
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
 
         when:
-        pluginRegistry.lookup(DefaultPluginId.of("noImpl"))
+        pluginRegistry.lookup(PluginId.of("noImpl"))
 
         then:
         e = thrown()
@@ -252,7 +252,7 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(String.name) >> String
 
         expect:
-        pluginRegistry.lookup(DefaultPluginId.of("brokenImpl")).type == PotentialPlugin.Type.UNKNOWN
+        pluginRegistry.lookup(PluginId.of("brokenImpl")).type == PotentialPlugin.Type.UNKNOWN
     }
 
     def "wraps failure to load implementation class"() {
@@ -263,7 +263,7 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.loadClass(TestPlugin1.name) >> { throw new ClassNotFoundException() }
 
         when:
-        pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
+        pluginRegistry.lookup(PluginId.of("somePlugin"))
 
         then:
         InvalidPluginException e = thrown()
@@ -281,7 +281,7 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         when:
-        def plugin = child.lookup(DefaultPluginId.of("somePlugin"))
+        def plugin = child.lookup(PluginId.of("somePlugin"))
 
         then:
         plugin.asClass() == TestPlugin1
@@ -302,7 +302,7 @@ class DefaultPluginRegistryTest extends Specification {
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         when:
-        def type = child.lookup(DefaultPluginId.of("somePlugin")).asClass()
+        def type = child.lookup(PluginId.of("somePlugin")).asClass()
 
         then:
         type == TestPlugin1

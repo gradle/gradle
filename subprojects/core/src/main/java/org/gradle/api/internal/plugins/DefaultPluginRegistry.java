@@ -26,8 +26,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.plugin.internal.DefaultPluginId;
-import org.gradle.plugin.PluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.util.GUtil;
 
 import java.util.concurrent.ExecutionException;
@@ -52,7 +51,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
             @Override
             public Optional<PluginImplementation<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
-                DefaultPluginId pluginId = key.getId();
+                PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
                 PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
@@ -116,7 +115,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
     @Nullable
     @Override
-    public PluginImplementation<?> lookup(DefaultPluginId pluginId) {
+    public PluginImplementation<?> lookup(PluginId pluginId) {
         PluginImplementation lookup;
         if (parent != null) {
             lookup = parent.lookup(pluginId);
@@ -129,13 +128,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     @Nullable
-    private PluginImplementation<?> lookup(DefaultPluginId pluginId, ClassLoader classLoader) {
+    private PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
 
         PluginImplementation lookup;
         if (!pluginId.isQualified()) {
-            DefaultPluginId qualified = pluginId.maybeQualify(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
+            PluginId qualified = pluginId.maybeQualify(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
             lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
             if (lookup != null) {
                 return lookup;
@@ -158,14 +157,14 @@ public class DefaultPluginRegistry implements PluginRegistry {
     static class PluginIdLookupCacheKey {
 
         private final ClassLoader classLoader;
-        private final DefaultPluginId id;
+        private final PluginId id;
 
-        PluginIdLookupCacheKey(DefaultPluginId id, ClassLoader classLoader) {
+        PluginIdLookupCacheKey(PluginId id, ClassLoader classLoader) {
             this.classLoader = classLoader;
             this.id = id;
         }
 
-        public DefaultPluginId getId() {
+        public PluginId getId() {
             return id;
         }
 
@@ -212,14 +211,14 @@ public class DefaultPluginRegistry implements PluginRegistry {
         private final ClassLoader classLoader;
         private final PluginId pluginId;
 
-        public RegistryAwarePluginImplementation(ClassLoader classLoader, DefaultPluginId pluginId, PotentialPlugin<?> potentialPlugin) {
+        public RegistryAwarePluginImplementation(ClassLoader classLoader, PluginId pluginId, PotentialPlugin<?> potentialPlugin) {
             super(pluginId, potentialPlugin);
             this.classLoader = classLoader;
             this.pluginId = pluginId;
         }
 
         @Override
-        public boolean isAlsoKnownAs(DefaultPluginId id) {
+        public boolean isAlsoKnownAs(PluginId id) {
             if (id.equals(pluginId)) {
                 return true;
             }

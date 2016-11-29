@@ -20,8 +20,7 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.internal.DefaultPluginId;
-import org.gradle.plugin.PluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.util.CollectionUtils;
@@ -45,13 +44,13 @@ public class PluginRequestCollector {
     }
 
     private static class DependencySpecImpl implements PluginDependencySpec {
-        private final DefaultPluginId id;
+        private final PluginId id;
         private String version;
         private boolean apply;
         private final int lineNumber;
 
         private DependencySpecImpl(String id, int lineNumber) {
-            this.id = DefaultPluginId.of(id);
+            this.id = PluginId.of(id);
             this.apply = true;
             this.lineNumber = lineNumber;
         }

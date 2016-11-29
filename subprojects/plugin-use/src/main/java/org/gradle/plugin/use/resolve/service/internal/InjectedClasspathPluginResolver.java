@@ -25,7 +25,7 @@ import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.PluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;

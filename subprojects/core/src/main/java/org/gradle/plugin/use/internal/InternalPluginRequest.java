@@ -17,12 +17,12 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.repository.rules.PluginRequest;
 
 public interface InternalPluginRequest extends PluginRequest {
 
-    DefaultPluginId getId();
+    PluginId getId();
 
     @Nullable
     String getVersion();

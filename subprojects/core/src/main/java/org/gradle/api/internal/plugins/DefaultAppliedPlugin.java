@@ -17,13 +17,13 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 
 class DefaultAppliedPlugin implements AppliedPlugin {
 
-    private final DefaultPluginId pluginId;
+    private final PluginId pluginId;
 
-    public DefaultAppliedPlugin(DefaultPluginId pluginId) {
+    public DefaultAppliedPlugin(PluginId pluginId) {
         this.pluginId = pluginId;
     }
 
