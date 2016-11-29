@@ -19,18 +19,21 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
-public class WorkerOutputEventListener implements OutputEventListener {
+public class WorkerLogEventListener implements OutputEventListener {
     private WorkerLoggingProtocol workerLoggingProtocol;
 
-    public WorkerOutputEventListener(WorkerLoggingProtocol workerLoggingProtocol) {
+    public WorkerLogEventListener(WorkerLoggingProtocol workerLoggingProtocol) {
         this.workerLoggingProtocol = workerLoggingProtocol;
     }
 
     @Override
     public void onOutput(OutputEvent event) {
-        if(event instanceof LogEvent){
-            workerLoggingProtocol.sendOutputEvent((LogEvent)event);
+        if (event instanceof LogEvent) {
+            workerLoggingProtocol.sendOutputEvent((LogEvent) event);
+        } else if (event instanceof StyledTextOutputEvent) {
+            workerLoggingProtocol.sendOutputEvent((StyledTextOutputEvent) event);
         }
     }
 }

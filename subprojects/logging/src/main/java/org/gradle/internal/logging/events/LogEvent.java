@@ -20,14 +20,9 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.io.Serializable;
-
-public class LogEvent extends RenderableOutputEvent implements Serializable {
-    private String message;
-    private Throwable throwable;
-
-    public LogEvent() {
-    }
+public class LogEvent extends RenderableOutputEvent {
+    private final String message;
+    private final Throwable throwable;
 
     public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
         super(timestamp, category, logLevel);
@@ -50,14 +45,6 @@ public class LogEvent extends RenderableOutputEvent implements Serializable {
         if (throwable != null) {
             output.exception(throwable);
         }
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public void setThrowable(Throwable throwable) {
-        this.throwable = throwable;
     }
 
     @Override

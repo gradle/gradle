@@ -18,15 +18,10 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 
-import java.io.Serializable;
-
-public class CategorisedOutputEvent extends OutputEvent implements Serializable {
-    private String category;
-    private LogLevel logLevel;
-    private long timestamp;
-
-    public CategorisedOutputEvent() {
-    }
+public class CategorisedOutputEvent extends OutputEvent {
+    private final String category;
+    private final LogLevel logLevel;
+    private final long timestamp;
 
     public CategorisedOutputEvent(long timestamp, String category, LogLevel logLevel) {
         this.timestamp = timestamp;
@@ -40,18 +35,6 @@ public class CategorisedOutputEvent extends OutputEvent implements Serializable 
 
     public LogLevel getLogLevel() {
         return logLevel;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public void setLogLevel(LogLevel logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 
     public String getCategory() {

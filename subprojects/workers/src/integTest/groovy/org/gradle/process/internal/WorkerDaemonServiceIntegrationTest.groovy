@@ -86,6 +86,23 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         assertRunnableExecuted("runInDaemon")
     }
 
+    def "stdout, stderr and logging output is redirect"() {
+
+        buildFile << """
+            ${runnableWithLogging}
+            task runInDaemon(type: DaemonTask)
+        """
+
+        when:
+        succeeds("runInDaemon")
+
+        then:
+        output.contains("stdout message")
+        output.contains("warn message")
+        errorOutput.contains("error message")
+        !output.contains("debug message")
+    }
+
     def "produces a sensible error when there is a failure in the daemon runnable"() {
         withRunnableClassInBuildSrc()
 
@@ -435,6 +452,31 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
+    String getRunnableWithLogging() {
+        return """
+            import java.io.File;
+            import java.util.List;
+            import org.gradle.other.Foo;
+            import java.util.UUID;
+            import org.gradle.api.logging.Logging;
+            
+            public class TestRunnable implements Runnable {
+                private static final String id = UUID.randomUUID().toString();
+                public TestRunnable(List<String> files, File outputDir, Foo foo) {
+                }
+
+                public void run() {
+                    Logging.getLogger(getClass()).warn("warn message");
+                    Logging.getLogger(getClass()).debug("debug message");
+                    Logging.getLogger(getClass()).error("error message");
+                    System.out.println("stdout message");
+                    System.err.println("stderr message");
+                }
+            }
+        """
+    }
+
 
     void withParameterClassInBuildSrc() {
         file("buildSrc/src/main/java/org/gradle/other/Foo.java") << """

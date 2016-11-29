@@ -39,14 +39,14 @@ import org.gradle.internal.serialize.SerializerRegistry;
 
 public class WorkerMessageSerializer {
 
-    static SerializerRegistry create() {
+    public static SerializerRegistry create() {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
 
-        // Output events
+        // Log events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());

@@ -38,17 +38,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     @Override
     public boolean canSerialize(Class<?> baseType) {
-        for (Class<?> candidate : serializerMap.keySet()) {
-            if (baseType.isAssignableFrom(candidate)) {
-                return true;
-            }
-        }
-        for (Class<?> candidate : javaSerialization) {
-            if (baseType.isAssignableFrom(candidate)) {
-                return true;
-            }
-        }
-        return false;
+        return serializerMap.containsKey(baseType) || javaSerialization.contains(baseType);
     }
 
     @Override

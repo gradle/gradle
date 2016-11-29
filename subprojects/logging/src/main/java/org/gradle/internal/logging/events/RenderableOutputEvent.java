@@ -19,12 +19,7 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.io.Serializable;
-
-public abstract class RenderableOutputEvent extends CategorisedOutputEvent implements Serializable {
-
-    public RenderableOutputEvent() {
-    }
+public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
 
     protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel) {
         super(timestamp, category, logLevel);

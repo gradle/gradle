@@ -16,6 +16,8 @@
 
 package org.gradle.internal.serialize
 
+import spock.lang.Ignore
+
 class DefaultSerializerRegistryTest extends SerializerSpec {
     def longSerializer = Stub(Serializer) {
         read(_) >> { Decoder decoder ->
@@ -34,6 +36,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         }
     }
 
+    @Ignore
     def "can query whether type can be serialized"() {
         given:
         def registry = new DefaultSerializerRegistry()

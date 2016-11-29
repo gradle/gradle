@@ -52,14 +52,14 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         }
         exceptionListener.rethrow();
     }
-
+    
     def workerProcessStdoutAndStderrIsForwardedToThisProcess() {
         when:
         execute(worker(new LoggingProcess()))
 
         then:
-        stdout.stdOut == TextUtil.toPlatformLineSeparators("this is stdout\n")
-        stdout.stdErr.endsWith(TextUtil.toPlatformLineSeparators("this is stderr\n"))
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("this is stdout\n"))
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("this is stderr\n"))
     }
 
     def workerProcessCanSendMessagesToThisProcess() {
