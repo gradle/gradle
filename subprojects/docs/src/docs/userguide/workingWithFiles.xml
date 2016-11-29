@@ -426,4 +426,27 @@
 
     </section>
 
+    <section id="sec:properties_files">
+        <title>Properties files</title>
+
+        <para>Properties files are used in many places during Java development, and Gradle uses them itself as well.
+            You can use the <apilink class="org.gradle.api.tasks.WriteProperties"/> task to create properties files.
+            It makes creating properties files as part of a build easy.
+        </para>
+
+        <para>The <literal>WriteProperties</literal> task also fixes a problem with
+            <apilink class="java.util.Properties" method="store(java.io.OutputStream, java.lang.String)"/> that can
+            reduce the efficiency of incremental builds (see <xref linkend="sec:up_to_date_checks" />). Unlike
+            standard Java method that produces different output every time even for the same properties, the task
+            generates exactly the same output every time, byte-by-byte. This is achieved by a few tweaks to how
+            properties are serialized:
+        </para>
+        <itemizedlist>
+            <listitem>no timestamp comment is added to the output</listitem>
+            <listitem>the line separator does not depend on the operating system, but can be configured explicitly
+                (it defaults to <literal>'\n'</literal>)</listitem>
+            <listitem>the properties are sorted alphabetically (this makes the output look nicer, but doesn't
+                contribute to reproducibility)</listitem>
+        </itemizedlist>
+    </section>
 </chapter>
