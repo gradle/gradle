@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.cache.origin;
 
-class DefaultOriginMetadata {
+class TaskOutputOriginMetadata {
     // What created the output?
     private final String path;
     private final String type;
@@ -32,7 +32,7 @@ class DefaultOriginMetadata {
     private final String hostName;
     private final String userName;
 
-    public DefaultOriginMetadata(String path, String type, String gradleVersion, long creationTime, long executionTime, String rootPath, String operatingSystem, String hostName, String userName) {
+    public TaskOutputOriginMetadata(String path, String type, String gradleVersion, long creationTime, long executionTime, String rootPath, String operatingSystem, String hostName, String userName) {
         this.path = path;
         this.type = type;
         this.gradleVersion = gradleVersion;
@@ -111,7 +111,7 @@ class DefaultOriginMetadata {
             return false;
         }
 
-        DefaultOriginMetadata that = (DefaultOriginMetadata) o;
+        TaskOutputOriginMetadata that = (TaskOutputOriginMetadata) o;
 
         if (creationTime != that.creationTime) {
             return false;

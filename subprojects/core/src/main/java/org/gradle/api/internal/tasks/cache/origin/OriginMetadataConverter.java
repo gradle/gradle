@@ -49,7 +49,7 @@ public class OriginMetadataConverter {
     }
 
     public OriginMetadataWriter createWriter(TaskInternal task, long elapsedTime) {
-        final DefaultOriginMetadata originMetadata = convert(task, elapsedTime);
+        final TaskOutputOriginMetadata originMetadata = convert(task, elapsedTime);
 
         return new OriginMetadataWriter() {
             @Override
@@ -78,7 +78,7 @@ public class OriginMetadataConverter {
                 if (LOGGER.isInfoEnabled()) {
                     Properties properties = new Properties();
                     properties.load(inputStream);
-                    DefaultOriginMetadata originMetadata = new DefaultOriginMetadata(get(properties, "path"),
+                    TaskOutputOriginMetadata originMetadata = new TaskOutputOriginMetadata(get(properties, "path"),
                         get(properties, "type"),
                         get(properties, "gradleVersion"),
                         Long.valueOf(get(properties, "creationTime")),
@@ -102,8 +102,8 @@ public class OriginMetadataConverter {
         return value;
     }
 
-    private DefaultOriginMetadata convert(TaskInternal task, long elapsedTime) {
-        return new DefaultOriginMetadata(task.getPath(),
+    private TaskOutputOriginMetadata convert(TaskInternal task, long elapsedTime) {
+        return new TaskOutputOriginMetadata(task.getPath(),
             task.getClass().getCanonicalName(),
             gradleVersion.getVersion(),
             timeProvider.getCurrentTime(),

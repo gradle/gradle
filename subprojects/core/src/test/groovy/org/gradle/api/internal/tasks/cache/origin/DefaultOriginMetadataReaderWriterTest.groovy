@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class DefaultOriginMetadataReaderWriterTest extends Specification {
     def "metadata roundtrip"() {
-        OriginMetadata originMetadata = new DefaultOriginMetadata("path", "type", "3.0", 0, 10, "root", "os", "host", "user")
+        OriginMetadata originMetadata = new TaskOutputOriginMetadata("path", "type", "3.0", 0, 10, "root", "os", "host", "user")
         def baos = new ByteArrayOutputStream()
 
         def writer = new DefaultOriginMetadataWriter(originMetadata)
