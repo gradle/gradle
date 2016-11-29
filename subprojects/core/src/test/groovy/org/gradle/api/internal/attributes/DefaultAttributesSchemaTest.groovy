@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributeValue
 import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
@@ -28,28 +29,35 @@ class DefaultAttributesSchemaTest extends Specification {
     def "has a reasonable default matching strategy for String attributes"() {
         given:
         def strategy = schema.getMatchingStrategy(Attribute.of(String))
-        def details = Mock(CompatibilityCheckDetails)
+        def checkDetails = Mock(CompatibilityCheckDetails)
+        def candidatesDetails = Mock(MultipleCandidatesDetails)
 
         when:
-        details.getConsumerValue() >> AttributeValue.of('foo')
-        details.getProducerValue() >> AttributeValue.of('foo')
-        strategy.checkCompatibility(details)
+        checkDetails.getConsumerValue() >> AttributeValue.of('foo')
+        checkDetails.getProducerValue() >> AttributeValue.of('foo')
+        strategy.checkCompatibility(checkDetails)
 
         then:
-        1 * details.compatible()
-        0 * details.incompatible()
+        1 * checkDetails.compatible()
+        0 * checkDetails.incompatible()
 
         when:
-        details.getConsumerValue() >> AttributeValue.of('foo')
-        details.getProducerValue() >> AttributeValue.of('bar')
-        strategy.checkCompatibility(details)
+        checkDetails.getConsumerValue() >> AttributeValue.of('foo')
+        checkDetails.getProducerValue() >> AttributeValue.of('bar')
+        strategy.checkCompatibility(checkDetails)
 
         then:
-        0 * details.compatible()
-        1 * details.incompatible()
+        0 * checkDetails.compatible()
+        1 * checkDetails.incompatible()
 
-        and:
-        strategy.selectClosestMatch(AttributeValue.of("foo"), [a: "foo"]) == ['a']
+        when:
+        candidatesDetails.consumerValue >> AttributeValue.of("foo")
+        candidatesDetails.candidateValues >> [a: AttributeValue.of("foo")]
+        strategy.selectClosestMatch(candidatesDetails)
+
+        then:
+        1 * candidatesDetails.closestMatch('a')
+        0 * candidatesDetails._
     }
 
     def "fails if no strategy is declared for custom type"() {
@@ -124,38 +132,68 @@ class DefaultAttributesSchemaTest extends Specification {
             }
 
             @Override
-            def <K> List<K> selectClosestMatch(AttributeValue<Map> optionalAttribute, Map<K, Map> candidateValues) {
+            def <K> void selectClosestMatch(MultipleCandidatesDetails<Map, K> details) {
+                def optionalAttribute = details.consumerValue
+                def candidateValues = details.candidateValues
                 optionalAttribute.whenPresent { requestedValue ->
-                    candidateValues.findAll { it.value == requestedValue }*.getKey()
+                    candidateValues.findAll { it.value.get() == requestedValue }*.getKey().each {
+                        details.closestMatch(it)
+                    }
                 } whenMissing {
-                    [candidateValues.keySet().first()]
-                } getOrElse { candidateValues.keySet().toList() }
+                    details.closestMatch(candidateValues.keySet().first())
+                } getOrElse { candidateValues.keySet().each { details.closestMatch(it)}  }
             }
         })
         def strategy = schema.getMatchingStrategy(attr)
-        def details = Mock(CompatibilityCheckDetails)
+        def checkDetails = Mock(CompatibilityCheckDetails)
+        def candidateDetails = Mock(MultipleCandidatesDetails)
 
         when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        strategy.checkCompatibility(details)
+        checkDetails.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        checkDetails.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        strategy.checkCompatibility(checkDetails)
 
         then:
-        1 * details.compatible()
-        0 * details.incompatible()
+        1 * checkDetails.compatible()
+        0 * checkDetails.incompatible()
 
         when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([c: 'foo', d: 'bar'])
-        strategy.checkCompatibility(details)
+        checkDetails.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        checkDetails.getProducerValue() >> AttributeValue.of([c: 'foo', d: 'bar'])
+        strategy.checkCompatibility(checkDetails)
 
         then:
-        1 * details.compatible()
-        0 * details.incompatible()
+        1 * checkDetails.compatible()
+        0 * checkDetails.incompatible()
 
-        and:
-        strategy.selectClosestMatch(AttributeValue.of([a: 'foo', b: 'bar']), [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1, 3]
-        strategy.selectClosestMatch(AttributeValue.missing(), [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1]
-        strategy.selectClosestMatch(AttributeValue.unknown(), [1: [a: 'foo', b: 'bar'], 2: [c: 'foo', d: 'bar'], 3: [a: 'foo', b: 'bar']]) == [1, 2, 3]
+        when:
+        candidateDetails.consumerValue >> AttributeValue.of([a: 'foo', b: 'bar'])
+        candidateDetails.candidateValues >> [1: AttributeValue.of([a: 'foo', b: 'bar']), 2: AttributeValue.of([c: 'foo', d: 'bar']), 3: AttributeValue.of([a: 'foo', b: 'bar'])]
+        strategy.selectClosestMatch(candidateDetails)
+
+        then:
+        1 * candidateDetails.closestMatch(1)
+        1 * candidateDetails.closestMatch(3)
+        0 * candidateDetails._
+
+        when:
+        candidateDetails.consumerValue >> AttributeValue.missing()
+        candidateDetails.candidateValues >> [1: AttributeValue.of([a: 'foo', b: 'bar']), 2: AttributeValue.of([c: 'foo', d: 'bar']), 3: AttributeValue.of([a: 'foo', b: 'bar'])]
+        strategy.selectClosestMatch(candidateDetails)
+
+        then:
+        1 * candidateDetails.closestMatch(1)
+        0 * candidateDetails._
+
+        when:
+        candidateDetails.consumerValue >> AttributeValue.unknown()
+        candidateDetails.candidateValues >> [1: AttributeValue.of([a: 'foo', b: 'bar']), 2: AttributeValue.of([c: 'foo', d: 'bar']), 3: AttributeValue.of([a: 'foo', b: 'bar'])]
+        strategy.selectClosestMatch(candidateDetails)
+
+        then:
+        1 * candidateDetails.closestMatch(1)
+        1 * candidateDetails.closestMatch(2)
+        1 * candidateDetails.closestMatch(3)
+        0 * candidateDetails._
     }
 }

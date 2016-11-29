@@ -16,17 +16,17 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.AttributeMatchingStrategy
-import org.gradle.api.attributes.AttributeValue
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -170,7 +170,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
                                 details.incompatible()
                             }
                         }
-                        selectClosestMatch(_, _) >> { req, candidates -> candidates.keySet() as List }
+                        selectClosestMatch(_) >> { cargs ->
+                            def details = cargs[0]
+                            details.candidateValues.keySet().each { details.closestMatch(it) }
+                        }
                     }
                 }
             }
@@ -415,10 +418,11 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
 
         @Override
-        def <K> List<K> selectClosestMatch(AttributeValue<JavaVersion> requestedValue, Map<K, JavaVersion> candidateValues) {
-            def maxCompat = candidateValues.values().sort { it.ordinal() }.last()
-            def result = candidateValues.findAll { it.value == maxCompat }*.key
-            result
+        def <K> void selectClosestMatch(MultipleCandidatesDetails<JavaVersion, K> details) {
+            def maxCompat = details.candidateValues.values().sort { it.get().ordinal() }.last().get()
+            details.candidateValues.findAll { it.value.get() == maxCompat }*.key.each {
+                details.closestMatch(it)
+            }
         }
     }
 }

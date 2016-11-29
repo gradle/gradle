@@ -16,18 +16,16 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -102,8 +100,10 @@ public class DefaultAttributesSchema implements AttributesSchema {
         }
 
         @Override
-        public <K> List<K> selectClosestMatch(AttributeValue<T> requestedValue, Map<K, T> candidateValues) {
-            return ImmutableList.copyOf(candidateValues.keySet());
+        public <K> void selectClosestMatch(MultipleCandidatesDetails<T, K> details) {
+            for (K candidate : details.getCandidateValues().keySet()) {
+                details.closestMatch(candidate);
+            }
         }
     }
 }
