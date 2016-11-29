@@ -300,6 +300,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term>
+                <option>-w</option>, <option>--warn</option>
+            </term>
+            <listitem>
+                <para>Set log level to warn. See <xref linkend="logging"/></para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-x</option>, <option>--exclude-task</option>
             </term>
             <listitem>
