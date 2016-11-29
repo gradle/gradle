@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.component.CompositeSoftwareComponent;
 import org.gradle.api.component.ConsumableSoftwareComponent;
 import org.gradle.api.component.SoftwareComponent;
@@ -28,8 +27,10 @@ public class DefaultSoftwareComponentContainer extends DefaultPolymorphicDomainO
     public DefaultSoftwareComponentContainer(Instantiator instantiator) {
         super(SoftwareComponent.class, instantiator);
         // TODO:ADAM - inject a registry instead to avoid creating many factory instances
-        registerFactory(CompositeSoftwareComponent.class, new CompositeSoftwareComponentFactory(instantiator));
+        // TODO:ADAM - decorate
+        CompositeSoftwareComponentFactory factory = new CompositeSoftwareComponentFactory(instantiator);
+        registerDefaultFactory(factory);
+        registerFactory(CompositeSoftwareComponent.class, factory);
         registerFactory(ConsumableSoftwareComponent.class, new ConsumableSoftwareComponentFactory());
     }
-
 }

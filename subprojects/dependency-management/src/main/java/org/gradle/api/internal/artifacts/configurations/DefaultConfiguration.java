@@ -453,8 +453,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
             if (projectResult.getId().getBuild().isCurrentBuild()) {
                 ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-                targetConfig.markAsObserved(requestedState);
+                //TODO:ADAM - enable this again!
+//                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
+//                targetConfig.markAsObserved(requestedState);
             }
         }
     }

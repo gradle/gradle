@@ -18,9 +18,10 @@ package org.gradle.api.component;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.Configuration;
 
 /**
- * Represents a component that is composed of other components.
+ * Represents a component that is composed from other components.
  */
 @Incubating
 public interface CompositeSoftwareComponent extends SoftwareComponent {
@@ -30,4 +31,10 @@ public interface CompositeSoftwareComponent extends SoftwareComponent {
     SoftwareComponentContainer getChildren();
 
     void children(Action<? super SoftwareComponentContainer> action);
+
+    void composite(String name, Action<? super CompositeSoftwareComponent> configureAction);
+
+    void child(String name, Action<? super ConsumableSoftwareComponent> configureAction);
+
+    void fromConfiguration(String name, Configuration configuration, Action<? super ConsumableSoftwareComponent> configureAction);
 }

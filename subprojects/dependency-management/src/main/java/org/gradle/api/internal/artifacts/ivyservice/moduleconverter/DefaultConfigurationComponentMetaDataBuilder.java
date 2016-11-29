@@ -15,11 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.component.CompositeSoftwareComponent;
+import org.gradle.api.component.ConsumableSoftwareComponent;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.AttributeContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.component.ConsumableSoftwareComponentInternal;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 
 import java.util.Collection;
 import java.util.Set;
@@ -37,6 +44,27 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
         }
         addDependencies(metaData, configurations);
         addArtifacts(metaData, configurations);
+    }
+
+    @Override
+    public void addComponents(DefaultLocalComponentMetadata metaData, Collection<? extends SoftwareComponent> components) {
+        for (SoftwareComponent component : components) {
+            if (component instanceof CompositeSoftwareComponent) {
+                CompositeSoftwareComponent compositeComponent = (CompositeSoftwareComponent) component;
+                addComponents(metaData, compositeComponent.getChildren());
+            }
+            if (component instanceof ConsumableSoftwareComponent) {
+                ConsumableSoftwareComponentInternal consumableComponent = (ConsumableSoftwareComponentInternal) component;
+                String configurationName = consumableComponent.getConfigurationName();
+                AttributeContainer attributes = consumableComponent.getMergedAttributes();
+                // TODO:ADAM ensure cannot be referenced directly
+                metaData.addConfiguration(configurationName, null, ImmutableSet.<String>of(), ImmutableSet.of(configurationName), true, true, attributes, true, false);
+                // TODO:ADAM these are added in a different order
+                dependenciesConverter.addDependencies(metaData, configurationName, attributes, consumableComponent.getDependencies());
+                // TODO:ADAM these are added in a different order
+                metaData.addArtifacts(configurationName, consumableComponent.getArtifacts());
+            }
+        }
     }
 
     private void addConfiguration(BuildableLocalComponentMetadata metaData, Configuration configuration) {

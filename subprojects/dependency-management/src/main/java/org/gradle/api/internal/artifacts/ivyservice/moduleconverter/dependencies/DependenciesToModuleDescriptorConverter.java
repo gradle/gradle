@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 
 import java.util.Collection;
 
 public interface DependenciesToModuleDescriptorConverter {
     void addDependencyDescriptors(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations);
+
+    void addDependencies(BuildableLocalComponentMetadata metaData, String configurationName, AttributeContainer attributes, Collection<? extends Dependency> dependencies);
 }

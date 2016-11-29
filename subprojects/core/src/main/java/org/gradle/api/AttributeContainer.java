@@ -54,6 +54,12 @@ public interface AttributeContainer extends HasAttributes {
      */
     <T> AttributeContainer attribute(Attribute<T> key, T value);
 
+    /**
+     * Sets an attribute value.
+     * @param key the attribute key
+     * @param value the attribute value
+     * @return this container.
+     */
     AttributeContainer attribute(String key, String value);
 
     /**

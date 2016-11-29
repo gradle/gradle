@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class ComponentSelectionIntegrationTest extends AbstractDependencyResolutionTest {
-    def "selects component from nested candidates"() {
+    def "selects component from candidates backed by configurations"() {
         mavenRepo.module("test", "test1", "1.0").publish()
         mavenRepo.module("test", "test2", "1.0").publish()
 
@@ -48,16 +48,12 @@ class ComponentSelectionIntegrationTest extends AbstractDependencyResolutionTest
                     implementation runtimeJar
                 }
                 components {
-                    main(CompositeSoftwareComponent) {
-                        children {
-                            create('api', ConsumableSoftwareComponent) {
-                                attributes.attribute('usage', 'for compile')
-                                configuration = configurations.api
-                            }
-                            create('runtime', ConsumableSoftwareComponent) {
-                                attributes.attribute('usage', 'for runtime')
-                                configuration = configurations.implementation
-                            }
+                    main {
+                        fromConfiguration('api', configurations.api) {
+                            attributes.attribute('usage', 'for compile')
+                        }
+                        fromConfiguration('runtime', configurations.implementation) {
+                            attributes.attribute('usage', 'for runtime')
                         }
                     }
                 }
@@ -98,7 +94,7 @@ class ComponentSelectionIntegrationTest extends AbstractDependencyResolutionTest
         result.assertTasksExecuted(":a:runtimeJar", ":b:resolveRuntime")
     }
 
-    def "selects component from top level candidates"() {
+    def "selects component from nested candidates backed by configurations"() {
         mavenRepo.module("test", "test1", "1.0").publish()
         mavenRepo.module("test", "test2", "1.0").publish()
 
@@ -137,31 +133,25 @@ class ComponentSelectionIntegrationTest extends AbstractDependencyResolutionTest
                     implementationPaidRelease releaseRuntimeJar
                 }
                 components {
-                    freeDebug(CompositeSoftwareComponent) {
-                        attributes.attribute('buildType', 'debug')
-                        attributes.attribute('flavor', 'free')
-                        children {
-                            create('api', ConsumableSoftwareComponent) {
+                    main {
+                        composite('freeDebug') {
+                            attributes.attribute('buildType', 'debug')
+                            attributes.attribute('flavor', 'free')
+                            fromConfiguration('api', configurations.apiFreeDebug) {
                                 attributes.attribute('usage', 'for compile')
-                                configuration = configurations.apiFreeDebug
                             }
-                            create('runtime', ConsumableSoftwareComponent) {
+                            fromConfiguration('runtime', configurations.implementationFreeDebug) {
                                 attributes.attribute('usage', 'for runtime')
-                                configuration = configurations.implementationFreeDebug
                             }
                         }
-                    }
-                    paidRelease(CompositeSoftwareComponent) {
-                        attributes.attribute('buildType', 'paid')
-                        attributes.attribute('flavor', 'release')
-                        children {
-                            create('api', ConsumableSoftwareComponent) {
+                        composite('paidRelease') {
+                            attributes.attribute('buildType', 'paid')
+                            attributes.attribute('flavor', 'release')
+                            fromConfiguration('api', configurations.apiPaidRelease) {
                                 attributes.attribute('usage', 'for compile')
-                                configuration = configurations.apiPaidRelease
                             }
-                            create('runtime', ConsumableSoftwareComponent) {
+                            fromConfiguration('runtime', configurations.implementationPaidRelease) {
                                 attributes.attribute('usage', 'for runtime')
-                                configuration = configurations.implementationPaidRelease
                             }
                         }
                     }
@@ -189,7 +179,7 @@ class ComponentSelectionIntegrationTest extends AbstractDependencyResolutionTest
                 task resolveRuntime {
                     inputs.files configurations.runtime
                     doLast {
-                        assert configurations.runtime.collect { it.name } == ['a-paid-release-runtime.jar', 'a-api.jar', 'test1-1.0.jar', 'test2-1.0.jar']
+                        assert configurations.runtime.collect { it.name } == ['a-paid-release-runtime.jar', 'a-api.jar', 'test2-1.0.jar', 'test1-1.0.jar']
                     }
                 }
             }
@@ -202,4 +192,72 @@ class ComponentSelectionIntegrationTest extends AbstractDependencyResolutionTest
         succeeds("resolveRuntime")
         result.assertTasksExecuted(":a:apiJar", ":a:releaseRuntimeJar", ":b:resolveRuntime")
     }
+
+    def "selects component from candidates not backed by configurations"() {
+        mavenRepo.module("test", "test1", "1.0").publish()
+        mavenRepo.module("test", "test2", "1.0").publish()
+
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            allprojects {
+                repositories { maven { url '$mavenRepo.uri' } }
+            }
+            project(':a') {
+                task apiJar(type: Jar) {
+                    archiveName = 'a-api.jar'
+                }
+                task runtimeJar(type: Jar) {
+                    archiveName = 'a-runtime.jar'
+                }
+                components {
+                    main {
+                        child('api') {
+                            attributes.attribute('usage', 'for compile')
+                            dependency 'test:test1:1.0'
+                            artifact apiJar
+                        }
+                        child('runtime') {
+                            attributes.attribute('usage', 'for runtime')
+                            dependency 'test:test2:1.0'
+                            artifact runtimeJar
+                        }
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile {
+                        attributes usage: 'for compile'
+                    }
+                    runtime {
+                        attributes usage: 'for runtime'
+                        extendsFrom compile
+                    }
+                }
+                dependencies {
+                    compile project(':a')
+                }
+                task resolveCompile {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.collect { it.name } == ['a-api.jar', 'test1-1.0.jar']
+                    }
+                }
+                task resolveRuntime {
+                    inputs.files configurations.runtime
+                    doLast {
+                        assert configurations.runtime.collect { it.name } == ['a-runtime.jar', 'test2-1.0.jar']
+                    }
+                }
+            }
+"""
+
+        expect:
+        succeeds("resolveCompile")
+        result.assertTasksExecuted(":a:apiJar", ":b:resolveCompile")
+
+        succeeds("resolveRuntime")
+        result.assertTasksExecuted(":a:runtimeJar", ":b:resolveRuntime")
+    }
+
 }

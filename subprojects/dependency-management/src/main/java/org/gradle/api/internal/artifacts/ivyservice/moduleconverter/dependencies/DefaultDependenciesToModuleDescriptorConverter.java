@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.AttributeContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -23,8 +24,8 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
 import org.gradle.api.internal.AttributeContainerInternal;
+import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
@@ -47,17 +48,20 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
 
     private void addDependencies(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
-            for (Dependency dependency : configuration.getDependencies()) {
-                if (dependency instanceof ModuleDependency) {
-                    ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                    AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
-                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), attributes.asImmutable(), moduleDependency));
-                } else if (dependency instanceof FileCollectionDependency) {
-                    final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
-                    metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));
-                } else {
-                    throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
-                }
+            addDependencies(metaData, configuration.getName(), ((AttributeContainerInternal) configuration.getAttributes()).asImmutable(), configuration.getDependencies());
+        }
+    }
+
+    public void addDependencies(BuildableLocalComponentMetadata metaData, String configurationName, AttributeContainer attributes, Collection<? extends Dependency> dependencies) {
+        for (Dependency dependency : dependencies) {
+            if (dependency instanceof ModuleDependency) {
+                ModuleDependency moduleDependency = (ModuleDependency) dependency;
+                metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configurationName, attributes, moduleDependency));
+            } else if (dependency instanceof FileCollectionDependency) {
+                final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
+                metaData.addFiles(configurationName, new DefaultLocalFileDependencyMetadata(fileDependency));
+            } else {
+                throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
             }
         }
     }

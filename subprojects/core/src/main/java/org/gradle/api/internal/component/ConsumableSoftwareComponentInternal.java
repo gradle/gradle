@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.api.internal.component;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.AttributeContainer;
+import org.gradle.api.component.ConsumableSoftwareComponent;
 
-/**
- * A container that contains all of the Software Components produced by a Project.
- */
-@Incubating
-public interface SoftwareComponentContainer extends PolymorphicDomainObjectContainer<SoftwareComponent> {
+public interface ConsumableSoftwareComponentInternal extends ConsumableSoftwareComponent {
+    // TODO:ADAM - this should just be the result of getAttributes()
+    AttributeContainer getMergedAttributes();
+
+    String getConfigurationName();
 }

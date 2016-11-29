@@ -17,7 +17,9 @@
 package org.gradle.api.internal.component;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.CompositeSoftwareComponent;
+import org.gradle.api.component.ConsumableSoftwareComponent;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 
@@ -28,6 +30,7 @@ class DefaultCompositeSoftwareComponent extends AbstractSoftwareComponent implem
         // TODO:ADAM: children should inherit attributes
         super(name);
         this.children = children;
+        // TODO:ADAM - constructor injection, decorate
         children.whenObjectAdded(new Action<SoftwareComponent>() {
             @Override
             public void execute(SoftwareComponent softwareComponent) {
@@ -37,6 +40,24 @@ class DefaultCompositeSoftwareComponent extends AbstractSoftwareComponent implem
                 }
             }
         });
+    }
+
+    @Override
+    public void composite(String name, Action<? super CompositeSoftwareComponent> configureAction) {
+        children.create(name, CompositeSoftwareComponent.class, configureAction);
+    }
+
+    @Override
+    public void child(String name, Action<? super ConsumableSoftwareComponent> configureAction) {
+        children.create(name, ConsumableSoftwareComponent.class, configureAction);
+    }
+
+    @Override
+    public void fromConfiguration(String name, final Configuration configuration, Action<? super ConsumableSoftwareComponent> configureAction) {
+        // TODO:ADAM - decorate
+        ConfigurationBackedConsumableSoftwareComponent component = new ConfigurationBackedConsumableSoftwareComponent(name, this, configuration);
+        children.add(component);
+        configureAction.execute(component);
     }
 
     @Override

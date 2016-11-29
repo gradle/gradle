@@ -71,13 +71,13 @@ class ImmutableAttributes implements AttributeContainerInternal {
     }
 
     @Override
-    public AttributeContainer asImmutable() {
+    public AttributeContainerInternal asImmutable() {
         return this;
     }
 
     @Override
-    public AttributeContainer copy() {
-        AttributeContainer copy = new DefaultAttributeContainer();
+    public AttributeContainerInternal copy() {
+        AttributeContainerInternal copy = new DefaultAttributeContainer();
         for (Attribute<?> attribute : attributes.keySet()) {
             Attribute<Object> castAttribute = Cast.uncheckedCast(attribute);
             copy.attribute(castAttribute, attributes.get(castAttribute));

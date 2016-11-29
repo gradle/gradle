@@ -19,13 +19,19 @@ package org.gradle.api.component;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A software component or variant that can be used in some form.
  */
 @Incubating
+@HasInternalProtocol
 public interface ConsumableSoftwareComponent extends SoftwareComponent {
     DependencySet getDependencies();
 
     PublishArtifactSet getArtifacts();
+
+    void dependency(Object notation);
+
+    void artifact(Object notation);
 }
