@@ -31,9 +31,11 @@ import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-abstract class AbstractPluginRepository implements AuthenticationSupported, PluginRepositoryInternal, BackedByArtifactRepository {
+abstract class AbstractPluginRepository implements AuthenticationSupported, PluginRepositoryInternal, BackedByArtifactRepositories {
     private static final String REPOSITORY_PREFIX = "__pluginRepository__";
     private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
@@ -67,10 +69,10 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
     protected abstract ArtifactRepository internalCreateArtifactRepository(RepositoryHandler repositoryHandler);
 
     @Override
-    public ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+    public List<ArtifactRepository> createArtifactRepositories(RepositoryHandler repositoryHandler) {
         ArtifactRepository repo = internalCreateArtifactRepository(repositoryHandler);
         hasYieldedArtifactRepository.set(true);
-        return repo;
+        return Collections.singletonList(repo);
     }
 
     public URI getUrl() {
@@ -118,7 +120,7 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
     @Override
     public PluginResolver asResolver() {
         if (resolver == null) {
-            createArtifactRepository(dependencyResolutionServices.getResolveRepositoryHandler());
+            createArtifactRepositories(dependencyResolutionServices.getResolveRepositoryHandler());
             resolver = new ArtifactRepositoryPluginResolver(name + '(' + url + ')', dependencyResolutionServices, versionSelectorScheme);
         }
         return resolver;

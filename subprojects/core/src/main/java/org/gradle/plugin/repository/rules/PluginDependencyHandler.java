@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.repository.internal;
+package org.gradle.plugin.repository.rules;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.plugin.repository.PluginRepository;
+public interface PluginDependencyHandler {
 
-public interface BackedByArtifactRepository extends PluginRepository {
-    ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler);
+    /**
+     * @return returns the PluginRequest for the requested plugin.
+     */
+    PluginRequest getRequestedPlugin();
+
+    /**
+     * Adds a dependency to the plugin classpath.
+     *
+     * @param dependencyNotation resolvable by {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}
+     *
+     * @return a plugin option, to configure options about the dependency
+     */
+    PluginModuleOptions useModule(Object dependencyNotation);
 }

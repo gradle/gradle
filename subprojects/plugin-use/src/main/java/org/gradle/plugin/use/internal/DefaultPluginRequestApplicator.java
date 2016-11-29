@@ -39,11 +39,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
-import org.gradle.plugin.repository.PluginRepository;
-import org.gradle.plugin.repository.internal.BackedByArtifactRepository;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
@@ -103,9 +102,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             List<ArtifactRepository> pluginArtifactRepositories = new ArrayList<ArtifactRepository>();
             pluginRepositoryRegistry.lock();
             for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
-                if (pluginRepository instanceof BackedByArtifactRepository) {
-                    pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).createArtifactRepository(repositories));
-                }
                 if(pluginRepository instanceof BackedByArtifactRepositories) {
                     pluginArtifactRepositories.addAll(((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories));
                 }
