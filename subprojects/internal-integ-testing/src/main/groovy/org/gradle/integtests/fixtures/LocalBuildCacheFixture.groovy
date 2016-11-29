@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Before
 
 @SelfType(AbstractIntegrationSpec)
-trait LocalTaskCacheFixture {
+trait LocalBuildCacheFixture {
     private TestFile cacheDir
 
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
@@ -39,8 +39,8 @@ trait LocalTaskCacheFixture {
         cacheDir
     }
 
-    AbstractIntegrationSpec withTaskCache() {
-        executer.withLocalTaskCache(cacheDir)
+    AbstractIntegrationSpec withBuildCache() {
+        executer.withLocalBuildCache(cacheDir)
         this
     }
 

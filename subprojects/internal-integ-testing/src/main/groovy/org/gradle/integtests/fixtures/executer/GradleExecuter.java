@@ -174,15 +174,15 @@ public interface GradleExecuter extends Stoppable {
      *
      * @return this executer
      */
-    GradleExecuter withTaskCacheEnabled();
+    GradleExecuter withBuildCacheEnabled();
 
     /**
-     * Activates the task output cache for a local directory
+     * Activates the build cache for a local directory
      *
      * @param cacheDir the directory for the cache
      * @return this executer
      */
-    GradleExecuter withLocalTaskCache(File cacheDir);
+    GradleExecuter withLocalBuildCache(File cacheDir);
 
     /**
      * Don't set temp folder explicitly.

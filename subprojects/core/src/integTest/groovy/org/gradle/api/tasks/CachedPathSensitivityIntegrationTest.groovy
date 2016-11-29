@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 
-class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements LocalTaskCacheFixture {
+class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements LocalBuildCacheFixture {
     def setup() {
         buildFile << """
             task clean {
@@ -31,7 +31,7 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
 
     @Override
     void execute(String... tasks) {
-        withTaskCache().succeeds tasks
+        withBuildCache().succeeds tasks
     }
 
     @Override

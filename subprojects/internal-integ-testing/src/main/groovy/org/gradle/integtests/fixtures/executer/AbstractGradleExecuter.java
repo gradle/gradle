@@ -903,13 +903,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withTaskCacheEnabled() {
+    public GradleExecuter withBuildCacheEnabled() {
         return withArgument("-Dorg.gradle.cache.tasks=true");
     }
 
     @Override
-    public GradleExecuter withLocalTaskCache(File cacheDir) {
-        return withTaskCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
+    public GradleExecuter withLocalBuildCache(File cacheDir) {
+        return withBuildCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

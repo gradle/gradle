@@ -17,27 +17,27 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 
-class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
+class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
     def setup() {
         buildFile << """
             @CacheableTask
             class CustomTask extends DefaultTask {
                 @OutputDirectory File outputDir = temporaryDir
-                @TaskAction 
+                @TaskAction
                 void generate() {
                     new File(outputDir, "output").text = "OK"
                 }
             }
-            
+
             task cacheable(type: CustomTask)
         """
     }
     def "cache entry contains expected contents"() {
         when:
-        withTaskCache().succeeds("cacheable")
+        withBuildCache().succeeds("cacheable")
         then:
         def cacheFiles = listCacheFiles()
         cacheFiles.size() == 1
@@ -57,7 +57,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
 
     def "corrupted cache provides useful error message"() {
         when:
-        withTaskCache().succeeds("cacheable")
+        withBuildCache().succeeds("cacheable")
         then:
         def cacheFiles = listCacheFiles()
         cacheFiles.size() == 1
@@ -67,7 +67,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
         and:
         corruptMetadata({ metadata -> metadata.text = "corrupt" })
         executer.withStackTraceChecksDisabled()
-        withTaskCache().succeeds("cacheable")
+        withBuildCache().succeeds("cacheable")
         then:
         file("build/tmp/cacheable/output").exists()
         result.assertOutputContains("java.lang.IllegalStateException: Cached result format error, key 'path' missing from origin metadata")
@@ -77,7 +77,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
         and:
         corruptMetadata({ metadata -> metadata.delete() })
         executer.withStackTraceChecksDisabled()
-        withTaskCache().succeeds("cacheable")
+        withBuildCache().succeeds("cacheable")
         then:
         file("build/tmp/cacheable/output").exists()
         result.assertOutputContains("java.lang.IllegalStateException: Cached result format error, no origin metadata was found.")

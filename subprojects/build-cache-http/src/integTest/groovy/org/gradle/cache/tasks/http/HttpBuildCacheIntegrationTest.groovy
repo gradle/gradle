@@ -232,7 +232,7 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
     }
 
     HttpBuildCacheIntegrationTest withTaskCache() {
-        executer.withTaskCacheEnabled().withArgument "-I" withArgument "init-cache.gradle"
+        executer.withBuildCacheEnabled().withArgument "-I" withArgument "init-cache.gradle"
         this
     }
 }

@@ -17,9 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 
-class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
+class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     def "changing child specs of the copy task while executing is deprecated"() {
         given:
@@ -39,7 +39,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
         setupCopyTaskModifyingChildSpecsAtExecutionTime()
 
         when:
-        withTaskCache().fails "copy"
+        withBuildCache().fails "copy"
 
         then:
         failure.assertHasCause("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled. " +
@@ -52,7 +52,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
                 outputs.cacheIf { true }
                 from ("some-dir")
                 into ("build/output")
-        
+
                 doFirst {
                     from ("some-other-dir") {
                         exclude "non-existent-file"
