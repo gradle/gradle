@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
@@ -80,7 +81,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
         if (declaredConfiguration!=null && !selectedConfiguration.isCanBeConsumed()) {
-            throw new IllegalArgumentException("Configuration '" + declaredConfiguration+"' cannot be used in a project dependency");
+            throw new ConfigurationNotConsumableException(declaredConfiguration);
         }
         return selectedConfiguration;
     }

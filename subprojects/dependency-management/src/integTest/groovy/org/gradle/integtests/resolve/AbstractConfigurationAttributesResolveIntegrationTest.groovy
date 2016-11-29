@@ -378,6 +378,56 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
+    def "does not select default configuration when no match is found and default configuration is not consumable"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                apply plugin: 'base'
+                configurations {
+                    foo
+                    bar
+                    'default' {
+                        canBeConsumed = false
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause "Selected configuration 'default' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+
+    }
+
     def "chooses a configuration when partial match is found"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
