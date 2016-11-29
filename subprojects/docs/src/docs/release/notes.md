@@ -78,11 +78,6 @@ The Tooling API now generates progress events for more build activity:
 - Resolution of each dependency configuration.
 - Progress events for `buildSrc` and composite builds.
 
-### Task to create Java properties files
-
-The new `WriteProperties` task is available to create Java properties files in a reproducible manner. For more information
-see the User guide section on "[Properties files](userguide/working_with_files.html#sec:properties_files)".
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
