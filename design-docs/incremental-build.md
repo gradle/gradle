@@ -270,9 +270,9 @@ Gradle detects and removes stale output files after a Gradle version change. Fur
 
 ### Implementation
 
-- Determine if task history cache exists in `.gradle/<version>` for corresponding Gradle version used to execute the build.
-    - If task history exists, then execute build based on existing input/output hashes. No additional action needed.
-    - If task history doesn't exist, then build has never been run with Gradle version or task history cache was deleted manually. Requires detection of existing stale files and potential deletion.
+- Determine if task history cache exists in `.gradle/<version>` for corresponding Gradle version used to execute the task.
+    - If task history exists, then execute task based on existing input/output hashes. No additional action needed.
+    - If task history doesn't exist, then task has never been run with Gradle version or task history cache was deleted manually. Requires detection of existing stale files and potential deletion.
 - Detect output directories and files for all tasks in a build.
     - Annotations considered: `@OutputDirectories`, `@OutputDirectory`, `@OutputFile`, `@OutputFiles`
     - Programmatic assignments considered: `TaskOutputs.dir(Object)`, `TaskOutputs.dirs(Object...)`, `TaskOutputs.file(Object)`, `TaskOutputs.files(Object...)`
