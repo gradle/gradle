@@ -1506,6 +1506,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     @Incubating
     SoftwareComponentContainer getComponents();
 
+    @Incubating
+    void components(Action<? super SoftwareComponentContainer> action);
+
     /**
      * Configures the configuration attributes schema. The action is passed a {@link AttributesSchema} instance.
      * @param configureAction the configure action

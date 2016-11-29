@@ -55,6 +55,11 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
         return this;
     }
 
+    @Override
+    public AttributeContainer attribute(String key, String value) {
+        return attribute(Attribute.of(key, String.class), value);
+    }
+
     private <T> void checkInsertionAllowed(Attribute<T> key) {
         for (Attribute<?> attribute : attributes.keySet()) {
             String name = key.getName();

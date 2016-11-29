@@ -51,6 +51,11 @@ class ImmutableAttributes implements AttributeContainerInternal {
     }
 
     @Override
+    public AttributeContainer attribute(String key, String value) {
+        throw new UnsupportedOperationException("Mutation of attributes returned by Configuration#getAttributes() is not allowed");
+    }
+
+    @Override
     public <T> T getAttribute(Attribute<T> key) {
         return Cast.uncheckedCast(attributes.get(key));
     }

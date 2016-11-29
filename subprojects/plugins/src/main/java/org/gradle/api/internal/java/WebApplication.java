@@ -18,23 +18,20 @@ package org.gradle.api.internal.java;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.component.AbstractSoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class WebApplication implements SoftwareComponentInternal {
-
+public class WebApplication extends AbstractSoftwareComponent implements SoftwareComponentInternal {
     private final Usage webArchiveUsage = new WebArchiveUsage();
     private final PublishArtifact warArtifact;
 
     public WebApplication(PublishArtifact warArtifact) {
+        super("web");
         this.warArtifact = warArtifact;
-    }
-
-    public String getName() {
-        return "web";
     }
 
     public Set<Usage> getUsages() {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.java;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.component.AbstractSoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 
@@ -29,18 +30,15 @@ import java.util.Set;
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
-public class JavaLibrary implements SoftwareComponentInternal {
+public class JavaLibrary extends AbstractSoftwareComponent implements SoftwareComponentInternal {
     private final Usage runtimeUsage = new RuntimeUsage();
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final DependencySet runtimeDependencies;
 
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
+        super("java");
         artifacts.add(jarArtifact);
         this.runtimeDependencies = runtimeDependencies;
-    }
-
-    public String getName() {
-        return "java";
     }
 
     public Set<Usage> getUsages() {

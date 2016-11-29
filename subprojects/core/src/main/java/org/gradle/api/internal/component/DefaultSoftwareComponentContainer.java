@@ -16,13 +16,20 @@
 
 package org.gradle.api.internal.component;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.component.CompositeSoftwareComponent;
+import org.gradle.api.component.ConsumableSoftwareComponent;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultSoftwareComponentContainer extends DefaultNamedDomainObjectSet<SoftwareComponent> implements SoftwareComponentContainer {
+public class DefaultSoftwareComponentContainer extends DefaultPolymorphicDomainObjectContainer<SoftwareComponent> implements SoftwareComponentContainer {
     public DefaultSoftwareComponentContainer(Instantiator instantiator) {
-        super(SoftwareComponentInternal.class, instantiator);
+        super(SoftwareComponent.class, instantiator);
+        // TODO:ADAM - inject a registry instead to avoid creating many factory instances
+        registerFactory(CompositeSoftwareComponent.class, new CompositeSoftwareComponentFactory(instantiator));
+        registerFactory(ConsumableSoftwareComponent.class, new ConsumableSoftwareComponentFactory());
     }
+
 }

@@ -17,11 +17,11 @@
 package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 
 /**
  * A Container that contains all of the Software Components produced by a Project.
  */
 @Incubating
-public interface SoftwareComponentContainer extends NamedDomainObjectSet<SoftwareComponent> {
+public interface SoftwareComponentContainer extends PolymorphicDomainObjectContainer<SoftwareComponent> {
 }

@@ -849,6 +849,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void components(Action<? super SoftwareComponentContainer> action) {
+        action.execute(getComponents());
+    }
+
     public Object property(String propertyName) throws MissingPropertyException {
         return extensibleDynamicObject.getProperty(propertyName);
     }

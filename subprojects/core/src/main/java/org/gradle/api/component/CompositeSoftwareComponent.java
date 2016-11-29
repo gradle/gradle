@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A software component produced by a Gradle software project.
+ * Represents a component that is composed of other components.
  */
 @Incubating
-@HasInternalProtocol
-public interface SoftwareComponent extends Named {
+public interface CompositeSoftwareComponent extends SoftwareComponent {
     /**
-     * Returns the attributes that define this component.
+     * Returns the children of this component.
      */
-    AttributeContainer getAttributes();
+    SoftwareComponentContainer getChildren();
+
+    void children(Action<? super SoftwareComponentContainer> action);
 }

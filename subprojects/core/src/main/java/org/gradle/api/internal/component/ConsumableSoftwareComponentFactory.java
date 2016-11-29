@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.api.internal.component;
 
-import org.gradle.api.AttributeContainer;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.component.ConsumableSoftwareComponent;
 
-/**
- * A software component produced by a Gradle software project.
- */
-@Incubating
-@HasInternalProtocol
-public interface SoftwareComponent extends Named {
-    /**
-     * Returns the attributes that define this component.
-     */
-    AttributeContainer getAttributes();
+class ConsumableSoftwareComponentFactory implements NamedDomainObjectFactory<ConsumableSoftwareComponent> {
+    @Override
+    public ConsumableSoftwareComponent create(String name) {
+        return new DefaultConsumableSoftwareComponent(name);
+    }
+
 }

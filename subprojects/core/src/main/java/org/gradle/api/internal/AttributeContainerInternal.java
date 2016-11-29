@@ -38,6 +38,11 @@ public interface AttributeContainerInternal extends AttributeContainer {
         }
 
         @Override
+        public AttributeContainer attribute(String key, String value) {
+            throw new UnsupportedOperationException("Mutation of attributes is not allowed");
+        }
+
+        @Override
         public <T> T getAttribute(Attribute<T> key) {
             return null;
         }

@@ -54,6 +54,8 @@ public interface AttributeContainer extends HasAttributes {
      */
     <T> AttributeContainer attribute(Attribute<T> key, T value);
 
+    AttributeContainer attribute(String key, String value);
+
     /**
      * Returns the value of an attribute found in this container, or <code>null</code> if
      * this container doesn't have it.
