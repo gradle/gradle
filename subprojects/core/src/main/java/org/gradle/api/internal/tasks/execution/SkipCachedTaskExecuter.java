@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
 import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginMetadataFactory;
 import org.gradle.cache.BuildCache;
 import org.gradle.cache.BuildCacheEntryReader;
@@ -99,8 +100,17 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                     try {
                                         boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                             @Override
-                                            public void readFrom(InputStream input) throws IOException {
-                                                packer.unpack(taskOutputs, input, taskOutputOriginMetadataFactory.createReader(task));
+                                            public void readFrom(final InputStream input) throws IOException {
+                                                final OriginMetadataReader delegate = taskOutputOriginMetadataFactory.createReader(task);
+                                                packer.unpack(taskOutputs, input, new OriginMetadataReader() {
+                                                    @Override
+                                                    public void readFrom(InputStream inputStream) throws IOException {
+                                                        if (LOGGER.isInfoEnabled()) {
+                                                            // Only read metadata when info logging is enabled.
+                                                            delegate.readFrom(inputStream);
+                                                        }
+                                                    }
+                                                });
                                                 LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                             }
                                         });

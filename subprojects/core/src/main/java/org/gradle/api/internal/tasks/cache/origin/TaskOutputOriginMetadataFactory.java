@@ -73,11 +73,9 @@ public class TaskOutputOriginMetadataFactory {
             @Override
             public void readFrom(InputStream inputStream) throws IOException {
                 // TODO: Replace this with something better
-                if (LOGGER.isInfoEnabled()) {
-                    Properties properties = new Properties();
-                    properties.load(inputStream);
-                    LOGGER.info("Origin for {}: {}", task, properties);
-                }
+                Properties properties = new Properties();
+                properties.load(inputStream);
+                LOGGER.info("Origin for {}: {}", task, properties);
             }
         };
     }

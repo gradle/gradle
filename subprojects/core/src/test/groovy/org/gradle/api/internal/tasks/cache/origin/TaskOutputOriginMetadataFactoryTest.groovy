@@ -28,51 +28,31 @@ class TaskOutputOriginMetadataFactoryTest extends Specification {
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
     def converter = new TaskOutputOriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"))
+
     def "converts to origin metadata"() {
         timeProvider.currentTime >> 0
         inetAddressFactory.hostname >> "host"
         task.path >> "path"
         rootDir.absolutePath >> "root"
-
-        def originMetadata = converter.convert(task, 10)
-        expect:
+        def originMetadata = new Properties()
+        def writer = converter.createWriter(task, 10)
+        def baos = new ByteArrayOutputStream()
+        writer.writeTo(baos)
+        when:
+        def reader = converter.createReader(task)
+        // doesn't explode
+        reader.readFrom(new ByteArrayInputStream(baos.toByteArray()))
+        and:
+        originMetadata.load(new ByteArrayInputStream(baos.toByteArray()))
+        then:
         originMetadata.path == "path"
         originMetadata.type == task.getClass().canonicalName
         originMetadata.gradleVersion == "3.0"
-        originMetadata.creationTime == 0
-        originMetadata.executionTime == 10
+        originMetadata.creationTime == "0"
+        originMetadata.executionTime == "10"
         originMetadata.rootPath == "root"
         originMetadata.operatingSystem == "os"
         originMetadata.hostName == "host"
         originMetadata.userName == "user"
-    }
-
-    def "metadata roundtrip"() {
-        OriginMetadata originMetadata = new TaskOutputOriginMetadata("path", "type", "3.0", 0, 10, "root", "os", "host", "user")
-        def baos = new ByteArrayOutputStream()
-
-        def writer = new DefaultOriginMetadataWriter(originMetadata)
-        writer.writeTo(baos)
-
-        OriginMetadata restored = null
-        def reader = new ProcessingOriginMetadataReader() {
-            @Override
-            protected void processMetadata(OriginMetadata metadata) {
-                readMetadata = metadata
-            }
-        }
-        reader.readFrom(new ByteArrayInputStream(baos.toByteArray()))
-
-        expect:
-        originMetadata == restored
-        restored.path == "path"
-        restored.type == "type"
-        restored.gradleVersion == "3.0"
-        restored.creationTime == 0
-        restored.executionTime == 10
-        restored.rootPath == "root"
-        restored.operatingSystem == "os"
-        restored.hostName == "host"
-        restored.userName == "user"
     }
 }
