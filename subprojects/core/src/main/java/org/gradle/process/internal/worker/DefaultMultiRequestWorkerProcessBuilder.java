@@ -126,6 +126,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                         throw WorkerProcessException.runFailed(getBaseName(), e);
                     }
                     workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
+                    workerProcess.getConnection().useParameterSerializers(WorkerMessageSerializer.create());
                     workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
                     workerProcess.getConnection().connect();

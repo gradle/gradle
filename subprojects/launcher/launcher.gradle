@@ -15,6 +15,7 @@ dependencies {
     compile project(':ui')
     compile project(':toolingApi')
     compile project(':native')
+    compile project(':logging')
 
     compile libraries.slf4j_api
 

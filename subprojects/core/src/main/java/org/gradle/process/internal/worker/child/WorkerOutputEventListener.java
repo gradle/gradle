@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker.child;
 
+import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 
@@ -28,7 +29,8 @@ public class WorkerOutputEventListener implements OutputEventListener {
 
     @Override
     public void onOutput(OutputEvent event) {
-//        System.out.println("event = " + event);
-        workerLoggingProtocol.sendOutputEvent(event);
+        if(event instanceof LogEvent){
+            workerLoggingProtocol.sendOutputEvent((LogEvent)event);
+        }
     }
 }

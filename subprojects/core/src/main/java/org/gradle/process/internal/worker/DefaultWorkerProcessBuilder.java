@@ -150,7 +150,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS);
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
             public void execute(ObjectConnection connection) {
-
                 DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
                 connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
                 workerProcess.onConnect(connection);
@@ -176,7 +175,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         ExecHandle execHandle = javaCommand.build();
 
         workerProcess.setExecHandle(execHandle);
-
         return workerProcess;
     }
 }

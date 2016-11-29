@@ -16,8 +16,8 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.LogEvent;
 
 public interface WorkerLoggingProtocol {
-    void sendOutputEvent(OutputEvent event);
+    void sendOutputEvent(LogEvent event);
 }
