@@ -190,7 +190,8 @@ check.dependsOn(checkSamples)
 val prepareIntegrationTestFixtures = task<GradleBuild>("prepareIntegrationTestFixtures") {
     setDir(file("fixtures"))
 }
-test.dependsOn(prepareIntegrationTestFixtures)
+// See #189
+//test.dependsOn(prepareIntegrationTestFixtures)
 
 
 // --- classpath.properties --------------------------------------------

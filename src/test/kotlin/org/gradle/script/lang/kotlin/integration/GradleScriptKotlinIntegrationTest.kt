@@ -7,6 +7,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -131,6 +132,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    @Ignore("See #189")
     fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
 
         withBuildScript("""
