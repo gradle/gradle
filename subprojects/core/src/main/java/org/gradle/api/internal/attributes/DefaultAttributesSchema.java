@@ -17,14 +17,13 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Transformer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 
 import java.util.Map;
 import java.util.Set;
@@ -68,35 +67,13 @@ public class DefaultAttributesSchema implements AttributesSchema {
 
         @Override
         public void checkCompatibility(final CompatibilityCheckDetails<T> details) {
-            details.getConsumerValue().whenPresent(new Transformer<Void, T>() {
-                @Override
-                public Void transform(final T consumerValue) {
-                    details.getProducerValue().whenPresent(new Transformer<Void, T>() {
-                        @Override
-                        public Void transform(T producerValue) {
-                            if (consumerValue.equals(producerValue)) {
-                                details.compatible();
-                            } else {
-                                details.incompatible();
-                            }
-                            return null;
-                        }
-                    }).getOrElse(new Factory<Void>() {
-                        @Override
-                        public Void create() {
-                            details.incompatible();
-                            return null;
-                        }
-                    });
-                    return null;
-                }
-            }).getOrElse(new Factory<Void>() {
-                @Override
-                public Void create() {
-                    details.incompatible();
-                    return null;
-                }
-            });
+            AttributeValue<T> consumerValue = details.getConsumerValue();
+            AttributeValue<T> producerValue = details.getProducerValue();
+            if (consumerValue.equals(producerValue)) {
+                details.compatible();
+            } else {
+                details.incompatible();
+            }
         }
 
         @Override

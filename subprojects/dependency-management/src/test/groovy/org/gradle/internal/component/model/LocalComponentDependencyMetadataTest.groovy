@@ -402,19 +402,15 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         @Override
         void checkCompatibility(CompatibilityCheckDetails<JavaVersion> details) {
-            details.consumerValue.whenPresent { JavaVersion requestedValue ->
-                details.producerValue.whenPresent { JavaVersion candidateValue ->
-                    if (candidateValue.ordinal() <= requestedValue.ordinal()) {
-                        details.compatible()
-                    } else {
-                        details.incompatible()
-                    }
-                } getOrElse {
-                    details.incompatible()
+            def consumerValue = details.consumerValue
+            def producerValue = details.producerValue
+            if (consumerValue.present && producerValue.present) {
+                if (producerValue.get().ordinal() <= consumerValue.get().ordinal()) {
+                    details.compatible()
+                    return
                 }
-            } getOrElse {
-                details.incompatible()
             }
+            details.incompatible()
         }
 
         @Override

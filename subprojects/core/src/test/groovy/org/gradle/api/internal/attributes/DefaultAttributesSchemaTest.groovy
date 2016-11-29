@@ -120,28 +120,31 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.setMatchingStrategy(attr, new AttributeMatchingStrategy<Map>() {
             @Override
             void checkCompatibility(CompatibilityCheckDetails<Map> details) {
-                details.producerValue.whenPresent { Map requestedValue ->
-                    details.consumerValue.whenPresent { Map candidateValue ->
-                        if (requestedValue.size() == candidateValue.size()) { // arbitrary, just for testing purposes
-                            details.compatible()
-                        } else {
-                            details.incompatible()
-                        }
-                    } getOrElse { details.incompatible() }
-                } getOrElse { details.incompatible() }
+                def producerValue = details.producerValue
+                def consumerValue = details.consumerValue
+                if (producerValue.present && consumerValue.present) {
+                    if (producerValue.get().size() == consumerValue.get().size()) {
+                        // arbitrary, just for testing purposes
+                        details.compatible()
+                        return
+                    }
+                }
+                details.incompatible()
             }
 
             @Override
             def <K> void selectClosestMatch(MultipleCandidatesDetails<Map, K> details) {
                 def optionalAttribute = details.consumerValue
                 def candidateValues = details.candidateValues
-                optionalAttribute.whenPresent { requestedValue ->
-                    candidateValues.findAll { it.value.get() == requestedValue }*.getKey().each {
+                if (optionalAttribute.present) {
+                    candidateValues.findAll { it.value == optionalAttribute }*.key.each {
                         details.closestMatch(it)
                     }
-                } whenMissing {
+                } else if (optionalAttribute.missing) {
                     details.closestMatch(candidateValues.keySet().first())
-                } getOrElse { candidateValues.keySet().each { details.closestMatch(it)}  }
+                } else {
+                    candidateValues.keySet().each { details.closestMatch(it)}
+                }
             }
         })
         def strategy = schema.getMatchingStrategy(attr)

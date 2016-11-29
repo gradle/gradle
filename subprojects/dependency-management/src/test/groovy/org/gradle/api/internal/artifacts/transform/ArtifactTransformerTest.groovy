@@ -251,17 +251,9 @@ class ArtifactTransformerTest extends Specification {
 
         @Override
         void checkCompatibility(CompatibilityCheckDetails<String> details) {
-            details.consumerValue.whenPresent { String requestedValue ->
-                details.producerValue.whenPresent { String candidateValue ->
-                    if (requestedValue == candidateValue) {
-                        details.compatible()
-                    } else {
-                        details.incompatible()
-                    }
-                } getOrElse {
-                    details.incompatible()
-                }
-            } getOrElse {
+            if (details.consumerValue.equals(details.producerValue)) {
+                details.compatible()
+            } else {
                 details.incompatible()
             }
         }
