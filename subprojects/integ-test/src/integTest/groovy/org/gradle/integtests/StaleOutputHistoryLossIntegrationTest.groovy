@@ -24,10 +24,11 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import static org.gradle.util.GFileUtils.forceDelete
 
-class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
+class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
     private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.mostRecentFinalRelease.executer(temporaryFolder, getBuildContext())
@@ -37,6 +38,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
+    @Issue("GRADLE-1501")
     def "production sources files are removed"() {
         given:
         def javaProjectFixture = new JavaProjectFixture()
@@ -56,6 +58,37 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
 
         when:
+        forceDelete(javaProjectFixture.redundantSourceFile)
+        succeeds taskPath
+
+        then:
+        executedAndNotSkipped(taskPath)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+    }
+
+    @NotYetImplemented
+    @Issue("GRADLE-1501")
+    def "task history is deleted"() {
+        def javaProjectFixture = new JavaProjectFixture()
+        def jarFile = file('build/libs/test.jar')
+        def taskPath = ':jar'
+
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << "apply plugin: 'java'"
+
+        when:
+        succeeds taskPath
+
+        then:
+        result.executedTasks.contains(taskPath)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertIsFile()
+        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+
+        when:
+        file('.gradle').assertIsDir().deleteDir()
         forceDelete(javaProjectFixture.redundantSourceFile)
         succeeds taskPath
 
@@ -415,7 +448,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         private TestFile writeJavaSourceFile(String className) {
             String sourceFilePath = "src/main/java/${className}.java"
             sourceFilePath = prependRootDirName(sourceFilePath)
-            def sourceFile = StaleOutputGradleUpgradeIntegrationTest.this.file(sourceFilePath)
+            def sourceFile = StaleOutputHistoryLossIntegrationTest.this.file(sourceFilePath)
             sourceFile << "public class $className {}"
             sourceFile
         }
@@ -423,7 +456,7 @@ class StaleOutputGradleUpgradeIntegrationTest extends AbstractIntegrationSpec {
         private TestFile determineClassFile(File sourceFile) {
             String classFilePath = "build/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
             classFilePath = prependRootDirName(classFilePath)
-            StaleOutputGradleUpgradeIntegrationTest.this.file(classFilePath)
+            StaleOutputHistoryLossIntegrationTest.this.file(classFilePath)
         }
 
         private String prependRootDirName(String filePath) {
