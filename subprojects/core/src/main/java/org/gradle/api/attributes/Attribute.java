@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.attributes;
 
 import org.apache.commons.lang.WordUtils;
+import org.gradle.api.Named;
 
 /**
  * An attribute is a named entity with a type. It is used in conjunction with a {@link AttributeContainer}
@@ -25,6 +26,8 @@ import org.apache.commons.lang.WordUtils;
  * and can potentially be pooled. Attributes can be created using the {@link #of(String, Class) factory method}.
  *
  * @param <T> the type of the named attribute
+ *
+ * @since 3.3
  */
 public class Attribute<T> implements Named {
     private final String name;

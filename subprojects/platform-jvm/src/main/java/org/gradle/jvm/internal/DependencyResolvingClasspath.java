@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.AttributesSchema;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;

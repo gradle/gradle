@@ -16,10 +16,10 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.io.File;

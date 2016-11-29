@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.AttributesSchema
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector

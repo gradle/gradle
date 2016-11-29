@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Attribute;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.util.Collections;
 import java.util.Set;

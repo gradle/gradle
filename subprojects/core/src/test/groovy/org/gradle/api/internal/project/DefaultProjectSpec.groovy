@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.AttributesSchema
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal

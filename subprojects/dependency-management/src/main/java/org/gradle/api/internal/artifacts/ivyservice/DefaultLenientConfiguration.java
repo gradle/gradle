@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;

@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+
+package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.gradle.api.Attribute;
-import org.gradle.api.AttributeMatchingStrategy;
-import org.gradle.api.AttributeValue;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributeValue;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.Cast;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultConfigurationAttributesSchema implements org.gradle.api.AttributesSchema {
+public class DefaultAttributesSchema implements AttributesSchema {
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
 
     @Override

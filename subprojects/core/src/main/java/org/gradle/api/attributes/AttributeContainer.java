@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Set;
@@ -33,6 +34,7 @@ import java.util.Set;
  * It is not allowed to have two attributes with the same name but different types in
  * the container.
  *
+ * @since 3.3
  */
 @Incubating
 @HasInternalProtocol

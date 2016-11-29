@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Incubating;
 
 /**

@@ -23,8 +23,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Attribute;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.ArrayList;

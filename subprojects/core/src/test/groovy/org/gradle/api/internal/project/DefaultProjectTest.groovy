@@ -19,7 +19,7 @@ package org.gradle.api.internal.project
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.AttributesSchema
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException

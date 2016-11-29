@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;

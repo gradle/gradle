@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
 
+package org.gradle.api.attributes;
+
+import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 
@@ -32,6 +34,8 @@ import java.util.NoSuchElementException;
  * </ul>
  * During attribute matching, this can be used to implement various {@link AttributeMatchingStrategy strategies}.
  * @param <T> the type of the attribute
+ *
+ * @since 3.3
  */
 public class AttributeValue<T> {
     private final static AttributeValue<Object> MISSING = new AttributeValue<Object>(null) {

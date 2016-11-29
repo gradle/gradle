@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.HasAttributes;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.List;

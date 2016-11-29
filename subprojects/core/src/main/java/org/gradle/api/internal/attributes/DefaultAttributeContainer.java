@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
-import org.gradle.api.Attribute;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;

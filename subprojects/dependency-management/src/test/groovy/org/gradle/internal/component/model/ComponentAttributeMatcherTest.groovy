@@ -16,15 +16,15 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.Attribute
-import org.gradle.api.AttributesSchema
-import org.gradle.api.internal.DefaultAttributeContainer
-import org.gradle.api.internal.project.DefaultConfigurationAttributesSchema
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import spock.lang.Specification
 
 class ComponentAttributeMatcherTest extends Specification {
 
-    AttributesSchema schema = new DefaultConfigurationAttributesSchema()
+    AttributesSchema schema = new DefaultAttributesSchema()
 
     def "Matching two exactly similar attributes gives a full match" () {
         given:
