@@ -151,6 +151,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
             public void execute(ObjectConnection connection) {
                 DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+                connection.useParameterSerializers(WorkerMessageSerializer.create());
                 connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
                 workerProcess.onConnect(connection);
             }
