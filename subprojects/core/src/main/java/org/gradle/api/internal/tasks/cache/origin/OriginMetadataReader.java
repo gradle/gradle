@@ -20,12 +20,5 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface OriginMetadataReader {
-    OriginMetadataReader NO_OP = new OriginMetadataReader() {
-        @Override
-        public void readFrom(InputStream inputStream) throws IOException {
-            // Do nothing
-        }
-    };
-
     void readFrom(InputStream inputStream) throws IOException;
 }

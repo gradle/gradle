@@ -25,14 +25,10 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
-import org.gradle.api.internal.tasks.cache.origin.ProcessingOriginMetadataReader;
-import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataWriter;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
 import org.gradle.cache.BuildCache;
 import org.gradle.cache.BuildCacheEntryReader;
 import org.gradle.cache.BuildCacheEntryWriter;
@@ -105,10 +101,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                         boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                             @Override
                                             public void readFrom(InputStream input) throws IOException {
-                                                OriginMetadataReader metadataReader = LOGGER.isInfoEnabled()
-                                                    ? new LoggingOriginMetadataReader(task)
-                                                    : OriginMetadataReader.NO_OP;
-                                                packer.unpack(taskOutputs, input, metadataReader);
+                                                packer.unpack(taskOutputs, input, originMetadataConverter.createReader(task));
                                                 LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                             }
                                         });
@@ -151,10 +144,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         getCache().store(cacheKey, new BuildCacheEntryWriter() {
                             @Override
                             public void writeTo(OutputStream output) throws IOException {
-                                OriginMetadata originMetadata =
-                                    originMetadataConverter.convert(task, clock.getElapsedMillis());
-                                LOGGER.info("Packing {} with {}", task.getPath(), originMetadata);
-                                packer.pack(taskOutputs, output, new DefaultOriginMetadataWriter(originMetadata));
+                                LOGGER.info("Packing {}", task.getPath());
+                                packer.pack(taskOutputs, output, originMetadataConverter.createWriter(task, clock.getElapsedMillis()));
                             }
                         });
                     } catch (Exception e) {
@@ -177,18 +168,5 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             LOGGER.info("Using {}", cache.getDescription());
         }
         return cache;
-    }
-
-    private static class LoggingOriginMetadataReader extends ProcessingOriginMetadataReader {
-        private final TaskInternal task;
-
-        public LoggingOriginMetadataReader(TaskInternal task) {
-            this.task = task;
-        }
-
-        @Override
-        protected void processMetadata(OriginMetadata originMetadata) {
-            LOGGER.info("Origin for {}: {}", task, originMetadata);
-        }
     }
 }
