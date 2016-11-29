@@ -33,20 +33,20 @@ import java.io.OutputStream;
 import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable {
+public class LocalDirectoryBuildCache implements BuildCache, Closeable {
     private final PersistentCache persistentCache;
 
-    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, File directory) {
+    public LocalDirectoryBuildCache(CacheRepository cacheRepository, File directory) {
         this(cacheRepository.cache(checkDirectory(directory)));
     }
 
-    public LocalDirectoryTaskOutputCache(CacheRepository cacheRepository, String cacheKey) {
+    public LocalDirectoryBuildCache(CacheRepository cacheRepository, String cacheKey) {
         this(cacheRepository.cache(cacheKey));
     }
 
-    private LocalDirectoryTaskOutputCache(CacheBuilder cacheBuilder) {
+    private LocalDirectoryBuildCache(CacheBuilder cacheBuilder) {
         this.persistentCache = cacheBuilder
-            .withDisplayName("Task output cache")
+            .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .open();
     }
@@ -72,7 +72,7 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable
 
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws IOException {
-        return persistentCache.useCache("load task output", new Factory<Boolean>() {
+        return persistentCache.useCache("load build cache entry", new Factory<Boolean>() {
             @Override
             public Boolean create() {
                 File file = getFile(key.getHashCode());
@@ -99,7 +99,7 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable
 
     @Override
     public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws IOException {
-        persistentCache.useCache("store task output", new Runnable() {
+        persistentCache.useCache("store build cache entry", new Runnable() {
             @Override
             public void run() {
                 File file = getFile(key.getHashCode());

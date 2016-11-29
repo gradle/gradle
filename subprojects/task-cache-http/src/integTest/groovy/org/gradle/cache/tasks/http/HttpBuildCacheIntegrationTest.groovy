@@ -24,7 +24,7 @@ import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
-class HttpTaskOutputCacheIntegrationTest extends AbstractIntegrationSpec {
+class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
@@ -231,7 +231,7 @@ class HttpTaskOutputCacheIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":customTask"
     }
 
-    HttpTaskOutputCacheIntegrationTest withTaskCache() {
+    HttpBuildCacheIntegrationTest withTaskCache() {
         executer.withTaskCacheEnabled().withArgument "-I" withArgument "init-cache.gradle"
         this
     }

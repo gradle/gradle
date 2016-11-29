@@ -22,11 +22,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
-public class MapBasedTaskOutputCache implements TaskOutputCache {
+/**
+ * Build cache implementation that delegates to a {@link ConcurrentMap}.
+ */
+public class MapBasedBuildCache implements BuildCache {
     private final String description;
     private final ConcurrentMap<String, byte[]> delegate;
 
-    public MapBasedTaskOutputCache(String description, ConcurrentMap<String, byte[]> delegate) {
+    public MapBasedBuildCache(String description, ConcurrentMap<String, byte[]> delegate) {
         this.description = description;
         this.delegate = delegate;
     }

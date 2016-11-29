@@ -20,11 +20,11 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Cache protocol interface to be implemented by task output cache backends.
+ * Cache protocol interface to be implemented by build cache backends.
  */
-public interface TaskOutputCache extends Closeable {
+public interface BuildCache extends Closeable {
     /**
-     * Load the cached task output corresponding to the given task cache key. The {@code reader} will be called if an entry is found in the cache.
+     * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *
      * @param key the cache key.
      * @param reader the reader to read the data corresponding to the cache key.
@@ -34,7 +34,7 @@ public interface TaskOutputCache extends Closeable {
     boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException;
 
     /**
-     * Store the task output with the given cache key. The {@code writer} will be called to actually write the data.
+     * Store the cache entry with the given cache key. The {@code writer} will be called to actually write the data.
      *
      * @param key the cache key.
      * @param writer the writer to write the data corresponding to the cache key.

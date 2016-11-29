@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.cache.config;
 
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.tasks.cache.LocalDirectoryTaskOutputCache;
-import org.gradle.api.internal.tasks.cache.TaskOutputCache;
+import org.gradle.api.internal.tasks.cache.LocalDirectoryBuildCache;
+import org.gradle.api.internal.tasks.cache.BuildCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -32,7 +32,7 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     private final boolean pullAllowed;
     private final boolean pushAllowed;
     private final CacheRepository cacheRepository;
-    private final List<TaskOutputCache> cachesCreated = Lists.newCopyOnWriteArrayList();
+    private final List<BuildCache> cachesCreated = Lists.newCopyOnWriteArrayList();
     private TaskOutputCacheFactory factory;
 
     public DefaultTaskCaching(CacheRepository cacheRepository) {
@@ -46,11 +46,11 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     public void useLocalCache() {
         setFactory(new TaskOutputCacheFactory() {
             @Override
-            public TaskOutputCache createCache(StartParameter startParameter) {
+            public BuildCache createCache(StartParameter startParameter) {
                 String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
                 return cacheDirectoryPath != null
-                    ? new LocalDirectoryTaskOutputCache(cacheRepository, new File(cacheDirectoryPath))
-                    : new LocalDirectoryTaskOutputCache(cacheRepository, "task-cache");
+                    ? new LocalDirectoryBuildCache(cacheRepository, new File(cacheDirectoryPath))
+                    : new LocalDirectoryBuildCache(cacheRepository, "task-cache");
             }
         });
     }
@@ -59,8 +59,8 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     public void useLocalCache(final File directory) {
         setFactory(new TaskOutputCacheFactory() {
             @Override
-            public TaskOutputCache createCache(StartParameter startParameter) {
-                return new LocalDirectoryTaskOutputCache(cacheRepository, directory);
+            public BuildCache createCache(StartParameter startParameter) {
+                return new LocalDirectoryBuildCache(cacheRepository, directory);
             }
         });
     }
@@ -73,8 +73,8 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     private void setFactory(final TaskOutputCacheFactory factory) {
         this.factory = new TaskOutputCacheFactory() {
             @Override
-            public TaskOutputCache createCache(StartParameter startParameter) {
-                TaskOutputCache cache = factory.createCache(startParameter);
+            public BuildCache createCache(StartParameter startParameter) {
+                BuildCache cache = factory.createCache(startParameter);
                 cachesCreated.add(cache);
                 return cache;
             }

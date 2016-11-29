@@ -22,16 +22,16 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Specification
 
-class HttpTaskOutputCacheTest extends Specification {
+class HttpBuildCacheTest extends Specification {
     @Rule HttpServer server = new HttpServer()
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
-    HttpTaskOutputCache cache
+    HttpBuildCache cache
     def key = Mock(BuildCacheKey)
 
     def setup() {
         server.start()
-        cache = new HttpTaskOutputCache(server.uri.resolve("/cache/"))
+        cache = new HttpBuildCache(server.uri.resolve("/cache/"))
     }
 
     def "can cache artifact"() {

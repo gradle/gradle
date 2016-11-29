@@ -18,7 +18,7 @@ package org.gradle.cache.tasks.http;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.cache.TaskOutputCache;
+import org.gradle.api.internal.tasks.cache.BuildCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
 
 import java.net.URI;
@@ -41,7 +41,7 @@ public class HttpTaskOutputCacheFactory implements TaskOutputCacheFactory {
     }
 
     @Override
-    public TaskOutputCache createCache(StartParameter startParameter) {
-        return new HttpTaskOutputCache(root);
+    public BuildCache createCache(StartParameter startParameter) {
+        return new HttpBuildCache(root);
     }
 }

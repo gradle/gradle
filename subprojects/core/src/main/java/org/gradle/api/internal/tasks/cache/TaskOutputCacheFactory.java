@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.StartParameter;
 
+/**
+ * Factory interface for build caching.
+ */
 public interface TaskOutputCacheFactory {
-    TaskOutputCache createCache(StartParameter startParameter);
+    BuildCache createCache(StartParameter startParameter);
 }
