@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.cache.origin;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.TimeProvider;
@@ -27,10 +28,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 public class TaskOutputOriginMetadataFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginMetadataFactory.class);
+    private static final List<String> METADATA_KEYS = Arrays.asList("type", "path", "gradleVersion", "creationTime", "executionTime", "rootPath", "operatingSystem", "hostName", "userName");
 
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
@@ -64,6 +69,7 @@ public class TaskOutputOriginMetadataFactory {
                 properties.setProperty("hostName", inetAddressFactory.getHostname());
                 properties.setProperty("userName", userName);
                 properties.store(outputStream, "origin metadata");
+                assert METADATA_KEYS.containsAll(properties.stringPropertyNames()) : "Update expected metadata property list";
             }
         };
     }
@@ -75,6 +81,12 @@ public class TaskOutputOriginMetadataFactory {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
                 properties.load(inputStream);
+                Set<String> keys = properties.stringPropertyNames();
+                if (!keys.containsAll(METADATA_KEYS)) {
+                    List<String> missingKeys = Lists.newArrayList(METADATA_KEYS);
+                    missingKeys.removeAll(keys);
+                    throw new IllegalStateException(String.format("Cached result format error, properties missing from origin metadata: %s", missingKeys));
+                }
                 LOGGER.info("Origin for {}: {}", task, properties);
             }
         };

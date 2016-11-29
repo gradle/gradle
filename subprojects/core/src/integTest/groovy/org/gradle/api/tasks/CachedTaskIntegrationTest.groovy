@@ -70,7 +70,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
         withBuildCache().succeeds("cacheable")
         then:
         file("build/tmp/cacheable/output").exists()
-        result.assertOutputContains("java.lang.IllegalStateException: Cached result format error, key 'path' missing from origin metadata")
+        result.assertOutputContains("java.lang.IllegalStateException: Cached result format error, properties missing from origin metadata: ")
 
         when:
         file("build").deleteDir()
