@@ -140,7 +140,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':a') {
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, [
-                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
+                    checkCompatibility: { details ->
+                        details.consumerValue.whenPresent { requested ->
+                            details.producerValue.whenPresent { candidate ->
+                                if (requested.value.equalsIgnoreCase(candidate.value)) {
+                                    details.compatible()
+                                } else {
+                                    details.incompatible()
+                                }
+                            } getOrElse {
+                                details.incompatible()
+                            }
+                        } getOrElse {
+                                details.incompatible()
+                        }
+                    },
                     selectClosestMatch: { requested, candidates ->
                         candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
                     }
@@ -211,7 +225,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':a') {
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, [
-                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
+                    checkCompatibility: { details ->
+                        details.consumerValue.whenPresent { requested ->
+                            details.producerValue.whenPresent { candidate ->
+                                if (requested.value.equalsIgnoreCase(candidate.value)) {
+                                    details.compatible()
+                                } else {
+                                    details.incompatible()
+                                }
+                            } getOrElse {
+                                details.incompatible()
+                            }
+                        } getOrElse {
+                                details.incompatible()
+                        }
+                    },
                     selectClosestMatch: { requested, candidates ->
                         candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
                     }
@@ -293,7 +321,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':a') {
                configurationAttributesSchema {
                   setMatchingStrategy(flavor, [
-                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
+                    checkCompatibility: { details ->
+                        details.consumerValue.whenPresent { requested ->
+                            details.producerValue.whenPresent { candidate ->
+                                if (requested.value.equalsIgnoreCase(candidate.value)) {
+                                    details.compatible()
+                                } else {
+                                    details.incompatible()
+                                }
+                            } getOrElse {
+                                details.incompatible()
+                            }
+                        } getOrElse {
+                                details.incompatible()
+                        }
+                    },
                     selectClosestMatch: { requested, candidates ->
                         candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
                     }
@@ -301,7 +343,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
                   setMatchingStrategy(buildType, [
-                    isCompatible: { requested, candidate -> true },
+                    checkCompatibility: { details -> details.compatible() },
                     selectClosestMatch: { requested, candidates ->
                         candidates.entrySet().findAll { it.value == requested.get() }*.key
                     }
@@ -379,7 +421,22 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   matchStrictly(buildType)
                   setMatchingStrategy(flavor, new AttributeMatchingStrategy<String>() {
-                       boolean isCompatible(String req, String can) { req == can }
+                       void checkCompatibility(CompatibilityCheckDetails<String> details) {
+                            details.consumerValue.whenPresent { requested ->
+                                details.producerValue.whenPresent { candidate ->
+                                    if (requested.value == candidate.value) {
+                                        details.compatible()
+                                    } else {
+                                        details.incompatible()
+                                    }
+                                } getOrElse {
+                                    details.incompatible()
+                                }
+                            } getOrElse {
+                                    details.incompatible()
+                            }
+                       }
+
                        public <K> List<K> selectClosestMatch(AttributeValue<String> value, Map<K, String> candidateValues) {
                             value.whenPresent {
                                 candidateValues.keySet() as List
@@ -446,7 +503,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   matchStrictly(dummy)
                   setMatchingStrategy(arch, new AttributeMatchingStrategy<Arch>() {
-                       boolean isCompatible(Arch req, Arch can) { req == can }
+                       void checkCompatibility(CompatibilityCheckDetails<String> details) {
+                            details.consumerValue.whenPresent { requested ->
+                                details.producerValue.whenPresent { candidate ->
+                                    if (requested.value == candidate.value) {
+                                        details.compatible()
+                                    } else {
+                                        details.incompatible()
+                                    }
+                                } getOrElse {
+                                    details.incompatible()
+                                }
+                            } getOrElse {
+                                    details.incompatible()
+                            }
+                       }
                        public <K> List<K> selectClosestMatch(AttributeValue<Arch> requestedValue, Map<K, Arch> candidateValues) {
                             requestedValue.whenPresent {
                                 // the consumer provided a value

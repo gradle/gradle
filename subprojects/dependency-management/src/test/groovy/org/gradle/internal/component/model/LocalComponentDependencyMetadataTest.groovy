@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -37,7 +38,14 @@ import spock.lang.Unroll
 class LocalComponentDependencyMetadataTest extends Specification {
     def attributesSchema = Mock(AttributesSchema) {
         getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
-            isCompatible(_, _) >> { args -> args[0] == args[1] }
+            checkCompatibility(_) >> { args ->
+                def details = args[0]
+                if (details.consumerValue.get() == details.producerValue.get()) {
+                    details.compatible()
+                } else {
+                    details.incompatible()
+                }
+            }
         }
     }
 
@@ -154,7 +162,14 @@ class LocalComponentDependencyMetadataTest extends Specification {
                     return new JavaCompileVersionStrategy()
                 } else {
                     return Mock(AttributeMatchingStrategy) {
-                        isCompatible(_, _) >> { req, cand -> req == cand }
+                        checkCompatibility(_) >> { cargs ->
+                            def details = cargs[0]
+                            if (details.consumerValue.get() == details.producerValue.get()) {
+                                details.compatible()
+                            } else {
+                                details.incompatible()
+                            }
+                        }
                         selectClosestMatch(_, _) >> { req, candidates -> candidates.keySet() as List }
                     }
                 }
@@ -271,12 +286,18 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
             getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
-                isCompatible(_, _) >> { requested, candidate ->
+                checkCompatibility(_) >> { cargs ->
+                    def details = cargs[0]
+                    def requested = details.consumerValue.get()
+                    def candidate = details.producerValue.get()
                     if (candidate == 'something') {
-                        return false // simulate never compatible
+                        details.incompatible()
+                    } else if (requested == candidate || // simulate exact match
+                        (requested == 'other' && candidate == 'something else')) { // simulate compatible match) {
+                        details.compatible()
+                    } else {
+                        details.incompatible()
                     }
-                    requested == candidate || // simulate exact match
-                        (requested == 'other' && candidate == 'something else') // simulate compatible match
                 }
             }
         }
@@ -325,7 +346,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
             getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
-                isCompatible(_, _) >> { requested, candidate ->
+                checkCompatibility(_) >> {
                     throw new RuntimeException('oh noes!')
                 }
                 toString() >> 'DummyMatcher'
@@ -377,8 +398,20 @@ class LocalComponentDependencyMetadataTest extends Specification {
     public class JavaCompileVersionStrategy implements AttributeMatchingStrategy<JavaVersion> {
 
         @Override
-        boolean isCompatible(JavaVersion requestedValue, JavaVersion candidateValue) {
-            candidateValue.ordinal() <= requestedValue.ordinal()
+        void checkCompatibility(CompatibilityCheckDetails<JavaVersion> details) {
+            details.consumerValue.whenPresent { JavaVersion requestedValue ->
+                details.producerValue.whenPresent { JavaVersion candidateValue ->
+                    if (candidateValue.ordinal() <= requestedValue.ordinal()) {
+                        details.compatible()
+                    } else {
+                        details.incompatible()
+                    }
+                } getOrElse {
+                    details.incompatible()
+                }
+            } getOrElse {
+                details.incompatible()
+            }
         }
 
         @Override
