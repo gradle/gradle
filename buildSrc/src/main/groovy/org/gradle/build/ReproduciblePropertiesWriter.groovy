@@ -42,7 +42,7 @@ class ReproduciblePropertiesWriter {
         file.withWriter("8859_1") { BufferedWriter bw ->
             if (comment) {
                 bw.write("# ${comment}")
-                bw.newLine()
+                bw.write(lineSeparator)
             }
             bw.write(content)
         }
