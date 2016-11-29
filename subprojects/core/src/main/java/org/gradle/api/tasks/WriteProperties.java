@@ -46,11 +46,10 @@ import java.util.Properties;
  *     <li>no timestamp comment is generated at the beginning of the file</li>
  *     <li>the lines in the resulting files are separated by a pre-set separator (defaults to
  *         {@literal '\n'}) instead of the system default line separator</li>
- *     <li>the lines are sorted alphabetically</li>
+ *     <li>the properties are sorted alphabetically</li>
  * </ul>
  *
- * <p>When the default Latin-1 (ISO-8859-1) encoding is used, Unicode characters get escaped,
- * just like with {@link java.util.Properties#store(java.io.OutputStream, String)}. Otherwise no escaping is performed.</p>
+ * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters are escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
  *
  * @since 3.3
  */
