@@ -388,8 +388,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.contains(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
-        long targetFile1LastModified = targetFile1.lastModified()
-        long targetFile2LastModified = targetFile2.lastModified()
 
         when:
         def newTaskPath = ':newCopy'
@@ -408,9 +406,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(newTaskPath)
         targetFile1.assertIsFile()
-        targetFile2.assertIsFile()
-        targetFile1.lastModified() != targetFile1LastModified
-        targetFile2.lastModified() != targetFile2LastModified
+        targetFile2.assertDoesNotExist()
     }
 
     private ExecutionResult runWithMostRecentFinalRelease(String... tasks) {
