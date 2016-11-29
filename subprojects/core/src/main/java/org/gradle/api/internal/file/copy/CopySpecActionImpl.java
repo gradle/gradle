@@ -15,11 +15,17 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CopySpecActionImpl implements Action<CopySpecResolver> {
     private final CopyActionProcessingStreamAction action;
@@ -34,6 +40,43 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
 
     public void execute(final CopySpecResolver specResolver) {
         FileTree source = specResolver.getSource();
-        source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem));
+        SortingStreamAction sortingStreamAction = new SortingStreamAction(action);
+        source.visit(new CopyFileVisitorImpl(specResolver, sortingStreamAction, instantiator, fileSystem));
+        sortingStreamAction.sort();
+    }
+
+    public static class SortingStreamAction implements CopyActionProcessingStreamAction {
+
+        List<FileCopyDetailsInternal> copyDetailsInternals = new ArrayList<FileCopyDetailsInternal>();
+        private CopyActionProcessingStreamAction action;
+
+        public SortingStreamAction(CopyActionProcessingStreamAction action) {
+            this.action = action;
+        }
+
+        @Override
+        public void processFile(FileCopyDetailsInternal details) {
+            if (details.isRealFile()) {
+                copyDetailsInternals.add(details);
+            } else {
+                sort();
+                action.processFile(details);
+            }
+        }
+
+        public void sort() {
+            if (!copyDetailsInternals.isEmpty()) {
+                Collections.sort(copyDetailsInternals, Ordering.natural().onResultOf(new Function<FileCopyDetailsInternal, Comparable>() {
+                    @Override
+                    public Comparable apply(FileCopyDetailsInternal input) {
+                        return input.getPath();
+                    }
+                }));
+                for (FileCopyDetailsInternal copyDetailsInternal : copyDetailsInternals) {
+                    action.processFile(copyDetailsInternal);
+                }
+                copyDetailsInternals.clear();
+            }
+        }
     }
 }

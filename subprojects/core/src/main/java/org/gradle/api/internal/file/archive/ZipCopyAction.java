@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
-import org.gradle.api.internal.file.copy.SortingCopyActionDecorator;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -52,8 +51,7 @@ public class ZipCopyAction implements CopyAction {
         this.reproducible = reproducible;
     }
 
-    public WorkResult execute(final CopyActionProcessingStream originalStream) {
-        final CopyActionProcessingStream stream = new SortingCopyActionDecorator(originalStream);
+    public WorkResult execute(final CopyActionProcessingStream stream) {
         final ZipOutputStream zipOutStr;
 
         try {

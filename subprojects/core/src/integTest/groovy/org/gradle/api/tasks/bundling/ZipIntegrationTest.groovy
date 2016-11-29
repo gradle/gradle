@@ -164,7 +164,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
     }
 
-    def "order of files is not important"() {
+    @Unroll
+    def "order of files #files is not important"() {
         given:
         createTestFiles()
         buildFile << """
@@ -179,7 +180,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'zip'
 
         then:
-        fileHash('build/test.zip') == 'd2ba5ed628630c1fa24cf1eda494af3f'
+        fileHash('build/test.zip') == '527eb62eec82af74a83514708f52dbf4'
 
         where:
         files << ['dir1/file1.txt', 'dir2/file2.txt', 'dir3/file3.txt'].permutations()

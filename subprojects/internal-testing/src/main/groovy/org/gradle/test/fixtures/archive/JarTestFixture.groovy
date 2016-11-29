@@ -55,8 +55,7 @@ class JarTestFixture extends ZipTestFixture {
                 zipEntry = entries.nextElement()
             }
             def firstEntryName = zipEntry.getName()
-            // FIXME wolfs
-//            assert firstEntryName.equalsIgnoreCase(JarFile.MANIFEST_NAME)
+            assert firstEntryName.equalsIgnoreCase(JarFile.MANIFEST_NAME)
         } finally {
             zipFile.close()
         }
