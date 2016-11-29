@@ -22,8 +22,8 @@ import org.gradle.api.Incubating;
  * An attribute matching strategy is responsible for providing information about how an {@link Attribute}
  * is matched during dependency resolution. In particular, it will tell if a value, provided by a consumer,
  * is compatible with a value provided by a candidate.
- * @param <T> the type of the attribute
  *
+ * @param <T> the type of the attribute
  * @since 3.3
  */
 @Incubating
@@ -31,6 +31,7 @@ public interface AttributeMatchingStrategy<T> {
     /**
      * Called whenever we need to check if a value from a consumer is compatible with the value from a
      * producer. Both the consumer and producer values can be present, missing or unknown.
+     *
      * @param details the check details
      */
     void checkCompatibility(CompatibilityCheckDetails<T> details);
@@ -40,8 +41,7 @@ public interface AttributeMatchingStrategy<T> {
      * object which gives access to the consumer value as well as the candidate producer values. Both the consumer and
      * producer values can be present, missing or unknown.
      *
-     * @param <K> the type of the candidate
      */
-    <K> void selectClosestMatch(MultipleCandidatesDetails<T, K> details);
+    void selectClosestMatch(MultipleCandidatesDetails<T> details);
 
 }

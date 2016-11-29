@@ -414,7 +414,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
 
         @Override
-        def <K> void selectClosestMatch(MultipleCandidatesDetails<JavaVersion, K> details) {
+        def void selectClosestMatch(MultipleCandidatesDetails<JavaVersion> details) {
             def maxCompat = details.candidateValues.values().sort { it.get().ordinal() }.last().get()
             details.candidateValues.findAll { it.value.get() == maxCompat }*.key.each {
                 details.closestMatch(it)

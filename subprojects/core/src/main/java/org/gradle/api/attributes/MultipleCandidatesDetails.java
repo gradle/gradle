@@ -15,12 +15,37 @@
  */
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
+
 import java.util.Map;
 
-public interface MultipleCandidatesDetails<T, K> {
+/**
+ * Provides context about candidates for an attribute. In particular, this class gives access to
+ * the value of an attribute as found on the consumer, but also a list of candidates for the same
+ * attribute on the producer side. It is possible to determine what to do in case an attribute is
+ * missing, or unknown, on both the consumer and producer sides.
+ *
+ * @param <T> the concrete type of the attribute
+ */
+@Incubating
+public interface MultipleCandidatesDetails<T> {
+    /**
+     * The value of the attribute on the consumer side. All possible outcomes are valid (present, missing, unknown)
+     * @return the value of the attribute as found on the consumer side
+     */
     AttributeValue<T> getConsumerValue();
-    Map<K, AttributeValue<T>> getCandidateValues();
 
-    void closestMatch(K key);
+    /**
+     * A map of candidate values. The keys represent a candidate, and the value is the value of the attribute for the attribute.
+     * @return the map of candidates
+     */
+    Map<HasAttributes, AttributeValue<T>> getCandidateValues();
+
+    /**
+     * Calling this method indicates that the candidate is the closest match. It is allowed to call this method several times with
+     * different keys, in which case it indicates that multiple candidates are equally compatible.
+     * @param key the candidate which is the closest match
+     */
+    void closestMatch(HasAttributes key);
 
 }

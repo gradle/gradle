@@ -259,7 +259,7 @@ class ArtifactTransformerTest extends Specification {
         }
 
         @Override
-        def <K> void selectClosestMatch(MultipleCandidatesDetails<String, K> details) {
+        def void selectClosestMatch(MultipleCandidatesDetails<String> details) {
             details.candidateValues.keySet().each { details.closestMatch(it) }
         }
     }
