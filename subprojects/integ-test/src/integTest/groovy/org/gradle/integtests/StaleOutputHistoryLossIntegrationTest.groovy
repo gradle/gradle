@@ -125,14 +125,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
     }
 
-    @NotYetImplemented
     def "tasks have common output directories"() {
-        def sourceFile1 = file('source1/source.txt')
+        def sourceFile1 = file('source1/source1.txt')
         sourceFile1 << 'a'
-        def sourceFile2 = file('source2/source.txt')
+        def sourceFile2 = file('source2/source2.txt')
         sourceFile2 << 'b'
-        def targetFile1 = file('target/source.txt')
-        def targetFile2 = file('target/source.txt')
+        def targetFile1 = file('target/source1.txt')
+        def targetFile2 = file('target/source2.txt')
         def taskPath = ':copyAll'
 
         buildFile << """
@@ -158,8 +157,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.containsAll(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
-        long targetFile1LastModified = targetFile1.lastModified()
-        long targetFile2LastModified = targetFile2.lastModified()
 
         when:
         succeeds taskPath
@@ -168,8 +165,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
-        targetFile1.lastModified() != targetFile1LastModified
-        targetFile2.lastModified() != targetFile2LastModified
     }
 
     @NotYetImplemented
