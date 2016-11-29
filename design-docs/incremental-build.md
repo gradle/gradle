@@ -314,7 +314,7 @@ Gradle detects and removes stale output files after a Gradle version change. Fur
         boolean hasOverlappingOutputs();
     } 
 
-- Delete the outputs of all tasks if no overlapping outputs are detected.
+- Delete the outputs of all tasks within the same build execution if no overlapping outputs are detected.
     - Retrieve all outputs mapped by task.
     - Delete files and directories.
 - Failure to delete the output (e.g. due to a file lock) results in a failed build caused by a thrown exception. Correctness over faulty behavior.
