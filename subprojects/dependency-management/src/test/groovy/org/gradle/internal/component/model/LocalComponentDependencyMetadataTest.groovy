@@ -89,6 +89,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
+            isCanBeResolved() >> true
+            isCanBeConsumed() >> true
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -130,6 +132,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
+            isCanBeResolved() >> true
+            isCanBeConsumed() >> true
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -251,6 +255,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
+            isCanBeResolved() >> true
+            isCanBeConsumed() >> true
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -303,6 +309,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
+            isCanBeResolved() >> true
+            isCanBeConsumed() >> true
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
