@@ -29,7 +29,7 @@ class PluginRequestCollectorTest extends Specification {
     List<PluginRequest> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
         new PluginRequestCollector(scriptSource).with {
             createSpec(LINE_NUMBER).with(closure)
-            getRequests()
+            listPluginRequests()
         }
     }
 

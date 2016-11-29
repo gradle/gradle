@@ -79,7 +79,11 @@ public class PluginRequestCollector {
         };
     }
 
-    public List<PluginRequest> getRequests() {
+    public PluginRequests getPluginRequests() {
+        return new DefaultPluginRequests(listPluginRequests());
+    }
+
+    public List<PluginRequest> listPluginRequests() {
         List<PluginRequest> pluginRequests = collect(specs, new Transformer<PluginRequest, DependencySpecImpl>() {
             public PluginRequest transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
@@ -103,7 +107,6 @@ public class PluginRequestCollector {
                 throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
             }
         }
-
         return pluginRequests;
     }
 
