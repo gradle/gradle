@@ -58,7 +58,7 @@ import java.util.Properties;
 @CacheableTask
 @ParallelizableTask
 public class WriteProperties extends DefaultTask {
-    private Map<?, ?> properties = new Properties();
+    private Properties properties = new Properties();
     private String lineSeparator = "\n";
     private Object outputFile;
     private String comment;
@@ -68,15 +68,16 @@ public class WriteProperties extends DefaultTask {
      * Returns the properties to be written to the output file.
      */
     @Input
-    public Map<?, ?> getProperties() {
+    public Properties getProperties() {
         return properties;
     }
 
     /**
-     * Sets the properties to be written to the output file.
+     * Sets all properties to be written to the output file.
      */
     public void setProperties(Map<?, ?> properties) {
-        this.properties = properties;
+        this.properties.clear();
+        this.properties.putAll(properties);
     }
 
     /**
@@ -145,24 +146,17 @@ public class WriteProperties extends DefaultTask {
 
     @TaskAction
     public void writeProperties() throws IOException {
-        Properties propertiesToWrite;
-        if (properties instanceof Properties) {
-            propertiesToWrite = (Properties) properties;
-        } else {
-            propertiesToWrite = new Properties();
-            propertiesToWrite.putAll(properties);
-        }
-
-        Charset charset = Charset.forName(encoding);
+        Properties properties = getProperties();
+        Charset charset = Charset.forName(getEncoding());
 
         String rawContents;
         if (charset.equals(Charsets.ISO_8859_1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            propertiesToWrite.store(out, getComment());
+            properties.store(out, getComment());
             rawContents = new String(out.toByteArray(), Charsets.ISO_8859_1);
         } else {
             StringWriter out = new StringWriter();
-            propertiesToWrite.store(out, getComment());
+            properties.store(out, getComment());
             rawContents = out.toString();
         }
 
