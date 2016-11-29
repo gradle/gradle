@@ -16,21 +16,22 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.configuration.ScriptPlugin
-import org.gradle.configuration.ScriptPluginFactory
-
 import org.gradle.api.Project
-
 import org.gradle.api.initialization.dsl.ScriptHandler
-
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
+import org.gradle.configuration.ScriptPlugin
+import org.gradle.configuration.ScriptPluginFactory
+
 import org.gradle.groovy.scripts.ScriptSource
+
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 class KotlinScriptPluginFactory(
     val classPathProvider: KotlinScriptClassPathProvider,
-    val kotlinCompiler: CachingKotlinCompiler) : ScriptPluginFactory {
+    val kotlinCompiler: CachingKotlinCompiler,
+    val pluginRequestApplicator: PluginRequestApplicator) : ScriptPluginFactory {
 
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
@@ -54,7 +55,9 @@ class KotlinScriptPluginFactory(
                             topLevelScript: Boolean) =
         KotlinBuildScriptCompiler(
             kotlinCompiler,
-            scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
+            scriptSource, topLevelScript,
+            scriptHandler as ScriptHandlerInternal,
+            pluginRequestApplicator,
             baseScope, targetScope,
             classPathProvider.gradleApi,
             classPathProvider.gradleApiExtensions,

@@ -16,7 +16,10 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-fun CharSequence.linePreservingSubstring(range: IntRange): String {
+fun CharSequence.linePreservingSubstring(range: IntRange): String =
+    linePreservingSubstring_(range).second
+
+fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
     val lineCount = subSequence(0, range.start).count { it == '\n' }
-    return "\n".repeat(lineCount) + substring(range)
+    return lineCount to "\n".repeat(lineCount) + substring(range)
 }

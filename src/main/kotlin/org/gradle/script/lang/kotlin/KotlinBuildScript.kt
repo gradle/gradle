@@ -20,8 +20,12 @@ import org.gradle.script.lang.kotlin.support.KotlinBuildScriptDependenciesResolv
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.jetbrains.kotlin.script.ScriptTemplateDefinition
+
+@DslMarker
+annotation class BuildScriptBlockMarker
 
 /**
  * Base class for Kotlin build scripts.
@@ -29,6 +33,7 @@ import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
+@BuildScriptBlockMarker
 abstract class KotlinBuildScript(project: Project) : Project by project {
 
     /**
@@ -38,6 +43,14 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
+
+    /**
+     * Configures the plugin dependencies for this project.
+     *
+     * @see [PluginDependenciesSpec]
+     */
+    @Suppress("unused")
+    fun plugins(@Suppress("unused_parameter") configuration: KotlinPluginDependenciesHandler.() -> Unit) = Unit
 
     inline fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
         project.apply({ it.configuration() })

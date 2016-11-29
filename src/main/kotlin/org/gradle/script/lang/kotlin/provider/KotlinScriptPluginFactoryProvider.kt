@@ -18,16 +18,18 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.ScriptPluginFactoryProvider
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import javax.inject.Inject
 
 class KotlinScriptPluginFactoryProvider @Inject constructor(
     val classPathProvider: KotlinScriptClassPathProvider,
-    val kotlinCompiler: CachingKotlinCompiler) : ScriptPluginFactoryProvider {
+    val kotlinCompiler: CachingKotlinCompiler,
+    val pluginRequestApplicator: PluginRequestApplicator) : ScriptPluginFactoryProvider {
 
     override fun getFor(fileName: String): ScriptPluginFactory? =
         when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider, kotlinCompiler)
+            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider, kotlinCompiler, pluginRequestApplicator)
             else -> null
         }
 }

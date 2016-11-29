@@ -30,6 +30,7 @@ import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
+import org.gradle.script.lang.kotlin.support.KotlinPluginsBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
 
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -60,15 +61,35 @@ class CachingKotlinCompiler(
         return compileWithCache(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 KotlinBuildscriptBlock::class,
-                buildscriptBlockFileFor(buildscript, cacheDir, scriptFileName),
+                cacheFileFor(buildscript, cacheDir, scriptFileName),
                 scriptFileName + " buildscript block")
         }
     }
 
+    fun compilePluginsBlockOf(scriptFile: File,
+                              pluginsRange: IntRange,
+                              classPath: ClassPath,
+                              parentClassLoader: ClassLoader): CompiledPluginsBlock {
+        val (lineNumber, plugins) = scriptFile.readText().linePreservingSubstring_(pluginsRange)
+        val scriptFileName = scriptFile.name
+        val scriptClass = compileWithCache(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
+            ScriptCompilationSpec(
+                KotlinPluginsBlock::class,
+                cacheFileFor(plugins, cacheDir, scriptFileName),
+                scriptFileName + " plugins block")
+        }
+        return CompiledPluginsBlock(lineNumber, scriptClass)
+    }
+
+    data class CompiledPluginsBlock(val lineNumber: Int, val scriptClass: Class<*>)
+
     fun compileBuildScript(scriptFile: File, classPath: ClassPath, parentClassLoader: ClassLoader): Class<*> {
         val scriptFileName = scriptFile.name
         return compileWithCache(cacheKeyPrefix + scriptFileName + scriptFile, classPath, parentClassLoader) {
-            ScriptCompilationSpec(KotlinBuildScript::class, scriptFile, scriptFileName)
+            ScriptCompilationSpec(
+                KotlinBuildScript::class,
+                scriptFile,
+                scriptFileName)
         }
     }
 
@@ -125,9 +146,9 @@ class CachingKotlinCompiler(
     private fun classPathOf(classesDir: File) =
         DefaultClassPath.of(listOf(classesDir))
 
-    private fun buildscriptBlockFileFor(buildscript: String, cacheDir: File, fileName: String) =
+    private fun cacheFileFor(text: String, cacheDir: File, fileName: String) =
         File(cacheDir, fileName).apply {
-            writeText(buildscript)
+            writeText(text)
         }
 
     private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =

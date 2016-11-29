@@ -19,11 +19,17 @@ package org.gradle.script.lang.kotlin.provider
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
+import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.gradle.plugin.use.internal.PluginRequestCollector
+import org.gradle.plugin.use.internal.PluginRequests
 
 import java.io.File
 
@@ -37,9 +43,10 @@ import java.util.*
 internal
 class KotlinBuildScriptCompiler(
     val kotlinCompiler: CachingKotlinCompiler,
-    scriptSource: ScriptSource,
+    val scriptSource: ScriptSource,
     val topLevelScript: Boolean,
     val scriptHandler: ScriptHandlerInternal,
+    val pluginRequestApplicator: PluginRequestApplicator,
     val baseScope: ClassLoaderScope,
     val targetScope: ClassLoaderScope,
     gradleApi: ClassPath,
@@ -57,6 +64,8 @@ class KotlinBuildScriptCompiler(
 
     val buildscriptBlockCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + buildSrc
 
+    val pluginsBlockCompilationClassPath: ClassPath = buildscriptBlockCompilationClassPath
+
     val scriptClassPath: ClassPath by lazy {
         scriptHandler.scriptClassPath
     }
@@ -65,92 +74,138 @@ class KotlinBuildScriptCompiler(
         scriptClassPath + buildscriptBlockCompilationClassPath
     }
 
-    fun compile(): (Project) -> Unit {
-        val buildscriptBlockRange = extractTopLevelBuildscriptBlockRange()
-        return when {
-            buildscriptBlockRange != null ->
-                twoPassScript(buildscriptBlockRange)
-            else ->
-                onePassScript()
+    fun compile(): (Project) -> Unit =
+        when {
+            topLevelScript -> compileTopLevelScript()
+            else -> compileScriptPlugin()
         }
-    }
 
     fun compileForClassPath(): (Project) -> Unit = { target ->
-        executeBuildscriptBlockIgnoringErrors(target)
+        ignoringErrors { executeBuildscriptBlockOn(target) }
+        ignoringErrors { executePluginsBlockOn(target) }
     }
 
-    private fun extractTopLevelBuildscriptBlockRange() =
-        if (topLevelScript) extractBuildscriptBlockFrom(script) else null
+    private fun compileTopLevelScript(): (Project) -> Unit {
+        return { target ->
+            executeBuildscriptBlockOn(target)
+            val scriptClassLoader = scriptBodyClassLoaderFor(target)
+            val scriptClass = compileScriptFile(scriptClassLoader)
+            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
+        }
+    }
 
-    private fun executeBuildscriptBlockIgnoringErrors(target: Project) {
-        try {
-            val buildscriptRange = extractBuildscriptBlockFrom(script)
-            if (buildscriptRange != null) {
-                executeBuildscriptBlock(buildscriptRange, target)
+    private fun compileScriptPlugin(): (Project) -> Unit {
+        return { target ->
+            val scriptClassLoader = scriptBodyClassLoaderFor(target)
+            val scriptClass = compileScriptFile(scriptClassLoader)
+            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
+        }
+    }
+
+    private fun executeBuildscriptBlockOn(target: Project) {
+        extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
+            val buildscriptClass = compileBuildscriptBlock(buildscriptRange, buildscriptClassLoader)
+            executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
+        }
+    }
+
+    private fun scriptBodyClassLoaderFor(target: Project): ClassLoader {
+        targetScope.export(gradleApiExtensions)
+
+        executePluginsBlockOn(target)
+
+        return targetScope.localClassLoader
+    }
+
+    private fun executePluginsBlockOn(target: Project) {
+        val pluginRequests = collectPluginRequestsFromPluginsBlock()
+        applyPluginsTo(target, pluginRequests)
+    }
+
+    private fun collectPluginRequestsFromPluginsBlock(): PluginRequests {
+        val pluginRequestCollector = PluginRequestCollector(scriptSource)
+        executePluginsBlockOn(pluginRequestCollector)
+        return pluginRequestCollector.pluginRequests
+    }
+
+    private fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector) {
+        extractPluginsBlockFrom(script)?.let { pluginsRange ->
+            val compiledPluginsBlock = compilePluginsBlock(pluginsRange)
+            executeCompiledPluginsBlockOn(pluginRequestCollector, compiledPluginsBlock)
+        }
+    }
+
+    private fun executeCompiledPluginsBlockOn(pluginRequestCollector: PluginRequestCollector,
+                                              compiledPluginsBlock: CachingKotlinCompiler.CompiledPluginsBlock) {
+        val (lineNumber, pluginsBlockClass) = compiledPluginsBlock
+        val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
+        withContextClassLoader(pluginsBlockClassLoader) {
+            try {
+                instantiate(pluginsBlockClass, pluginDependenciesSpec)
+            } catch(e: InvocationTargetException) {
+                throw e.targetException
             }
-        } catch(e: Exception) {
-            e.printStackTrace()
         }
     }
 
-    private fun onePassScript(): (Project) -> Unit {
-        return { target ->
-            val scriptClassLoader = scriptBodyClassLoader()
-            val scriptClass = compileScriptFile(scriptClassLoader)
-            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
-        }
+    private fun extractPluginsBlockFrom(script: String) =
+        extractTopLevelSectionFrom(script, "plugins")
+
+    private fun applyPluginsTo(target: Project, pluginRequests: PluginRequests) {
+        pluginRequestApplicator.applyPlugins(
+            pluginRequests, scriptHandler, pluginManagerOf(target), targetScope)
     }
 
-    private fun twoPassScript(buildscriptRange: IntRange): (Project) -> Unit {
-        return { target ->
-            executeBuildscriptBlock(buildscriptRange, target)
+    private fun pluginManagerOf(target: Project): PluginManagerInternal =
+        (target as ProjectInternal).pluginManager
 
-            val scriptClassLoader = scriptBodyClassLoader()
-            val scriptClass = compileScriptFile(scriptClassLoader)
-            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
-        }
-    }
-
-    private fun executeBuildscriptBlock(buildscriptRange: IntRange, target: Project) {
-        val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
-        val buildscriptClass = compileBuildscriptBlock(buildscriptRange, buildscriptClassLoader)
-        executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
-    }
-
-    private fun scriptBodyClassLoader(): ClassLoader =
-        defaultClassLoaderFor(targetScope.apply { export(scriptClassPath) })
-
-    private fun buildscriptClassLoaderFrom(baseScope: ClassLoaderScope) =
-        defaultClassLoaderFor(baseScope.createChild("buildscript"))
-
-    private fun defaultClassLoaderFor(scope: ClassLoaderScope) =
-        scope.run {
+    private val buildscriptClassLoader: ClassLoader by lazy {
+        localClassLoaderFor(baseScope.createChild("buildscript").apply {
             export(gradleApiExtensions)
+        })
+    }
+
+    private val pluginsBlockClassLoader: ClassLoader by lazy {
+        localClassLoaderFor(baseScope.createChild("plugins"))
+    }
+
+    private fun localClassLoaderFor(scope: ClassLoaderScope) =
+        scope.run {
             lock()
             localClassLoader
         }
 
     private fun compileBuildscriptBlock(buildscriptRange: IntRange, classLoader: ClassLoader) =
-        kotlinCompiler.compileBuildscriptBlockOf(scriptFile, buildscriptRange, buildscriptBlockCompilationClassPath, classLoader)
+        kotlinCompiler.compileBuildscriptBlockOf(
+            scriptFile, buildscriptRange, buildscriptBlockCompilationClassPath, classLoader)
+
+    private fun compilePluginsBlock(pluginsRange: IntRange) =
+        kotlinCompiler.compilePluginsBlockOf(
+            scriptFile, pluginsRange, pluginsBlockCompilationClassPath, pluginsBlockClassLoader)
 
     private fun compileScriptFile(classLoader: ClassLoader): Class<*> =
-        kotlinCompiler.compileBuildScript(scriptFile, compilationClassPath, classLoader)
+        kotlinCompiler.compileBuildScript(
+            scriptFile, compilationClassPath, classLoader)
 
-    private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
+    private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Project) {
         withContextClassLoader(classLoader) {
             executeScriptOf(scriptClass, target)
         }
     }
 
-    private fun executeScriptOf(scriptClass: Class<*>, target: Any) {
+    private fun executeScriptOf(scriptClass: Class<*>, target: Project) {
         try {
-            scriptClass.getConstructor(Project::class.java).newInstance(target)
+            instantiate(scriptClass, target)
         } catch(e: InvocationTargetException) {
             if (e.cause is Error) {
-                logClassLoaderHierarchyOf(scriptClass, target as Project)
+                logClassLoaderHierarchyOf(scriptClass, target)
             }
             throw e.targetException
         }
+    }
+
+    private inline fun <reified T : Any> instantiate(scriptClass: Class<*>, target: T) {
+        scriptClass.getConstructor(T::class.java).newInstance(target)
     }
 
     private fun logClassLoaderHierarchyOf(scriptClass: Class<*>, project: Project) {
@@ -193,6 +248,15 @@ class KotlinBuildScriptCompiler(
     private fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
         DefaultClassPath.of(
             (baseScope.exportClassLoader as? URLClassLoader)?.urLs?.map { File(it.toURI()) })
+}
+
+private
+inline fun ignoringErrors(block: () -> Unit) {
+    try {
+        block()
+    } catch(e: Exception) {
+        e.printStackTrace()
+    }
 }
 
 inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {

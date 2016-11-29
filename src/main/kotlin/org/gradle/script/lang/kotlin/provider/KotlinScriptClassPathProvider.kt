@@ -51,7 +51,7 @@ class KotlinScriptClassPathProvider(
     val progressMonitorProvider: JarGenerationProgressMonitorProvider) {
 
     /**
-     * Generated Gradle API jar plus supporting libraries such as groovy-all.jar.
+     * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
     val gradleApi: ClassPath by lazy {
         DefaultClassPath.of(gradleApiFiles())

@@ -202,6 +202,48 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `can apply base plugin via plugins block`() {
+        withBuildScript("""
+            plugins {
+                id("base")
+            }
+
+            task("plugins") {
+                doLast {
+                    println(plugins.map { "*" + it.javaClass.simpleName + "*" })
+                }
+            }
+        """)
+
+        assertThat(
+            build("plugins").output,
+            containsString("*BasePlugin*"))
+    }
+
+    @Test
+    fun `can apply plugin portal plugin via plugins block`() {
+        withBuildScript("""
+            plugins {
+                id("org.gradle.hello-world") version "0.2"
+            }
+
+            task("plugins") {
+                doLast {
+                    println(plugins.map { "*" + it.javaClass.simpleName + "*" })
+                }
+            }
+        """)
+
+        assertThat(
+            build("plugins").output,
+            containsString("*HelloWorldPlugin*"))
+
+        assertThat(
+            kotlinBuildScriptModelCanonicalClassPath().map { it.name },
+            hasItems("gradle-hello-world-plugin-0.2.jar"))
+    }
+
+    @Test
     fun `can serve buildSrc classpath in face of compilation errors`() {
 
         withBuildSrc()
