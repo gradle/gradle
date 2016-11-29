@@ -25,7 +25,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
-import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.use.PluginDependencySpec;
 
@@ -93,7 +93,7 @@ public class PluginUseScriptBlockMetadataExtractor {
                             if (methodName.getText().equals("id")) {
                                 if (call.isImplicitThis()) {
                                     try {
-                                        DefaultPluginId.validate(argStringValue);
+                                        PluginId.validate(argStringValue);
                                         call.setNodeMetaData(PluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).id(argStringValue));
                                     } catch (InvalidPluginIdException e) {
                                         restrict(argumentExpression, formatErrorMessage(e.getReason()));

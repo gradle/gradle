@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin.use;
 
 import com.google.common.base.CharMatcher;
 import org.gradle.api.Nullable;
-import org.gradle.plugin.PluginId;
+import org.gradle.plugin.internal.InvalidPluginIdException;
 
 import static com.google.common.base.CharMatcher.anyOf;
 import static com.google.common.base.CharMatcher.inRange;
 
-public class DefaultPluginId implements PluginId {
+public class PluginId {
 
-    public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + DefaultPluginId.SEPARATOR + "'";
-    public static final String DOUBLE_SEPARATOR = "cannot contain '" + DefaultPluginId.SEPARATOR + DefaultPluginId.SEPARATOR + "'";
+    public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + PluginId.SEPARATOR + "'";
+    public static final String DOUBLE_SEPARATOR = "cannot contain '" + PluginId.SEPARATOR + PluginId.SEPARATOR + "'";
 
     public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.', '_' and '-'";
     public static final CharMatcher INVALID_PLUGIN_ID_CHAR_MATCHER = inRange('a', 'z')
@@ -38,26 +38,26 @@ public class DefaultPluginId implements PluginId {
 
     private final String value;
 
-    private DefaultPluginId(String value) {
+    private PluginId(String value) {
         this.value = value;
     }
 
-    public static DefaultPluginId of(String value) throws InvalidPluginIdException {
+    public static PluginId of(String value) throws InvalidPluginIdException {
         validate(value);
-        return new DefaultPluginId(value);
+        return new PluginId(value);
     }
 
-    public static DefaultPluginId unvalidated(String value) {
-        return new DefaultPluginId(value);
+    public static PluginId unvalidated(String value) {
+        return new PluginId(value);
     }
 
     public static void validate(String value) throws InvalidPluginIdException {
         if (value.startsWith(SEPARATOR) || value.endsWith(SEPARATOR)) {
             throw new InvalidPluginIdException(value, ID_SEPARATOR_ON_START_OR_END);
-        } else if (value.contains(DefaultPluginId.SEPARATOR + DefaultPluginId.SEPARATOR)) {
+        } else if (value.contains(PluginId.SEPARATOR + PluginId.SEPARATOR)) {
             throw new InvalidPluginIdException(value, DOUBLE_SEPARATOR);
         } else {
-            int invalidCharIndex = DefaultPluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(value);
+            int invalidCharIndex = PluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(value);
             if (invalidCharIndex >= 0) {
                 char invalidChar = value.charAt(invalidCharIndex);
                 throw new InvalidPluginIdException(value, invalidPluginIdCharMessage(invalidChar));
@@ -66,19 +66,17 @@ public class DefaultPluginId implements PluginId {
     }
 
     public static String invalidPluginIdCharMessage(char invalidChar) {
-        return "Plugin id contains invalid char '" + invalidChar + "' (only " + DefaultPluginId.PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
+        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PluginId.PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
     }
 
-    @Override
     public boolean isQualified() {
-        return value.contains(DefaultPluginId.SEPARATOR);
+        return value.contains(PluginId.SEPARATOR);
     }
 
-    public DefaultPluginId maybeQualify(String qualification) {
-        return isQualified() ? this : new DefaultPluginId(qualification + DefaultPluginId.SEPARATOR + value);
+    public PluginId maybeQualify(String qualification) {
+        return isQualified() ? this : new PluginId(qualification + PluginId.SEPARATOR + value);
     }
 
-    @Override
     @Nullable
     public String getNamespace() {
         return isQualified() ? value.substring(0, value.lastIndexOf(SEPARATOR)) : null;
@@ -88,14 +86,12 @@ public class DefaultPluginId implements PluginId {
         return isQualified() && getNamespace().equals(namespace);
     }
 
-    @Override
     public String getName() {
-        return isQualified() ? value.substring(value.lastIndexOf(DefaultPluginId.SEPARATOR) + 1) : value;
+        return isQualified() ? value.substring(value.lastIndexOf(PluginId.SEPARATOR) + 1) : value;
     }
 
-    @Override
     public PluginId getUnqualified() {
-        return isQualified() ? new DefaultPluginId(getName()) : this;
+        return isQualified() ? new PluginId(getName()) : this;
     }
 
     @Override
@@ -116,7 +112,7 @@ public class DefaultPluginId implements PluginId {
             return false;
         }
 
-        DefaultPluginId pluginId = (DefaultPluginId) o;
+        PluginId pluginId = (PluginId) o;
 
         return value.equals(pluginId.value);
 
