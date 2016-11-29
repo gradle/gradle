@@ -72,6 +72,11 @@ fi]]></param>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers />
+    <build-extensions>
+      <extension id="perfmon" type="perfmon">
+        <parameters />
+      </extension>
+    </build-extensions>
     <cleanup />
   </settings>
 </build-type>
