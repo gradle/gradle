@@ -171,7 +171,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         }
     }
 
-    private BuildCache getCache() {
+    private synchronized BuildCache getCache() {
         if (cache == null) {
             cache = buildCacheConfiguration.getCacheFactory().createCache(startParameter);
             LOGGER.info("Using {}", cache.getDescription());
