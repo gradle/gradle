@@ -46,7 +46,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
     private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
-    private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
+    private final Map<DefaultPluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
         this.instantiator = instantiator;
@@ -86,7 +86,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             @Override
             public void run() {
                 // Take a copy because adding to an idMappings value may result in new mappings being added (i.e. ConcurrentModificationException)
-                Iterable<PluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
+                Iterable<DefaultPluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
                 for (DefaultPluginId id : pluginIds) {
                     if (plugin.isAlsoKnownAs(id)) {
                         idMappings.get(id).add(new PluginWithId(id, pluginClass));
