@@ -246,8 +246,9 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 
 ## Story: Cleanup stale output files from incremental task after Gradle version change
 
-When one changes Gradle versions or moves packages, output files from incremental tasks are not cleaned up, causing some tasks to be incorrectly considered `UP-TO-DATE`. 
-As a result, outputs from builds created by an earlier Gradle versions become stale and might cause side effects when further processing the output of the task.
+Tasks that define inputs and outputs to support incremental build functionality might leave behind stale output files in case task history does not exist. This situation might arise
+if the build changes the Gradle version or if `.gradle` is deleted manually _and_ one or many of the inputs have been changed. Tasks using those outputs as inputs for further processing are affect as
+well and might produce expected results.
 
 The issue is documented by [issue #821](https://github.com/gradle/gradle/issues/821).
 
@@ -274,7 +275,7 @@ Gradle detects and removes stale output files after a Gradle version change. Fur
     - If task history doesn't exist, then build has never been run with Gradle version or task history cache was deleted manually. Requires detection of existing stale files and potential deletion.
 - Detect output directories and files for all tasks in a build.
     - Annotations considered: `@OutputDirectories`, `@OutputDirectory`, `@OutputFile`, `@OutputFiles`
-    - Programmatic assignments considered: `TaskOutputs.dir(Object)`, `TaskOutputs.file(Object)`, `TaskOutputs.files(Object...)`
+    - Programmatic assignments considered: `TaskOutputs.dir(Object)`, `TaskOutputs.dirs(Object...)`, `TaskOutputs.file(Object)`, `TaskOutputs.files(Object...)`
     - Create an index on disk that maps task path to outputs.
     - Expose internal API for accessing the data structure.
     - API reads data from index when starting a build.
