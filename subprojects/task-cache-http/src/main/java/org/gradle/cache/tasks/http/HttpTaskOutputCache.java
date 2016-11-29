@@ -26,8 +26,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.internal.tasks.cache.BuildCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
-import org.gradle.api.internal.tasks.cache.TaskOutputReader;
-import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
+import org.gradle.api.internal.tasks.cache.BuildCacheEntryReader;
+import org.gradle.api.internal.tasks.cache.BuildCacheEntryWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class HttpTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public boolean load(BuildCacheKey key, TaskOutputReader reader) throws IOException {
+    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
         final CloseableHttpResponse response = httpClient.execute(httpGet);
@@ -72,7 +72,7 @@ public class HttpTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public void store(BuildCacheKey key, final TaskOutputWriter output) throws IOException {
+    public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws IOException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
         httpPut.setEntity(new AbstractHttpEntity() {

@@ -17,8 +17,14 @@
 package org.gradle.api.internal.tasks.cache;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 
-public interface TaskOutputReader {
-    void readFrom(InputStream input) throws IOException;
+/**
+ * Writer to serialize a build cache entry.
+ */
+public interface BuildCacheEntryWriter {
+    /**
+     * Serialize a build cache entry to the given stream.
+     */
+    void writeTo(OutputStream output) throws IOException;
 }

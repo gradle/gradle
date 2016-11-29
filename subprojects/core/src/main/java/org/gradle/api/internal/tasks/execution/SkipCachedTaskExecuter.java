@@ -29,8 +29,8 @@ import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.BuildCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
-import org.gradle.api.internal.tasks.cache.TaskOutputReader;
-import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
+import org.gradle.api.internal.tasks.cache.BuildCacheEntryReader;
+import org.gradle.api.internal.tasks.cache.BuildCacheEntryWriter;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
 import org.gradle.internal.time.Timer;
@@ -98,7 +98,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             if (cacheKey != null) {
                                 if (taskState.isAllowedToUseCachedResults()) {
                                     try {
-                                        boolean found = getCache().load(cacheKey, new TaskOutputReader() {
+                                        boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                             @Override
                                             public void readFrom(InputStream input) throws IOException {
                                                 OriginMetadata originMetadata = packer.unpack(taskOutputs, input);
@@ -142,7 +142,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (taskCaching.isPushAllowed()) {
                 if (state.getFailure() == null) {
                     try {
-                        getCache().store(cacheKey, new TaskOutputWriter() {
+                        getCache().store(cacheKey, new BuildCacheEntryWriter() {
                             @Override
                             public void writeTo(OutputStream output) throws IOException {
                                 OriginMetadata originMetadata =

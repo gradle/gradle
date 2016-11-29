@@ -37,7 +37,7 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public boolean load(BuildCacheKey key, TaskOutputReader reader) throws IOException {
+    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException {
         final byte[] bytes = delegate.get(key.getHashCode());
         if (bytes == null) {
             return false;
@@ -47,7 +47,7 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public void store(BuildCacheKey key, TaskOutputWriter output) throws IOException {
+    public void store(BuildCacheKey key, BuildCacheEntryWriter output) throws IOException {
         StreamByteBuffer buffer = new StreamByteBuffer();
         output.writeTo(buffer.getOutputStream());
         delegate.put(key.getHashCode(), buffer.readAsByteArray());

@@ -31,7 +31,7 @@ public interface TaskOutputCache extends Closeable {
      * @return {@code true} if an entry was found, {@code false} otherwise.
      * @throws IOException if an I/O error occurs.
      */
-    boolean load(BuildCacheKey key, TaskOutputReader reader) throws IOException;
+    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException;
 
     /**
      * Store the task output with the given cache key. The {@code writer} will be called to actually write the data.
@@ -40,7 +40,7 @@ public interface TaskOutputCache extends Closeable {
      * @param writer the writer to write the data corresponding to the cache key.
      * @throws IOException if an I/O error occurs.
      */
-    void store(BuildCacheKey key, TaskOutputWriter writer) throws IOException;
+    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws IOException;
 
     /**
      * Returns a description for the cache.

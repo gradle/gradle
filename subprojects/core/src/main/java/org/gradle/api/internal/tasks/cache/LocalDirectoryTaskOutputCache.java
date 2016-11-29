@@ -71,7 +71,7 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable
     }
 
     @Override
-    public boolean load(final BuildCacheKey key, final TaskOutputReader reader) throws IOException {
+    public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws IOException {
         return persistentCache.useCache("load task output", new Factory<Boolean>() {
             @Override
             public Boolean create() {
@@ -98,7 +98,7 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache, Closeable
     }
 
     @Override
-    public void store(final BuildCacheKey key, final TaskOutputWriter result) throws IOException {
+    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws IOException {
         persistentCache.useCache("store task output", new Runnable() {
             @Override
             public void run() {
