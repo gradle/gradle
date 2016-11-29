@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
+import org.gradle.api.internal.tasks.cache.BuildCacheKey;
 
 public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
 
@@ -36,10 +36,10 @@ public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskCacheKey beforeExecution = context.getTaskArtifactState().calculateCacheKey();
+        BuildCacheKey beforeExecution = context.getTaskArtifactState().calculateCacheKey();
         delegate.execute(task, state, context);
         if (beforeExecution != null) {
-            TaskCacheKey afterExecution = repository.getStateFor(task).calculateCacheKey();
+            BuildCacheKey afterExecution = repository.getStateFor(task).calculateCacheKey();
             if (afterExecution == null || !beforeExecution.getHashCode().equals(afterExecution.getHashCode())) {
                 throw new GradleException("The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs.");
             }

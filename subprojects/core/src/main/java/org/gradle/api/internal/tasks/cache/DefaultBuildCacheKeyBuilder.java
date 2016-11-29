@@ -24,17 +24,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A builder for hash keys
+ * A builder for build cache keys.
  *
  * In order to avoid collisions we prepend the length of the next bytes to the underlying
- * hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange.)
+ * hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
  */
-public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskCacheKeyBuilder.class);
+public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheKeyBuilder.class);
     private final Hasher hasher = Hashing.md5().newHasher();
 
     @Override
-    public TaskCacheKeyBuilder putByte(byte b) {
+    public BuildCacheKeyBuilder putByte(byte b) {
         log("byte", b);
         hasher.putInt(1);
         hasher.putByte(b);
@@ -42,7 +42,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putBytes(byte[] bytes) {
+    public BuildCacheKeyBuilder putBytes(byte[] bytes) {
         log("bytes", new ByteArrayToStringer(bytes));
         hasher.putInt(bytes.length);
         hasher.putBytes(bytes);
@@ -50,7 +50,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putBytes(byte[] bytes, int off, int len) {
+    public BuildCacheKeyBuilder putBytes(byte[] bytes, int off, int len) {
         log("bytes", new ByteArrayToStringer(bytes, off, len));
         hasher.putInt(len);
         hasher.putBytes(bytes, off, len);
@@ -58,7 +58,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putInt(int i) {
+    public BuildCacheKeyBuilder putInt(int i) {
         log("int", i);
         hasher.putInt(4);
         hasher.putInt(i);
@@ -66,7 +66,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putLong(long l) {
+    public BuildCacheKeyBuilder putLong(long l) {
         log("long", l);
         hasher.putInt(8);
         hasher.putLong(l);
@@ -74,7 +74,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putDouble(double d) {
+    public BuildCacheKeyBuilder putDouble(double d) {
         log("double", d);
         hasher.putInt(8);
         hasher.putDouble(d);
@@ -82,7 +82,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putBoolean(boolean b) {
+    public BuildCacheKeyBuilder putBoolean(boolean b) {
         log("boolean", b);
         hasher.putInt(1);
         hasher.putBoolean(b);
@@ -90,7 +90,7 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putString(CharSequence charSequence) {
+    public BuildCacheKeyBuilder putString(CharSequence charSequence) {
         log("string", charSequence);
         hasher.putInt(charSequence.length());
         hasher.putString(charSequence, Charsets.UTF_8);
@@ -98,17 +98,17 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKey build() {
+    public BuildCacheKey build() {
         HashCode hashCode = hasher.hash();
         LOGGER.debug("Hash code generated: {}", hashCode);
-        return new DefaultTaskCacheKey(hashCode);
+        return new DefaultBuildCacheKey(hashCode);
     }
 
-    private static class DefaultTaskCacheKey implements TaskCacheKey {
+    private static class DefaultBuildCacheKey implements BuildCacheKey {
 
         private final HashCode hashCode;
 
-        public DefaultTaskCacheKey(HashCode hashCode) {
+        public DefaultBuildCacheKey(HashCode hashCode) {
             this.hashCode = hashCode;
         }
 

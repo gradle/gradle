@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-public interface TaskCacheKeyBuilder {
-    TaskCacheKeyBuilder putByte(byte b);
-    TaskCacheKeyBuilder putBytes(byte[] bytes);
-    TaskCacheKeyBuilder putBytes(byte[] bytes, int off, int len);
-    TaskCacheKeyBuilder putInt(int i);
-    TaskCacheKeyBuilder putLong(long l);
-    TaskCacheKeyBuilder putDouble(double d);
-    TaskCacheKeyBuilder putBoolean(boolean b);
-    TaskCacheKeyBuilder putString(CharSequence charSequence);
-    TaskCacheKey build();
+public interface BuildCacheKeyBuilder {
+    BuildCacheKeyBuilder putByte(byte b);
+    BuildCacheKeyBuilder putBytes(byte[] bytes);
+    BuildCacheKeyBuilder putBytes(byte[] bytes, int off, int len);
+    BuildCacheKeyBuilder putInt(int i);
+    BuildCacheKeyBuilder putLong(long l);
+    BuildCacheKeyBuilder putDouble(double d);
+    BuildCacheKeyBuilder putBoolean(boolean b);
+    BuildCacheKeyBuilder putString(CharSequence charSequence);
+    BuildCacheKey build();
 }

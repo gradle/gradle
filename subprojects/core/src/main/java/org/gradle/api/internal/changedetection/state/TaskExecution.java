@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.apache.commons.lang.SerializationUtils;
-import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.api.internal.tasks.cache.DefaultBuildCacheKeyBuilder;
+import org.gradle.api.internal.tasks.cache.BuildCacheKey;
+import org.gradle.api.internal.tasks.cache.BuildCacheKeyBuilder;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -118,12 +118,12 @@ public abstract class TaskExecution {
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
-    public TaskCacheKey calculateCacheKey() {
+    public BuildCacheKey calculateCacheKey() {
         if (taskClassLoaderHash == null || taskActionsClassLoaderHash == null) {
             return null;
         }
 
-        TaskCacheKeyBuilder builder = new DefaultTaskCacheKeyBuilder();
+        BuildCacheKeyBuilder builder = new DefaultBuildCacheKeyBuilder();
         builder.putString(taskClass);
         builder.putBytes(taskClassLoaderHash.asBytes());
         builder.putBytes(taskActionsClassLoaderHash.asBytes());
@@ -166,7 +166,7 @@ public abstract class TaskExecution {
         return sortedEntries;
     }
 
-    private static void appendToCacheKey(TaskCacheKeyBuilder builder, Object value) {
+    private static void appendToCacheKey(BuildCacheKeyBuilder builder, Object value) {
         if (value == null) {
             builder.putString("$NULL");
             return;

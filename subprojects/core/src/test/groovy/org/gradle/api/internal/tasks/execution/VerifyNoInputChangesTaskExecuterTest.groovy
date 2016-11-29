@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.cache.TaskCacheKey
+import org.gradle.api.internal.tasks.cache.BuildCacheKey
 import spock.lang.Specification
 
 class VerifyNoInputChangesTaskExecuterTest extends Specification {
@@ -86,8 +86,8 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         e.message == "The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."
     }
 
-    private static TaskCacheKey cacheKey(String hash) {
-        new TaskCacheKey() {
+    private static BuildCacheKey cacheKey(String hash) {
+        new BuildCacheKey() {
             @Override
             String getHashCode() {
                 return hash

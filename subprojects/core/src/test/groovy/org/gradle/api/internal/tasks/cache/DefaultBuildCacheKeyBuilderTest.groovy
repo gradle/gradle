@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.cache
 
 import spock.lang.Specification
 
-class DefaultTaskCacheKeyBuilderTest extends Specification {
+class DefaultBuildCacheKeyBuilderTest extends Specification {
 
     def 'hash collision for bytes'() {
         def left = [[1, 2, 3], [4, 5]]
@@ -33,13 +33,13 @@ class DefaultTaskCacheKeyBuilderTest extends Specification {
     }
 
     def hashStrings(List<String> strings) {
-        def builder = new DefaultTaskCacheKeyBuilder()
+        def builder = new DefaultBuildCacheKeyBuilder()
         strings.each { builder.putString(it) }
         builder.build()
     }
 
     def hashKey(List<List<Integer>> bytes) {
-        def builder = new DefaultTaskCacheKeyBuilder()
+        def builder = new DefaultBuildCacheKeyBuilder()
         bytes.each {
             if (it.size() == 1) {
                 builder.putByte(it[0] as byte)

@@ -31,7 +31,7 @@ import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
+import org.gradle.api.internal.tasks.cache.BuildCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
@@ -117,7 +117,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public TaskCacheKey calculateCacheKey() {
+        public BuildCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();
             return history.getCurrentExecution().calculateCacheKey();

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.api.internal.tasks.cache.BuildCacheKeyBuilder;
 import org.gradle.internal.hash.HashUtil;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
@@ -32,7 +32,7 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder hasher) {
+    public void appendToCacheKey(BuildCacheKeyBuilder hasher) {
         hasher.putString(getNormalizedPath());
         hasher.putBytes(getSnapshot().getHash().asBytes());
     }

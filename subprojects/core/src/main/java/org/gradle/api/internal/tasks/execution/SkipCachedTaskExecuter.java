@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
+import org.gradle.api.internal.tasks.cache.BuildCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputReader;
@@ -79,7 +79,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         LOGGER.debug("Determining if {} is cached already", task);
 
-        TaskCacheKey cacheKey = null;
+        BuildCacheKey cacheKey = null;
         boolean cacheable = false;
         try {
             if (cacheEnabled) {

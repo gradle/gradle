@@ -16,7 +16,7 @@
 
 package org.gradle.cache.tasks.http
 
-import org.gradle.api.internal.tasks.cache.TaskCacheKey
+import org.gradle.api.internal.tasks.cache.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -27,7 +27,7 @@ class HttpTaskOutputCacheTest extends Specification {
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     HttpTaskOutputCache cache
-    def key = Mock(TaskCacheKey)
+    def key = Mock(BuildCacheKey)
 
     def setup() {
         server.start()

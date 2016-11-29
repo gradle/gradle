@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-public interface TaskCacheKey {
+/**
+ * Cache key identifying an entry in the build cache.
+ */
+public interface BuildCacheKey {
+    /**
+     * Returns the string representation of the cache key.
+     */
     String getHashCode();
 }

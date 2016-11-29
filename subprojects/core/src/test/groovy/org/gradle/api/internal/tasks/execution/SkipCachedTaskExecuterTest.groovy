@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.cache.TaskCacheKey
+import org.gradle.api.internal.tasks.cache.BuildCacheKey
 import org.gradle.api.internal.tasks.cache.TaskOutputCache
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker
@@ -48,7 +48,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskCaching = Mock(TaskCachingInternal)
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
-    def cacheKey = Mock(TaskCacheKey)
+    def cacheKey = Mock(BuildCacheKey)
     def originMetadataConverter = Mock(OriginMetadataConverter)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
