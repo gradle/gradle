@@ -20,15 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.plugin.repository.RuleBasedPluginRepository;
-import org.gradle.plugin.repository.rules.PluginDependency;
-import org.gradle.plugin.repository.rules.PluginRequest;
-import org.gradle.plugin.repository.rules.RuleBasedPluginResolution;
-import org.gradle.plugin.repository.rules.RuleBasedArtifactRepositories;
+import org.gradle.plugin.repository.rules.PluginDependencyHandler;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.ResolutionServiceResolver;
 import org.gradle.plugin.use.resolve.service.internal.RulesBasedPluginResolver;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 
 public class DefaultRuleBasedPluginRepository implements RuleBasedPluginRepository, PluginRepositoryInternal, BackedByArtifactRepositories {
 
@@ -36,8 +36,8 @@ public class DefaultRuleBasedPluginRepository implements RuleBasedPluginReposito
     private final ResolutionServiceResolver resolutionServiceResolver;
 
     private String description = "Default rule based plugin repository";
-    private RuleBasedPluginResolution ruleBasedPluginResolution = new EmptyRuleBasedPluginResolution();
-    private Action<RuleBasedArtifactRepositories> repositoriesAction = new EmptyRuleBasedArtifactRepositoriesAction();
+    private Action<PluginDependencyHandler> ruleBasedPluginResolution = new EmptyAction<PluginDependencyHandler>();
+    private Action<RepositoryHandler> repositoriesAction = new EmptyAction<RepositoryHandler>();
 
     public DefaultRuleBasedPluginRepository(ResolutionServiceResolver resolutionServiceResolver) {
         this.resolutionServiceResolver = resolutionServiceResolver;
@@ -54,12 +54,12 @@ public class DefaultRuleBasedPluginRepository implements RuleBasedPluginReposito
     }
 
     @Override
-    public void artifactRepositories(Action<RuleBasedArtifactRepositories> repositoriesAction) {
+    public void artifactRepositories(Action<RepositoryHandler> repositoriesAction) {
         this.repositoriesAction = repositoriesAction;
     }
 
     @Override
-    public void pluginResolution(RuleBasedPluginResolution resolution) {
+    public void pluginResolution(Action<PluginDependencyHandler> resolution) {
         this.ruleBasedPluginResolution = resolution;
     }
 
@@ -70,20 +70,23 @@ public class DefaultRuleBasedPluginRepository implements RuleBasedPluginReposito
 
     @Override
     public List<ArtifactRepository> createArtifactRepositories(RepositoryHandler repositoryHandler) {
-        DefaultRuleBasedArtifactRepositories repositories = new DefaultRuleBasedArtifactRepositories(repositoryHandler);
-        repositoriesAction.execute(repositories);
-        return repositories.getArtifactRepositories();
-    }
+        SortedMap<String, ArtifactRepository> beforeMap = repositoryHandler.getAsMap();
+        repositoriesAction.execute(repositoryHandler);
+        SortedMap<String, ArtifactRepository> afterMap = repositoryHandler.getAsMap();
 
-    static class EmptyRuleBasedPluginResolution implements RuleBasedPluginResolution {
-        @Override
-        public void findPlugin(PluginRequest plugin, PluginDependency target) {
+        List<ArtifactRepository> artifactRepositories = new ArrayList<ArtifactRepository>();
+        for (Map.Entry<String, ArtifactRepository> entry : afterMap.entrySet()) {
+            if(!beforeMap.containsKey(entry.getKey())) {
+                artifactRepositories.add(entry.getValue());
+            }
         }
+
+        return artifactRepositories;
     }
 
-    static class EmptyRuleBasedArtifactRepositoriesAction implements Action<RuleBasedArtifactRepositories> {
+    static class EmptyAction<T> implements Action<T> {
         @Override
-        public void execute(RuleBasedArtifactRepositories ruleBasedArtifactRepositories) {
+        public void execute(T action) {
         }
     }
 }

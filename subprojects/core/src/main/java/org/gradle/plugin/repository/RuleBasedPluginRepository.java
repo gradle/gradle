@@ -17,8 +17,8 @@
 package org.gradle.plugin.repository;
 
 import org.gradle.api.Action;
-import org.gradle.plugin.repository.rules.RuleBasedPluginResolution;
-import org.gradle.plugin.repository.rules.RuleBasedArtifactRepositories;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.plugin.repository.rules.PluginDependencyHandler;
 
 public interface RuleBasedPluginRepository extends PluginRepository {
 
@@ -26,7 +26,7 @@ public interface RuleBasedPluginRepository extends PluginRepository {
 
     void setDescription(String description);
 
-    void artifactRepositories(Action<RuleBasedArtifactRepositories> action);
+    void artifactRepositories(Action<RepositoryHandler> action);
 
-    void pluginResolution(RuleBasedPluginResolution resolution);
+    void pluginResolution(Action<PluginDependencyHandler> resolution);
 }
