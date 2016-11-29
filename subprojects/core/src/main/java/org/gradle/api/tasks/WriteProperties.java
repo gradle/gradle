@@ -39,9 +39,9 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Writes a {@link Properties} in a way that the results can be expected to be reproducible.
+ * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
  *
- * <p>There are a number of differences compared to {@link Properties#store(java.io.Writer, String)}:</p>
+ * <p>There are a number of differences compared to {@link java.util.Properties#store(java.io.Writer, String)}:</p>
  * <ul>
  *     <li>no timestamp comment is generated at the beginning of the file</li>
  *     <li>the lines in the resulting files are separated by a pre-set separator (defaults to
@@ -50,7 +50,7 @@ import java.util.Properties;
  * </ul>
  *
  * <p>When the default Latin-1 (ISO-8859-1) encoding is used, Unicode characters get escaped,
- * just like with {@link Properties#store(OutputStream, String)}. Otherwise no escaping is performed.</p>
+ * just like with {@link java.util.Properties#store(java.io.OutputStream, String)}. Otherwise no escaping is performed.</p>
  *
  * @since 3.3
  */
