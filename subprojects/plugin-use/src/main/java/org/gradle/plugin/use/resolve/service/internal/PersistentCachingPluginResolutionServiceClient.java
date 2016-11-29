@@ -28,7 +28,7 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 import java.io.IOException;
 
@@ -53,7 +53,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         );
     }
 
-    public Response<PluginUseMetaData> queryPluginMetadata(final String portalUrl, final boolean shouldValidate, final PluginRequest pluginRequest) {
+    public Response<PluginUseMetaData> queryPluginMetadata(final String portalUrl, final boolean shouldValidate, final InternalPluginRequest pluginRequest) {
         PluginRequestKey key = PluginRequestKey.of(portalUrl, pluginRequest);
         Factory<Response<PluginUseMetaData>> factory = new Factory<Response<PluginUseMetaData>>() {
             public Response<PluginUseMetaData> create() {
@@ -175,7 +175,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
 
         private final String url;
 
-        private static PluginRequestKey of(String url, PluginRequest pluginRequest) {
+        private static PluginRequestKey of(String url, InternalPluginRequest pluginRequest) {
             return new PluginRequestKey(pluginRequest.getId().toString(), pluginRequest.getVersion(), url);
         }
 

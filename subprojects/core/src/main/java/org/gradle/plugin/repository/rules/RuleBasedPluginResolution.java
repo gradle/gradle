@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.internal;
+package org.gradle.plugin.repository.rules;
 
-import org.gradle.api.internal.plugins.PluginImplementation;
-import org.gradle.plugin.internal.DefaultPluginId;
-
-public interface PluginResolveContext {
-    void addLegacy(DefaultPluginId pluginId, String m2RepoUrl, Object dependencyNotation);
-
-    void addLegacy(DefaultPluginId pluginId, Object dependencyNotation);
-
-    void add(PluginImplementation<?> plugin);
-
-    void addFromDifferentLoader(PluginImplementation<?> plugin);
+public interface RuleBasedPluginResolution {
+    void findPlugin(PluginRequest plugin, PluginDependency target);
 }

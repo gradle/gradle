@@ -26,14 +26,14 @@ class PluginRequestCollectorTest extends Specification {
     final scriptSource = new StringScriptSource("d", "c")
     static final int LINE_NUMBER = 10
 
-    List<PluginRequest> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
+    List<InternalPluginRequest> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
         new PluginRequestCollector(scriptSource).with {
             createSpec(LINE_NUMBER).with(closure)
             listPluginRequests()
         }
     }
 
-    List<PluginRequest> requests(Map<String, String> requests) {
+    List<InternalPluginRequest> requests(Map<String, String> requests) {
         requests.collect { new DefaultPluginRequest(it.key, it.value, true, LINE_NUMBER, scriptSource) }
     }
 

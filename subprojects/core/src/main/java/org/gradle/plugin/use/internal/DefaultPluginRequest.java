@@ -19,7 +19,7 @@ package org.gradle.plugin.use.internal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.internal.DefaultPluginId;
 
-public class DefaultPluginRequest implements PluginRequest {
+public class DefaultPluginRequest implements InternalPluginRequest {
 
     private final DefaultPluginId id;
     private final String version;
