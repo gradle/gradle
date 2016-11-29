@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.internal;
+package org.gradle.plugin.use.internal;
 
-import org.gradle.api.internal.plugins.PluginImplementation;
+import org.gradle.api.Nullable;
 import org.gradle.plugin.internal.DefaultPluginId;
+import org.gradle.plugin.repository.rules.PluginRequest;
 
-public interface PluginResolveContext {
-    void addLegacy(DefaultPluginId pluginId, String m2RepoUrl, Object dependencyNotation);
+public interface InternalPluginRequest extends PluginRequest {
 
-    void addLegacy(DefaultPluginId pluginId, Object dependencyNotation);
+    DefaultPluginId getId();
 
-    void add(PluginImplementation<?> plugin);
+    @Nullable
+    String getVersion();
 
-    void addFromDifferentLoader(PluginImplementation<?> plugin);
+    boolean isApply();
+
+    int getLineNumber();
+
+    String getScriptDisplayName();
+
+    String getDisplayName();
 }
