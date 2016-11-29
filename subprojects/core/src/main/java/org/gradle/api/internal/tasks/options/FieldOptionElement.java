@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.lang.reflect.Field;

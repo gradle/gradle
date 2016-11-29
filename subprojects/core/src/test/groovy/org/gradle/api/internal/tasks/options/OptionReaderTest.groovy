@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.options
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.options.Option
+import org.gradle.api.tasks.options.OptionValues
 import spock.lang.Specification
 
 class OptionReaderTest extends Specification {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.exceptions.ValueCollectingDiagnosticsVisitor;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
