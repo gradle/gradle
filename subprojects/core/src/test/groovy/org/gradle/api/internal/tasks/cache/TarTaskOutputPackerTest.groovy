@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.cache
 
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
@@ -28,6 +29,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
     def originMetadataWriter = Mock(OriginMetadataWriter)
     def originMetadataReader = Mock(OriginMetadataReader)
+    def processor = Mock(OriginMetadataProcessor)
     def packer = new TarTaskOutputPacker(fileSystem, originMetadataWriter, originMetadataReader)
 
     @Unroll
@@ -53,7 +55,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input)
+        packer.unpack(processor, taskOutputs, input)
 
         then:
         taskOutputs.getFileProperties() >> ([
@@ -65,6 +67,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             return true
         }
         1 * originMetadataReader.readFrom(_) >> Mock(OriginMetadata)
+        1 * processor.execute(_)
         _ * targetOutputFile._
         then:
         targetOutputFile.text == "output"
@@ -99,7 +102,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input)
+        packer.unpack(processor, taskOutputs, input)
 
         then:
         taskOutputs.getFileProperties() >> ([
@@ -109,6 +112,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         1 * fileSystem.chmod(targetSubDir, 0711)
         1 * fileSystem.chmod(targetDataFile, 0600)
         1 * originMetadataReader.readFrom(_) >> Mock(OriginMetadata)
+        1 * processor.execute(_)
         then:
         targetDataFile.text == "output"
         0 * _
@@ -134,7 +138,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        def restoredOriginMetadata = packer.unpack(taskOutputs, input)
+        packer.unpack(processor, taskOutputs, input)
 
         then:
         taskOutputs.getFileProperties() >> ([
@@ -142,6 +146,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         ] as SortedSet)
         1 * fileSystem.chmod(targetOutputFile, 0644)
         1 * originMetadataReader.readFrom(_) >> Mock(OriginMetadata)
+        1 * processor.execute(_)
         then:
         targetOutputFile.text == "output"
         0 * _
@@ -163,7 +168,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        def restoredOriginMetadata = packer.unpack(taskOutputs, input)
+        packer.unpack(processor, taskOutputs, input)
 
         then:
         noExceptionThrown()
@@ -172,6 +177,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             new TestProperty(propertyName: "out2", outputFile: null)
         ] as SortedSet)
         1 * originMetadataReader.readFrom(_) >> Mock(OriginMetadata)
+        1 * processor.execute(_)
         0 * _
     }
 
@@ -198,7 +204,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input)
+        packer.unpack(processor, taskOutputs, input)
 
         then:
         noExceptionThrown()
@@ -207,6 +213,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
             new TestProperty(propertyName: "missingDir", outputFile: missingTargetDir, outputType: DIRECTORY)
         ] as SortedSet)
         1 * originMetadataReader.readFrom(_) >> Mock(OriginMetadata)
+        1 * processor.execute(_)
         0 * _
     }
 
@@ -227,7 +234,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input)
+        packer.unpack(processor, taskOutputs, input)
 
         then:
         noExceptionThrown()
@@ -236,6 +243,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         ] as SortedSet)
         1 * fileSystem.chmod(targetDir, 0755)
         1 * originMetadataReader.readFrom(_) >> Mock(OriginMetadata)
+        1 * processor.execute(_)
         then:
         targetDir.assertIsEmptyDir()
         0 * _

@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.api.internal.tasks.cache.origin;
 
-import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
+import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.cache.OriginMetadata;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-public interface TaskOutputPacker {
-    void pack(OriginMetadata originMetadata, TaskOutputsInternal taskOutputs, OutputStream output) throws IOException;
-
-    void unpack(OriginMetadataProcessor processor, TaskOutputsInternal taskOutputs, InputStream input) throws IOException;
+public interface OriginMetadataProcessor extends Action<OriginMetadata> {
 }

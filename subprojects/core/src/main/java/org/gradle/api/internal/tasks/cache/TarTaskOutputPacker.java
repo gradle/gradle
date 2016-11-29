@@ -34,6 +34,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
@@ -202,11 +203,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public OriginMetadata unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+    public void unpack(OriginMetadataProcessor processor, TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
         Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
-            return unpack(taskOutputs, tarInput);
+            unpack(processor, taskOutputs, tarInput);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
         } finally {
@@ -214,21 +215,22 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private OriginMetadata unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput) throws IOException {
+    private void unpack(OriginMetadataProcessor processor, TaskOutputsInternal taskOutputs, TarInputStream tarInput) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
-        OriginMetadata originMetadata = null;
+        boolean metadataSeen = false;
         TarEntry entry;
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
 
             if (name.equals(METADATA_PATH)) {
                 // handle metadata
-                originMetadata = originMetadataReader.readFrom(tarInput);
+                metadataSeen = true;
+                processor.execute(originMetadataReader.readFrom(tarInput));
             } else {
                 // handle output property
                 Matcher matcher = PROPERTY_PATH.matcher(name);
@@ -265,10 +267,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 }
             }
         }
-        if (originMetadata == null) {
+        if (!metadataSeen) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
-        return originMetadata;
     }
 
     private static void storeModificationTime(TarEntry entry, long lastModified) {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,10 +46,10 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public OriginMetadata unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+    public void unpack(OriginMetadataProcessor processor, TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
         GZIPInputStream gzipInput = new GZIPInputStream(input);
         try {
-            return delegate.unpack(taskOutputs, gzipInput);
+            delegate.unpack(processor, taskOutputs, gzipInput);
         } finally {
             gzipInput.close();
         }

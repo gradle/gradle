@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
+import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
 import org.gradle.cache.BuildCache;
 import org.gradle.cache.BuildCacheEntryReader;
 import org.gradle.cache.BuildCacheEntryWriter;
@@ -101,9 +102,14 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                         boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                             @Override
                                             public void readFrom(InputStream input) throws IOException {
-                                                OriginMetadata originMetadata = packer.unpack(taskOutputs, input);
+                                                packer.unpack(new OriginMetadataProcessor() {
+                                                    @Override
+                                                    public void execute(OriginMetadata originMetadata) {
+                                                        LOGGER.info("Origin for {}: {}", task, originMetadata);
+                                                    }
+                                                }, taskOutputs, input);
+
                                                 LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
-                                                LOGGER.info("Origin for {}: {}", task, originMetadata);
                                             }
                                         });
                                         if (found) {
