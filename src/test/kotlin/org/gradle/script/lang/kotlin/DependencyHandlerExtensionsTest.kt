@@ -119,13 +119,13 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given extensions for common configurations, they will delegate to the appropriate methods`() {
 
-        val externalModuleDependency = mock<ExternalModuleDependency>() {
+        val externalModuleDependency = mock<ExternalModuleDependency> {
             on { exclude(anyMap()) }.then { it.mock }
         }
-        val projectDependency = mock<ProjectDependency>() {
+        val projectDependency = mock<ProjectDependency> {
             on { exclude(anyMap()) }.then { it.mock }
         }
-        val dependencyHandler = mock<DependencyHandler>() {
+        val dependencyHandler = mock<DependencyHandler> {
             on { create(anyMap<String, String>()) } doReturn externalModuleDependency
             on { create("org.gradle:baz:1.0-SNAPSHOT") } doReturn externalModuleDependency
             on { project(any()) } doReturn projectDependency
@@ -196,7 +196,7 @@ class DependencyHandlerExtensionsTest {
         val antLauncherDependency = mock<ExternalModuleDependency>("antLauncherDependency")
         val antJUnitDependency = mock<ExternalModuleDependency>("antJUnitDependency")
 
-        val dependencies = mock<DependencyHandler>() {
+        val dependencies = mock<DependencyHandler> {
             on { module("org.codehaus.groovy:groovy:2.4.7") } doReturn clientModule
 
             on { create("commons-cli:commons-cli:1.0") } doReturn commonsCliDependency
