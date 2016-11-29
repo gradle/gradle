@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.cache.origin
 
-import org.gradle.api.internal.tasks.cache.OriginMetadata
+
 import spock.lang.Specification
 
 class DefaultOriginMetadataReaderWriterTest extends Specification {

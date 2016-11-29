@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.cache.origin;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
@@ -50,7 +49,7 @@ public class OriginMetadataConverter {
     }
 
     public OriginMetadataWriter createWriter(TaskInternal task, long elapsedTime) {
-        final OriginMetadata originMetadata = convert(task, elapsedTime);
+        final DefaultOriginMetadata originMetadata = convert(task, elapsedTime);
 
         return new OriginMetadataWriter() {
             @Override
@@ -79,7 +78,7 @@ public class OriginMetadataConverter {
                 if (LOGGER.isInfoEnabled()) {
                     Properties properties = new Properties();
                     properties.load(inputStream);
-                    OriginMetadata originMetadata = new DefaultOriginMetadata(get(properties, "path"),
+                    DefaultOriginMetadata originMetadata = new DefaultOriginMetadata(get(properties, "path"),
                         get(properties, "type"),
                         get(properties, "gradleVersion"),
                         Long.valueOf(get(properties, "creationTime")),
@@ -103,7 +102,7 @@ public class OriginMetadataConverter {
         return value;
     }
 
-    private OriginMetadata convert(TaskInternal task, long elapsedTime) {
+    private DefaultOriginMetadata convert(TaskInternal task, long elapsedTime) {
         return new DefaultOriginMetadata(task.getPath(),
             task.getClass().getCanonicalName(),
             gradleVersion.getVersion(),

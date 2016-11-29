@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.tasks.cache.origin;
 
-import org.gradle.api.internal.tasks.cache.OriginMetadata;
-
-public class DefaultOriginMetadata implements OriginMetadata {
+class DefaultOriginMetadata {
+    // What created the output?
     private final String path;
     private final String type;
     private final String gradleVersion;
+
+    // When was the output created?
     private final long creationTime;
     private final long executionTime;
 
+    // Where was it originally created?
     private final String rootPath;
     private final String operatingSystem;
     private final String hostName;
@@ -56,47 +58,46 @@ public class DefaultOriginMetadata implements OriginMetadata {
             + ", userName='" + userName + '\'' + '}';
     }
 
-    @Override
+
     public long getCreationTime() {
         return creationTime;
     }
 
-    @Override
     public String getPath() {
         return path;
     }
 
-    @Override
+
     public String getType() {
         return type;
     }
 
-    @Override
+
     public String getGradleVersion() {
         return gradleVersion;
     }
 
-    @Override
+
     public long getExecutionTime() {
         return executionTime;
     }
 
-    @Override
+
     public String getRootPath() {
         return rootPath;
     }
 
-    @Override
+
     public String getOperatingSystem() {
         return operatingSystem;
     }
 
-    @Override
+
     public String getHostName() {
         return hostName;
     }
 
-    @Override
+
     public String getUserName() {
         return userName;
     }
