@@ -21,6 +21,6 @@ import org.gradle.StartParameter;
 /**
  * Factory interface for build caching.
  */
-public interface TaskOutputCacheFactory {
+public interface BuildCacheFactory {
     BuildCache createCache(StartParameter startParameter);
 }

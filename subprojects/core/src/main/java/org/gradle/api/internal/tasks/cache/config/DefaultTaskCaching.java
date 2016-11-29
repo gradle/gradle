@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.cache.config;
 
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.tasks.cache.BuildCacheFactory;
 import org.gradle.api.internal.tasks.cache.LocalDirectoryBuildCache;
 import org.gradle.api.internal.tasks.cache.BuildCache;
-import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -33,7 +33,7 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     private final boolean pushAllowed;
     private final CacheRepository cacheRepository;
     private final List<BuildCache> cachesCreated = Lists.newCopyOnWriteArrayList();
-    private TaskOutputCacheFactory factory;
+    private BuildCacheFactory factory;
 
     public DefaultTaskCaching(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
@@ -44,7 +44,7 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
 
     @Override
     public void useLocalCache() {
-        setFactory(new TaskOutputCacheFactory() {
+        setFactory(new BuildCacheFactory() {
             @Override
             public BuildCache createCache(StartParameter startParameter) {
                 String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
@@ -57,7 +57,7 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
 
     @Override
     public void useLocalCache(final File directory) {
-        setFactory(new TaskOutputCacheFactory() {
+        setFactory(new BuildCacheFactory() {
             @Override
             public BuildCache createCache(StartParameter startParameter) {
                 return new LocalDirectoryBuildCache(cacheRepository, directory);
@@ -66,12 +66,12 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     }
 
     @Override
-    public void useCacheFactory(TaskOutputCacheFactory factory) {
+    public void useCacheFactory(BuildCacheFactory factory) {
         setFactory(factory);
     }
 
-    private void setFactory(final TaskOutputCacheFactory factory) {
-        this.factory = new TaskOutputCacheFactory() {
+    private void setFactory(final BuildCacheFactory factory) {
+        this.factory = new BuildCacheFactory() {
             @Override
             public BuildCache createCache(StartParameter startParameter) {
                 BuildCache cache = factory.createCache(startParameter);
@@ -82,7 +82,7 @@ public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
     }
 
     @Override
-    public TaskOutputCacheFactory getCacheFactory() {
+    public BuildCacheFactory getCacheFactory() {
         return factory;
     }
 

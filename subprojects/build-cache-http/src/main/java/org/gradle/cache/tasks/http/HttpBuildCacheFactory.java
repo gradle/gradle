@@ -19,16 +19,16 @@ package org.gradle.cache.tasks.http;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.cache.BuildCache;
-import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
+import org.gradle.api.internal.tasks.cache.BuildCacheFactory;
 
 import java.net.URI;
 
-public class HttpTaskOutputCacheFactory implements TaskOutputCacheFactory {
+public class HttpBuildCacheFactory implements BuildCacheFactory {
     private static final String HTTP_URI_PROPERTY = "org.gradle.cache.tasks.http.uri";
 
     private final URI root;
 
-    public HttpTaskOutputCacheFactory() {
+    public HttpBuildCacheFactory() {
         String uri = System.getProperty(HTTP_URI_PROPERTY);
         if (uri == null) {
             throw new GradleException(String.format("Must specify HTTP cache backend URI via '%s' system property", HTTP_URI_PROPERTY));
@@ -36,7 +36,7 @@ public class HttpTaskOutputCacheFactory implements TaskOutputCacheFactory {
         this.root = URI.create(uri);
     }
 
-    public HttpTaskOutputCacheFactory(URI root) {
+    public HttpBuildCacheFactory(URI root) {
         this.root = root;
     }
 

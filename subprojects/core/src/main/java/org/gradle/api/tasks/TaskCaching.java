@@ -17,7 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
+import org.gradle.api.internal.tasks.cache.BuildCacheFactory;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -43,5 +43,5 @@ public interface TaskCaching {
     /**
      * Use the give task output cache factory.
      */
-    void useCacheFactory(TaskOutputCacheFactory factory);
+    void useCacheFactory(BuildCacheFactory factory);
 }
