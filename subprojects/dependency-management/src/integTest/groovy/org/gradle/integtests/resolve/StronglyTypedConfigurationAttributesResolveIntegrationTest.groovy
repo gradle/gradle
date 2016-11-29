@@ -155,8 +155,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                                 details.incompatible()
                         }
                     },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
+                    selectClosestMatch: { details ->
+                        details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
                     }
                   ] as AttributeMatchingStrategy)
                }
@@ -240,8 +240,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                                 details.incompatible()
                         }
                     },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
+                    selectClosestMatch: { details ->
+                        details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
                     }
                   ] as AttributeMatchingStrategy)
                }
@@ -336,16 +336,16 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                                 details.incompatible()
                         }
                     },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.get().value }*.key
+                    selectClosestMatch: { details ->
+                        details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
                     }
                   ] as AttributeMatchingStrategy)
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
                   setMatchingStrategy(buildType, [
                     checkCompatibility: { details -> details.compatible() },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value == requested.get() }*.key
+                    selectClosestMatch: { details ->
+                        details.candidateValues.entrySet().findAll { it.value.get() == details.consumerValue.get() }*.key.each { details.closestMatch(it) }
                     }
                   ] as AttributeMatchingStrategy)
                }
@@ -437,11 +437,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                             }
                        }
 
-                       public <K> List<K> selectClosestMatch(AttributeValue<String> value, Map<K, String> candidateValues) {
-                            value.whenPresent {
-                                candidateValues.keySet() as List
+                       public <K> void selectClosestMatch(MultipleCandidatesDetails<String, K> details) {
+                            details.consumerValue.whenPresent {
+                                details.candidateValues.keySet().each { details.closestMatch(it) }
                             } getOrElse {
-                                [candidateValues.entrySet().sort { it.value }.first().key ]
+                                details.closestMatch(details.candidateValues.entrySet().sort { it.value.get() }.first().key)
                             }
                        }
                   })
@@ -518,13 +518,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                                     details.incompatible()
                             }
                        }
-                       public <K> List<K> selectClosestMatch(AttributeValue<Arch> requestedValue, Map<K, Arch> candidateValues) {
-                            requestedValue.whenPresent {
-                                // the consumer provided a value
-                                candidateValues.keySet() as List
+                       public <K> void selectClosestMatch(MultipleCandidatesDetails<Arch, K> details) {
+                            details.consumerValue.whenPresent {
+                                details.candidateValues.keySet().each { details.closestMatch(it) }
                             } getOrElse {
-                                // the consumer did not provide a value
-                                [candidateValues.entrySet().sort { it.value.ordinal()}.last().key]
+                                details.closestMatch(details.candidateValues.entrySet().sort { it.value.get().ordinal() }.last().key)
                             }
                        }
                   })

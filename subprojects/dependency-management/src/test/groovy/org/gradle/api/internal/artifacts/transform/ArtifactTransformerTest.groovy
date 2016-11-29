@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.AttributeMatchingStrategy
-import org.gradle.api.attributes.AttributeValue
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import spock.lang.Specification
 
 class ArtifactTransformerTest extends Specification {
@@ -267,8 +267,8 @@ class ArtifactTransformerTest extends Specification {
         }
 
         @Override
-        def <K> List<K> selectClosestMatch(AttributeValue<String> requestedValue, Map<K, String> candidateValues) {
-            return candidateValues.keySet();
+        def <K> void selectClosestMatch(MultipleCandidatesDetails<String, K> details) {
+            details.candidateValues.keySet().each { details.closestMatch(it) }
         }
     }
 }

@@ -15,17 +15,19 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.GradleException;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.Cast;
 
 import java.util.ArrayList;
@@ -34,6 +36,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class ComponentAttributeMatcher {
+    public static final Function<Object, AttributeValue<Object>> CANDIDATE_VALUES_TRANSFORM = new Function<Object, AttributeValue<Object>>() {
+        @Override
+        public AttributeValue<Object> apply(Object input) {
+            return AttributeValue.of(input);
+        }
+    };
     private final AttributesSchema consumerAttributeSchema;
     private final AttributesSchema producerAttributeSchema;
     private final Map<HasAttributes, MatchDetails> matchDetails = Maps.newHashMap();
@@ -121,7 +129,7 @@ public class ComponentAttributeMatcher {
         }
         Set<Attribute<?>> consumerAttributes = consumerAttributeSchema.getAttributes();
         List<HasAttributes> remainingMatches = Lists.newArrayList(matchs);
-        Map<HasAttributes, Object> values = Maps.newHashMap();
+        final Map<HasAttributes, Object> values = Maps.newHashMap();
         for (Attribute<?> attribute : producerOnlyAttributes) {
             for (HasAttributes match : matchs) {
                 Object maybeProvided = match.getAttributes().getAttribute(attribute);
@@ -131,8 +139,25 @@ public class ComponentAttributeMatcher {
             }
             if (!values.isEmpty()) {
                 AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(producerAttributeSchema.getMatchingStrategy(attribute));
-                AttributeValue<Object> absent = consumerAttributes.contains(attribute) ? AttributeValue.missing() : AttributeValue.unknown();
-                List<HasAttributes> best = matchingStrategy.selectClosestMatch(absent, values);
+                final AttributeValue<Object> absent = consumerAttributes.contains(attribute) ? AttributeValue.missing() : AttributeValue.unknown();
+                final List<HasAttributes> best = new ArrayList<HasAttributes>();
+                MultipleCandidatesDetails<Object, HasAttributes> details = new MultipleCandidatesDetails<Object, HasAttributes>() {
+                    @Override
+                    public AttributeValue<Object> getConsumerValue() {
+                        return absent;
+                    }
+
+                    @Override
+                    public Map<HasAttributes, AttributeValue<Object>> getCandidateValues() {
+                        return Maps.transformValues(values, CANDIDATE_VALUES_TRANSFORM);
+                    }
+
+                    @Override
+                    public void closestMatch(HasAttributes key) {
+                        best.add(key);
+                    }
+                };
+                matchingStrategy.selectClosestMatch(details);
                 remainingMatches.retainAll(best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
@@ -165,7 +190,7 @@ public class ComponentAttributeMatcher {
         // We need to look at all candidates globally, and select the closest match for each attribute
         // then see if there's a non-empty intersection.
         List<HasAttributes> remainingMatches = Lists.newArrayList(fullMatches);
-        Map<HasAttributes, Object> values = Maps.newHashMap();
+        final Map<HasAttributes, Object> values = Maps.newHashMap();
         for (Attribute<?> attribute : requestedAttributes) {
             Object requestedValue = requestedAttributesContainer.getAttribute(attribute);
             for (HasAttributes match : fullMatches) {
@@ -173,7 +198,25 @@ public class ComponentAttributeMatcher {
                 values.put(match, matchedAttributes.get(attribute));
             }
             AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
-            List<HasAttributes> best = matchingStrategy.selectClosestMatch(AttributeValue.of(requestedValue), values);
+            final AttributeValue<Object> requested = AttributeValue.of(requestedValue);
+            final List<HasAttributes> best = new ArrayList<HasAttributes>();
+            MultipleCandidatesDetails<Object, HasAttributes> details = new MultipleCandidatesDetails<Object, HasAttributes>() {
+                @Override
+                public AttributeValue<Object> getConsumerValue() {
+                    return requested;
+                }
+
+                @Override
+                public Map<HasAttributes, AttributeValue<Object>> getCandidateValues() {
+                    return Maps.transformValues(values, CANDIDATE_VALUES_TRANSFORM);
+                }
+
+                @Override
+                public void closestMatch(HasAttributes key) {
+                    best.add(key);
+                }
+            };
+            matchingStrategy.selectClosestMatch(details);
             remainingMatches.retainAll(best);
             if (remainingMatches.isEmpty()) {
                 // the intersection is empty, so we cannot choose
