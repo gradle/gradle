@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.attributes;
 
 import com.google.common.io.Files;
-import org.gradle.api.Attribute;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.DefaultAttributeContainer;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;

@@ -17,7 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;

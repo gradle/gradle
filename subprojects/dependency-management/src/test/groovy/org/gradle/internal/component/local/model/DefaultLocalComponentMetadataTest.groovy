@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.AttributesSchema
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet

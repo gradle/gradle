@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.AttributeContainer;
-import org.gradle.api.AttributesSchema;
-import org.gradle.api.HasAttributes;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
 import java.util.Collections;

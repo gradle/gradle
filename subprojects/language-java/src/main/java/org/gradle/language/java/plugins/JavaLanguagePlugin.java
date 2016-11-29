@@ -19,6 +19,7 @@ package org.gradle.language.java.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;

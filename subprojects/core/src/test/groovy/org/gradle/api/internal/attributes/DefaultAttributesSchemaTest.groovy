@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project
+package org.gradle.api.internal.attributes
 
-import org.gradle.api.Attribute
-import org.gradle.api.AttributeMatchingStrategy
-import org.gradle.api.AttributeValue
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.AttributeValue
 import spock.lang.Specification
 
-class DefaultConfigurationAttributesSchemaTest extends Specification {
-    def schema = new DefaultConfigurationAttributesSchema()
+class DefaultAttributesSchemaTest extends Specification {
+    def schema = new DefaultAttributesSchema()
 
     def "has a reasonable default matching strategy for String attributes"() {
         when:

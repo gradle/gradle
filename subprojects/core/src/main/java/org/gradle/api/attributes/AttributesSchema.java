@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.attributes;
+
+import org.gradle.api.Incubating;
 
 import java.util.Set;
 
 /**
  * An attributes schema stores information about {@link Attribute attributes} and how they
  * can be matched together.
+ *
+ * @since 3.3
+ *
  */
 @Incubating
 public interface AttributesSchema {

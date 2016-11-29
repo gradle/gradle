@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.attributes;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Incubating;
 
-import java.io.File;
-
 /**
- * Base class for artifact transformations.
+ * Represents something that carries attributes by utilizing an
+ * {@link AttributeContainer}
+ *
+ * @since 3.3
  */
 @Incubating
-public abstract class ArtifactTransform {
-    private File outputDirectory;
+public interface HasAttributes {
 
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
-
-    public abstract void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry);
-
-    public File transform(File input, AttributeContainer target) {
-        return input; //identity transform
-    }
+    /**
+     * Returns the attributes
+     */
+    @Incubating
+    AttributeContainer getAttributes();
 }

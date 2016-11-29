@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.AttributeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.transform.ArtifactTransformTargets;
-import org.gradle.api.internal.AttributeContainerInternal;
-import org.gradle.api.internal.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.DefaultAttributeContainer;
 
 import java.util.List;
 

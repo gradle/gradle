@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.api.internal.attributes
 
-import org.gradle.api.Attribute
-import org.gradle.api.HasAttributes
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.HasAttributes
 import spock.lang.Specification
 
 class DefaultAttributeContainerTest extends Specification {

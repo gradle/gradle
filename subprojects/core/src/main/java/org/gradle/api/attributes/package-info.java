@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
-
 /**
- * Represents something that carries attributes by utilizing an
- * {@link AttributeContainer}
+ * Classes for dealing with configuration and artifact attributes.
  */
-@Incubating
-public interface HasAttributes {
-
-    /**
-     * Returns the attributes
-     */
-    @Incubating
-    AttributeContainer getAttributes();
-}
+package org.gradle.api.attributes;

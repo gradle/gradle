@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.Attribute
-import org.gradle.api.AttributeContainer
-import org.gradle.api.AttributeMatchingStrategy
-import org.gradle.api.AttributeValue
-import org.gradle.api.AttributesSchema
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.AttributeValue
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier

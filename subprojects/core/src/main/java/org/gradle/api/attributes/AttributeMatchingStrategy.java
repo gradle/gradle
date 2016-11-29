@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+
+package org.gradle.api.attributes;
+
+import org.gradle.api.Incubating;
 
 import java.util.List;
 import java.util.Map;
@@ -23,6 +26,8 @@ import java.util.Map;
  * is matched during dependency resolution. In particular, it will tell if a value, provided by a consumer,
  * is compatible with a value provided by a candidate.
  * @param <T> the type of the attribute
+ *
+ * @since 3.3
  */
 @Incubating
 public interface AttributeMatchingStrategy<T> {

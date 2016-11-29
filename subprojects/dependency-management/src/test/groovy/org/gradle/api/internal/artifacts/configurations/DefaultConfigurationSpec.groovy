@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
-import org.gradle.api.Attribute
-import org.gradle.api.AttributeContainer
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project

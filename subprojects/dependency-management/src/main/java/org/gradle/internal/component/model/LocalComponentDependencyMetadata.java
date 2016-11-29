@@ -17,9 +17,9 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.AttributeContainer;
-import org.gradle.api.AttributesSchema;
-import org.gradle.api.HasAttributes;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
