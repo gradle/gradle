@@ -48,7 +48,7 @@ import org.gradle.api.internal.tasks.cache.GZipTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.OutputPreparingTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TarTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
 import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataReader;
 import org.gradle.api.internal.tasks.cache.origin.DefaultOriginMetadataWriter;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
@@ -111,7 +111,7 @@ public class TaskExecutionServices {
                                     new SkipUpToDateTaskExecuter(
                                         createSkipCachedExecuterIfNecessary(
                                             startParameter,
-                                            gradle.getTaskCaching(),
+                                            gradle.getBuildCache(),
                                             packer,
                                             taskOutputsGenerationListener,
                                             originMetadataConverter,
@@ -134,9 +134,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, OriginMetadataConverter originMetadataConverter, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, OriginMetadataConverter originMetadataConverter, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(originMetadataConverter, taskCaching, packer, startParameter, taskOutputsGenerationListener, delegate);
+            return new SkipCachedTaskExecuter(originMetadataConverter, buildCacheConfiguration, packer, startParameter, taskOutputsGenerationListener, delegate);
         } else {
             return delegate;
         }

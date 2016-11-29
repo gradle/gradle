@@ -34,9 +34,9 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.tasks.TaskCaching;
+import org.gradle.cache.internal.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -250,8 +250,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public void taskCaching(Action<? super TaskCaching> action) {
-        action.execute(getTaskCaching());
+    public void buildCache(Action<? super BuildCacheConfiguration> action) {
+        action.execute(getBuildCache());
     }
 
     public Gradle getGradle() {
@@ -297,7 +297,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    public TaskCachingInternal getTaskCaching() {
+    public BuildCacheConfigurationInternal getBuildCache() {
         throw new UnsupportedOperationException();
     }
 

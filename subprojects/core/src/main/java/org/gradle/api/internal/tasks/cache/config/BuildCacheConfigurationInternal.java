@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.cache.config;
 
-import org.gradle.api.tasks.TaskCaching;
 import org.gradle.cache.BuildCacheFactory;
+import org.gradle.cache.internal.BuildCacheConfiguration;
 
-public interface TaskCachingInternal extends TaskCaching {
+public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
     BuildCacheFactory getCacheFactory();
     boolean isPullAllowed();
     boolean isPushAllowed();

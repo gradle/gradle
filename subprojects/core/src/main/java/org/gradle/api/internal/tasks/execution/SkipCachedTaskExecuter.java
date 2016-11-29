@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.OriginMetadata;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataProcessor;
 import org.gradle.cache.BuildCache;
@@ -47,7 +47,7 @@ import java.io.OutputStream;
 public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
-    private final TaskCachingInternal taskCaching;
+    private final BuildCacheConfigurationInternal buildCacheConfiguration;
     private final StartParameter startParameter;
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
@@ -55,9 +55,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final OriginMetadataConverter originMetadataConverter;
     private BuildCache cache;
 
-    public SkipCachedTaskExecuter(OriginMetadataConverter originMetadataConverter, TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(OriginMetadataConverter originMetadataConverter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, StartParameter startParameter, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
         this.originMetadataConverter = originMetadataConverter;
-        this.taskCaching = taskCaching;
+        this.buildCacheConfiguration = buildCacheConfiguration;
         this.startParameter = startParameter;
         this.packer = packer;
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
@@ -95,7 +95,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             throw new GradleException(String.format("Could not build cache key for %s.", task), e);
                         }
 
-                        if (taskCaching.isPullAllowed()) {
+                        if (buildCacheConfiguration.isPullAllowed()) {
                             if (cacheKey != null) {
                                 if (taskState.isAllowedToUseCachedResults()) {
                                     try {
@@ -145,7 +145,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         delegate.execute(task, state, context);
 
         if (cacheKey != null) {
-            if (taskCaching.isPushAllowed()) {
+            if (buildCacheConfiguration.isPushAllowed()) {
                 if (state.getFailure() == null) {
                     try {
                         getCache().store(cacheKey, new BuildCacheEntryWriter() {
@@ -173,7 +173,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private BuildCache getCache() {
         if (cache == null) {
-            cache = taskCaching.getCacheFactory().createCache(startParameter);
+            cache = buildCacheConfiguration.getCacheFactory().createCache(startParameter);
             LOGGER.info("Using {}", cache.getDescription());
         }
         return cache;

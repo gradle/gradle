@@ -67,7 +67,7 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         file("init-cache.gradle") << """
             import org.gradle.cache.http.*
 
-            taskCaching {
+            buildCache {
                 useCacheFactory(new HttpBuildCacheFactory(URI.create("http://localhost:$port/cache/")))
             }
         """
@@ -88,15 +88,15 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        withTaskCache().succeeds  "jar"
+        withHttpBuildCache().succeeds  "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withTaskCache().succeeds  "clean"
+        withHttpBuildCache().succeeds  "clean"
 
         when:
-        withTaskCache().succeeds  "jar"
+        withHttpBuildCache().succeeds  "jar"
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
     }
@@ -106,25 +106,25 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "application"
             mainClassName = "Hello"
         """
-        withTaskCache().run  "run"
-        withTaskCache().run  "clean"
+        withHttpBuildCache().run  "run"
+        withHttpBuildCache().run  "clean"
         expect:
-        withTaskCache().succeeds  "run"
+        withHttpBuildCache().succeeds  "run"
     }
 
     def "tasks get cached when source code changes without changing the compiled output"() {
         when:
-        withTaskCache().succeeds  "assemble"
+        withHttpBuildCache().succeeds  "assemble"
         then:
         skippedTasks.empty
 
         file("src/main/java/Hello.java") << """
             // Change to source file without compiled result change
         """
-        withTaskCache().succeeds  "clean"
+        withHttpBuildCache().succeeds  "clean"
 
         when:
-        withTaskCache().succeeds  "assemble"
+        withHttpBuildCache().succeeds  "assemble"
         then:
         nonSkippedTasks.contains ":compileJava"
         skippedTasks.contains ":jar"
@@ -132,17 +132,17 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def "tasks get cached when source code changes back to previous state"() {
         expect:
-        withTaskCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withHttpBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
-        withTaskCache().succeeds  "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withHttpBuildCache().succeeds  "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        withTaskCache().succeeds  "jar"
+        withHttpBuildCache().succeeds  "jar"
         result.assertTaskSkipped ":compileJava"
         result.assertTaskSkipped ":jar"
     }
@@ -159,27 +159,27 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        withTaskCache().succeeds  "assemble"
+        withHttpBuildCache().succeeds  "assemble"
         skippedTasks.empty
         file("build/libs/test.jar").isFile()
 
-        withTaskCache().succeeds  "clean"
+        withHttpBuildCache().succeeds  "clean"
         !file("build/libs/test.jar").isFile()
 
         file("toggle.txt").touch()
 
-        withTaskCache().succeeds  "assemble"
+        withHttpBuildCache().succeeds  "assemble"
         skippedTasks.contains ":jar"
         !file("build/libs/test.jar").isFile()
         file("build/other-jar/other-jar.jar").isFile()
     }
 
     def "clean doesn't get cached"() {
-        withTaskCache().run  "assemble"
-        withTaskCache().run  "clean"
-        withTaskCache().run  "assemble"
+        withHttpBuildCache().run  "assemble"
+        withHttpBuildCache().run  "clean"
+        withHttpBuildCache().run  "assemble"
         when:
-        withTaskCache().succeeds  "clean"
+        withHttpBuildCache().succeeds  "clean"
         then:
         nonSkippedTasks.contains ":clean"
     }
@@ -189,11 +189,11 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
             compileJava.outputs.cacheIf { false }
         """
 
-        withTaskCache().run  "compileJava"
-        withTaskCache().run  "clean"
+        withHttpBuildCache().run  "compileJava"
+        withHttpBuildCache().run  "clean"
 
         when:
-        withTaskCache().succeeds  "compileJava"
+        withHttpBuildCache().succeeds  "compileJava"
         then:
         // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
         nonSkippedTasks.contains ":compileJava"
@@ -220,18 +220,18 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withTaskCache().run  "jar"
+        withHttpBuildCache().run  "jar"
         then:
         nonSkippedTasks.contains ":customTask"
 
         when:
-        withTaskCache().run  "clean"
-        withTaskCache().succeeds  "jar"
+        withHttpBuildCache().run  "clean"
+        withHttpBuildCache().succeeds  "jar"
         then:
         skippedTasks.contains ":customTask"
     }
 
-    HttpBuildCacheIntegrationTest withTaskCache() {
+    HttpBuildCacheIntegrationTest withHttpBuildCache() {
         executer.withBuildCacheEnabled().withArgument "-I" withArgument "init-cache.gradle"
         this
     }

@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal
+import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataConverter
 import org.gradle.cache.BuildCache
 import org.gradle.cache.BuildCacheFactory
@@ -45,14 +45,14 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def buildCache = Mock(BuildCache)
     def buildCacheFactory = Mock(BuildCacheFactory)
-    def taskCaching = Mock(TaskCachingInternal)
+    def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal)
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
     def cacheKey = Mock(BuildCacheKey)
     def originMetadataConverter = Mock(OriginMetadataConverter)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
-    def executer = new SkipCachedTaskExecuter(originMetadataConverter, taskCaching, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
+    def executer = new SkipCachedTaskExecuter(originMetadataConverter, buildCacheConfiguration, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
         when:
@@ -67,11 +67,11 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> buildCacheFactory
+        1 * buildCacheConfiguration.getCacheFactory() >> buildCacheFactory
         1 * buildCacheFactory.createCache(_) >> buildCache
         1 * buildCache.getDescription() >> "test"
 
@@ -96,11 +96,11 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> buildCacheFactory
+        1 * buildCacheConfiguration.getCacheFactory() >> buildCacheFactory
         1 * buildCacheFactory.createCache(_) >> buildCache
         1 * buildCache.getDescription() >> "test"
 
@@ -109,7 +109,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskCaching.isPushAllowed() >> true
+        1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
         1 * taskState.setCacheable(true)
 
@@ -131,7 +131,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
 
         then:
@@ -139,11 +139,11 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isPushAllowed() >> true
+        1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskCaching.getCacheFactory() >> buildCacheFactory
+        1 * buildCacheConfiguration.getCacheFactory() >> buildCacheFactory
         1 * buildCacheFactory.createCache(_) >> buildCache
         1 * buildCache.getDescription() >> "test"
 
@@ -165,11 +165,11 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> buildCacheFactory
+        1 * buildCacheConfiguration.getCacheFactory() >> buildCacheFactory
         1 * buildCacheFactory.createCache(_) >> buildCache
         1 * buildCache.getDescription() >> "test"
 
@@ -181,7 +181,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isPushAllowed() >> true
+        1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * taskState.getFailure() >> new RuntimeException()
         0 * _
     }
@@ -276,11 +276,11 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> buildCacheFactory
+        1 * buildCacheConfiguration.getCacheFactory() >> buildCacheFactory
         1 * buildCacheFactory.createCache(_) >> buildCache
         1 * buildCache.getDescription() >> "test"
 
@@ -293,7 +293,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * taskState.getFailure() >> null
-        1 * taskCaching.isPushAllowed() >> true
+        1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * buildCache.store(cacheKey, _)
         0 * _
     }
@@ -311,11 +311,11 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * taskCaching.isPullAllowed() >> true
+        1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * taskCaching.getCacheFactory() >> buildCacheFactory
+        1 * buildCacheConfiguration.getCacheFactory() >> buildCacheFactory
         1 * buildCacheFactory.createCache(_) >> buildCache
         1 * buildCache.getDescription() >> "test"
 
@@ -327,7 +327,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isPushAllowed() >> true
+        1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
         1 * buildCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }
         0 * _

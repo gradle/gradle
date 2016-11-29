@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.cache.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.cache.BuildCacheFactory;
@@ -23,11 +23,11 @@ import org.gradle.internal.HasInternalProtocol;
 import java.io.File;
 
 /**
- * Configuration for caching task outputs.
+ * Configuration for build caches.
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskCaching {
+public interface BuildCacheConfiguration {
 
     /**
      * Use the default local directory cache. The cache directory path defaults to {@code $GRADLE_HOME/task-cache}.

@@ -26,8 +26,8 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.tasks.cache.config.DefaultTaskCaching;
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
+import org.gradle.api.internal.tasks.cache.config.DefaultBuildCacheConfiguration;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
@@ -114,8 +114,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new WorkerProcessClassPathProvider(cacheRepository);
     }
 
-    TaskCachingInternal createTaskCaching(CacheRepository cacheRepository) {
-        return new DefaultTaskCaching(cacheRepository);
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(CacheRepository cacheRepository) {
+        return new DefaultBuildCacheConfiguration(cacheRepository);
     }
 
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {

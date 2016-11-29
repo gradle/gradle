@@ -22,9 +22,9 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
+import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.tasks.TaskCaching;
+import org.gradle.cache.internal.BuildCacheConfiguration;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -87,12 +87,12 @@ public interface GradleInternal extends Gradle {
     /**
      * Configures task output caching.
      */
-    void taskCaching(Action<? super TaskCaching> action);
+    void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**
      * Returns the task output caching configuration.
      */
-    TaskCachingInternal getTaskCaching();
+    BuildCacheConfigurationInternal getBuildCache();
 
     void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
 

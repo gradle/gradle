@@ -28,14 +28,14 @@ import org.gradle.internal.concurrent.Stoppable;
 import java.io.File;
 import java.util.List;
 
-public class DefaultTaskCaching implements TaskCachingInternal, Stoppable {
+public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal, Stoppable {
     private final boolean pullAllowed;
     private final boolean pushAllowed;
     private final CacheRepository cacheRepository;
     private final List<BuildCache> cachesCreated = Lists.newCopyOnWriteArrayList();
     private BuildCacheFactory factory;
 
-    public DefaultTaskCaching(CacheRepository cacheRepository) {
+    public DefaultBuildCacheConfiguration(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
         useLocalCache();
         this.pullAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
