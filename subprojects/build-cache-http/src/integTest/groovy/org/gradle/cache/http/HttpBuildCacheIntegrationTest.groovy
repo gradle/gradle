@@ -65,7 +65,7 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         server.start()
 
         file("init-cache.gradle") << """
-            import org.gradle.cache.tasks.http.*
+            import org.gradle.cache.http.*
 
             taskCaching {
                 useCacheFactory(new HttpBuildCacheFactory(URI.create("http://localhost:$port/cache/")))
