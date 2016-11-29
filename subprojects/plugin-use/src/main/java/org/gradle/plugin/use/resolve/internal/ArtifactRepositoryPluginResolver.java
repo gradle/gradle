@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.plugin.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -39,7 +39,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(final PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getVersion() == null) {
             result.notFound(name, "plugin dependency must include a version number for this source");
             return;
@@ -59,7 +59,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         }
     }
 
-    private boolean exists(PluginRequest request) {
+    private boolean exists(InternalPluginRequest request) {
         // This works because the corresponding BackedByArtifactRepository PluginRepository sets
         // registers an ArtifactRepository in the DependencyResolutionServices instance which is
         // exclusively used by this ArtifactRepositoryPluginResolver. If the plugin marker
@@ -73,7 +73,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         return !configuration.getResolvedConfiguration().hasError();
     }
 
-    private void handleFound(final PluginRequest pluginRequest, PluginResolutionResult result) {
+    private void handleFound(final InternalPluginRequest pluginRequest, PluginResolutionResult result) {
         result.found(name, new PluginResolution() {
             @Override
             public PluginId getPluginId() {
@@ -86,11 +86,11 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         });
     }
 
-    private void handleNotFound(PluginRequest pluginRequest, PluginResolutionResult result) {
+    private void handleNotFound(InternalPluginRequest pluginRequest, PluginResolutionResult result) {
         result.notFound(name, String.format("Could not resolve plugin artifact '%s'", getMarkerCoordinates(pluginRequest)));
     }
 
-    private String getMarkerCoordinates(PluginRequest pluginRequest) {
+    private String getMarkerCoordinates(InternalPluginRequest pluginRequest) {
         return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + pluginRequest.getVersion();
     }
 

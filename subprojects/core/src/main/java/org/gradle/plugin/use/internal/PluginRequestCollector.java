@@ -83,26 +83,26 @@ public class PluginRequestCollector {
     public PluginRequests getPluginRequests() {
         return new DefaultPluginRequests(listPluginRequests());
     }
-
-    public List<PluginRequest> listPluginRequests() {
-        List<PluginRequest> pluginRequests = collect(specs, new Transformer<PluginRequest, DependencySpecImpl>() {
-            public PluginRequest transform(DependencySpecImpl original) {
+    
+    public List<InternalPluginRequest> listPluginRequests() {
+        List<InternalPluginRequest> pluginRequests = collect(specs, new Transformer<InternalPluginRequest, DependencySpecImpl>() {
+            public InternalPluginRequest transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
             }
         });
 
-        ListMultimap<PluginId, PluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
-            public PluginId transform(PluginRequest pluginRequest) {
+        ListMultimap<PluginId, InternalPluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, InternalPluginRequest>() {
+            public PluginId transform(InternalPluginRequest pluginRequest) {
                 return pluginRequest.getId();
             }
         });
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {
-            List<PluginRequest> pluginRequestsForId = groupedById.get(key);
+            List<InternalPluginRequest> pluginRequestsForId = groupedById.get(key);
             if (pluginRequestsForId.size() > 1) {
-                PluginRequest first = pluginRequests.get(0);
-                PluginRequest second = pluginRequests.get(1);
+                InternalPluginRequest first = pluginRequests.get(0);
+                InternalPluginRequest second = pluginRequests.get(1);
 
                 InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
                 throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
