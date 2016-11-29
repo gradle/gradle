@@ -82,7 +82,7 @@ public class PluginRequestCollector {
     public PluginRequests getPluginRequests() {
         return new DefaultPluginRequests(listPluginRequests());
     }
-    
+
     public List<InternalPluginRequest> listPluginRequests() {
         List<InternalPluginRequest> pluginRequests = collect(specs, new Transformer<InternalPluginRequest, DependencySpecImpl>() {
             public InternalPluginRequest transform(DependencySpecImpl original) {
