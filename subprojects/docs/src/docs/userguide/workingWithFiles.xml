@@ -434,9 +434,8 @@
             It makes creating properties files as part of a build easy.
         </para>
 
-        <para>The <literal>WriteProperties</literal> task also fixes a problem with
-            <apilink class="java.util.Properties" method="store(java.io.OutputStream, java.lang.String)"/> that can
-            reduce the efficiency of incremental builds (see <xref linkend="sec:up_to_date_checks" />). Unlike
+        <para>The <literal>WriteProperties</literal> task also fixes a problem with <literal>Properties.store()</literal>
+            that can reduce the efficiency of incremental builds (see <xref linkend="sec:up_to_date_checks" />). Unlike
             standard Java method that produces different output every time even for the same properties, the task
             generates exactly the same output every time, byte-by-byte. This is achieved by a few tweaks to how
             properties are serialized:
