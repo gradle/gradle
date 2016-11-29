@@ -16,10 +16,37 @@
 
 package org.gradle.api.internal.tasks.cache.origin
 
-
+import org.gradle.api.internal.TaskInternal
+import org.gradle.internal.remote.internal.inet.InetAddressFactory
+import org.gradle.internal.time.TimeProvider
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
-class DefaultOriginMetadataReaderWriterTest extends Specification {
+class TaskOutputOriginMetadataFactoryTest extends Specification {
+    def task = Mock(TaskInternal)
+    def timeProvider = Mock(TimeProvider)
+    def inetAddressFactory = Mock(InetAddressFactory)
+    def rootDir = Mock(File)
+    def converter = new TaskOutputOriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"))
+    def "converts to origin metadata"() {
+        timeProvider.currentTime >> 0
+        inetAddressFactory.hostname >> "host"
+        task.path >> "path"
+        rootDir.absolutePath >> "root"
+
+        def originMetadata = converter.convert(task, 10)
+        expect:
+        originMetadata.path == "path"
+        originMetadata.type == task.getClass().canonicalName
+        originMetadata.gradleVersion == "3.0"
+        originMetadata.creationTime == 0
+        originMetadata.executionTime == 10
+        originMetadata.rootPath == "root"
+        originMetadata.operatingSystem == "os"
+        originMetadata.hostName == "host"
+        originMetadata.userName == "user"
+    }
+
     def "metadata roundtrip"() {
         OriginMetadata originMetadata = new TaskOutputOriginMetadata("path", "type", "3.0", 0, 10, "root", "os", "host", "user")
         def baos = new ByteArrayOutputStream()
