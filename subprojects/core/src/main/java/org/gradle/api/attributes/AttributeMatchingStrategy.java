@@ -32,14 +32,11 @@ import java.util.Map;
 @Incubating
 public interface AttributeMatchingStrategy<T> {
     /**
-     * Tells if the candidate value is compatible with the requested value. Compatibility doesn't mean
-     * equality. A candidate value may be different from the requested value, but still compatible.
-     * For example, Java 6 classes are compatible with a Java 7 runtime.
-     * @param requestedValue the requested value
-     * @param candidateValue a candidate value
-     * @return true if the candidate value is <i>compatible with</i> the requested value
+     * Called whenever we need to check if a value from a consumer is compatible with the value from a
+     * producer. Both the consumer and producer values can be present, missing or unknown.
+     * @param details the check details
      */
-    boolean isCompatible(T requestedValue, T candidateValue);
+    void checkCompatibility(CompatibilityCheckDetails<T> details);
 
     /**
      * Selects the best matches from a list of compatible ones. The list of compatible sets

@@ -25,6 +25,7 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
@@ -247,9 +248,22 @@ class ArtifactTransformerTest extends Specification {
     interface TestArtifact extends ResolvedArtifact, Buildable { }
 
     class StrictMatchingStrategy implements AttributeMatchingStrategy<String> {
+
         @Override
-        boolean isCompatible(String requestedValue, String candidateValue) {
-            return requestedValue == candidateValue
+        void checkCompatibility(CompatibilityCheckDetails<String> details) {
+            details.consumerValue.whenPresent { String requestedValue ->
+                details.producerValue.whenPresent { String candidateValue ->
+                    if (requestedValue == candidateValue) {
+                        details.compatible()
+                    } else {
+                        details.incompatible()
+                    }
+                } getOrElse {
+                    details.incompatible()
+                }
+            } getOrElse {
+                details.incompatible()
+            }
         }
 
         @Override

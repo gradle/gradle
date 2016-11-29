@@ -24,6 +24,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.GradleException;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
 
@@ -199,13 +200,30 @@ public class ComponentAttributeMatcher {
             this.isFullMatch = hasAllAttributes;
         }
 
-        private void update(Attribute<Object> attribute, AttributeMatchingStrategy<Object> strategy, Object requested, Object provided) {
-            boolean attributeCompatible = strategy.isCompatible(requested, provided);
-            if (attributeCompatible) {
-                matchesByAttribute.put(attribute, provided);
-            }
-            failure |= !attributeCompatible;
-            isFullMatch &= attributeCompatible;
+        private void update(final Attribute<Object> attribute, AttributeMatchingStrategy<Object> strategy, final Object requested, final Object provided) {
+            CompatibilityCheckDetails<Object> details = new CompatibilityCheckDetails<Object>() {
+                @Override
+                public AttributeValue<Object> getConsumerValue() {
+                    return AttributeValue.of(requested);
+                }
+
+                @Override
+                public AttributeValue<Object> getProducerValue() {
+                    return AttributeValue.of(provided);
+                }
+
+                @Override
+                public void compatible() {
+                    matchesByAttribute.put(attribute, provided);
+                }
+
+                @Override
+                public void incompatible() {
+                    isFullMatch = false;
+                    failure = true;
+                }
+            };
+            strategy.checkCompatibility(details);
         }
     }
 }
