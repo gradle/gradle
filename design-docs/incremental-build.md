@@ -322,6 +322,7 @@ Gradle detects and removes stale output files after a Gradle version change. Fur
 - Out of scope for this story are the following aspects:
     - If other tasks write to the same output directory then do not automatically clean the output directory as it may cause side effects.
     - Renamed or removed tasks are not taken under consideration.
+    - Renamed or removed projects (that are potentially part of the task path stored in the index) are not taken under consideration.
 
 ### Test coverage
 
@@ -336,3 +337,4 @@ Gradle detects and removes stale output files after a Gradle version change. Fur
 ### Open issues
 
 - What's the acceptable trade off between correctness and performance impact?
+- How and when do we remove old entries in the index e.g. if a task has been renamed?
