@@ -64,6 +64,18 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     }
 
     @Override
+    public void optionalOnProducer() {
+        CompatibilityRule<T> rule = AttributeMatchingRules.optionalOnProducer();
+        add(rule);
+    }
+
+    @Override
+    public void optionalOnConsumer() {
+        CompatibilityRule<T> rule = AttributeMatchingRules.optionalOnConsumer();
+        add(rule);
+    }
+
+    @Override
     public void checkCompatibility(CompatibilityCheckDetails<T> details) {
         State<T> state = new State<T>(details);
         for (CompatibilityRule<T> rule : rules) {

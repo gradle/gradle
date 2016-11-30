@@ -37,6 +37,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -129,18 +130,21 @@ import static org.gradle.util.GUtil.isTrue;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
-    private static final Action<AttributeMatchingStrategy<String>> ADD_EQUALITY_MATCHING = new Action<AttributeMatchingStrategy<String>>() {
+    private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
         @Override
         public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
-            stringAttributeMatchingStrategy.getCompatibilityRules().addEqualityCheck();
+            CompatibilityRuleChain<String> compatibilityRules = stringAttributeMatchingStrategy.getCompatibilityRules();
+            compatibilityRules.addEqualityCheck();
+            compatibilityRules.optionalOnConsumer();
+            compatibilityRules.optionalOnProducer();
         }
     };
     private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
         @Override
         public void execute(AttributesSchema attributesSchema) {
-            attributesSchema.configureMatchingStrategy(ARTIFACT_FORMAT, ADD_EQUALITY_MATCHING);
-            attributesSchema.configureMatchingStrategy(ARTIFACT_CLASSIFIER, ADD_EQUALITY_MATCHING);
-            attributesSchema.configureMatchingStrategy(ARTIFACT_EXTENSION, ADD_EQUALITY_MATCHING);
+            attributesSchema.configureMatchingStrategy(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.configureMatchingStrategy(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.configureMatchingStrategy(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
         }
     };
 

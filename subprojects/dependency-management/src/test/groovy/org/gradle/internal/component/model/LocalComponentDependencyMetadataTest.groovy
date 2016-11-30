@@ -43,9 +43,17 @@ class LocalComponentDependencyMetadataTest extends Specification {
         defaultMatchingStrategy = new DefaultAttributeMatchingStrategy()
         attributesSchema = Mock(AttributesSchema) {
             getMatchingStrategy(_) >> defaultMatchingStrategy
+            hasAttribute(_) >> { true }
         }
         defaultMatchingStrategy.with {
             compatibilityRules.addEqualityCheck()
+            compatibilityRules.add { details ->
+                if (details.consumerValue.missing) {
+                    details.compatible()
+                } else if (details.producerValue.missing || details.producerValue.unknown) {
+                    details.compatible()
+                }
+            }
         }
     }
 
@@ -110,6 +118,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
         }
+        attributesSchema.getAttributes() >> {
+            [Attribute.of('key', String)]
+        }
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
@@ -167,6 +178,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
                     return strategy
                 }
                 return defaultMatchingStrategy
+            }
+            hasAttribute(_) >> true
+            getAttributes() >> {
+                [Attribute.of('platform', JavaVersion), Attribute.of('flavor', String)]
             }
         }
 
@@ -282,27 +297,37 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 def strategy = new DefaultAttributeMatchingStrategy()
                 strategy.with {
                     compatibilityRules.add { CompatibilityCheckDetails details ->
-                        def candidate = details.producerValue.get()
-                        if (candidate == 'something') {
-                            details.incompatible()
+                        if (details.producerValue.present) {
+                            def candidate = details.producerValue.get()
+                            if (candidate == 'something') {
+                                details.incompatible()
+                            }
                         }
                     }
                     compatibilityRules.add { CompatibilityCheckDetails details ->
-                        def requested = details.consumerValue.get()
-                        def candidate = details.producerValue.get()
-                        if (requested == candidate) { // simulate exact match
-                            details.compatible()
+                        if (details.consumerValue.present && details.producerValue.present) {
+                            def requested = details.consumerValue.get()
+                            def candidate = details.producerValue.get()
+                            if (requested == candidate) { // simulate exact match
+                                details.compatible()
+                            }
                         }
                     }
                     compatibilityRules.add { CompatibilityCheckDetails details ->
-                        def requested = details.consumerValue.get()
-                        def candidate = details.producerValue.get()
-                        if (requested == 'other' && candidate == 'something else') { // simulate compatible match
-                            details.compatible()
+                        if (details.consumerValue.present && details.producerValue.present) {
+                            def requested = details.consumerValue.get()
+                            def candidate = details.producerValue.get()
+                            if (requested == 'other' && candidate == 'something else') { // simulate compatible match
+                                details.compatible()
+                            }
                         }
                     }
                 }
                 return strategy
+            }
+            hasAttribute(_) >> true
+            getAttributes() >> {
+                [Attribute.of('key', String)]
             }
         }
 
@@ -355,6 +380,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 }
                 toString() >> 'DummyMatcher'
             }
+            hasAttribute(_) >> true
         }
 
         given:
@@ -387,6 +413,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttribute(_) >> { args -> attributes[args[0]] }
             keySet() >> {
                 attributes.keySet()
+            }
+            contains(_) >> { args ->
+                attributes.containsKey(args[0])
             }
         }
     }

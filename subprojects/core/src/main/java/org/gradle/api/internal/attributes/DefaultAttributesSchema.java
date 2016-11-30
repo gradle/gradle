@@ -56,4 +56,9 @@ public class DefaultAttributesSchema implements AttributesSchema {
         return strategies.keySet();
     }
 
+    @Override
+    public boolean hasAttribute(Attribute<?> key) {
+        return strategies.containsKey(key);
+    }
+
 }

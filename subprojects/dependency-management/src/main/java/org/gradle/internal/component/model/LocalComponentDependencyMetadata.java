@@ -106,22 +106,16 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
         if (useConfigurationAttributes) {
-            AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : null;
-            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, getConfigurationsAsHasAttributes(targetComponent), fromConfigurationAttributes);
-            List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getFullMatchs());
+            AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
+            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, getConfigurationsAsHasAttributes(targetComponent), fromConfigurationAttributes, null);
+            List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getMatchs());
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, true);
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches);
             }
-            matches = Cast.uncheckedCast(matcher.getPartialMatchs());
-            if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
-            } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, false);
-            }
-
         }
+
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {

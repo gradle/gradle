@@ -20,29 +20,41 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
-import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+
 class ArtifactTransformerTest extends Specification {
-    public static final Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
-    def strategy = new DefaultAttributeMatchingStrategy<>()
-    def attributesSchema = Stub(AttributesSchema) {
-        getMatchingStrategy(ARTIFACT_TYPE_ATTRIBUTE) >> strategy
-    }
+    def attributesSchema = new DefaultAttributesSchema()
     def artifactTransforms = Mock(ArtifactTransforms)
     def artifactAttributeMatcher = new ArtifactAttributeMatcher(attributesSchema);
     def transformer = new ArtifactTransformer(artifactTransforms, artifactAttributeMatcher)
 
     def setup() {
-        strategy.compatibilityRules.addEqualityCheck()
+        attributesSchema.configureMatchingStrategy(ARTIFACT_FORMAT) {
+            it.compatibilityRules.addEqualityCheck()
+            it.compatibilityRules.optionalOnProducer()
+            it.compatibilityRules.optionalOnConsumer()
+        }
+        attributesSchema.configureMatchingStrategy(ARTIFACT_CLASSIFIER) {
+            it.compatibilityRules.addEqualityCheck()
+            it.compatibilityRules.optionalOnProducer()
+            it.compatibilityRules.optionalOnConsumer()
+        }
+        attributesSchema.configureMatchingStrategy(ARTIFACT_EXTENSION) {
+            it.compatibilityRules.addEqualityCheck()
+            it.compatibilityRules.optionalOnProducer()
+            it.compatibilityRules.optionalOnConsumer()
+        }
     }
 
     def "forwards artifact whose type matches requested format"() {
@@ -244,7 +256,7 @@ class ArtifactTransformerTest extends Specification {
 
     private static AttributeContainer typeAttributes(String artifactType) {
         def attributeContainer = new DefaultAttributeContainer()
-        attributeContainer.attribute(ARTIFACT_TYPE_ATTRIBUTE, artifactType.toString())
+        attributeContainer.attribute(ARTIFACT_FORMAT, artifactType.toString())
         attributeContainer.asImmutable()
     }
 

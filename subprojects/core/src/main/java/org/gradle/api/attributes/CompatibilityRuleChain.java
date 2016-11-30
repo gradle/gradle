@@ -81,4 +81,16 @@ public interface CompatibilityRuleChain<T> {
      * deemed compatible.
      */
     void eventuallyCompatible();
+
+    /**
+     * Adds a rule that tells that if an attribute is found on the consumer but not on the producer,
+     * the match is compatible.
+     */
+    void optionalOnProducer();
+
+    /**
+     * Adds a rule that tells that if an attribute is found on the producer but not on the consumer
+     * the match is compatible.
+     */
+    void optionalOnConsumer();
 }

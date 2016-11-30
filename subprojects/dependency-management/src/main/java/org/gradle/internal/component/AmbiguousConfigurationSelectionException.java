@@ -46,20 +46,16 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
         }
     };
 
-    public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, boolean fullMatch) {
-        super(generateMessage(fromConfigurationAttributes, matches, fullMatch));
+    public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches) {
+        super(generateMessage(fromConfigurationAttributes, matches));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, boolean fullMatch) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
         StringBuilder sb = new StringBuilder("Cannot choose between the following configurations: ");
         sb.append(ambiguousConfigurations);
-        if (fullMatch) {
-            sb.append(". All of them match the consumer attributes:");
-        } else {
-            sb.append(". All of them partially match the consumer attributes:");
-        }
+        sb.append(". All of them match the consumer attributes:");
         sb.append("\n");
         int maxConfLength = maxLength(ambiguousConfigurations);
         // We're sorting the names of the configurations and later attributes

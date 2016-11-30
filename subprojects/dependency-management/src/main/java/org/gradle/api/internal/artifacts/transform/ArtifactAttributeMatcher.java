@@ -16,14 +16,21 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
 import java.util.Collections;
+import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 
 class ArtifactAttributeMatcher {
+    private final static Set<Attribute<?>> ARTIFACT_ATTRIBUTES = ImmutableSet.<Attribute<?>>of(ARTIFACT_FORMAT, ARTIFACT_CLASSIFIER, ARTIFACT_EXTENSION);
+
     private final AttributesSchema attributesSchema;
 
     public ArtifactAttributeMatcher(AttributesSchema attributesSchema) {
@@ -31,9 +38,9 @@ class ArtifactAttributeMatcher {
     }
 
     boolean attributesMatch(HasAttributes artifact, AttributeContainer configuration) {
-        ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, null,
-            Collections.singleton(artifact), configuration);
-        return !matcher.hasFailingMatches();
+        ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, attributesSchema,
+            Collections.singleton(artifact), configuration, ARTIFACT_ATTRIBUTES);
+        return !matcher.getMatchs().isEmpty();
     }
 
 }
