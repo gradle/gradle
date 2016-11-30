@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.Nullable;
 
 import java.io.File;
 import java.util.Date;
@@ -55,6 +56,7 @@ public interface PublishArtifact extends Buildable {
      *
      * @return The classifier. May be null.
      */
+    @Nullable
     String getClassifier();
 
     /**
