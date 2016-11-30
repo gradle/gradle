@@ -19,6 +19,7 @@ package org.gradle.api.attributes;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -49,11 +50,11 @@ public interface DisambiguationRuleChain<T> {
      * Adds an ordered disambiguation rule. This method can only be called if the type of the attribute
      * is {@link Comparable} and the semantics of the rule are described in {@link OrderedDisambiguationRule}.
      *
-     * @param <U> T, as a Comparable
+     * @param comparator the comparator to use
+     *
      * @return the added ordered disambiguation rule
      */
-    // U extends T
-    <U extends Comparable<U>> OrderedDisambiguationRule<U> addOrderedDisambiguation();
+    OrderedDisambiguationRule<T> addOrderedDisambiguation(Comparator<? super T> comparator);
 
     /**
      * Replaces the current chain of rules with the provided rules.

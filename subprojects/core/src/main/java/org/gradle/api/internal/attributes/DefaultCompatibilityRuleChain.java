@@ -21,6 +21,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRule;
 import org.gradle.api.attributes.OrderedCompatibilityRule;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainInternal<T> {
@@ -35,10 +36,9 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <U extends Comparable<U>> OrderedCompatibilityRule<U> addOrderedCheck() {
-        OrderedCompatibilityRule<U> rule = AttributeMatchingRules.orderedCompatibility();
-        add((CompatibilityRule<T>) rule);
+    public OrderedCompatibilityRule<T> addOrderedCheck(Comparator<? super T> comparator) {
+        OrderedCompatibilityRule<T> rule = AttributeMatchingRules.orderedCompatibility(comparator);
+        add(rule);
         return rule;
     }
 

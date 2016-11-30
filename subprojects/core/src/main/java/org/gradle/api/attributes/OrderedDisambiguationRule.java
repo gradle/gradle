@@ -18,14 +18,14 @@ package org.gradle.api.attributes;
 import org.gradle.api.Incubating;
 
 /**
- * A disambiguation rule for attributes which implement {@link Comparable}.
+ * A disambiguation rule for attributes which compares them using a {@link java.util.Comparator}.
  *
  * @param <T> the type of the attribute.
  */
 @Incubating
-public interface OrderedDisambiguationRule<T extends Comparable<T>> extends DisambiguationRule<T> {
+public interface OrderedDisambiguationRule<T> extends DisambiguationRule<T> {
     /**
-     * Disambiguate by selecting the first candidate in natural order. If the attribute value
+     * Disambiguate by selecting the first candidate in order. If the attribute value
      * is missing or unknown, then it is excluded from the list of candidate.
      *
      * @return this rule
@@ -33,7 +33,7 @@ public interface OrderedDisambiguationRule<T extends Comparable<T>> extends Disa
     OrderedDisambiguationRule<T> pickFirst();
 
     /**
-     * Disambiguate by selecting the last candidate in natural order. If the attribute value
+     * Disambiguate by selecting the last candidate in order. If the attribute value
      * is missing or unknown, then it is excluded from the list of candidate.
      * @return this rule
      */

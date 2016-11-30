@@ -18,6 +18,7 @@ package org.gradle.api.attributes;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -49,11 +50,11 @@ public interface CompatibilityRuleChain<T> {
      * type of the attribute is {@link Comparable}. In that case compatibility is working as described
      * in {@link OrderedCompatibilityRule}.
      *
-     * @param <U> T, as a Comparable
+     * @param comparator the comparator to use
+     *
      * @return the added ordered check rule
      */
-    // U extends T
-    <U extends Comparable<U>> OrderedCompatibilityRule<U> addOrderedCheck();
+    OrderedCompatibilityRule<T> addOrderedCheck(Comparator<? super T> comparator);
 
     /**
      * Adds an arbitrary compatibility rule to the chain.

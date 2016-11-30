@@ -161,8 +161,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 if (attr.name == 'platform') {
                     def strategy = new DefaultAttributeMatchingStrategy()
                     strategy.with {
-                        compatibilityRules.addOrderedCheck().reverseOrder()
-                        disambiguationRules.addOrderedDisambiguation()
+                        compatibilityRules.addOrderedCheck { a,b -> a<=>b }
+                        disambiguationRules.addOrderedDisambiguation { a,b -> a<=>b }
                     }
                     return strategy
                 }

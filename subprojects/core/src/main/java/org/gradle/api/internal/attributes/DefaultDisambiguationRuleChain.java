@@ -23,6 +23,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.OrderedDisambiguationRule;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,10 +39,9 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <U extends Comparable<U>> OrderedDisambiguationRule<U> addOrderedDisambiguation() {
-        OrderedDisambiguationRule<U> rule = AttributeMatchingRules.orderedDisambiguation();
-        add((DisambiguationRule<T>) rule);
+    public OrderedDisambiguationRule<T> addOrderedDisambiguation(Comparator<? super T> comparator) {
+        OrderedDisambiguationRule<T> rule = AttributeMatchingRules.orderedDisambiguation(comparator);
+        add(rule);
         return rule;
     }
 
