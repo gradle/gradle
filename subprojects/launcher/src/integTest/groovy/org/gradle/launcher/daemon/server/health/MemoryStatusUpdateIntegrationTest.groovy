@@ -19,23 +19,21 @@ package org.gradle.launcher.daemon.server.health
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Timeout
 
-
 class MemoryStatusUpdateIntegrationTest extends DaemonIntegrationSpec {
     @Timeout(20)
-    def "can register a listener for memory status update events" () {
-        buildFile << """
+    def "can register a listener for memory status update events"() {
+        buildFile << '''
             import java.util.concurrent.CountDownLatch
-            import org.gradle.internal.event.ListenerManager
-            import org.gradle.launcher.daemon.server.health.memory.MemoryStatusListener
-            import org.gradle.launcher.daemon.server.health.memory.MemoryStatus
+            import org.gradle.launcher.daemon.server.health.memory.*
 
             task waitForEvent {
                 doLast {
                     final CountDownLatch notification = new CountDownLatch(1)
-                    ListenerManager manager = project.gradle.services.get(ListenerManager.class)
+                    
+                    MemoryResourceManager manager = project.services.get(MemoryResourceManager.class)
                     manager.addListener(new MemoryStatusListener() {
                         void onMemoryStatusNotification(MemoryStatus memoryStatus) {
-                            println memoryStatus
+                            println "MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
                     })
@@ -43,12 +41,13 @@ class MemoryStatusUpdateIntegrationTest extends DaemonIntegrationSpec {
                     notification.await()
                 }
             }
-        """
+        '''.stripIndent()
 
         when:
         executer.withTasks("waitForEvent").withArgument("--debug").run()
 
         then:
         daemons.daemons.size() == 1
+        daemons.daemon.log.contains 'MemoryStatus notification'
     }
 }
