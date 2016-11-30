@@ -327,7 +327,7 @@ Gradle detects and removes stale output files after a Gradle version change. Fur
 ### Test coverage
 
 - Gradle upgrade occurs and input files stay unchanged. No need to remove outputs.
-- Gradle upgrade occurs and inputs files removed. Stale outputs are removed.
+- Gradle upgrade occurs and inputs files removed. Stale outputs in directories controlled by Gradle (only `buildDir`) are removed.
     - Stale outputs can be removed if located in `buildDir`.
     - Stale outputs can be removed if located outside of `buildDir`.
 - All test cases work with a multi-project build executed in parallel mode.
