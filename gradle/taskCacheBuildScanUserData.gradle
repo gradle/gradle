@@ -66,7 +66,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         propertyFiles.visitRootElements(new FileCollectionVisitor() {
                             void visitCollection(FileCollectionInternal fileCollection) {
                                 buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
-                                buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.getAsFileTree().getFiles())
+                                buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.files)
                                 idx++
                             }
 
