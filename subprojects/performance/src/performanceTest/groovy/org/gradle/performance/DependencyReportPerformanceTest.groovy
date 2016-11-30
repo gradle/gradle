@@ -41,6 +41,6 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
         testProject       | targetVersions              | maxMemory
         "small"           | ['3.3-20161028000018+0000'] | '128m'
         "multi"           | ['3.3-20161028000018+0000'] | '256m'
-        "lotDependencies" | ['3.3-20161028000018+0000'] | '256g'
+        "lotDependencies" | ['3.3-20161028000018+0000'] | '256m
     }
 }
