@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.cache;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,20 +36,20 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, OriginMetadataWriter originMetadataWriter) throws IOException {
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeMetadataAction) throws IOException {
         GZIPOutputStream gzipOutput = new GZIPOutputStream(output);
         try {
-            delegate.pack(taskOutputs, gzipOutput, originMetadataWriter);
+            delegate.pack(taskOutputs, gzipOutput, writeMetadataAction);
         } finally {
             gzipOutput.close();
         }
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> originMetadataReader) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readMetadataAction) throws IOException {
         GZIPInputStream gzipInput = new GZIPInputStream(input);
         try {
-            delegate.unpack(taskOutputs, gzipInput, originMetadataReader);
+            delegate.unpack(taskOutputs, gzipInput, readMetadataAction);
         } finally {
             gzipInput.close();
         }

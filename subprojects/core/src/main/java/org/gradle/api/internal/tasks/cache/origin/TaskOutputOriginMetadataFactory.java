@@ -55,10 +55,10 @@ public class TaskOutputOriginMetadataFactory {
         this.gradleVersion = gradleVersion;
     }
 
-    public OriginMetadataWriter createWriter(final TaskInternal task, final long elapsedTime) {
-        return new OriginMetadataWriter() {
+    public Action<OutputStream> createWriter(final TaskInternal task, final long elapsedTime) {
+        return new Action<OutputStream>() {
             @Override
-            public void writeTo(OutputStream outputStream) throws IOException {
+            public void execute(OutputStream outputStream) {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
                 properties.setProperty("type", task.getClass().getCanonicalName());
@@ -70,7 +70,11 @@ public class TaskOutputOriginMetadataFactory {
                 properties.setProperty("operatingSystem", operatingSystem);
                 properties.setProperty("hostName", inetAddressFactory.getHostname());
                 properties.setProperty("userName", userName);
-                properties.store(outputStream, "origin metadata");
+                try {
+                    properties.store(outputStream, "origin metadata");
+                } catch (IOException e) {
+                    UncheckedException.throwAsUncheckedException(e);
+                }
                 assert METADATA_KEYS.containsAll(properties.stringPropertyNames()) : "Update expected metadata property list";
             }
         };

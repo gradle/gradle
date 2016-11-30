@@ -37,7 +37,7 @@ class TaskOutputOriginMetadataFactoryTest extends Specification {
         def originMetadata = new Properties()
         def writer = converter.createWriter(task, 10)
         def baos = new ByteArrayOutputStream()
-        writer.writeTo(baos)
+        writer.execute(baos)
         when:
         def reader = converter.createReader(task)
         // doesn't explode

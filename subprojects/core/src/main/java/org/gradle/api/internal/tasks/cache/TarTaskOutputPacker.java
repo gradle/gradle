@@ -36,7 +36,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
@@ -74,14 +73,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, OriginMetadataWriter originMetadataWriter) throws IOException {
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeMetadataAction) throws IOException {
         Closer closer = Closer.create();
         TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
         outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
         outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
         outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
-            packMetadata(originMetadataWriter, outputStream);
+            packMetadata(writeMetadataAction, outputStream);
             pack(taskOutputs, outputStream);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
@@ -90,11 +89,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void packMetadata(OriginMetadataWriter originMetadataWriter, TarOutputStream outputStream) throws IOException {
+    private void packMetadata(Action<OutputStream> writeMetadataAction, TarOutputStream outputStream) throws IOException {
         TarEntry entry = new TarEntry(METADATA_PATH);
         entry.setMode(UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        originMetadataWriter.writeTo(baos);
+        writeMetadataAction.execute(baos);
         entry.setSize(baos.size());
         outputStream.putNextEntry(entry);
         try {

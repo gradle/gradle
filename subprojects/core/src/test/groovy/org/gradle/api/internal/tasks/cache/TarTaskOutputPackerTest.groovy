@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.cache
 
 import org.gradle.api.Action
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Unroll
 
@@ -27,7 +26,7 @@ import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePr
 class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
     def originMetadataReader = Stub(Action)
-    def originMetadataWriter = Stub(OriginMetadataWriter)
+    def originMetadataWriter = Stub(Action)
     def packer = new TarTaskOutputPacker(fileSystem)
 
     @Unroll
