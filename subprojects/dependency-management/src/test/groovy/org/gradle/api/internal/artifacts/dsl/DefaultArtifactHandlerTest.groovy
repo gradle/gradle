@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
@@ -103,6 +104,22 @@ class DefaultArtifactHandlerTest extends Specification {
 
         and:
         1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
+        1 * artifactsMock.add(artifact)
+    }
+
+    void addOneDependencyWithAction() {
+        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        Action action = Mock(Action)
+
+        when:
+        artifactHandler.add('someConf', "someNotation", action)
+
+        then:
+        artifact.type == 'source'
+
+        and:
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
+        1 * action.execute(_) >> { PublishArtifact a -> a.type = 'source' }
         1 * artifactsMock.add(artifact)
     }
 

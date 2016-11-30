@@ -119,6 +119,11 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         return this
     }
 
+    /**
+     * Adds an additional artifact to this module.
+     * @param options Can specify any of name, type, ext or classifier
+     * @return this
+     */
     IvyHttpModule artifact(Map<String, ?> options = [:]) {
         backingModule.artifact(options)
         return this

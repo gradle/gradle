@@ -80,7 +80,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     /**
      * Adds an additional artifact to this module.
-     * @param options Can specify any of name, type or classifier
+     * @param options Can specify any of name, type, ext or classifier
      * @return this
      */
     IvyFileModule artifact(Map<String, ?> options = [:]) {
@@ -95,8 +95,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     Map<String, ?> toArtifact(Map<String, ?> options = [:]) {
-        return [name: options.name ?: module, type: options.type ?: 'jar',
-                ext: options.ext ?: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
+        def type = notNullOr(options.type, 'jar')
+        return [name: options.name ?: module, type: type,
+                ext: notNullOr(options.ext, type), classifier: options.classifier ?: null, conf: options.conf ?: '*']
+    }
+
+    def notNullOr(def value, def defaultValue) {
+        if (value != null) {
+            return value
+        }
+        return defaultValue
     }
 
     IvyFileModule dependsOn(String organisation, String module, String revision) {

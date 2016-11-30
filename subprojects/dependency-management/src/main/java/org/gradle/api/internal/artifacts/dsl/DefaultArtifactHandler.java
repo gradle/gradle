@@ -18,10 +18,13 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
@@ -40,16 +43,28 @@ public class DefaultArtifactHandler implements ArtifactHandler {
     }
 
     private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
+        Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
+        return pushArtifact(configuration, notation, configureAction);
+    }
+
+    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super PublishArtifact> configureAction) {
         PublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
-        ConfigureUtil.configure(configureClosure, publishArtifact);
+        configureAction.execute(publishArtifact);
         return publishArtifact;
     }
 
-    public PublishArtifact add(String configurationName, Object artifactNotation) {
-        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, null);
+    @Override
+    public PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction) {
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, (Action)configureAction);
     }
 
+    @Override
+    public PublishArtifact add(String configurationName, Object artifactNotation) {
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, Actions.doNothing());
+    }
+
+    @Override
     public PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure) {
         return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureClosure);
     }
@@ -65,7 +80,7 @@ public class DefaultArtifactHandler implements ArtifactHandler {
             return pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1));
         }
         for (Object notation : args) {
-            pushArtifact(configuration, notation, null);
+            pushArtifact(configuration, notation, Actions.doNothing());
         }
         return null;
     }
