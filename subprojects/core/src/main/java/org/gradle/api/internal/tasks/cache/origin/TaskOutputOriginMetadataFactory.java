@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.cache.origin;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
@@ -74,13 +76,17 @@ public class TaskOutputOriginMetadataFactory {
         };
     }
 
-    public OriginMetadataReader createReader(final TaskInternal task) {
-        return new OriginMetadataReader() {
+    public Action<InputStream> createReader(final TaskInternal task) {
+        return new Action<InputStream>() {
             @Override
-            public void readFrom(InputStream inputStream) throws IOException {
+            public void execute(InputStream inputStream) {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
-                properties.load(inputStream);
+                try {
+                    properties.load(inputStream);
+                } catch (IOException e) {
+                    UncheckedException.throwAsUncheckedException(e);
+                }
                 Set<String> keys = properties.stringPropertyNames();
                 if (!keys.containsAll(METADATA_KEYS)) {
                     List<String> missingKeys = Lists.newArrayList(METADATA_KEYS);

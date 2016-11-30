@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.cache;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
@@ -44,7 +43,7 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, OriginMetadataReader originMetadataReader) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> originMetadataReader) throws IOException {
         for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
             CacheableTaskOutputFilePropertySpec property = (CacheableTaskOutputFilePropertySpec) propertySpec;
             File output = property.getOutputFile();

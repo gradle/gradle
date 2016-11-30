@@ -27,6 +27,7 @@ import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
@@ -35,7 +36,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
-import org.gradle.api.internal.tasks.cache.origin.OriginMetadataReader;
 import org.gradle.api.internal.tasks.cache.origin.OriginMetadataWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
@@ -199,7 +199,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, OriginMetadataReader originMetadataReader) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> originMetadataReader) throws IOException {
         Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
@@ -211,7 +211,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, OriginMetadataReader originMetadataReader) throws IOException {
+    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, Action<InputStream> originMetadataReader) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
@@ -226,7 +226,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             if (name.equals(METADATA_PATH)) {
                 // handle metadata
                 metadataSeen = true;
-                originMetadataReader.readFrom(new CloseShieldInputStream(tarInput));
+                originMetadataReader.execute(new CloseShieldInputStream(tarInput));
             } else {
                 // handle output property
                 Matcher matcher = PROPERTY_PATH.matcher(name);

@@ -41,7 +41,7 @@ class TaskOutputOriginMetadataFactoryTest extends Specification {
         when:
         def reader = converter.createReader(task)
         // doesn't explode
-        reader.readFrom(new ByteArrayInputStream(baos.toByteArray()))
+        reader.execute(new ByteArrayInputStream(baos.toByteArray()))
         and:
         originMetadata.load(new ByteArrayInputStream(baos.toByteArray()))
         then:
