@@ -31,9 +31,10 @@ public class MemoryStatusBroadcaster {
 
     private final ScheduledExecutorService scheduledExecutorService;
     private final ListenerBroadcast<MemoryStatusListener> broadcast;
-    private final MemoryInfo memoryInfo = new MemoryInfo();
+    private final MemoryInfo memoryInfo;
 
-    public MemoryStatusBroadcaster(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+    public MemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+        this.memoryInfo = memoryInfo;
         this.scheduledExecutorService = scheduledExecutorService;
         this.broadcast = listenerManager.createAnonymousBroadcaster(MemoryStatusListener.class);
     }

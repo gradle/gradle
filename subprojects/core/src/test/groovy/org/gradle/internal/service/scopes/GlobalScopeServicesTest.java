@@ -64,6 +64,7 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.health.memory.DefaultMemoryResourceManager;
+import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryResourceManager;
 import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -212,6 +213,11 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesATimeProvider() throws Exception {
         assertThat(registry().get(TimeProvider.class), instanceOf(TrueTimeProvider.class));
+    }
+
+    @Test
+    public void providesAMemoryInfo() throws Exception {
+        assertThat(registry().get(MemoryInfo.class), instanceOf(MemoryInfo.class));
     }
 
     @Test

@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.health.memory
 
-import org.gradle.process.internal.health.memory.MeminfoAvailableMemory
 import spock.lang.Specification
 
 class MeminfoAvailableMemoryTest extends Specification {
