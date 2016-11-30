@@ -50,6 +50,11 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
@@ -241,6 +246,19 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public void buildStarted(Action<? super Gradle> action) {
         buildListenerBroadcast.add("buildStarted", action);
+    }
+
+    @Override
+    public void pluginRepositories(Action<PluginRepositoriesSpec> pluginSettings) {
+        PluginRepositoryFactory pluginRepositoryFactory = getServices().get(PluginRepositoryFactory.class);
+        PluginRepositoryRegistry pluginRepositoryRegistry = getServices().get(PluginRepositoryRegistry.class);
+        DefaultPluginRepositoriesSpec spec = new DefaultPluginRepositoriesSpec(pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
+        pluginSettings.execute(spec);
+    }
+
+    @Override
+    public void pluginRepositories(Closure closure) {
+        pluginRepositories(ConfigureUtil.<PluginRepositoriesSpec>configureUsing(closure));
     }
 
     @Override

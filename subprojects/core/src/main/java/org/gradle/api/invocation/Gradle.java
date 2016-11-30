@@ -28,6 +28,7 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 import java.io.File;
 import java.util.Collection;
@@ -181,6 +182,24 @@ public interface Gradle extends PluginAware {
      * @param action The action to execute.
      */
     void buildStarted(Action<? super Gradle> action);
+     
+    /**
+     * Adds a action to be called to configure {@code PluginRepositoriesSpec}
+     *
+     * @param pluginSettings The action to execute
+     * @throws IllegalStateException when settings are evaluated
+     */
+    void pluginRepositories(Action<PluginRepositoriesSpec> pluginSettings);
+
+    /**
+     * Adds a closure to be called to configure pluginRepositories.
+     *
+     * This {@code PluginRepositoriesSpec} instance is passed to the closure as the first parameter.
+     *
+     * @param closure The closure to execute.
+     * @throws IllegalStateException when settings are evaluated
+     */
+    void pluginRepositories(Closure closure);
 
     /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.
