@@ -30,7 +30,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
 
         experiment(template, "simulate Android Studio $template synchronization") {
             action('org.gradle.performance.android.SyncAction') {
-                jvmArguments = createDefaultJvmOptions("2g")
+                jvmArguments = customizeJvmOptions(["-Xms2g", "-Xmx2g"])
             }
         }
 

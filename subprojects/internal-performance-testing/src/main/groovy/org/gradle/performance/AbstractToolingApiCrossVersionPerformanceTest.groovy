@@ -103,9 +103,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    protected List<String> createDefaultJvmOptions(String heapSize = '1g') {
-        List<String> jvmOptions = PerformanceTestJvmOptions.customizeJvmOptions(["-Xms${heapSize}", "-Xmx${heapSize}"])
-        return jvmOptions
+    protected List<String> customizeJvmOptions(List<String> jvmOptionns) {
+        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptionns)
     }
 
     @InheritConstructors

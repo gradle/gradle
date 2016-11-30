@@ -55,7 +55,7 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.tasksToRun = ['help']
         runner.targetVersions = targetVersions
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -64,9 +64,9 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject     | targetVersions
-        "bigOldJava"    | ['3.3-20161028000018+0000']
-        "mediumOldJava" | ['3.3-20161028000018+0000']
-        "smallOldJava"  | ['3.3-20161028000018+0000']
+        testProject     | targetVersions                | maxMemory
+        "bigOldJava"    | ['3.3-20161028000018+0000']   | '512m'
+        "mediumOldJava" | ['3.3-20161028000018+0000']   | '256m'
+        "smallOldJava"  | ['3.3-20161028000018+0000']   | '128m'
     }
 }

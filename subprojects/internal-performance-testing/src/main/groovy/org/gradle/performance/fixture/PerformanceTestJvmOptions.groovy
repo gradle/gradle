@@ -22,12 +22,12 @@ import org.gradle.api.JavaVersion
 
 @CompileStatic
 class PerformanceTestJvmOptions {
-    static List<String> customizeJvmOptions(List<String> jvmOptions) {
-        commonJvmOptions(jvmOptions, ['-Xms2g', '-Xmx2g'])
+    static List<String> customizeJvmOptions(List<? extends CharSequence> jvmOptions) {
+        commonJvmOptions(jvmOptions, ['-Xms1g', '-Xmx1g'])
     }
 
     // JVM default options for both build JVM and the daemon client (launcher) JVM
-    private static List<String> commonJvmOptions(List<String> originalJvmOptions, List<String> defaultOptions = []) {
+    private static List<String> commonJvmOptions(List<? extends CharSequence> originalJvmOptions, List<String> defaultOptions = []) {
         List<String> jvmOptions
         if (!originalJvmOptions) {
             jvmOptions = defaultOptions

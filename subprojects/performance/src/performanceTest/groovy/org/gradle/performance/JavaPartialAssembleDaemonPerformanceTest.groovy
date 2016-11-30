@@ -33,7 +33,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
         runner.targetVersions = targetVersions
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
 
         when:
         def result = runner.run()
@@ -56,12 +56,10 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         }
         runner.testProject = testProject
         runner.useDaemon = true
+        runner.warmUpRuns = 25
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
-        // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        runner.targetVersions = ['3.2-rc-1']
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.targetVersions = ['3.2']
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -70,6 +68,9 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["bigOldJavaMoreSource", "bigOldJava", "mediumOldJava"]
+        testProject             | maxMemory
+        "bigOldJavaMoreSource"  | '512m'
+        "bigOldJava"            | '512m'
+        "mediumOldJava"         | '256m'
     }
 }
