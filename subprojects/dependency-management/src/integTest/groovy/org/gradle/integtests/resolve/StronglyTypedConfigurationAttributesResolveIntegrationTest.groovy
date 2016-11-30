@@ -461,7 +461,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   }
                   configureMatchingStrategy(arch) {
                        compatibilityRules.addEqualityCheck()
-                       disambiguationRules.addOrderedDisambiguation()
+                       disambiguationRules.addOrderedDisambiguation { a,b -> a<=>b }
                   }
                }
             }

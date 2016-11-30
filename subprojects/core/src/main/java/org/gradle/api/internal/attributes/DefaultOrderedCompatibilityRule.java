@@ -19,13 +19,13 @@ import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.OrderedCompatibilityRule;
 
-public class DefaultOrderedCompatibilityRule<T extends Comparable<? super T>> implements OrderedCompatibilityRule<T> {
-    private boolean reverse;
+import java.util.Comparator;
 
-    @Override
-    public OrderedCompatibilityRule<T> reverseOrder() {
-        reverse = true;
-        return this;
+public class DefaultOrderedCompatibilityRule<T> implements OrderedCompatibilityRule<T> {
+    private final Comparator<? super T> comparator;
+
+    public DefaultOrderedCompatibilityRule(Comparator<? super T> comparator) {
+        this.comparator = comparator;
     }
 
     @Override
@@ -35,19 +35,11 @@ public class DefaultOrderedCompatibilityRule<T extends Comparable<? super T>> im
         if (consumerValue.isPresent() && producerValue.isPresent()) {
             T consumerPresent = consumerValue.get();
             T producerPresent = producerValue.get();
-            int cmp = consumerPresent.compareTo(producerPresent);
-            if (cmp == 0) {
+            int cmp = comparator.compare(consumerPresent, producerPresent);
+            if (cmp >= 0) {
                 details.compatible();
             } else {
-                boolean compatible = cmp < 0;
-                if (reverse) {
-                    compatible = !compatible;
-                }
-                if (compatible) {
-                    details.compatible();
-                } else {
-                    details.incompatible();
-                }
+                details.incompatible();
             }
         }
     }

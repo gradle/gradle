@@ -21,10 +21,17 @@ import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.OrderedDisambiguationRule;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 
-public class DefaultOrderedDisambiguationRule<T extends Comparable<T>> implements OrderedDisambiguationRule<T> {
+public class DefaultOrderedDisambiguationRule<T> implements OrderedDisambiguationRule<T> {
+    private final Comparator<? super T> comparator;
+
     private boolean pickFirst;
+
+    public DefaultOrderedDisambiguationRule(Comparator<? super T> comparator) {
+        this.comparator = comparator;
+    }
 
     @Override
     public OrderedDisambiguationRule<T> pickFirst() {
@@ -46,10 +53,10 @@ public class DefaultOrderedDisambiguationRule<T extends Comparable<T>> implement
         for (AttributeValue<T> value : values) {
             if (value.isPresent()) {
                 T v = value.get();
-                if (min == null || v.compareTo(min) < 0) {
+                if (min == null || comparator.compare(v, min) < 0) {
                     min = v;
                 }
-                if (max == null || v.compareTo(max) > 0) {
+                if (max == null || comparator.compare(v, max) > 0) {
                     max = v;
                 }
             }

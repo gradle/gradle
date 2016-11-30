@@ -21,6 +21,8 @@ import org.gradle.api.attributes.OrderedCompatibilityRule;
 import org.gradle.api.attributes.OrderedDisambiguationRule;
 import org.gradle.internal.Cast;
 
+import java.util.Comparator;
+
 public abstract class AttributeMatchingRules {
     private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
 
@@ -28,11 +30,11 @@ public abstract class AttributeMatchingRules {
         return Cast.uncheckedCast(EQUALITY_RULE);
     }
 
-    public static <T extends Comparable<T>> OrderedCompatibilityRule<T> orderedCompatibility() {
-        return new DefaultOrderedCompatibilityRule<T>();
+    public static <T> OrderedCompatibilityRule<T> orderedCompatibility(Comparator<? super T> comparator) {
+        return new DefaultOrderedCompatibilityRule<T>(comparator);
     }
 
-    public static <T extends Comparable<T>> OrderedDisambiguationRule<T> orderedDisambiguation() {
-        return new DefaultOrderedDisambiguationRule<T>();
+    public static <T> OrderedDisambiguationRule<T> orderedDisambiguation(Comparator<? super T> comparator) {
+        return new DefaultOrderedDisambiguationRule<T>(comparator);
     }
 }
