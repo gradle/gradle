@@ -28,6 +28,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.daemon.server.health.memory.DefaultMemoryResourceManager;
+import org.gradle.launcher.daemon.server.health.memory.MemoryResourceManager;
 import org.gradle.launcher.daemon.server.health.memory.MemoryStatusBroadcaster;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
@@ -99,6 +101,10 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
 
         MemoryStatusBroadcaster createMemoryStatusBroadcaster(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
             return new MemoryStatusBroadcaster(scheduledExecutorService, listenerManager);
+        }
+
+        MemoryResourceManager createMemoryResourceManager(ListenerManager listenerManager) {
+            return new DefaultMemoryResourceManager(listenerManager);
         }
     }
 
