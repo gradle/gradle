@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 
-/**
- * An attribute matching strategy is responsible for providing information about how an {@link Attribute}
- * is matched during dependency resolution. In particular, it will tell if a value, provided by a consumer,
- * is compatible with a value provided by a candidate.
- *
- * @param <T> the type of the attribute
- * @since 3.3
- */
 @Incubating
-public interface AttributeMatchingStrategy<T> {
-    CompatibilityRuleChain<T> getCompatibilityRules();
-
-    DisambiguationRuleChain<T> getDisambiguationRules();
+public interface DisambiguationRule<T> {
+    /**
+     * Allows selecting best matches for a given attribute. This method is passed a {@link MultipleCandidatesDetails details}
+     * object which gives access to the consumer value as well as the candidate producer values. Both the consumer and
+     * producer values can be present, missing or unknown.
+     *
+     */
+    void selectClosestMatch(MultipleCandidatesDetails<T> details);
 }

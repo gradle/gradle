@@ -96,8 +96,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     private static class DependencyResolutionScopeServices {
-        AttributesSchema createConfigurationAttributesSchema() {
-            return new DefaultAttributesSchema();
+        AttributesSchema createConfigurationAttributesSchema(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultAttributesSchema.class);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,

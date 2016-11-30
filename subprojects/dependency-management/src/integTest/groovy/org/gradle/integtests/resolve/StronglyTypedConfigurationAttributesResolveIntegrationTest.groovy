@@ -38,8 +38,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  matchStrictly(flavor)
-                  matchStrictly(buildType)
+                  configureMatchingStrategy(flavor) {
+                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                  }
+                  configureMatchingStrategy(buildType) {
+                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                  }
                }
             }
         '''
@@ -139,20 +143,15 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  setMatchingStrategy(flavor, [
-                    checkCompatibility: { details ->
-                        if (details.consumerValue.present && details.producerValue.present) {
-                            if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
-                                details.compatible()
-                                return
-                            }
-                        }
-                        details.incompatible()
-                    },
-                    selectClosestMatch: { details ->
-                        details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
-                    }
-                  ] as AttributeMatchingStrategy)
+                  configureMatchingStrategy(flavor) {
+                      compatibilityRules.add { details ->
+                           if (details.consumerValue.present && details.producerValue.present) {
+                               if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
+                                   details.compatible()
+                               }
+                           }
+                      }
+                  }
                }
             }
 
@@ -218,20 +217,15 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  setMatchingStrategy(flavor, [
-                    checkCompatibility: { details ->
-                        if (details.consumerValue.present && details.producerValue.present) {
-                            if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
-                                details.compatible()
-                                return
-                            }
-                        }
-                        details.incompatible()
-                    },
-                    selectClosestMatch: { details ->
-                        details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
-                    }
-                  ] as AttributeMatchingStrategy)
+                  configureMatchingStrategy(flavor) {
+                      compatibilityRules.add { details ->
+                           if (details.consumerValue.present && details.producerValue.present) {
+                               if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
+                                   details.compatible()
+                               }
+                           }
+                      }
+                  }
                }
             }
 
@@ -308,28 +302,23 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  setMatchingStrategy(flavor, [
-                    checkCompatibility: { details ->
-                        if (details.consumerValue.present && details.producerValue.present) {
-                            if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
-                                details.compatible()
-                                return
-                            }
-                        }
-                        details.incompatible()
-                    },
-                    selectClosestMatch: { details ->
-                        details.candidateValues.entrySet().findAll { it.value.get().value == details.consumerValue.get().value }*.key.each { details.closestMatch(it) }
-                    }
-                  ] as AttributeMatchingStrategy)
+                  configureMatchingStrategy(flavor) {
+                      compatibilityRules.add { details ->
+                           if (details.consumerValue.present && details.producerValue.present) {
+                               if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
+                                   details.compatible()
+                               }
+                           }
+                      }
+                  }
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
-                  setMatchingStrategy(buildType, [
-                    checkCompatibility: { details -> details.compatible() },
-                    selectClosestMatch: { details ->
+                  configureMatchingStrategy(buildType) {
+                     compatibilityRules.eventuallyCompatible()
+                     disambiguationRules.add { details ->
                         details.candidateValues.entrySet().findAll { it.value.get() == details.consumerValue.get() }*.key.each { details.closestMatch(it) }
-                    }
-                  ] as AttributeMatchingStrategy)
+                     }
+                  }
                }
             }
 
@@ -401,24 +390,20 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':b') {
                configurationAttributesSchema {
-                  matchStrictly(buildType)
-                  setMatchingStrategy(flavor, new AttributeMatchingStrategy<String>() {
-                       void checkCompatibility(CompatibilityCheckDetails<String> details) {
-                            if (details.consumerValue == details.producerValue) {
-                                details.compatible()
-                                return
-                            }
-                            details.incompatible()
-                       }
-
-                       public void selectClosestMatch(MultipleCandidatesDetails<String> details) {
+                  configureMatchingStrategy(buildType) {
+                      compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                  }
+                  configureMatchingStrategy(flavor) {
+                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                       disambiguationRules.add { details ->
                             if (details.consumerValue.present) {
                                 details.candidateValues.keySet().each { details.closestMatch(it) }
-                            } else {
-                                details.closestMatch(details.candidateValues.entrySet().sort { it.value.get() }.first().key)
                             }
                        }
-                  })
+                       disambiguationRules.add { details ->
+                            details.closestMatch(details.candidateValues.entrySet().sort { it.value.get() }.first().key)
+                       }
+                  }
                }
             }
 
@@ -475,24 +460,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             allprojects {
                configurationAttributesSchema {
-                  matchStrictly(dummy)
-                  setMatchingStrategy(arch, new AttributeMatchingStrategy<Arch>() {
-                       void checkCompatibility(CompatibilityCheckDetails<Arch> details) {
-                            if (details.consumerValue == details.producerValue) {
-                                details.compatible()
-                                return
-                            }
-                            details.incompatible()
-                       }
-
-                       public void selectClosestMatch(MultipleCandidatesDetails<Arch> details) {
-                            if (details.consumerValue.present) {
-                                details.candidateValues.keySet().each { details.closestMatch(it) }
-                            } else {
-                                details.closestMatch(details.candidateValues.entrySet().sort { it.value.get().ordinal() }.last().key)
-                            }
-                       }
-                  })
+                  configureMatchingStrategy(dummy) {
+                      compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                  }
+                  configureMatchingStrategy(arch) {
+                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                       disambiguationRules.add(AttributeMatchingRules.orderedDisambiguation())
+                  }
                }
             }
 

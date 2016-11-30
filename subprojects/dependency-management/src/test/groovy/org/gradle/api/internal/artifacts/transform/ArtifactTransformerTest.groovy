@@ -22,25 +22,29 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.AttributeMatchingRules
 import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import spock.lang.Specification
 
 class ArtifactTransformerTest extends Specification {
-    public static final Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String.class)
+    public static final Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
+    def strategy = new DefaultAttributeMatchingStrategy<>()
     def attributesSchema = Stub(AttributesSchema) {
-        getMatchingStrategy(ARTIFACT_TYPE_ATTRIBUTE) >> new StrictMatchingStrategy()
+        getMatchingStrategy(ARTIFACT_TYPE_ATTRIBUTE) >> strategy
     }
     def artifactTransforms = Mock(ArtifactTransforms)
     def artifactAttributeMatcher = new ArtifactAttributeMatcher(attributesSchema);
     def transformer = new ArtifactTransformer(artifactTransforms, artifactAttributeMatcher)
+
+    def setup() {
+        strategy.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+    }
 
     def "forwards artifact whose type matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
@@ -246,21 +250,4 @@ class ArtifactTransformerTest extends Specification {
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }
-
-    class StrictMatchingStrategy implements AttributeMatchingStrategy<String> {
-
-        @Override
-        void checkCompatibility(CompatibilityCheckDetails<String> details) {
-            if (details.consumerValue.equals(details.producerValue)) {
-                details.compatible()
-            } else {
-                details.incompatible()
-            }
-        }
-
-        @Override
-        def void selectClosestMatch(MultipleCandidatesDetails<String> details) {
-            details.candidateValues.keySet().each { details.closestMatch(it) }
-        }
-    }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.AttributeMatchingRules
 import org.gradle.api.attributes.AttributeValue
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.HasAttributes
@@ -37,7 +37,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         checkDetails.getConsumerValue() >> AttributeValue.of('foo')
         checkDetails.getProducerValue() >> AttributeValue.of('foo')
-        strategy.checkCompatibility(checkDetails)
+        strategy.compatibilityRules.checkCompatibility(checkDetails)
 
         then:
         1 * checkDetails.compatible()
@@ -46,7 +46,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         checkDetails.getConsumerValue() >> AttributeValue.of('foo')
         checkDetails.getProducerValue() >> AttributeValue.of('bar')
-        strategy.checkCompatibility(checkDetails)
+        strategy.compatibilityRules.checkCompatibility(checkDetails)
 
         then:
         0 * checkDetails.compatible()
@@ -55,7 +55,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidatesDetails.consumerValue >> AttributeValue.of("foo")
         candidatesDetails.candidateValues >> [(key): AttributeValue.of("foo")]
-        strategy.selectClosestMatch(candidatesDetails)
+        strategy.disambiguationRules.selectClosestMatch(candidatesDetails)
 
         then:
         1 * candidatesDetails.closestMatch(key)
@@ -71,16 +71,67 @@ class DefaultAttributesSchemaTest extends Specification {
         e.message == 'Unable to find matching strategy for map'
     }
 
-    def "can set a basic equality match strategy"() {
+    def "is eventually incompatible by default"() {
         given:
-        schema.matchStrictly(Attribute.of(Map))
-        def strategy= schema.getMatchingStrategy(Attribute.of(Map))
+        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {}
         def details = Mock(CompatibilityCheckDetails)
 
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        strategy.checkCompatibility(details)
+        strategy.compatibilityRules.checkCompatibility(details)
+
+        then:
+        1 * details.incompatible()
+        0 * details._
+    }
+
+    def "can set eventually compatible by default"() {
+        given:
+        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
+            it.compatibilityRules.eventuallyCompatible()
+        }
+        def details = Mock(CompatibilityCheckDetails)
+
+        when:
+        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
+        strategy.compatibilityRules.checkCompatibility(details)
+
+        then:
+        1 * details.compatible()
+        0 * details._
+    }
+
+    def "equality strategy takes precendence over default"() {
+        given:
+        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
+            it.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+            it.compatibilityRules.eventuallyCompatible()
+        }
+        def details = Mock(CompatibilityCheckDetails)
+
+        when:
+        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
+        strategy.compatibilityRules.checkCompatibility(details)
+
+        then:
+        1 * details.incompatible()
+        0 * details._
+    }
+
+    def "can set a basic equality match strategy"() {
+        given:
+        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
+            it.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+        }
+        def details = Mock(CompatibilityCheckDetails)
+
+        when:
+        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        strategy.compatibilityRules.checkCompatibility(details)
 
         then:
         1 * details.compatible()
@@ -89,7 +140,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.checkCompatibility(details)
+        strategy.compatibilityRules.checkCompatibility(details)
 
         then:
         0 * details.compatible()
@@ -98,7 +149,9 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "strategy is per attribute"() {
         given:
-        schema.matchStrictly(Attribute.of('a', Map))
+        schema.configureMatchingStrategy(Attribute.of('a', Map)) {
+            it.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+        }
 
         when:
         schema.getMatchingStrategy(Attribute.of('someOther', Map))
@@ -122,23 +175,18 @@ class DefaultAttributesSchemaTest extends Specification {
         def key3 = Mock(HasAttributes)
 
         given:
-        schema.setMatchingStrategy(attr, new AttributeMatchingStrategy<Map>() {
-            @Override
-            void checkCompatibility(CompatibilityCheckDetails<Map> details) {
+        schema.configureMatchingStrategy(attr) {
+            it.compatibilityRules.add { CompatibilityCheckDetails<Map> details ->
                 def producerValue = details.producerValue
                 def consumerValue = details.consumerValue
                 if (producerValue.present && consumerValue.present) {
                     if (producerValue.get().size() == consumerValue.get().size()) {
                         // arbitrary, just for testing purposes
                         details.compatible()
-                        return
                     }
                 }
-                details.incompatible()
             }
-
-            @Override
-            def void selectClosestMatch(MultipleCandidatesDetails<Map> details) {
+            it.disambiguationRules.add { MultipleCandidatesDetails<Map> details ->
                 def optionalAttribute = details.consumerValue
                 def candidateValues = details.candidateValues
                 if (optionalAttribute.present) {
@@ -148,10 +196,10 @@ class DefaultAttributesSchemaTest extends Specification {
                 } else if (optionalAttribute.missing) {
                     details.closestMatch(candidateValues.keySet().first())
                 } else {
-                    candidateValues.keySet().each { details.closestMatch(it)}
+                    candidateValues.keySet().each { details.closestMatch(it) }
                 }
             }
-        })
+        }
         def strategy = schema.getMatchingStrategy(attr)
         def checkDetails = Mock(CompatibilityCheckDetails)
         def candidateDetails = Mock(MultipleCandidatesDetails)
@@ -159,7 +207,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         checkDetails.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         checkDetails.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        strategy.checkCompatibility(checkDetails)
+        strategy.compatibilityRules.checkCompatibility(checkDetails)
 
         then:
         1 * checkDetails.compatible()
@@ -168,7 +216,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         checkDetails.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         checkDetails.getProducerValue() >> AttributeValue.of([c: 'foo', d: 'bar'])
-        strategy.checkCompatibility(checkDetails)
+        strategy.compatibilityRules.checkCompatibility(checkDetails)
 
         then:
         1 * checkDetails.compatible()
@@ -177,7 +225,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidateDetails.consumerValue >> AttributeValue.of([a: 'foo', b: 'bar'])
         candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
-        strategy.selectClosestMatch(candidateDetails)
+        strategy.disambiguationRules.selectClosestMatch(candidateDetails)
 
         then:
         1 * candidateDetails.closestMatch(key1)
@@ -187,7 +235,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidateDetails.consumerValue >> AttributeValue.missing()
         candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
-        strategy.selectClosestMatch(candidateDetails)
+        strategy.disambiguationRules.selectClosestMatch(candidateDetails)
 
         then:
         1 * candidateDetails.closestMatch(key1)
@@ -196,7 +244,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidateDetails.consumerValue >> AttributeValue.unknown()
         candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
-        strategy.selectClosestMatch(candidateDetails)
+        strategy.disambiguationRules.selectClosestMatch(candidateDetails)
 
         then:
         1 * candidateDetails.closestMatch(key1)

@@ -17,31 +17,38 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.attributes.CompatibilityRuleChain;
+import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.internal.Cast;
 
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultAttributesSchema implements AttributesSchema {
+    private static final Action<? super AttributeMatchingStrategy<String>> STRING_MATCHING = new Action<AttributeMatchingStrategy<String>>() {
+        @Override
+        public void execute(AttributeMatchingStrategy<String> strategy) {
+            CompatibilityRuleChain<String> compatibilityRules = strategy.getCompatibilityRules();
+            compatibilityRules.add(new EqualityCompatibilityRule<String>());
+            compatibilityRules.eventuallyIncompatible();
+
+            DisambiguationRuleChain<String> disambiguationRules = strategy.getDisambiguationRules();
+            disambiguationRules.eventuallySelectAll();
+        }
+    };
+
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
 
     @Override
-    public <T> void setMatchingStrategy(Attribute<T> attribute, AttributeMatchingStrategy<T> strategy) {
-        strategies.put(attribute, strategy);
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
         AttributeMatchingStrategy<?> strategy = strategies.get(attribute);
         if (strategy == null && String.class == attribute.getType()) {
-            strategy = StrictMatchingStrategy.INSTANCE;
+            strategy = configureMatchingStrategy(attribute, (Action<? super AttributeMatchingStrategy<T>>) STRING_MATCHING);
         }
         if (strategy == null) {
             throw new IllegalArgumentException("Unable to find matching strategy for " + attribute);
@@ -50,8 +57,14 @@ public class DefaultAttributesSchema implements AttributesSchema {
     }
 
     @Override
-    public <T> void matchStrictly(Attribute<T> attribute) {
-        setMatchingStrategy(attribute, StrictMatchingStrategy.<T>get());
+    public <T> AttributeMatchingStrategy<T> configureMatchingStrategy(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
+        AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
+        if (strategy == null) {
+            strategy = new DefaultAttributeMatchingStrategy<T>();
+            strategies.put(attribute, strategy);
+        }
+        configureAction.execute(strategy);
+        return strategy;
     }
 
     @Override
@@ -59,29 +72,4 @@ public class DefaultAttributesSchema implements AttributesSchema {
         return strategies.keySet();
     }
 
-    private static class StrictMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
-        private static final StrictMatchingStrategy<?> INSTANCE = new StrictMatchingStrategy<Object>();
-
-        public static <T> StrictMatchingStrategy<T> get() {
-            return Cast.uncheckedCast(INSTANCE);
-        }
-
-        @Override
-        public void checkCompatibility(final CompatibilityCheckDetails<T> details) {
-            AttributeValue<T> consumerValue = details.getConsumerValue();
-            AttributeValue<T> producerValue = details.getProducerValue();
-            if (consumerValue.equals(producerValue)) {
-                details.compatible();
-            } else {
-                details.incompatible();
-            }
-        }
-
-        @Override
-        public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
-            for (HasAttributes candidate : details.getCandidateValues().keySet()) {
-                details.closestMatch(candidate);
-            }
-        }
-    }
 }
