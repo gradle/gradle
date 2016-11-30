@@ -17,6 +17,7 @@
 package org.gradle.api.internal.runtimeshaded
 
 import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
@@ -99,14 +100,14 @@ class RuntimeShadedJarCreatorTest extends Specification {
         contents[0] == outputJar
     }
 
-    def "creates a repoducible jar"() {
+    def "creates a reproducible jar"() {
         given:
-        def className = 'org/gradle/MyClass'
+
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def jarFile1 = inputFilesDir.file('lib1.jar')
-        createJarFileWithClassFiles(jarFile1, [className])
+        createJarFileWithClassFiles(jarFile1, ['org/gradle/MyClass'])
         def jarFile2 = inputFilesDir.file('lib2.jar')
-        createJarFileWithClassFiles(jarFile2, [className])
+        createJarFileWithClassFiles(jarFile2, ['org/gradle/MySecondClass'])
         def jarFile3 = inputFilesDir.file('lib3.jar')
         def serviceType = 'org.gradle.internal.service.scopes.PluginServiceRegistry'
         createJarFileWithProviderConfigurationFile(jarFile3, serviceType, 'org.gradle.api.internal.artifacts.DependencyServices')
@@ -123,9 +124,11 @@ org.gradle.api.internal.tasks.CompileServices
             'aQute/libg/tuple/packageinfo',
             'org/joda/time/tz/data/Africa/Abidjan',
             'com/sun/jna/win32-amd64/jnidispatch.dll'])
+        def jarFile6 = inputFilesDir.file('lib6.jar')
+        createJarFileWithProviderConfigurationFile(jarFile6, 'org.gradle.internal.other.Service', 'org.gradle.internal.other.ServiceImpl')
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5])
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6])
 
         then:
         1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
@@ -133,7 +136,23 @@ org.gradle.api.internal.tasks.CompileServices
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         contents[0] == outputJar
-        Hashing.md5().newHasher().putBytes(outputJar.bytes).hash().toString() == "b0bf2edc908ee4b06f0f2daf03602ec5"
+        handleAsJarFile(outputJar) { JarFile file ->
+            List<JarEntry> entries = file.entries() as List
+            assert entries*.name == [
+                'org/gradle/MyClass.class',
+                'org/gradle/MySecondClass.class',
+                'aQute/libg/tuple/packageinfo',
+                'org/gradle/internal/impldep/aQute/libg/tuple/packageinfo',
+                'org/gradle/internal/impldep/com/sun/jna/win32-amd64/jnidispatch.dll',
+                'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
+                'org/gradle/reporting/report.js',
+                'org/joda/time/tz/data/Africa/Abidjan',
+                'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/Abidjan',
+                'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
+                'META-INF/services/org.gradle.internal.other.Service',
+                'META-INF/.gradle-runtime-shaded']
+        }
+        Files.hash(outputJar, Hashing.md5()).toString() == "159e19f63c465c2503caa8f4fbe0a4df"
     }
 
     def "merges provider-configuration file with the same name"() {
@@ -368,7 +387,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         contents.zipTo(jar)
     }
 
-    private void writeClass(TestFile outputDir, String className) {
+    private static void writeClass(TestFile outputDir, String className) {
         TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
         classNode.version = Opcodes.V1_6
@@ -402,7 +421,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         new JarFile(jar).withCloseable(c)
     }
 
-    public static class JavaAdapter {
+    static class JavaAdapter {
         // emulates what is found in org.mozilla.javascript.JavaAdapter
         // (we can't use it directly because not found on test classpath)
         void foo() {
