@@ -26,7 +26,11 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.*;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import java.io.File;
 
@@ -56,7 +60,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Instances of AbstractArchiveTask").example("jar.");
+            visitor.candidate("Instances of AbstractArchiveTask").example("jar");
         }
 
         @Override
@@ -87,8 +91,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
             return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(),
-                                            artifactFile.getExtension() == null? "":artifactFile.getExtension(),
-                                            artifactFile.getClassifier(), null, file, new Task[0]);
+                artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
         }
     }
 }

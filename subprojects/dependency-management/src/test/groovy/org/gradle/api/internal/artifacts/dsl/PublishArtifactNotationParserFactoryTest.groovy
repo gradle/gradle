@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 import java.awt.*
 
-public class PublishArtifactNotationConverterFactoryTest extends Specification {
+class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider)
@@ -73,6 +73,10 @@ public class PublishArtifactNotationConverterFactoryTest extends Specification {
         then:
         publishArtifact instanceof DefaultPublishArtifact
         publishArtifact.file == file
+        publishArtifact.name == 'some'
+        publishArtifact.type == 'zip'
+        publishArtifact.extension == 'zip'
+        publishArtifact.classifier == null
     }
 
     def "creates artifact from extension-less file"() {
@@ -84,7 +88,10 @@ public class PublishArtifactNotationConverterFactoryTest extends Specification {
         then:
         publishArtifact instanceof DefaultPublishArtifact
         publishArtifact.file == file
+        publishArtifact.name == 'someFile'
         publishArtifact.type == ''
+        publishArtifact.extension == ''
+        publishArtifact.classifier == null
     }
 
     def createArtifactFromFileInMap() {
@@ -104,7 +111,7 @@ public class PublishArtifactNotationConverterFactoryTest extends Specification {
         publishArtifact.buildDependencies.getDependencies(null) == [task] as Set
     }
 
-    public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
+    def createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
         when:
         publishArtifactNotationParser.parseNotation(null)
 
@@ -112,7 +119,7 @@ public class PublishArtifactNotationConverterFactoryTest extends Specification {
         thrown(UnsupportedNotationException)
     }
 
-    public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
+    def createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
         when:
         publishArtifactNotationParser.parseNotation(new Point(1, 2))
 
