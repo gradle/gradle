@@ -17,7 +17,21 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 
+/**
+ * <p>An ordered compatibility rule can be applied on attributes that implement the {@link Comparable} interface. It will
+ * only take a decision if both the consumer and producer attributes are present.</p>
+ *
+ * <p>A provider attribute is compatible with the consumer attribute if it's greater than or equal to the consumer value. Order
+ * can be reversed by calling the {@link #reverseOrder()} method.</p>
+ *
+ * @param <T>
+ */
 @Incubating
-public interface OrderedCompatibilityRule<T extends Comparable<T>> extends CompatibilityRule<T> {
+public interface OrderedCompatibilityRule<T extends Comparable<? super T>> extends CompatibilityRule<T> {
+    /**
+     * Changes the comparison order to reverse: provider attribute is compatible with the consumer attribute if it's lower than or equal to the consumer value.
+     *
+     * @return this rule
+     */
     OrderedCompatibilityRule<T> reverseOrder();
 }

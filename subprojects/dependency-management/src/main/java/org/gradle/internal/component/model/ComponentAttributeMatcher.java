@@ -28,6 +28,8 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
+import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
 import org.gradle.internal.Cast;
 
 import java.util.ArrayList;
@@ -157,7 +159,8 @@ public class ComponentAttributeMatcher {
                         best.add(key);
                     }
                 };
-                matchingStrategy.getDisambiguationRules().selectClosestMatch(details);
+                DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) matchingStrategy.getDisambiguationRules();
+                disambiguationRules.selectClosestMatch(details);
                 remainingMatches.retainAll(best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
@@ -216,7 +219,8 @@ public class ComponentAttributeMatcher {
                     best.add(key);
                 }
             };
-            matchingStrategy.getDisambiguationRules().selectClosestMatch(details);
+            DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) matchingStrategy.getDisambiguationRules();
+            disambiguationRules.selectClosestMatch(details);
             remainingMatches.retainAll(best);
             if (remainingMatches.isEmpty()) {
                 // the intersection is empty, so we cannot choose
@@ -266,7 +270,8 @@ public class ComponentAttributeMatcher {
                     failure = true;
                 }
             };
-            strategy.getCompatibilityRules().checkCompatibility(details);
+            CompatibilityRuleChainInternal<Object> compatibilityRules = (CompatibilityRuleChainInternal<Object>) strategy.getCompatibilityRules();
+            compatibilityRules.checkCompatibility(details);
         }
     }
 }

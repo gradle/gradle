@@ -17,8 +17,25 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 
+/**
+ * A disambiguation rule for attributes which implement {@link Comparable}.
+ *
+ * @param <T> the type of the attribute.
+ */
 @Incubating
 public interface OrderedDisambiguationRule<T extends Comparable<T>> extends DisambiguationRule<T> {
+    /**
+     * Disambiguate by selecting the first candidate in natural order. If the attribute value
+     * is missing or unknown, then it is excluded from the list of candidate.
+     *
+     * @return this rule
+     */
     OrderedDisambiguationRule<T> pickFirst();
+
+    /**
+     * Disambiguate by selecting the last candidate in natural order. If the attribute value
+     * is missing or unknown, then it is excluded from the list of candidate.
+     * @return this rule
+     */
     OrderedDisambiguationRule<T> pickLast();
 }

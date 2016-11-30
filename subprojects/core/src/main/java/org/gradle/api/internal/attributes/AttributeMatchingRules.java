@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.internal.attributes.DefaultOrderedCompatibilityRule;
-import org.gradle.api.internal.attributes.DefaultOrderedDisambiguationRule;
-import org.gradle.api.internal.attributes.EqualityCompatibilityRule;
+package org.gradle.api.internal.attributes;
+
+import org.gradle.api.attributes.CompatibilityRule;
+import org.gradle.api.attributes.OrderedCompatibilityRule;
+import org.gradle.api.attributes.OrderedDisambiguationRule;
 import org.gradle.internal.Cast;
 
-@Incubating
 public abstract class AttributeMatchingRules {
     private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
 

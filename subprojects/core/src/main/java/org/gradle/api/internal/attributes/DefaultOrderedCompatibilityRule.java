@@ -19,8 +19,8 @@ import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.OrderedCompatibilityRule;
 
-public class DefaultOrderedCompatibilityRule<T extends Comparable<T>> implements OrderedCompatibilityRule<T> {
-    private boolean reverse = false;
+public class DefaultOrderedCompatibilityRule<T extends Comparable<? super T>> implements OrderedCompatibilityRule<T> {
+    private boolean reverse;
 
     @Override
     public OrderedCompatibilityRule<T> reverseOrder() {

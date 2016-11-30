@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeMatchingRules
 import org.gradle.api.attributes.AttributeValue
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.HasAttributes
@@ -106,7 +105,7 @@ class DefaultAttributesSchemaTest extends Specification {
     def "equality strategy takes precendence over default"() {
         given:
         def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
-            it.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+            it.compatibilityRules.addEqualityCheck()
             it.compatibilityRules.eventuallyCompatible()
         }
         def details = Mock(CompatibilityCheckDetails)
@@ -124,7 +123,7 @@ class DefaultAttributesSchemaTest extends Specification {
     def "can set a basic equality match strategy"() {
         given:
         def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
-            it.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+            it.compatibilityRules.addEqualityCheck()
         }
         def details = Mock(CompatibilityCheckDetails)
 
@@ -150,7 +149,7 @@ class DefaultAttributesSchemaTest extends Specification {
     def "strategy is per attribute"() {
         given:
         schema.configureMatchingStrategy(Attribute.of('a', Map)) {
-            it.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+            it.compatibilityRules.addEqualityCheck()
         }
 
         when:

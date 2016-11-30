@@ -39,10 +39,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':a') {
                configurationAttributesSchema {
                   configureMatchingStrategy(flavor) {
-                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                       compatibilityRules.addEqualityCheck()
                   }
                   configureMatchingStrategy(buildType) {
-                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                       compatibilityRules.addEqualityCheck()
                   }
                }
             }
@@ -391,18 +391,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                configurationAttributesSchema {
                   configureMatchingStrategy(buildType) {
-                      compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                      compatibilityRules.addEqualityCheck()
                   }
                   configureMatchingStrategy(flavor) {
-                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
-                       disambiguationRules.add { details ->
-                            if (details.consumerValue.present) {
-                                details.candidateValues.keySet().each { details.closestMatch(it) }
-                            }
-                       }
+                       compatibilityRules.addEqualityCheck()
                        disambiguationRules.add { details ->
                             details.closestMatch(details.candidateValues.entrySet().sort { it.value.get() }.first().key)
                        }
+
                   }
                }
             }
@@ -461,11 +457,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             allprojects {
                configurationAttributesSchema {
                   configureMatchingStrategy(dummy) {
-                      compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+                      compatibilityRules.addEqualityCheck()
                   }
                   configureMatchingStrategy(arch) {
-                       compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
-                       disambiguationRules.add(AttributeMatchingRules.orderedDisambiguation())
+                       compatibilityRules.addEqualityCheck()
+                       disambiguationRules.addOrderedDisambiguation()
                   }
                }
             }
