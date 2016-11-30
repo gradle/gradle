@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface TaskOutputPacker {
-    void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeMetadataAction) throws IOException;
+    void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeOriginAction) throws IOException;
 
-    void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readMetadataAction) throws IOException;
+    void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readOriginAction) throws IOException;
 }

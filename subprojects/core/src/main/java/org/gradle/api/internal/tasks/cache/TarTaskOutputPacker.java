@@ -73,14 +73,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeMetadataAction) throws IOException {
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeOriginAction) throws IOException {
         Closer closer = Closer.create();
         TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
         outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
         outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
         outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
-            packMetadata(writeMetadataAction, outputStream);
+            packMetadata(writeOriginAction, outputStream);
             pack(taskOutputs, outputStream);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
@@ -198,11 +198,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> originMetadataReader) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readOriginAction) throws IOException {
         Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
-            unpack(taskOutputs, tarInput, originMetadataReader);
+            unpack(taskOutputs, tarInput, readOriginAction);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
         } finally {
@@ -210,22 +210,22 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, Action<InputStream> originMetadataReader) throws IOException {
+    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, Action<InputStream> readOriginAction) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
-        boolean metadataSeen = false;
+        boolean originSeen = false;
         TarEntry entry;
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
 
             if (name.equals(METADATA_PATH)) {
-                // handle metadata
-                metadataSeen = true;
-                originMetadataReader.execute(new CloseShieldInputStream(tarInput));
+                // handle origin metadata
+                originSeen = true;
+                readOriginAction.execute(new CloseShieldInputStream(tarInput));
             } else {
                 // handle output property
                 Matcher matcher = PROPERTY_PATH.matcher(name);
@@ -262,7 +262,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 }
             }
         }
-        if (!metadataSeen) {
+        if (!originSeen) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
     }

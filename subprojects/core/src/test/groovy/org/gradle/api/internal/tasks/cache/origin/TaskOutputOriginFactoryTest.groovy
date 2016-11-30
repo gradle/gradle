@@ -34,7 +34,7 @@ class TaskOutputOriginFactoryTest extends Specification {
         inetAddressFactory.hostname >> "host"
         task.path >> "path"
         rootDir.absolutePath >> "root"
-        def originMetadata = new Properties()
+        def origin = new Properties()
         def writer = converter.createWriter(task, 10)
         def baos = new ByteArrayOutputStream()
         writer.execute(baos)
@@ -43,16 +43,16 @@ class TaskOutputOriginFactoryTest extends Specification {
         // doesn't explode
         reader.execute(new ByteArrayInputStream(baos.toByteArray()))
         and:
-        originMetadata.load(new ByteArrayInputStream(baos.toByteArray()))
+        origin.load(new ByteArrayInputStream(baos.toByteArray()))
         then:
-        originMetadata.path == "path"
-        originMetadata.type == task.getClass().canonicalName
-        originMetadata.gradleVersion == "3.0"
-        originMetadata.creationTime == "0"
-        originMetadata.executionTime == "10"
-        originMetadata.rootPath == "root"
-        originMetadata.operatingSystem == "os"
-        originMetadata.hostName == "host"
-        originMetadata.userName == "user"
+        origin.path == "path"
+        origin.type == task.getClass().canonicalName
+        origin.gradleVersion == "3.0"
+        origin.creationTime == "0"
+        origin.executionTime == "10"
+        origin.rootPath == "root"
+        origin.operatingSystem == "os"
+        origin.hostName == "host"
+        origin.userName == "user"
     }
 }

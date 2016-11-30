@@ -38,12 +38,12 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeMetadataAction) throws IOException {
-        delegate.pack(taskOutputs, output, writeMetadataAction);
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeOriginAction) throws IOException {
+        delegate.pack(taskOutputs, output, writeOriginAction);
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readMetadataAction) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readOriginAction) throws IOException {
         for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
             CacheableTaskOutputFilePropertySpec property = (CacheableTaskOutputFilePropertySpec) propertySpec;
             File output = property.getOutputFile();
@@ -66,7 +66,7 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
                     throw new AssertionError();
             }
         }
-        delegate.unpack(taskOutputs, input, readMetadataAction);
+        delegate.unpack(taskOutputs, input, readOriginAction);
     }
 
     private static boolean makeDirectory(File output) throws IOException {

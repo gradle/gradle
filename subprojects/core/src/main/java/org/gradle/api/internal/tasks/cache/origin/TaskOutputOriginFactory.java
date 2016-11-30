@@ -71,7 +71,7 @@ public class TaskOutputOriginFactory {
                 properties.setProperty("hostName", inetAddressFactory.getHostname());
                 properties.setProperty("userName", userName);
                 try {
-                    properties.store(outputStream, "origin metadata");
+                    properties.store(outputStream, "Generated origin information");
                 } catch (IOException e) {
                     UncheckedException.throwAsUncheckedException(e);
                 }
