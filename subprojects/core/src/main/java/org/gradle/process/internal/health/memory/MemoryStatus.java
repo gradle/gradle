@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory;
+package org.gradle.process.internal.health.memory;
 
-public interface MemoryStatusListener {
-    void onMemoryStatusNotification(MemoryStatus memoryStatus);
+public interface MemoryStatus {
+    long getMaxMemory();
+
+    long getCommittedMemory();
+
+    long getTotalPhysicalMemory();
+
+    long getFreePhysicalMemory();
 }

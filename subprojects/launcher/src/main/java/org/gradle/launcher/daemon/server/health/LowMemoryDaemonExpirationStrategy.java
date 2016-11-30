@@ -22,8 +22,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.health.memory.MemoryStatus;
-import org.gradle.launcher.daemon.server.health.memory.MemoryStatusListener;
+import org.gradle.process.internal.health.memory.MemoryStatus;
+import org.gradle.process.internal.health.memory.MemoryStatusListener;
 
 import java.util.concurrent.locks.ReentrantLock;
 
