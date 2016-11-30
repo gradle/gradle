@@ -19,15 +19,28 @@ import com.google.common.collect.Lists;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRule;
-import org.gradle.api.attributes.CompatibilityRuleChain;
+import org.gradle.api.attributes.OrderedCompatibilityRule;
 
 import java.util.List;
 
-public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T> {
+public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainInternal<T> {
 
     private final List<CompatibilityRule<T>> rules = Lists.newArrayList();
 
     private boolean failEventually = true;
+
+    @Override
+    public void addEqualityCheck() {
+        add(AttributeMatchingRules.<T>equalityCompatibility());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <U extends Comparable<U>> OrderedCompatibilityRule<U> addOrderedCheck() {
+        OrderedCompatibilityRule<U> rule = AttributeMatchingRules.orderedCompatibility();
+        add((CompatibilityRule<T>) rule);
+        return rule;
+    }
 
     @Override
     public void add(CompatibilityRule<T> rule) {

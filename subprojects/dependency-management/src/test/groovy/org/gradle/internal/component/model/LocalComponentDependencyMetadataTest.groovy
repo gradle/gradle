@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.AttributeMatchingRules
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
@@ -46,7 +45,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getMatchingStrategy(_) >> defaultMatchingStrategy
         }
         defaultMatchingStrategy.with {
-            compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+            compatibilityRules.addEqualityCheck()
         }
     }
 
@@ -162,8 +161,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 if (attr.name == 'platform') {
                     def strategy = new DefaultAttributeMatchingStrategy()
                     strategy.with {
-                        compatibilityRules.add(AttributeMatchingRules.orderedCompatibility().reverseOrder())
-                        disambiguationRules.add(AttributeMatchingRules.orderedDisambiguation())
+                        compatibilityRules.addOrderedCheck().reverseOrder()
+                        disambiguationRules.addOrderedDisambiguation()
                     }
                     return strategy
                 }

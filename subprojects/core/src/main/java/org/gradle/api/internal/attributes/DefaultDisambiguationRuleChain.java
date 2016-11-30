@@ -19,14 +19,14 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.DisambiguationRule;
-import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.attributes.OrderedDisambiguationRule;
 
 import java.util.List;
 import java.util.Map;
 
-public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChain<T> {
+public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChainInternal<T> {
 
     private final List<DisambiguationRule<T>> rules = Lists.newArrayList();
 
@@ -35,6 +35,14 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     @Override
     public void add(DisambiguationRule<T> rule) {
         this.rules.add(rule);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <U extends Comparable<U>> OrderedDisambiguationRule<U> addOrderedDisambiguation() {
+        OrderedDisambiguationRule<U> rule = AttributeMatchingRules.orderedDisambiguation();
+        add((DisambiguationRule<T>) rule);
+        return rule;
     }
 
     @Override

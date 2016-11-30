@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.AttributeMatchingRules
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
@@ -43,7 +42,7 @@ class ArtifactTransformerTest extends Specification {
     def transformer = new ArtifactTransformer(artifactTransforms, artifactAttributeMatcher)
 
     def setup() {
-        strategy.compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
+        strategy.compatibilityRules.addEqualityCheck()
     }
 
     def "forwards artifact whose type matches requested format"() {
@@ -128,7 +127,7 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
-        1 * visitor.visitFiles(id , [file])
+        1 * visitor.visitFiles(id, [file])
         0 * _
     }
 
@@ -249,5 +248,5 @@ class ArtifactTransformerTest extends Specification {
         attributeContainer.asImmutable()
     }
 
-    interface TestArtifact extends ResolvedArtifact, Buildable { }
+    interface TestArtifact extends ResolvedArtifact, Buildable {}
 }

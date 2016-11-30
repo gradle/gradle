@@ -17,6 +17,17 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 
+/**
+ * <p>A compatibility rule can tell if two {@link AttributeValue values} are compatible.
+ * Compatibility doesn't mean equality. Typically two different Java platforms can be
+ * compatible, without being equal.</p>
+ *
+ * <p>A rule <i>can</i> express an opinion by calling the @{link {@link CompatibilityCheckDetails#compatible()}}
+ * method to tell that two attributes are compatible, or it <i>can</i> call {@link CompatibilityCheckDetails#incompatible()}
+ * to say that they are not compatible. It is not mandatory for a rule to express an opinion.</p>
+ *
+ * @param <T> the type of the attribute
+ */
 @Incubating
 public interface CompatibilityRule<T> {
     /**
