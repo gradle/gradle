@@ -141,7 +141,7 @@ public class WriteProperties extends DefaultTask {
         Charset charset = Charset.forName(getEncoding());
         OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile()));
         try {
-            PropertiesUtils.writeProperties(out, getProperties(), charset, getLineSeparator(), getComment());
+            PropertiesUtils.store(getProperties(), out, getComment(), charset, getLineSeparator());
         } finally {
             IOUtils.closeQuietly(out);
         }

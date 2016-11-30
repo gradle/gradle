@@ -76,7 +76,7 @@ class PropertiesUtilsTest extends Specification {
         def props = new Properties()
         props.putAll(properties)
         def data = new ByteArrayOutputStream()
-        PropertiesUtils.writeProperties(data, props, charset, lineSeparator, comment)
+        PropertiesUtils.store(props, data, comment, charset, lineSeparator)
         return new String(data.toByteArray(), charset)
     }
 

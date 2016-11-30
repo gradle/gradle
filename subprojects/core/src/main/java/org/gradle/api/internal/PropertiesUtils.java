@@ -47,7 +47,7 @@ public class PropertiesUtils {
      * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters are
      * escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
      */
-    public static void writeProperties(OutputStream outputStream, Properties properties, Charset charset, String lineSeparator, String comment) throws IOException {
+    public static void store(Properties properties, OutputStream outputStream, String comment, Charset charset, String lineSeparator) throws IOException {
         String rawContents;
         if (charset.equals(Charsets.ISO_8859_1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
