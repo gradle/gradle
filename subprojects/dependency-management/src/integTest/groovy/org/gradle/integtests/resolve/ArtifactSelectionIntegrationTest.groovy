@@ -36,10 +36,11 @@ allprojects {
         repositories {
             ivy { url '${ivyHttpRepo.uri}' }
         }
-    configurationAttributesSchema {
-       configureMatchingStrategy(Attribute.of('usage', String)) {
-          compatibilityRules.addEqualityCheck()
-       }
+        configurationAttributesSchema {
+           configureMatchingStrategy(Attribute.of('usage', String)) {
+              compatibilityRules.addEqualityCheck()
+           }
+        }
     }
     configurations {
         compile {
