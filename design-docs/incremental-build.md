@@ -247,8 +247,8 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 ## Story: Cleanup stale output files from incremental task after Gradle version change
 
 Tasks that define inputs and outputs to support incremental build functionality might leave behind stale output files in case task history does not exist. This situation might arise
-if the build changes the Gradle version or if `.gradle` is deleted manually _and_ one or many of the inputs have been changed. Tasks using those outputs as inputs for further processing are affect as
-well and might produce expected results.
+if the build changes the Gradle version or if `.gradle` is deleted manually _and_ one or many of the inputs have been changed. Any tasks using those outputs as inputs for further processing are affected as
+well.
 
 The issue is documented by [issue #821](https://github.com/gradle/gradle/issues/821).
 
