@@ -33,7 +33,7 @@ import java.util.Properties;
 /**
  * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
  *
- * <p>There are a number of differences compared to {@link java.util.Properties#store(java.io.Writer, String)}:</p>
+ * <p>There are a number of differences compared to how properties are stored:</p>
  * <ul>
  *     <li>no timestamp comment is generated at the beginning of the file</li>
  *     <li>the lines in the resulting files are separated by a pre-set separator (defaults to
@@ -41,9 +41,10 @@ import java.util.Properties;
  *     <li>the properties are sorted alphabetically</li>
  * </ul>
  *
- * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters
- * are escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
+ * <p>Like with {@link java.util.Properties}, Unicode characters are escaped when using the
+ * default Latin-1 (ISO-8559-1) encoding.</p>
  *
+ * @see java.util.Properties#store(OutputStream, String)
  * @since 3.3
  */
 @Incubating
