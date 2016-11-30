@@ -35,6 +35,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             def flavor = Attribute.of(Flavor)
             def buildType = Attribute.of(BuildType)
+            def extra = Attribute.of('extra', String)
 
             project(':a') {
                configurationAttributesSchema {
@@ -42,6 +43,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                        compatibilityRules.addEqualityCheck()
                   }
                   configureMatchingStrategy(buildType) {
+                       compatibilityRules.addEqualityCheck()
+                  }
+               }
+            }
+            allprojects {
+               configurationAttributesSchema {
+                  configureMatchingStrategy(extra) {
                        compatibilityRules.addEqualityCheck()
                   }
                }

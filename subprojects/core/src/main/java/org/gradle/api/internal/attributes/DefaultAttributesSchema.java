@@ -21,25 +21,12 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.CompatibilityRuleChain;
-import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.internal.Cast;
 
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultAttributesSchema implements AttributesSchema {
-    private static final Action<? super AttributeMatchingStrategy<String>> STRING_MATCHING = new Action<AttributeMatchingStrategy<String>>() {
-        @Override
-        public void execute(AttributeMatchingStrategy<String> strategy) {
-            CompatibilityRuleChain<String> compatibilityRules = strategy.getCompatibilityRules();
-            compatibilityRules.add(new EqualityCompatibilityRule<String>());
-            compatibilityRules.eventuallyIncompatible();
-
-            DisambiguationRuleChain<String> disambiguationRules = strategy.getDisambiguationRules();
-            disambiguationRules.eventuallySelectAll();
-        }
-    };
 
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
 
@@ -47,9 +34,6 @@ public class DefaultAttributesSchema implements AttributesSchema {
     @SuppressWarnings("unchecked")
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
         AttributeMatchingStrategy<?> strategy = strategies.get(attribute);
-        if (strategy == null && String.class == attribute.getType()) {
-            strategy = configureMatchingStrategy(attribute, (Action<? super AttributeMatchingStrategy<T>>) STRING_MATCHING);
-        }
         if (strategy == null) {
             throw new IllegalArgumentException("Unable to find matching strategy for " + attribute);
         }

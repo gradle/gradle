@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserDataException;
@@ -120,11 +121,28 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import static java.util.Collections.singletonMap;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 import static org.gradle.util.GUtil.addMaps;
 import static org.gradle.util.GUtil.isTrue;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
+    private static final Action<AttributeMatchingStrategy<String>> ADD_EQUALITY_MATCHING = new Action<AttributeMatchingStrategy<String>>() {
+        @Override
+        public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
+            stringAttributeMatchingStrategy.getCompatibilityRules().addEqualityCheck();
+        }
+    };
+    private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
+        @Override
+        public void execute(AttributesSchema attributesSchema) {
+            attributesSchema.configureMatchingStrategy(ARTIFACT_FORMAT, ADD_EQUALITY_MATCHING);
+            attributesSchema.configureMatchingStrategy(ARTIFACT_CLASSIFIER, ADD_EQUALITY_MATCHING);
+            attributesSchema.configureMatchingStrategy(ARTIFACT_EXTENSION, ADD_EQUALITY_MATCHING);
+        }
+    };
 
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
@@ -235,6 +253,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         configurationAttributesSchema = services.get(AttributesSchema.class);
 
         populateModelRegistry(services.get(ModelRegistry.class));
+        configureSchema();
+    }
+
+    private void configureSchema() {
+        configurationAttributesSchema(CONFIGURE_DEFAULT_SCHEMA_ACTION);
     }
 
     static class BasicServicesRules extends RuleSource {

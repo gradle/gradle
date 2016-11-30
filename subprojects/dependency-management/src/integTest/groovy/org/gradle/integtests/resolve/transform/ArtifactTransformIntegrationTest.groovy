@@ -28,6 +28,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
 allprojects {
+    configurationAttributesSchema {
+       configureMatchingStrategy(Attribute.of('usage', String)) {
+          compatibilityRules.addEqualityCheck()
+       }
+    }
     configurations {
         compile {
             attributes usage: 'api'
@@ -353,13 +358,13 @@ class FileSizer extends ArtifactTransform {
                 }
 
                 File transform(File input, AttributeContainer target) {
-                   
+
                     if (target.getAttribute(Attribute.of('artifactType', String)).equals("size")) {
                         def outSize = new File(outputDirectory, input.name + ".size")
                         if (!outSize.exists()) {
                             outSize.text = String.valueOf(input.length())
                             println "Transforming to size"
-                        } 
+                        }
                         return outSize
                     }
                     if (target.getAttribute(Attribute.of('artifactType', String)).equals("hash")) {
@@ -367,9 +372,9 @@ class FileSizer extends ArtifactTransform {
                         if (!outHash.exists()) {
                             outHash.text = 'hash'
                             println "Transforming to hash"
-                        } 
+                        }
                         return outHash
-                    }             
+                    }
                 }
             }
             configurations {
