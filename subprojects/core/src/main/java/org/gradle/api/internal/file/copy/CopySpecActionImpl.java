@@ -31,18 +31,28 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
     private final CopyActionProcessingStreamAction action;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
+    private final boolean reproducibleFileOrder;
 
-    public CopySpecActionImpl(CopyActionProcessingStreamAction action, Instantiator instantiator, FileSystem fileSystem) {
+    public CopySpecActionImpl(CopyActionProcessingStreamAction action, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
         this.action = action;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
+        this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
     public void execute(final CopySpecResolver specResolver) {
+        if (reproducibleFileOrder) {
+            SortingStreamAction sortingStreamAction = new SortingStreamAction(action);
+            visitSpec(sortingStreamAction, specResolver);
+            sortingStreamAction.sort();
+        } else {
+            visitSpec(action, specResolver);
+        }
+    }
+
+    private void visitSpec(CopyActionProcessingStreamAction action, CopySpecResolver specResolver) {
         FileTree source = specResolver.getSource();
-        SortingStreamAction sortingStreamAction = new SortingStreamAction(action);
-        source.visit(new CopyFileVisitorImpl(specResolver, sortingStreamAction, instantiator, fileSystem));
-        sortingStreamAction.sort();
+        source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem));
     }
 
     public static class SortingStreamAction implements CopyActionProcessingStreamAction {

@@ -165,11 +165,13 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "order of files #files is not important"() {
+    def "order of files #files is not important for reproducible file order"() {
         given:
         createTestFiles()
         buildFile << """
             task zip(type: Zip) {
+                reproducibleFileOrder = true
+                fixedTimestamps = true
                 from files(${files.collect {"'${it}'"}.join(',')})
                 destinationDir = buildDir
                 archiveName = 'test.zip'
@@ -187,11 +189,12 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def "timestamps are ignored for reproducible jars"() {
+    def "timestamps can be ignored"() {
         given:
         createTestFiles()
         buildFile << """
             task zip(type: Zip) {
+                fixedTimestamps = true
                 from 'dir1'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
