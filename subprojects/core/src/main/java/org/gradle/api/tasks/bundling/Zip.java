@@ -41,8 +41,6 @@ public class Zip extends AbstractArchiveTask {
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
     private boolean allowZip64;
     private String metadataCharset;
-    // FIXME wolfs: True for now to see any side effects
-    private boolean fixedTimestamps = true;
 
     public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = reproducibleMillisForZip();
 
@@ -86,7 +84,7 @@ public class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset, fixedTimestamps);
+        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset, isFixedTimestamps());
     }
 
     /**
@@ -168,12 +166,4 @@ public class Zip extends AbstractArchiveTask {
         this.metadataCharset = metadataCharset;
     }
 
-    @Input
-    public boolean isFixedTimestamps() {
-        return fixedTimestamps;
-    }
-
-    public void setFixedTimestamps(boolean fixedTimestamps) {
-        this.fixedTimestamps = fixedTimestamps;
-    }
 }

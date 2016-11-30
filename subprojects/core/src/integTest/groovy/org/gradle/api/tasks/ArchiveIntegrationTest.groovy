@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks
 
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
@@ -23,10 +25,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.equalTo
 
-public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
+class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def canCopyFromAZip() {
         given:
@@ -92,6 +95,61 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
         then:
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+    }
+
+    def "can use fixed timestamps"() {
+        given:
+        createDir('test') {
+            file 'file1.txt'
+        }
+        and:
+        buildFile << '''
+            task tar(type: Tar) {
+                fixedTimestamps = true
+                from 'test'
+                include '**/*.txt'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+            }
+'''
+        when:
+        run 'tar'
+        then:
+        Files.hash(file('build/test.tar'), Hashing.md5()).toString() == 'f2d39f1058de40bc0bfd9ee875fa2c5b'
+    }
+
+    @Unroll
+    def "order of files #files for tar is not important for reproducible file order"() {
+        given:
+        createDir('dir1') {
+            file('file1.txt').text = 'file1'
+        }
+        createDir('dir2') {
+            file('file3.txt').text = 'file2'
+        }
+        createDir('dir3') {
+            file('file3.txt').text = 'file3'
+        }
+
+        buildFile << """
+            task tar(type: Tar) {
+                fixedTimestamps = true     
+                reproducibleFileOrder = true
+                from files(${files.collect {"'${it}'"}.join(',')})
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+            }
+        """.stripIndent()
+
+        when:
+        run 'tar'
+
+        then:
+        Files.hash(file('build/test.tar'), Hashing.md5()).toString() == 'f03e910d1711b5cc279c04f8f13b2816'
+
+        where:
+        files << ['dir1/file1.txt', 'dir2/file2.txt', 'dir3/file3.txt'].permutations()
+
     }
 
     def "handles gzip compressed tars"() {
@@ -652,7 +710,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def ensureDuplicatesIncludedInTarByDefault() {
         given:
-        createFilesStructureForDupeTests();
+        createFilesStructureForDupeTests()
         buildFile << '''
             task tar(type: Tar) {
                 from 'dir1'

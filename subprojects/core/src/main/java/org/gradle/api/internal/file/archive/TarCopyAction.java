@@ -36,10 +36,12 @@ import java.io.OutputStream;
 public class TarCopyAction implements CopyAction {
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
+    private final boolean fixedTimestamps;
 
-    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor) {
+    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, boolean fixedTimestamps) {
         this.tarFile = tarFile;
         this.compressor = compressor;
+        this.fixedTimestamps = fixedTimestamps;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -87,7 +89,7 @@ public class TarCopyAction implements CopyAction {
         private void visitFile(FileCopyDetails fileDetails) {
             try {
                 TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setModTime(fileDetails.getLastModified());
+                archiveEntry.setModTime(fixedTimestamps ? 0 : fileDetails.getLastModified());
                 archiveEntry.setSize(fileDetails.getSize());
                 archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getMode());
                 tarOutStr.putNextEntry(archiveEntry);
