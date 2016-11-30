@@ -16,7 +16,7 @@
 
 def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url'] ?: System.getProperty('gradle.cache.remote.url')
 if (remoteCacheUrl) {
-    gradle.taskCaching.useCacheFactory(new org.gradle.cache.tasks.http.HttpTaskOutputCacheFactory(new URI(remoteCacheUrl)))
+    gradle.buildCache.useCacheFactory(new org.gradle.cache.http.HttpBuildCacheFactory(new URI(remoteCacheUrl)))
 } else {
-    throw new RuntimeException("HTTP task cache URL must be specified (set -Dgradle.cache.remote.url)")
+    throw new RuntimeException("HTTP build cache URL must be specified (set -Dgradle.cache.remote.url)")
 }
