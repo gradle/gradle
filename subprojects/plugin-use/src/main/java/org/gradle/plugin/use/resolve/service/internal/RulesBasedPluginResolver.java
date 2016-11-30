@@ -32,11 +32,11 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public class RulesBasedPluginResolver implements PluginResolver {
 
-    private final Action<PluginDependencyHandler> resolution;
+    private final Action<? super PluginDependencyHandler> resolution;
     private final String description;
     private final ResolutionServiceResolver resolutionServiceResolver;
 
-    public RulesBasedPluginResolver(Action<PluginDependencyHandler> resolution, String description, ResolutionServiceResolver resolutionServiceResolver) {
+    public RulesBasedPluginResolver(Action<? super PluginDependencyHandler> resolution, String description, ResolutionServiceResolver resolutionServiceResolver) {
         this.resolution = resolution;
         this.description = description;
         this.resolutionServiceResolver = resolutionServiceResolver;

@@ -85,7 +85,7 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     }
 
     @Override
-    public RuleBasedPluginRepository rulesBasedPluginRepository(Action<? super RuleBasedPluginRepository> action) {
+    public RuleBasedPluginRepository rules(Action<? super RuleBasedPluginRepository> action) {
         DefaultRuleBasedPluginRepository pluginRepository = new DefaultRuleBasedPluginRepository(resolutionServiceResolver);
         action.execute(pluginRepository);
         return pluginRepository;

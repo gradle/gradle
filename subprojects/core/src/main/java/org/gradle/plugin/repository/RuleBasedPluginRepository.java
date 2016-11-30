@@ -26,7 +26,7 @@ public interface RuleBasedPluginRepository extends PluginRepository {
 
     void setDescription(String description);
 
-    void artifactRepositories(Action<RepositoryHandler> action);
+    void artifactRepositories(Action<? super RepositoryHandler> action);
 
-    void pluginResolution(Action<PluginDependencyHandler> resolution);
+    void pluginResolution(Action<? super PluginDependencyHandler> resolution);
 }
