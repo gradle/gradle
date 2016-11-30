@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
@@ -63,7 +63,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
 
     @Override
     public String toString() {
-        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", owner, getName(), getClassifier(), getExtension(), getType());
+        return artifactId.getDisplayName();
     }
 
     @Override
