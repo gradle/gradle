@@ -36,8 +36,8 @@ public class DefaultRuleBasedPluginRepository implements RuleBasedPluginReposito
     private final ResolutionServiceResolver resolutionServiceResolver;
 
     private String description = "Default rule based plugin repository";
-    private Action<PluginDependencyHandler> ruleBasedPluginResolution = new EmptyAction<PluginDependencyHandler>();
-    private Action<RepositoryHandler> repositoriesAction = new EmptyAction<RepositoryHandler>();
+    private Action<? super PluginDependencyHandler> ruleBasedPluginResolution = new EmptyAction<PluginDependencyHandler>();
+    private Action<? super RepositoryHandler> repositoriesAction = new EmptyAction<RepositoryHandler>();
 
     public DefaultRuleBasedPluginRepository(ResolutionServiceResolver resolutionServiceResolver) {
         this.resolutionServiceResolver = resolutionServiceResolver;
@@ -54,12 +54,12 @@ public class DefaultRuleBasedPluginRepository implements RuleBasedPluginReposito
     }
 
     @Override
-    public void artifactRepositories(Action<RepositoryHandler> repositoriesAction) {
+    public void artifactRepositories(Action<? super RepositoryHandler> repositoriesAction) {
         this.repositoriesAction = repositoriesAction;
     }
 
     @Override
-    public void pluginResolution(Action<PluginDependencyHandler> resolution) {
+    public void pluginResolution(Action<? super PluginDependencyHandler> resolution) {
         this.ruleBasedPluginResolution = resolution;
     }
 
