@@ -25,10 +25,12 @@ public class EqualityCompatibilityRule<T> implements CompatibilityRule<T> {
     public void checkCompatibility(CompatibilityCheckDetails<T> details) {
         AttributeValue<T> consumerValue = details.getConsumerValue();
         AttributeValue<T> producerValue = details.getProducerValue();
-        if (consumerValue.equals(producerValue)) {
-            details.compatible();
-        } else {
-            details.incompatible();
+        if (consumerValue.isPresent() && producerValue.isPresent()) {
+            if (consumerValue.equals(producerValue)) {
+                details.compatible();
+            } else {
+                details.incompatible();
+            }
         }
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.internal.Cast;
 
 import java.util.NoSuchElementException;
@@ -41,11 +42,21 @@ public class AttributeValue<T> {
         public boolean isMissing() {
             return true;
         }
+
+        @Override
+        public Object get() {
+            throw new InvalidUserCodeException("get() should not be called on a missing attribute value");
+        }
     };
     private final static AttributeValue<Object> UNKNOWN = new AttributeValue<Object>(null) {
         @Override
         public boolean isUnknown() {
             return true;
+        }
+
+        @Override
+        public Object get() {
+            throw new InvalidUserCodeException("get() should not be called on an unknown attribute value");
         }
     };
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRule;
 import org.gradle.api.attributes.OrderedCompatibilityRule;
 import org.gradle.api.attributes.OrderedDisambiguationRule;
@@ -25,6 +26,23 @@ import java.util.Comparator;
 
 public abstract class AttributeMatchingRules {
     private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
+    private static final CompatibilityRule OPTIONAL_ON_PRODUCER = new CompatibilityRule() {
+        @Override
+        public void checkCompatibility(CompatibilityCheckDetails details) {
+            if (details.getProducerValue().isMissing() || details.getProducerValue().isUnknown()) {
+                details.compatible();
+            }
+        }
+    };
+
+    private static final CompatibilityRule OPTIONAL_ON_CONSUMER = new CompatibilityRule() {
+        @Override
+        public void checkCompatibility(CompatibilityCheckDetails details) {
+            if (details.getConsumerValue().isMissing() || details.getConsumerValue().isUnknown()) {
+                details.compatible();
+            }
+        }
+    };
 
     public static <T> CompatibilityRule<T> equalityCompatibility() {
         return Cast.uncheckedCast(EQUALITY_RULE);
@@ -36,5 +54,13 @@ public abstract class AttributeMatchingRules {
 
     public static <T> OrderedDisambiguationRule<T> orderedDisambiguation(Comparator<? super T> comparator) {
         return new DefaultOrderedDisambiguationRule<T>(comparator);
+    }
+
+    public static <T> CompatibilityRule<T> optionalOnProducer() {
+        return Cast.uncheckedCast(OPTIONAL_ON_PRODUCER);
+    }
+
+    public static <T> CompatibilityRule<T> optionalOnConsumer() {
+        return Cast.uncheckedCast(OPTIONAL_ON_CONSUMER);
     }
 }

@@ -27,7 +27,7 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
             def buildType = Attribute.of('buildType', String)
             def extra = Attribute.of('extra', String)
 
-            project(':a') {
+            allprojects {
                configurationAttributesSchema {
                   configureMatchingStrategy(flavor) {
                        compatibilityRules.addEqualityCheck()
@@ -35,10 +35,6 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
                   configureMatchingStrategy(buildType) {
                        compatibilityRules.addEqualityCheck()
                   }
-               }
-            }
-            allprojects {
-               configurationAttributesSchema {
                   configureMatchingStrategy(extra) {
                        compatibilityRules.addEqualityCheck()
                   }

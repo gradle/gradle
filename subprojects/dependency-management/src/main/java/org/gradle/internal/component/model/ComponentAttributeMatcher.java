@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -38,69 +37,65 @@ import java.util.Map;
 import java.util.Set;
 
 public class ComponentAttributeMatcher {
-    public static final Function<Object, AttributeValue<Object>> CANDIDATE_VALUES_TRANSFORM = new Function<Object, AttributeValue<Object>>() {
-        @Override
-        public AttributeValue<Object> apply(Object input) {
-            return AttributeValue.of(input);
-        }
-    };
+
     private final AttributesSchema consumerAttributeSchema;
     private final AttributesSchema producerAttributeSchema;
     private final Map<HasAttributes, MatchDetails> matchDetails = Maps.newHashMap();
-    private final AttributeContainer requestedAttributesContainer;
+    private final AttributeContainer consumerAttributesContainer;
+    private final Set<Attribute<?>> attributesToConsider;
 
     public ComponentAttributeMatcher(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
                                      Iterable<HasAttributes> candidates, //configAttributes + artifactAttributes
-                                     AttributeContainer requestedAttributesContainer) {
+                                     AttributeContainer consumerAttributesContainer,
+                                     Set<Attribute<?>> attributesToConsider) {
         this.consumerAttributeSchema = consumerAttributeSchema;
         this.producerAttributeSchema = producerAttributeSchema;
-        Set<Attribute<?>> requestedAttributeSet = requestedAttributesContainer.keySet();
         for (HasAttributes cand : candidates) {
-            boolean hasAllAttributes = cand.getAttributes().keySet().containsAll(requestedAttributeSet);
-            matchDetails.put(cand, new MatchDetails(hasAllAttributes));
+            if (!cand.getAttributes().isEmpty()) {
+                matchDetails.put(cand, new MatchDetails());
+            }
         }
-        this.requestedAttributesContainer = requestedAttributesContainer;
+        this.consumerAttributesContainer = consumerAttributesContainer;
+        this.attributesToConsider = attributesToConsider;
         doMatch();
     }
 
     private void doMatch() {
-        Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requestedAttributesContainer.keySet());
+        Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(consumerAttributesContainer.keySet());
         for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
             HasAttributes key = entry.getKey();
             MatchDetails details = entry.getValue();
-            AttributeContainer dependencyAttributesContainer = key.getAttributes();
-            Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(dependencyAttributesContainer.keySet());
-            Set<Attribute<Object>> commonAttributes = Sets.intersection(requestedAttributes, dependencyAttributes);
-            for (Attribute<Object> attribute : commonAttributes) {
-                AttributeMatchingStrategy<Object> strategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
-                try {
-                    details.update(attribute, strategy, requestedAttributesContainer.getAttribute(attribute), dependencyAttributesContainer.getAttribute(attribute));
-                } catch (Exception ex) {
-                    throw new GradleException("Unexpected error thrown when trying to match attribute values with " + strategy, ex);
-                }
+            AttributeContainer producerAttributesContainer = key.getAttributes();
+            Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(producerAttributesContainer.keySet());
+            Set<Attribute<Object>> filter = Cast.uncheckedCast(attributesToConsider);
+            Set<Attribute<Object>> allAttributes = filter!=null ? filter : Sets.union(requestedAttributes, dependencyAttributes);
+            for (Attribute<Object> attribute : allAttributes) {
+                AttributeValue<Object> consumerValue = attributeValue(attribute, consumerAttributeSchema, consumerAttributesContainer);
+                AttributeValue<Object> producerValue = attributeValue(attribute, producerAttributeSchema, producerAttributesContainer);
+                details.update(attribute, consumerAttributeSchema, producerAttributeSchema, consumerValue, producerValue);
             }
         }
     }
 
-    public List<? extends HasAttributes> getFullMatchs() {
+    private static AttributeValue<Object> attributeValue(Attribute<Object> attribute, AttributesSchema schema, AttributeContainer container) {
+        AttributeValue<Object> attributeValue;
+        if (schema.hasAttribute(attribute)) {
+            attributeValue = container.contains(attribute) ? AttributeValue.of(container.getAttribute(attribute)) : AttributeValue.missing();
+        } else {
+            attributeValue = AttributeValue.unknown();
+        }
+        return attributeValue;
+    }
+
+    public List<? extends HasAttributes> getMatchs() {
         List<HasAttributes> matchs = new ArrayList<HasAttributes>(1);
         for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
             MatchDetails details = entry.getValue();
-            if (details.isFullMatch && details.hasAllAttributes) {
+            if (details.compatible) {
                 matchs.add(entry.getKey());
             }
         }
         return disambiguateUsingClosestMatch(matchs);
-    }
-
-    public boolean hasFailingMatches() {
-        for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
-            MatchDetails details = entry.getValue();
-            if (details.failure) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private List<HasAttributes> disambiguateUsingClosestMatch(List<HasAttributes> matchs) {
@@ -124,19 +119,19 @@ public class ComponentAttributeMatcher {
         for (HasAttributes match : matchs) {
             AttributeContainer attributes = match.getAttributes();
             for (Attribute<?> attribute : attributes.keySet()) {
-                if (!requestedAttributesContainer.contains(attribute)) {
+                if (!consumerAttributesContainer.contains(attribute)) {
                     producerOnlyAttributes.add(attribute);
                 }
             }
         }
         Set<Attribute<?>> consumerAttributes = consumerAttributeSchema.getAttributes();
         List<HasAttributes> remainingMatches = Lists.newArrayList(matchs);
-        final Map<HasAttributes, Object> values = Maps.newHashMap();
+        final Map<HasAttributes, AttributeValue<Object>> values = Maps.newHashMap();
         for (Attribute<?> attribute : producerOnlyAttributes) {
             for (HasAttributes match : matchs) {
                 Object maybeProvided = match.getAttributes().getAttribute(attribute);
                 if (maybeProvided != null) {
-                    values.put(match, maybeProvided);
+                    values.put(match, AttributeValue.of(maybeProvided));
                 }
             }
             if (!values.isEmpty()) {
@@ -151,7 +146,7 @@ public class ComponentAttributeMatcher {
 
                     @Override
                     public Map<HasAttributes, AttributeValue<Object>> getCandidateValues() {
-                        return Maps.transformValues(values, CANDIDATE_VALUES_TRANSFORM);
+                        return values;
                     }
 
                     @Override
@@ -176,28 +171,17 @@ public class ComponentAttributeMatcher {
         return matchs;
     }
 
-    public List<? extends HasAttributes> getPartialMatchs() {
-        List<HasAttributes> matchs = new ArrayList<HasAttributes>(1);
-        for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
-            MatchDetails details = entry.getValue();
-            if (!details.failure && !details.matchesByAttribute.isEmpty() && !details.hasAllAttributes) {
-                matchs.add(entry.getKey());
-            }
-        }
-        return disambiguateUsingClosestMatch(matchs);
-    }
-
     private List<HasAttributes> selectClosestMatches(List<HasAttributes> fullMatches) {
-        Set<Attribute<?>> requestedAttributes = requestedAttributesContainer.keySet();
+        Set<Attribute<?>> requestedAttributes = consumerAttributesContainer.keySet();
         // if there's more than one compatible match, prefer the closest. However there's a catch.
         // We need to look at all candidates globally, and select the closest match for each attribute
         // then see if there's a non-empty intersection.
         List<HasAttributes> remainingMatches = Lists.newArrayList(fullMatches);
-        final Map<HasAttributes, Object> values = Maps.newHashMap();
+        final Map<HasAttributes, AttributeValue<Object>> values = Maps.newHashMap();
         for (Attribute<?> attribute : requestedAttributes) {
-            Object requestedValue = requestedAttributesContainer.getAttribute(attribute);
+            Object requestedValue = consumerAttributesContainer.getAttribute(attribute);
             for (HasAttributes match : fullMatches) {
-                Map<Attribute<Object>, Object> matchedAttributes = matchDetails.get(match).matchesByAttribute;
+                Map<Attribute<Object>, AttributeValue<Object>> matchedAttributes = matchDetails.get(match).matchesByAttribute;
                 values.put(match, matchedAttributes.get(attribute));
             }
             AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
@@ -211,7 +195,7 @@ public class ComponentAttributeMatcher {
 
                 @Override
                 public Map<HasAttributes, AttributeValue<Object>> getCandidateValues() {
-                    return Maps.transformValues(values, CANDIDATE_VALUES_TRANSFORM);
+                    return values;
                 }
 
                 @Override
@@ -236,42 +220,44 @@ public class ComponentAttributeMatcher {
     }
 
     private static class MatchDetails {
-        private final Map<Attribute<Object>, Object> matchesByAttribute = Maps.newHashMap();
-        private final boolean hasAllAttributes;
+        private final Map<Attribute<Object>, AttributeValue<Object>> matchesByAttribute = Maps.newHashMap();
 
-        private boolean failure;
-        private boolean isFullMatch;
+        private boolean compatible = true;
 
-        private MatchDetails(boolean hasAllAttributes) {
-            this.hasAllAttributes = hasAllAttributes;
-            this.isFullMatch = hasAllAttributes;
-        }
-
-        private void update(final Attribute<Object> attribute, AttributeMatchingStrategy<Object> strategy, final Object requested, final Object provided) {
+        private void update(final Attribute<Object> attribute, final AttributesSchema consumerSchema, final AttributesSchema producerSchema, final AttributeValue<Object> consumerValue, final AttributeValue<Object> producerValue) {
+            AttributesSchema schemaToUse = consumerSchema;
+            if (consumerValue.isUnknown() || consumerValue.isMissing()) {
+                // We need to use the producer schema in this case
+                schemaToUse = producerSchema;
+            }
             CompatibilityCheckDetails<Object> details = new CompatibilityCheckDetails<Object>() {
                 @Override
                 public AttributeValue<Object> getConsumerValue() {
-                    return AttributeValue.of(requested);
+                    return consumerValue;
                 }
 
                 @Override
                 public AttributeValue<Object> getProducerValue() {
-                    return AttributeValue.of(provided);
+                    return producerValue;
                 }
 
                 @Override
                 public void compatible() {
-                    matchesByAttribute.put(attribute, provided);
+                    matchesByAttribute.put(attribute, producerValue);
                 }
 
                 @Override
                 public void incompatible() {
-                    isFullMatch = false;
-                    failure = true;
+                    compatible = false;
                 }
             };
+            AttributeMatchingStrategy<Object> strategy = schemaToUse.getMatchingStrategy(attribute);
             CompatibilityRuleChainInternal<Object> compatibilityRules = (CompatibilityRuleChainInternal<Object>) strategy.getCompatibilityRules();
-            compatibilityRules.checkCompatibility(details);
+            try {
+                compatibilityRules.checkCompatibility(details);
+            } catch (Exception ex) {
+                throw new GradleException("Unexpected error thrown when trying to match attribute values with " + strategy, ex);
+            }
         }
     }
 }

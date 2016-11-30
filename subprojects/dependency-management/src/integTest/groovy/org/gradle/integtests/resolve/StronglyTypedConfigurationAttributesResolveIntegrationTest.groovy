@@ -37,7 +37,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def buildType = Attribute.of(BuildType)
             def extra = Attribute.of('extra', String)
 
-            project(':a') {
+            allprojects {
                configurationAttributesSchema {
                   configureMatchingStrategy(flavor) {
                        compatibilityRules.addEqualityCheck()
@@ -45,10 +45,6 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   configureMatchingStrategy(buildType) {
                        compatibilityRules.addEqualityCheck()
                   }
-               }
-            }
-            allprojects {
-               configurationAttributesSchema {
                   configureMatchingStrategy(extra) {
                        compatibilityRules.addEqualityCheck()
                   }
@@ -106,6 +102,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(Attribute.of('flavor', String)) {
+                        compatibilityRules.addEqualityCheck()
+                    }
+                    configureMatchingStrategy(Attribute.of('buildType', String)) {
+                        compatibilityRules.addEqualityCheck()
+                    }
+                }
                 configurations {
                     create('default')
                     foo {
@@ -152,12 +156,20 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':a') {
                configurationAttributesSchema {
                   configureMatchingStrategy(flavor) {
+                      compatibilityRules.rules = []
                       compatibilityRules.add { details ->
                            if (details.consumerValue.present && details.producerValue.present) {
                                if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
                                    details.compatible()
                                }
                            }
+                      }
+                      disambiguationRules.add { details ->
+                         details.candidateValues.each { candidate, producerValue ->
+                            if (details.consumerValue == producerValue) {
+                                details.closestMatch(candidate)
+                            }
+                         }
                       }
                   }
                }
@@ -425,6 +437,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnConsumer()
+                    }
+                }
                 configurations {
                     foo.attributes($free, $debug)
                     bar.attributes($paid, $debug)
@@ -467,11 +484,26 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   configureMatchingStrategy(dummy) {
                       compatibilityRules.addEqualityCheck()
                   }
-                  configureMatchingStrategy(arch) {
+               }
+            }
+
+            project(':b') {
+               configurationAttributesSchema {
+                    configureMatchingStrategy(arch) {
                        compatibilityRules.addEqualityCheck()
+                       compatibilityRules.optionalOnConsumer()
                        disambiguationRules.addOrderedDisambiguation { a,b -> a<=>b }
                   }
                }
+            }
+            project(':c') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(arch) {
+                       compatibilityRules.addEqualityCheck()
+                       compatibilityRules.optionalOnConsumer()
+                       disambiguationRules.addOrderedDisambiguation { a,b -> a<=>b }
+                    }
+                }
             }
 
             project(':a') {

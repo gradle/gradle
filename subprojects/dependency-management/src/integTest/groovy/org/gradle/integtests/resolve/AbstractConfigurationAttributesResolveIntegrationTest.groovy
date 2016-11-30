@@ -435,6 +435,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
                 }
@@ -491,6 +496,14 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                    configureMatchingStrategy(buildType) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
                 }
@@ -535,7 +548,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [bar, foo]. All of them partially match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
@@ -565,6 +578,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
+                 configurationAttributesSchema {
+                    configureMatchingStrategy(extra) {
+                        compatibilityRules.optionalOnConsumer()
+                    }
+                }
                 configurations {
                     foo {
                        attributes($freeDebug, extra: 'extra')
@@ -669,6 +687,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
+                 configurationAttributesSchema {
+                    configureMatchingStrategy(extra) {
+                        compatibilityRules.optionalOnConsumer()
+                    }
+                }
                 configurations {
                     foo {
                        attributes($freeDebug, extra: 'extra')
@@ -732,6 +755,14 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                 configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                    configureMatchingStrategy(buildType) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
                 configurations {
                     compile.attributes($freeDebug)
                 }
@@ -764,7 +795,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [compile, debug]. All of them partially match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations: [compile, debug]. All of them match the consumer attributes:
    - Configuration 'compile' :
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
@@ -1007,7 +1038,14 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
-
+            allprojects {
+                 configurationAttributesSchema {
+                    configureMatchingStrategy(extra) {
+                        compatibilityRules.optionalOnConsumer()
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
+            }
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
@@ -1264,6 +1302,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
                 }
@@ -1326,6 +1369,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnConsumer()
+                    }
+                }
                 configurations {
                     foo {
                        attributes($freeDebug) // match on `buildType`
@@ -1361,6 +1409,17 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
+
+            allprojects {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(flavor) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                    configureMatchingStrategy(buildType) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
+            }
 
             project(':a') {
                 configurations {
@@ -1437,6 +1496,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                configurationAttributesSchema {
+                    configureMatchingStrategy(extra) {
+                        compatibilityRules.optionalOnProducer()
+                    }
+                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug, extra: 'EXTRA')
                 }

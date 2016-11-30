@@ -39,12 +39,10 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key, "value1")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
+        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
 
         then:
-        matcher.fullMatchs == [candidate]
-        matcher.partialMatchs == []
-        !matcher.hasFailingMatches()
+        matcher.matchs == [candidate]
     }
 
     def "Matching two exactly similar attributes in presence of another one gives a partial match" () {
@@ -55,6 +53,7 @@ class ComponentAttributeMatcherTest extends Specification {
         }
         schema.configureMatchingStrategy(key2) {
             it.compatibilityRules.addEqualityCheck()
+            it.compatibilityRules.optionalOnProducer()
         }
 
         given:
@@ -65,12 +64,10 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key2, "value2")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
+        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
 
         then:
-        matcher.fullMatchs == []
-        matcher.partialMatchs == [candidate]
-        !matcher.hasFailingMatches()
+        matcher.matchs == [candidate]
     }
 
     def "Matching two attributes with distinct types gives no match and also no failure" () {
@@ -90,12 +87,10 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key2, "value1")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
+        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
 
         then:
-        matcher.fullMatchs == []
-        matcher.partialMatchs == []
-        !matcher.hasFailingMatches()
+        matcher.matchs == []
     }
 
     def "Matching two attributes with same type but different value gives no match but a failure" () {
@@ -111,11 +106,9 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key, "value2")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
+        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
 
         then:
-        matcher.fullMatchs == []
-        matcher.partialMatchs == []
-        matcher.hasFailingMatches()
+        matcher.matchs == []
     }
 }

@@ -51,4 +51,6 @@ public interface AttributesSchema {
     <T> AttributeMatchingStrategy<T> configureMatchingStrategy(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
 
     Set<Attribute<?>> getAttributes();
+
+    boolean hasAttribute(Attribute<?> key);
 }
