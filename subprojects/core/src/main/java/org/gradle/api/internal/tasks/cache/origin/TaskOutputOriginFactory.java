@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-public class TaskOutputOriginMetadataFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginMetadataFactory.class);
+public class TaskOutputOriginFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginFactory.class);
     private static final List<String> METADATA_KEYS = Arrays.asList("type", "path", "gradleVersion", "creationTime", "executionTime", "rootPath", "operatingSystem", "hostName", "userName");
 
     private final InetAddressFactory inetAddressFactory;
@@ -46,7 +46,7 @@ public class TaskOutputOriginMetadataFactory {
     private final GradleVersion gradleVersion;
     private final File rootDir;
 
-    public TaskOutputOriginMetadataFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion) {
+    public TaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion) {
         this.inetAddressFactory = inetAddressFactory;
         this.rootDir = rootDir;
         this.userName = userName;

@@ -49,7 +49,7 @@ import org.gradle.api.internal.tasks.cache.OutputPreparingTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TarTaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
-import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginMetadataFactory;
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginFactory;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
@@ -88,7 +88,7 @@ import java.util.List;
 
 public class TaskExecutionServices {
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, TaskOutputOriginMetadataFactory taskOutputOriginMetadataFactory) {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, TaskOutputOriginFactory taskOutputOriginFactory) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -112,7 +112,7 @@ public class TaskExecutionServices {
                                             gradle.getBuildCache(),
                                             packer,
                                             taskOutputsGenerationListener,
-                                            taskOutputOriginMetadataFactory,
+                                            taskOutputOriginFactory,
                                             createVerifyNoInputChangesExecuterIfNecessary(
                                                 startParameter,
                                                 repository,
@@ -132,9 +132,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginMetadataFactory taskOutputOriginMetadataFactory, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginFactory taskOutputOriginFactory, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskOutputOriginMetadataFactory, buildCacheConfiguration, packer, startParameter, taskOutputsGenerationListener, delegate);
+            return new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, packer, startParameter, taskOutputsGenerationListener, delegate);
         } else {
             return delegate;
         }
@@ -214,8 +214,8 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskOutputOriginMetadataFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
+    TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new TaskOutputOriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
+        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
     }
 }

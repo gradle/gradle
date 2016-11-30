@@ -22,12 +22,12 @@ import org.gradle.internal.time.TimeProvider
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
-class TaskOutputOriginMetadataFactoryTest extends Specification {
+class TaskOutputOriginFactoryTest extends Specification {
     def task = Mock(TaskInternal)
     def timeProvider = Mock(TimeProvider)
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
-    def converter = new TaskOutputOriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"))
+    def converter = new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"))
 
     def "converts to origin metadata"() {
         timeProvider.currentTime >> 0

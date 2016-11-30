@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal;
-import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginMetadataFactory;
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginFactory;
 import org.gradle.cache.BuildCache;
 import org.gradle.cache.BuildCacheEntryReader;
 import org.gradle.cache.BuildCacheEntryWriter;
@@ -50,11 +50,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
-    private final TaskOutputOriginMetadataFactory taskOutputOriginMetadataFactory;
+    private final TaskOutputOriginFactory taskOutputOriginFactory;
     private BuildCache cache;
 
-    public SkipCachedTaskExecuter(TaskOutputOriginMetadataFactory taskOutputOriginMetadataFactory, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, StartParameter startParameter, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
-        this.taskOutputOriginMetadataFactory = taskOutputOriginMetadataFactory;
+    public SkipCachedTaskExecuter(TaskOutputOriginFactory taskOutputOriginFactory, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, StartParameter startParameter, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+        this.taskOutputOriginFactory = taskOutputOriginFactory;
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.startParameter = startParameter;
         this.packer = packer;
@@ -100,7 +100,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                         boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                             @Override
                                             public void readFrom(final InputStream input) throws IOException {
-                                                packer.unpack(taskOutputs, input, taskOutputOriginMetadataFactory.createReader(task));
+                                                packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
                                                 LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                             }
                                         });
@@ -144,7 +144,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             @Override
                             public void writeTo(OutputStream output) throws IOException {
                                 LOGGER.info("Packing {}", task.getPath());
-                                packer.pack(taskOutputs, output, taskOutputOriginMetadataFactory.createWriter(task, clock.getElapsedMillis()));
+                                packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
                             }
                         });
                     } catch (Exception e) {

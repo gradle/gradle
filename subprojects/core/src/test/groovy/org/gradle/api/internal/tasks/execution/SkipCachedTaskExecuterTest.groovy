@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker
 import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal
-import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginMetadataFactory
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginFactory
 import org.gradle.cache.BuildCache
 import org.gradle.cache.BuildCacheFactory
 import org.gradle.cache.BuildCacheKey
@@ -49,10 +49,10 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
     def cacheKey = Mock(BuildCacheKey)
-    def taskOutputOriginMetadataFactory = Mock(TaskOutputOriginMetadataFactory)
+    def taskOutputOriginFactory = Mock(TaskOutputOriginFactory)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
-    def executer = new SkipCachedTaskExecuter(taskOutputOriginMetadataFactory, buildCacheConfiguration, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
+    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
         when:
