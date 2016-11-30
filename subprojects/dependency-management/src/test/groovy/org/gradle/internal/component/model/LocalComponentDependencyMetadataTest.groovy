@@ -23,12 +23,13 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.attributes.AttributeMatchingRules
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
@@ -36,16 +37,16 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class LocalComponentDependencyMetadataTest extends Specification {
-    def attributesSchema = Mock(AttributesSchema) {
-        getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
-            checkCompatibility(_) >> { args ->
-                def details = args[0]
-                if (details.consumerValue.get() == details.producerValue.get()) {
-                    details.compatible()
-                } else {
-                    details.incompatible()
-                }
-            }
+    AttributeMatchingStrategy defaultMatchingStrategy
+    AttributesSchema attributesSchema
+
+    def setup() {
+        defaultMatchingStrategy = new DefaultAttributeMatchingStrategy()
+        attributesSchema = Mock(AttributesSchema) {
+            getMatchingStrategy(_) >> defaultMatchingStrategy
+        }
+        defaultMatchingStrategy.with {
+            compatibilityRules.add(AttributeMatchingRules.equalityCompatibility())
         }
     }
 
@@ -155,27 +156,18 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeResolved() >> false
             isCanBeConsumed() >> true
         }
-        def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
+        def schema = Mock(AttributesSchema) {
             getMatchingStrategy(_) >> { args ->
                 def attr = args[0]
                 if (attr.name == 'platform') {
-                    return new JavaCompileVersionStrategy()
-                } else {
-                    return Mock(AttributeMatchingStrategy) {
-                        checkCompatibility(_) >> { cargs ->
-                            def details = cargs[0]
-                            if (details.consumerValue.get() == details.producerValue.get()) {
-                                details.compatible()
-                            } else {
-                                details.incompatible()
-                            }
-                        }
-                        selectClosestMatch(_) >> { cargs ->
-                            def details = cargs[0]
-                            details.candidateValues.keySet().each { details.closestMatch(it) }
-                        }
+                    def strategy = new DefaultAttributeMatchingStrategy()
+                    strategy.with {
+                        compatibilityRules.add(AttributeMatchingRules.orderedCompatibility().reverseOrder())
+                        disambiguationRules.add(AttributeMatchingRules.orderedDisambiguation())
                     }
+                    return strategy
                 }
+                return defaultMatchingStrategy
             }
         }
 
@@ -186,7 +178,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         expect:
         try {
-            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributeSchemaWithCompatibility)*.name as Set
+            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent, schema)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -286,22 +278,32 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
         }
-
         def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
-            getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
-                checkCompatibility(_) >> { cargs ->
-                    def details = cargs[0]
-                    def requested = details.consumerValue.get()
-                    def candidate = details.producerValue.get()
-                    if (candidate == 'something') {
-                        details.incompatible()
-                    } else if (requested == candidate || // simulate exact match
-                        (requested == 'other' && candidate == 'something else')) { // simulate compatible match) {
-                        details.compatible()
-                    } else {
-                        details.incompatible()
+            getMatchingStrategy(_) >> { args ->
+                def strategy = new DefaultAttributeMatchingStrategy()
+                strategy.with {
+                    compatibilityRules.add { CompatibilityCheckDetails details ->
+                        def candidate = details.producerValue.get()
+                        if (candidate == 'something') {
+                            details.incompatible()
+                        }
+                    }
+                    compatibilityRules.add { CompatibilityCheckDetails details ->
+                        def requested = details.consumerValue.get()
+                        def candidate = details.producerValue.get()
+                        if (requested == candidate) { // simulate exact match
+                            details.compatible()
+                        }
+                    }
+                    compatibilityRules.add { CompatibilityCheckDetails details ->
+                        def requested = details.consumerValue.get()
+                        def candidate = details.producerValue.get()
+                        if (requested == 'other' && candidate == 'something else') { // simulate compatible match
+                            details.compatible()
+                        }
                     }
                 }
+                return strategy
             }
         }
 
@@ -398,27 +400,4 @@ class LocalComponentDependencyMetadataTest extends Specification {
         JAVA9
     }
 
-    public class JavaCompileVersionStrategy implements AttributeMatchingStrategy<JavaVersion> {
-
-        @Override
-        void checkCompatibility(CompatibilityCheckDetails<JavaVersion> details) {
-            def consumerValue = details.consumerValue
-            def producerValue = details.producerValue
-            if (consumerValue.present && producerValue.present) {
-                if (producerValue.get().ordinal() <= consumerValue.get().ordinal()) {
-                    details.compatible()
-                    return
-                }
-            }
-            details.incompatible()
-        }
-
-        @Override
-        def void selectClosestMatch(MultipleCandidatesDetails<JavaVersion> details) {
-            def maxCompat = details.candidateValues.values().sort { it.get().ordinal() }.last().get()
-            details.candidateValues.findAll { it.value.get() == maxCompat }*.key.each {
-                details.closestMatch(it)
-            }
-        }
-    }
 }

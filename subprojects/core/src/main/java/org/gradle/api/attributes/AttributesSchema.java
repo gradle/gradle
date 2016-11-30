@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import java.util.Set;
@@ -31,14 +32,6 @@ import java.util.Set;
 public interface AttributesSchema {
 
     /**
-     * Sets the attribute matching strategy of an attribute.
-     * @param attribute the attribute to set the strategy for
-     * @param strategy the strategy to assiociate with this attribute
-     * @param <T> the type of the attribute
-     */
-    <T> void setMatchingStrategy(Attribute<T> attribute, AttributeMatchingStrategy<T> strategy);
-
-    /**
      * Returns the matching strategy for a given attribute.
      * @param attribute the attribute
      * @param <T> the type of the attribute
@@ -47,14 +40,15 @@ public interface AttributesSchema {
     <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute);
 
     /**
-     * Configures the matching strategy for the provided attribute with a standard equality
-     * matching strategy: attribute values will be considered compatible if and only if they
-     * match using the {@link Object#equals(Object) equals method}.
+     * Configures the matching strategy for an attribute. The first call to this method for a specific attribute
+     * will create a new matching strategy, whereas subsequent calls will configure the existing one.
      *
-     * @param attribute the attribute for which to set the strategy
-     * @param <T> the type of the attribute
+     * @param attribute the attribute for which to configure the matching strategy
+     * @param configureAction the strategy configuration
+     * @param <T> the concrete type of the attribute
+     * @return the configured strategy
      */
-    <T> void matchStrictly(Attribute<T> attribute);
+    <T> AttributeMatchingStrategy<T> configureMatchingStrategy(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
 
     Set<Attribute<?>> getAttributes();
 }

@@ -157,7 +157,7 @@ public class ComponentAttributeMatcher {
                         best.add(key);
                     }
                 };
-                matchingStrategy.selectClosestMatch(details);
+                matchingStrategy.getDisambiguationRules().selectClosestMatch(details);
                 remainingMatches.retainAll(best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
@@ -216,7 +216,7 @@ public class ComponentAttributeMatcher {
                     best.add(key);
                 }
             };
-            matchingStrategy.selectClosestMatch(details);
+            matchingStrategy.getDisambiguationRules().selectClosestMatch(details);
             remainingMatches.retainAll(best);
             if (remainingMatches.isEmpty()) {
                 // the intersection is empty, so we cannot choose
@@ -266,7 +266,7 @@ public class ComponentAttributeMatcher {
                     failure = true;
                 }
             };
-            strategy.checkCompatibility(details);
+            strategy.getCompatibilityRules().checkCompatibility(details);
         }
     }
 }
