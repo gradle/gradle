@@ -16,25 +16,17 @@
 
 package org.gradle.api.tasks;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.PropertiesUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -49,7 +41,8 @@ import java.util.Properties;
  *     <li>the properties are sorted alphabetically</li>
  * </ul>
  *
- * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters are escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
+ * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters
+ * are escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
  *
  * @since 3.3
  */
@@ -145,48 +138,10 @@ public class WriteProperties extends DefaultTask {
 
     @TaskAction
     public void writeProperties() throws IOException {
-        Properties properties = getProperties();
         Charset charset = Charset.forName(getEncoding());
-
-        String rawContents;
-        if (charset.equals(Charsets.ISO_8859_1)) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            properties.store(out, getComment());
-            rawContents = new String(out.toByteArray(), Charsets.ISO_8859_1);
-        } else {
-            StringWriter out = new StringWriter();
-            properties.store(out, getComment());
-            rawContents = out.toString();
-        }
-
-        String systemLineSeparator = System.getProperty("line.separator");
-        List<String> lines = Lists.newArrayList(Arrays.asList(rawContents.split(systemLineSeparator)));
-        int lastCommentLine = -1;
-        for (int lineNo = 0, len = lines.size(); lineNo < len; lineNo++) {
-            String line = lines.get(lineNo);
-            if (line.startsWith("#")) {
-                lastCommentLine = lineNo;
-            }
-        }
-
-        // The last comment line is the timestamp
-        List<String> nonCommentLines;
-        if (lastCommentLine != -1) {
-            lines.remove(lastCommentLine);
-            nonCommentLines = lines.subList(lastCommentLine, lines.size());
-        } else {
-            nonCommentLines = lines;
-        }
-
-        Collections.sort(nonCommentLines);
-        String contents = Joiner.on(getLineSeparator()).join(lines);
-
-        File outputFile = getOutputFile();
-        FileUtils.forceMkdir(outputFile.getParentFile());
-
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile));
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile()));
         try {
-            out.write(contents.getBytes(charset));
+            PropertiesUtils.writeProperties(out, getProperties(), charset, getLineSeparator(), getComment());
         } finally {
             IOUtils.closeQuietly(out);
         }
