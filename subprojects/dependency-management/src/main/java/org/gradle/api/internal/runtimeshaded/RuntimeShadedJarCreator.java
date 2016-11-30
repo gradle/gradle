@@ -53,7 +53,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -186,38 +189,47 @@ class RuntimeShadedJarCreator {
         writeEntry(outputStream, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
-    /**
-     * Processing a directory is not yet reproducible - i.e. it can yield different results on different machines because the order how the files are read
-     * from disk is not predictable.
-     * Since this is currently only used in tests this is fine for now.
-     */
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
+        final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
         new DirectoryFileTree(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                try {
-                    ZipEntry zipEntry = newZipEntryWithFixedTime(dirDetails.getPath() + "/");
-                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                fileVisitDetails.add(dirDetails);
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                try {
-                    ZipEntry zipEntry = newZipEntryWithFixedTime(fileDetails.getPath());
-                    InputStream inputStream = fileDetails.open();
+                fileVisitDetails.add(fileDetails);
+            }
+        });
+
+        // We need to sort here since the file order obtained from the filesystem
+        // can change between machines and we always want to have the same shaded jars.
+        Collections.sort(fileVisitDetails, new Comparator<FileVisitDetails>() {
+            @Override
+            public int compare(FileVisitDetails o1, FileVisitDetails o2) {
+                return o1.getPath().compareTo(o2.getPath());
+            }
+        });
+
+        for (FileVisitDetails details : fileVisitDetails) {
+            try {
+                if (details.isDirectory()) {
+                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath() + "/");
+                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
+                } else {
+                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath());
+                    InputStream inputStream = details.open();
                     try {
                         processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
                     } finally {
                         inputStream.close();
                     }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        });
+        }
     }
 
     private void processJarFile(final ZipOutputStream outputStream, File file, final byte[] buffer, final Set<String> seenPaths, final Map<String, List<String>> services) throws IOException {

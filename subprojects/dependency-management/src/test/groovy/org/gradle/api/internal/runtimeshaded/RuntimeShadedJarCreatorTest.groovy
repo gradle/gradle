@@ -126,9 +126,13 @@ org.gradle.api.internal.tasks.CompileServices
             'com/sun/jna/win32-amd64/jnidispatch.dll'])
         def jarFile6 = inputFilesDir.file('lib6.jar')
         createJarFileWithProviderConfigurationFile(jarFile6, 'org.gradle.internal.other.Service', 'org.gradle.internal.other.ServiceImpl')
+        def inputDirectory = inputFilesDir.createDir('dir1')
+        writeClass(inputDirectory, "org/gradle/MyFirstClass")
+        writeClass(inputDirectory, "org/gradle/MyAClass")
+        writeClass(inputDirectory, "org/gradle/MyBClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6])
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory])
 
         then:
         1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
@@ -148,11 +152,14 @@ org.gradle.api.internal.tasks.CompileServices
                 'org/gradle/reporting/report.js',
                 'org/joda/time/tz/data/Africa/Abidjan',
                 'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/Abidjan',
+                'org/gradle/MyAClass.class',
+                'org/gradle/MyBClass.class',
+                'org/gradle/MyFirstClass.class',
                 'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        Files.hash(outputJar, Hashing.md5()).toString() == "159e19f63c465c2503caa8f4fbe0a4df"
+        Files.hash(outputJar, Hashing.md5()).toString() == "6b67248faadbad1356001b6331810c8b"
     }
 
     def "merges provider-configuration file with the same name"() {
