@@ -17,12 +17,15 @@
 package org.gradle.process.internal.health.memory;
 
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.internal.ExecHandleFactory;
 
 public class MemoryInfo implements MemoryStatus {
 
+    private final ExecHandleFactory execHandleFactory;
     private final long totalMemory; //this does not change
 
-    public MemoryInfo() {
+    public MemoryInfo(ExecHandleFactory execHandleFactory) {
+        this.execHandleFactory = execHandleFactory;
         this.totalMemory = Runtime.getRuntime().maxMemory();
     }
 
@@ -62,7 +65,7 @@ public class MemoryInfo implements MemoryStatus {
     public long getFreePhysicalMemory() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
-            return new VmstatAvailableMemory().get();
+            return new VmstatAvailableMemory(execHandleFactory).get();
         } else if (operatingSystem.isLinux()) {
             return new MeminfoAvailableMemory().get();
         }

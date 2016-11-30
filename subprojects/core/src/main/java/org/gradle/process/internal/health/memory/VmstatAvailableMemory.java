@@ -18,10 +18,9 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,9 +36,11 @@ public class VmstatAvailableMemory implements AvailableMemory {
     private static final Pattern VMSTAT_LINE_PATTERN = Pattern.compile("^\\D+(\\d+)\\D+$");
     private static final String VMSTAT_EXECUTABLE_PATH = "/usr/bin/vm_stat";
 
+    private final ExecHandleFactory execHandleFactory;
     private final Matcher vmstatMatcher;
 
-    public VmstatAvailableMemory() {
+    public VmstatAvailableMemory(ExecHandleFactory execHandleFactory) {
+        this.execHandleFactory = execHandleFactory;
         // Initialize Matchers once and then reset them for performance
         vmstatMatcher = VMSTAT_LINE_PATTERN.matcher("");
     }
@@ -56,7 +57,7 @@ public class VmstatAvailableMemory implements AvailableMemory {
     private List<String> getVmstatOutput() {
         try {
             StreamByteBuffer buffer = new StreamByteBuffer();
-            ExecHandleBuilder builder = new DefaultExecActionFactory(new IdentityFileResolver()).newExec();
+            ExecHandleBuilder builder = execHandleFactory.newExec();
             builder.setWorkingDir(new File(".").getAbsolutePath());
             builder.setCommandLine(VMSTAT_EXECUTABLE_PATH);
             builder.setStandardOutput(buffer.getOutputStream());

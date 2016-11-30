@@ -37,8 +37,8 @@ public class DaemonHealthStats {
     private final GarbageCollectionInfo gcInfo;
     private final GarbageCollectionMonitor gcMonitor;
 
-    public DaemonHealthStats(DaemonRunningStats runningStats, ScheduledExecutorService scheduledExecutorService) {
-        this(runningStats, new MemoryInfo(), new GarbageCollectionInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
+    public DaemonHealthStats(DaemonRunningStats runningStats, MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService) {
+        this(runningStats, memoryInfo, new GarbageCollectionInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
     }
 
     @VisibleForTesting

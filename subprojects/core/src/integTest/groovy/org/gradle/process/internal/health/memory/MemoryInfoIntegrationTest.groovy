@@ -16,15 +16,22 @@
 
 package org.gradle.process.internal.health.memory
 
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.process.internal.DefaultExecActionFactory
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class MemoryInfoIntegrationTest extends Specification {
+
+    def execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver())
+
     @Requires(TestPrecondition.WINDOWS)
     def "gets available memory on a real live Windows system"() {
         when:
-        new MemoryInfo().getFreePhysicalMemory()
+        new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -33,7 +40,7 @@ class MemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.LINUX)
     def "gets available memory on a real live Linux system"() {
         when:
-        new MemoryInfo().getFreePhysicalMemory()
+        new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -42,7 +49,7 @@ class MemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.MAC_OS_X)
     def "gets available memory on a real live MacOS system"() {
         when:
-        new MemoryInfo().getFreePhysicalMemory()
+        new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException

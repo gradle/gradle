@@ -16,13 +16,13 @@
 
 package org.gradle.process.internal.health.memory
 
-import org.gradle.process.internal.health.memory.VmstatAvailableMemory
+import org.gradle.process.internal.ExecHandleFactory
 import spock.lang.Specification
 
 class VmstatAvailableMemoryTest extends Specification {
     def "parses free memory from vm_stat on MacOS"() {
         expect:
-        new VmstatAvailableMemory().parseFreeMemoryFromVmstat(mockVmstatOutput()) == 5_717_209_088L
+        new VmstatAvailableMemory(Stub(ExecHandleFactory)).parseFreeMemoryFromVmstat(mockVmstatOutput()) == 5_717_209_088L
     }
 
     private static List<String> mockVmstatOutput() {

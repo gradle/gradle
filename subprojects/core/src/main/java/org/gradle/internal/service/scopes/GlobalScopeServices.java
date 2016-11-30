@@ -131,6 +131,7 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.health.memory.DefaultMemoryResourceManager;
+import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryResourceManager;
 import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 
@@ -402,8 +403,12 @@ public class GlobalScopeServices {
         return new TrueTimeProvider();
     }
 
-    MemoryStatusBroadcaster createMemoryStatusBroadcaster(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        return new MemoryStatusBroadcaster(scheduledExecutorService, listenerManager);
+    MemoryInfo createMemoryInfo(ExecHandleFactory execHandleFactory) {
+        return new MemoryInfo(execHandleFactory);
+    }
+
+    MemoryStatusBroadcaster createMemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+        return new MemoryStatusBroadcaster(memoryInfo, scheduledExecutorService, listenerManager);
     }
 
     MemoryResourceManager createMemoryResourceManager(ListenerManager listenerManager) {
