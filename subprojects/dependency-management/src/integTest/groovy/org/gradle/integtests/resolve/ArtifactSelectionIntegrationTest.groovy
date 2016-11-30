@@ -36,6 +36,10 @@ allprojects {
         repositories {
             ivy { url '${ivyHttpRepo.uri}' }
         }
+    configurationAttributesSchema {
+       configureMatchingStrategy(Attribute.of('usage', String)) {
+          compatibilityRules.addEqualityCheck()
+       }
     }
     configurations {
         compile {
@@ -108,7 +112,7 @@ allprojects {
                     inputs.files configurations.compile
                     doLast {
                         assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        
+
                         // These do not include files from file dependencies
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ['lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == ['lib.jar', 'some-jar-1.0.jar']
@@ -121,10 +125,10 @@ allprojects {
                         assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        
+
                         // Get a view specifying the default type
                         assert configurations.compile.incoming.getFiles(artifactType: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        
+
                         // Get a view without overriding the type
                         assert configurations.compile.incoming.getFiles(otherAttribute: 'anything').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
                     }

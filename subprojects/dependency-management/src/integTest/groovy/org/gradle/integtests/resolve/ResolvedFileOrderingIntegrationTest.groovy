@@ -25,7 +25,12 @@ rootProject.name = 'test'
 """
         buildFile << """
 allprojects {
-    configurations { 
+    configurationAttributesSchema {
+       configureMatchingStrategy(Attribute.of('usage', String)) {
+          compatibilityRules.addEqualityCheck()
+       }
+    }
+    configurations {
         compile {
             attribute('usage', 'compile')
         }
@@ -51,7 +56,7 @@ allprojects {
     repositories { maven { url '$mavenRepo.uri' } }
 }
 dependencies {
-    compile files('test-lib.jar')    
+    compile files('test-lib.jar')
     compile project(':a')
     compile 'org:test:1.0'
     compile('org:test:1.0') {
@@ -129,13 +134,13 @@ task show {
         println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.file.name }
         println "artifacts 2: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
         println "artifacts 3: " + configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name }
-        
+
         println "files 1: " + configurations.compile.incoming.files.collect { it.name }
         println "files 2: " + configurations.compile.files.collect { it.name }
         println "files 3: " + configurations.compile.resolve().collect { it.name }
         println "files 4: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
         println "files 5: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
-        
+
         println "files 6: " + configurations.compile.files { true }.collect { it.name }
         println "files 7: " + configurations.compile.fileCollection { true }.collect { it.name }
         println "files 8: " + configurations.compile.fileCollection { true }.files.collect { it.name }

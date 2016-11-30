@@ -26,41 +26,6 @@ import spock.lang.Specification
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema()
 
-    def "has a reasonable default matching strategy for String attributes"() {
-        given:
-        def strategy = schema.getMatchingStrategy(Attribute.of(String))
-        def checkDetails = Mock(CompatibilityCheckDetails)
-        def candidatesDetails = Mock(MultipleCandidatesDetails)
-        def key = Mock(HasAttributes)
-
-        when:
-        checkDetails.getConsumerValue() >> AttributeValue.of('foo')
-        checkDetails.getProducerValue() >> AttributeValue.of('foo')
-        strategy.compatibilityRules.checkCompatibility(checkDetails)
-
-        then:
-        1 * checkDetails.compatible()
-        0 * checkDetails.incompatible()
-
-        when:
-        checkDetails.getConsumerValue() >> AttributeValue.of('foo')
-        checkDetails.getProducerValue() >> AttributeValue.of('bar')
-        strategy.compatibilityRules.checkCompatibility(checkDetails)
-
-        then:
-        0 * checkDetails.compatible()
-        1 * checkDetails.incompatible()
-
-        when:
-        candidatesDetails.consumerValue >> AttributeValue.of("foo")
-        candidatesDetails.candidateValues >> [(key): AttributeValue.of("foo")]
-        strategy.disambiguationRules.selectClosestMatch(candidatesDetails)
-
-        then:
-        1 * candidatesDetails.closestMatch(key)
-        0 * candidatesDetails._
-    }
-
     def "fails if no strategy is declared for custom type"() {
         when:
         schema.getMatchingStrategy(Attribute.of(Map))

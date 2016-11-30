@@ -22,7 +22,29 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
 
     @Override
     String getTypeDefs() {
-        ''
+        '''
+            def flavor = Attribute.of('flavor', String)
+            def buildType = Attribute.of('buildType', String)
+            def extra = Attribute.of('extra', String)
+
+            project(':a') {
+               configurationAttributesSchema {
+                  configureMatchingStrategy(flavor) {
+                       compatibilityRules.addEqualityCheck()
+                  }
+                  configureMatchingStrategy(buildType) {
+                       compatibilityRules.addEqualityCheck()
+                  }
+               }
+            }
+            allprojects {
+               configurationAttributesSchema {
+                  configureMatchingStrategy(extra) {
+                       compatibilityRules.addEqualityCheck()
+                  }
+               }
+            }
+        '''
     }
 
     @Override

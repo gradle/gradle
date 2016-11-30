@@ -26,7 +26,12 @@ rootProject.name = 'test'
 """
         buildFile << """
 allprojects {
-    configurations { 
+    configurationAttributesSchema {
+       configureMatchingStrategy(Attribute.of('usage', String)) {
+          compatibilityRules.addEqualityCheck()
+       }
+    }
+    configurations {
         compile {
             attribute('usage', 'compile')
         }
@@ -47,7 +52,7 @@ allprojects {
     repositories { maven { url '$mavenRepo.uri' } }
 }
 dependencies {
-    compile files('test-lib.jar')    
+    compile files('test-lib.jar')
     compile project(':a')
     compile 'org:test:1.0'
     artifacts {

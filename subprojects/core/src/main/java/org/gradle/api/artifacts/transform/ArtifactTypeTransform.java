@@ -16,20 +16,19 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.io.File;
 import java.util.Collection;
+
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 /**
  * Base class for simple type-based artifact transformations.
  */
 @Incubating
 public abstract class ArtifactTypeTransform extends ArtifactTransform {
-
-    private static final Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String.class);
 
     protected abstract String getInputType();
 
@@ -39,16 +38,16 @@ public abstract class ArtifactTypeTransform extends ArtifactTransform {
 
     @Override
     public void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
-        from.attribute(ARTIFACT_TYPE_ATTRIBUTE, getInputType());
+        from.attribute(ARTIFACT_FORMAT, getInputType());
 
         for (String outputType : getOutputTypes()) {
-            targetRegistry.newTarget().attribute(ARTIFACT_TYPE_ATTRIBUTE, outputType);
+            targetRegistry.newTarget().attribute(ARTIFACT_FORMAT, outputType);
         }
     }
 
     @Override
     public File transform(File input, AttributeContainer target) {
-        String targetType = target.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
+        String targetType = target.getAttribute(ARTIFACT_FORMAT);
         return transform(input, targetType);
     }
 }

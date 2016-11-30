@@ -17,19 +17,16 @@
 package org.gradle.api.internal.artifacts.attributes;
 
 import com.google.common.io.Files;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.DefaultAttributeContainer;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-    public class DefaultArtifactAttributes {
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 
-    public static final Attribute<String> TYPE = attributeType("artifactType");
-    public static final Attribute<String> EXTENSION = attributeType("artifactExtension");
-    public static final Attribute<String> CLASSIFIER = attributeType("artifactClassifier");
+public class DefaultArtifactAttributes {
 
     public static AttributeContainer forIvyArtifactName(IvyArtifactName ivyArtifactName) {
         return createAttributes(ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier());
@@ -46,14 +43,10 @@ import java.io.File;
 
     private static AttributeContainer createAttributes(String type, String extension, String classifier) {
         AttributeContainer attributes = new DefaultAttributeContainer();
-        attributes.attribute(TYPE, type == null ? "" : type);
-        attributes.attribute(EXTENSION, extension == null ? "" : extension);
-        attributes.attribute(CLASSIFIER, classifier == null ? "" : classifier);
+        attributes.attribute(ARTIFACT_FORMAT, type == null ? "" : type);
+        attributes.attribute(ARTIFACT_EXTENSION, extension == null ? "" : extension);
+        attributes.attribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier);
         return attributes;
-    }
-
-    private static Attribute<String> attributeType(String artifactName) {
-        return Attribute.of(artifactName, String.class);
     }
 
 }

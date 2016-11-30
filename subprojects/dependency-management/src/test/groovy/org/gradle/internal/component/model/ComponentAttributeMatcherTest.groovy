@@ -27,11 +27,16 @@ class ComponentAttributeMatcherTest extends Specification {
     AttributesSchema schema = new DefaultAttributesSchema()
 
     def "Matching two exactly similar attributes gives a full match" () {
+        def key = Attribute.of(String)
+        schema.configureMatchingStrategy(key) {
+            it.compatibilityRules.addEqualityCheck()
+        }
+
         given:
         def candidate = new DefaultAttributeContainer()
-        candidate.attribute(Attribute.of(String), "value1")
+        candidate.attribute(key, "value1")
         def requested = new DefaultAttributeContainer()
-        requested.attribute(Attribute.of(String), "value1")
+        requested.attribute(key, "value1")
 
         when:
         def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
@@ -43,12 +48,21 @@ class ComponentAttributeMatcherTest extends Specification {
     }
 
     def "Matching two exactly similar attributes in presence of another one gives a partial match" () {
+        def key1 = Attribute.of(String)
+        def key2 = Attribute.of("a1", String)
+        schema.configureMatchingStrategy(key1) {
+            it.compatibilityRules.addEqualityCheck()
+        }
+        schema.configureMatchingStrategy(key2) {
+            it.compatibilityRules.addEqualityCheck()
+        }
+
         given:
         def candidate = new DefaultAttributeContainer()
-        candidate.attribute(Attribute.of(String), "value1")
+        candidate.attribute(key1, "value1")
         def requested = new DefaultAttributeContainer()
-        requested.attribute(Attribute.of(String), "value1")
-        requested.attribute(Attribute.of("a1", String), "value2")
+        requested.attribute(key1, "value1")
+        requested.attribute(key2, "value2")
 
         when:
         def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
@@ -60,11 +74,20 @@ class ComponentAttributeMatcherTest extends Specification {
     }
 
     def "Matching two attributes with distinct types gives no match and also no failure" () {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+        schema.configureMatchingStrategy(key1) {
+            it.compatibilityRules.addEqualityCheck()
+        }
+        schema.configureMatchingStrategy(key2) {
+            it.compatibilityRules.addEqualityCheck()
+        }
+
         given:
         def candidate = new DefaultAttributeContainer()
-        candidate.attribute(Attribute.of("a1", String), "value1")
+        candidate.attribute(key1, "value1")
         def requested = new DefaultAttributeContainer()
-        requested.attribute(Attribute.of("a2", String), "value1")
+        requested.attribute(key2, "value1")
 
         when:
         def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
@@ -76,11 +99,16 @@ class ComponentAttributeMatcherTest extends Specification {
     }
 
     def "Matching two attributes with same type but different value gives no match but a failure" () {
+        def key = Attribute.of(String)
+        schema.configureMatchingStrategy(key) {
+            it.compatibilityRules.addEqualityCheck()
+        }
+
         given:
         def candidate = new DefaultAttributeContainer()
-        candidate.attribute(Attribute.of(String), "value1")
+        candidate.attribute(key, "value1")
         def requested = new DefaultAttributeContainer()
-        requested.attribute(Attribute.of(String), "value2")
+        requested.attribute(key, "value2")
 
         when:
         def matcher = new ComponentAttributeMatcher(schema, null, Collections.singleton(candidate), requested);
