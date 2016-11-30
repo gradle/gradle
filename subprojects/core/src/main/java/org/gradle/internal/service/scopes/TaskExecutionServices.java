@@ -214,7 +214,7 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskOutputOriginMetadataFactory createOriginMetadataConverter(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
+    TaskOutputOriginMetadataFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
         return new TaskOutputOriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
     }
