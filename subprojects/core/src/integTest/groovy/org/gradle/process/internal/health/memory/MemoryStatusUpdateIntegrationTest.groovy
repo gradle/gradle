@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health
+package org.gradle.process.internal.health.memory
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Timeout
@@ -24,7 +24,7 @@ class MemoryStatusUpdateIntegrationTest extends DaemonIntegrationSpec {
     def "can register a listener for memory status update events"() {
         buildFile << '''
             import java.util.concurrent.CountDownLatch
-            import org.gradle.launcher.daemon.server.health.memory.*
+            import org.gradle.process.internal.health.memory.*
 
             task waitForEvent {
                 doLast {

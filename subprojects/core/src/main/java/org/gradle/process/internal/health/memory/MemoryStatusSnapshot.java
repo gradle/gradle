@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory;
+package org.gradle.process.internal.health.memory;
 
 public class MemoryStatusSnapshot implements MemoryStatus {
     private final long maxMemory;

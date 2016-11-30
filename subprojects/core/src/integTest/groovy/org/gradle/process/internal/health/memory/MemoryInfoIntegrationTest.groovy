@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health
+package org.gradle.process.internal.health.memory
 
-import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification

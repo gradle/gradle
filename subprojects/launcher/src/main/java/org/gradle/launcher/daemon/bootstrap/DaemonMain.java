@@ -37,7 +37,7 @@ import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.health.memory.MemoryStatusBroadcaster;
+import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.process.internal.streams.EncodedStream;
 

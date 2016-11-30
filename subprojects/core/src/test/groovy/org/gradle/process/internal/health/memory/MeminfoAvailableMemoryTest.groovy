@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory
+package org.gradle.process.internal.health.memory
 
+import org.gradle.process.internal.health.memory.MeminfoAvailableMemory
 import spock.lang.Specification
 
 class MeminfoAvailableMemoryTest extends Specification {

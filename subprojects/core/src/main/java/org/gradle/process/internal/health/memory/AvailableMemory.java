@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health.memory;
+package org.gradle.process.internal.health.memory;
 
-public interface MemoryStatus {
-    long getMaxMemory();
-
-    long getCommittedMemory();
-
-    long getTotalPhysicalMemory();
-
-    long getFreePhysicalMemory();
+interface AvailableMemory {
+    public long get() throws UnsupportedOperationException;
 }
