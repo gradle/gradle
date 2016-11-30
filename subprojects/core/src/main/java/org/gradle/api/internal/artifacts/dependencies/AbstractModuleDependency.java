@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -34,10 +35,11 @@ import java.util.Set;
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    @Nullable
     private String configuration;
     private boolean transitive = true;
 
-    protected AbstractModuleDependency(String configuration) {
+    protected AbstractModuleDependency(@Nullable String configuration) {
         this.configuration = configuration;
     }
 
