@@ -24,7 +24,6 @@ import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 import spock.lang.Timeout
 
 import static org.junit.Assert.assertFalse
@@ -54,14 +53,13 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         exceptionListener.rethrow();
     }
 
-    @Ignore
     def workerProcessStdoutAndStderrIsForwardedToThisProcess() {
         when:
         execute(worker(new LoggingProcess()))
 
         then:
-        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("this is stdout\n"))
-        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("this is stderr\n"))
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[ERROR] [system.err] <Normal>this is stderr\n</Normal>]"))
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[QUIET] [system.out] <Normal>this is stdout\n</Normal>]"))
     }
 
     def workerProcessCanSendMessagesToThisProcess() {
