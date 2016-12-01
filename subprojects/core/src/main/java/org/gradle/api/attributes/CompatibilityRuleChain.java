@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Comparator;
-import java.util.List;
 
 /**
  * <p>A chain of compatibility checks, implemented as action rules. By default
@@ -56,7 +55,7 @@ public interface CompatibilityRuleChain<T> {
     void ordered(Comparator<? super T> comparator);
 
     /**
-     * Adds an reverse ordered check rule to this chain. 
+     * Adds an reverse ordered check rule to this chain.
      *
      * @param comparator the comparator to use
      *
@@ -77,13 +76,6 @@ public interface CompatibilityRuleChain<T> {
      * @param rule the rule to add to the chain
      */
     void add(Action<? super CompatibilityCheckDetails<T>> rule);
-
-    /**
-     * Replaces the list of rules with the provided list of rules.
-     *
-     * @param rules the rule chain
-     */
-    void setRules(List<Action<? super CompatibilityCheckDetails<T>>> rules);
 
     /**
      * Tells that if no rule expressed an opinion about compatibility of values, then they are

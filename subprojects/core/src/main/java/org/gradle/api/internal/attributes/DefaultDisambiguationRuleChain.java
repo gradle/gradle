@@ -49,12 +49,6 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public void setRules(List<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules) {
-        this.rules.clear();
-        this.rules.addAll(disambiguationRules);
-    }
-
-    @Override
     public void eventuallySelectAll() {
         selectAllEventually = true;
     }

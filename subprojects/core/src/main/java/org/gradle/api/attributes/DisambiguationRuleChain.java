@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Comparator;
-import java.util.List;
 
 /**
  * <p>A chain of disambiguation rules. By default the chain is empty and will not do any disambiguation.</p>
@@ -71,13 +70,6 @@ public interface DisambiguationRuleChain<T> {
      * @param comparator the comparator to use
      */
     void pickLast(Comparator<? super T> comparator);
-
-    /**
-     * Replaces the current chain of rules with the provided rules.
-     *
-     * @param rules the new rule list
-     */
-    void setRules(List<Action<? super MultipleCandidatesDetails<T>>> rules);
 
     /**
      * Tells the engine not to disambiguate if no rule expressed a preference.
