@@ -6,6 +6,6 @@ dependencies {
 
     testCompile libraries.groovy
 }
-
+useTestFixtures(project: ":logging")
 useTestFixtures()
 useClassycle()

@@ -38,9 +38,7 @@ class TestOutputEventListener implements OutputEventListener {
         if(event instanceof LogEvent){
             LogEvent logEvent = event as LogEvent
             writer.append("[")
-            writer.append(logEvent.logLevel.toString())
-            writer.append(' ')
-            writer.append(logEvent.message)
+            writer.append(logEvent.toString())
             writer.append("]")
         }
         if(event instanceof StyledTextOutputEvent){

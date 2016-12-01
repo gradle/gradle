@@ -17,6 +17,8 @@
 package org.gradle.process.internal
 
 import org.gradle.api.Action
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.remote.ObjectConnectionBuilder
@@ -25,6 +27,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.util.TextUtil
 import spock.lang.Timeout
+import spock.lang.Unroll
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -58,8 +61,26 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(new LoggingProcess()))
 
         then:
+        println outputEventListener
         outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[ERROR] [system.err] <Normal>this is stderr\n</Normal>]"))
         outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[QUIET] [system.out] <Normal>this is stdout\n</Normal>]"))
+    }
+
+    @Unroll
+    def "log level and categories are preserved when forwarded to main process"() {
+        when:
+        execute(worker(new LoggingProcess(action)))
+
+        then:
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[[$loglevel] [$category] $expectedMessage]"))
+
+        where:
+        loglevel | category                                               | action                                                               | expectedMessage
+        "QUIET"  | "system.out"                                           | new StdOutSerializableLogAction("this is stdout")                    | "<Normal>this is stdout\n</Normal>"
+        "ERROR"  | "system.err"                                           | new StdErrSerializableLogAction("this is stderr")                    | "<Normal>this is stderr\n</Normal>"
+        "QUIET"  | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.QUIET, "quiet log statement")  | "quiet log statement"
+        "WARN"   | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.WARN, "warning log statement") | "warning log statement"
+        "ERROR"  | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.ERROR, "error log statement")  | "error log statement"
     }
 
     def workerProcessCanSendMessagesToThisProcess() {
@@ -223,4 +244,50 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             return this
         }
     }
+}
+
+class StdOutSerializableLogAction extends SerializableLogAction {
+
+    StdOutSerializableLogAction(String message) {
+        super(message)
+    }
+
+    void execute() {
+        System.out.println(message);
+    }
+}
+
+class StdErrSerializableLogAction extends SerializableLogAction {
+    StdErrSerializableLogAction(String message) {
+        super(message)
+    }
+
+    void execute() {
+        System.err.println(message);
+    }
+}
+
+class LogSerializableLogAction extends SerializableLogAction {
+    LogLevel logLevel
+
+    LogSerializableLogAction(LogLevel logLevel, String message) {
+        super(message)
+        this.logLevel = logLevel
+    }
+
+    void execute() {
+        Logging.getLogger(getClass()).log(logLevel, message)
+        System.err.println(message);
+    }
+}
+
+
+abstract class SerializableLogAction implements Serializable {
+    final String message
+
+    SerializableLogAction(String message) {
+        this.message = message
+    }
+
+    abstract void execute();
 }

@@ -22,10 +22,23 @@ import org.gradle.process.internal.worker.WorkerProcessContext;
 import java.io.Serializable;
 
 public class LoggingProcess implements Action<WorkerProcessContext>, Serializable {
+
+    private SerializableLogAction action;
+
+    public LoggingProcess(SerializableLogAction action){
+        this.action = action;
+    }
+
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
         workerProcessContext.getServerConnection().connect();
-        System.out.println("this is stdout");
-        System.err.println("this is stderr");
+        action.execute();
+
+//        System.out.println("this is stdout");
+//        System.err.println("this is stderr");
+//        Logging.getLogger(getClass()).debug("debug log statement\n");
+//        Logging.getLogger(getClass()).info("info log statement");
+//        Logging.getLogger(getClass()).warn("warn log statement");
+//        Logging.getLogger(getClass()).error("error log statement");
     }
 }

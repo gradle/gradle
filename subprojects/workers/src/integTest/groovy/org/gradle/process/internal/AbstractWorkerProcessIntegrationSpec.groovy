@@ -66,7 +66,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository))
     final ExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
-    final OutputEventListener outputEventListener = new TestOutputEventListener();
+    final OutputEventListener outputEventListener = new TestOutputEventListener()
     final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.DEBUG, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener)
 
     def cleanup() {
