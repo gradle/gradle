@@ -36,6 +36,10 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             }
         """
 
+        if (orderSensitive) {
+            executer.expectDeprecationWarning()
+        }
+
         when:
         execute "test"
         then:
@@ -43,6 +47,10 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         when:
         assert file("sources/input.txt").renameTo(file("sources/input-renamed.txt"))
+
+        if (orderSensitive) {
+            executer.expectDeprecationWarning()
+        }
 
         cleanWorkspace()
         execute "test"
@@ -76,10 +84,18 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             }
         """
 
+        if (orderSensitive) {
+            executer.expectDeprecationWarning()
+        }
+
         when:
         execute "test"
         then:
         skippedTasks.empty
+
+        if (orderSensitive) {
+            executer.expectDeprecationWarning()
+        }
 
         when:
         assert file("src/data1/input.txt").renameTo(file("src/data2/input.txt"))
@@ -122,6 +138,10 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             }
         """
 
+        if (orderSensitive) {
+            executer.expectDeprecationWarning()
+        }
+
         when:
         execute "test"
         then:
@@ -134,6 +154,10 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
                 sources = files("source")
             }
         """
+
+        if (orderSensitive) {
+            executer.expectDeprecationWarning()
+        }
 
         cleanWorkspace()
         execute "test"
