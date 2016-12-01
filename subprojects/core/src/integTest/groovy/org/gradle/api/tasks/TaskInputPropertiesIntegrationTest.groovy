@@ -228,6 +228,62 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def "deprecation warning printed when deprecated order sensitivity is set via #method"() {
+        buildFile << """
+            task test {
+                inputs.files([]).${call}
+            }
+        """
+        executer.expectDeprecationWarning()
+        executer.requireGradleDistribution()
+
+        expect:
+        succeeds "test"
+        outputContains "The TaskInputFilePropertyBuilder.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0."
+
+        where:
+        method                    | call
+        "orderSensitive()"        | "orderSensitive()"
+        "orderSensitive(boolean)" | "orderSensitive(true)"
+    }
+
+    def "deprecation warning printed when deprecated @OrderSensitivity annotation is used"() {
+        buildFile << """
+            class TaskWithOrderSensitiveProperty extends DefaultTask {
+                @OrderSensitive @InputFiles def inputFiles = project.files()
+                @TaskAction void action() {}
+            }
+
+            task test(type: TaskWithOrderSensitiveProperty) {
+            }
+        """
+
+        executer.expectDeprecationWarning()
+        // TODO:RG Temporary fix: it seems deprecation logs are not always forwarded correctly
+        executer.requireGradleDistribution()
+
+        when:
+        succeeds "test"
+        then:
+        outputContains "The @OrderSensitive annotation has been deprecated and is scheduled to be removed in Gradle 4.0. For classpath properties use the @Classpath annotation instead."
+    }
+
+    def "no deprecation warning printed when @Classpath annotation is used"() {
+        buildFile << """
+            class TaskWithClasspathProperty extends DefaultTask {
+                @Classpath @InputFiles def classpath = project.files()
+                @TaskAction void action() {}
+            }
+
+            task test(type: TaskWithClasspathProperty) {
+            }
+        """
+
+        expect:
+        succeeds "test"
+    }
+
+    @Unroll
     def "deprecation warning printed when inputs calls are chained"() {
         buildFile << """
             task test {

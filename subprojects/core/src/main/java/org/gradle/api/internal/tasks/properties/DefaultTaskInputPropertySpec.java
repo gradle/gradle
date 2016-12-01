@@ -98,13 +98,20 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
 
     @Override
     public TaskInputFilePropertyBuilderInternal orderSensitive() {
-        return orderSensitive(true);
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputFilePropertyBuilder.orderSensitive()");
+        setOrderSensitive(true);
+        return this;
     }
 
     @Override
     public TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive) {
-        this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputFilePropertyBuilder.orderSensitive(boolean)");
+        setOrderSensitive(orderSensitive);
         return this;
+    }
+
+    private void setOrderSensitive(boolean orderSensitive) {
+        this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
     }
 
     @Override

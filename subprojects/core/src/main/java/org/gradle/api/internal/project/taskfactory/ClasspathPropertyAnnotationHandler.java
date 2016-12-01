@@ -21,6 +21,8 @@ import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizat
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
+import org.gradle.util.DeprecationLogger;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
@@ -40,12 +42,18 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().files(futureValue)
+                final TaskInputFilePropertyBuilder propertyBuilder = task.getInputs().files(futureValue)
                     .withPropertyName(context.getName())
-                    .orderSensitive(true)
                     .withSnapshotNormalizationStrategy(ClasspathSnapshotNormalizationStrategy.INSTANCE)
                     .withSnapshotter(ClasspathSnapshotter.class)
                     .optional(context.isOptional());
+                DeprecationLogger.whileDisabled(new Runnable() {
+                    @Override
+                    @SuppressWarnings("deprecation")
+                    public void run() {
+                        propertyBuilder.orderSensitive();
+                    }
+                });
             }
         });
     }
