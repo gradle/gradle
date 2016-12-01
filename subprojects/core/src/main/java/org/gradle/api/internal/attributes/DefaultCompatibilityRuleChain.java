@@ -27,13 +27,6 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
 
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
 
-    private boolean failEventually = true;
-
-    @Override
-    public void addEqualityCheck() {
-        add(AttributeMatchingRules.<T>equalityCompatibility());
-    }
-
     @Override
     public void ordered(Comparator<? super T> comparator) {
         Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.orderedCompatibility(comparator, false);
@@ -49,16 +42,6 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     @Override
     public void add(Action<? super CompatibilityCheckDetails<T>> rule) {
         rules.add(rule);
-    }
-
-    @Override
-    public void eventuallyIncompatible() {
-        failEventually = true;
-    }
-
-    @Override
-    public void eventuallyCompatible() {
-        failEventually = false;
     }
 
     @Override
@@ -83,12 +66,13 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
             }
         }
         if (!state.determined) {
-            if (failEventually) {
-                details.incompatible();
-            } else {
-                details.compatible();
+            AttributeMatchingRules.<T>equalityCompatibility().execute(state);
+            if (state.determined) {
+                return;
             }
         }
+        // Eventually fail, always
+        details.incompatible();
     }
 
     private static class State<T> implements CompatibilityCheckDetails<T> {

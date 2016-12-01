@@ -39,15 +39,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             allprojects {
                configurationAttributesSchema {
-                  attribute(flavor) {
-                       compatibilityRules.addEqualityCheck()
-                  }
-                  attribute(buildType) {
-                       compatibilityRules.addEqualityCheck()
-                  }
-                  attribute(extra) {
-                       compatibilityRules.addEqualityCheck()
-                  }
+                  attribute(flavor)
+                  attribute(buildType)
+                  attribute(extra)
                }
             }
         '''
@@ -103,12 +97,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':b') {
                 configurationAttributesSchema {
-                    attribute(Attribute.of('flavor', String)) {
-                        compatibilityRules.addEqualityCheck()
-                    }
-                    attribute(Attribute.of('buildType', String)) {
-                        compatibilityRules.addEqualityCheck()
-                    }
+                    attribute(Attribute.of('flavor', String))
+                    attribute(Attribute.of('buildType', String))
                 }
                 configurations {
                     create('default')
@@ -245,6 +235,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                                }
                            }
                       }
+                      disambiguationRules.add { details ->
+                          details.candidateValues.findAll { it.get() == details.consumerValue.get() }.each { details.closestMatch(it) }
+                      }
                   }
                }
             }
@@ -330,13 +323,18 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                                }
                            }
                       }
+                      disambiguationRules.add { details ->
+                         details.candidateValues.findAll { it.get() == details.consumerValue.get() }.each { details.closestMatch(it) }
+                      }
                   }
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
                   attribute(buildType) {
-                     compatibilityRules.eventuallyCompatible()
+                     compatibilityRules.add { details ->
+                        details.compatible()
+                     }
                      disambiguationRules.add { details ->
-                        details.candidateValues.entrySet().findAll { it.value.get() == details.consumerValue.get() }*.key.each { details.closestMatch(it) }
+                        details.candidateValues.findAll { it.get() == details.consumerValue.get() }.each { details.closestMatch(it) }
                      }
                   }
                }
@@ -410,11 +408,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':b') {
                configurationAttributesSchema {
-                  attribute(buildType) {
-                      compatibilityRules.addEqualityCheck()
-                  }
+                  attribute(buildType)
                   attribute(flavor) {
-                       compatibilityRules.addEqualityCheck()
                        disambiguationRules.add { details ->
                             details.closestMatch(details.candidateValues.sort { it.get() }.first())
                        }
@@ -481,16 +476,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             allprojects {
                configurationAttributesSchema {
-                  attribute(dummy) {
-                      compatibilityRules.addEqualityCheck()
-                  }
+                  attribute(dummy)
                }
             }
 
             project(':b') {
                configurationAttributesSchema {
                     attribute(arch) {
-                       compatibilityRules.addEqualityCheck()
                        compatibilityRules.optionalOnConsumer()
                        disambiguationRules.pickLast { a,b -> a<=>b }
                   }
@@ -499,7 +491,6 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':c') {
                 configurationAttributesSchema {
                     attribute(arch) {
-                       compatibilityRules.addEqualityCheck()
                        compatibilityRules.optionalOnConsumer()
                        disambiguationRules.pickLast { a,b -> a<=>b }
                     }

@@ -37,9 +37,7 @@ allprojects {
             ivy { url '${ivyHttpRepo.uri}' }
         }
         configurationAttributesSchema {
-           attribute(Attribute.of('usage', String)) {
-              compatibilityRules.addEqualityCheck()
-           }
+           attribute(Attribute.of('usage', String))
         }
     }
     configurations {

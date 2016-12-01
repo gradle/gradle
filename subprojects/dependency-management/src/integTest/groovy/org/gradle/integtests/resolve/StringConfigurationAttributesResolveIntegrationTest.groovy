@@ -29,15 +29,9 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
 
             allprojects {
                configurationAttributesSchema {
-                  attribute(flavor) {
-                       compatibilityRules.addEqualityCheck()
-                  }
-                  attribute(buildType) {
-                       compatibilityRules.addEqualityCheck()
-                  }
-                  attribute(extra) {
-                       compatibilityRules.addEqualityCheck()
-                  }
+                  attribute(flavor)
+                  attribute(buildType)
+                  attribute(extra)
                }
             }
         '''

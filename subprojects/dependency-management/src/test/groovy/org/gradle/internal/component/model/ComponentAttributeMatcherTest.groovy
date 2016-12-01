@@ -28,9 +28,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
     def "Matching two exactly similar attributes gives a full match" () {
         def key = Attribute.of(String)
-        schema.attribute(key) {
-            it.compatibilityRules.addEqualityCheck()
-        }
+        schema.attribute(key)
 
         given:
         def candidate = new DefaultAttributeContainer()
@@ -48,11 +46,8 @@ class ComponentAttributeMatcherTest extends Specification {
     def "Matching two exactly similar attributes in presence of another one gives a partial match" () {
         def key1 = Attribute.of(String)
         def key2 = Attribute.of("a1", String)
-        schema.attribute(key1) {
-            it.compatibilityRules.addEqualityCheck()
-        }
+        schema.attribute(key1)
         schema.attribute(key2) {
-            it.compatibilityRules.addEqualityCheck()
             it.compatibilityRules.optionalOnProducer()
         }
 
@@ -73,12 +68,8 @@ class ComponentAttributeMatcherTest extends Specification {
     def "Matching two attributes with distinct types gives no match and also no failure" () {
         def key1 = Attribute.of("a1", String)
         def key2 = Attribute.of("a2", String)
-        schema.attribute(key1) {
-            it.compatibilityRules.addEqualityCheck()
-        }
-        schema.attribute(key2) {
-            it.compatibilityRules.addEqualityCheck()
-        }
+        schema.attribute(key1)
+        schema.attribute(key2)
 
         given:
         def candidate = new DefaultAttributeContainer()
@@ -95,9 +86,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
     def "Matching two attributes with same type but different value gives no match but a failure" () {
         def key = Attribute.of(String)
-        schema.attribute(key) {
-            it.compatibilityRules.addEqualityCheck()
-        }
+        schema.attribute(key)
 
         given:
         def candidate = new DefaultAttributeContainer()
