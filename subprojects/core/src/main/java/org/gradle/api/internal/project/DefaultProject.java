@@ -142,9 +142,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
         @Override
         public void execute(AttributesSchema attributesSchema) {
-            attributesSchema.configureMatchingStrategy(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.configureMatchingStrategy(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.configureMatchingStrategy(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.attribute(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.attribute(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.attribute(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
         }
     };
 

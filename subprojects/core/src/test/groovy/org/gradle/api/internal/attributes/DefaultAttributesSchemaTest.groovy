@@ -36,7 +36,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "is eventually incompatible by default"() {
         given:
-        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {}
+        def strategy = schema.attribute(Attribute.of(Map)) {}
         def details = Mock(CompatibilityCheckDetails)
 
         when:
@@ -51,7 +51,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "can set eventually compatible by default"() {
         given:
-        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
+        def strategy = schema.attribute(Attribute.of(Map)) {
             it.compatibilityRules.eventuallyCompatible()
         }
         def details = Mock(CompatibilityCheckDetails)
@@ -68,7 +68,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "equality strategy takes precendence over default"() {
         given:
-        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
+        def strategy = schema.attribute(Attribute.of(Map)) {
             it.compatibilityRules.addEqualityCheck()
             it.compatibilityRules.eventuallyCompatible()
         }
@@ -86,7 +86,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "can set a basic equality match strategy"() {
         given:
-        def strategy = schema.configureMatchingStrategy(Attribute.of(Map)) {
+        def strategy = schema.attribute(Attribute.of(Map)) {
             it.compatibilityRules.addEqualityCheck()
         }
         def details = Mock(CompatibilityCheckDetails)
@@ -112,7 +112,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "strategy is per attribute"() {
         given:
-        schema.configureMatchingStrategy(Attribute.of('a', Map)) {
+        schema.attribute(Attribute.of('a', Map)) {
             it.compatibilityRules.addEqualityCheck()
         }
 
@@ -136,7 +136,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def attr = Attribute.of(Map)
 
         given:
-        schema.configureMatchingStrategy(attr) {
+        schema.attribute(attr) {
             it.compatibilityRules.add { CompatibilityCheckDetails<Map> details ->
                 def producerValue = details.producerValue
                 def consumerValue = details.consumerValue

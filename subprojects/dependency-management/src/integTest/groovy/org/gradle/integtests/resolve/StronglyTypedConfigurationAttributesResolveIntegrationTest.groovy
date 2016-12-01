@@ -39,13 +39,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             allprojects {
                configurationAttributesSchema {
-                  configureMatchingStrategy(flavor) {
+                  attribute(flavor) {
                        compatibilityRules.addEqualityCheck()
                   }
-                  configureMatchingStrategy(buildType) {
+                  attribute(buildType) {
                        compatibilityRules.addEqualityCheck()
                   }
-                  configureMatchingStrategy(extra) {
+                  attribute(extra) {
                        compatibilityRules.addEqualityCheck()
                   }
                }
@@ -103,10 +103,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':b') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(Attribute.of('flavor', String)) {
+                    attribute(Attribute.of('flavor', String)) {
                         compatibilityRules.addEqualityCheck()
                     }
-                    configureMatchingStrategy(Attribute.of('buildType', String)) {
+                    attribute(Attribute.of('buildType', String)) {
                         compatibilityRules.addEqualityCheck()
                     }
                 }
@@ -155,7 +155,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  configureMatchingStrategy(flavor) {
+                  attribute(flavor) {
                       compatibilityRules.rules = []
                       compatibilityRules.add { details ->
                            if (details.consumerValue.present && details.producerValue.present) {
@@ -237,7 +237,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  configureMatchingStrategy(flavor) {
+                  attribute(flavor) {
                       compatibilityRules.add { details ->
                            if (details.consumerValue.present && details.producerValue.present) {
                                if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
@@ -322,7 +322,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                configurationAttributesSchema {
-                  configureMatchingStrategy(flavor) {
+                  attribute(flavor) {
                       compatibilityRules.add { details ->
                            if (details.consumerValue.present && details.producerValue.present) {
                                if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
@@ -333,7 +333,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   }
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
-                  configureMatchingStrategy(buildType) {
+                  attribute(buildType) {
                      compatibilityRules.eventuallyCompatible()
                      disambiguationRules.add { details ->
                         details.candidateValues.entrySet().findAll { it.value.get() == details.consumerValue.get() }*.key.each { details.closestMatch(it) }
@@ -410,10 +410,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':b') {
                configurationAttributesSchema {
-                  configureMatchingStrategy(buildType) {
+                  attribute(buildType) {
                       compatibilityRules.addEqualityCheck()
                   }
-                  configureMatchingStrategy(flavor) {
+                  attribute(flavor) {
                        compatibilityRules.addEqualityCheck()
                        disambiguationRules.add { details ->
                             details.closestMatch(details.candidateValues.sort { it.get() }.first())
@@ -438,7 +438,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':b') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnConsumer()
                     }
                 }
@@ -481,7 +481,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             allprojects {
                configurationAttributesSchema {
-                  configureMatchingStrategy(dummy) {
+                  attribute(dummy) {
                       compatibilityRules.addEqualityCheck()
                   }
                }
@@ -489,7 +489,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':b') {
                configurationAttributesSchema {
-                    configureMatchingStrategy(arch) {
+                    attribute(arch) {
                        compatibilityRules.addEqualityCheck()
                        compatibilityRules.optionalOnConsumer()
                        disambiguationRules.pickLast { a,b -> a<=>b }
@@ -498,7 +498,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':c') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(arch) {
+                    attribute(arch) {
                        compatibilityRules.addEqualityCheck()
                        compatibilityRules.optionalOnConsumer()
                        disambiguationRules.pickLast { a,b -> a<=>b }

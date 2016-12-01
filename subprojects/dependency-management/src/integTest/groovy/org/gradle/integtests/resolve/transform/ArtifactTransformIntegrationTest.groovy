@@ -29,7 +29,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
 allprojects {
     configurationAttributesSchema {
-       configureMatchingStrategy(Attribute.of('usage', String)) {
+       attribute(Attribute.of('usage', String)) {
           compatibilityRules.addEqualityCheck()
        }
     }

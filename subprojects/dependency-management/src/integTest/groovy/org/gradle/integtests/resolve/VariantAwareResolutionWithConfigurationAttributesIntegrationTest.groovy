@@ -38,13 +38,13 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
                         p.configurationAttributesSchema {
-                           configureMatchingStrategy(Attribute.of('buildType', String)) {
+                           attribute(Attribute.of('buildType', String)) {
                               compatibilityRules.addEqualityCheck()
                            }
-                           configureMatchingStrategy(Attribute.of('usage', String)) {
+                           attribute(Attribute.of('usage', String)) {
                               compatibilityRules.addEqualityCheck()
                            }
-                           configureMatchingStrategy(Attribute.of('flavor', String)) {
+                           attribute(Attribute.of('flavor', String)) {
                               compatibilityRules.addEqualityCheck()
                            }
                         }

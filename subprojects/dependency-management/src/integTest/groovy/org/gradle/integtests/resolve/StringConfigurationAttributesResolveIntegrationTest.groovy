@@ -29,13 +29,13 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
 
             allprojects {
                configurationAttributesSchema {
-                  configureMatchingStrategy(flavor) {
+                  attribute(flavor) {
                        compatibilityRules.addEqualityCheck()
                   }
-                  configureMatchingStrategy(buildType) {
+                  attribute(buildType) {
                        compatibilityRules.addEqualityCheck()
                   }
-                  configureMatchingStrategy(extra) {
+                  attribute(extra) {
                        compatibilityRules.addEqualityCheck()
                   }
                }
