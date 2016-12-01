@@ -225,6 +225,91 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     }
 
+    @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
+    def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConfigurationNames() >> ['foo', 'bar']
+        }
+        def fromConfig = Stub(LocalConfigurationMetadata) {
+            getAttributes() >> attributes(queryAttributes)
+        }
+        fromConfig.hierarchy >> ["from"]
+        def defaultConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'default'
+            isCanBeResolved() >> true
+            isCanBeConsumed() >> true
+        }
+        def toFooConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'foo'
+            getAttributes() >> attributes(fooAttributes)
+            isCanBeResolved() >> false
+            isCanBeConsumed() >> true
+        }
+        def toBarConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'bar'
+            getAttributes() >> attributes(barAttributes)
+            isCanBeResolved() >> false
+            isCanBeConsumed() >> true
+        }
+        def schema = Mock(AttributesSchema) {
+            getMatchingStrategy(_) >> { args ->
+                def attr = args[0]
+                if (attr.name == 'platform') {
+                    def strategy = new DefaultAttributeMatchingStrategy()
+                    strategy.ordered(true) { a, b -> a<=>b }
+                    return strategy
+                }
+                return defaultMatchingStrategy
+            }
+            hasAttribute(_) >> true
+            getAttributes() >> {
+                [Attribute.of('platform', JavaVersion), Attribute.of('flavor', String)]
+            }
+        }
+
+        given:
+        toComponent.getConfiguration("default") >> defaultConfig
+        toComponent.getConfiguration("foo") >> toFooConfig
+        toComponent.getConfiguration("bar") >> toBarConfig
+
+        expect:
+        try {
+            def result = dep.selectConfigurations(fromComponent, fromConfig, toComponent, schema)*.name as Set
+            if (expected == null && result) {
+                throw new AssertionError("Expected an ambiguous result, but got $result")
+            }
+            assert result == [expected] as Set
+        } catch (IllegalArgumentException e) {
+            if (expected == null) {
+                assert e.message.startsWith('Cannot choose between the following configurations: [bar, foo]')
+            } else {
+                throw e
+            }
+        }
+
+        where:
+        scenario                                                    | queryAttributes                               | fooAttributes                                 | barAttributes                                 | expected
+        'exact match is found'                                      | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA7]                 | [:]                                           | 'foo'
+        'exact match is found'                                      | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | 'bar'
+        'Java 7  is compatible with Java 8'                         | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | [:]                                           | 'foo'
+        'Java 7 is closer to Java 8'                                | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6]                 | [platform: JavaVersion.JAVA7]                 | 'bar'
+        'Java 8 is not compatible with Java 7'                      | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | [:]                                           | 'default'
+        'Java 8 is not compatible but Java 6 is'                    | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6]                 | 'bar'
+        'compatible platforms, but additional attributes unmatched' | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA6, flavor: 'paid'] | null
+        'compatible platforms, but one closer'                      | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA7, flavor: 'paid'] | 'bar'
+        'exact match and multiple attributes'                       | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA7, flavor: 'free'] | 'foo'
+        'partial match and multiple attributes'                     | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | 'foo'
+        'close match and multiple attributes'                       | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA7, flavor: 'free'] | 'bar'
+        'close partial match and multiple attributes'               | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA6]                 | [platform: JavaVersion.JAVA7]                 | 'bar'
+        'exact match and partial match'                             | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA6]                 | [platform: JavaVersion.JAVA7, flavor: 'free'] | 'bar'
+        'no exact match but partial match'                          | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA6]                 | [platform: JavaVersion.JAVA7, flavor: 'paid'] | 'foo'
+        'no exact match but ambiguous partial match'                | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA6, extra: 'foo']   | [platform: JavaVersion.JAVA6, extra: 'bar']   | null
+        'no exact match but best partial match'                     | [platform: JavaVersion.JAVA8, flavor: 'free'] | [platform: JavaVersion.JAVA8, extra: 'foo']   | [platform: JavaVersion.JAVA6, extra: 'bar']   | 'foo'
+
+    }
+
     def "fails to select target configuration when not present in the target component"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
