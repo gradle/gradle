@@ -46,7 +46,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
             hasAttribute(_) >> { true }
         }
         defaultMatchingStrategy.with {
-            compatibilityRules.addEqualityCheck()
             compatibilityRules.add { details ->
                 if (details.consumerValue.missing) {
                     details.compatible()

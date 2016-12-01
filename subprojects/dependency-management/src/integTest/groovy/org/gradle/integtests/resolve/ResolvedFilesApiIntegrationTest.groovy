@@ -27,9 +27,7 @@ rootProject.name = 'test'
         buildFile << """
 allprojects {
     configurationAttributesSchema {
-       attribute(Attribute.of('usage', String)) {
-          compatibilityRules.addEqualityCheck()
-       }
+       attribute(Attribute.of('usage', String))
     }
     configurations {
         compile {

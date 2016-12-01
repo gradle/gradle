@@ -41,7 +41,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        details.getProducerValue() >> AttributeValue.missing()
         strategy.compatibilityRules.execute(details)
 
         then:
@@ -49,29 +49,9 @@ class DefaultAttributesSchemaTest extends Specification {
         0 * details._
     }
 
-    def "can set eventually compatible by default"() {
-        given:
-        def strategy = schema.attribute(Attribute.of(Map)) {
-            it.compatibilityRules.eventuallyCompatible()
-        }
-        def details = Mock(CompatibilityCheckDetails)
-
-        when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.compatibilityRules.execute(details)
-
-        then:
-        1 * details.compatible()
-        0 * details._
-    }
-
     def "equality strategy takes precendence over default"() {
         given:
-        def strategy = schema.attribute(Attribute.of(Map)) {
-            it.compatibilityRules.addEqualityCheck()
-            it.compatibilityRules.eventuallyCompatible()
-        }
+        def strategy = schema.attribute(Attribute.of(Map))
         def details = Mock(CompatibilityCheckDetails)
 
         when:
@@ -86,9 +66,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "can set a basic equality match strategy"() {
         given:
-        def strategy = schema.attribute(Attribute.of(Map)) {
-            it.compatibilityRules.addEqualityCheck()
-        }
+        def strategy = schema.attribute(Attribute.of(Map))
         def details = Mock(CompatibilityCheckDetails)
 
         when:
@@ -112,9 +90,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "strategy is per attribute"() {
         given:
-        schema.attribute(Attribute.of('a', Map)) {
-            it.compatibilityRules.addEqualityCheck()
-        }
+        schema.attribute(Attribute.of('a', Map))
 
         when:
         schema.getMatchingStrategy(Attribute.of('someOther', Map))

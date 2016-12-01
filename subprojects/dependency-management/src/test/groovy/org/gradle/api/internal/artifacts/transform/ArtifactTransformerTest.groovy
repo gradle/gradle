@@ -41,17 +41,14 @@ class ArtifactTransformerTest extends Specification {
 
     def setup() {
         attributesSchema.attribute(ARTIFACT_FORMAT) {
-            it.compatibilityRules.addEqualityCheck()
             it.compatibilityRules.optionalOnProducer()
             it.compatibilityRules.optionalOnConsumer()
         }
         attributesSchema.attribute(ARTIFACT_CLASSIFIER) {
-            it.compatibilityRules.addEqualityCheck()
             it.compatibilityRules.optionalOnProducer()
             it.compatibilityRules.optionalOnConsumer()
         }
         attributesSchema.attribute(ARTIFACT_EXTENSION) {
-            it.compatibilityRules.addEqualityCheck()
             it.compatibilityRules.optionalOnProducer()
             it.compatibilityRules.optionalOnConsumer()
         }

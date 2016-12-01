@@ -30,21 +30,14 @@ import java.util.Comparator;
  * expressed an option (through {@link CompatibilityCheckDetails#compatible()} or {@link CompatibilityCheckDetails#incompatible()}).
  * </p>
  *
- * <p>If the end of the rule chain is reached and that no rule expressed an opinion then the decision whether to make attributes
- * compatible or not is taken depending on the calls to {@link #eventuallyCompatible()} or {@link #eventuallyIncompatible()} (the default)</p>
+ * <p>If the end of the rule chain is reached and that no rule expressed an opinion then we apply an equality check by default, and
+ * eventually fail if they are not equal.</p>
  *
  * @param <T> the type of the attribute
  */
 @Incubating
 @HasInternalProtocol
 public interface CompatibilityRuleChain<T> {
-    /**
-     * Adds an equality check rule to this chain. An equality check rule will always express an opinion:
-     * if the attributes are <i>equal</i> then the attributes are deemed compatible, otherwise they are
-     * incompatible.
-     */
-    void addEqualityCheck();
-
     /**
      * Adds an ordered check rule to this chain.
      *
@@ -76,18 +69,6 @@ public interface CompatibilityRuleChain<T> {
      * @param rule the rule to add to the chain
      */
     void add(Action<? super CompatibilityCheckDetails<T>> rule);
-
-    /**
-     * Tells that if no rule expressed an opinion about compatibility of values, then they are
-     * deemed incompatible (this is the default).
-     */
-    void eventuallyIncompatible();
-
-    /**
-     * Tells that if no rule expressed an opinion about compatibility of values, then they are
-     * deemed compatible.
-     */
-    void eventuallyCompatible();
 
     /**
      * Adds a rule that tells that if an attribute is found on the consumer but not on the producer,

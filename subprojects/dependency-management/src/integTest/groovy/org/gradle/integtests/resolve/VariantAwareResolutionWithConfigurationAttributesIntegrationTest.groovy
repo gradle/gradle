@@ -38,15 +38,9 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
                         p.configurationAttributesSchema {
-                           attribute(Attribute.of('buildType', String)) {
-                              compatibilityRules.addEqualityCheck()
-                           }
-                           attribute(Attribute.of('usage', String)) {
-                              compatibilityRules.addEqualityCheck()
-                           }
-                           attribute(Attribute.of('flavor', String)) {
-                              compatibilityRules.addEqualityCheck()
-                           }
+                           attribute(Attribute.of('buildType', String))
+                           attribute(Attribute.of('usage', String))
+                           attribute(Attribute.of('flavor', String))
                         }
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
