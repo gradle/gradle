@@ -19,6 +19,8 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.attributes.DisambiguationRuleChain;
 
+import java.util.Comparator;
+
 public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
     private final CompatibilityRuleChain<T> compatibilityRules = new DefaultCompatibilityRuleChain<T>();
     private final DisambiguationRuleChain<T> disambiguationRules = new DefaultDisambiguationRuleChain<T>();
@@ -31,5 +33,15 @@ public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStr
     @Override
     public DisambiguationRuleChain<T> getDisambiguationRules() {
         return disambiguationRules;
+    }
+
+    @Override
+    public void ordered(boolean pickLast, Comparator<T> comparator) {
+        compatibilityRules.ordered(comparator);
+        if (pickLast) {
+            disambiguationRules.pickLast(comparator);
+        } else {
+            disambiguationRules.pickFirst(comparator);
+        }
     }
 }
