@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
 
 /**
  * An immutable snapshot of the relevant aspects of a file's path and content.

@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.cache.BuildCacheKey;
+import org.gradle.caching.BuildCacheKey;
 
 import java.util.Collection;
 

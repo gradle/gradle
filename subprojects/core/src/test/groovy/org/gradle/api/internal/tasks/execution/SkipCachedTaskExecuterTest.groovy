@@ -26,12 +26,12 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.cache.TaskOutputPacker
-import org.gradle.api.internal.tasks.cache.config.BuildCacheConfigurationInternal
-import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginFactory
-import org.gradle.cache.BuildCache
-import org.gradle.cache.BuildCacheKey
-import org.gradle.cache.internal.BuildCacheFactory
+import org.gradle.caching.BuildCache
+import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.internal.BuildCacheConfigurationInternal
+import org.gradle.caching.internal.BuildCacheFactory
+import org.gradle.caching.internal.tasks.TaskOutputPacker
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import spock.lang.Specification
 
 public class SkipCachedTaskExecuterTest extends Specification {

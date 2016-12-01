@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.cache.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
 
 import java.io.File;
 import java.util.Collection;

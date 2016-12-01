@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.cache.BuildCacheKey;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;

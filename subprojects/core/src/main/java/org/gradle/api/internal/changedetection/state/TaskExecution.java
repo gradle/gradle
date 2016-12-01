@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.apache.commons.lang.SerializationUtils;
-import org.gradle.cache.BuildCacheKey;
-import org.gradle.cache.internal.BuildCacheKeyBuilder;
-import org.gradle.cache.internal.DefaultBuildCacheKeyBuilder;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;

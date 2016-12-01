@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
 import org.gradle.internal.hash.HashUtil;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {

@@ -24,7 +24,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.cache.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
