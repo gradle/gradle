@@ -36,6 +36,7 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
 
     @Override
     void cleanWorkspace() {
+        executer.expectDeprecationWarning()
         run "clean"
     }
 }
