@@ -193,7 +193,7 @@ public class ComponentAttributeMatcher {
         AttributeMatchingStrategy<Object> ms = Cast.uncheckedCast(matchingStrategy);
         MultipleCandidatesDetails<Object> details = new CandidateDetails(requested, candidatesByValue, best);
         DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) ms.getDisambiguationRules();
-        disambiguationRules.selectClosestMatch(details);
+        disambiguationRules.execute(details);
         remainingMatches.retainAll(best);
     }
 

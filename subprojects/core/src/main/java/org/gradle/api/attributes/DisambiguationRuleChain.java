@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -23,8 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * <p>A chain of {@link DisambiguationRule disambiguation rules}. By default
- * the chain is empty and will not do any disambiguation.</p>
+ * <p>A chain of disambiguation rules. By default the chain is empty and will not do any disambiguation.</p>
  *
  * <p>For a given set of rules, the execution is done <i>in order</i>, and interrupts as soon as a rule
  * selected at least one candidate (through {@link MultipleCandidatesDetails#closestMatch(AttributeValue)}).
@@ -40,11 +40,17 @@ import java.util.List;
 public interface DisambiguationRuleChain<T> {
 
     /**
-     * Adds an arbitrary disambiguation rule to the chain.
+     * <p>Adds an arbitrary disambiguation rule to the chain.</p>
+     * <p>A disambiguation rule can select the best match from a list of {@link AttributeValue candidate}.</p>
+     *
+     * <p>A rule <i>can</i> express an preference by calling the @{link {@link MultipleCandidatesDetails#closestMatch(AttributeValue)}
+     * method to tell that a candidate is the best one.</p>
+     *
+     * <p>It is not mandatory for a rule to choose, and it is not an error to select multiple candidates.</p>
      *
      * @param rule the rule to add
      */
-    void add(DisambiguationRule<T> rule);
+    void add(Action<? super MultipleCandidatesDetails<T>> rule);
 
     /**
      * Adds an ordered disambiguation rule. Values will be compared using the
@@ -53,10 +59,8 @@ public interface DisambiguationRuleChain<T> {
      * still be an ambiguity).
      *
      * @param comparator the comparator to use
-     *
-     * @return the added ordered disambiguation rule
      */
-    DisambiguationRule<T> pickFirst(Comparator<? super T> comparator);
+    void pickFirst(Comparator<? super T> comparator);
 
     /**
      * Adds an ordered disambiguation rule. Values will be compared using the
@@ -65,17 +69,15 @@ public interface DisambiguationRuleChain<T> {
      * still be an ambiguity).
      *
      * @param comparator the comparator to use
-     *
-     * @return the added ordered disambiguation rule
      */
-    DisambiguationRule<T> pickLast(Comparator<? super T> comparator);
+    void pickLast(Comparator<? super T> comparator);
 
     /**
      * Replaces the current chain of rules with the provided rules.
      *
      * @param rules the new rule list
      */
-    void setRules(List<DisambiguationRule<T>> rules);
+    void setRules(List<Action<? super MultipleCandidatesDetails<T>>> rules);
 
     /**
      * Tells the engine not to disambiguate if no rule expressed a preference.
