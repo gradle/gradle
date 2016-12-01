@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+package org.gradle.api.internal.tasks.cache.origin;
 
-import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginReader;
-import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginWriter;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
-public interface TaskOutputPacker {
-    void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
-
-    void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
+public interface TaskOutputOriginReader {
+    void execute(InputStream inputStream);
 }

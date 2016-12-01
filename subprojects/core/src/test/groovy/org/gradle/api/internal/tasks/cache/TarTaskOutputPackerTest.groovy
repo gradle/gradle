@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.cache
 
-import org.gradle.api.Action
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginReader
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginWriter
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Unroll
 
@@ -25,8 +26,8 @@ import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePr
 
 class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def fileSystem = Mock(FileSystem)
-    def readOriginAction = Stub(Action)
-    def writeOriginAction = Stub(Action)
+    def readOrigin = Stub(TaskOutputOriginReader)
+    def writeOrigin = Stub(TaskOutputOriginWriter)
     def packer = new TarTaskOutputPacker(fileSystem)
 
     @Unroll
@@ -38,7 +39,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def unixMode = Integer.parseInt(mode, 8)
 
         when:
-        packer.pack(taskOutputs, output, writeOriginAction)
+        packer.pack(taskOutputs, output, writeOrigin)
         then:
         taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "test", outputFile: sourceOutputFile)
@@ -50,7 +51,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input, readOriginAction)
+        packer.unpack(taskOutputs, input, readOrigin)
 
         then:
         taskOutputs.getFileProperties() >> ([
@@ -82,7 +83,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def targetDataFile = targetSubDir.file("data.txt")
         def output = new ByteArrayOutputStream()
         when:
-        packer.pack(taskOutputs, output, writeOriginAction)
+        packer.pack(taskOutputs, output, writeOrigin)
         then:
         taskOutputs.getFileProperties() >> ([
             new TestProperty(propertyName: "test", outputFile: sourceOutputDir)
@@ -93,7 +94,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input, readOriginAction)
+        packer.unpack(taskOutputs, input, readOrigin)
 
         then:
         taskOutputs.getFileProperties() >> ([
@@ -114,7 +115,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def targetOutputFile = tempDir.file("target.txt")
         def output = new ByteArrayOutputStream()
         when:
-        packer.pack(taskOutputs, output, writeOriginAction)
+        packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
         taskOutputs.getFileProperties() >> ([
@@ -125,7 +126,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input, readOriginAction)
+        packer.unpack(taskOutputs, input, readOrigin)
 
         then:
         taskOutputs.getFileProperties() >> ([
@@ -140,7 +141,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def "can pack task output with all optional, empty outputs"() {
         def output = new ByteArrayOutputStream()
         when:
-        packer.pack(taskOutputs, output, writeOriginAction)
+        packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
         taskOutputs.getFileProperties() >> ([
@@ -151,7 +152,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input, readOriginAction)
+        packer.unpack(taskOutputs, input, readOrigin)
 
         then:
         noExceptionThrown()
@@ -172,7 +173,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def output = new ByteArrayOutputStream()
 
         when:
-        packer.pack(taskOutputs, output, writeOriginAction)
+        packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
         taskOutputs.getFileProperties() >> ([
@@ -183,7 +184,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input, readOriginAction)
+        packer.unpack(taskOutputs, input, readOrigin)
 
         then:
         noExceptionThrown()
@@ -199,7 +200,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def targetDir = tempDir.file("target")
         def output = new ByteArrayOutputStream()
         when:
-        packer.pack(taskOutputs, output, writeOriginAction)
+        packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
         taskOutputs.getFileProperties() >> ([
@@ -209,7 +210,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        packer.unpack(taskOutputs, input, readOriginAction)
+        packer.unpack(taskOutputs, input, readOrigin)
 
         then:
         noExceptionThrown()

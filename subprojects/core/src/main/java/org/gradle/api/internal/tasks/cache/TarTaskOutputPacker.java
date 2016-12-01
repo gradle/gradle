@@ -27,7 +27,6 @@ import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
@@ -36,6 +35,8 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginReader;
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginWriter;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
@@ -73,14 +74,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, Action<OutputStream> writeOriginAction) throws IOException {
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         Closer closer = Closer.create();
         TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
         outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
         outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
         outputStream.setAddPaxHeadersForNonAsciiNames(true);
         try {
-            packMetadata(writeOriginAction, outputStream);
+            packMetadata(writeOrigin, outputStream);
             pack(taskOutputs, outputStream);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
@@ -89,11 +90,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void packMetadata(Action<OutputStream> writeMetadataAction, TarOutputStream outputStream) throws IOException {
+    private void packMetadata(TaskOutputOriginWriter writeMetadata, TarOutputStream outputStream) throws IOException {
         TarEntry entry = new TarEntry(METADATA_PATH);
         entry.setMode(UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        writeMetadataAction.execute(baos);
+        writeMetadata.execute(baos);
         entry.setSize(baos.size());
         outputStream.putNextEntry(entry);
         try {
@@ -198,11 +199,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, Action<InputStream> readOriginAction) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException {
         Closer closer = Closer.create();
         TarInputStream tarInput = new TarInputStream(input);
         try {
-            unpack(taskOutputs, tarInput, readOriginAction);
+            unpack(taskOutputs, tarInput, readOrigin);
         } catch (Throwable ex) {
             throw closer.rethrow(ex);
         } finally {
@@ -210,7 +211,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, Action<InputStream> readOriginAction) throws IOException {
+    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {

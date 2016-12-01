@@ -27,7 +27,7 @@ class TaskOutputOriginFactoryTest extends Specification {
     def timeProvider = Mock(TimeProvider)
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
-    def converter = new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"))
+    def factory = new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"))
 
     def "converts to origin metadata"() {
         timeProvider.currentTime >> 0
@@ -35,11 +35,11 @@ class TaskOutputOriginFactoryTest extends Specification {
         task.path >> "path"
         rootDir.absolutePath >> "root"
         def origin = new Properties()
-        def writer = converter.createWriter(task, 10)
+        def writer = factory.createWriter(task, 10)
         def baos = new ByteArrayOutputStream()
         writer.execute(baos)
         when:
-        def reader = converter.createReader(task)
+        def reader = factory.createReader(task)
         // doesn't explode
         reader.execute(new ByteArrayInputStream(baos.toByteArray()))
         and:

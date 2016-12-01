@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.cache
 
-import org.gradle.api.Action
+import org.gradle.api.internal.tasks.cache.origin.TaskOutputOriginReader
 import spock.lang.Subject
 
 import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
@@ -27,7 +27,7 @@ class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
     def delegate = Mock(TarTaskOutputPacker)
     def packer = new OutputPreparingTaskOutputPacker(delegate)
     def input = Mock(InputStream)
-    def metadataReader = Stub(Action)
+    def metadataReader = Stub(TaskOutputOriginReader)
     def targetOutputFile
     def targetOutputDir
 

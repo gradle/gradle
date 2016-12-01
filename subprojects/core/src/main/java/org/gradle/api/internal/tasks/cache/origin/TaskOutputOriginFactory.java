@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.cache.origin;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -55,8 +54,8 @@ public class TaskOutputOriginFactory {
         this.gradleVersion = gradleVersion;
     }
 
-    public Action<OutputStream> createWriter(final TaskInternal task, final long elapsedTime) {
-        return new Action<OutputStream>() {
+    public TaskOutputOriginWriter createWriter(final TaskInternal task, final long elapsedTime) {
+        return new TaskOutputOriginWriter() {
             @Override
             public void execute(OutputStream outputStream) {
                 // TODO: Replace this with something better
@@ -80,8 +79,8 @@ public class TaskOutputOriginFactory {
         };
     }
 
-    public Action<InputStream> createReader(final TaskInternal task) {
-        return new Action<InputStream>() {
+    public TaskOutputOriginReader createReader(final TaskInternal task) {
+        return new TaskOutputOriginReader() {
             @Override
             public void execute(InputStream inputStream) {
                 // TODO: Replace this with something better
