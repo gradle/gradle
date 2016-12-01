@@ -76,6 +76,8 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
         def aarImage = file(name + '/aar-image')
         aarImage.file('AndroidManifest.xml') << "<AndroidManifest/>"
         file(name + '/classes').zipTo(aarImage.file('classes.jar'))
+        aarImage.file('libs/dep1.jar') << 'jar-content'
+        aarImage.file('libs/dep2.jar') << 'jar-content'
 
         // Publish an external version as AAR
         def module = mavenRepo.module("org.gradle", name).hasType('aar').publish()
@@ -153,9 +155,14 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
                 baseName = 'classes'
                 extension = 'jar'
             }
+            
+            task libs(type: Copy) {
+                from file('libs')
+                into file('aar-image/libs')
+            }
 
             task aar(type: Zip) {
-                dependsOn jar
+                dependsOn jar, libs
                 from file('aar-image')
                 destinationDir = file('build')
                 extension = 'aar'
@@ -229,7 +236,7 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
         
             protected abstract Collection<String> getOutputTypes()
         
-            protected abstract File transform(File input, String outputType)
+            protected abstract List<File> transform(File input, String outputType)
         
             @Override
             public void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
@@ -243,7 +250,7 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
             @Override
             public List<File> transform(File input, AttributeContainer target) {
                 String targetType = target.getAttribute(ARTIFACT_FORMAT)
-                return [transform(input, targetType)]
+                return transform(input, targetType)
             }
         }
 
@@ -256,16 +263,24 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
             String inputType = 'aar'
             List<String> outputTypes = ['jar', 'classpath', 'classes', 'android-manifest']
             
-            File transform(File input, String targetType) {
+            List<File> transform(File input, String targetType) {
                 explodeAar(input)
                 switch (targetType) {
                     case 'jar':
+                        return [new File(explodedAar, "classes.jar")]
                     case 'classpath':
-                        return new File(explodedAar, "classes.jar")
+                        def jars = [new File(explodedAar, "classes.jar")]
+                        def libDir = new File(explodedAar, 'libs')
+                        if (libDir.directory) {
+                            libDir.eachFile {
+                                jars << it
+                            }
+                        }
+                        return jars
                     case 'classes':
-                        return explodedJar
+                        return [explodedJar]
                     case 'android-manifest':
-                        return new File(explodedAar, "AndroidManifest.xml")
+                        return [new File(explodedAar, "AndroidManifest.xml")]
                     default:
                         throw new IllegalArgumentException("Not a supported target type: " + targetType)
                 }
@@ -305,13 +320,13 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
             String inputType = 'jar'
             List<String> outputTypes = ['classpath', 'classes']
             
-            File transform(File input, String targetType) {
+            List<File> transform(File input, String targetType) {
                 explodeJar(input)
                 switch (targetType) {
                     case 'classpath':
-                        return jar
+                        return [jar]
                     case 'classes':
-                        return classesFolder
+                        return [classesFolder]
                     default:
                         throw new IllegalArgumentException("Not a supported target type: " + targetType)
                 }
@@ -346,9 +361,9 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
             String inputType = 'classes'
             List<String> outputTypes = ['classpath']
             
-            File transform(File input, String targetType) {
+            List<File> transform(File input, String targetType) {
                 assert targetType == 'classpath'
-                return input
+                return [input]
             }
         }
         """
