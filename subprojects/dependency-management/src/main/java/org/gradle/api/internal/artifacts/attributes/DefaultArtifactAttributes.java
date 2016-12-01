@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.attributes;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeContainer;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -32,21 +35,17 @@ public class DefaultArtifactAttributes {
         return createAttributes(ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier());
     }
 
-    public static AttributeContainer forPublishArtifact(PublishArtifact artifact) {
-        return createAttributes(artifact.getType(), artifact.getExtension(), artifact.getClassifier());
-    }
-
     public static AttributeContainer forFile(File file) {
         String extension = Files.getFileExtension(file.getName());
         return createAttributes(extension, extension, "");
     }
 
     private static AttributeContainer createAttributes(String type, String extension, String classifier) {
-        AttributeContainer attributes = new DefaultAttributeContainer();
+        AttributeContainerInternal attributes = new DefaultAttributeContainer();
         attributes.attribute(ARTIFACT_FORMAT, type == null ? "" : type);
         attributes.attribute(ARTIFACT_EXTENSION, extension == null ? "" : extension);
         attributes.attribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier);
-        return attributes;
+        return attributes.asImmutable();
     }
 
 }
