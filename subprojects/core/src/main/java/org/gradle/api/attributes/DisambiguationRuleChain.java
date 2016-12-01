@@ -29,8 +29,8 @@ import java.util.Comparator;
  * selected at least one candidate (through {@link MultipleCandidatesDetails#closestMatch(AttributeValue)}).
  * </p>
  *
- * <p>If the end of the rule chain is reached and that no rule selected a candidate then the candidate list is determined
- * based on the calls to {@link #eventuallySelectAll()} (no disambiguation) or {@link #eventuallySelectNone()} (none is best)</p>
+ * <p>If the end of the rule chain is reached and that no rule selected a candidate then the candidate list is returned
+ * unmodified, meaning we still have an ambiguous match.</p>
  *
  * @param <T> the concrete type of the attribute
  */
@@ -71,13 +71,4 @@ public interface DisambiguationRuleChain<T> {
      */
     void pickLast(Comparator<? super T> comparator);
 
-    /**
-     * Tells the engine not to disambiguate if no rule expressed a preference.
-     */
-    void eventuallySelectAll();
-
-    /**
-     * Tells the engine to fail if no rule expressed a preference.
-     */
-    void eventuallySelectNone();
 }

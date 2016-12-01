@@ -29,8 +29,6 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
 
     private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
 
-    private boolean selectAllEventually = true;
-
     @Override
     public void add(Action<? super MultipleCandidatesDetails<T>> rule) {
         this.rules.add(rule);
@@ -49,16 +47,6 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public void eventuallySelectAll() {
-        selectAllEventually = true;
-    }
-
-    @Override
-    public void eventuallySelectNone() {
-        selectAllEventually = false;
-    }
-
-    @Override
     public void execute(MultipleCandidatesDetails<T> details) {
         State<T> state = new State<T>(details);
         for (Action<? super MultipleCandidatesDetails<T>> rule : rules) {
@@ -67,7 +55,7 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
                 return;
             }
         }
-        if (!state.determined && selectAllEventually) {
+        if (!state.determined) {
             SelectAllCompatibleRule.apply(details);
         }
     }
