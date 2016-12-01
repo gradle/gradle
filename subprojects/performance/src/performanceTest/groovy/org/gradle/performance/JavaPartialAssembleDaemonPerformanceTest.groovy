@@ -56,9 +56,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         }
         runner.testProject = testProject
         runner.useDaemon = true
-        runner.warmUpRuns = 25
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
-        runner.targetVersions = ['3.2']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:

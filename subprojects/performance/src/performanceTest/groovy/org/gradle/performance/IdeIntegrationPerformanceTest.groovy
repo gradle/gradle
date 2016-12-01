@@ -28,7 +28,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testId = "eclipse $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
@@ -39,10 +38,10 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions              | maxMemory
-        "small"           | ['3.3-20161028000018+0000'] | '128m'
-        "multi"           | ['3.3-20161028000018+0000'] | '256m'
-        "lotDependencies" | ['3.3-20161028000018+0000'] | '256m'
+        testProject       | maxMemory
+        "small"           | '128m'
+        "multi"           | '256m'
+        "lotDependencies" | '256m'
     }
 
     @Unroll("Project '#testProject' idea")
@@ -51,7 +50,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testId = "idea $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
@@ -62,9 +60,9 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions              | maxMemory
-        "small"           | ['3.3-20161028000018+0000'] | '128m'
-        "multi"           | ['3.3-20161028000018+0000'] | '256m'
-        "lotDependencies" | ['3.3-20161028000018+0000'] | '256m'
+        testProject       | maxMemory
+        "small"           | '128m'
+        "multi"           | '256m'
+        "lotDependencies" | '256m'
     }
 }

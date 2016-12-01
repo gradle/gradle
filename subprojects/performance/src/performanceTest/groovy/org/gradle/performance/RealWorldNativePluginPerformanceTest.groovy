@@ -35,7 +35,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.targetVersions = ['last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.warmUpRuns = 9
@@ -60,13 +59,12 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, List<String> targetVersions) {
+    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=12"]
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.warmUpRuns = 9
@@ -140,10 +138,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | changedFile                       | changeClosure        | targetVersions
-        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['last']
-        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['last']
-        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['3.3-20161125000031+0000']
+        buildSize | changeType              | changedFile                       | changeClosure
+        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource
+        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs
     }
 
     void changeCSource(File file, String originalContent) {

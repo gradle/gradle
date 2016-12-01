@@ -16,13 +16,11 @@
 
 package org.gradle.performance
 
-import org.gradle.internal.jvm.Jvm
 import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -36,8 +34,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         experiment(template, "get $template EclipseProject model") {
             warmUpCount = 20
             invocationCount = 30
-            // rebaselined because of https://github.com/gradle/performance/issues/99
-            targetVersions = ['3.2-rc-1']
             action {
                 def model = model(tapiClass(EclipseProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
@@ -93,58 +89,17 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         "lotDependencies"   | '256m'
     }
 
-    private static void sendCommand(String command, int port) {
-        def socket = new Socket("127.0.0.1", port)
-        try {
-            socket.outputStream.withStream { output ->
-                output.write("${command}\r\n".bytes)
-            }
-        } finally {
-            socket.close()
-        }
-    }
-
-    private static void sendYJPCommand(String command, int port) {
-        [Jvm.current().javaExecutable, '-jar', '/home/cchampeau/TOOLS/yjp-2016.02/lib/yjp-controller-api-redist.jar', '127.0.0.1', "$port", command].execute()
-    }
-
     @Unroll
     def "building IDEA model for a #template project"() {
         given:
-        int port = 10000
         experiment(template, "get $template IdeaProject model") {
-            /*
-            // uncomment to enable profiling with Honest Profiler, Yourkit, debugging, ...
-            listener = new BuildExperimentListenerAdapter() {
-                @Override
-                void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                    if (invocationInfo.iterationNumber==1 && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
-                        println "Starting sampling..."
-                        //sendCommand('start', port)
-                        sendYJPCommand('start-cpu-call-counting', port)
-                        sendYJPCommand('enable-stack-telemetry', port)
-                    }
-                }
-
-                @Override
-                void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                    if (invocationInfo.iterationNumber==invocationInfo.iterationMax-1 && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
-                        sendYJPCommand('capture-performance-snapshot', port)
-                        sendYJPCommand('stop-cpu-call-counting', port)
-                        sendYJPCommand('disable-stack-telemetry', port)
-                        port++
-                    }
-                }
-            }*/
             warmUpCount = 20
             invocationCount = 30
-            targetVersions = ['3.2']
 
             action {
-                def version = tapiClass(GradleVersion).current().version
                 def model = model(tapiClass(IdeaProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
-                // we must actually do something to highlight some performance issues
+                // we Ømust actually do something to highlight some performance issues
                 model.with {
                     name
                     description

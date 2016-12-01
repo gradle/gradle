@@ -25,7 +25,6 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testId = "$size $description with old Java plugin"
         runner.testProject = template
         runner.tasksToRun = gradleTasks
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ['-Xms256m', '-Xmx256m']
 
@@ -36,9 +35,9 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        template          | size     | description                 | gradleTasks           | targetVersions
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['3.3-20161028000018+0000']
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['3.3-20161028000018+0000']
+        template          | size     | description                 | gradleTasks
+        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test']
+        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']
     }
 
     @Unroll("#description build for #template")
@@ -47,7 +46,6 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testId = "$size $description with old Java plugin"
         runner.testProject = template
         runner.tasksToRun = gradleTasks
-        runner.targetVersions = ['2.11', '3.3-20161028000018+0000']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.buildExperimentListener = new JavaOldModelSourceFileUpdater(10)

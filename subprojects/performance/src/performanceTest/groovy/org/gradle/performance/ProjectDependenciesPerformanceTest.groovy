@@ -29,7 +29,6 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         runner.tasksToRun = ['resolveDependencies']
         runner.useDaemon = true
         runner.gradleOpts = ['-Xms256m', '-Xmx256m']
-        runner.targetVersions = ['3.2']
 
         when:
         def result = runner.run()

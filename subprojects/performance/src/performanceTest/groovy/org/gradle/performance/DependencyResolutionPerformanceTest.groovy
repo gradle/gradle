@@ -28,7 +28,6 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testId = "resolves dependencies from $repoType repository $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['resolveDependencies']
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
 
@@ -39,8 +38,8 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | repoType | targetVersions
-        "lotDependencies"        | 'local'  | ['3.3-20161028000018+0000']
-        "lotProjectDependencies" | 'local'  | ['3.2']
+        testProject              | repoType
+        "lotDependencies"        | 'local'
+        "lotProjectDependencies" | 'local'
     }
 }
