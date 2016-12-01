@@ -26,7 +26,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskOutputCacheEnabled) {
 
         if (gradle.startParameter.parallelProjectExecutionEnabled) {
-            // We have issues with concurrent listeners generating events 
+            // We have issues with concurrent listeners generating events
             // This causes deadlocks when executing tasks with this init script
             // Disable this when --parallel has been enabled
             logger.warn("Disabling task output cache diagnostics while --parallel is enabled.")
@@ -34,23 +34,27 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         }
 
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
+            ':patchExternalModules',
+            ':dependencyManagement:generateGradleApiPackageList',
+            ':launcher:classycleIntegTest',
+            ':launcher:compileTestFixturesGroovy',
+            ':launcher:checkstyleIntegTestGroovy',
+            ':launcher:compileIntegTestGroovy',
+            ':docs:test',
+            ':docs:samples',
+            ':docs:userguideFragmentSrc',
             ':core:compileTestGroovy',
             ':announce:compileJava',
             ':baseServices:classpathManifest',
             ':core:compileTestFixturesGroovy',
-            ':diagnostics:compileTestGroovy',
             ':toolingApi:integTest',
             ':plugins:integTest',
             ':pluginUse:integTest',
             ':integTest:compileIntegTestGroovy',
             ':integTest:integTest',
             ':platformPlay:integTest',
-            ':docs:userguideFragmentSrc',
-            ':docs:dslStandaloneDocbook',
-            ':docs:dslHtml',
             ':wrapper:integTest',
             ':internalAndroidPerformanceTesting:compileJava',
-            ':launcher:compileTestFixturesGroovy',
             ':docs:checkstyleApi',
             ':announce:checkstyleIntegTestGroovy']
 
