@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
+import org.gradle.cache.BuildCache;
 
 /**
  * Factory interface for build caching.

@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.cache.BuildCache;
-import org.gradle.cache.BuildCacheFactory;
+import org.gradle.cache.internal.BuildCacheFactory;
 
 import java.net.URI;
 
