@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Set;
@@ -63,6 +64,7 @@ public interface AttributeContainer extends HasAttributes {
      * @param key the attribute key
      * @return the attribute value, or null if not found
      */
+    @Nullable
     <T> T getAttribute(Attribute<T> key);
 
     /**
