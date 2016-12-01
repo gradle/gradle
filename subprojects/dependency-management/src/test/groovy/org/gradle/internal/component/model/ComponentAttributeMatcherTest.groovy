@@ -48,7 +48,7 @@ class ComponentAttributeMatcherTest extends Specification {
         def key2 = Attribute.of("a1", String)
         schema.attribute(key1)
         schema.attribute(key2) {
-            it.compatibilityRules.optionalOnProducer()
+            it.compatibilityRules.assumeCompatibleWhenMissing()
         }
 
         given:

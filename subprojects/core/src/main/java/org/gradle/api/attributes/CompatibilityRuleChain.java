@@ -71,14 +71,9 @@ public interface CompatibilityRuleChain<T> {
     void add(Action<? super CompatibilityCheckDetails<T>> rule);
 
     /**
-     * Adds a rule that tells that if an attribute is found on the consumer but not on the producer,
-     * the match is compatible.
+     * Adds a rule that tells that if an attribute is missing, either on the producer or the consumer, then
+     * it is deemed compatible.
      */
-    void optionalOnProducer();
+    void assumeCompatibleWhenMissing();
 
-    /**
-     * Adds a rule that tells that if an attribute is found on the producer but not on the consumer
-     * the match is compatible.
-     */
-    void optionalOnConsumer();
 }

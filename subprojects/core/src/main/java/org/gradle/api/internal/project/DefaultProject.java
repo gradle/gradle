@@ -134,8 +134,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         @Override
         public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
             CompatibilityRuleChain<String> compatibilityRules = stringAttributeMatchingStrategy.getCompatibilityRules();
-            compatibilityRules.optionalOnConsumer();
-            compatibilityRules.optionalOnProducer();
+            compatibilityRules.assumeCompatibleWhenMissing();
         }
     };
     private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {

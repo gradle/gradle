@@ -25,19 +25,13 @@ import java.util.Comparator;
 
 public abstract class AttributeMatchingRules {
     private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
-    private static final Action<CompatibilityCheckDetails<?>> OPTIONAL_ON_PRODUCER = new Action<CompatibilityCheckDetails<?>>() {
+    private static final Action<CompatibilityCheckDetails<?>> ASSUME_COMPATIBLE_WHEN_MISSING = new Action<CompatibilityCheckDetails<?>>() {
         @Override
         public void execute(CompatibilityCheckDetails<?> details) {
-            if (details.getProducerValue().isMissing() || details.getProducerValue().isUnknown()) {
-                details.compatible();
-            }
-        }
-    };
-
-    private static final Action<CompatibilityCheckDetails<?>> OPTIONAL_ON_CONSUMER = new Action<CompatibilityCheckDetails<?>>() {
-        @Override
-        public void execute(CompatibilityCheckDetails<?> details) {
-            if (details.getConsumerValue().isMissing() || details.getConsumerValue().isUnknown()) {
+            if (details.getProducerValue().isMissing() ||
+                details.getProducerValue().isUnknown() ||
+                details.getConsumerValue().isMissing() ||
+                details.getConsumerValue().isUnknown()) {
                 details.compatible();
             }
         }
@@ -55,11 +49,7 @@ public abstract class AttributeMatchingRules {
         return new DefaultOrderedDisambiguationRule<T>(comparator, pickFirst);
     }
 
-    public static <T> Action<? super CompatibilityCheckDetails<T>> optionalOnProducer() {
-        return Cast.uncheckedCast(OPTIONAL_ON_PRODUCER);
-    }
-
-    public static <T> Action<? super CompatibilityCheckDetails<T>> optionalOnConsumer() {
-        return Cast.uncheckedCast(OPTIONAL_ON_CONSUMER);
+    public static <T> Action<? super CompatibilityCheckDetails<T>> assumeCompatibleWhenMissing() {
+        return Cast.uncheckedCast(ASSUME_COMPATIBLE_WHEN_MISSING);
     }
 }
