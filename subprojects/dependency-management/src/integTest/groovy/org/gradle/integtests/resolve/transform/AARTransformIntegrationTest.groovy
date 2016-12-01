@@ -44,12 +44,16 @@ class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIntegrati
         artifacts('classpath') == ['/android-app/a.jar']
     }
 
-    def "classpath artifacts include classes.jar extracted from published android module"() {
+    def "classpath artifacts include classes.jar and libs extracted from published android module"() {
         when:
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('classpath') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar']
+        artifacts('classpath') == [
+            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar',
+            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/libs/dep1.jar',
+            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/libs/dep2.jar'
+        ]
     }
 
     def "classpath artifacts include class folders from local libraries and jars from published java module"() {
@@ -64,7 +68,9 @@ class AARTransformIntegrationTest extends AbstractAARFilterAndTransformIntegrati
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
             '/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar',
-            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar'
+            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/classes.jar',
+            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/libs/dep1.jar',
+            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/libs/dep2.jar'
         ]
     }
 
