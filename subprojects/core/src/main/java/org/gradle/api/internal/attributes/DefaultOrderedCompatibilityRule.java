@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.CompatibilityRule;
 
 import java.util.Comparator;
 
-public class DefaultOrderedCompatibilityRule<T> implements CompatibilityRule<T> {
+public class DefaultOrderedCompatibilityRule<T> implements Action<CompatibilityCheckDetails<T>> {
     private final Comparator<? super T> comparator;
     private final boolean reverse;
 
@@ -31,7 +31,7 @@ public class DefaultOrderedCompatibilityRule<T> implements CompatibilityRule<T> 
     }
 
     @Override
-    public void checkCompatibility(CompatibilityCheckDetails<T> details) {
+    public void execute(CompatibilityCheckDetails<T> details) {
         AttributeValue<T> consumerValue = details.getConsumerValue();
         AttributeValue<T> producerValue = details.getProducerValue();
         if (consumerValue.isPresent() && producerValue.isPresent()) {
@@ -48,4 +48,5 @@ public class DefaultOrderedCompatibilityRule<T> implements CompatibilityRule<T> 
             }
         }
     }
+
 }

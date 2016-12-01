@@ -232,7 +232,7 @@ public class ComponentAttributeMatcher {
             AttributeMatchingStrategy<Object> strategy = schemaToUse.getMatchingStrategy(attribute);
             CompatibilityRuleChainInternal<Object> compatibilityRules = (CompatibilityRuleChainInternal<Object>) strategy.getCompatibilityRules();
             try {
-                compatibilityRules.checkCompatibility(details);
+                compatibilityRules.execute(details);
             } catch (Exception ex) {
                 throw new GradleException("Unexpected error thrown when trying to match attribute values with " + strategy, ex);
             }
