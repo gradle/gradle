@@ -256,30 +256,30 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, ArtifactVisitor visitor) {
-        visitor = artifactTransformer.visitor(visitor, attributes);
+        ArtifactVisitor transformingVisitor = artifactTransformer.visitor(visitor, attributes);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
-            if (visitor.includeFiles()) {
-                fileDependencyResults.getFiles().visit(visitor);
+            if (transformingVisitor.includeFiles()) {
+                fileDependencyResults.getFiles().visit(transformingVisitor);
             }
-            artifactResults.getArtifacts().visit(visitor);
+            artifactResults.getArtifacts().visit(transformingVisitor);
             return;
         }
 
-        if (visitor.includeFiles()) {
+        if (transformingVisitor.includeFiles()) {
             for (Map.Entry<FileCollectionDependency, ResolvedArtifactSet> entry: fileDependencyResults.getFirstLevelFiles().entrySet()) {
                 if (dependencySpec.isSatisfiedBy(entry.getKey())) {
-                    entry.getValue().visit(visitor);
+                    entry.getValue().visit(transformingVisitor);
                 }
             }
         }
 
-        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(transformingVisitor));
 
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
-            node.getArtifactsForIncomingEdge(loadTransientGraphResults().getRootNode()).visit(visitor);
+            node.getArtifactsForIncomingEdge(loadTransientGraphResults().getRootNode()).visit(transformingVisitor);
             walker.add(node);
         }
         walker.findValues();

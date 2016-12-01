@@ -250,6 +250,87 @@ class FileSizer extends ArtifactTransform {
             assert it.text =~ /Output \w/
         }
     }
+    def "transform can produce multiple outputs with different attributes for a single input"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+
+                artifacts {
+                    compile(jar1) {
+                        type 'type1'
+                    }
+                    compile(jar1) {
+                        type 'type2'
+                    }
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+
+                configurations.all {
+                    resolutionStrategy.registerTransform(Type1Transform) {
+                        outputDirectory = project.file("\${buildDir}/transform1")
+                    }
+                    resolutionStrategy.registerTransform(Type2Transform) {
+                        outputDirectory = project.file("\${buildDir}/transform2")
+                    }
+                }
+    
+                task resolve(type: Copy) {
+                    from configurations.compile.incoming.getFiles(artifactType: 'transformed')
+                    into "\${buildDir}/libs"
+                }
+            }
+    
+            class Type1Transform extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "type1")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "transformed")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, 'out1')
+                    output << "content1"
+                    return [output]
+                }
+            }
+
+            class Type2Transform extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "type2")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "transformed")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, 'out2')
+                    output << "content2"
+                    return [output]
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        def buildDir = file('app/build')
+        buildDir.eachFileRecurse {
+            println it
+        }
+        buildDir.file('transform1').assertHasDescendants('out1')
+        buildDir.file('transform2').assertHasDescendants('out2')
+        buildDir.file('libs').assertHasDescendants('out1', 'out2')
+
+        buildDir.file('libs/out1').text == "content1"
+        buildDir.file('libs/out2').text == "content2"
+    }
 
     def "result is applied for all query methods"() {
         given:
