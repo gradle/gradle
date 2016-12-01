@@ -218,6 +218,35 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def aarTransform() {
         """
+        import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+        
+        /**
+         * Base class for `ArtifactTransform` that only cares about 'artifactType' attribute.
+         */
+        abstract class ArtifactTypeTransform extends ArtifactTransform {
+
+            protected abstract String getInputType()
+        
+            protected abstract Collection<String> getOutputTypes()
+        
+            protected abstract File transform(File input, String outputType)
+        
+            @Override
+            public void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
+                from.attribute(ARTIFACT_FORMAT, getInputType())
+        
+                for (String outputType : getOutputTypes()) {
+                    targetRegistry.newTarget().attribute(ARTIFACT_FORMAT, outputType)
+                }
+            }
+        
+            @Override
+            public File transform(File input, AttributeContainer target) {
+                String targetType = target.getAttribute(ARTIFACT_FORMAT)
+                return transform(input, targetType)
+            }
+        }
+
         class AarExtractor extends ArtifactTypeTransform {
             private Project files
 
