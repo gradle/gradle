@@ -29,6 +29,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest  extends Abstr
             includeBuild 'includedBuild'
         """
         buildFile << '''
+            allprojects {
+                configurationAttributesSchema {
+                    attribute(Attribute.of('buildType', String))
+                    attribute(Attribute.of('flavor', String))
+                }
+            }
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
@@ -67,6 +73,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest  extends Abstr
 
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
+
+            configurationAttributesSchema {
+                attribute(Attribute.of('buildType', String))
+                attribute(Attribute.of('flavor', String))
+            }
+
             configurations {
                 foo.attributes(buildType: 'debug', flavor: 'free')
                 bar.attributes(buildType: 'release', flavor: 'free')
