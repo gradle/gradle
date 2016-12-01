@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Transformer;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.io.File;
+import java.util.List;
 
 interface ArtifactTransforms {
-    Transformer<File, File> getTransform(AttributeContainer from, AttributeContainer to);
+    Transformer<List<File>, File> getTransform(AttributeContainer from, AttributeContainer to);
 }

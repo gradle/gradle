@@ -46,7 +46,7 @@ class FileSizer extends ArtifactTransform {
         targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
     }
 
-    File transform(File input, AttributeContainer target) {
+    List<File> transform(File input, AttributeContainer target) {
         output = new File(outputDirectory, input.name + ".txt")
         if (!output.exists()) {
             println "Transforming \${input.name} to \${output.name}"
@@ -54,7 +54,7 @@ class FileSizer extends ArtifactTransform {
         } else {
             println "Transforming \${input.name} to \${output.name} (cached)"
         }
-        return output
+        return [output]
     }
 }
 
@@ -204,6 +204,53 @@ class FileSizer extends ArtifactTransform {
         file("app/build/transformed/lib1.jar.txt").text == "9"
     }
 
+    def "transform can generate multiple output files for a single input"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+
+            ${configurationAndTransform('LineSplitter')}
+
+            class LineSplitter extends ArtifactTransform {
+            
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    File outputA = new File(outputDirectory, input.name + ".A.txt")
+                    outputA.text = "Output A"
+            
+                    File outputB = new File(outputDirectory, input.name + ".B.txt")
+                    outputB.text = "Output B"
+                    return [outputA, outputB]
+                }
+            }
+"""
+
+        when:
+        succeeds "resolve"
+
+        then:
+        file("build/libs").assertHasDescendants("test-1.3.jar.A.txt", "test-1.3.jar.B.txt", "test2-2.3.jar.A.txt", "test2-2.3.jar.B.txt")
+        file("build/libs").eachFile {
+            assert it.text =~ /Output \w/
+        }
+    }
+
     def "result is applied for all query methods"() {
         given:
         buildFile << """
@@ -231,26 +278,31 @@ class FileSizer extends ArtifactTransform {
                         }
                     }
                 }
+                ext.checkArtifacts = { artifacts ->
+                    assert artifacts.collect { it.id.displayName } == ['lib.size (project :lib)', 'lib.jar.txt (project :lib)']
+                    assert artifacts.collect { it.file.name } == ['lib.size', 'lib.jar.txt']
+                }
+                ext.checkFiles = { config ->
+                    assert config.collect { it.name } == ['lib.size', 'lib.jar.txt']
+                }
                 task resolve {
                     doLast {
-                        println "files 1: " + configurations.compile.collect { it.name }
-                        println "files 2: " + configurations.compile.files.collect { it.name }
-                        println "files 3: " + configurations.compile.incoming.files.collect { it.name }
-                        println "files 4: " + configurations.compile.incoming.artifacts.collect { it.file.name }
-                        println "files 5: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
-                        println "files 6: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
-                        println "files 7: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
-                        println "files 8: " + configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name }
-                        println "files 9: " + configurations.compile.resolve().collect { it.name }
-                        println "files 10: " + configurations.compile.files { true }.collect { it.name }
-                        println "files 11: " + configurations.compile.fileCollection { true }.collect { it.name }
-                        println "files 12: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
-                        println "files 13: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
-                        println "files 14: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.collect { it.file.name }
+                        checkFiles configurations.compile
+                        checkFiles configurations.compile.files
+                        checkFiles configurations.compile.incoming.files
+                        checkFiles configurations.compile.resolvedConfiguration.files
+                        
+                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.files
+                        checkFiles configurations.compile.resolve()
+                        checkFiles configurations.compile.files { true }
+                        checkFiles configurations.compile.fileCollection { true }
+                        checkFiles configurations.compile.resolvedConfiguration.getFiles { true }
+                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
 
-                        println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.id }
-                        println "artifacts 2: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.id }
-                        println "artifacts 3: " + configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.id }
+                        checkArtifacts configurations.compile.incoming.artifacts
+                        checkArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
+                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
+                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { true }
                     }
                 }
             }
@@ -260,23 +312,6 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
-        output.contains("files 1: [lib.size, lib.jar.txt]")
-        output.contains("files 2: [lib.size, lib.jar.txt]")
-        output.contains("files 3: [lib.size, lib.jar.txt]")
-        output.contains("files 4: [lib.size, lib.jar.txt]")
-        output.contains("files 5: [lib.size, lib.jar.txt]")
-        output.contains("files 6: [lib.size, lib.jar.txt]")
-        output.contains("files 7: [lib.size, lib.jar.txt]")
-        output.contains("files 8: [lib.size, lib.jar.txt]")
-        output.contains("files 9: [lib.size, lib.jar.txt]")
-        output.contains("files 10: [lib.size, lib.jar.txt]")
-        output.contains("files 11: [lib.size, lib.jar.txt]")
-        output.contains("files 12: [lib.size, lib.jar.txt]")
-        output.contains("files 13: [lib.size, lib.jar.txt]")
-        output.contains("artifacts 1: [lib.size (project :lib), lib.jar (project :lib)]")
-        output.contains("artifacts 2: [lib.size (project :lib), lib.jar (project :lib)]")
-        output.contains("artifacts 3: [lib.size (project :lib), lib.jar (project :lib)]")
-
         file("app/build/transformed").assertHasDescendants("lib.jar.txt")
         file("app/build/transformed/lib.jar.txt").text == "9"
     }
@@ -313,16 +348,16 @@ class FileSizer extends ArtifactTransform {
                 task resolve {
                     doLast {
                         // Query a bunch of times
-                        println "files 1: " + configurations.compile.collect { it.name }
-                        println "files 2: " + configurations.compile.files.collect { it.name }
-                        println "files 3: " + configurations.compile.incoming.files.collect { it.name }
-                        println "files 4: " + configurations.compile.resolvedConfiguration.files.collect { it.name }
-                        println "files 5: " + configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
-                        println "files 6: " + configurations.compile.resolve().collect { it.name }
-                        println "files 7: " + configurations.compile.files { true }.collect { it.name }
-                        println "files 8: " + configurations.compile.fileCollection { true }.collect { it.name }
-                        println "files 9: " + configurations.compile.incoming.artifacts.collect { it.file.name }
-                        println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.id }
+                        configurations.compile.collect { it.name }
+                        configurations.compile.files.collect { it.name }
+                        configurations.compile.incoming.files.collect { it.name }
+                        configurations.compile.resolvedConfiguration.files.collect { it.name }
+                        configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
+                        configurations.compile.resolve().collect { it.name }
+                        configurations.compile.files { true }.collect { it.name }
+                        configurations.compile.fileCollection { true }.collect { it.name }
+                        configurations.compile.incoming.artifacts.collect { it.file.name }
+                        configurations.compile.incoming.artifacts.collect { it.id }
                     }
                 }
             }
@@ -355,24 +390,23 @@ class FileSizer extends ArtifactTransform {
                     targets.newTarget().attribute(Attribute.of('artifactType', String), "hash")
                 }
 
-                File transform(File input, AttributeContainer target) {
-
+                List<File> transform(File input, AttributeContainer target) {
                     if (target.getAttribute(Attribute.of('artifactType', String)).equals("size")) {
                         def outSize = new File(outputDirectory, input.name + ".size")
                         if (!outSize.exists()) {
                             outSize.text = String.valueOf(input.length())
                             println "Transforming to size"
-                        }
-                        return outSize
+                        } 
+                        return [outSize]
                     }
                     if (target.getAttribute(Attribute.of('artifactType', String)).equals("hash")) {
                         def outHash = new File(outputDirectory, input.name + ".hash")
                         if (!outHash.exists()) {
                             outHash.text = 'hash'
                             println "Transforming to hash"
-                        }
-                        return outHash
-                    }
+                        } 
+                        return [outHash]
+                    }             
                 }
             }
             configurations {
@@ -384,8 +418,8 @@ class FileSizer extends ArtifactTransform {
             }
             task resolve {
                 doLast {
-                    println "size file: " + configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name }
-                    println "hash file: " + configurations.compile.incoming.getFiles(artifactType: 'hash').collect { it.name }
+                    assert configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name } == ['a.jar.size']
+                    assert configurations.compile.incoming.getFiles(artifactType: 'hash').collect { it.name } == ['a.jar.hash']
                 }
             }
         """
@@ -395,12 +429,10 @@ class FileSizer extends ArtifactTransform {
 
         then:
         output.count("Transforming to size") == 1
-        output.count("size file: [a.jar.size]") == 1
         output.count("Transforming to hash") == 1
-        output.count("hash file: [a.jar.hash]") == 1
     }
 
-    def "files are lazily downloaded and transformed when using ResolvedArtifact methods"() {
+    def "transformations are applied lazily in file collections"() {
         def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
         def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
 
@@ -409,41 +441,62 @@ class FileSizer extends ArtifactTransform {
             repositories {
                 maven { url '${mavenHttpRepo.uri}' }
             }
+            configurations {
+                config1 {
+                    attributes artifactType: 'size'
+                }
+                config2
+            }
             dependencies {
-                compile 'org.test:test1:1.0'
-                compile 'org.test:test2:2.0'
+                config1 'org.test:test1:1.0'
+                config2 'org.test:test2:2.0'
             }
 
             ${fileSizeConfigurationAndTransform()}
 
-            def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
-            artifacts[0].file
+            def configFiles = configurations.config1.incoming.files
+            def configView = configurations.config2.incoming.getFiles(artifactType: 'size')
 
-            task query {
+            task queryFiles {
                 doLast {
-                    artifacts[1].file
+                    println configFiles.collect { it.name }
+                }
+            }
+
+            task queryView {
+                doLast {
+                    println configView.collect { it.name }
                 }
             }
         """
 
         when:
-        m1.pom.expectGet()
-        m1.artifact.expectGet()
-        m2.pom.expectGet()
-
         succeeds "help"
 
         then:
-        output.count("Transforming") == 1
+        output.count("Transforming") == 0
 
         when:
         server.resetExpectations()
-        m2.artifact.expectGet()
+        m1.pom.expectGet()
+        m1.artifact.expectGet()
 
-        succeeds "query"
+        succeeds "queryFiles"
 
         then:
-        output.count("Transforming") == 2
+        output.count("Transforming") == 1
+        output.contains("Transforming test1-1.0.jar to test1-1.0.jar.txt")
+
+        when:
+        server.resetExpectations()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+
+        succeeds "queryView"
+
+        then:
+        output.count("Transforming") == 1
+        output.contains("Transforming test2-2.0.jar to test2-2.0.jar.txt")
     }
 
     def "User gets a reasonable error message when a transformation throws exception"() {
@@ -463,7 +516,7 @@ class FileSizer extends ArtifactTransform {
                     targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
-                File transform(File input, AttributeContainer target) {
+                List<File> transform(File input, AttributeContainer target) {
                     throw new IllegalArgumentException("Transform Implementation Missing!")
                 }
             }
@@ -495,7 +548,7 @@ class FileSizer extends ArtifactTransform {
                     targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
-                File transform(File input, AttributeContainer target) {
+                List<File> transform(File input, AttributeContainer target) {
                     return null
                 }
             }
@@ -507,7 +560,7 @@ class FileSizer extends ArtifactTransform {
 
         then:
         failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
-        failure.assertHasCause("No output file created")
+        failure.assertHasCause("Illegal null output from ArtifactTransform")
     }
 
     def "User gets a reasonable error message when a output property returns a non-existing file"() {
@@ -527,8 +580,8 @@ class FileSizer extends ArtifactTransform {
                     targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
                 }
 
-                File transform(File input, AttributeContainer target) {
-                    return new File('this_file_does_not.exist')
+                List<File> transform(File input, AttributeContainer target) {
+                    return [new File('this_file_does_not.exist')]
                 }
             }
             ${configurationAndTransform('ToNullTransform')}
@@ -539,7 +592,7 @@ class FileSizer extends ArtifactTransform {
 
         then:
         failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
-        failure.assertHasCause("Expected output file 'this_file_does_not.exist' was not created")
+        failure.assertHasCause("ArtifactTransform output 'this_file_does_not.exist' does not exist")
     }
 
     def configurationAndTransform(String transformImplementation) {
@@ -547,9 +600,11 @@ class FileSizer extends ArtifactTransform {
             configurations {
                 compile {
                     attributes artifactType: 'size'
-                    resolutionStrategy.registerTransform($transformImplementation) {
-                            outputDirectory = project.file("\${buildDir}/transformed")
-                    }
+                }
+            }
+            configurations.all {
+                resolutionStrategy.registerTransform($transformImplementation) {
+                    outputDirectory = project.file("\${buildDir}/transformed")
                 }
             }
 

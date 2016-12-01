@@ -67,7 +67,7 @@ class ArtifactTransformerTest extends Specification {
         0 * _
     }
 
-    def "applies transform lazily to artifact whose type does not matches requested format"() {
+    def "applies matching transform to artifact whose type does not matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
         def artifact = Stub(TestArtifact)
         def transform = Mock(Transformer)
@@ -84,27 +84,13 @@ class ArtifactTransformerTest extends Specification {
 
         then:
         1 * artifactTransforms.getTransform(typeAttributes("zip"), typeAttributes("classpath")) >> transform
+        1 * transform.transform(file) >> [transformedFile]
         1 * visitor.visitArtifact(_) >> { ResolvedArtifact a -> transformedArtifact = a }
         0 * _
 
         and:
         transformedArtifact.type == "classpath"
-
-        when:
-        def result = transformedArtifact.file
-
-        then:
-        1 * transform.transform(file) >> transformedFile
-        0 * _
-
-        and:
-        result == transformedFile
-
-        when:
-        transformedArtifact.file
-
-        then:
-        0 * _
+        transformedArtifact.file == transformedFile
     }
 
     def "ignores artifact whose type cannot be transformed"() {
@@ -150,7 +136,7 @@ class ArtifactTransformerTest extends Specification {
 
         then:
         1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> transform
-        1 * transform.transform(file) >> transformedFile
+        1 * transform.transform(file) >> [transformedFile]
         1 * visitor.visitFiles(id, [transformedFile])
         0 * _
     }
@@ -181,7 +167,7 @@ class ArtifactTransformerTest extends Specification {
         given:
         artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
         artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
-        transform.transform(file1) >> transformedFile1
+        transform.transform(file1) >> [transformedFile1]
 
         def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
         transformVisitor.visitFiles(id, [file1])
@@ -205,7 +191,7 @@ class ArtifactTransformerTest extends Specification {
 
         then:
         1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
-        1 * transform.transform(file2) >> transformedFile2
+        1 * transform.transform(file2) >> [transformedFile2]
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
         0 * _
 

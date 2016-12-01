@@ -16,10 +16,11 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Base class for artifact transformations.
@@ -38,7 +39,5 @@ public abstract class ArtifactTransform {
 
     public abstract void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry);
 
-    public File transform(File input, AttributeContainer target) {
-        return input; //identity transform
-    }
+    public abstract List<File> transform(File input, AttributeContainer target);
 }

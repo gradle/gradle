@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 class InstantiatingArtifactTransforms implements ArtifactTransforms {
     private final ResolutionStrategyInternal resolutionStrategy;
@@ -36,7 +37,7 @@ class InstantiatingArtifactTransforms implements ArtifactTransforms {
     }
 
     @Override
-    public Transformer<File, File> getTransform(AttributeContainer from, AttributeContainer to) {
+    public Transformer<List<File>, File> getTransform(AttributeContainer from, AttributeContainer to) {
         for (ArtifactTransformRegistrations.ArtifactTransformRegistration transformReg : resolutionStrategy.getTransforms()) {
             if (attributeMatcher.attributesMatch(from, transformReg.from)
                 && attributeMatcher.attributesMatch(to, transformReg.to)) {
@@ -46,13 +47,13 @@ class InstantiatingArtifactTransforms implements ArtifactTransforms {
         return null;
     }
 
-    private Transformer<File, File> createArtifactTransformer(ArtifactTransformRegistrations.ArtifactTransformRegistration registration) {
+    private Transformer<List<File>, File> createArtifactTransformer(ArtifactTransformRegistrations.ArtifactTransformRegistration registration) {
         ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(registration.type);
         registration.config.execute(artifactTransform);
         return new ArtifactFileTransformer(artifactTransform, registration.to);
     }
 
-    private static class ArtifactFileTransformer implements Transformer<File, File> {
+    private static class ArtifactFileTransformer implements Transformer<List<File>, File> {
         private final ArtifactTransform artifactTransform;
         private final AttributeContainer outputAttributes;
 
@@ -62,21 +63,23 @@ class InstantiatingArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public File transform(File input) {
+        public List<File> transform(File input) {
             if (artifactTransform.getOutputDirectory() != null) {
                 artifactTransform.getOutputDirectory().mkdirs();
             }
-            File output = doTransform(input);
-            if (output == null) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("No output file created"));
+            List<File> outputs = doTransform(input);
+            if (outputs == null) {
+                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new NullPointerException("Illegal null output from ArtifactTransform"));
             }
-            if (!output.exists()) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("Expected output file '" + output.getPath() + "' was not created"));
+            for (File output : outputs) {
+                if (!output.exists()) {
+                    throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("ArtifactTransform output '" + output.getPath() + "' does not exist"));
+                }
             }
-            return output;
+            return outputs;
         }
 
-        private File doTransform(File input) {
+        private List<File> doTransform(File input) {
             try {
                 return artifactTransform.transform(input, outputAttributes);
             } catch (Exception e) {
