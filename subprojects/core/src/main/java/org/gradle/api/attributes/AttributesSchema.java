@@ -40,6 +40,17 @@ public interface AttributesSchema {
     <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute);
 
     /**
+     * Declares a new attribute in the schema and configures it with the default strategy.
+     * If the attribute was already declared it will simply return the existing strategy.
+     *
+     * @param attribute the attribute to declare in the schema
+     * @param <T> the concrete type of the attribute
+     *
+     * @return the matching strategy for this attribute
+     */
+    <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute);
+
+    /**
      * Configures the matching strategy for an attribute. The first call to this method for a specific attribute
      * will create a new matching strategy, whereas subsequent calls will configure the existing one.
      *
@@ -48,7 +59,7 @@ public interface AttributesSchema {
      * @param <T> the concrete type of the attribute
      * @return the configured strategy
      */
-    <T> AttributeMatchingStrategy<T> configureMatchingStrategy(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
+    <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
 
     Set<Attribute<?>> getAttributes();
 

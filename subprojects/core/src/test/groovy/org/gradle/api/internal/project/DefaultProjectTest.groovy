@@ -218,7 +218,7 @@ class DefaultProjectTest {
 
             allowing(build).getIdentityPath()
             will(returnValue(Path.ROOT))
-            allowing(attributesSchema).configureMatchingStrategy(withParam(notNullValue()), withParam(notNullValue()));
+            allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()

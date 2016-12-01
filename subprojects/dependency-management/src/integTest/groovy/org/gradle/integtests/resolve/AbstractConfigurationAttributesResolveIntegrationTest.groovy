@@ -436,7 +436,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnProducer()
                     }
                 }
@@ -497,10 +497,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnProducer()
                     }
-                    configureMatchingStrategy(buildType) {
+                    attribute(buildType) {
                         compatibilityRules.optionalOnProducer()
                     }
                 }
@@ -579,7 +579,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                  configurationAttributesSchema {
-                    configureMatchingStrategy(extra) {
+                    attribute(extra) {
                         compatibilityRules.optionalOnConsumer()
                     }
                 }
@@ -688,7 +688,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                  configurationAttributesSchema {
-                    configureMatchingStrategy(extra) {
+                    attribute(extra) {
                         compatibilityRules.optionalOnConsumer()
                     }
                 }
@@ -756,10 +756,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                  configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnProducer()
                     }
-                    configureMatchingStrategy(buildType) {
+                    attribute(buildType) {
                         compatibilityRules.optionalOnProducer()
                     }
                 }
@@ -1040,7 +1040,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
             allprojects {
                  configurationAttributesSchema {
-                    configureMatchingStrategy(extra) {
+                    attribute(extra) {
                         compatibilityRules.optionalOnConsumer()
                         compatibilityRules.optionalOnProducer()
                     }
@@ -1303,7 +1303,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnProducer()
                     }
                 }
@@ -1370,7 +1370,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnConsumer()
                     }
                 }
@@ -1412,10 +1412,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             allprojects {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(flavor) {
+                    attribute(flavor) {
                         compatibilityRules.optionalOnProducer()
                     }
-                    configureMatchingStrategy(buildType) {
+                    attribute(buildType) {
                         compatibilityRules.optionalOnProducer()
                     }
                 }
@@ -1497,7 +1497,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurationAttributesSchema {
-                    configureMatchingStrategy(extra) {
+                    attribute(extra) {
                         compatibilityRules.optionalOnProducer()
                     }
                 }

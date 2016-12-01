@@ -41,13 +41,20 @@ public class DefaultAttributesSchema implements AttributesSchema {
     }
 
     @Override
-    public <T> AttributeMatchingStrategy<T> configureMatchingStrategy(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
+    public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute) {
+        return attribute(attribute, null);
+    }
+
+    @Override
+    public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
             strategy = new DefaultAttributeMatchingStrategy<T>();
             strategies.put(attribute, strategy);
         }
-        configureAction.execute(strategy);
+        if (configureAction != null) {
+            configureAction.execute(strategy);
+        }
         return strategy;
     }
 
