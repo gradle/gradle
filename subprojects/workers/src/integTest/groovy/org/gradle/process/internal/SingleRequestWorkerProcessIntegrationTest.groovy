@@ -73,7 +73,7 @@ class CustomResult implements Serializable {
         worker.doSomething()
 
         then:
-        stdout.stdOut == TextUtil.toPlatformLineSeparators("Ok, did it\n")
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[[QUIET] [system.out] <Normal>Ok, did it\n</Normal>"))
     }
 
     def "propagates failure thrown by method in worker process"() {
