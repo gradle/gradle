@@ -1,3 +1,4 @@
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -40,7 +41,7 @@ In the above example, `FixedTask.inputFile` will be a ignored in up-to-date chec
 
 It is now possible to declare multiple task outputs with names from a single task property. Most tasks use singular output annotations (`@OutputFile` or `@OutputDirectory`) and are unaffected by this change.
  
-This change allows a plugin author to identify each output uniquely, so Gradle can accurately capture and restore a task's outputs when used with the upcoming [task output cache feature](userguide/task_output_cache.html). Tasks declaring `@OutputFiles` or `@OutputDirectories` as `FileCollection`s (or any other type not implementing `Map`) will continue to work, but they will exclude the task from output caching.
+This change allows a plugin author to identify each output uniquely, so Gradle can accurately capture and restore a task's outputs when used with the upcoming [build cache feature](userguide/build_cache.html). Tasks declaring `@OutputFiles` or `@OutputDirectories` as `FileCollection`s (or any other type not implementing `Map`) will continue to work, but they will exclude the task from output caching.
 
 Example:
 
