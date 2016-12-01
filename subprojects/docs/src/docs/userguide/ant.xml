@@ -94,7 +94,7 @@
         </sample>
 
         <para>More information about <literal>AntBuilder</literal> can be found in 'Groovy in Action' 8.4 or at the
-            <ulink url="http://groovy.codehaus.org/Using+Ant+from+Groovy">Groovy Wiki</ulink>
+            <ulink url="http://groovy-lang.org/scripting-ant.html">Groovy Wiki</ulink>
         </para>
 
         <section id="sec:using_custom_ant_tasks">
