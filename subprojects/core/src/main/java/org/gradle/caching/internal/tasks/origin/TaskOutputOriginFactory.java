@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.tasks.origin;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -32,7 +31,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 public class TaskOutputOriginFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginFactory.class);
@@ -90,11 +88,8 @@ public class TaskOutputOriginFactory {
                 } catch (IOException e) {
                     UncheckedException.throwAsUncheckedException(e);
                 }
-                Set<String> keys = properties.stringPropertyNames();
-                if (!keys.containsAll(METADATA_KEYS)) {
-                    List<String> missingKeys = Lists.newArrayList(METADATA_KEYS);
-                    missingKeys.removeAll(keys);
-                    throw new IllegalStateException(String.format("Cached result format error, properties missing from origin metadata: %s", missingKeys));
+                if (!properties.stringPropertyNames().containsAll(METADATA_KEYS)) {
+                    throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
                 }
                 LOGGER.info("Origin for {}: {}", task, properties);
             }
