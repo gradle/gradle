@@ -241,9 +241,9 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
             }
         
             @Override
-            public File transform(File input, AttributeContainer target) {
+            public List<File> transform(File input, AttributeContainer target) {
                 String targetType = target.getAttribute(ARTIFACT_FORMAT)
-                return transform(input, targetType)
+                return [transform(input, targetType)]
             }
         }
 

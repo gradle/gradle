@@ -47,6 +47,15 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
         this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact);
     }
 
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile) {
+        this.owner = owner;
+        this.artifact = artifact;
+        this.artifactId = artifactId;
+        this.buildDependencies = buildDependencies;
+        this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact);
+        this.file = artifactFile;
+    }
+
     @Override
     public TaskDependency getBuildDependencies() {
         return buildDependencies;

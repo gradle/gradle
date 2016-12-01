@@ -16,36 +16,40 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Buildable;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ArtifactTransformer {
     private final ArtifactTransforms artifactTransforms;
     private final ArtifactAttributeMatcher attributeMatcher;
-    private final Map<Pair<File, AttributeContainer>, File> transformed = new HashMap<Pair<File, AttributeContainer>, File>();
+    private final Map<Pair<File, AttributeContainer>, List<File>> transformedFiles = Maps.newHashMap();
+    private final Map<Pair<ResolvedArtifact, AttributeContainer>, List<ResolvedArtifact>> transformedArtifacts = Maps.newHashMap();
 
     public ArtifactTransformer(ArtifactTransforms artifactTransforms, ArtifactAttributeMatcher attributeMatcher) {
         this.artifactTransforms = artifactTransforms;
@@ -61,7 +65,7 @@ public class ArtifactTransformer {
         return attributeMatcher.attributesMatch(artifact, configuration);
     }
 
-    private Transformer<File, File> getTransform(HasAttributes from, AttributeContainer to) {
+    private Transformer<List<File>, File> getTransform(HasAttributes from, AttributeContainer to) {
         return artifactTransforms.getTransform(from.getAttributes(), to);
     }
 
@@ -97,27 +101,29 @@ public class ArtifactTransformer {
                     visitor.visitArtifact(artifact);
                     return;
                 }
-                final Transformer<File, File> transform = getTransform(artifact, immutableAttributes);
+                List<ResolvedArtifact> transformResults = transformedArtifacts.get(Pair.of(artifact, immutableAttributes));
+                if (transformResults != null) {
+                    for (ResolvedArtifact resolvedArtifact : transformResults) {
+                        visitor.visitArtifact(resolvedArtifact);
+                    }
+                    return;
+                }
+                final Transformer<List<File>, File> transform = getTransform(artifact, immutableAttributes);
                 if (transform == null) {
                     return;
                 }
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
-                AttributeContainer transformedAttributes = ((AttributeContainerInternal) immutableAttributes).copy();
-
-                visitor.visitArtifact(new DefaultResolvedArtifact(artifact.getModuleVersion().getId(),
-                    DefaultIvyArtifactName.forAttributeContainer(artifact.getName(), transformedAttributes), artifact.getId(), buildDependencies, new Factory<File>() {
-                    @Override
-                    public File create() {
-                        File file = artifact.getFile();
-                        File transformedFile = transformed.get(Pair.of(file, immutableAttributes));
-                        if (transformedFile == null) {
-                            transformedFile = transform.transform(file);
-                            transformed.put(Pair.of(file, immutableAttributes), transformedFile);
-                        }
-                        return transformedFile;
-                    }
-                }));
+                transformResults = Lists.newArrayList();
+                List<File> transformedFiles = transform.transform(artifact.getFile());
+                for (final File output : transformedFiles) {
+                    ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
+                    IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), immutableAttributes);
+                    ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
+                    transformResults.add(resolvedArtifact);
+                    visitor.visitArtifact(resolvedArtifact);
+                }
+                transformedArtifacts.put(Pair.of(artifact, immutableAttributes), transformResults);
             }
 
             @Override
@@ -137,18 +143,18 @@ public class ArtifactTransformer {
                                 result.add(file);
                                 continue;
                             }
-                            File transformedFile = transformed.get(Pair.of(file, immutableAttributes));
-                            if (transformedFile != null) {
-                                result.add(transformedFile);
+                            List<File> transformResults = transformedFiles.get(Pair.of(file, immutableAttributes));
+                            if (transformResults != null) {
+                                result.addAll(transformResults);
                                 continue;
                             }
-                            Transformer<File, File> transform = getTransform(fileWithAttributes, immutableAttributes);
+                            Transformer<List<File>, File> transform = getTransform(fileWithAttributes, immutableAttributes);
                             if (transform == null) {
                                 continue;
                             }
-                            transformedFile = transform.transform(file);
-                            transformed.put(Pair.of(file, immutableAttributes), transformedFile);
-                            result.add(transformedFile);
+                            transformResults = transform.transform(file);
+                            transformedFiles.put(Pair.of(file, immutableAttributes), transformResults);
+                            result.addAll(transformResults);
                         } catch (RuntimeException e) {
                             transformException = e;
                             break;
@@ -167,6 +173,4 @@ public class ArtifactTransformer {
             }
         };
     }
-
-
 }
