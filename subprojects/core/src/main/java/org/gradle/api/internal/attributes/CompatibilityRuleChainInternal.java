@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.CompatibilityRule;
+import org.gradle.api.Action;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 
-public interface CompatibilityRuleChainInternal<T> extends CompatibilityRuleChain<T>, CompatibilityRule<T> {
+public interface CompatibilityRuleChainInternal<T> extends CompatibilityRuleChain<T>, Action<CompatibilityCheckDetails<T>> {
 }

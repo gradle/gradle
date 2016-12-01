@@ -15,6 +15,7 @@
  */
 package org.gradle.api.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -22,7 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * <p>A chain of compatibility checks, implemented as {@link CompatibilityRule rules}. By default
+ * <p>A chain of compatibility checks, implemented as action rules. By default
  * the chain is empty and will eventually tell the values are incompatible if no rule expressed
  * an opinion.</p>
  *
@@ -46,9 +47,7 @@ public interface CompatibilityRuleChain<T> {
     void addEqualityCheck();
 
     /**
-     * Adds an ordered check rule to this chain. It is expected to call this method if and only if the
-     * type of the attribute is {@link Comparable}. In that case compatibility is working as described
-     * in {@link CompatibilityRule}.
+     * Adds an ordered check rule to this chain.
      *
      * @param comparator the comparator to use
      *
@@ -57,9 +56,7 @@ public interface CompatibilityRuleChain<T> {
     void ordered(Comparator<? super T> comparator);
 
     /**
-     * Adds an reverse ordered check rule to this chain. It is expected to call this method if and only if the
-     * type of the attribute is {@link Comparable}. In that case compatibility is working as described
-     * in {@link CompatibilityRule}.
+     * Adds an reverse ordered check rule to this chain. 
      *
      * @param comparator the comparator to use
      *
@@ -68,18 +65,25 @@ public interface CompatibilityRuleChain<T> {
     void reverseOrdered(Comparator<? super T> comparator);
 
     /**
-     * Adds an arbitrary compatibility rule to the chain.
+     * <p>Adds an arbitrary compatibility rule to the chain.</p>
+     * <p>A compatibility rule can tell if two {@link AttributeValue values} are compatible.
+     * Compatibility doesn't mean equality. Typically two different Java platforms can be
+     * compatible, without being equal.</p>
+     *
+     * <p>A rule <i>can</i> express an opinion by calling the @{link {@link CompatibilityCheckDetails#compatible()}}
+     * method to tell that two attributes are compatible, or it <i>can</i> call {@link CompatibilityCheckDetails#incompatible()}
+     * to say that they are not compatible. It is not mandatory for a rule to express an opinion.</p>
      *
      * @param rule the rule to add to the chain
      */
-    void add(CompatibilityRule<T> rule);
+    void add(Action<? super CompatibilityCheckDetails<T>> rule);
 
     /**
      * Replaces the list of rules with the provided list of rules.
      *
      * @param rules the rule chain
      */
-    void setRules(List<CompatibilityRule<T>> rules);
+    void setRules(List<Action<? super CompatibilityCheckDetails<T>>> rules);
 
     /**
      * Tells that if no rule expressed an opinion about compatibility of values, then they are

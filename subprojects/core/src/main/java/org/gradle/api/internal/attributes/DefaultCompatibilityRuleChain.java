@@ -16,16 +16,16 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.CompatibilityRule;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainInternal<T> {
 
-    private final List<CompatibilityRule<T>> rules = Lists.newArrayList();
+    private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
 
     private boolean failEventually = true;
 
@@ -36,23 +36,23 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
 
     @Override
     public void ordered(Comparator<? super T> comparator) {
-        CompatibilityRule<T> rule = AttributeMatchingRules.orderedCompatibility(comparator, false);
+        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.orderedCompatibility(comparator, false);
         add(rule);
     }
 
     @Override
     public void reverseOrdered(Comparator<? super T> comparator) {
-        CompatibilityRule<T> rule = AttributeMatchingRules.orderedCompatibility(comparator, true);
+        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.orderedCompatibility(comparator, true);
         add(rule);
     }
 
     @Override
-    public void add(CompatibilityRule<T> rule) {
+    public void add(Action<? super CompatibilityCheckDetails<T>> rule) {
         rules.add(rule);
     }
 
     @Override
-    public void setRules(List<CompatibilityRule<T>> rules) {
+    public void setRules(List<Action<? super CompatibilityCheckDetails<T>>> rules) {
         this.rules.clear();
         this.rules.addAll(rules);
     }
@@ -69,21 +69,21 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
 
     @Override
     public void optionalOnProducer() {
-        CompatibilityRule<T> rule = AttributeMatchingRules.optionalOnProducer();
+        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.optionalOnProducer();
         add(rule);
     }
 
     @Override
     public void optionalOnConsumer() {
-        CompatibilityRule<T> rule = AttributeMatchingRules.optionalOnConsumer();
+        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.optionalOnConsumer();
         add(rule);
     }
 
     @Override
-    public void checkCompatibility(CompatibilityCheckDetails<T> details) {
+    public void execute(CompatibilityCheckDetails<T> details) {
         State<T> state = new State<T>(details);
-        for (CompatibilityRule<T> rule : rules) {
-            rule.checkCompatibility(state);
+        for (Action<? super CompatibilityCheckDetails<T>> rule : rules) {
+            rule.execute(state);
             if (state.determined) {
                 return;
             }

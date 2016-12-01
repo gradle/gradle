@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.CompatibilityRule;
 import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.internal.Cast;
 
@@ -25,29 +25,29 @@ import java.util.Comparator;
 
 public abstract class AttributeMatchingRules {
     private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
-    private static final CompatibilityRule OPTIONAL_ON_PRODUCER = new CompatibilityRule() {
+    private static final Action<CompatibilityCheckDetails<?>> OPTIONAL_ON_PRODUCER = new Action<CompatibilityCheckDetails<?>>() {
         @Override
-        public void checkCompatibility(CompatibilityCheckDetails details) {
+        public void execute(CompatibilityCheckDetails<?> details) {
             if (details.getProducerValue().isMissing() || details.getProducerValue().isUnknown()) {
                 details.compatible();
             }
         }
     };
 
-    private static final CompatibilityRule OPTIONAL_ON_CONSUMER = new CompatibilityRule() {
+    private static final Action<CompatibilityCheckDetails<?>> OPTIONAL_ON_CONSUMER = new Action<CompatibilityCheckDetails<?>>() {
         @Override
-        public void checkCompatibility(CompatibilityCheckDetails details) {
+        public void execute(CompatibilityCheckDetails<?> details) {
             if (details.getConsumerValue().isMissing() || details.getConsumerValue().isUnknown()) {
                 details.compatible();
             }
         }
     };
 
-    public static <T> CompatibilityRule<T> equalityCompatibility() {
+    public static <T> Action<? super CompatibilityCheckDetails<T>> equalityCompatibility() {
         return Cast.uncheckedCast(EQUALITY_RULE);
     }
 
-    public static <T> CompatibilityRule<T> orderedCompatibility(Comparator<? super T> comparator, boolean reverse) {
+    public static <T> Action<? super CompatibilityCheckDetails<T>> orderedCompatibility(Comparator<? super T> comparator, boolean reverse) {
         return new DefaultOrderedCompatibilityRule<T>(comparator, reverse);
     }
 
@@ -55,11 +55,11 @@ public abstract class AttributeMatchingRules {
         return new DefaultOrderedDisambiguationRule<T>(comparator, pickFirst);
     }
 
-    public static <T> CompatibilityRule<T> optionalOnProducer() {
+    public static <T> Action<? super CompatibilityCheckDetails<T>> optionalOnProducer() {
         return Cast.uncheckedCast(OPTIONAL_ON_PRODUCER);
     }
 
-    public static <T> CompatibilityRule<T> optionalOnConsumer() {
+    public static <T> Action<? super CompatibilityCheckDetails<T>> optionalOnConsumer() {
         return Cast.uncheckedCast(OPTIONAL_ON_CONSUMER);
     }
 }

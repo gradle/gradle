@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.CompatibilityRule;
 
-public class EqualityCompatibilityRule<T> implements CompatibilityRule<T> {
+public class EqualityCompatibilityRule<T> implements Action<CompatibilityCheckDetails<T>> {
 
     @Override
-    public void checkCompatibility(CompatibilityCheckDetails<T> details) {
+    public void execute(CompatibilityCheckDetails<T> details) {
         AttributeValue<T> consumerValue = details.getConsumerValue();
         AttributeValue<T> producerValue = details.getProducerValue();
         if (consumerValue.isPresent() && producerValue.isPresent()) {
