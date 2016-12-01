@@ -24,6 +24,9 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
         buildFile << """
             allprojects {
+                configurationAttributesSchema {
+                    attribute(Attribute.of('usage', String))
+                }
                 configurations { foo { attributes usage: 'for-compile' } }
             }
             project(':a') {
@@ -63,18 +66,21 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
         buildFile << """
             allprojects {
+                configurationAttributesSchema {
+                    attribute(Attribute.of('usage', String))
+                }
                 configurations { foo { attributes usage: 'for-compile' } }
             }
             project(':a') {
                 artifacts {
                     foo file: file("a"), name: "thing-a", type: "report", extension: "txt", classifier: "report"
-                    foo file("b"), { 
+                    foo file("b"), {
                         name = "thing-b"
                         type = "report"
                         extension = "txt"
                         classifier = "report"
                     }
-                    add('foo', file("c"), { 
+                    add('foo', file("c"), {
                         name = "thing-c"
                         type = "report"
                         extension = ""
