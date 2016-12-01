@@ -48,13 +48,24 @@ public interface CompatibilityRuleChain<T> {
     /**
      * Adds an ordered check rule to this chain. It is expected to call this method if and only if the
      * type of the attribute is {@link Comparable}. In that case compatibility is working as described
-     * in {@link OrderedCompatibilityRule}.
+     * in {@link CompatibilityRule}.
      *
      * @param comparator the comparator to use
      *
      * @return the added ordered check rule
      */
-    OrderedCompatibilityRule<T> addOrderedCheck(Comparator<? super T> comparator);
+    void ordered(Comparator<? super T> comparator);
+
+    /**
+     * Adds an reverse ordered check rule to this chain. It is expected to call this method if and only if the
+     * type of the attribute is {@link Comparable}. In that case compatibility is working as described
+     * in {@link CompatibilityRule}.
+     *
+     * @param comparator the comparator to use
+     *
+     * @return the added ordered check rule
+     */
+    void reverseOrdered(Comparator<? super T> comparator);
 
     /**
      * Adds an arbitrary compatibility rule to the chain.

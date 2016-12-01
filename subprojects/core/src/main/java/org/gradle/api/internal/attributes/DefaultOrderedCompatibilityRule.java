@@ -17,15 +17,17 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.OrderedCompatibilityRule;
+import org.gradle.api.attributes.CompatibilityRule;
 
 import java.util.Comparator;
 
-public class DefaultOrderedCompatibilityRule<T> implements OrderedCompatibilityRule<T> {
+public class DefaultOrderedCompatibilityRule<T> implements CompatibilityRule<T> {
     private final Comparator<? super T> comparator;
+    private final boolean reverse;
 
-    public DefaultOrderedCompatibilityRule(Comparator<? super T> comparator) {
+    public DefaultOrderedCompatibilityRule(Comparator<? super T> comparator, boolean reverse) {
         this.comparator = comparator;
+        this.reverse = reverse;
     }
 
     @Override
@@ -36,6 +38,9 @@ public class DefaultOrderedCompatibilityRule<T> implements OrderedCompatibilityR
             T consumerPresent = consumerValue.get();
             T producerPresent = producerValue.get();
             int cmp = comparator.compare(consumerPresent, producerPresent);
+            if (reverse) {
+                cmp = -cmp;
+            }
             if (cmp >= 0) {
                 details.compatible();
             } else {
