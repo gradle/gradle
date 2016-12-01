@@ -19,7 +19,6 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeValue
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.HasAttributes
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import spock.lang.Specification
 
@@ -132,11 +131,9 @@ class DefaultAttributesSchemaTest extends Specification {
         e.message == 'Unable to find matching strategy for map'
     }
 
+    @SuppressWarnings('VariableName')
     def "can set a custom matching strategy"() {
         def attr = Attribute.of(Map)
-        def key1 = Mock(HasAttributes)
-        def key2 = Mock(HasAttributes)
-        def key3 = Mock(HasAttributes)
 
         given:
         schema.configureMatchingStrategy(attr) {
@@ -154,13 +151,13 @@ class DefaultAttributesSchemaTest extends Specification {
                 def optionalAttribute = details.consumerValue
                 def candidateValues = details.candidateValues
                 if (optionalAttribute.present) {
-                    candidateValues.findAll { it.value == optionalAttribute }*.key.each {
+                    candidateValues.findAll { it == optionalAttribute }.each {
                         details.closestMatch(it)
                     }
                 } else if (optionalAttribute.missing) {
-                    details.closestMatch(candidateValues.keySet().first())
+                    details.closestMatch(candidateValues.first())
                 } else {
-                    candidateValues.keySet().each { details.closestMatch(it) }
+                    candidateValues.each { details.closestMatch(it) }
                 }
             }
         }
@@ -168,9 +165,12 @@ class DefaultAttributesSchemaTest extends Specification {
         def checkDetails = Mock(CompatibilityCheckDetails)
         def candidateDetails = Mock(MultipleCandidatesDetails)
 
+        def aFoo_bBar = AttributeValue.of([a: 'foo', b: 'bar'])
+        def cFoo_dBar = AttributeValue.of([c: 'foo', d: 'bar'])
+
         when:
-        checkDetails.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        checkDetails.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
+        checkDetails.getConsumerValue() >> aFoo_bBar
+        checkDetails.getProducerValue() >> aFoo_bBar
         strategy.compatibilityRules.checkCompatibility(checkDetails)
 
         then:
@@ -178,8 +178,8 @@ class DefaultAttributesSchemaTest extends Specification {
         0 * checkDetails.incompatible()
 
         when:
-        checkDetails.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        checkDetails.getProducerValue() >> AttributeValue.of([c: 'foo', d: 'bar'])
+        checkDetails.getConsumerValue() >> aFoo_bBar
+        checkDetails.getProducerValue() >> cFoo_dBar
         strategy.compatibilityRules.checkCompatibility(checkDetails)
 
         then:
@@ -187,33 +187,31 @@ class DefaultAttributesSchemaTest extends Specification {
         0 * checkDetails.incompatible()
 
         when:
-        candidateDetails.consumerValue >> AttributeValue.of([a: 'foo', b: 'bar'])
-        candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
+        candidateDetails.consumerValue >> aFoo_bBar
+        candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
         strategy.disambiguationRules.selectClosestMatch(candidateDetails)
 
         then:
-        1 * candidateDetails.closestMatch(key1)
-        1 * candidateDetails.closestMatch(key3)
+        1 * candidateDetails.closestMatch(aFoo_bBar)
         0 * candidateDetails._
 
         when:
         candidateDetails.consumerValue >> AttributeValue.missing()
-        candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
+        candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
         strategy.disambiguationRules.selectClosestMatch(candidateDetails)
 
         then:
-        1 * candidateDetails.closestMatch(key1)
+        1 * candidateDetails.closestMatch(aFoo_bBar)
         0 * candidateDetails._
 
         when:
         candidateDetails.consumerValue >> AttributeValue.unknown()
-        candidateDetails.candidateValues >> [(key1): AttributeValue.of([a: 'foo', b: 'bar']), (key2): AttributeValue.of([c: 'foo', d: 'bar']), (key3): AttributeValue.of([a: 'foo', b: 'bar'])]
+        candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
         strategy.disambiguationRules.selectClosestMatch(candidateDetails)
 
         then:
-        1 * candidateDetails.closestMatch(key1)
-        1 * candidateDetails.closestMatch(key2)
-        1 * candidateDetails.closestMatch(key3)
+        1 * candidateDetails.closestMatch(aFoo_bBar)
+        1 * candidateDetails.closestMatch(cFoo_dBar)
         0 * candidateDetails._
     }
 }

@@ -17,7 +17,7 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides context about candidates for an attribute. In particular, this class gives access to
@@ -36,16 +36,17 @@ public interface MultipleCandidatesDetails<T> {
     AttributeValue<T> getConsumerValue();
 
     /**
-     * A map of candidate values. The keys represent a candidate, and the value is the value of the attribute for the attribute.
-     * @return the map of candidates
+     * A set of candidate values.
+     * @return the set of candidates
      */
-    Map<HasAttributes, AttributeValue<T>> getCandidateValues();
+    Set<AttributeValue<T>> getCandidateValues();
 
     /**
      * Calling this method indicates that the candidate is the closest match. It is allowed to call this method several times with
-     * different keys, in which case it indicates that multiple candidates are equally compatible.
-     * @param key the candidate which is the closest match
+     * different values, in which case it indicates that multiple candidates are equally compatible.
+     *
+     * @param candidate the closest match
      */
-    void closestMatch(HasAttributes key);
+    void closestMatch(AttributeValue<T> candidate);
 
 }
