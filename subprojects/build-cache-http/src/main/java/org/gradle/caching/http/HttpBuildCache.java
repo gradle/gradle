@@ -17,6 +17,7 @@
 package org.gradle.caching.http;
 
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -24,6 +25,7 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -64,16 +66,19 @@ public class HttpBuildCache implements BuildCache {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
         final CloseableHttpResponse response = httpClient.execute(httpGet);
+        StatusLine statusLine = response.getStatusLine();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Response for GET {}: {}", uri, response.getStatusLine());
+            LOGGER.debug("Response for GET {}: {}", uri, statusLine);
         }
         try {
-            int statusCode = response.getStatusLine().getStatusCode();
+            int statusCode = statusLine.getStatusCode();
             if (statusCode >= 200 && statusCode < 300) {
                 reader.readFrom(response.getEntity().getContent());
                 return true;
-            } else {
+            } else if (statusCode == 404) {
                 return false;
+            } else {
+                throw new GradleException("Http cache returned status " + statusCode + ": "  + statusLine.getReasonPhrase());
             }
         } finally {
             HttpClientUtils.closeQuietly(response);

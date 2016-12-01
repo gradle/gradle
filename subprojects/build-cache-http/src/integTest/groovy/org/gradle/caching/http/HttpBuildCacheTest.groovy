@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http
 
+import org.gradle.api.GradleException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -58,5 +59,32 @@ class HttpBuildCacheTest extends Specification {
         }
         then:
         1 * key.hashCode >> "0123456abcdef"
+    }
+
+    def "reports cache miss on 404"() {
+        server.expectGetMissing("/cache/0123456abcdef")
+
+        when:
+        def fromCache = cache.load(key) { input ->
+            throw new RuntimeException("That should never be called")
+        }
+
+        then:
+        1 * key.hashCode >> "0123456abcdef"
+        ! fromCache
+    }
+
+    def "fails on other error"() {
+        server.expectGetBroken("/cache/0123456abcdef")
+
+        when:
+        def fromCache = cache.load(key) { input ->
+            throw new RuntimeException("That should never be called")
+        }
+
+        then:
+        1 * key.hashCode >> "0123456abcdef"
+        GradleException exception = thrown()
+        exception.message == "Http cache returned status 500: broken"
     }
 }
