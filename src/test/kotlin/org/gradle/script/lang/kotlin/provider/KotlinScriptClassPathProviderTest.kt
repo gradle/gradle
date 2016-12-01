@@ -4,10 +4,13 @@ import org.gradle.script.lang.kotlin.support.ProgressMonitor
 import org.gradle.script.lang.kotlin.support.classEntriesFor
 import org.gradle.script.lang.kotlin.support.zipTo
 
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
+import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.script.lang.kotlin.TestWithTempFiles
 
@@ -31,18 +34,15 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
         val generatedKotlinApi = file("script-kotlin-api.jar")
         val generatedKotlinExtensions = file("script-kotlin-extensions.jar")
 
-        val progressMonitorProvider = mock<JarGenerationProgressMonitorProvider>()
-
         val kotlinApiMonitor = mock<ProgressMonitor>("kotlinApiMonitor")
-        whenever(progressMonitorProvider.progressMonitorFor(generatedKotlinApi, 2))
-            .thenReturn(kotlinApiMonitor)
-
         val kotlinExtensionsMonitor = mock<ProgressMonitor>("kotlinExtensionsMonitor")
-        whenever(progressMonitorProvider.progressMonitorFor(generatedKotlinExtensions, 2))
-            .thenReturn(kotlinExtensionsMonitor)
+        val progressMonitorProvider = mock<JarGenerationProgressMonitorProvider> {
+            on { progressMonitorFor(generatedKotlinApi, 2) } doReturn kotlinApiMonitor
+            on { progressMonitorFor(generatedKotlinExtensions, 2) } doReturn kotlinExtensionsMonitor
+        }
 
         val subject = KotlinScriptClassPathProvider(
-            classPathRegistry = mock(),
+            classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn ClassPath.EMPTY },
             gradleApiJarsProvider = { listOf(gradleApiJar) },
             jarCache = { id, generator -> file("$id.jar").apply(generator) },
             progressMonitorProvider = progressMonitorProvider)

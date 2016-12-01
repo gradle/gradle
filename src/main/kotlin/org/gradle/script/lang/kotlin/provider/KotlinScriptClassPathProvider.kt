@@ -16,7 +16,7 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.codegen.generateActionExtensionsJar
+import org.gradle.script.lang.kotlin.codegen.generateApiExtensionsJar
 import org.gradle.script.lang.kotlin.codegen.generateKotlinGradleApiJar
 
 import org.gradle.script.lang.kotlin.support.ProgressMonitor
@@ -93,7 +93,7 @@ class KotlinScriptClassPathProvider(
 
     private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
         produceFrom(gradleApiJar, "script-kotlin-extensions") { outputFile, onProgress ->
-            generateActionExtensionsJar(outputFile, gradleApiJar, onProgress)
+            generateApiExtensionsJar(outputFile, gradleApiJar, gradleJars(), onProgress)
         }
 
     private fun produceFrom(gradleApiJar: File, id: String, generate: JarGeneratorWithProgress): File =
@@ -121,6 +121,8 @@ class KotlinScriptClassPathProvider(
 
     private fun numberOfEntriesIn(gradleApiJar: File) =
         ZipFile(gradleApiJar).use { it.size() }
+
+    private fun gradleJars() = classPathRegistry.gradleJars()
 }
 
 fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory): JarsProvider =

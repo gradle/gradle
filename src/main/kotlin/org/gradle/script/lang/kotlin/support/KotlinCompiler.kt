@@ -73,30 +73,30 @@ fun compileKotlinScriptToDirectory(outputDirectory: File,
 
 internal
 fun compileToJar(outputJar: File,
-                 sourceFile: File,
+                 sourceFiles: Iterable<File>,
                  logger: Logger,
-                 classPath: List<File> = emptyList()): Boolean =
-    compileTo(OUTPUT_JAR, outputJar, sourceFile, logger, classPath)
+                 classPath: Iterable<File> = emptyList()): Boolean =
+    compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
 
 internal
 fun compileToDirectory(outputDirectory: File,
-                       sourceFile: File,
+                       sourceFiles: Iterable<File>,
                        logger: Logger,
-                       classPath: List<File> = emptyList()): Boolean =
-    compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFile, logger, classPath)
+                       classPath: Iterable<File> = emptyList()): Boolean =
+    compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
 
 private
 fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
               output: File,
-              sourceFile: File,
+              sourceFiles: Iterable<File>,
               logger: Logger,
-              classPath: List<File>): Boolean {
+              classPath: Iterable<File>): Boolean {
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
-            val configuration = compilerConfigurationFor(messageCollector, sourceFile).apply {
+            val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
                 put(outputConfigurationKey, output)
-                setModuleName(sourceFile.nameWithoutExtension)
-                addJvmClasspathRoots(classPath)
+                setModuleName(output.nameWithoutExtension)
+                classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
             }
             val environment = kotlinCoreEnvironmentFor(configuration, disposable)
@@ -135,9 +135,13 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
 }
 
 private
-fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: File): CompilerConfiguration =
+fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: File) =
+    compilerConfigurationFor(messageCollector, listOf(sourceFile))
+
+private
+fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
     CompilerConfiguration().apply {
-        addKotlinSourceRoots(listOf(sourceFile.canonicalPath))
+        addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }

@@ -21,7 +21,7 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
         val inputFile = apiJarWith(org.gradle.api.Project::class.java)
         val outputFile = newFile("extensions.jar")
 
-        ApiExtensionsJarGenerator(NullCompiler).generate(outputFile, inputFile)
+        ApiExtensionsJarGenerator(NullCompiler).generate(outputFile, inputFile, listOf(inputFile))
 
         assertThat(
             textForEntryOf(outputFile, "org/gradle/script/lang/kotlin/ActionExtensions.kt"),
@@ -36,7 +36,7 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
         text.lineSequence().take(4).joinToString(separator = System.lineSeparator())
 
     object NullCompiler : KotlinFileCompiler {
-        override fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>) = Unit
+        override fun compileToDirectory(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) = Unit
     }
 
     private fun apiJarWith(vararg classes: Class<*>): File {

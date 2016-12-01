@@ -29,7 +29,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
 
         val outputJar = newFile("output.jar")
 
-        compileToJar(outputJar, sourceFile, loggerFor<KotlinCompilerTest>())
+        compileToJar(outputJar, listOf(sourceFile), loggerFor<KotlinCompilerTest>())
 
         val answer =
             classLoaderFor(outputJar)
