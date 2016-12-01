@@ -47,14 +47,28 @@ public interface DisambiguationRuleChain<T> {
     void add(DisambiguationRule<T> rule);
 
     /**
-     * Adds an ordered disambiguation rule. This method can only be called if the type of the attribute
-     * is {@link Comparable} and the semantics of the rule are described in {@link OrderedDisambiguationRule}.
+     * Adds an ordered disambiguation rule. Values will be compared using the
+     * provided comparator, and the rule will automatically select the first
+     * value (if multiple candidates have the same attribute value, there will
+     * still be an ambiguity).
      *
      * @param comparator the comparator to use
      *
      * @return the added ordered disambiguation rule
      */
-    OrderedDisambiguationRule<T> addOrderedDisambiguation(Comparator<? super T> comparator);
+    DisambiguationRule<T> pickFirst(Comparator<? super T> comparator);
+
+    /**
+     * Adds an ordered disambiguation rule. Values will be compared using the
+     * provided comparator, and the rule will automatically select the last
+     * value (if multiple candidates have the same attribute value, there will
+     * still be an ambiguity).
+     *
+     * @param comparator the comparator to use
+     *
+     * @return the added ordered disambiguation rule
+     */
+    DisambiguationRule<T> pickLast(Comparator<? super T> comparator);
 
     /**
      * Replaces the current chain of rules with the provided rules.

@@ -492,7 +492,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     configureMatchingStrategy(arch) {
                        compatibilityRules.addEqualityCheck()
                        compatibilityRules.optionalOnConsumer()
-                       disambiguationRules.addOrderedDisambiguation { a,b -> a<=>b }
+                       disambiguationRules.pickLast { a,b -> a<=>b }
                   }
                }
             }
@@ -501,7 +501,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     configureMatchingStrategy(arch) {
                        compatibilityRules.addEqualityCheck()
                        compatibilityRules.optionalOnConsumer()
-                       disambiguationRules.addOrderedDisambiguation { a,b -> a<=>b }
+                       disambiguationRules.pickLast { a,b -> a<=>b }
                     }
                 }
             }

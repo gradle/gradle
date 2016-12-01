@@ -21,7 +21,6 @@ import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.api.attributes.OrderedDisambiguationRule;
 
 import java.util.Comparator;
 import java.util.List;
@@ -39,8 +38,15 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public OrderedDisambiguationRule<T> addOrderedDisambiguation(Comparator<? super T> comparator) {
-        OrderedDisambiguationRule<T> rule = AttributeMatchingRules.orderedDisambiguation(comparator);
+    public DisambiguationRule<T> pickFirst(Comparator<? super T> comparator) {
+        DisambiguationRule<T> rule = AttributeMatchingRules.orderedDisambiguation(comparator, true);
+        add(rule);
+        return rule;
+    }
+
+    @Override
+    public DisambiguationRule<T> pickLast(Comparator<? super T> comparator) {
+        DisambiguationRule<T> rule = AttributeMatchingRules.orderedDisambiguation(comparator, false);
         add(rule);
         return rule;
     }
