@@ -156,7 +156,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':a') {
                configurationAttributesSchema {
                   attribute(flavor) {
-                      compatibilityRules.rules = []
+                      compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
                       compatibilityRules.add { details ->
                            if (details.consumerValue.present && details.producerValue.present) {
                                if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {

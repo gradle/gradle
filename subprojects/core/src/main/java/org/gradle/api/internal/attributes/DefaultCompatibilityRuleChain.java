@@ -52,12 +52,6 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     }
 
     @Override
-    public void setRules(List<Action<? super CompatibilityCheckDetails<T>>> rules) {
-        this.rules.clear();
-        this.rules.addAll(rules);
-    }
-
-    @Override
     public void eventuallyIncompatible() {
         failEventually = true;
     }
