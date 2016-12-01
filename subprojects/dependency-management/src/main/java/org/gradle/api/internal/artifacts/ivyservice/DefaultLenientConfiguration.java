@@ -99,14 +99,44 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, visitor);
             }
 
+            /**
+             * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
+             */
             @Override
             public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-                return DefaultLenientConfiguration.this.collectFiles(dependencySpec, attributes, dest);
+                rethrowFailure();
+                ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
+                try {
+                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, visitor);
+                    // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts.
+                    // This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
+                    // File dependencies and artifacts are currently treated separately as a migration step
+                    visitor.addArtifacts();
+                } catch (Throwable t) {
+                    visitor.failures.add(t);
+                }
+                if (!visitor.failures.isEmpty()) {
+                    throw new ArtifactResolveException("files", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
+                }
+                return dest;
             }
 
+            /**
+             * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
+             */
             @Override
             public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-                return DefaultLenientConfiguration.this.collectArtifacts(dependencySpec, attributes, dest);
+                rethrowFailure();
+                ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
+                try {
+                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, visitor);
+                } catch (Throwable t) {
+                    visitor.failures.add(t);
+                }
+                if (!visitor.failures.isEmpty()) {
+                    throw new ArtifactResolveException("artifacts", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
+                }
+                return dest;
             }
         };
     }
@@ -181,43 +211,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         visitArtifacts(dependencySpec, configuration.getAttributes(), visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
-    }
-
-    /**
-     * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
-     */
-    private <T extends Collection<? super File>> T collectFiles(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, T dest) throws ResolveException {
-        rethrowFailure();
-        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
-        try {
-            visitArtifacts(dependencySpec, attributes, visitor);
-            // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts. This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
-            // File dependencies and artifacts are currently treated separately as a migration step
-            visitor.addArtifacts();
-        } catch (Throwable t) {
-            visitor.failures.add(t);
-        }
-        if (!visitor.failures.isEmpty()) {
-            throw new ArtifactResolveException("files", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
-        }
-        return dest;
-    }
-
-    /**
-     * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
-     */
-    private <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, T dest) throws ResolveException {
-        rethrowFailure();
-        ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
-        try {
-            visitArtifacts(dependencySpec, attributes, visitor);
-        } catch (Throwable t) {
-            visitor.failures.add(t);
-        }
-        if (!visitor.failures.isEmpty()) {
-            throw new ArtifactResolveException("artifacts", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
-        }
-        return dest;
     }
 
     @Override
