@@ -258,7 +258,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 def attr = args[0]
                 if (attr.name == 'platform') {
                     def strategy = new DefaultAttributeMatchingStrategy()
-                    strategy.ordered(true) { a, b -> a<=>b }
+                    strategy.ordered { a, b -> a<=>b }
                     return strategy
                 }
                 return defaultMatchingStrategy

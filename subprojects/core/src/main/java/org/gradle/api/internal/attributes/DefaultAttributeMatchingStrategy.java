@@ -36,6 +36,11 @@ public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStr
     }
 
     @Override
+    public void ordered(Comparator<T> comparator) {
+        ordered(true, comparator);
+    }
+
+    @Override
     public void ordered(boolean pickLast, Comparator<T> comparator) {
         compatibilityRules.ordered(comparator);
         if (pickLast) {

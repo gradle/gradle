@@ -40,6 +40,18 @@ public interface AttributeMatchingStrategy<T> {
      * {@link Comparator}.</p>
      *
      * <p>All provider values which are lower than or equal the consumer value are
+     * compatible. When disambiguating, it will pick the highest compatible value.</p>
+     *
+     * @param comparator the comparator to use for compatibility and disambiguation
+     */
+    void ordered(Comparator<T> comparator);
+
+    /**
+     * <p>A short-hand way to define both a compatibility rule and
+     * a disambiguation rule based on an order defined by the provided
+     * {@link Comparator}.</p>
+     *
+     * <p>All provider values which are lower than or equal the consumer value are
      * compatible.</p>
      *
      * @param pickLast tells if, for disambiguation, we should pick the last value in order instead of the first one
