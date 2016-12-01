@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.DisambiguationRule;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 class SelectAllCompatibleRule<T> implements DisambiguationRule<T> {
@@ -31,7 +31,7 @@ class SelectAllCompatibleRule<T> implements DisambiguationRule<T> {
 
     @Override
     public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
-        for (HasAttributes candidate : details.getCandidateValues().keySet()) {
+        for (AttributeValue<T> candidate : details.getCandidateValues()) {
             details.closestMatch(candidate);
         }
     }

@@ -27,7 +27,7 @@ import java.util.List;
  * the chain is empty and will not do any disambiguation.</p>
  *
  * <p>For a given set of rules, the execution is done <i>in order</i>, and interrupts as soon as a rule
- * selected at least one candidate (through {@link MultipleCandidatesDetails#closestMatch(HasAttributes)}).
+ * selected at least one candidate (through {@link MultipleCandidatesDetails#closestMatch(AttributeValue)}).
  * </p>
  *
  * <p>If the end of the rule chain is reached and that no rule selected a candidate then the candidate list is determined

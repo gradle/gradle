@@ -17,12 +17,10 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.DisambiguationRule;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Map;
 
 public class DefaultOrderedDisambiguationRule<T> implements DisambiguationRule<T> {
     private final Comparator<? super T> comparator;
@@ -35,7 +33,7 @@ public class DefaultOrderedDisambiguationRule<T> implements DisambiguationRule<T
 
     @Override
     public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
-        Collection<AttributeValue<T>> values = details.getCandidateValues().values();
+        Collection<AttributeValue<T>> values = details.getCandidateValues();
         T min = null;
         T max = null;
         for (AttributeValue<T> value : values) {
@@ -51,11 +49,9 @@ public class DefaultOrderedDisambiguationRule<T> implements DisambiguationRule<T
         }
         T cmp = pickFirst ? min : max;
         if (cmp != null) {
-            for (Map.Entry<HasAttributes, AttributeValue<T>> entry : details.getCandidateValues().entrySet()) {
-                HasAttributes key = entry.getKey();
-                AttributeValue<T> value = entry.getValue();
+            for (AttributeValue<T> value : details.getCandidateValues()) {
                 if (value.isPresent() && value.get().equals(cmp)) {
-                    details.closestMatch(key);
+                    details.closestMatch(value);
                 }
             }
         }

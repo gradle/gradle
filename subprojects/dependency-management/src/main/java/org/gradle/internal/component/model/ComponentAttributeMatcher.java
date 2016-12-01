@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -126,42 +128,24 @@ public class ComponentAttributeMatcher {
         }
         Set<Attribute<?>> consumerAttributes = consumerAttributeSchema.getAttributes();
         List<HasAttributes> remainingMatches = Lists.newArrayList(matchs);
-        final Map<HasAttributes, AttributeValue<Object>> values = Maps.newHashMap();
+        List<HasAttributes> best = Lists.newArrayListWithCapacity(matchs.size());
+        final ListMultimap<AttributeValue<Object>, HasAttributes> candidatesByValue = ArrayListMultimap.create();
         for (Attribute<?> attribute : producerOnlyAttributes) {
             for (HasAttributes match : matchs) {
                 Object maybeProvided = match.getAttributes().getAttribute(attribute);
                 if (maybeProvided != null) {
-                    values.put(match, AttributeValue.of(maybeProvided));
+                    candidatesByValue.put(AttributeValue.of(maybeProvided), match);
                 }
             }
-            if (!values.isEmpty()) {
-                AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(producerAttributeSchema.getMatchingStrategy(attribute));
+            if (!candidatesByValue.isEmpty()) {
                 final AttributeValue<Object> absent = consumerAttributes.contains(attribute) ? AttributeValue.missing() : AttributeValue.unknown();
-                final List<HasAttributes> best = new ArrayList<HasAttributes>();
-                MultipleCandidatesDetails<Object> details = new MultipleCandidatesDetails<Object>() {
-                    @Override
-                    public AttributeValue<Object> getConsumerValue() {
-                        return absent;
-                    }
-
-                    @Override
-                    public Map<HasAttributes, AttributeValue<Object>> getCandidateValues() {
-                        return values;
-                    }
-
-                    @Override
-                    public void closestMatch(HasAttributes key) {
-                        best.add(key);
-                    }
-                };
-                DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) matchingStrategy.getDisambiguationRules();
-                disambiguationRules.selectClosestMatch(details);
-                remainingMatches.retainAll(best);
+                disambiguate(remainingMatches, candidatesByValue, absent, producerAttributeSchema.getMatchingStrategy(attribute), best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
                     return matchs;
                 }
-                values.clear();
+                candidatesByValue.clear();
+                best.clear();
             }
         }
         if (!remainingMatches.isEmpty()) {
@@ -177,46 +161,40 @@ public class ComponentAttributeMatcher {
         // We need to look at all candidates globally, and select the closest match for each attribute
         // then see if there's a non-empty intersection.
         List<HasAttributes> remainingMatches = Lists.newArrayList(fullMatches);
-        final Map<HasAttributes, AttributeValue<Object>> values = Maps.newHashMap();
+        List<HasAttributes> best = Lists.newArrayListWithCapacity(fullMatches.size());
+        final ListMultimap<AttributeValue<Object>, HasAttributes> candidatesByValue = ArrayListMultimap.create();
         for (Attribute<?> attribute : requestedAttributes) {
             Object requestedValue = consumerAttributesContainer.getAttribute(attribute);
             for (HasAttributes match : fullMatches) {
                 Map<Attribute<Object>, AttributeValue<Object>> matchedAttributes = matchDetails.get(match).matchesByAttribute;
-                values.put(match, matchedAttributes.get(attribute));
+                candidatesByValue.put(matchedAttributes.get(attribute), match);
             }
-            AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(consumerAttributeSchema.getMatchingStrategy(attribute));
             final AttributeValue<Object> requested = AttributeValue.of(requestedValue);
-            final List<HasAttributes> best = new ArrayList<HasAttributes>();
-            MultipleCandidatesDetails<Object> details = new MultipleCandidatesDetails<Object>() {
-                @Override
-                public AttributeValue<Object> getConsumerValue() {
-                    return requested;
-                }
-
-                @Override
-                public Map<HasAttributes, AttributeValue<Object>> getCandidateValues() {
-                    return values;
-                }
-
-                @Override
-                public void closestMatch(HasAttributes key) {
-                    best.add(key);
-                }
-            };
-            DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) matchingStrategy.getDisambiguationRules();
-            disambiguationRules.selectClosestMatch(details);
-            remainingMatches.retainAll(best);
+            disambiguate(remainingMatches, candidatesByValue, requested, consumerAttributeSchema.getMatchingStrategy(attribute), best);
             if (remainingMatches.isEmpty()) {
                 // the intersection is empty, so we cannot choose
                 return fullMatches;
             }
-            values.clear();
+            candidatesByValue.clear();
+            best.clear();
         }
         if (!remainingMatches.isEmpty()) {
             // there's a subset (or not) of best matches
             return remainingMatches;
         }
         return null;
+    }
+
+    private static void disambiguate(List<HasAttributes> remainingMatches,
+                                     ListMultimap<AttributeValue<Object>, HasAttributes> candidatesByValue,
+                                     AttributeValue<Object> requested,
+                                     AttributeMatchingStrategy<?> matchingStrategy,
+                                     List<HasAttributes> best) {
+        AttributeMatchingStrategy<Object> ms = Cast.uncheckedCast(matchingStrategy);
+        MultipleCandidatesDetails<Object> details = new CandidateDetails(requested, candidatesByValue, best);
+        DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) ms.getDisambiguationRules();
+        disambiguationRules.selectClosestMatch(details);
+        remainingMatches.retainAll(best);
     }
 
     private static class MatchDetails {
@@ -257,6 +235,36 @@ public class ComponentAttributeMatcher {
                 compatibilityRules.checkCompatibility(details);
             } catch (Exception ex) {
                 throw new GradleException("Unexpected error thrown when trying to match attribute values with " + strategy, ex);
+            }
+        }
+    }
+
+    private static class CandidateDetails implements MultipleCandidatesDetails<Object> {
+        private final AttributeValue<Object> consumerValue;
+        private final ListMultimap<AttributeValue<Object>, HasAttributes> candidatesByValue;
+        private final List<HasAttributes> best;
+
+        public CandidateDetails(AttributeValue<Object> consumerValue, ListMultimap<AttributeValue<Object>, HasAttributes> candidatesByValue, List<HasAttributes> best) {
+            this.consumerValue = consumerValue;
+            this.candidatesByValue = candidatesByValue;
+            this.best = best;
+        }
+
+        @Override
+        public AttributeValue<Object> getConsumerValue() {
+            return consumerValue;
+        }
+
+        @Override
+        public Set<AttributeValue<Object>> getCandidateValues() {
+            return candidatesByValue.keySet();
+        }
+
+        @Override
+        public void closestMatch(AttributeValue<Object> candidate) {
+            List<HasAttributes> hasAttributes = candidatesByValue.get(candidate);
+            for (HasAttributes attributes : hasAttributes) {
+                best.add(attributes);
             }
         }
     }

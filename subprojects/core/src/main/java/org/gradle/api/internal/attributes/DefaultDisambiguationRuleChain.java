@@ -19,12 +19,11 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.DisambiguationRule;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChainInternal<T> {
 
@@ -95,14 +94,14 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         }
 
         @Override
-        public Map<HasAttributes, AttributeValue<T>> getCandidateValues() {
+        public Set<AttributeValue<T>> getCandidateValues() {
             return delegate.getCandidateValues();
         }
 
         @Override
-        public void closestMatch(HasAttributes key) {
+        public void closestMatch(AttributeValue<T> candidate) {
             determined = true;
-            delegate.closestMatch(key);
+            delegate.closestMatch(candidate);
         }
 
     }

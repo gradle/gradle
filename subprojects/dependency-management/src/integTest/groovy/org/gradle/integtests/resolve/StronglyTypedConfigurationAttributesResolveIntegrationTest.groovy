@@ -165,9 +165,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                            }
                       }
                       disambiguationRules.add { details ->
-                         details.candidateValues.each { candidate, producerValue ->
+                         details.candidateValues.each { producerValue ->
                             if (details.consumerValue == producerValue) {
-                                details.closestMatch(candidate)
+                                details.closestMatch(producerValue)
                             }
                          }
                       }
@@ -416,7 +416,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   configureMatchingStrategy(flavor) {
                        compatibilityRules.addEqualityCheck()
                        disambiguationRules.add { details ->
-                            details.closestMatch(details.candidateValues.entrySet().sort { it.value.get() }.first().key)
+                            details.closestMatch(details.candidateValues.sort { it.get() }.first())
                        }
 
                   }

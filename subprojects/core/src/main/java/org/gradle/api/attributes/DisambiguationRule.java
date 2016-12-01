@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 /**
  * <p>A disambiguation rule can select the best match from a list of {@link AttributeValue candidate}.</p>
  *
- * <p>A rule <i>can</i> express an preference by calling the @{link {@link MultipleCandidatesDetails#closestMatch(HasAttributes)}
+ * <p>A rule <i>can</i> express an preference by calling the @{link {@link MultipleCandidatesDetails#closestMatch(AttributeValue)}
  * method to tell that a candidate is the best one.</p>
  *
  * <p>It is not mandatory for a rule to choose, and it is not an error to select multiple candidates.</p>
