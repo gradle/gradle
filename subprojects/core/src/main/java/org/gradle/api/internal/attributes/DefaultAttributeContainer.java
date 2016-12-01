@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -26,11 +25,17 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-// TODO: CC: Maybe it would be good to have a parent AttributeContainer too, so that
-// in the case of artifacts, we can inherit the attributes from the configuration
 public class DefaultAttributeContainer implements AttributeContainerInternal {
-
+    private final AttributeContainerInternal parent;
     private Map<Attribute<?>, Object> attributes;
+
+    public DefaultAttributeContainer() {
+        this.parent = null;
+    }
+
+    public DefaultAttributeContainer(AttributeContainerInternal parent) {
+        this.parent = parent;
+    }
 
     private void ensureAttributes() {
         if (this.attributes == null) {
@@ -41,7 +46,11 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
     @Override
     public Set<Attribute<?>> keySet() {
         if (attributes == null) {
-            return Collections.emptySet();
+            if (parent == null) {
+                return Collections.emptySet();
+            } else {
+                return parent.keySet();
+            }
         }
         return attributes.keySet();
     }
@@ -77,54 +86,59 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        return Cast.uncheckedCast(attributes == null ? null : attributes.get(key));
+        if (attributes != null) {
+            T value = key.getType().cast(attributes.get(key));
+            if (value != null) {
+                return value;
+            }
+        }
+        if (parent != null) {
+            return parent.getAttribute(key);
+        }
+        return null;
     }
 
     @Override
     public boolean isEmpty() {
-        return attributes == null;
+        return (attributes == null || attributes.isEmpty()) && (parent == null || parent.isEmpty());
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return attributes != null && attributes.containsKey(key);
+        return attributes != null && attributes.containsKey(key) || parent != null && parent.contains(key);
     }
 
-    public AttributeContainer asImmutable() {
-        if (attributes == null) {
+    public AttributeContainerInternal asImmutable() {
+        if (isEmpty()) {
             return EMPTY;
         }
-        return new ImmutableAttributes(attributes);
+        if (parent == null) {
+            return new ImmutableAttributes(attributes);
+        }
+        return copy().asImmutable();
     }
 
-    public DefaultAttributeContainer copy() {
-        DefaultAttributeContainer container = new DefaultAttributeContainer();
-        if (!isEmpty()) {
-            container.ensureAttributes();
-            container.attributes.putAll(this.attributes);
+    public AttributeContainerInternal copy() {
+        if (isEmpty()) {
+            return new DefaultAttributeContainer();
         }
-        return container;
+        AttributeContainerInternal copy;
+        if (parent != null) {
+            copy = parent.copy();
+        } else {
+            copy = new DefaultAttributeContainer();
+        }
+        if (attributes != null) {
+            for (Map.Entry<Attribute<?>, Object> entry : attributes.entrySet()) {
+                Attribute<Object> attribute = Cast.uncheckedCast(entry.getKey());
+                copy.attribute(attribute, entry.getValue());
+            }
+        }
+        return copy;
     }
 
     @Override
     public AttributeContainer getAttributes() {
         return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof DefaultAttributeContainer)) {
-            return false;
-        }
-        DefaultAttributeContainer that = (DefaultAttributeContainer) o;
-        return Objects.equal(attributes, that.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(attributes);
     }
 }

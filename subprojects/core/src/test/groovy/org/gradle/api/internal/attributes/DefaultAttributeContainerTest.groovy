@@ -20,7 +20,27 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasAttributes
 import spock.lang.Specification
 
+import static org.gradle.api.internal.attributes.AttributeContainerInternal.EMPTY
+
 class DefaultAttributeContainerTest extends Specification {
+    def "can query contents of container"() {
+        def thing = Attribute.of("thing", String)
+
+        expect:
+        def container = new DefaultAttributeContainer()
+
+        container.empty
+        container.keySet().empty
+        !container.contains(thing)
+        container.getAttribute(thing) == null
+
+        container.attribute(thing, "thing")
+
+        !container.empty
+        container.keySet() == [thing] as Set
+        container.contains(thing)
+        container.getAttribute(thing) == "thing"
+    }
 
     def "A copy of an attribute container contains the same attributes and the same values as the original"() {
         given:
@@ -30,6 +50,23 @@ class DefaultAttributeContainerTest extends Specification {
 
         when:
         def copy = container.copy()
+
+        then:
+        copy.keySet().size() == 2
+        copy.getAttribute(Attribute.of("a1", Integer)) == 1
+        copy.getAttribute(Attribute.of("a2", String)) == "2"
+    }
+
+    def "changes to attribute container are not seen by mutable copy"() {
+        given:
+        def container = new DefaultAttributeContainer()
+        container.attribute(Attribute.of("a1", Integer), 1)
+        container.attribute(Attribute.of("a2", String), "2")
+
+        when:
+        def copy = container.copy()
+        container.attribute(Attribute.of("a1", Integer), 2)
+        container.attribute(Attribute.of("a3", Number), 12L)
 
         then:
         copy.keySet().size() == 2
@@ -53,17 +90,39 @@ class DefaultAttributeContainerTest extends Specification {
         copy.getAttribute(Attribute.of("a1", Integer)) == 1
         copy.getAttribute(Attribute.of("a2", String)) == "2"
         copy.getAttribute(Attribute.of("a3", String)) == "3"
-        noExceptionThrown()
+    }
+
+    def "changes to attribute container are not seen by immutable copy"() {
+        given:
+        AttributeContainerInternal container = new DefaultAttributeContainer()
+        container.attribute(Attribute.of("a1", Integer), 1)
+        container.attribute(Attribute.of("a2", String), "2")
+        def copy = container.asImmutable()
+
+        when:
+        container.attribute(Attribute.of("a1", Integer), 2)
+        container.attribute(Attribute.of("a3", String), "3")
+
+        then:
+        copy.keySet().size() == 2
+        copy.getAttribute(Attribute.of("a1", Integer)) == 1
+        copy.getAttribute(Attribute.of("a2", String)) == "2"
     }
 
     def "A copy of an empty attribute container is a modifiable container which is empty"() {
         when:
-        def copy = AttributeContainerInternal.EMPTY.copy()
+        def copy = EMPTY.copy()
         copy.attribute(Attribute.of("a1", Integer), 1)
 
         then:
         copy.keySet().size() == 1
         copy.getAttribute(Attribute.of("a1", Integer)) == 1
+    }
+
+    def "immutable copy of empty attribute container is EMPTY"() {
+        expect:
+        new DefaultAttributeContainer().asImmutable().is(EMPTY)
+        EMPTY.asImmutable().is(EMPTY)
     }
 
     def "An attribute container can provide the attributes through the HasAttributes interface"() {
@@ -77,5 +136,55 @@ class DefaultAttributeContainerTest extends Specification {
         then:
         access.attributes.getAttribute(Attribute.of("a1", Integer)) == 1
         access.attributes == access
+    }
+
+    def "can inherit attributes from parent container"() {
+        def thing = Attribute.of("thing", String)
+        def other = Attribute.of("other", String)
+
+        expect:
+        def parent = new DefaultAttributeContainer()
+        def child = new DefaultAttributeContainer(parent)
+
+        child.empty
+        child.keySet().empty
+        child.asImmutable().is(EMPTY)
+        child.copy().empty
+        !child.contains(thing)
+        child.getAttribute(thing) == null
+
+        parent.attribute(thing, "parent")
+
+        !child.empty
+        child.keySet() == [thing] as Set
+        child.contains(thing)
+        child.getAttribute(thing) == "parent"
+        child.asImmutable().keySet() == [thing] as Set
+        child.copy().keySet() == [thing] as Set
+
+        child.attribute(thing, "child")
+
+        !child.empty
+        child.keySet() == [thing] as Set
+        child.contains(thing)
+        child.getAttribute(thing) == "child"
+        child.asImmutable().keySet() == [thing] as Set
+        child.copy().keySet() == [thing] as Set
+
+        child.attribute(other, "other")
+        child.keySet() == [thing, other] as Set
+        child.getAttribute(other) == "other"
+        child.asImmutable().keySet() == [thing, other] as Set
+        child.copy().keySet() == [thing, other] as Set
+
+        def child2 = new DefaultAttributeContainer(new DefaultAttributeContainer())
+        child2.attribute(thing, "child")
+
+        !child2.empty
+        child2.keySet() == [thing] as Set
+        child2.contains(thing)
+        child2.getAttribute(thing) == "child"
+        child2.asImmutable().keySet() == [thing] as Set
+        child2.copy().keySet() == [thing] as Set
     }
 }

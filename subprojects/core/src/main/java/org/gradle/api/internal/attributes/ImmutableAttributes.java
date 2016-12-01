@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
@@ -37,7 +38,7 @@ class ImmutableAttributes implements AttributeContainerInternal {
     private final Map<Attribute<?>, Object> attributes;
 
     ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
-        this.attributes = attributes;
+        this.attributes = ImmutableMap.copyOf(attributes);
     }
 
     @Override
@@ -66,13 +67,13 @@ class ImmutableAttributes implements AttributeContainerInternal {
     }
 
     @Override
-    public AttributeContainer asImmutable() {
+    public AttributeContainerInternal asImmutable() {
         return this;
     }
 
     @Override
-    public AttributeContainer copy() {
-        AttributeContainer copy = new DefaultAttributeContainer();
+    public AttributeContainerInternal copy() {
+        AttributeContainerInternal copy = new DefaultAttributeContainer();
         for (Attribute<?> attribute : attributes.keySet()) {
             Attribute<Object> castAttribute = Cast.uncheckedCast(attribute);
             copy.attribute(castAttribute, attributes.get(castAttribute));

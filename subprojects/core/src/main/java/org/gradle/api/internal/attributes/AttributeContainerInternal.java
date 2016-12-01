@@ -53,12 +53,12 @@ public interface AttributeContainerInternal extends AttributeContainer {
         }
 
         @Override
-        public AttributeContainer asImmutable() {
+        public AttributeContainerInternal asImmutable() {
             return this;
         }
 
         @Override
-        public AttributeContainer copy() {
+        public AttributeContainerInternal copy() {
             return new DefaultAttributeContainer();
         }
 
@@ -69,11 +69,15 @@ public interface AttributeContainerInternal extends AttributeContainer {
     };
 
     /**
-     * Returns an immutable view of this attribute set. Implementations are not required to return a distinct
-     * instance for each call.
+     * Returns an immutable copy of this attribute set. Implementations are not required to return a distinct instance for each call.
+     * Changes to this set are <em>not</em> reflected in the immutable copy.
+     *
      * @return an immutable view of this container.
      */
-    AttributeContainer asImmutable();
+    AttributeContainerInternal asImmutable();
 
-    AttributeContainer copy();
+    /**
+     * Returns a mutable copy of this attribute set.
+     */
+    AttributeContainerInternal copy();
 }
