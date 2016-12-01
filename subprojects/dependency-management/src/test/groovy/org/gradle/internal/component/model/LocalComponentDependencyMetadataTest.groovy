@@ -172,7 +172,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 if (attr.name == 'platform') {
                     def strategy = new DefaultAttributeMatchingStrategy()
                     strategy.with {
-                        compatibilityRules.addOrderedCheck { a,b -> a<=>b }
+                        compatibilityRules.ordered { a, b -> a<=>b }
                         disambiguationRules.pickLast { a, b -> a<=>b }
                     }
                     return strategy
