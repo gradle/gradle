@@ -42,7 +42,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        strategy.compatibilityRules.checkCompatibility(details)
+        strategy.compatibilityRules.execute(details)
 
         then:
         1 * details.incompatible()
@@ -59,7 +59,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.compatibilityRules.checkCompatibility(details)
+        strategy.compatibilityRules.execute(details)
 
         then:
         1 * details.compatible()
@@ -77,7 +77,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.compatibilityRules.checkCompatibility(details)
+        strategy.compatibilityRules.execute(details)
 
         then:
         1 * details.incompatible()
@@ -94,7 +94,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        strategy.compatibilityRules.checkCompatibility(details)
+        strategy.compatibilityRules.execute(details)
 
         then:
         1 * details.compatible()
@@ -103,7 +103,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
         details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.compatibilityRules.checkCompatibility(details)
+        strategy.compatibilityRules.execute(details)
 
         then:
         0 * details.compatible()
@@ -171,7 +171,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         checkDetails.getConsumerValue() >> aFoo_bBar
         checkDetails.getProducerValue() >> aFoo_bBar
-        strategy.compatibilityRules.checkCompatibility(checkDetails)
+        strategy.compatibilityRules.execute(checkDetails)
 
         then:
         1 * checkDetails.compatible()
@@ -180,7 +180,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         checkDetails.getConsumerValue() >> aFoo_bBar
         checkDetails.getProducerValue() >> cFoo_dBar
-        strategy.compatibilityRules.checkCompatibility(checkDetails)
+        strategy.compatibilityRules.execute(checkDetails)
 
         then:
         1 * checkDetails.compatible()
@@ -189,7 +189,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidateDetails.consumerValue >> aFoo_bBar
         candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
-        strategy.disambiguationRules.selectClosestMatch(candidateDetails)
+        strategy.disambiguationRules.execute(candidateDetails)
 
         then:
         1 * candidateDetails.closestMatch(aFoo_bBar)
@@ -198,7 +198,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidateDetails.consumerValue >> AttributeValue.missing()
         candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
-        strategy.disambiguationRules.selectClosestMatch(candidateDetails)
+        strategy.disambiguationRules.execute(candidateDetails)
 
         then:
         1 * candidateDetails.closestMatch(aFoo_bBar)
@@ -207,7 +207,7 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         candidateDetails.consumerValue >> AttributeValue.unknown()
         candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
-        strategy.disambiguationRules.selectClosestMatch(candidateDetails)
+        strategy.disambiguationRules.execute(candidateDetails)
 
         then:
         1 * candidateDetails.closestMatch(aFoo_bBar)

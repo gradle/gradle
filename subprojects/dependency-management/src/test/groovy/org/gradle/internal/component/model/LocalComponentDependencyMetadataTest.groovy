@@ -375,7 +375,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         def attributeSchemaWithCompatibility = Mock(AttributesSchema) {
             getMatchingStrategy(_) >> Mock(AttributeMatchingStrategy) {
-                checkCompatibility(_) >> {
+                execute(_) >> {
                     throw new RuntimeException('oh noes!')
                 }
                 toString() >> 'DummyMatcher'
