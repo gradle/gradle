@@ -45,6 +45,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [].iterator()
         1 * configuration.excludeRules >> ([] as Set)
+        1 * configuration.attributes >> Stub(AttributeContainerInternal)
         0 * _
     }
 
@@ -81,6 +82,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * metaData.addFiles("config", {it.source == dependency1})
         1 * metaData.addFiles("config", {it.source == dependency2})
         1 * configuration.excludeRules >> ([] as Set)
@@ -100,6 +102,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * configuration.getName() >> "config"
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * excludeRuleConverter.convertExcludeRule("config", excludeRule) >> ivyExcludeRule
         1 * metaData.addExclude(ivyExcludeRule)
         0 * _

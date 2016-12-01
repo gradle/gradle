@@ -16,10 +16,9 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.io.File;
@@ -37,6 +36,6 @@ public class ArtifactTransformException extends GradleException {
 
     private static String format(File input, AttributeContainer expectedAttributes, ArtifactTransform transform) {
         return String.format("Error while transforming '%s' to match attributes '%s' using '%s'",
-            input.getName(), ((AttributeContainerInternal) expectedAttributes).asImmutable().toString(), transform.getClass().getSimpleName());
+            input.getName(), expectedAttributes, transform.getClass().getSimpleName());
     }
 }

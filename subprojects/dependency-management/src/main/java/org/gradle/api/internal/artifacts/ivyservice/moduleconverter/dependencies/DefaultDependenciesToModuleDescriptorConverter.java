@@ -47,11 +47,11 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
 
     private void addDependencies(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
+            AttributeContainerInternal attributes = ((AttributeContainerInternal) configuration.getAttributes()).asImmutable();
             for (Dependency dependency : configuration.getDependencies()) {
                 if (dependency instanceof ModuleDependency) {
                     ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                    AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
-                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), attributes.asImmutable(), moduleDependency));
+                    metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), attributes, moduleDependency));
                 } else if (dependency instanceof FileCollectionDependency) {
                     final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                     metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));
