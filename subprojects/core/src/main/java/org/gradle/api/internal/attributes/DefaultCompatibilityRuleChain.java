@@ -45,14 +45,8 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     }
 
     @Override
-    public void optionalOnProducer() {
-        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.optionalOnProducer();
-        add(rule);
-    }
-
-    @Override
-    public void optionalOnConsumer() {
-        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.optionalOnConsumer();
+    public void assumeCompatibleWhenMissing() {
+        Action<? super CompatibilityCheckDetails<T>> rule = AttributeMatchingRules.assumeCompatibleWhenMissing();
         add(rule);
     }
 

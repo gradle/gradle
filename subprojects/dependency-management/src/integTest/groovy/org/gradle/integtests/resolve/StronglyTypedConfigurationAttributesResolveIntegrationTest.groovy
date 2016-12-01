@@ -434,7 +434,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                 configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnConsumer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -483,7 +483,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                configurationAttributesSchema {
                     attribute(arch) {
-                       compatibilityRules.optionalOnConsumer()
+                       compatibilityRules.assumeCompatibleWhenMissing()
                        disambiguationRules.pickLast { a,b -> a<=>b }
                   }
                }
@@ -491,7 +491,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':c') {
                 configurationAttributesSchema {
                     attribute(arch) {
-                       compatibilityRules.optionalOnConsumer()
+                       compatibilityRules.assumeCompatibleWhenMissing()
                        disambiguationRules.pickLast { a,b -> a<=>b }
                     }
                 }

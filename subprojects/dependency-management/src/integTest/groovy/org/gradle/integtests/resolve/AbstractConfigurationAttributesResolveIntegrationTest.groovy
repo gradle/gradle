@@ -437,7 +437,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -498,10 +498,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                     attribute(buildType) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -580,7 +580,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                  configurationAttributesSchema {
                     attribute(extra) {
-                        compatibilityRules.optionalOnConsumer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -689,7 +689,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                  configurationAttributesSchema {
                     attribute(extra) {
-                        compatibilityRules.optionalOnConsumer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -757,10 +757,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                  configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                     attribute(buildType) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -1041,8 +1041,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             allprojects {
                  configurationAttributesSchema {
                     attribute(extra) {
-                        compatibilityRules.optionalOnConsumer()
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
             }
@@ -1304,7 +1303,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -1371,7 +1370,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnConsumer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
@@ -1413,10 +1412,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             allprojects {
                 configurationAttributesSchema {
                     attribute(flavor) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                     attribute(buildType) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
             }
@@ -1498,7 +1497,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurationAttributesSchema {
                     attribute(extra) {
-                        compatibilityRules.optionalOnProducer()
+                        compatibilityRules.assumeCompatibleWhenMissing()
                     }
                 }
                 configurations {
