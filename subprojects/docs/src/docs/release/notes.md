@@ -118,11 +118,12 @@ The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprec
 * `CompileOptions.useDepend`
 * `CompileOptions.depend()`
 
-### Deprecated methods
+### Deprecated methods and annotations
 
 * `ProjectDependency.getProjectConfiguration()` is deprecated, and will be removed in Gradle 4.0. A project dependency is not guaranteed to resolve to a particular `Configuration` instance, for example, when dependency substitution rules are used, so the return value of this method can be misleading. To determine the actual target for a project dependency, you should query the resolution results provided by `Configuration.getIncoming().getResolutionResult()`.
 * `ModuleDependency.getConfiguration()` is deprecated, replaced by `getTargetConfiguration()`. This method will be removed in Gradle 4.0.
 * `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
+* The `@OrderSensitive` annotation and the `TaskInputFilePropertyBuilder.orderSensitive()` methods are deprecated and will be removed in Gradle 4.0. For classpath properties you can use the `@Classpath` annotation instead.
 
 ## Potential breaking changes
 
