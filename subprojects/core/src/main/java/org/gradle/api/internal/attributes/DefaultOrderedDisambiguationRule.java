@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeValue;
-import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 import java.util.Collection;
 import java.util.Comparator;
 
-public class DefaultOrderedDisambiguationRule<T> implements DisambiguationRule<T> {
+public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandidatesDetails<T>> {
     private final Comparator<? super T> comparator;
     private final boolean pickFirst;
 
@@ -32,7 +32,7 @@ public class DefaultOrderedDisambiguationRule<T> implements DisambiguationRule<T
     }
 
     @Override
-    public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
+    public void execute(MultipleCandidatesDetails<T> details) {
         Collection<AttributeValue<T>> values = details.getCandidateValues();
         T min = null;
         T max = null;

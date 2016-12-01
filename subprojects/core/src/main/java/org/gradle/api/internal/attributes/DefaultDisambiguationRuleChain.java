@@ -17,8 +17,8 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeValue;
-import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 import java.util.Comparator;
@@ -27,31 +27,29 @@ import java.util.Set;
 
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChainInternal<T> {
 
-    private final List<DisambiguationRule<T>> rules = Lists.newArrayList();
+    private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
 
     private boolean selectAllEventually = true;
 
     @Override
-    public void add(DisambiguationRule<T> rule) {
+    public void add(Action<? super MultipleCandidatesDetails<T>> rule) {
         this.rules.add(rule);
     }
 
     @Override
-    public DisambiguationRule<T> pickFirst(Comparator<? super T> comparator) {
-        DisambiguationRule<T> rule = AttributeMatchingRules.orderedDisambiguation(comparator, true);
+    public void pickFirst(Comparator<? super T> comparator) {
+        Action<? super MultipleCandidatesDetails<T>> rule = AttributeMatchingRules.orderedDisambiguation(comparator, true);
         add(rule);
-        return rule;
     }
 
     @Override
-    public DisambiguationRule<T> pickLast(Comparator<? super T> comparator) {
-        DisambiguationRule<T> rule = AttributeMatchingRules.orderedDisambiguation(comparator, false);
+    public void pickLast(Comparator<? super T> comparator) {
+        Action<? super MultipleCandidatesDetails<T>> rule = AttributeMatchingRules.orderedDisambiguation(comparator, false);
         add(rule);
-        return rule;
     }
 
     @Override
-    public void setRules(List<DisambiguationRule<T>> disambiguationRules) {
+    public void setRules(List<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules) {
         this.rules.clear();
         this.rules.addAll(disambiguationRules);
     }
@@ -67,10 +65,10 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
+    public void execute(MultipleCandidatesDetails<T> details) {
         State<T> state = new State<T>(details);
-        for (DisambiguationRule<T> rule : rules) {
-            rule.selectClosestMatch(state);
+        for (Action<? super MultipleCandidatesDetails<T>> rule : rules) {
+            rule.execute(state);
             if (state.determined) {
                 return;
             }

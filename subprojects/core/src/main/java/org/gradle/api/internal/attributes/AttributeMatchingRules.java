@@ -18,7 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.DisambiguationRule;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.Cast;
 
 import java.util.Comparator;
@@ -51,7 +51,7 @@ public abstract class AttributeMatchingRules {
         return new DefaultOrderedCompatibilityRule<T>(comparator, reverse);
     }
 
-    public static <T> DisambiguationRule<T> orderedDisambiguation(Comparator<? super T> comparator, boolean pickFirst) {
+    public static <T> Action<? super MultipleCandidatesDetails<T>> orderedDisambiguation(Comparator<? super T> comparator, boolean pickFirst) {
         return new DefaultOrderedDisambiguationRule<T>(comparator, pickFirst);
     }
 

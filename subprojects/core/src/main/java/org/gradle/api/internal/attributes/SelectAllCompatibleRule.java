@@ -15,22 +15,22 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeValue;
-import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
-class SelectAllCompatibleRule<T> implements DisambiguationRule<T> {
+class SelectAllCompatibleRule<T> implements Action<MultipleCandidatesDetails<T>> {
     private static final SelectAllCompatibleRule RULE = new SelectAllCompatibleRule();
 
     @SuppressWarnings("unchecked")
     public static <T> void apply(MultipleCandidatesDetails<T> details) {
-        RULE.selectClosestMatch(details);
+        RULE.execute(details);
     }
 
     private SelectAllCompatibleRule() {}
 
     @Override
-    public void selectClosestMatch(MultipleCandidatesDetails<T> details) {
+    public void execute(MultipleCandidatesDetails<T> details) {
         for (AttributeValue<T> candidate : details.getCandidateValues()) {
             details.closestMatch(candidate);
         }
