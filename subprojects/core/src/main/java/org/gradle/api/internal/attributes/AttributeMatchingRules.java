@@ -18,8 +18,8 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRule;
+import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.api.attributes.OrderedCompatibilityRule;
-import org.gradle.api.attributes.OrderedDisambiguationRule;
 import org.gradle.internal.Cast;
 
 import java.util.Comparator;
@@ -52,8 +52,8 @@ public abstract class AttributeMatchingRules {
         return new DefaultOrderedCompatibilityRule<T>(comparator);
     }
 
-    public static <T> OrderedDisambiguationRule<T> orderedDisambiguation(Comparator<? super T> comparator) {
-        return new DefaultOrderedDisambiguationRule<T>(comparator);
+    public static <T> DisambiguationRule<T> orderedDisambiguation(Comparator<? super T> comparator, boolean pickFirst) {
+        return new DefaultOrderedDisambiguationRule<T>(comparator, pickFirst);
     }
 
     public static <T> CompatibilityRule<T> optionalOnProducer() {

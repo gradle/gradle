@@ -16,33 +16,21 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.AttributeValue;
+import org.gradle.api.attributes.DisambiguationRule;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.api.attributes.OrderedDisambiguationRule;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 
-public class DefaultOrderedDisambiguationRule<T> implements OrderedDisambiguationRule<T> {
+public class DefaultOrderedDisambiguationRule<T> implements DisambiguationRule<T> {
     private final Comparator<? super T> comparator;
+    private final boolean pickFirst;
 
-    private boolean pickFirst;
-
-    public DefaultOrderedDisambiguationRule(Comparator<? super T> comparator) {
+    public DefaultOrderedDisambiguationRule(Comparator<? super T> comparator, boolean pickFirst) {
         this.comparator = comparator;
-    }
-
-    @Override
-    public OrderedDisambiguationRule<T> pickFirst() {
-        pickFirst = true;
-        return this;
-    }
-
-    @Override
-    public OrderedDisambiguationRule<T> pickLast() {
-        pickFirst = false;
-        return this;
+        this.pickFirst = pickFirst;
     }
 
     @Override
