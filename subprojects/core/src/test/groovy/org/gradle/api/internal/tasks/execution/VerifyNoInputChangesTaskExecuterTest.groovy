@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
