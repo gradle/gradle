@@ -119,10 +119,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
-        registerProcessingAspect(project);
+        configureSchema(project);
     }
 
-    private void registerProcessingAspect(ProjectInternal project) {
+    private void configureSchema(ProjectInternal project) {
         project.getAttributesSchema().matchStrictly(Usage.USAGE_ATTRIBUTE);
     }
 
