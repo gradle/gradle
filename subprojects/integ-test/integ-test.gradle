@@ -22,6 +22,7 @@ integTestTasks.all { task ->
         requiresSamples = true
         requiresLibsRepo = true
 
+
         doLast {
             configure(task) {
                 def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")
