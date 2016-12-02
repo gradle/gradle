@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.http
+package org.gradle.caching.http.internal
 
 import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

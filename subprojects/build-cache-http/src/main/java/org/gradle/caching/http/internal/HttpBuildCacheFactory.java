@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.http;
+package org.gradle.caching.http.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.internal.BuildCacheFactory;
 
@@ -26,10 +25,7 @@ import java.net.URI;
 
 /**
  * Build cache factory for HTTP backends.
- *
- * @since 3.3
  */
-@Incubating
 public class HttpBuildCacheFactory implements BuildCacheFactory {
     private static final String HTTP_URI_PROPERTY = "org.gradle.cache.tasks.http.uri";
 

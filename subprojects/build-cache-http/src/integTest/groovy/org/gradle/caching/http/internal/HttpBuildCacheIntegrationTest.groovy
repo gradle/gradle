@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.http
+package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ports.ReleasingPortAllocator
@@ -65,7 +65,7 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         server.start()
 
         file("init-cache.gradle") << """
-            import org.gradle.caching.http.*
+            import org.gradle.caching.http.internal.*
 
             buildCache {
                 useCacheFactory(new HttpBuildCacheFactory(URI.create("http://localhost:$port/cache/")))
