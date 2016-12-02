@@ -49,7 +49,8 @@ fi]]></param>
           <param name="branchFilter"><![CDATA[+:*
 -:<default>		
 -:*-noci		
--:*-no-ci]]></param>
+-:*-no-ci
+-:/refs/head/master]]></param>
           <param name="quietPeriodMode" value="DO_NOT_USE" />
           <param name="triggerRules"><![CDATA[-:design-docs
 -:.teamcity		
