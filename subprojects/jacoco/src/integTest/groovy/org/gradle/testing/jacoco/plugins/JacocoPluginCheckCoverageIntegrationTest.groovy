@@ -186,6 +186,29 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: classes missed count is 0.0, but expected minimum is 0.5")
     }
 
+    def "can disable rules"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                validationRules {
+                    rule {
+                        $Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO
+                    }
+                    rule {
+                        enabled = false
+                        $Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+    }
+
     def "can ignore failures"() {
         given:
         buildFile << """

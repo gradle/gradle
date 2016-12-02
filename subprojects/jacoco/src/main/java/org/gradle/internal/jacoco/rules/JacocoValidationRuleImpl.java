@@ -28,10 +28,21 @@ import java.util.List;
 
 public class JacocoValidationRuleImpl implements JacocoValidationRule {
 
+    private boolean enabled = true;
     private JacocoRuleScope scope;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();
     private final List<JacocoThreshold> thresholds = new ArrayList<JacocoThreshold>();
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     @Override
     public void setScope(JacocoRuleScope scope) {

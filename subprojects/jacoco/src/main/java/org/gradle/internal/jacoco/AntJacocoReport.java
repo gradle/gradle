@@ -17,6 +17,7 @@
 package org.gradle.internal.jacoco;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
@@ -31,7 +32,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.collect.Iterables.filter;
+
 public class AntJacocoReport {
+
+    private static final Predicate<JacocoValidationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoValidationRule>() {
+        @Override
+        public boolean apply(JacocoValidationRule rule) {
+            return rule.isEnabled();
+        }
+    };
 
     private final IsolatedAntBuilder ant;
 
@@ -109,7 +119,7 @@ public class AntJacocoReport {
             antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                 @SuppressWarnings("UnusedDeclaration")
                 public Object doCall(Object ignore) {
-                    for (final JacocoValidationRule rule : validationRules.getRules()) {
+                    for (final JacocoValidationRule rule : filter(validationRules.getRules(), RULE_ENABLED_PREDICATE)) {
                         Map<String, Object> ruleArgs = new HashMap<String, Object>();
 
                         if (rule.getScope() != null) {
