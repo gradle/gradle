@@ -241,7 +241,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getRuntimeClasspathConfigurationName() + " ' instead).");
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getRuntimeOnlyConfigurationName() + " ' instead).");
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
         compileOnlyConfiguration.setVisible(false);
