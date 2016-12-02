@@ -320,16 +320,16 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
     static class Thresholds {
         static class Sufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Thresholds.threshold(LINE, COVEREDRATIO, '0.0', '1.0')
-            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.threshold(CLASS, MISSEDCOUNT, null, '0')
+            static final String LINE_METRIC_COVERED_RATIO = Thresholds.create(LINE, COVEREDRATIO, '0.0', '1.0')
+            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.create(CLASS, MISSEDCOUNT, null, '0')
         }
 
         static class Insufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Thresholds.threshold(LINE, COVEREDRATIO, '0.0', '0.5')
-            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.threshold(CLASS, MISSEDCOUNT, '0.5', null)
+            static final String LINE_METRIC_COVERED_RATIO = Thresholds.create(LINE, COVEREDRATIO, '0.0', '0.5')
+            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.create(CLASS, MISSEDCOUNT, '0.5', null)
         }
 
-        static String threshold(JacocoThresholdMetric metric, JacocoThresholdValue value, String minimum, String maximum) {
+        private static String create(JacocoThresholdMetric metric, JacocoThresholdValue value, String minimum, String maximum) {
             StringBuilder threshold = new StringBuilder()
             threshold <<= 'threshold {\n'
 
