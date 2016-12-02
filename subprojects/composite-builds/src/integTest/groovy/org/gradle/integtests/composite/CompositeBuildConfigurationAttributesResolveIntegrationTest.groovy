@@ -19,6 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -119,6 +120,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
     // In particular, it's going to work for identical plugin versions on both ends
     // but will fail as soon as we use different versions because they will come from
     // different classloaders.
+    @Ignore
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")
     def "context travels down to transitive dependencies with typed attributes"() {
         buildTypedAttributesPlugin('1.0')
