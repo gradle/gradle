@@ -69,7 +69,7 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
 <!-- -->
 
     public enum JacocoRuleScope {
-        BUNDLE, PACKAGE, CLASS, SOURCE_FILE, METHOD;
+        BUNDLE, PACKAGE, CLASS, SOURCEFILE, METHOD;
     }
 
     public enum JacocoThresholdMetric {
@@ -77,7 +77,7 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
     }
     
     public enum JacocoThresholdValue {
-        TOTAL_COUNT, MISSED_COUNT, COVERED_COUNT, MISSED_RATIO, COVERED_RATIO;
+        TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO, COVEREDRATIO;
     }
 
 - Introduce new interfaces for configuring coverage rules.
@@ -86,12 +86,14 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
 
     public interface JacocoThreshold {
         void setMetric(JacocoThresholdMetric metric);
-        void setValue(JacocoThresholdValue value);
+        void setValue(JacocoThresholdType type);
         void setMinimum(Double minimum);
         void setMaximum(Double maximum);
     }
 
-    public interface JacocoValidationRule {
+    public interface JacocoViolationRule {
+        void setEnabled(boolean enabled);
+        boolean getEnabled();
         void setScope(JacocoRuleScope scope);
         void setIncludes(Collection<String> includes);
         void setExcludes(Collection<String> excludes);
@@ -101,13 +103,11 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
         }
     }
 
-    public interface JacocoValidationRulesContainer {
-        void setEnabled(boolean enabled);
-        boolean getEnabled();
-        void setIgnoreFailure(boolean ignore);
-        boolean getIgnoreFailure();
+    public interface JacocoViolationRulesContainer {
+        void setFailOnViolation(boolean failOnViolation);
+        boolean getFailOnViolation();
         
-        void rule(Action<? super JacocoValidationRule> configureAction) {
+        void rule(Action<? super JacocoViolationRule> configureAction) {
             ...
         }
     }
@@ -118,7 +118,7 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
 
     tasks.withType(JacocoReport) {
         violationRules {
-            ignoreFailure = true
+            failOnViolation = true
         
             rule {
                 scope = JacocoRuleScope.PACKAGE
@@ -127,9 +127,9 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
                 
                 threshold {
                     metric = JacocoThresholdMetric.LINE
-                    value = JacocoThresholdValue.COVERED_RATIO
-                    minimum = '0.3'
-                    maximum = '0.8'
+                    value = JacocoThresholdType.COVERED_RATIO
+                    minimum = 0.3
+                    maximum = 0.8
                 }
                 
                 threshold {
@@ -150,9 +150,9 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
     - Defined thresholds are propagated toward the JaCoCo Ant task ([see `check` element](http://www.eclemma.org/jacoco/trunk/doc/ant.html)). No further transformation or processing is needed.
 - Introduce configuration option for enabling/disabling metric enforcement.
     - By default the build fails if metric thresholds have been defined but not met. 
-    - Introduce a configuration option for disabling the default behavior e.g. `ignoreFailure`. The default value is `false`.
+    - Introduce a configuration option for disabling the default behavior e.g. `failOnViolation`. The default value is `false`.
     - Setting the property to `true` will continue the build and not fail the task.
-    - Introduce a configuration option for disabling threshold check e.g. `enabled`. The default value is `true`.
+    - Introduce a configuration option for disabling threshold check e.g. `enabled` for a rule. The default value is `true`.
 - The JaCoCo report task observes the following runtime behavior:
     - Threshold checks will not have to be performed if no thresholds are defined.
     - If threshold(s) are defined but met then the task will execute successfully. No additional output is rendered.
@@ -167,11 +167,11 @@ tasks under the covers. The JaCoCo report Ant task provides configuration option
 - A JaCoCo report task defines a single or multiple thresholds.
     - Multiple Threshold can be defined for the task in any order.
     - Thresholds can be defined with minimum and maximum boundary.
-    - Threshold is met based. The task finishes successfully.
+    - Threshold is met based on defined metrics. The task finishes successfully.
     - Threshold is not met and failure is not ignored. The task fails.
     - Threshold is not met but failure is ignored. The task finishes successfully.
-    - All thresholds are disabled. The task finishes successfully even if threshold is not met.
-    - Include/exclude filter patterns apply as defined.
+    - All rules are disabled. The task finishes successfully even if threshold is not met.
+    - Include/exclude filter patterns for rules apply as defined.
 - Multiple JaCoCo report tasks defined for a project can use different thresholds.
 
 ### Open issues
