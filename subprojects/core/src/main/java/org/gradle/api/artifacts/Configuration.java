@@ -18,9 +18,9 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -382,6 +382,24 @@ public interface Configuration extends FileCollection, HasAttributes {
      * @return The incoming dependencies of this configuration. Never {@code null}.
      */
     ResolvableDependencies getIncoming();
+
+    /**
+     * Returns the outgoing artifacts of this configuration.
+     *
+     * @return The outgoing artifacts of this configuration.
+     * @since 3.3
+     */
+    @Incubating
+    ConfigurationPublications getOutgoing();
+
+    /**
+     * Configures the outgoing artifacts of this configuration.
+     *
+     * @param action The action to perform the configuration.
+     * @since 3.3
+     */
+    @Incubating
+    void outgoing(Action<? super ConfigurationPublications> action);
 
     /**
      * Creates a copy of this configuration that only contains the dependencies directly in this configuration

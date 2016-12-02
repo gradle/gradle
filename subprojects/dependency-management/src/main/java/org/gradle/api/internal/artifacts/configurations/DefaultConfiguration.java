@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
@@ -75,6 +78,8 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
@@ -106,6 +111,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
     private final ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final Instantiator instantiator;
+    private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
     private final ResolutionStrategyInternal resolutionStrategy;
@@ -125,6 +132,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     // These fields are not covered by mutation lock
     private final String path;
     private final String name;
+    private final DefaultConfigurationPublications outgoing;
 
     private boolean visible = true;
     private boolean transitive = true;
@@ -156,7 +164,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
                                 FileCollectionFactory fileCollectionFactory,
                                 ComponentIdentifierFactory componentIdentifierFactory,
-                                BuildOperationExecutor buildOperationExecutor) {
+                                BuildOperationExecutor buildOperationExecutor,
+                                Instantiator instantiator,
+                                NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser) {
         this.identityPath = identityPath;
         this.path = path;
         this.name = name;
@@ -173,6 +183,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         this.buildOperationExecutor = buildOperationExecutor;
+        this.instantiator = instantiator;
+        this.artifactNotationParser = artifactNotationParser;
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -190,6 +202,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
+        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory);
     }
 
     private static Runnable validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -330,7 +343,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Configuration> getAll() {
-        return configurationsProvider.getAll();
+        return ImmutableSet.<Configuration>copyOf(configurationsProvider.getAll());
     }
 
     public Set<File> resolve() {
@@ -560,6 +573,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolvableDependencies;
     }
 
+    @Override
+    public ConfigurationPublications getOutgoing() {
+        return outgoing;
+    }
+
+    @Override
+    public void outgoing(Action<? super ConfigurationPublications> action) {
+        action.execute(outgoing);
+    }
+
     public ConfigurationInternal copy() {
         return createCopy(getDependencies(), false);
     }
@@ -578,8 +601,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration copiedConfiguration = new DefaultConfiguration(Path.path(identityPath.toString() + "Copy"), path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor);
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, Path.path(identityPath.toString() + "Copy"), path + "Copy", name + "Copy",
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -638,13 +661,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public ComponentResolveMetadata toRootComponentMetaData() {
         Module module = getModule();
-        Set<? extends Configuration> configurations = getAll();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchema schema = project == null ? null : project.getAttributesSchema();
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
-        configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
+        configurationComponentMetaDataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         return metaData;
     }
 
@@ -720,7 +742,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    class ConfigurationFileCollection extends AbstractFileCollection {
+    private class ConfigurationFileCollection extends AbstractFileCollection {
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainer viewAttributes;
 
@@ -797,7 +819,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public AttributeContainerInternal getAttributes() {
         return configurationAttributes;
     }
 

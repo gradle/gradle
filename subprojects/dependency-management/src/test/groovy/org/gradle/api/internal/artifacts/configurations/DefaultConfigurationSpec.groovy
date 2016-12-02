@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -34,6 +32,8 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
@@ -54,6 +54,8 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.Path
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -482,6 +484,25 @@ class DefaultConfigurationSpec extends Specification {
         configuration.allArtifacts.files.files == [artifact1.file, artifact2.file] as Set
         configuration.allArtifacts.files.buildDependencies == configuration.allArtifacts.buildDependencies
         configuration.allArtifacts.buildDependencies.getDependencies(Mock(Task)) == [artifactTask1, artifactTask2] as Set
+    }
+
+    def "can declare outgoing artifacts for configuration"() {
+        def configuration = conf()
+        def artifact1 = artifact("name1")
+
+        when:
+        configuration.outgoing.artifact(new File("f"))
+
+        then:
+        configuration.outgoing.artifacts.size() == 1
+        configuration.artifacts.size() == 1
+
+        when:
+        configuration.artifacts.add(artifact1)
+
+        then:
+        configuration.outgoing.artifacts.size() == 2
+        configuration.artifacts.size() == 2
     }
 
     def "build dependencies are calculated from the artifacts visited during graph resolution"() {
@@ -1462,7 +1483,7 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory, new TestBuildOperationExecutor())
+            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory, new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser))
     }
 
     private DefaultPublishArtifact artifact(String name) {
