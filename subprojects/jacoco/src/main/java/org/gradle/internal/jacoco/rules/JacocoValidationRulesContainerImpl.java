@@ -28,17 +28,15 @@ import java.util.List;
 
 public class JacocoValidationRulesContainerImpl implements JacocoValidationRulesContainer {
 
-    private boolean ignoreFailures;
+    private boolean failOnViolation;
     private final List<JacocoValidationRule> rules = new ArrayList<JacocoValidationRule>();
 
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
+    public void setFailOnViolation(boolean failOnViolation) {
+        this.failOnViolation = failOnViolation;
     }
 
-    @Override
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
+    public boolean isFailOnViolation() {
+        return failOnViolation;
     }
 
     @Override
