@@ -66,8 +66,8 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
 
         where:
         testProject            | maxMemory
-        "bigOldJava"           | '512m'
-        "mediumOldJava"        | '256m'
+        "bigOldJava"           | '768m'
+        "mediumOldJava"        | '128m'
         "smallOldJava"         | '128m'
     }
 }

@@ -40,8 +40,8 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         where:
         testProject       | maxMemory
         "small"           | '128m'
-        "multi"           | '256m'
+        "multi"           | '128m'
         "lotDependencies" | '256m'
-        "bigOldJava"      | '512m'
+        "bigOldJava"      | '768m'
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -24,7 +23,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([ToolingApiPerformanceTest, Experiment])
+@Category(ToolingApiPerformanceTest)
 class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
@@ -32,8 +31,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         given:
 
         experiment(template, "get $template EclipseProject model") {
-            warmUpCount = 20
-            invocationCount = 30
+            warmUpCount = 100
+            invocationCount = 100
             action {
                 def model = model(tapiClass(EclipseProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
@@ -84,8 +83,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         where:
         template            | maxMemory
         "smallOldJava"      | '128m'
-        "mediumOldJava"     | '256m'
-        "bigOldJava"        | '512m'
+        "mediumOldJava"     | '128m'
+        "bigOldJava"        | '768m'
         "lotDependencies"   | '256m'
     }
 
@@ -93,9 +92,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
     def "building IDEA model for a #template project"() {
         given:
         experiment(template, "get $template IdeaProject model") {
-            warmUpCount = 20
-            invocationCount = 30
-
+            warmUpCount = 100
+            invocationCount = 100
             action {
                 def model = model(tapiClass(IdeaProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
@@ -143,8 +141,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         where:
         template            | maxMemory
         "smallOldJava"      | '128m'
-        "mediumOldJava"     | '256m'
-        "bigOldJava"        | '512m'
+        "mediumOldJava"     | '128m'
+        "bigOldJava"        | '768m'
         "lotDependencies"   | '256m'
     }
 

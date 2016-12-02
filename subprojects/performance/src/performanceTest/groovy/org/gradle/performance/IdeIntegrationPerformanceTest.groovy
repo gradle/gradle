@@ -40,7 +40,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         where:
         testProject       | maxMemory
         "small"           | '128m'
-        "multi"           | '256m'
+        "multi"           | '128m'
         "lotDependencies" | '256m'
     }
 
@@ -62,7 +62,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         where:
         testProject       | maxMemory
         "small"           | '128m'
-        "multi"           | '256m'
+        "multi"           | '128m'
         "lotDependencies" | '256m'
     }
 }

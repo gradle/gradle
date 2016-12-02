@@ -37,8 +37,8 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.tasksToRun = ['build']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.warmUpRuns = 9
-        runner.runs = 10
+        runner.warmUpRuns = 19
+        runner.runs = 20
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
@@ -59,17 +59,16 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure) {
+    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, int iterations) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=12"]
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.warmUpRuns = 9
-        //the content changing code below assumes an even number of runs
-        runner.runs = 10
+        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
+        runner.warmUpRuns = iterations - 1
+        runner.runs = iterations
         if (runner.honestProfiler.enabled) {
             runner.honestProfiler.autoStartStop = false
         }
@@ -138,10 +137,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | changedFile                       | changeClosure
-        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader
-        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs
+        buildSize | changeType              | changedFile                       | changeClosure         | iterations
+        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
+        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs      | 10
     }
 
     void changeCSource(File file, String originalContent) {
