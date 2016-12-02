@@ -55,7 +55,7 @@ public enum TaskOutcome {
      * This outcome only occurs when the build under test has been configured for
      * <a href="https://docs.gradle.org/current/userguide/build_cache.html#task_output_caching">task output caching</a>.
      * </p>
-     * <p>NOTE: If the Gradle version used for build under test is older than 3.3,
+     * <p>NOTE: If the Gradle version used for the build under test is older than 3.3,
      * no tasks will have this outcome.</p>
      *
      * @since 3.3

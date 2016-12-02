@@ -38,7 +38,7 @@ public interface TaskSuccessResult extends TaskOperationResult, SuccessResult {
      * <a href="https://docs.gradle.org/current/userguide/build_cache.html#task_output_caching">task output caching</a>.
      *
      * <p>NOTE: This will always be false if the Gradle version does
-     * not support a build cache.</p>
+     * not support task output caching.</p>
      *
      * @return {@code true} if the output for this task was from a build cache
      * @since 3.3
