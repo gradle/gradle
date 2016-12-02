@@ -22,7 +22,7 @@ dependencies {
 
     integTestCompile project(':internalIntegTesting')
     // Needed for testing debug command line option (JDWPUtil)
-    integTestCompile files(Jvm.current().toolsJar?:[])
+    integTestCompile files(jvmForCompilation.toolsJar ?: [])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
 
