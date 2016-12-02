@@ -17,8 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.Cast;
 
 import java.util.NoSuchElementException;
@@ -27,13 +25,13 @@ import java.util.NoSuchElementException;
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
  * <ul>
  *     <li><i>present</i> is the default, and represents an attribute with an actual value</li>
- *     <li><i>missing</i> used whenever an attribute is known of the {@link AttributesSchema} of a consumer,
+ *     <li><i>missing</i> used whenever an attribute is known of the {@link org.gradle.api.attributes.AttributesSchema} of a consumer,
  *     no value was provided.</li>
- *     <li><i>unknown</i> used whenever an attribute is unknown of the {@link AttributesSchema} of a consumer,
+ *     <li><i>unknown</i> used whenever an attribute is unknown of the {@link org.gradle.api.attributes.AttributesSchema} of a consumer,
  *     implying that no value was provided. It is different from the missing case in the sense that the consumer
  *     had no chance to provide a value here.</li>
  * </ul>
- * During attribute matching, this can be used to implement various {@link AttributeMatchingStrategy strategies}.
+ * During attribute matching, this can be used to implement various {@link org.gradle.api.attributes.AttributeMatchingStrategy strategies}.
  * @param <T> the type of the attribute
  *
  * @since 3.3
