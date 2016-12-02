@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 
 class CachedTaskExecutionResiliencyIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
-    def "cache switches off after third error"() {
+    def setup() {
         file("init-cache.gradle") << """
             import org.gradle.caching.*
             import org.gradle.caching.internal.*
@@ -57,16 +57,26 @@ class CachedTaskExecutionResiliencyIntegrationTest extends AbstractIntegrationSp
         """
 
         file("src/main/java/Hello.java") << "public class Hello {}"
-
         // We need this so that we can capture the output produced after the build has finished
         executer.requireGradleDistribution()
         executer.withBuildCacheEnabled()
             .withArgument "-I" withArgument "init-cache.gradle"
+    }
 
+    def "cache switches off after third error"() {
         when:
         succeeds "assemble"
         then:
         output.contains "Always failing cache backend is now disabled because 3 errors were encountered"
         output.contains "Always failing cache backend was disabled during the build after encountering 3 errors."
+    }
+
+    def "error messages of loading from and storing in the cache are shown in build log"() {
+        when:
+        succeeds "assemble"
+        then:
+        def lines = output.readLines()
+        lines.any { it.matches("Could not load cache entry .*: Unable to read .*") }
+        lines.any { it.matches("Could not store cache entry .*: Unable to write .*") }
     }
 }
