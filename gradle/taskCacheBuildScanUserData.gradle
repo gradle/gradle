@@ -36,6 +36,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
             ':patchExternalModules',
             ':dependencyManagement:generateGradleApiPackageList',
+            ':dependencyManagement:compileTestFixturesGroovy',
             ':launcher:classycleIntegTest',
             ':launcher:compileTestFixturesGroovy',
             ':launcher:checkstyleIntegTestGroovy',
