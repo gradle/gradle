@@ -16,7 +16,6 @@
 
 package org.gradle.caching.http
 
-import org.gradle.api.GradleException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -88,7 +87,7 @@ class HttpBuildCacheTest extends Specification {
         }
 
         then:
-        GradleException exception = thrown()
+        IOException exception = thrown()
         exception.message == "HTTP cache returned status 500: broken"
     }
 }

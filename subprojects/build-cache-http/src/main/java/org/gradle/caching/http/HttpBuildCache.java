@@ -25,7 +25,6 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -78,7 +77,7 @@ public class HttpBuildCache implements BuildCache {
             } else if (statusCode == 404) {
                 return false;
             } else {
-                throw new GradleException("HTTP cache returned status " + statusCode + ": "  + statusLine.getReasonPhrase());
+                throw new IOException("HTTP cache returned status " + statusCode + ": "  + statusLine.getReasonPhrase());
             }
         } finally {
             HttpClientUtils.closeQuietly(response);
