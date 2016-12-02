@@ -144,8 +144,8 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     @Override
-    public String getApiCompileConfigurationName() {
-        return configurationNameOf(JavaPlugin.API_COMPILE_CONFIGURATION_NAME);
+    public String getApiElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME);
     }
 
     @Override

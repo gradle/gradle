@@ -117,7 +117,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("setNameCompileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("setNameCompileClasspath"))
         assertThat(sourceSet.apiConfigurationName, equalTo("setNameApi"))
-        assertThat(sourceSet.apiCompileConfigurationName, equalTo("setNameApiCompile"))
+        assertThat(sourceSet.apiElementsConfigurationName, equalTo("setNameApiCompile"))
     }
 
     @Test public void mainSourceSetUsesSpecialCaseNames() {
@@ -136,7 +136,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("compileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("compileClasspath"))
         assertThat(sourceSet.apiConfigurationName, equalTo("api"))
-        assertThat(sourceSet.apiCompileConfigurationName, equalTo("apiCompile"))
+        assertThat(sourceSet.apiElementsConfigurationName, equalTo("apiElements"))
     }
 
     @Test public void canConfigureResources() {
