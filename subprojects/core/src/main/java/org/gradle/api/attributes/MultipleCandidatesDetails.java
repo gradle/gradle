@@ -30,16 +30,16 @@ import java.util.Set;
 @Incubating
 public interface MultipleCandidatesDetails<T> {
     /**
-     * The value of the attribute on the consumer side. All possible outcomes are valid (present, missing, unknown)
+     * The value of the attribute on the consumer side
      * @return the value of the attribute as found on the consumer side
      */
-    AttributeValue<T> getConsumerValue();
+    T getConsumerValue();
 
     /**
      * A set of candidate values.
      * @return the set of candidates
      */
-    Set<AttributeValue<T>> getCandidateValues();
+    Set<T> getCandidateValues();
 
     /**
      * Calling this method indicates that the candidate is the closest match. It is allowed to call this method several times with
@@ -47,6 +47,6 @@ public interface MultipleCandidatesDetails<T> {
      *
      * @param candidate the closest match
      */
-    void closestMatch(AttributeValue<T> candidate);
+    void closestMatch(T candidate);
 
 }

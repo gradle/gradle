@@ -58,7 +58,7 @@ public interface CompatibilityRuleChain<T> {
 
     /**
      * <p>Adds an arbitrary compatibility rule to the chain.</p>
-     * <p>A compatibility rule can tell if two {@link AttributeValue values} are compatible.
+     * <p>A compatibility rule can tell if two values are compatible.
      * Compatibility doesn't mean equality. Typically two different Java platforms can be
      * compatible, without being equal.</p>
      *

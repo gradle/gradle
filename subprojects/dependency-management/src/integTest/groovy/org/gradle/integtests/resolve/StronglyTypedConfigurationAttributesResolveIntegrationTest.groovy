@@ -148,11 +148,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                   attribute(flavor) {
                       compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
                       compatibilityRules.add { details ->
-                           if (details.consumerValue.present && details.producerValue.present) {
-                               if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
-                                   details.compatible()
-                               }
-                           }
+                         details.compatible()
                       }
                       disambiguationRules.add { details ->
                          details.candidateValues.each { producerValue ->
@@ -229,14 +225,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   attribute(flavor) {
                       compatibilityRules.add { details ->
-                           if (details.consumerValue.present && details.producerValue.present) {
-                               if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
-                                   details.compatible()
-                               }
-                           }
+                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                             details.compatible()
+                         }
                       }
                       disambiguationRules.add { details ->
-                          details.candidateValues.findAll { it.get() == details.consumerValue.get() }.each { details.closestMatch(it) }
+                          details.candidateValues.findAll { it == details.consumerValue }.each { details.closestMatch(it) }
                       }
                   }
                }
@@ -317,14 +311,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                configurationAttributesSchema {
                   attribute(flavor) {
                       compatibilityRules.add { details ->
-                           if (details.consumerValue.present && details.producerValue.present) {
-                               if (details.consumerValue.get().value.equalsIgnoreCase(details.producerValue.get().value)) {
-                                   details.compatible()
-                               }
-                           }
+                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                             details.compatible()
+                         }
                       }
                       disambiguationRules.add { details ->
-                         details.candidateValues.findAll { it.get() == details.consumerValue.get() }.each { details.closestMatch(it) }
+                         details.candidateValues.findAll { it == details.consumerValue }.each { details.closestMatch(it) }
                       }
                   }
 
@@ -334,7 +326,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                         details.compatible()
                      }
                      disambiguationRules.add { details ->
-                        details.candidateValues.findAll { it.get() == details.consumerValue.get() }.each { details.closestMatch(it) }
+                        details.candidateValues.findAll { it == details.consumerValue }.each { details.closestMatch(it) }
                      }
                   }
                }
@@ -399,160 +391,5 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         executedAndNotSkipped ':b:foo2Jar'
         notExecuted ':b:fooJar', ':b:barJar', ':b:bar2Jar'
     }
-
-    def "can select configuration thanks to producer schema disambiguation"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
-            $typeDefs
-
-            project(':b') {
-               configurationAttributesSchema {
-                  attribute(buildType)
-                  attribute(flavor) {
-                       disambiguationRules.add { details ->
-                            details.closestMatch(details.candidateValues.sort { it.get() }.first())
-                       }
-
-                  }
-               }
-            }
-
-            project(':a') {
-                configurations {
-                    compile.attributes($debug)
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                       assert configurations.compile.collect { it.name } == ['b-foo.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                }
-                configurations {
-                    foo.attributes($free, $debug)
-                    bar.attributes($paid, $debug)
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
-
-        """
-
-        when:
-        run ':a:check'
-
-        then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
-    }
-
-    def "both dependencies will choose the same default value"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b', 'c'"
-        buildFile << """
-            enum Arch {
-               x86,
-               arm64
-            }
-            def arch = Attribute.of(Arch)
-            def dummy = Attribute.of('dummy', String)
-
-            allprojects {
-               configurationAttributesSchema {
-                  attribute(dummy)
-               }
-            }
-
-            project(':b') {
-               configurationAttributesSchema {
-                    attribute(arch) {
-                       compatibilityRules.assumeCompatibleWhenMissing()
-                       disambiguationRules.pickLast { a,b -> a<=>b }
-                  }
-               }
-            }
-            project(':c') {
-                configurationAttributesSchema {
-                    attribute(arch) {
-                       compatibilityRules.assumeCompatibleWhenMissing()
-                       disambiguationRules.pickLast { a,b -> a<=>b }
-                    }
-                }
-            }
-
-            project(':a') {
-                configurations {
-                    compile.attributes(dummy: 'dummy')
-                }
-                dependencies {
-                    compile project(':b')
-                    compile project(':c')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                       assert configurations.compile.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
-                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
-            project(':c') {
-                configurations {
-                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
-                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'c-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'c-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
-
-        """
-
-        when:
-        run ':a:check'
-
-        then:
-        executedAndNotSkipped ':b:barJar', ':c:barJar'
-        notExecuted ':b:fooJar', ':c:fooJar'
-    }
-
 
 }

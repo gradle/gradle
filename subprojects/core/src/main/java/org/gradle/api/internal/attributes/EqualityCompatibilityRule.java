@@ -16,21 +16,16 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 
 public class EqualityCompatibilityRule<T> implements Action<CompatibilityCheckDetails<T>> {
 
     @Override
     public void execute(CompatibilityCheckDetails<T> details) {
-        AttributeValue<T> consumerValue = details.getConsumerValue();
-        AttributeValue<T> producerValue = details.getProducerValue();
-        if (consumerValue.isPresent() && producerValue.isPresent()) {
-            if (consumerValue.equals(producerValue)) {
-                details.compatible();
-            } else {
-                details.incompatible();
-            }
+        if (details.getConsumerValue().equals(details.getProducerValue())) {
+            details.compatible();
+        } else {
+            details.incompatible();
         }
     }
 

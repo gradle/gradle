@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.attributes;
+package org.gradle.api.internal.attributes;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.Cast;
 
 import java.util.NoSuchElementException;

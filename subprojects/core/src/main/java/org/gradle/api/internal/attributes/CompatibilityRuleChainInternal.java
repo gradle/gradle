@@ -20,4 +20,5 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 
 public interface CompatibilityRuleChainInternal<T> extends CompatibilityRuleChain<T>, Action<CompatibilityCheckDetails<T>> {
+    boolean isCompatibleWhenMissing();
 }
