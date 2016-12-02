@@ -29,10 +29,18 @@ import java.util.List;
  */
 @Incubating
 public interface JacocoValidationRule {
+
+    void setEnabled(boolean enabled);
+
+    /**
+     * Indicates if the rule should be used when checking generated coverage metrics.
+     */
+    boolean isEnabled();
+
     void setScope(JacocoRuleScope scope);
 
     /**
-     * Gets the scope for this rule defined by {@link JacocoRuleScope}.
+     * Gets the scope for the rule defined by {@link JacocoRuleScope}.
      */
     JacocoRuleScope getScope();
 
