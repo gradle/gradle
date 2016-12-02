@@ -17,9 +17,6 @@
 package org.gradle.api.internal.artifacts.attributes;
 
 import com.google.common.io.Files;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeContainer;
@@ -47,5 +44,4 @@ public class DefaultArtifactAttributes {
         attributes.attribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier);
         return attributes.asImmutable();
     }
-
 }
