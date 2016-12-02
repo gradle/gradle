@@ -16,8 +16,11 @@
 
 package org.gradle.caching.internal;
 
+import org.gradle.StartParameter;
+import org.gradle.caching.BuildCache;
+
 public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
-    BuildCacheFactory getCacheFactory();
+    BuildCache createCache(StartParameter startParameter);
     boolean isPullAllowed();
     boolean isPushAllowed();
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCache;
@@ -24,14 +23,13 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
-import java.util.List;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal, Stoppable {
     private final boolean pullAllowed;
     private final boolean pushAllowed;
     private final CacheRepository cacheRepository;
-    private final List<BuildCache> cachesCreated = Lists.newCopyOnWriteArrayList();
     private BuildCacheFactory factory;
+    private BuildCache cacheCreated;
 
     public DefaultBuildCacheConfiguration(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
@@ -69,19 +67,17 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     private void setFactory(final BuildCacheFactory factory) {
-        this.factory = new BuildCacheFactory() {
-            @Override
-            public BuildCache createCache(StartParameter startParameter) {
-                BuildCache cache = factory.createCache(startParameter);
-                cachesCreated.add(cache);
-                return cache;
-            }
-        };
+        this.factory = factory;
     }
 
     @Override
-    public BuildCacheFactory getCacheFactory() {
-        return factory;
+    public BuildCache createCache(StartParameter startParameter) {
+        if (cacheCreated != null) {
+            throw new IllegalStateException("Cache already created");
+        }
+        BuildCache cache = new ResilientBuildCacheWrapper(factory.createCache(startParameter), 3);
+        this.cacheCreated = cache;
+        return cache;
     }
 
     @Override
@@ -96,6 +92,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(cachesCreated).stop();
+        CompositeStoppable.stoppable(cacheCreated).stop();
     }
 }
