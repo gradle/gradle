@@ -78,7 +78,7 @@ public class HttpBuildCache implements BuildCache {
             } else if (statusCode == 404) {
                 return false;
             } else {
-                throw new GradleException("Http cache returned status " + statusCode + ": "  + statusLine.getReasonPhrase());
+                throw new GradleException("HTTP cache returned status " + statusCode + ": "  + statusLine.getReasonPhrase());
             }
         } finally {
             HttpClientUtils.closeQuietly(response);

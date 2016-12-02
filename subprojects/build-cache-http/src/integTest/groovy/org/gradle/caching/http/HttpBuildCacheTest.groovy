@@ -28,7 +28,12 @@ class HttpBuildCacheTest extends Specification {
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     HttpBuildCache cache
-    def key = Mock(BuildCacheKey)
+    def key = new BuildCacheKey() {
+        @Override
+        String getHashCode() {
+            return '0123456abcdef'
+        }
+    }
 
     def setup() {
         server.start()
@@ -37,32 +42,33 @@ class HttpBuildCacheTest extends Specification {
 
     def "can cache artifact"() {
         def destFile = tempDir.file("cached.zip")
-        server.expectPut("/cache/0123456abcdef", destFile)
+        server.expectPut("/cache/${key.hashCode}", destFile)
 
         when:
         cache.store(key) { output ->
             output << "Data"
         }
         then:
-        1 * key.hashCode >> "0123456abcdef"
         destFile.text == "Data"
     }
 
     def "can load artifact from cache"() {
         def srcFile = tempDir.file("cached.zip")
         srcFile.text = "Data"
-        server.expectGet("/cache/0123456abcdef", srcFile)
+        server.expectGet("/cache/${key.hashCode}", srcFile)
 
         when:
+        def receivedInput = null
         cache.load(key) { input ->
-            assert input.text == "Data"
+            receivedInput = input.text
         }
+
         then:
-        1 * key.hashCode >> "0123456abcdef"
+        receivedInput == "Data"
     }
 
     def "reports cache miss on 404"() {
-        server.expectGetMissing("/cache/0123456abcdef")
+        server.expectGetMissing("/cache/${key.hashCode}")
 
         when:
         def fromCache = cache.load(key) { input ->
@@ -70,21 +76,19 @@ class HttpBuildCacheTest extends Specification {
         }
 
         then:
-        1 * key.hashCode >> "0123456abcdef"
         ! fromCache
     }
 
     def "fails on other error"() {
-        server.expectGetBroken("/cache/0123456abcdef")
+        server.expectGetBroken("/cache/${key.hashCode}")
 
         when:
-        def fromCache = cache.load(key) { input ->
+        cache.load(key) { input ->
             throw new RuntimeException("That should never be called")
         }
 
         then:
-        1 * key.hashCode >> "0123456abcdef"
         GradleException exception = thrown()
-        exception.message == "Http cache returned status 500: broken"
+        exception.message == "HTTP cache returned status 500: broken"
     }
 }
