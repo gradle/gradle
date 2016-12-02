@@ -364,6 +364,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/api/**'
     include 'org/gradle/authentication/**'
     include 'org/gradle/buildinit/**'
+    include 'org/gradle/caching/**'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/ide/**'
     include 'org/gradle/ivy/**'
