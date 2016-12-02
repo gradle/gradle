@@ -20,13 +20,15 @@ import org.gradle.test.fixtures.file.TestFile
 
 class JavaProjectUnderTest {
     private final TestFile projectDir
+    private final TestFile buildFile
 
     JavaProjectUnderTest(TestFile projectDir) {
         this.projectDir = projectDir
+        buildFile = projectDir.file('build.gradle')
     }
 
     JavaProjectUnderTest writeBuildScript() {
-        projectDir.file('build.gradle') << """
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'jacoco'
 
@@ -38,11 +40,44 @@ class JavaProjectUnderTest {
                 testCompile 'junit:junit:4.12'
             }
         """
-
         this
     }
 
     JavaProjectUnderTest writeSourceFiles() {
+        writeProductionSourceFile()
+        writeTestSourceFile('src/test/java')
+        this
+    }
+
+    JavaProjectUnderTest writeIntegrationTestSourceFiles() {
+        String testSrcDir = 'src/integTest/java'
+        buildFile << """
+            sourceSets {
+                integrationTest {
+                    java {
+                        srcDir file('$testSrcDir')
+                    }
+                    compileClasspath += sourceSets.main.output + configurations.testRuntime
+                    runtimeClasspath += output + compileClasspath
+                }
+            }
+            
+            task integrationTest(type: Test) {
+                testClassesDir = sourceSets.integrationTest.output.classesDir
+                classpath = sourceSets.integrationTest.runtimeClasspath
+            }
+            
+            task jacocoIntegrationTestReport(type: JacocoReport) {
+                executionData integrationTest
+                sourceSets sourceSets.main
+            }
+        """
+
+        writeTestSourceFile(testSrcDir)
+        this
+    }
+
+    private void writeProductionSourceFile() {
         projectDir.file('src/main/java/org/gradle/Class1.java') << """
             package org.gradle; 
 
@@ -52,8 +87,10 @@ class JavaProjectUnderTest {
                 }
             }
         """
+    }
 
-        projectDir.file('src/test/java/org/gradle/Class1Test.java') << """
+    private void writeTestSourceFile(String baseDir) {
+        projectDir.file("$baseDir/org/gradle/Class1Test.java") << """
             package org.gradle; 
 
             import org.junit.Test; 
@@ -65,7 +102,5 @@ class JavaProjectUnderTest {
                 } 
             }
         """
-
-        this
     }
 }

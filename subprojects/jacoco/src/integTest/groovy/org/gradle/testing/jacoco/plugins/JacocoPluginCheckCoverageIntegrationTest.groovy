@@ -23,12 +23,15 @@ import spock.lang.Unroll
 class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+    private final static String[] TEST_AND_JACOCO_REPORT_TASK_PATHS = [':test', ':jacocoTestReport'] as String[]
+    private final static String[] INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestReport'] as String[]
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
-    def "no rules provided"() {
+    def "can define no rules"() {
+        given:
         buildFile << """
             jacocoTestReport {
                 validationRules {}
@@ -36,13 +39,14 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'test', 'jacocoTestReport'
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
-    def "single rule without thresholds"() {
+    def "can define single rule without thresholds"() {
+        given:
         buildFile << """
             jacocoTestReport {
                 validationRules {
@@ -52,19 +56,20 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'test', 'jacocoTestReport'
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
     def "can define includes for single rule"() {
+        given:
         buildFile << """
             jacocoTestReport {
                 validationRules {
                     rule {
                         scope = org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope.CLASS
-                        includes = ['org.gradle.*']
+                        includes = ['com.company.*', 'org.gradle.*']
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
@@ -72,19 +77,20 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails 'test', 'jacocoTestReport'
+        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
         errorOutput.contains("Rule violated for class org.gradle.Class1: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
     def "can define excludes for single rule"() {
+        given:
         buildFile << """
             jacocoTestReport {
                 validationRules {
                     rule {
-                        excludes = ['*']
+                        excludes = ['company', '$testDirectory.name']
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
@@ -92,14 +98,14 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'test', 'jacocoTestReport'
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
     @Unroll
-    def "rule with sufficient coverage for #description"() {
+    def "can define rule with sufficient coverage for #description"() {
         given:
         buildFile << """
             jacocoTestReport {
@@ -112,10 +118,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'test', 'jacocoTestReport'
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
 
         where:
         thresholds                                        | description
@@ -127,7 +133,8 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "rule with insufficient coverage for #description"() {
+    def "can define rule with insufficient coverage for #description"() {
+        given:
         buildFile << """
             jacocoTestReport {
                 validationRules {
@@ -139,10 +146,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails 'test', 'jacocoTestReport'
+        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
@@ -157,6 +164,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can ignore failures"() {
+        given:
         buildFile << """
             jacocoTestReport {
                 validationRules {
@@ -170,11 +178,65 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'test', 'jacocoTestReport'
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
 
         then:
-        executedAndNotSkipped(':test', ':jacocoTestReport')
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+    }
+
+    @Unroll
+    def "can define same rules for multiple report tasks #tasksPaths"() {
+        given:
+        javaProjectUnderTest.writeIntegrationTestSourceFiles()
+
+        buildFile << """
+            tasks.withType(JacocoReport) {
+                validationRules {
+                    rule {
+                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                    }
+                }
+            }
+        """
+
+        when:
+        fails tasksPaths
+
+        then:
+        executedAndNotSkipped(tasksPaths)
+        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+
+        where:
+        tasksPaths << [TEST_AND_JACOCO_REPORT_TASK_PATHS, INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS]
+    }
+
+    @Unroll
+    def "can define different rules for multiple report tasks #tasksPaths"() {
+        given:
+        javaProjectUnderTest.writeIntegrationTestSourceFiles()
+
+        buildFile << """
+            $reportTaskName {
+                validationRules {
+                    rule {
+                        $threshold
+                    }
+                }
+            }
+        """
+
+        when:
+        fails tasksPaths
+
+        then:
+        executedAndNotSkipped(tasksPaths)
+        errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
+
+        where:
+        tasksPaths                              | reportTaskName                | threshold                                         | errorMessage
+        TEST_AND_JACOCO_REPORT_TASK_PATHS       | 'jacocoTestReport'            | Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS | 'jacocoIntegrationTestReport' | Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
     static class Thresholds {
