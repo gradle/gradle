@@ -22,14 +22,14 @@ import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
 import spock.lang.Specification
 
-class ResilientBuildCacheWrapperTest extends Specification {
+class ShortCircuitingErrorHandlerBuildCacheWrapperTest extends Specification {
     def cacheKey = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)
 
     def "stops calling through after defined number of read errors"() {
         def delegate = Mock(BuildCache)
-        def wrapper = new ResilientBuildCacheWrapper(delegate, 2)
+        def wrapper = new ShortCircuitingErrorHandlerBuildCacheWrapper(delegate, 2)
         boolean found
 
         when:
@@ -69,7 +69,7 @@ class ResilientBuildCacheWrapperTest extends Specification {
 
     def "stops calling through after defined number of write errors"() {
         def delegate = Mock(BuildCache)
-        def wrapper = new ResilientBuildCacheWrapper(delegate, 2)
+        def wrapper = new ShortCircuitingErrorHandlerBuildCacheWrapper(delegate, 2)
 
         when:
         wrapper.store(cacheKey, writer)

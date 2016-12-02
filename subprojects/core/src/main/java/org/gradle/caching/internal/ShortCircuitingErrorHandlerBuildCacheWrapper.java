@@ -31,14 +31,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A wrapper around a {@link BuildCache} that passes through the underlying implementation
  * until a number of errors occur. After that the wrapper short-circuits cache requests.
  */
-public class ResilientBuildCacheWrapper implements BuildCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResilientBuildCacheWrapper.class);
+public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheWrapper.class);
     private final BuildCache delegate;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
-    public ResilientBuildCacheWrapper(BuildCache delegate, int maxErrorCount) {
+    public ShortCircuitingErrorHandlerBuildCacheWrapper(BuildCache delegate, int maxErrorCount) {
         this.delegate = delegate;
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
