@@ -18,6 +18,9 @@ package org.gradle.caching;
 
 /**
  * <p><code>BuildCacheException</code> is the base class of all exceptions thrown by a {@link BuildCache}.</p>
+ *
+ * A <code>BuildCacheException</code> is considered a non-fatal failure. Gradle should still be able to complete
+ * a build even when a <code>BuildCacheException</code> is encountered.
  */
 public class BuildCacheException extends Exception {
     public BuildCacheException() {

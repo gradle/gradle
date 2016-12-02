@@ -22,8 +22,16 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Cache protocol interface to be implemented by build cache backends.
+ * Cache protocol interface to be implemented by a build cache backend.
  *
+ * <p>
+ *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
+ *     Non-fatal failures could include failing to retrieve a cache entry or unsuccessfully completing an upload a new cache entry.
+ * </p>
+ * <p>
+ *     All other failures will be considered fatal and cause the Gradle build to fail.
+ *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
+ * </p>
  * @since 3.3
  */
 @Incubating
