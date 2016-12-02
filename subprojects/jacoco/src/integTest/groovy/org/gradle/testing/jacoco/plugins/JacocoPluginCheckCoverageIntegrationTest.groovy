@@ -163,6 +163,29 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
          Thresholds.Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient threshold fails'              | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
+    def "can define multiple rules"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                validationRules {
+                    rule {
+                        $Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO
+                    }
+                    rule {
+                        $Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT
+                    }
+                }
+            }
+        """
+
+        when:
+        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+        errorOutput.contains("Rule violated for bundle $testDirectory.name: classes missed count is 0.0, but expected minimum is 0.5")
+    }
+
     def "can ignore failures"() {
         given:
         buildFile << """
