@@ -27,6 +27,10 @@ class JavaProjectUnderTest {
         buildFile = projectDir.file('build.gradle')
     }
 
+    private TestFile file(Object... path) {
+        projectDir.file(path)
+    }
+
     JavaProjectUnderTest writeBuildScript() {
         buildFile << """
             apply plugin: 'java'
@@ -78,7 +82,7 @@ class JavaProjectUnderTest {
     }
 
     private void writeProductionSourceFile() {
-        projectDir.file('src/main/java/org/gradle/Class1.java') << """
+        file('src/main/java/org/gradle/Class1.java') << """
             package org.gradle; 
 
             public class Class1 { 
@@ -90,7 +94,7 @@ class JavaProjectUnderTest {
     }
 
     private void writeTestSourceFile(String baseDir) {
-        projectDir.file("$baseDir/org/gradle/Class1Test.java") << """
+        file("$baseDir/org/gradle/Class1Test.java") << """
             package org.gradle; 
 
             import org.junit.Test; 
