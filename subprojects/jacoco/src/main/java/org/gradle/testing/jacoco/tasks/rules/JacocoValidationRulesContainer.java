@@ -31,13 +31,13 @@ import java.util.List;
 @Incubating
 public interface JacocoValidationRulesContainer {
 
-    void setIgnoreFailures(boolean ignore);
+    void setFailOnViolation(boolean ignore);
 
     /**
      * Specifies whether build should fail in case of rule violations.
      */
     @Internal
-    boolean isIgnoreFailures();
+    boolean isFailOnViolation();
 
     /**
      * Gets all validation rules. Defaults to an empty list.

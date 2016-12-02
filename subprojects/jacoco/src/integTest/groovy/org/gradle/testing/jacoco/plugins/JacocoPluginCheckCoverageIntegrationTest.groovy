@@ -247,7 +247,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             jacocoTestReport {
                 validationRules {
-                    ignoreFailures = true
+                    failOnViolation = true
 
                     rule {
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO

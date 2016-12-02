@@ -27,7 +27,7 @@ class JacocoValidationRulesContainerImplTest extends Specification {
 
     def "provides expected default field values"() {
         expect:
-        !validationRulesContainer.ignoreFailures
+        !validationRulesContainer.failOnViolation
         validationRulesContainer.rules.empty
     }
 

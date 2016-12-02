@@ -115,7 +115,7 @@ public class AntJacocoReport {
 
     private void configureCheck(final GroovyObjectSupport antBuilder, final JacocoValidationRulesContainer validationRules) {
         if (!validationRules.getRules().isEmpty()) {
-            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !validationRules.isIgnoreFailures());
+            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !validationRules.isFailOnViolation());
             antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                 @SuppressWarnings("UnusedDeclaration")
                 public Object doCall(Object ignore) {
