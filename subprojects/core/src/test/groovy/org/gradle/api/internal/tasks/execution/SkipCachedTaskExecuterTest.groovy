@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.BuildCache
-import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.internal.tasks.TaskOutputPacker
@@ -257,75 +256,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> { throw new RuntimeException("Bad cache key") }
     }
-
-    def "falls back to executing task when cache backend throws error while finding result"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
-
-        then:
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * buildCacheConfiguration.isPullAllowed() >> true
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-
-        then:
-        1 * buildCacheConfiguration.getCache() >> buildCache
-        1 * buildCache.getDescription() >> "test"
-
-        then:
-        1 * buildCache.load(cacheKey, _) >> { throw new BuildCacheException("Bad cache") }
-
-        then:
-        1 * taskState.setCacheable(true)
-        1 * delegate.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskState.getFailure() >> null
-        1 * buildCacheConfiguration.isPushAllowed() >> true
-        1 * buildCache.store(cacheKey, _)
-        0 * _
-    }
-
-    def "ignores error when storing cached result"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
-
-        then:
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-        1 * buildCacheConfiguration.isPullAllowed() >> true
-        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-
-        then:
-        1 * buildCacheConfiguration.getCache() >> buildCache
-        1 * buildCache.getDescription() >> "test"
-
-        then:
-        1 * buildCache.load(cacheKey, _) >> false
-
-        then:
-        1 * taskState.setCacheable(true)
-        1 * delegate.execute(task, taskState, taskContext)
-
-        then:
-        1 * buildCacheConfiguration.isPushAllowed() >> true
-        1 * taskState.getFailure() >> null
-        1 * buildCache.store(cacheKey, _) >> { throw new BuildCacheException("Bad result") }
-        0 * _
-    }
-
 
     def "fails when cache backend throws unknown error while finding result"() {
         when:

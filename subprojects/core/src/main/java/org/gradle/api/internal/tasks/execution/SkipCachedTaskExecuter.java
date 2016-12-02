@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
@@ -97,21 +96,17 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         if (buildCacheConfiguration.isPullAllowed()) {
                             if (cacheKey != null) {
                                 if (taskState.isAllowedToUseCachedResults()) {
-                                    try {
-                                        boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
-                                            @Override
-                                            public void readFrom(final InputStream input) throws IOException {
-                                                packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
-                                                LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
-                                            }
-                                        });
-                                        if (found) {
-                                            state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                                            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-                                            return;
+                                    boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
+                                        @Override
+                                        public void readFrom(final InputStream input) throws IOException {
+                                            packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
+                                            LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                         }
-                                    } catch (BuildCacheException e) {
-                                        LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
+                                    });
+                                    if (found) {
+                                        state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                                        taskOutputsGenerationListener.beforeTaskOutputsGenerated();
+                                        return;
                                     }
                                 } else {
                                     LOGGER.info("Not loading {} from cache because pulling from cache is disabled for this task", task);
@@ -140,17 +135,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (cacheKey != null) {
             if (buildCacheConfiguration.isPushAllowed()) {
                 if (state.getFailure() == null) {
-                    try {
-                        getCache().store(cacheKey, new BuildCacheEntryWriter() {
-                            @Override
-                            public void writeTo(OutputStream output) throws IOException {
-                                LOGGER.info("Packing {}", task.getPath());
-                                packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
-                            }
-                        });
-                    } catch (BuildCacheException e) {
-                        LOGGER.warn("Could not cache results for {} for cache key {}", task, cacheKey, e);
-                    }
+                    getCache().store(cacheKey, new BuildCacheEntryWriter() {
+                        @Override
+                        public void writeTo(OutputStream output) throws IOException {
+                            LOGGER.info("Packing {}", task.getPath());
+                            packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+                        }
+                    });
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
                 }
