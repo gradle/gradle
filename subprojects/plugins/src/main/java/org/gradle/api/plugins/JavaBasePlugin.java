@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Attribute;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Named;
 import org.gradle.api.Plugin;
@@ -26,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -123,7 +123,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureSchema(ProjectInternal project) {
-        project.getAttributesSchema().matchStrictly(Usage.USAGE_ATTRIBUTE);
+        project.getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
