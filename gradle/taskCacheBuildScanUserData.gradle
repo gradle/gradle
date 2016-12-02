@@ -29,7 +29,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             // We have issues with concurrent listeners generating events
             // This causes deadlocks when executing tasks with this init script
             // Disable this when --parallel has been enabled
-            logger.warn("Disabling task output cache diagnostics while --parallel is enabled.")
+            logger.warn("Disabling task output caching diagnostics while --parallel is enabled.")
             return
         }
 
