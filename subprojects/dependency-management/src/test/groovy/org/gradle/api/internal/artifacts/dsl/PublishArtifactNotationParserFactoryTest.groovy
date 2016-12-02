@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
@@ -43,7 +44,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
     }
 
     def createArtifactFromPublishArtifactInstance() {
-        PublishArtifact original = Mock()
+        ConfigurablePublishArtifact original = Mock()
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(original)

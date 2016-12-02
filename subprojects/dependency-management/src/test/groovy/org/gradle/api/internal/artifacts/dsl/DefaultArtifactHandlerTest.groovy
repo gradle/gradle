@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
@@ -43,7 +44,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushOneDependency() {
-        PublishArtifact artifactDummy = Mock()
+        ConfigurablePublishArtifact artifactDummy = Mock()
 
         when:
         artifactHandler.someConf("someNotation")
@@ -54,7 +55,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushOneDependencyWithClosure() {
-        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
 
         when:
         artifactHandler.someConf("someNotation") { type = 'source' }
@@ -68,8 +69,8 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void pushMultipleDependencies() {
-        PublishArtifact artifactDummy1 = Mock()
-        PublishArtifact artifactDummy2 = Mock()
+        ConfigurablePublishArtifact artifactDummy1 = Mock()
+        ConfigurablePublishArtifact artifactDummy2 = Mock()
 
         when:
         artifactHandler.someConf("someNotation", "someNotation2")
@@ -83,7 +84,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void addOneDependency() {
-        PublishArtifact artifactDummy = Mock()
+        ConfigurablePublishArtifact artifactDummy = Mock()
 
         when:
         artifactHandler.add('someConf', "someNotation")
@@ -94,7 +95,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void addOneDependencyWithClosure() {
-        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
 
         when:
         artifactHandler.add('someConf', "someNotation") { type = 'source' }
@@ -108,7 +109,7 @@ class DefaultArtifactHandlerTest extends Specification {
     }
 
     void addOneDependencyWithAction() {
-        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        ConfigurablePublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
         Action action = Mock(Action)
 
         when:

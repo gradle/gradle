@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.tools.ant.Task;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -34,7 +35,7 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import java.io.File;
 
-public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, PublishArtifact>> {
+public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
 
@@ -43,17 +44,17 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         this.metaDataProvider = metaDataProvider;
     }
 
-    public NotationParser<Object, PublishArtifact> create() {
+    public NotationParser<Object, ConfigurablePublishArtifact> create() {
         FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder
-                .toType(PublishArtifact.class)
+                .toType(ConfigurablePublishArtifact.class)
                 .converter(new ArchiveTaskNotationConverter())
                 .converter(new FileMapNotationConverter(fileConverter))
                 .converter(fileConverter)
                 .toComposite();
     }
 
-    private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, PublishArtifact> {
+    private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, ConfigurablePublishArtifact> {
         private ArchiveTaskNotationConverter() {
             super(AbstractArchiveTask.class);
         }
@@ -64,12 +65,12 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
 
         @Override
-        protected PublishArtifact parseType(AbstractArchiveTask notation) {
+        protected ConfigurablePublishArtifact parseType(AbstractArchiveTask notation) {
             return instantiator.newInstance(ArchivePublishArtifact.class, notation);
         }
     }
 
-    private class FileMapNotationConverter extends MapNotationConverter<PublishArtifact> {
+    private class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
         private final FileNotationConverter fileConverter;
 
         private FileMapNotationConverter(FileNotationConverter fileConverter) {
@@ -81,13 +82,13 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
     }
 
-    private class FileNotationConverter extends TypedNotationConverter<File, PublishArtifact> {
+    private class FileNotationConverter extends TypedNotationConverter<File, ConfigurablePublishArtifact> {
         private FileNotationConverter() {
             super(File.class);
         }
 
         @Override
-        protected PublishArtifact parseType(File file) {
+        protected ConfigurablePublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
             return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(),

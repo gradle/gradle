@@ -53,8 +53,10 @@ public class ArchivePublishArtifactTest extends Specification {
         expect:
         new ArchivePublishArtifact(noName).name == null
         new ArchivePublishArtifact(withArchiveName).name == null
-        new ArchivePublishArtifact(withBaseName).name == "foo"
-        new ArchivePublishArtifact(withBaseName).setName("haha").name == "haha"
+        def baseNameArtifact = new ArchivePublishArtifact(withBaseName)
+        baseNameArtifact.name == "foo"
+        baseNameArtifact.setName("haha")
+        baseNameArtifact.name == "haha"
         new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
         new ArchivePublishArtifact(withAppendixOnly).name == "javadoc"
     }

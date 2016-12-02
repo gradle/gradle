@@ -15,25 +15,32 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Date;
 
-public class ArchivePublishArtifact extends AbstractPublishArtifact {
+public class ArchivePublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;
     private String extension;
     private String type;
     private String classifier;
     private Date date;
     private File file;
-    
+
     private AbstractArchiveTask archiveTask;
 
     public ArchivePublishArtifact(AbstractArchiveTask archiveTask) {
         super(archiveTask);
         this.archiveTask = archiveTask;
+    }
+
+    @Override
+    public ArchivePublishArtifact builtBy(Object... tasks) {
+        super.builtBy(tasks);
+        return this;
     }
 
     public String getName() {
@@ -74,9 +81,8 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
         return archiveTask;
     }
 
-    public ArchivePublishArtifact setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return this;
     }
 
     public void setExtension(String extension) {

@@ -35,9 +35,9 @@ import java.util.List;
 public class DefaultArtifactHandler implements ArtifactHandler {
 
     private final ConfigurationContainer configurationContainer;
-    private final NotationParser<Object, PublishArtifact> publishArtifactFactory;
+    private final NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory;
 
-    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<Object, PublishArtifact> publishArtifactFactory) {
+    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory) {
         this.configurationContainer = configurationContainer;
         this.publishArtifactFactory = publishArtifactFactory;
     }
@@ -47,8 +47,8 @@ public class DefaultArtifactHandler implements ArtifactHandler {
         return pushArtifact(configuration, notation, configureAction);
     }
 
-    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super PublishArtifact> configureAction) {
-        PublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
+    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
+        ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;
@@ -56,7 +56,7 @@ public class DefaultArtifactHandler implements ArtifactHandler {
 
     @Override
     public PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, (Action)configureAction);
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureAction);
     }
 
     @Override
