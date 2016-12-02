@@ -22,8 +22,8 @@ import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue;
 
 public class JacocoThresholdImpl implements JacocoThreshold {
 
-    private JacocoThresholdMetric metric;
-    private JacocoThresholdValue value;
+    private JacocoThresholdMetric metric = JacocoThresholdMetric.INSTRUCTION;
+    private JacocoThresholdValue value = JacocoThresholdValue.COVEREDRATIO;
     private Double minimum;
     private Double maximum;
 

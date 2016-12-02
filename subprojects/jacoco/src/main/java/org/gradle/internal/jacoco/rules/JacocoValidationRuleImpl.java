@@ -16,6 +16,7 @@
 
 package org.gradle.internal.jacoco.rules;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -30,9 +31,9 @@ import java.util.List;
 public class JacocoValidationRuleImpl implements JacocoValidationRule {
 
     private boolean enabled = true;
-    private JacocoRuleScope scope;
-    private List<String> includes = new ArrayList<String>();
-    private List<String> excludes = new ArrayList<String>();
+    private JacocoRuleScope scope = JacocoRuleScope.BUNDLE;
+    private List<String> includes = ImmutableList.of("*");
+    private List<String> excludes = ImmutableList.of();
     private final List<JacocoThreshold> thresholds = new ArrayList<JacocoThreshold>();
 
     @Override
