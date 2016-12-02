@@ -25,5 +25,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum JacocoThresholdValue {
-    TOTALCOUNT, MISSEDCOUNT, COVERED_COUNT, MISSEDRATIO, COVEREDRATIO;
+    TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO, COVEREDRATIO;
 }
