@@ -16,7 +16,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 import java.util.Collection;
@@ -33,24 +32,23 @@ public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandi
 
     @Override
     public void execute(MultipleCandidatesDetails<T> details) {
-        Collection<AttributeValue<T>> values = details.getCandidateValues();
+        Collection<T> values = details.getCandidateValues();
         T min = null;
         T max = null;
-        for (AttributeValue<T> value : values) {
-            if (value.isPresent()) {
-                T v = value.get();
-                if (min == null || comparator.compare(v, min) < 0) {
-                    min = v;
-                }
-                if (max == null || comparator.compare(v, max) > 0) {
-                    max = v;
-                }
+        for (T value : values) {
+
+            if (min == null || comparator.compare(value, min) < 0) {
+                min = value;
             }
+            if (max == null || comparator.compare(value, max) > 0) {
+                max = value;
+            }
+
         }
         T cmp = pickFirst ? min : max;
         if (cmp != null) {
-            for (AttributeValue<T> value : details.getCandidateValues()) {
-                if (value.isPresent() && value.get().equals(cmp)) {
+            for (T value : details.getCandidateValues()) {
+                if (value.equals(cmp)) {
                     details.closestMatch(value);
                 }
             }

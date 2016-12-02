@@ -48,15 +48,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getMatchingStrategy(_) >> defaultMatchingStrategy
             hasAttribute(_) >> { true }
         }
-        defaultMatchingStrategy.with {
-            compatibilityRules.add { details ->
-                if (details.consumerValue.missing) {
-                    details.compatible()
-                } else if (details.producerValue.missing || details.producerValue.unknown) {
-                    details.compatible()
-                }
-            }
-        }
     }
 
     def "returns this when same version requested"() {
@@ -119,6 +110,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.getAttributes() >> {
             [Attribute.of('key', String)]
         }
+        if (allowMissing) {
+            defaultMatchingStrategy.compatibilityRules.assumeCompatibleWhenMissing()
+        }
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
@@ -129,11 +123,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set == [expected] as Set
 
         where:
-        scenario               | queryAttributes                 | expected
-        'exact match'          | [key: 'something']              | 'foo'
-        'exact match'          | [key: 'something else']         | 'bar'
-        'no match'             | [key: 'other']                  | 'default'
-        'partial match on key' | [key: 'something', extra: 'no'] | 'foo'
+        scenario                                         | queryAttributes                 | allowMissing | expected
+        'exact match'                                    | [key: 'something']              | false        | 'foo'
+        'exact match'                                    | [key: 'something else']         | false        | 'bar'
+        'no match'                                       | [key: 'other']                  | false        | 'default'
+        'partial match on key but attribute is required' | [key: 'something', extra: 'no'] | false        | 'default'
+        'partial match on key but attribute is optional' | [key: 'something', extra: 'no'] | true         | 'foo'
     }
 
     def "revalidates default configuration if it has attributes"() {
@@ -261,8 +256,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 if (attr.name == 'platform') {
                     def strategy = new DefaultAttributeMatchingStrategy()
                     strategy.with {
-                        compatibilityRules.ordered { a, b -> a<=>b }
-                        disambiguationRules.pickLast { a, b -> a<=>b }
+                        compatibilityRules.ordered { a, b -> a <=> b }
+                        disambiguationRules.pickLast { a, b -> a <=> b }
                     }
                     return strategy
                 }
@@ -273,6 +268,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 [Attribute.of('platform', JavaVersion), Attribute.of('flavor', String)]
             }
         }
+        defaultMatchingStrategy.compatibilityRules.assumeCompatibleWhenMissing()
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
@@ -344,7 +340,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 def attr = args[0]
                 if (attr.name == 'platform') {
                     def strategy = new DefaultAttributeMatchingStrategy()
-                    strategy.ordered { a, b -> a<=>b }
+                    strategy.ordered { a, b -> a <=> b }
                     return strategy
                 }
                 return defaultMatchingStrategy
@@ -354,6 +350,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 [Attribute.of('platform', JavaVersion), Attribute.of('flavor', String)]
             }
         }
+        defaultMatchingStrategy.compatibilityRules.assumeCompatibleWhenMissing()
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
@@ -463,29 +460,23 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 def strategy = new DefaultAttributeMatchingStrategy()
                 strategy.with {
                     compatibilityRules.add { CompatibilityCheckDetails details ->
-                        if (details.producerValue.present) {
-                            def candidate = details.producerValue.get()
-                            if (candidate == 'something') {
-                                details.incompatible()
-                            }
+                        def candidate = details.producerValue
+                        if (candidate == 'something') {
+                            details.incompatible()
                         }
                     }
                     compatibilityRules.add { CompatibilityCheckDetails details ->
-                        if (details.consumerValue.present && details.producerValue.present) {
-                            def requested = details.consumerValue.get()
-                            def candidate = details.producerValue.get()
-                            if (requested == candidate) { // simulate exact match
-                                details.compatible()
-                            }
+                        def requested = details.consumerValue
+                        def candidate = details.producerValue
+                        if (requested == candidate) { // simulate exact match
+                            details.compatible()
                         }
                     }
                     compatibilityRules.add { CompatibilityCheckDetails details ->
-                        if (details.consumerValue.present && details.producerValue.present) {
-                            def requested = details.consumerValue.get()
-                            def candidate = details.producerValue.get()
-                            if (requested == 'other' && candidate == 'something else') { // simulate compatible match
-                                details.compatible()
-                            }
+                        def requested = details.consumerValue
+                        def candidate = details.producerValue
+                        if (requested == 'other' && candidate == 'something else') { // simulate compatible match
+                            details.compatible()
                         }
                     }
                 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 class SelectAllCompatibleRule<T> implements Action<MultipleCandidatesDetails<T>> {
@@ -31,7 +30,7 @@ class SelectAllCompatibleRule<T> implements Action<MultipleCandidatesDetails<T>>
 
     @Override
     public void execute(MultipleCandidatesDetails<T> details) {
-        for (AttributeValue<T> candidate : details.getCandidateValues()) {
+        for (T candidate : details.getCandidateValues()) {
             details.closestMatch(candidate);
         }
     }
