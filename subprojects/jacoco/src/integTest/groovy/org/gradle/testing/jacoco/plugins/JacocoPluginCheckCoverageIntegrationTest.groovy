@@ -104,6 +104,31 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
+    def "can check rules even all report formats are disabled"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                reports {
+                    xml.enabled false
+                    csv.enabled false
+                    html.enabled false
+                }
+                validationRules {
+                    rule {
+                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                    }
+                }
+            }
+        """
+
+        when:
+        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+    }
+
     @Unroll
     def "can define rule with sufficient coverage for #description"() {
         given:
