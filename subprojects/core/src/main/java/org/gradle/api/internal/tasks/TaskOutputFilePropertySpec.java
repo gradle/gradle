@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-
-public interface TaskOutputPropertySpecAndBuilder extends TaskPropertySpec, TaskOutputFilePropertyBuilder {
-
+public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
 }
-

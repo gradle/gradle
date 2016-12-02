@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;

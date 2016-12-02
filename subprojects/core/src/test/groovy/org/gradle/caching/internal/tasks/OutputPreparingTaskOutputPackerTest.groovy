@@ -19,8 +19,8 @@ package org.gradle.caching.internal.tasks
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 @Subject(OutputPreparingTaskOutputPacker)
 class OutputPreparingTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {

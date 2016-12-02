@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.properties.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
 import java.util.Map;
 

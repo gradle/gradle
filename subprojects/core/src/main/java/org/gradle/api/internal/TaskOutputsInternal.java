@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 

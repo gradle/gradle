@@ -18,8 +18,8 @@ package org.gradle.caching.internal.tasks;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 

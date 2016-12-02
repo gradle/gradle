@@ -24,11 +24,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.properties.DefaultTaskInputPropertySpec;
-import org.gradle.api.internal.tasks.properties.TaskInputFilePropertyBuilderInternal;
-import org.gradle.api.internal.tasks.properties.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.TaskInputPropertySpecAndBuilder;
-import org.gradle.api.internal.tasks.properties.TaskPropertyUtils;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.DeprecationLogger;
 
@@ -38,7 +33,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.properties.TaskPropertyUtils.ensurePropertiesHaveNames;
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskInputs implements TaskInputsInternal {
