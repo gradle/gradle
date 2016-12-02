@@ -50,7 +50,7 @@ fi]]></param>
 -:<default>		
 -:*-noci		
 -:*-no-ci
--:/refs/heads/master]]></param>
+-:master]]></param>
           <param name="quietPeriodMode" value="DO_NOT_USE" />
           <param name="triggerRules"><![CDATA[-:design-docs
 -:.teamcity		
