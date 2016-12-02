@@ -42,7 +42,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
         withBuildCache().fails "copy"
 
         then:
-        failure.assertHasCause("It is not allowed to modify child specs of the task at execution time when the task output cache is enabled. " +
+        failure.assertHasCause("It is not allowed to modify child specs of the task at execution time when task output caching is enabled. " +
             "Consider configuring the spec during configuration time, or using a separate task to do the configuration.")
     }
 
