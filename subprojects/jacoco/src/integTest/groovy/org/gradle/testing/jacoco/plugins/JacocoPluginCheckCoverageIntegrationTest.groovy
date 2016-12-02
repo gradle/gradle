@@ -19,13 +19,13 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType
 import spock.lang.Unroll
 
 import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.CLASS
 import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.LINE
-import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.COVEREDRATIO
-import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.MISSEDCOUNT
+import static JacocoThresholdType.COVEREDRATIO
+import static JacocoThresholdType.MISSEDCOUNT
 
 class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
@@ -329,15 +329,15 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             static final String CLASS_METRIC_MISSED_COUNT = Thresholds.create(CLASS, MISSEDCOUNT, '0.5', null)
         }
 
-        private static String create(JacocoThresholdMetric metric, JacocoThresholdValue value, String minimum, String maximum) {
+        private static String create(JacocoThresholdMetric metric, JacocoThresholdType type, String minimum, String maximum) {
             StringBuilder threshold = new StringBuilder()
             threshold <<= 'threshold {\n'
 
             if (metric) {
                 threshold <<= "    metric = ${metric.getClass().getName()}.${metric.name()}\n"
             }
-            if (value) {
-                threshold <<= "    value = ${value.getClass().getName()}.${value.name()}\n"
+            if (type) {
+                threshold <<= "    type = ${type.getClass().getName()}.${type.name()}\n"
             }
             if (minimum) {
                 threshold <<= "    minimum = $minimum\n"

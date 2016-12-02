@@ -19,11 +19,11 @@ package org.gradle.testing.jacoco.tasks.rules;
 import org.gradle.api.Incubating;
 
 /**
- * Jacoco threshold values.
+ * Jacoco threshold types.
  *
  * @since 3.3
  */
 @Incubating
-public enum JacocoThresholdValue {
+public enum JacocoThresholdType {
     TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO, COVEREDRATIO;
 }

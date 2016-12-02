@@ -19,7 +19,7 @@ package org.gradle.testing.jacoco.tasks.rules;
 import org.gradle.api.Incubating;
 
 /**
- * A Jacoco threshold.
+ * Jacoco threshold.
  *
  * @since 3.3
  */
@@ -27,18 +27,18 @@ import org.gradle.api.Incubating;
 public interface JacocoThreshold {
 
     /**
-     * The metric that applies to the threshold defined by {@link JacocoThresholdMetric}.
+     * The metric that applies to the threshold defined by {@link JacocoThresholdMetric}. Defaults to INSTRUCTION.
      */
     JacocoThresholdMetric getMetric();
 
     void setMetric(JacocoThresholdMetric metric);
 
     /**
-     * The value that applies to the threshold defined by {@link JacocoThresholdValue}.
+     * The value that applies to the threshold defined by {@link JacocoThresholdType}. Defaults to COVEREDRATIO.
      */
-    JacocoThresholdValue getValue();
+    JacocoThresholdType getType();
 
-    void setValue(JacocoThresholdValue value);
+    void setType(JacocoThresholdType type);
 
     /**
      * Gets the minimum expected value for threshold. Default to null.

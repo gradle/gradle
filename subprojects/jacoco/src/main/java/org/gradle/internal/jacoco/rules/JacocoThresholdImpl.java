@@ -18,12 +18,12 @@ package org.gradle.internal.jacoco.rules;
 
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
 import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric;
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue;
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType;
 
 public class JacocoThresholdImpl implements JacocoThreshold {
 
     private JacocoThresholdMetric metric = JacocoThresholdMetric.INSTRUCTION;
-    private JacocoThresholdValue value = JacocoThresholdValue.COVEREDRATIO;
+    private JacocoThresholdType type = JacocoThresholdType.COVEREDRATIO;
     private Double minimum;
     private Double maximum;
 
@@ -38,13 +38,13 @@ public class JacocoThresholdImpl implements JacocoThreshold {
     }
 
     @Override
-    public JacocoThresholdValue getValue() {
-        return value;
+    public JacocoThresholdType getType() {
+        return type;
     }
 
     @Override
-    public void setValue(JacocoThresholdValue value) {
-        this.value = value;
+    public void setType(JacocoThresholdType type) {
+        this.type = type;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class JacocoThresholdImpl implements JacocoThreshold {
         if (metric != that.metric) {
             return false;
         }
-        if (value != that.value) {
+        if (type != that.type) {
             return false;
         }
         if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) {
@@ -93,7 +93,7 @@ public class JacocoThresholdImpl implements JacocoThreshold {
     @Override
     public int hashCode() {
         int result = metric != null ? metric.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
         result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
         return result;
