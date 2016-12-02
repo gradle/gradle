@@ -45,7 +45,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
             public void execute(SourceSet sourceSet) {
                 defineApiConfigurationsForSourceSet(sourceSet, configurations);
                 JavaCompile javaCompile = (JavaCompile) project.getTasks().findByName(sourceSet.getCompileJavaTaskName());
-                project.getArtifacts().add(sourceSet.getApiCompileConfigurationName(), ImmutableMap.of(
+                project.getArtifacts().add(sourceSet.getApiElementsConfigurationName(), ImmutableMap.of(
                     "file", javaCompile.getDestinationDir(),
                     "builtBy", javaCompile));
             }
@@ -59,14 +59,14 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiConfiguration.setCanBeResolved(false);
         apiConfiguration.setCanBeConsumed(false);
 
-        Configuration apiCompileConfiguration = configurations.maybeCreate(sourceSet.getApiCompileConfigurationName());
-        apiCompileConfiguration.setVisible(false);
-        apiCompileConfiguration.setDescription("API compile classpath for " + sourceSet + ".");
-        apiCompileConfiguration.setCanBeResolved(false);
-        apiCompileConfiguration.setCanBeConsumed(true);
-        apiCompileConfiguration.setTransitive(false);
-        apiCompileConfiguration.attribute(JavaBasePlugin.Usage.USAGE_ATTRIBUTE, JavaBasePlugin.Usage.FOR_COMPILE);
-        apiCompileConfiguration.extendsFrom(apiConfiguration);
+        Configuration apiElementsConfiguration = configurations.maybeCreate(sourceSet.getApiElementsConfigurationName());
+        apiElementsConfiguration.setVisible(false);
+        apiElementsConfiguration.setDescription("API compile classpath for " + sourceSet + ".");
+        apiElementsConfiguration.setCanBeResolved(false);
+        apiElementsConfiguration.setCanBeConsumed(true);
+        apiElementsConfiguration.setTransitive(false);
+        apiElementsConfiguration.attribute(JavaBasePlugin.Usage.USAGE_ATTRIBUTE, JavaBasePlugin.Usage.FOR_COMPILE);
+        apiElementsConfiguration.extendsFrom(apiConfiguration);
 
         Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);

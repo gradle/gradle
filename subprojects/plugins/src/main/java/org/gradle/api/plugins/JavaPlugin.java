@@ -59,7 +59,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
-    public static final String API_COMPILE_CONFIGURATION_NAME = "apiCompile";
+    public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
