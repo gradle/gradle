@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold
 import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType
 import spock.lang.Specification
 
 class JacocoViolationRuleImplTest extends Specification {
@@ -39,7 +39,7 @@ class JacocoViolationRuleImplTest extends Specification {
         when:
         def threshold = rule.threshold {
             metric = JacocoThresholdMetric.CLASS
-            value = JacocoThresholdValue.TOTALCOUNT
+            type = JacocoThresholdType.TOTALCOUNT
             minimum = 0.0
             maximum = 1.0
         }
@@ -54,7 +54,7 @@ class JacocoViolationRuleImplTest extends Specification {
             void execute(JacocoThreshold jacocoThreshold) {
                 jacocoThreshold.with {
                     metric = JacocoThresholdMetric.COMPLEXITY
-                    value = JacocoThresholdValue.MISSEDCOUNT
+                    type = JacocoThresholdType.MISSEDCOUNT
                     minimum = 0.2
                     maximum = 0.6
                 }

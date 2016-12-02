@@ -34,7 +34,7 @@ public interface JacocoViolationRulesContainer {
     void setFailOnViolation(boolean ignore);
 
     /**
-     * Specifies whether build should fail in case of rule violations.
+     * Specifies whether build should fail in case of rule violations. Defaults to true.
      */
     @Internal
     boolean isFailOnViolation();

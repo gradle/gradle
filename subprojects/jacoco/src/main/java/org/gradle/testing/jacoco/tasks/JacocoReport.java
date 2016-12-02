@@ -140,6 +140,8 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
     }
 
     /**
+     * Configures the violation rules for this task. Requires JaCoCo version >= 0.6.3.
+     *
      * @since 3.3
      */
     @Incubating

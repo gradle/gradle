@@ -141,8 +141,8 @@ public class AntJacocoReport {
                                     if (threshold.getMetric() != null) {
                                         ruleArgs.put("counter", threshold.getMetric().name());
                                     }
-                                    if (threshold.getValue() != null) {
-                                        ruleArgs.put("value", threshold.getValue().name());
+                                    if (threshold.getType() != null) {
+                                        ruleArgs.put("value", threshold.getType().name());
                                     }
                                     if (threshold.getMinimum() != null) {
                                         ruleArgs.put("minimum", threshold.getMinimum());

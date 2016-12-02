@@ -40,7 +40,7 @@ public interface JacocoViolationRule {
     void setScope(JacocoRuleScope scope);
 
     /**
-     * Gets the scope for the rule defined by {@link JacocoRuleScope}.
+     * Gets the scope for the rule defined by {@link JacocoRuleScope}. Defaults to BUNDLE.
      */
     JacocoRuleScope getScope();
 
@@ -48,7 +48,7 @@ public interface JacocoViolationRule {
 
     /**
      * List of elements that should be included in check. Names can use wildcards (* and ?).
-     * If left empty, all elements will be included. Defaults to an empty list.
+     * If left empty, all elements will be included. Defaults to [*].
      */
     List<String> getIncludes();
 
