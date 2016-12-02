@@ -27,5 +27,6 @@ public interface BuildCacheKeyBuilder {
     BuildCacheKeyBuilder putDouble(double d);
     BuildCacheKeyBuilder putBoolean(boolean b);
     BuildCacheKeyBuilder putString(CharSequence charSequence);
+    BuildCacheKeyBuilder appendToCacheKey(Object value);
     BuildCacheKey build();
 }
