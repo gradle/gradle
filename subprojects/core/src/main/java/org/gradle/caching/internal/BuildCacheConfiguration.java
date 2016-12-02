@@ -40,7 +40,7 @@ public interface BuildCacheConfiguration {
     void useLocalCache(File directory);
 
     /**
-     * Use the give task output cache factory.
+     * Use the give build cache factory.
      */
     void useCacheFactory(BuildCacheFactory factory);
 }

@@ -85,12 +85,12 @@ public interface GradleInternal extends Gradle {
     ClassLoaderScope getClassLoaderScope();
 
     /**
-     * Configures task output caching.
+     * Configures build cache.
      */
     void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**
-     * Returns the task output caching configuration.
+     * Returns the build cache configuration.
      */
     BuildCacheConfigurationInternal getBuildCache();
 

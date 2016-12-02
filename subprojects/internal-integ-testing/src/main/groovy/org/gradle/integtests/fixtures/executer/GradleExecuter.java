@@ -170,7 +170,7 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
     /**
-     * Activates the task output cache
+     * Activates the build cache
      *
      * @return this executer
      */
