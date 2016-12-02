@@ -52,7 +52,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
     @SuppressWarnings("deprecation")
     private void handleOrderSensitive(final TaskInputFilePropertyBuilder propertyBuilder, TaskPropertyActionContext context) {
         if (context.isAnnotationPresent(OrderSensitive.class)) {
-            DeprecationLogger.nagUserOfDeprecated("The @OrderSensitive annotation", "For classpath properties use the @Classpath annotation instead");
+            DeprecationLogger.nagUserOfDeprecated("The @OrderSensitive annotation", "For classpath properties, use the @Classpath annotation instead");
             DeprecationLogger.whileDisabled(new Runnable() {
                 @Override
                 public void run() {

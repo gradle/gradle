@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * <p>When a task property is file order sensitive, a change in the order of the files makes the task out-of-date,
  * while an order change in a property that is not file order sensitive allows the task to stay up-to-date.</p>
  *
- * @deprecated This annotation will be removed in Gradle 4.0. For classpath properties use {@literal @}{@link Classpath}.
+ * @deprecated This annotation will be removed in Gradle 4.0. For classpath properties, use {@link org.gradle.api.tasks.Classpath}.
  *
  * @since 3.1
  */

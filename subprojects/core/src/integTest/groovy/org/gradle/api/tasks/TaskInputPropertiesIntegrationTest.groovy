@@ -265,7 +265,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "test"
         then:
-        outputContains "The @OrderSensitive annotation has been deprecated and is scheduled to be removed in Gradle 4.0. For classpath properties use the @Classpath annotation instead."
+        outputContains "The @OrderSensitive annotation has been deprecated and is scheduled to be removed in Gradle 4.0. For classpath properties, use the @Classpath annotation instead."
     }
 
     def "no deprecation warning printed when @Classpath annotation is used"() {

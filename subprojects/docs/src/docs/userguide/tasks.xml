@@ -621,7 +621,7 @@
                             </para>
                             <note>
                                 <para>This functionality is deprecated and will be removed in Gradle 4.0.
-                                    For classpath properties use <literal>@Classpath</literal> instead.
+                                    For classpath properties, use <literal>@Classpath</literal> instead.
                                 </para>
                             </note>
                         </td>
