@@ -16,14 +16,19 @@
 
 package org.gradle.internal.jacoco;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
+import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
+import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule;
+import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRulesContainer;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class AntJacocoReport {
@@ -37,7 +42,8 @@ public class AntJacocoReport {
     public void execute(FileCollection classpath, final String projectName,
                         final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
                         final FileCollection executionData,
-                        final JacocoReportsContainer reports) {
+                        final JacocoReportsContainer reports,
+                        final JacocoValidationRulesContainer validationRules) {
         ant.withClasspath(classpath).execute(new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
             public Object doCall(Object it) {
@@ -88,11 +94,62 @@ public class AntJacocoReport {
                                 ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
                             });
                         }
+                        configureCheck(antBuilder, validationRules);
                         return null;
                     }
                 }});
                 return null;
             }
         });
+    }
+
+    private void configureCheck(final GroovyObjectSupport antBuilder, final JacocoValidationRulesContainer validationRules) {
+        if (!validationRules.getRules().isEmpty()) {
+            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !validationRules.isIgnoreFailures());
+            antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
+                @SuppressWarnings("UnusedDeclaration")
+                public Object doCall(Object ignore) {
+                    for (final JacocoValidationRule rule : validationRules.getRules()) {
+                        Map<String, Object> ruleArgs = new HashMap<String, Object>();
+
+                        if (rule.getScope() != null) {
+                            ruleArgs.put("element", rule.getScope());
+                        }
+                        if (rule.getIncludes() != null && !rule.getIncludes().isEmpty()) {
+                            ruleArgs.put("includes", Joiner.on(':').join(rule.getIncludes()));
+                        }
+                        if (rule.getExcludes() != null && !rule.getExcludes().isEmpty()) {
+                            ruleArgs.put("excludes", Joiner.on(':').join(rule.getExcludes()));
+                        }
+
+                        antBuilder.invokeMethod("rule", new Object[] {ImmutableMap.copyOf(ruleArgs), new Closure<Object>(this, this) {
+                            @SuppressWarnings("UnusedDeclaration")
+                            public Object doCall(Object ignore) {
+                                for (JacocoThreshold threshold : rule.getThresholds()) {
+                                    Map<String, Object> ruleArgs = new HashMap<String, Object>();
+
+                                    if (threshold.getMetric() != null) {
+                                        ruleArgs.put("counter", threshold.getMetric().name());
+                                    }
+                                    if (threshold.getValue() != null) {
+                                        ruleArgs.put("value", threshold.getValue().name());
+                                    }
+                                    if (threshold.getMinimum() != null) {
+                                        ruleArgs.put("minimum", threshold.getMinimum());
+                                    }
+                                    if (threshold.getMaximum() != null) {
+                                        ruleArgs.put("maximum", threshold.getMaximum());
+                                    }
+
+                                    antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(ruleArgs) });
+                                }
+                                return null;
+                            }
+                        }});
+                    }
+                    return null;
+                }
+            }});
+        }
     }
 }
