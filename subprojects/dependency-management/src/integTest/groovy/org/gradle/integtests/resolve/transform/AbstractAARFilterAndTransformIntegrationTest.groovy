@@ -276,7 +276,7 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
                                 jars << it
                             }
                         }
-                        return jars
+                        return jars.sort() //make sure files are in deterministic order independent of directory traversal method
                     case 'classes':
                         return [explodedJar]
                     case 'android-manifest':
