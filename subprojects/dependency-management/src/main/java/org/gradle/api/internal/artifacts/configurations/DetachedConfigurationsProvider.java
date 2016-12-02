@@ -15,19 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.util.WrapUtil;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
 class DetachedConfigurationsProvider implements ConfigurationsProvider {
-    private Configuration theOnlyConfiguration;
+    private ConfigurationInternal theOnlyConfiguration;
 
-    public Set<Configuration> getAll() {
-        return WrapUtil.toSet(theOnlyConfiguration);
+    public Set<ConfigurationInternal> getAll() {
+        return ImmutableSet.of(theOnlyConfiguration);
     }
 
-    public void setTheOnlyConfiguration(Configuration theOnlyConfiguration) {
+    public void setTheOnlyConfiguration(ConfigurationInternal theOnlyConfiguration) {
         this.theOnlyConfiguration = theOnlyConfiguration;
     }
 }

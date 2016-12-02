@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
@@ -31,15 +31,15 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
         this.dependenciesConverter = dependenciesConverter;
     }
 
-    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {
-        for (Configuration configuration : configurations) {
+    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
+        for (ConfigurationInternal configuration : configurations) {
             addConfiguration(metaData, configuration);
+            dependenciesConverter.addDependencyDescriptors(metaData, configuration);
+            addArtifacts(metaData, configuration);
         }
-        addDependencies(metaData, configurations);
-        addArtifacts(metaData, configurations);
     }
 
-    private void addConfiguration(BuildableLocalComponentMetadata metaData, Configuration configuration) {
+    private void addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         metaData.addConfiguration(configuration.getName(),
@@ -48,18 +48,12 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             hierarchy,
             configuration.isVisible(),
             configuration.isTransitive(),
-            ((AttributeContainerInternal)configuration.getAttributes()).asImmutable(),
+            configuration.getAttributes().asImmutable(),
             configuration.isCanBeConsumed(),
             configuration.isCanBeResolved());
     }
 
-    private void addDependencies(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {
-        dependenciesConverter.addDependencyDescriptors(metaData, configurations);
-    }
-
-    private void addArtifacts(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations) {
-        for (Configuration configuration : configurations) {
-            metaData.addArtifacts(configuration.getName(), configuration.getArtifacts());
-        }
+    private void addArtifacts(BuildableLocalComponentMetadata metaData, Configuration configuration) {
+        metaData.addArtifacts(configuration.getName(), configuration.getArtifacts());
     }
 }

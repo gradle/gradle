@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.Configuration;
-
 import java.util.Set;
 
 public interface ConfigurationsProvider {
-    Set<Configuration> getAll();
+    Set<? extends ConfigurationInternal> getAll();
 }

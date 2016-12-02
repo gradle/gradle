@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -65,17 +65,15 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         0 * metaData._
     }
 
-    private Configuration config() {
-        Stub(Configuration) {
-            getAttributes() >> Stub(AttributeContainerInternal)
-        }
+    private ConfigurationInternal config() {
+        return Stub(ConfigurationInternal)
     }
 
     def "adds configurations to ivy module descriptor"() {
         when:
-        Configuration config1 = createNamesAndExtendedConfigurationStub("conf1");
-        Configuration config2 = createNamesAndExtendedConfigurationStub("conf2", config1);
-        IvyModulePublishMetadata metaData = new DefaultIvyModulePublishMetadata(componentId, "status");
+        def config1 = createNamesAndExtendedConfigurationStub("conf1");
+        def config2 = createNamesAndExtendedConfigurationStub("conf2", config1);
+        def metaData = new DefaultIvyModulePublishMetadata(componentId, "status");
 
         and:
         converter.addConfigurations(metaData, WrapUtil.toSet(config1, config2));
@@ -94,8 +92,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         assert actualConfiguration.extendsFrom as List == extendsFrom
     }
 
-    private Configuration createNamesAndExtendedConfigurationStub(final String name, final Configuration... extendsFromConfigurations) {
-        final Configuration stub = Mock(ConfigurationInternal)
+    private ConfigurationInternal createNamesAndExtendedConfigurationStub(final String name, final Configuration... extendsFromConfigurations) {
+        final ConfigurationInternal stub = Mock(ConfigurationInternal)
         stub.getName() >> name
         stub.getDescription() >> TestUtil.createUniqueId()
         stub.isTransitive() >> true
