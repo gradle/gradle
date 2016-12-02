@@ -198,7 +198,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             assert result == [expected] as Set
         } catch (IllegalArgumentException e) {
             if (expected == null) {
-                assert e.message.startsWith('Cannot choose between the following configurations: [bar, foo]')
+                assert e.message.startsWith("Cannot choose between the following configurations on 'Mock for type 'ComponentResolveMetadata' named 'toComponent'' : bar, foo. All of them match the consumer attributes:")
             } else {
                 throw e
             }
@@ -283,7 +283,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             assert result == [expected] as Set
         } catch (IllegalArgumentException e) {
             if (expected == null) {
-                assert e.message.startsWith('Cannot choose between the following configurations: [bar, foo]')
+                assert e.message.startsWith("Cannot choose between the following configurations on 'Mock for type 'ComponentResolveMetadata' named 'toComponent'' : bar, foo. All of them match the consumer attributes:")
             } else {
                 throw e
             }

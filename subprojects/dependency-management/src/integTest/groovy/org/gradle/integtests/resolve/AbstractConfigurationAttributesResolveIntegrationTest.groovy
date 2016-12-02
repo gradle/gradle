@@ -548,7 +548,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
@@ -660,7 +660,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' and found compatible value 'debug'.
    - Configuration 'foo' :
@@ -718,7 +718,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [bar, foo]. All of them match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
    - Configuration 'bar' :
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
@@ -795,7 +795,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [compile, debug]. All of them match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations on 'project :b' : compile, debug. All of them match the consumer attributes:
    - Configuration 'compile' :
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
@@ -1116,7 +1116,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [foo, foo2]. All of them match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations on 'project :c' : foo, foo2. All of them match the consumer attributes:
    - Configuration 'foo'  :
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
@@ -1130,7 +1130,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkRelease'
 
         then:
-        failsWith("""Cannot choose between the following configurations: [bar, bar2]. All of them match the consumer attributes:
+        failsWith("""Cannot choose between the following configurations on 'project :c' : bar, bar2. All of them match the consumer attributes:
    - Configuration 'bar'  :
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra' but wasn't required.

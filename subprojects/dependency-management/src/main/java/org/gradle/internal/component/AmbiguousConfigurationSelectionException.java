@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.ArrayList;
@@ -39,38 +40,39 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
             return input.getName();
         }
     };
-    private static final Function<Attribute<?>, String> ATTRIBUTE_NAME = new Function<Attribute<?>, String>() {
+    private static final Joiner JOINER = Joiner.on(", ");
+    static final Function<Attribute<?>, String> ATTRIBUTE_NAME = new Function<Attribute<?>, String>() {
         @Override
         public String apply(Attribute<?> input) {
             return input.getName();
         }
     };
 
-    public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches) {
-        super(generateMessage(fromConfigurationAttributes, matches));
+    public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
+        super(generateMessage(fromConfigurationAttributes, matches, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
-        StringBuilder sb = new StringBuilder("Cannot choose between the following configurations: ");
-        sb.append(ambiguousConfigurations);
+        StringBuilder sb = new StringBuilder("Cannot choose between the following configurations on '" + targetComponent + "' : ");
+        JOINER.appendTo(sb, ambiguousConfigurations);
         sb.append(". All of them match the consumer attributes:");
         sb.append("\n");
         int maxConfLength = maxLength(ambiguousConfigurations);
         // We're sorting the names of the configurations and later attributes
         // to make sure the output is consistently the same between invocations
         for (final String ambiguousConf : ambiguousConfigurations) {
-            formatAmbiguousConfiguration(sb, fromConfigurationAttributes, matches, requestedAttributes, maxConfLength, ambiguousConf);
+            formatConfiguration(sb, fromConfigurationAttributes, matches, requestedAttributes, maxConfLength, ambiguousConf);
         }
         return sb.toString();
     }
 
-    private static void formatAmbiguousConfiguration(StringBuilder sb, AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, Set<String> requestedAttributes, int maxConfLength, final String ambiguousConf) {
+    static void formatConfiguration(StringBuilder sb, AttributeContainer fromConfigurationAttributes, List<ConfigurationMetadata> matches, Set<String> requestedAttributes, int maxConfLength, final String conf) {
         ConfigurationMetadata match = Iterables.find(matches, new Predicate<ConfigurationMetadata>() {
             @Override
             public boolean apply(ConfigurationMetadata input) {
-                return ambiguousConf.equals(input.getName());
+                return conf.equals(input.getName());
             }
         });
         AttributeContainer producerAttributes = match.getAttributes();
@@ -79,7 +81,7 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
         Set<Attribute<?>> allAttributes = Sets.union(fromConfigurationAttributes.keySet(), producerAttributes.keySet());
         Set<String> commonAttributes = Sets.intersection(requestedAttributes, targetAttributeNames);
         Set<String> consumerOnlyAttributes = Sets.difference(requestedAttributes, targetAttributeNames);
-        sb.append("   ").append("- Configuration '").append(StringUtils.rightPad(ambiguousConf + "'", maxConfLength + 1)).append(" :");
+        sb.append("   ").append("- Configuration '").append(StringUtils.rightPad(conf + "'", maxConfLength + 1)).append(" :");
         List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
         List<String> values = new ArrayList<String>(sortedAttributes.size());
         formatAttributes(sb, fromConfigurationAttributes, producerAttributes, commonAttributes, consumerOnlyAttributes, sortedAttributes, values);
@@ -105,7 +107,7 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
     }
 
 
-    private static int maxLength(Collection<String> strings) {
+    static int maxLength(Collection<String> strings) {
         return Ordering.natural().max(Iterables.transform(strings, new Function<String, Integer>() {
             @Override
             public Integer apply(String input) {
