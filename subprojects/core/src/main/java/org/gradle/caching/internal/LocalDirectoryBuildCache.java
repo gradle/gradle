@@ -24,6 +24,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.Factory;
 
@@ -75,7 +76,7 @@ public class LocalDirectoryBuildCache implements BuildCache, Closeable {
     }
 
     @Override
-    public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws IOException {
+    public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
         return persistentCache.useCache("load build cache entry", new Factory<Boolean>() {
             @Override
             public Boolean create() {
@@ -102,7 +103,7 @@ public class LocalDirectoryBuildCache implements BuildCache, Closeable {
     }
 
     @Override
-    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws IOException {
+    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
         persistentCache.useCache("store build cache entry", new Runnable() {
             @Override
             public void run() {

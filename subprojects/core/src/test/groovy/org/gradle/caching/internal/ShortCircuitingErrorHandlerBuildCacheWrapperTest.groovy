@@ -19,6 +19,7 @@ package org.gradle.caching.internal
 import org.gradle.caching.BuildCache
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
+import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import spock.lang.Specification
 
@@ -36,14 +37,14 @@ class ShortCircuitingErrorHandlerBuildCacheWrapperTest extends Specification {
         found = wrapper.load(cacheKey, reader)
         then:
         ! found
-        1 * delegate.load(cacheKey, reader) >> { throw new RuntimeException("Error") }
+        1 * delegate.load(cacheKey, reader) >> { throw new BuildCacheException("Error") }
         0 * _
 
         when:
         found = wrapper.load(cacheKey, reader)
         then:
         ! found
-        1 * delegate.load(cacheKey, reader) >> { throw new RuntimeException("Error") }
+        1 * delegate.load(cacheKey, reader) >> { throw new BuildCacheException("Error") }
         1 * delegate.getDescription() >> "Test build cache"
         0 * _
 
@@ -74,13 +75,13 @@ class ShortCircuitingErrorHandlerBuildCacheWrapperTest extends Specification {
         when:
         wrapper.store(cacheKey, writer)
         then:
-        1 * delegate.store(cacheKey, writer) >> { throw new RuntimeException("Error") }
+        1 * delegate.store(cacheKey, writer) >> { throw new BuildCacheException("Error") }
         0 * _
 
         when:
         wrapper.store(cacheKey, writer)
         then:
-        1 * delegate.store(cacheKey, writer) >> { throw new RuntimeException("Error") }
+        1 * delegate.store(cacheKey, writer) >> { throw new BuildCacheException("Error") }
         1 * delegate.getDescription() >> "Test build cache"
         0 * _
 

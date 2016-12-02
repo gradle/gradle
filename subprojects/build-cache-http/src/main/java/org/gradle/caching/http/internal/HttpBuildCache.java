@@ -28,6 +28,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,15 +58,16 @@ public class HttpBuildCache implements BuildCache {
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException {
+    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
-        final CloseableHttpResponse response = httpClient.execute(httpGet);
-        StatusLine statusLine = response.getStatusLine();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Response for GET {}: {}", uri, statusLine);
-        }
+        CloseableHttpResponse response = null;
         try {
+            response = httpClient.execute(httpGet);
+            StatusLine statusLine = response.getStatusLine();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Response for GET {}: {}", uri, statusLine);
+            }
             int statusCode = statusLine.getStatusCode();
             if (statusCode >= 200 && statusCode < 300) {
                 reader.readFrom(response.getEntity().getContent());
@@ -73,15 +75,17 @@ public class HttpBuildCache implements BuildCache {
             } else if (statusCode == 404) {
                 return false;
             } else {
-                throw new IOException("HTTP cache returned status " + statusCode + ": "  + statusLine.getReasonPhrase());
+                throw new BuildCacheException(String.format("HTTP cache returned status %d: %s for key '%s' from %s", statusCode, statusLine.getReasonPhrase(), key, getDescription()));
             }
+        } catch (IOException e) {
+            throw new BuildCacheException(String.format("loading key '%s' from %s", key, getDescription()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
     }
 
     @Override
-    public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws IOException {
+    public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
         httpPut.setEntity(new AbstractHttpEntity() {
@@ -110,11 +114,14 @@ public class HttpBuildCache implements BuildCache {
                 return false;
             }
         });
-        CloseableHttpResponse response = httpClient.execute(httpPut);
+        CloseableHttpResponse response = null;
         try {
+            response = httpClient.execute(httpPut);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for PUT {}: {}", uri, response.getStatusLine());
             }
+        } catch (IOException e) {
+            throw new BuildCacheException(String.format("storing key '%s' in %s", key, getDescription()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }

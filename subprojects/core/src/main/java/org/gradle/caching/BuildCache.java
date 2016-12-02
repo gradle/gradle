@@ -34,18 +34,18 @@ public interface BuildCache extends Closeable {
      * @param key the cache key.
      * @param reader the reader to read the data corresponding to the cache key.
      * @return {@code true} if an entry was found, {@code false} otherwise.
-     * @throws IOException if an I/O error occurs.
+     * @throws BuildCacheException if the cache fails to load a cache entry for the given key
      */
-    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException;
+    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
 
     /**
      * Store the cache entry with the given cache key. The {@code writer} will be called to actually write the data.
      *
      * @param key the cache key.
      * @param writer the writer to write the data corresponding to the cache key.
-     * @throws IOException if an I/O error occurs.
+     * @throws BuildCacheException if the cache fails to store a cache entry for the given key
      */
-    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws IOException;
+    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException;
 
     /**
      * Returns a description for the cache.
@@ -55,7 +55,7 @@ public interface BuildCache extends Closeable {
     /**
      * Clean up any resources held by the cache once it's not used anymore.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException if the cache fails to close cleanly.
      */
     @Override
     void close() throws IOException;

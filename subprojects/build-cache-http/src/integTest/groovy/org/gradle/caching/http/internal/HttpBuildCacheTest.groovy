@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http.internal
 
+import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -31,6 +32,11 @@ class HttpBuildCacheTest extends Specification {
         @Override
         String getHashCode() {
             return '0123456abcdef'
+        }
+
+        @Override
+        String toString() {
+            return getHashCode()
         }
     }
 
@@ -87,7 +93,7 @@ class HttpBuildCacheTest extends Specification {
         }
 
         then:
-        IOException exception = thrown()
-        exception.message == "HTTP cache returned status 500: broken"
+        BuildCacheException exception = thrown()
+        exception.message == "HTTP cache returned status 500: broken for key '${key.hashCode}' from HTTP cache at ${server.uri}/cache/"
     }
 }

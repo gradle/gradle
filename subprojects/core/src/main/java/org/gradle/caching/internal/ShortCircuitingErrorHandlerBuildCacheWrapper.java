@@ -19,6 +19,7 @@ package org.gradle.caching.internal;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +46,11 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException {
+    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         if (enabled.get()) {
             try {
                 return delegate.load(key, reader);
-            } catch (Exception ex) {
+            } catch (BuildCacheException ex) {
                 handleErrorDuring("load", key, ex);
             }
         }
@@ -57,11 +58,11 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws IOException {
+    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         if (enabled.get()) {
             try {
                 delegate.store(key, writer);
-            } catch (Exception ex) {
+            } catch (BuildCacheException ex) {
                 handleErrorDuring("store", key, ex);
             }
         }
@@ -82,7 +83,7 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
         delegate.close();
     }
 
-    private void handleErrorDuring(String operation, BuildCacheKey cacheKey, Throwable exception) {
+    private void handleErrorDuring(String operation, BuildCacheKey cacheKey, BuildCacheException exception) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Could not {} cache entry {}: {}",
                 operation, cacheKey, exception.getMessage(), exception

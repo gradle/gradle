@@ -27,13 +27,14 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.BuildCache
+import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.internal.tasks.TaskOutputPacker
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import spock.lang.Specification
 
-public class SkipCachedTaskExecuterTest extends Specification {
+class SkipCachedTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
     def project = Mock(Project)
@@ -278,7 +279,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCache.getDescription() >> "test"
 
         then:
-        1 * buildCache.load(cacheKey, _) >> { throw new RuntimeException("Bad cache") }
+        1 * buildCache.load(cacheKey, _) >> { throw new BuildCacheException("Bad cache") }
 
         then:
         1 * taskState.setCacheable(true)
@@ -321,7 +322,78 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
-        1 * buildCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }
+        1 * buildCache.store(cacheKey, _) >> { throw new BuildCacheException("Bad result") }
         0 * _
+    }
+
+
+    def "fails when cache backend throws unknown error while finding result"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        then:
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * buildCacheConfiguration.isPullAllowed() >> true
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+
+        then:
+        1 * buildCacheConfiguration.getCache() >> buildCache
+        1 * buildCache.getDescription() >> "test"
+
+        then:
+        1 * buildCache.load(cacheKey, _) >> { throw new RuntimeException("unknown error") }
+
+        then:
+        1 * taskState.setCacheable(true)
+
+        then:
+        0 * _
+        then:
+        RuntimeException e = thrown()
+        e.message == "unknown error"
+    }
+
+    def "fails when cache backend throws unknown error while storing cached result"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        then:
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * buildCacheConfiguration.isPullAllowed() >> true
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+
+        then:
+        1 * buildCacheConfiguration.getCache() >> buildCache
+        1 * buildCache.getDescription() >> "test"
+
+        then:
+        1 * buildCache.load(cacheKey, _) >> false
+
+        then:
+        1 * taskState.setCacheable(true)
+        1 * delegate.execute(task, taskState, taskContext)
+
+        then:
+        1 * buildCacheConfiguration.isPushAllowed() >> true
+        1 * taskState.getFailure() >> null
+        1 * buildCache.store(cacheKey, _) >> { throw new RuntimeException("unknown error") }
+        0 * _
+        then:
+        RuntimeException e = thrown()
+        e.message == "unknown error"
     }
 }

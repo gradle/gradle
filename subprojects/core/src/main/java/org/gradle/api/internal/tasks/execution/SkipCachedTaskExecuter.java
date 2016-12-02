@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
@@ -109,7 +110,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
                                             return;
                                         }
-                                    } catch (Exception e) {
+                                    } catch (BuildCacheException e) {
                                         LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
                                     }
                                 } else {
@@ -147,7 +148,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                 packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
                             }
                         });
-                    } catch (Exception e) {
+                    } catch (BuildCacheException e) {
                         LOGGER.warn("Could not cache results for {} for cache key {}", task, cacheKey, e);
                     }
                 } else {

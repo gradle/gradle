@@ -30,18 +30,18 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 useCacheFactory { startParameter ->
                     return new BuildCache() {
                         @Override
-                        boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws IOException {
+                        boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                             if (startParameter.systemPropertiesArgs.containsKey("fail")) {
-                                throw new IOException("Unable to read " + key)
+                                throw new BuildCacheException("Unable to read " + key)
                             } else {
                                 return false
                             }
                         }
             
                         @Override
-                        void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws IOException {
+                        void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                             if (startParameter.systemPropertiesArgs.containsKey("fail")) {
-                                throw new IOException("Unable to write " + key)
+                                throw new BuildCacheException("Unable to write " + key)
                             }
                         }
             
@@ -51,7 +51,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                         }
             
                         @Override
-                        void close() {
+                        void close() throws BuildCacheException {
                         }
                     }
                 }

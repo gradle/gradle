@@ -126,7 +126,7 @@ public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
 
         @Override
         public String toString() {
-            return hashCode.toString();
+            return getHashCode();
         }
     }
 

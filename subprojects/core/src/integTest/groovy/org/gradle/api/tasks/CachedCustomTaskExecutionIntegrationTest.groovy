@@ -443,7 +443,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    def "fails gracefully when output #expected is expected but #actual is produced"() {
+    def "fails with useful error when output #expected is expected but #actual is produced"() {
         given:
         file("input.txt") << "data"
         buildFile << """
@@ -463,9 +463,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         executer.withStackTraceChecksDisabled()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().fails "customTask"
         then:
-        output.contains message.replace("PATH", file("build/output").path)
+        def expectedMessage = message.replace("PATH", file("build/output").path)
+        errorOutput.contains expectedMessage
 
         where:
         expected | actual | message
