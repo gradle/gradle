@@ -278,7 +278,7 @@ public interface SourceSet {
      * @since 3.3
      */
     @Incubating
-    String getApiCompileConfigurationName();
+    String getApiElementsConfigurationName();
 
     /**
      * Returns the name of the configuration that contains dependencies that are only required
