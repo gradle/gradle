@@ -18,7 +18,14 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue
 import spock.lang.Unroll
+
+import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.CLASS
+import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.LINE
+import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.COVEREDRATIO
+import static org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.MISSEDCOUNT
 
 class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
@@ -64,11 +71,12 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define includes for single rule"() {
         given:
+        String scope = "${org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope.CLASS.getClass().getName()}.${org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope.CLASS.name()}"
         buildFile << """
             jacocoTestReport {
                 validationRules {
                     rule {
-                        scope = org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope.CLASS
+                        scope = $scope
                         includes = ['com.company.*', 'org.gradle.*']
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
@@ -312,24 +320,24 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
     static class Thresholds {
         static class Sufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Thresholds.threshold('org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.LINE', 'org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.COVEREDRATIO', '0.0', '1.0')
-            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.threshold('org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.CLASS', 'org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.MISSEDCOUNT', null, '0')
+            static final String LINE_METRIC_COVERED_RATIO = Thresholds.threshold(LINE, COVEREDRATIO, '0.0', '1.0')
+            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.threshold(CLASS, MISSEDCOUNT, null, '0')
         }
 
         static class Insufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Thresholds.threshold('org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.LINE', 'org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.COVEREDRATIO', '0.0', '0.5')
-            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.threshold('org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric.CLASS', 'org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue.MISSEDCOUNT', '0.5', null)
+            static final String LINE_METRIC_COVERED_RATIO = Thresholds.threshold(LINE, COVEREDRATIO, '0.0', '0.5')
+            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.threshold(CLASS, MISSEDCOUNT, '0.5', null)
         }
 
-        static String threshold(String metric, String value, String minimum, String maximum) {
+        static String threshold(JacocoThresholdMetric metric, JacocoThresholdValue value, String minimum, String maximum) {
             StringBuilder threshold = new StringBuilder()
             threshold <<= 'threshold {\n'
 
             if (metric) {
-                threshold <<= "    metric = $metric\n"
+                threshold <<= "    metric = ${metric.getClass().getName()}.${metric.name()}\n"
             }
             if (value) {
-                threshold <<= "    value = $value\n"
+                threshold <<= "    value = ${value.getClass().getName()}.${value.name()}\n"
             }
             if (minimum) {
                 threshold <<= "    minimum = $minimum\n"
