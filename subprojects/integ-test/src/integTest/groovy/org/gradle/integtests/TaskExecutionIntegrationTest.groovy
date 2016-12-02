@@ -573,8 +573,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build']
     }
 
-    @Ignore("Re-enable once serious effort have been put to fix this issue")
-    @NotYetImplemented
     @Issue("gradle/gradle#769")
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
