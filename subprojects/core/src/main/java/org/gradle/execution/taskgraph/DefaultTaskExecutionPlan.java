@@ -397,7 +397,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private Set<TaskInfo> getAllPrecedingTasks(TaskInfo finalizer) {
         Set<TaskInfo> precedingTasks = new HashSet<TaskInfo>();
-        Stack<TaskInfo> candidateTasks = new Stack<TaskInfo>();
+        Deque<TaskInfo> candidateTasks = new ArrayDeque<TaskInfo>();
 
         // Consider every task that must run before the finalizer
         candidateTasks.addAll(finalizer.getDependencySuccessors());
