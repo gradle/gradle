@@ -9,8 +9,8 @@ allprojects {
     }
 }
 
-apply {
-    plugin("base")
+plugins {
+    base
 }
 
 dependencies {

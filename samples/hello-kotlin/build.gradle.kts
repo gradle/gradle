@@ -9,9 +9,12 @@ buildscript {
     }
 }
 
+plugins {
+    application
+}
+
 apply {
     plugin("kotlin")
-    plugin<ApplicationPlugin>()
 }
 
 configure<ApplicationPluginConvention> {

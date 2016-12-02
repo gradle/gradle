@@ -1,6 +1,8 @@
 import org.gradle.api.JavaVersion.VERSION_1_7
 
-apply<ApplicationPlugin>()
+plugins {
+    application
+}
 
 configure<ApplicationPluginConvention> {
     mainClassName = "samples.HelloWorld"

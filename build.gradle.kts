@@ -32,14 +32,16 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.1.1")
     }
+}
+
+plugins {
+    `maven-publish`
+    id("com.jfrog.artifactory") version "4.1.1"
 }
 
 apply {
     plugin("kotlin")
-    plugin("maven-publish")
-    plugin("com.jfrog.artifactory")
 }
 
 group = "org.gradle"

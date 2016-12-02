@@ -26,8 +26,8 @@ subprojects {
     }
 }
 
-apply {
-    plugin("base")
+plugins {
+    base
 }
 
 dependencies {
