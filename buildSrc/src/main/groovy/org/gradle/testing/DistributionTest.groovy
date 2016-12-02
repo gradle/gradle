@@ -57,6 +57,18 @@ class DistributionTest extends Test {
         super.getSystemProperties() - fileSystemProperties.collectEntries { key, value -> [(key): value.absolutePath] }
     }
 
+    /**
+     * SystemProperties are ignored as inputs since they contain absolute paths.
+     * See {@link #getPlainSystemProperties()} and {@link #fileSystemProperty(java.lang.String, java.io.File)} how we deal with those.
+     *
+     * {@inheritDoc}
+     */
+    @Internal
+    @Override
+    Map<String, Object> getSystemProperties() {
+        return super.getSystemProperties()
+    }
+
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     File gradleHomeDir
