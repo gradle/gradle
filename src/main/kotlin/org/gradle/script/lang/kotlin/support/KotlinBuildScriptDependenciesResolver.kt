@@ -69,9 +69,12 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 with(MessageDigest.getInstance("MD5")) {
                     val text = script.text ?: script.file?.readText()
                     text?.let { text ->
-                        getScriptSectionTokens(text, "buildscript").forEach {
-                            update(it.toString().toByteArray())
-                        }
+                        fun updateWith(section: String) =
+                            getScriptSectionTokens(text, section).forEach {
+                                update(it.toString().toByteArray())
+                            }
+                        updateWith("buildscript")
+                        updateWith("plugins")
                     }
                     digest()
                 }

@@ -28,7 +28,7 @@ class KotlinBuildScriptDependenciesResolverTest {
     @Test
     fun `given an environment with a 'getScriptSectionTokens' entry, when no buildscript change, it will not try to retrieve the model`() {
 
-        val environment = environmentWithGetScriptSectionTokensReturning(sequenceOf(""))
+        val environment = environmentWithGetScriptSectionTokensReturning("buildscript" to sequenceOf(""), "plugins" to sequenceOf(""))
 
         val res1 = resolve(environment, null)
         val res2 = resolve(environment, res1)
@@ -40,8 +40,18 @@ class KotlinBuildScriptDependenciesResolverTest {
     @Test
     fun `given an environment with a 'getScriptSectionTokens' entry, when buildscript changes, it will try to retrieve the model again`() {
 
-        val res1 = resolve(environmentWithGetScriptSectionTokensReturning(sequenceOf("foo")), null)
-        val res2 = resolve(environmentWithGetScriptSectionTokensReturning(sequenceOf("bar")), res1)
+        val res1 = resolve(environmentWithGetScriptSectionTokensReturning("buildscript" to sequenceOf("foo")), null)
+        val res2 = resolve(environmentWithGetScriptSectionTokensReturning("buildscript" to sequenceOf("bar")), res1)
+        assertThat(res2!!, not(sameInstance(res1!!)))
+
+        verify(assemblerMock, times(2)).assembleDependenciesFrom(any(), isNull(), any())
+    }
+
+    @Test
+    fun `given an environment with a 'getScriptSectionTokens' entry, when plugins block changes, it will try to retrieve the model again`() {
+
+        val res1 = resolve(environmentWithGetScriptSectionTokensReturning("plugins" to sequenceOf("foo")), null)
+        val res2 = resolve(environmentWithGetScriptSectionTokensReturning("plugins" to sequenceOf("bar")), res1)
         assertThat(res2!!, not(sameInstance(res1!!)))
 
         verify(assemblerMock, times(2)).assembleDependenciesFrom(any(), isNull(), any())
@@ -75,8 +85,8 @@ class KotlinBuildScriptDependenciesResolverTest {
     private fun resolve(environment: Environment, previousDependencies: KotlinScriptExternalDependencies?) =
         subject.resolve(EmptyScriptContents, environment, { _, _, _ -> }, previousDependencies).get()
 
-    private fun environmentWithGetScriptSectionTokensReturning(sequence: Sequence<String>): Environment =
-        environmentWithGetScriptSectionTokens { _, _ -> sequence }
+    private fun environmentWithGetScriptSectionTokensReturning(vararg sections: Pair<String, Sequence<String>>): Environment =
+        environmentWithGetScriptSectionTokens { _, section -> sections.find { it.first == section }?.second ?: emptySequence() }
 
     private fun environmentWithGetScriptSectionTokens(function: (CharSequence, String) -> Sequence<String>): Environment =
         mapOf("getScriptSectionTokens" to function)
