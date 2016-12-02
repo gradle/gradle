@@ -25,8 +25,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule;
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRulesContainer;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,9 +36,9 @@ import static com.google.common.collect.Iterables.filter;
 
 public class AntJacocoReport {
 
-    private static final Predicate<JacocoValidationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoValidationRule>() {
+    private static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
         @Override
-        public boolean apply(JacocoValidationRule rule) {
+        public boolean apply(JacocoViolationRule rule) {
             return rule.isEnabled();
         }
     };
@@ -53,7 +53,7 @@ public class AntJacocoReport {
                         final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
                         final FileCollection executionData,
                         final JacocoReportsContainer reports,
-                        final JacocoValidationRulesContainer validationRules) {
+                        final JacocoViolationRulesContainer violationRules) {
         ant.withClasspath(classpath).execute(new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
             public Object doCall(Object it) {
@@ -104,7 +104,7 @@ public class AntJacocoReport {
                                 ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
                             });
                         }
-                        configureCheck(antBuilder, validationRules);
+                        configureCheck(antBuilder, violationRules);
                         return null;
                     }
                 }});
@@ -113,13 +113,13 @@ public class AntJacocoReport {
         });
     }
 
-    private void configureCheck(final GroovyObjectSupport antBuilder, final JacocoValidationRulesContainer validationRules) {
-        if (!validationRules.getRules().isEmpty()) {
-            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !validationRules.isFailOnViolation());
+    private void configureCheck(final GroovyObjectSupport antBuilder, final JacocoViolationRulesContainer violationRules) {
+        if (!violationRules.getRules().isEmpty()) {
+            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !violationRules.isFailOnViolation());
             antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                 @SuppressWarnings("UnusedDeclaration")
                 public Object doCall(Object ignore) {
-                    for (final JacocoValidationRule rule : filter(validationRules.getRules(), RULE_ENABLED_PREDICATE)) {
+                    for (final JacocoViolationRule rule : filter(violationRules.getRules(), RULE_ENABLED_PREDICATE)) {
                         Map<String, Object> ruleArgs = new HashMap<String, Object>();
 
                         if (rule.getScope() != null) {

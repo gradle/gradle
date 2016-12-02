@@ -17,20 +17,21 @@
 package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
+import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold
 import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
 import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdValue
 import spock.lang.Specification
 
-class JacocoValidationRuleImplTest extends Specification {
+class JacocoViolationRuleImplTest extends Specification {
 
-    JacocoValidationRuleImpl rule = new JacocoValidationRuleImpl()
+    JacocoViolationRuleImpl rule = new JacocoViolationRuleImpl()
 
     def "provides expected default field values"() {
         expect:
         rule.enabled
-        !rule.scope
-        rule.includes == []
+        rule.scope == JacocoRuleScope.BUNDLE
+        rule.includes == ['*']
         rule.excludes == []
     }
 

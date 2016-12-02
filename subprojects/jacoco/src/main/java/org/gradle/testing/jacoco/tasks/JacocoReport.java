@@ -39,10 +39,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
-import org.gradle.internal.jacoco.rules.JacocoValidationRulesContainerImpl;
+import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRulesContainer;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -57,7 +57,7 @@ import java.util.concurrent.Callable;
 public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContainer> {
 
     private final JacocoReportsContainer reports;
-    private final JacocoValidationRulesContainer validationRules;
+    private final JacocoViolationRulesContainer violationRules;
 
     private FileCollection executionData;
     private FileCollection sourceDirectories;
@@ -67,7 +67,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
 
     public JacocoReport() {
         reports = getInstantiator().newInstance(JacocoReportsContainerImpl.class, this);
-        validationRules = getInstantiator().newInstance(JacocoValidationRulesContainerImpl.class);
+        violationRules = getInstantiator().newInstance(JacocoViolationRulesContainerImpl.class);
         onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
@@ -104,15 +104,15 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
     }
 
     /**
-     * Return the validation rules set for this task.
+     * Return the violation rules set for this task.
      *
-     * @return Validation rules container
+     * @return Violation rules container
      * @since 3.3
      */
     @Nested
     @Incubating
-    public JacocoValidationRulesContainer getValidationRules() {
-        return validationRules;
+    public JacocoViolationRulesContainer getViolationRules() {
+        return violationRules;
     }
 
     /**
@@ -130,19 +130,22 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
     }
 
     /**
-     * Configures the validation rules for this task.
+     * Configures the violation rules for this task. Requires JaCoCo version >= 0.6.3.
      *
      * @since 3.3
      */
     @Incubating
-    public JacocoValidationRulesContainer validationRules(Closure closure) {
-        return validationRules(new ClosureBackedAction<JacocoValidationRulesContainer>(closure));
+    public JacocoViolationRulesContainer violationRules(Closure closure) {
+        return violationRules(new ClosureBackedAction<JacocoViolationRulesContainer>(closure));
     }
 
+    /**
+     * @since 3.3
+     */
     @Incubating
-    public JacocoValidationRulesContainer validationRules(Action<? super JacocoValidationRulesContainer> configureAction) {
-        configureAction.execute(validationRules);
-        return validationRules;
+    public JacocoViolationRulesContainer violationRules(Action<? super JacocoViolationRulesContainer> configureAction) {
+        configureAction.execute(violationRules);
+        return violationRules;
     }
 
     /**
@@ -227,7 +230,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
             getAllSourceDirs().filter(fileExistsSpec),
             getExecutionData(),
             getReports(),
-            getValidationRules()
+            getViolationRules()
         );
     }
 

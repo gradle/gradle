@@ -18,22 +18,22 @@ package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
 import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule
 import spock.lang.Specification
 
-class JacocoValidationRulesContainerImplTest extends Specification {
+class JacocoViolationRulesContainerImplTest extends Specification {
 
-    JacocoValidationRulesContainerImpl validationRulesContainer = new JacocoValidationRulesContainerImpl()
+    JacocoViolationRulesContainerImpl violationRulesContainer = new JacocoViolationRulesContainerImpl()
 
     def "provides expected default field values"() {
         expect:
-        !validationRulesContainer.failOnViolation
-        validationRulesContainer.rules.empty
+        !violationRulesContainer.failOnViolation
+        violationRulesContainer.rules.empty
     }
 
     def "can add rules"() {
         when:
-        def rule = validationRulesContainer.rule {
+        def rule = violationRulesContainer.rule {
             enabled = false
             scope = JacocoRuleScope.CLASS
             includes = ['**/*.class']
@@ -41,13 +41,13 @@ class JacocoValidationRulesContainerImplTest extends Specification {
         }
 
         then:
-        validationRulesContainer.rules.size() == 1
-        validationRulesContainer.rules[0] == rule
+        violationRulesContainer.rules.size() == 1
+        violationRulesContainer.rules[0] == rule
 
         when:
-        rule = validationRulesContainer.rule(new Action<JacocoValidationRule>() {
+        rule = violationRulesContainer.rule(new Action<JacocoViolationRule>() {
             @Override
-            void execute(JacocoValidationRule jacocoValidationRule) {
+            void execute(JacocoViolationRule jacocoValidationRule) {
                 jacocoValidationRule.with {
                     enabled = true
                     scope = JacocoRuleScope.PACKAGE
@@ -58,13 +58,13 @@ class JacocoValidationRulesContainerImplTest extends Specification {
         })
 
         then:
-        validationRulesContainer.rules.size() == 2
-        validationRulesContainer.rules[1] == rule
+        violationRulesContainer.rules.size() == 2
+        violationRulesContainer.rules[1] == rule
     }
 
     def "returned rules are unmodifiable"() {
         when:
-        validationRulesContainer.rules << new JacocoValidationRuleImpl()
+        violationRulesContainer.rules << new JacocoViolationRuleImpl()
 
         then:
         thrown(UnsupportedOperationException)

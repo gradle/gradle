@@ -22,13 +22,13 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope;
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class JacocoValidationRuleImpl implements JacocoValidationRule {
+public class JacocoViolationRuleImpl implements JacocoViolationRule {
 
     private boolean enabled = true;
     private JacocoRuleScope scope = JacocoRuleScope.BUNDLE;
@@ -103,7 +103,7 @@ public class JacocoValidationRuleImpl implements JacocoValidationRule {
             return false;
         }
 
-        JacocoValidationRuleImpl that = (JacocoValidationRuleImpl) o;
+        JacocoViolationRuleImpl that = (JacocoViolationRuleImpl) o;
 
         if (enabled != that.enabled) {
             return false;
