@@ -33,7 +33,8 @@ class VerifyNoTaskInputChangesTaskExecutionIntegrationTest extends AbstractInteg
 
         expect:
         fails '-Dorg.gradle.tasks.verifyinputs=true', 'someTask'
-        failure.assertHasDescription('The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs.')
+        failure.assertHasDescription('Execution failed for task \':someTask\'.')
+        failure.assertHasCause('The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs.')
 
         where:
         what | expression

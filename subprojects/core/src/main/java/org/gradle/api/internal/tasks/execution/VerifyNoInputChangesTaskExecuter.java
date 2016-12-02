@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.BuildCacheKey;
 
 public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
@@ -41,7 +42,7 @@ public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
         if (beforeExecution != null) {
             BuildCacheKey afterExecution = repository.getStateFor(task).calculateCacheKey();
             if (afterExecution == null || !beforeExecution.getHashCode().equals(afterExecution.getHashCode())) {
-                throw new GradleException("The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs.");
+                throw new TaskExecutionException(task, new GradleException("The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."));
             }
         }
     }
