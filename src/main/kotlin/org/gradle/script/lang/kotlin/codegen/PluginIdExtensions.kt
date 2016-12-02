@@ -74,7 +74,7 @@ fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
                 PluginExtension(id.substringAfter("org.gradle."), id, implementationClass),
                 // And another extension for the full id, e.g., "org.gradle.application"
                 // but since the regular full-stop dot is not a valid member name character in Kotlin,
-                // the ONE DOT LEADER ('\u2024') character is being used as a replacement here.
+                // the ONE DOT LEADER character ('\u2024') is being used as a replacement here.
                 PluginExtension(id.replace('.', '․'), id, implementationClass))
         }
 
