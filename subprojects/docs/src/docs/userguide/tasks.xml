@@ -506,9 +506,9 @@
                         <td>An iterable of input files and directories that represent a Java classpath.
                             This allows the task to ignore irrelevant changes to the property, such as
                             different names for the same files. It is similar to annotating the property
-                            `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly
-                            added to the classpath, and it will consider changes in the order of the
-                            files as a change in the classpath.
+                            <literal>@PathSensitive(RELATIVE)</literal> but it will ignore the names of
+                            JAR files directly added to the classpath, and it will consider changes in the
+                            order of the files as a change in the classpath.
                             <note>
                                 <para>To stay compatible with Gradle versions before 3.2, classpath properties
                                     should also be annotated with <literal>@InputFiles</literal>.
