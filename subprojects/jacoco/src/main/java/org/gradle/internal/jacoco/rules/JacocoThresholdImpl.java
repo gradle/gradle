@@ -66,4 +66,36 @@ public class JacocoThresholdImpl implements JacocoThreshold {
     public void setMaximum(Double maximum) {
         this.maximum = maximum;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JacocoThresholdImpl that = (JacocoThresholdImpl) o;
+
+        if (metric != that.metric) {
+            return false;
+        }
+        if (value != that.value) {
+            return false;
+        }
+        if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) {
+            return false;
+        }
+        return maximum != null ? maximum.equals(that.maximum) : that.maximum == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = metric != null ? metric.hashCode() : 0;
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
+        result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
+        return result;
+    }
 }

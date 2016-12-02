@@ -24,6 +24,7 @@ import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
 import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class JacocoValidationRuleImpl implements JacocoValidationRule {
@@ -61,7 +62,7 @@ public class JacocoValidationRuleImpl implements JacocoValidationRule {
 
     @Override
     public List<String> getIncludes() {
-        return includes;
+        return Collections.unmodifiableList(includes);
     }
 
     @Override
@@ -71,12 +72,12 @@ public class JacocoValidationRuleImpl implements JacocoValidationRule {
 
     @Override
     public List<String> getExcludes() {
-        return excludes;
+        return Collections.unmodifiableList(excludes);
     }
 
     @Override
     public List<JacocoThreshold> getThresholds() {
-        return thresholds;
+        return Collections.unmodifiableList(thresholds);
     }
 
     @Override
@@ -90,5 +91,41 @@ public class JacocoValidationRuleImpl implements JacocoValidationRule {
         configureAction.execute(threshold);
         thresholds.add(threshold);
         return threshold;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JacocoValidationRuleImpl that = (JacocoValidationRuleImpl) o;
+
+        if (enabled != that.enabled) {
+            return false;
+        }
+        if (scope != that.scope) {
+            return false;
+        }
+        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
+            return false;
+        }
+        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
+            return false;
+        }
+        return thresholds != null ? thresholds.equals(that.thresholds) : that.thresholds == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = enabled ? 1 : 0;
+        result = 31 * result + (scope != null ? scope.hashCode() : 0);
+        result = 31 * result + (includes != null ? includes.hashCode() : 0);
+        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
+        result = 31 * result + (thresholds != null ? thresholds.hashCode() : 0);
+        return result;
     }
 }

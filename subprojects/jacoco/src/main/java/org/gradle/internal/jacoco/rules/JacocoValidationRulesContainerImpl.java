@@ -23,6 +23,7 @@ import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRulesContainer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class JacocoValidationRulesContainerImpl implements JacocoValidationRulesContainer {
@@ -42,7 +43,7 @@ public class JacocoValidationRulesContainerImpl implements JacocoValidationRules
 
     @Override
     public List<JacocoValidationRule> getRules() {
-        return rules;
+        return Collections.unmodifiableList(rules);
     }
 
     @Override
