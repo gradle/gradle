@@ -41,7 +41,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {}
+                violationRules {}
             }
         """
 
@@ -56,7 +56,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {}
                 }
             }
@@ -74,7 +74,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         String scope = "${org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope.CLASS.getClass().getName()}.${org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope.CLASS.name()}"
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {
                         scope = $scope
                         includes = ['com.company.*', 'org.gradle.*']
@@ -96,7 +96,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {
                         excludes = ['company', '$testDirectory.name']
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
@@ -121,7 +121,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                     csv.enabled false
                     html.enabled false
                 }
-                validationRules {
+                violationRules {
                     rule {
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
@@ -142,7 +142,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {
                         ${thresholds.join('\n')}
                     }
@@ -170,7 +170,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {
                         ${thresholds.join('\n')}
                     }
@@ -200,7 +200,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {
                         $Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO
                     }
@@ -223,7 +223,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     rule {
                         $Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO
                     }
@@ -246,7 +246,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             jacocoTestReport {
-                validationRules {
+                violationRules {
                     failOnViolation = true
 
                     rule {
@@ -271,7 +271,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             tasks.withType(JacocoReport) {
-                validationRules {
+                violationRules {
                     rule {
                         $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
@@ -297,7 +297,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             $reportTaskName {
-                validationRules {
+                violationRules {
                     rule {
                         $threshold
                     }

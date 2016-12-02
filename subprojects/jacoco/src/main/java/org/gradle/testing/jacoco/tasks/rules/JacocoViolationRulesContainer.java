@@ -24,12 +24,12 @@ import org.gradle.api.tasks.Internal;
 import java.util.List;
 
 /**
- * The validation rules configuration for the {@link org.gradle.testing.jacoco.tasks.JacocoReport} task.
+ * The violation rules configuration for the {@link org.gradle.testing.jacoco.tasks.JacocoReport} task.
  *
  * @since 3.3
  */
 @Incubating
-public interface JacocoValidationRulesContainer {
+public interface JacocoViolationRulesContainer {
 
     void setFailOnViolation(boolean ignore);
 
@@ -40,15 +40,15 @@ public interface JacocoValidationRulesContainer {
     boolean isFailOnViolation();
 
     /**
-     * Gets all validation rules. Defaults to an empty list.
+     * Gets all violation rules. Defaults to an empty list.
      */
     @Internal
-    List<JacocoValidationRule> getRules();
+    List<JacocoViolationRule> getRules();
 
     /**
-     * Adds a validation rule. There's no limitation to the number of rules that can be added.
+     * Adds a violation rule. There's no limitation to the number of rules that can be added.
      */
-    JacocoValidationRule rule(Closure configureClosure);
+    JacocoViolationRule rule(Closure configureClosure);
 
-    JacocoValidationRule rule(Action<? super JacocoValidationRule> configureAction);
+    JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction);
 }

@@ -23,12 +23,12 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * A validation rule.
+ * Jacoco violation rule.
  *
  * @since 3.3
  */
 @Incubating
-public interface JacocoValidationRule {
+public interface JacocoViolationRule {
 
     void setEnabled(boolean enabled);
 

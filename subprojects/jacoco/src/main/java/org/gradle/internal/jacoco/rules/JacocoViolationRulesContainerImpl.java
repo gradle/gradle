@@ -19,17 +19,17 @@ package org.gradle.internal.jacoco.rules;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRule;
-import org.gradle.testing.jacoco.tasks.rules.JacocoValidationRulesContainer;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class JacocoValidationRulesContainerImpl implements JacocoValidationRulesContainer {
+public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 
     private boolean failOnViolation;
-    private final List<JacocoValidationRule> rules = new ArrayList<JacocoValidationRule>();
+    private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
 
     public void setFailOnViolation(boolean failOnViolation) {
         this.failOnViolation = failOnViolation;
@@ -40,18 +40,18 @@ public class JacocoValidationRulesContainerImpl implements JacocoValidationRules
     }
 
     @Override
-    public List<JacocoValidationRule> getRules() {
+    public List<JacocoViolationRule> getRules() {
         return Collections.unmodifiableList(rules);
     }
 
     @Override
-    public JacocoValidationRule rule(Closure configureClosure) {
+    public JacocoViolationRule rule(Closure configureClosure) {
         return rule(ClosureBackedAction.of(configureClosure));
     }
 
     @Override
-    public JacocoValidationRule rule(Action<? super JacocoValidationRule> configureAction) {
-        JacocoValidationRule validationRule = new JacocoValidationRuleImpl();
+    public JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction) {
+        JacocoViolationRule validationRule = new JacocoViolationRuleImpl();
         configureAction.execute(validationRule);
         rules.add(validationRule);
         return validationRule;
