@@ -250,6 +250,45 @@ class FileSizer extends ArtifactTransform {
             assert it.text =~ /Output \w/
         }
     }
+
+    def "transform can generate an empty output"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+
+            ${configurationAndTransform('EmptyOutput')}
+
+            class EmptyOutput extends ArtifactTransform {
+            
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    return []
+                }
+            }
+"""
+
+        when:
+        succeeds "resolve"
+
+        then:
+        file("build/libs").assertIsEmptyDir()
+    }
+
     def "transform can produce multiple outputs with different attributes for a single input"() {
         given:
         buildFile << """
