@@ -163,7 +163,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private synchronized BuildCache getCache() {
         if (cache == null) {
-            cache = buildCacheConfiguration.createCache(startParameter);
+            cache = buildCacheConfiguration.getCache();
             LOGGER.info("Using {}", cache.getDescription());
         }
         return cache;

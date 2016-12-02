@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.BuildCache
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.BuildCacheConfigurationInternal
-import org.gradle.caching.internal.BuildCacheFactory
 import org.gradle.caching.internal.tasks.TaskOutputPacker
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import spock.lang.Specification
@@ -44,7 +43,6 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
     def buildCache = Mock(BuildCache)
-    def buildCacheFactory = Mock(BuildCacheFactory)
     def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal)
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
@@ -71,7 +69,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheConfiguration.createCache(_) >> buildCache
+        1 * buildCacheConfiguration.getCache() >> buildCache
         1 * buildCache.getDescription() >> "test"
 
         then:
@@ -99,7 +97,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheConfiguration.createCache(_) >> buildCache
+        1 * buildCacheConfiguration.getCache() >> buildCache
         1 * buildCache.getDescription() >> "test"
 
         then:
@@ -141,7 +139,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskState.getFailure() >> null
 
         then:
-        1 * buildCacheConfiguration.createCache(_) >> buildCache
+        1 * buildCacheConfiguration.getCache() >> buildCache
         1 * buildCache.getDescription() >> "test"
 
         then:
@@ -166,7 +164,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheConfiguration.createCache(_) >> buildCache
+        1 * buildCacheConfiguration.getCache() >> buildCache
         1 * buildCache.getDescription() >> "test"
 
         then:
@@ -276,7 +274,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheConfiguration.createCache(_) >> buildCache
+        1 * buildCacheConfiguration.getCache() >> buildCache
         1 * buildCache.getDescription() >> "test"
 
         then:
@@ -310,7 +308,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheConfiguration.createCache(_) >> buildCache
+        1 * buildCacheConfiguration.getCache() >> buildCache
         1 * buildCache.getDescription() >> "test"
 
         then:

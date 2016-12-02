@@ -28,11 +28,13 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final boolean pullAllowed;
     private final boolean pushAllowed;
     private final CacheRepository cacheRepository;
+    private final StartParameter startParameter;
     private BuildCacheFactory factory;
-    private BuildCache cacheCreated;
+    private BuildCache cache;
 
-    public DefaultBuildCacheConfiguration(CacheRepository cacheRepository) {
+    public DefaultBuildCacheConfiguration(CacheRepository cacheRepository, StartParameter startParameter) {
         this.cacheRepository = cacheRepository;
+        this.startParameter = startParameter;
         useLocalCache();
         this.pullAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
         this.pushAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
@@ -71,12 +73,11 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public BuildCache createCache(StartParameter startParameter) {
-        if (cacheCreated != null) {
-            throw new IllegalStateException("Cache already created");
+    public BuildCache getCache() {
+        // TODO:LPTR Instantiate this as a service instead
+        if (cache == null) {
+            this.cache = new ResilientBuildCacheWrapper(factory.createCache(startParameter), 3);
         }
-        BuildCache cache = new ResilientBuildCacheWrapper(factory.createCache(startParameter), 3);
-        this.cacheCreated = cache;
         return cache;
     }
 
@@ -92,6 +93,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(cacheCreated).stop();
+        CompositeStoppable.stoppable(cache).stop();
     }
 }
