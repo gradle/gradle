@@ -21,16 +21,16 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class ErrorLoggingBuildCacheDecorator implements BuildCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ErrorLoggingBuildCacheDecorator.class);
+/**
+ * Ignores {@link BuildCacheException} exceptions.
+ */
+public class LenientBuildCacheDecorator implements BuildCache {
     private final BuildCache delegate;
 
-    public ErrorLoggingBuildCacheDecorator(BuildCache delegate) {
+    public LenientBuildCacheDecorator(BuildCache delegate) {
         this.delegate = delegate;
     }
 
@@ -39,7 +39,7 @@ public class ErrorLoggingBuildCacheDecorator implements BuildCache {
         try {
             return delegate.load(key, reader);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not load cached output for cache key {}", key, e);
+            // Assume cache didn't have it.
             return false;
         }
     }
@@ -49,7 +49,7 @@ public class ErrorLoggingBuildCacheDecorator implements BuildCache {
         try {
             delegate.store(key, writer);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not cache results for cache key {}", key, e);
+            // Assume its OK to not push anything.
         }
     }
 

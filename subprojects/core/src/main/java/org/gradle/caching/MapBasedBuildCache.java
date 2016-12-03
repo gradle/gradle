@@ -49,22 +49,14 @@ public class MapBasedBuildCache implements BuildCache {
         if (bytes == null) {
             return false;
         }
-        try {
-            reader.readFrom(new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            throw new BuildCacheException(String.format("loading key '%s' in %s", key, getDescription()), e);
-        }
+        reader.readFrom(new ByteArrayInputStream(bytes));
         return true;
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter output) throws BuildCacheException {
         StreamByteBuffer buffer = new StreamByteBuffer();
-        try {
-            output.writeTo(buffer.getOutputStream());
-        } catch (IOException e) {
-            throw new BuildCacheException(String.format("storing key '%s' in %s", key, getDescription()), e);
-        }
+        output.writeTo(buffer.getOutputStream());
         delegate.put(key.getHashCode(), buffer.readAsByteArray());
     }
 

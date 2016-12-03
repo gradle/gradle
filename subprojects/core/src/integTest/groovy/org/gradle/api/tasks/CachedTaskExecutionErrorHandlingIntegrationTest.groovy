@@ -51,7 +51,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                         }
             
                         @Override
-                        void close() throws BuildCacheException {
+                        void close() throws IOException {
                         }
                     }
                 }
@@ -66,17 +66,19 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     def "cache switches off after third error for the current build"() {
-        def lines
+        // Populate cache
+        setupExecuter()
+        succeeds "assemble"
+        succeeds "clean"
+
         when:
         setupExecuter()
+        executer.withStackTraceChecksDisabled()
         succeeds "assemble", "-Dfail"
-        lines = output.readLines()
-
         then:
-        lines.any { it.matches(/Could not load cache entry .*: Unable to read .*/) }
-        lines.any { it.matches(/Could not store cache entry .*: Unable to write .*/) }
-        lines.any { it.matches(/Failing cache backend is now disabled because 3 errors were encountered/) }
-        lines.any { it.matches(/Failing cache backend was disabled during the build after encountering 3 errors\./) }
+        output.count("Could not load cache entry") + output.count("Could not store cache entry") == 3
+        output.contains("Failing cache backend is now disabled because 3 errors were encountered")
+        output.contains("Failing cache backend was disabled during the build after encountering 3 errors.")
 
         expect:
         succeeds "clean"
@@ -84,13 +86,10 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         when:
         setupExecuter()
         succeeds "assemble"
-        lines = output.readLines()
 
         then:
-        ! lines.any { it.matches(/Could not load cache entry .*: Unable to read .*/) }
-        ! lines.any { it.matches(/Could not store cache entry .*: Unable to write .*/) }
-        ! lines.any { it.matches(/Failing cache backend is now disabled because 3 errors were encountered/) }
-        ! lines.any { it.matches(/Failing cache backend was disabled during the build after encountering 3 errors\./) }
+        !output.contains("Failing cache backend is now disabled")
+        !output.contains("Failing cache backend was disabled during the build")
     }
 
     private void setupExecuter() {

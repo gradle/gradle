@@ -24,82 +24,103 @@ import org.gradle.caching.BuildCacheKey
 import spock.lang.Specification
 
 class ShortCircuitingErrorHandlerBuildCacheWrapperTest extends Specification {
-    def cacheKey = Mock(BuildCacheKey)
+    def key = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)
+    def delegate = Mock(BuildCache)
+    def maxFailures = 2
+    def wrapper = new ShortCircuitingErrorHandlerBuildCacheWrapper(maxFailures, delegate)
 
-    def "stops calling through after defined number of read errors"() {
-        def delegate = Mock(BuildCache)
-        def wrapper = new ShortCircuitingErrorHandlerBuildCacheWrapper(delegate, 2)
-        boolean found
-
-        when:
-        found = wrapper.load(cacheKey, reader)
-        then:
-        ! found
-        1 * delegate.load(cacheKey, reader) >> { throw new BuildCacheException("Error") }
-        0 * _
-
-        when:
-        found = wrapper.load(cacheKey, reader)
-        then:
-        ! found
-        1 * delegate.load(cacheKey, reader) >> { throw new BuildCacheException("Error") }
-        1 * delegate.getDescription() >> "Test build cache"
-        0 * _
-
-        when:
-        found = wrapper.load(cacheKey, reader)
-        then:
-        ! found
-        0 * _
-
-        when:
-        found = wrapper.load(cacheKey, reader)
-        then:
-        ! found
-        0 * _
-
+    def "delegates to delegate"() {
         when:
         wrapper.close()
         then:
         1 * delegate.close()
-        1 * delegate.getDescription() >> "Test build cache"
+        0 * _
+        when:
+        wrapper.getDescription()
+        then:
+        1 * delegate.getDescription()
+        0 * _
+        when:
+        wrapper.store(key, writer)
+        then:
+        1 * delegate.store(key, writer)
+        0 * _
+        when:
+        wrapper.load(key, reader)
+        then:
+        1 * delegate.load(key, reader)
+        0 * _
+    }
+
+    def "stops calling through after defined number of read errors"() {
+        when:
+        (maxFailures+1).times {
+            try {
+                wrapper.load(key, reader)
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        wrapper.store(key, writer)
+
+        then:
+        maxFailures * delegate.load(key, reader) >> { throw new BuildCacheException("Error") }
+        _ * delegate.getDescription() >> "delegate"
         0 * _
     }
 
     def "stops calling through after defined number of write errors"() {
-        def delegate = Mock(BuildCache)
-        def wrapper = new ShortCircuitingErrorHandlerBuildCacheWrapper(delegate, 2)
-
         when:
-        wrapper.store(cacheKey, writer)
-        then:
-        1 * delegate.store(cacheKey, writer) >> { throw new BuildCacheException("Error") }
-        0 * _
+        (maxFailures+1).times {
+            try {
+                wrapper.store(key, writer)
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        wrapper.load(key, reader)
 
-        when:
-        wrapper.store(cacheKey, writer)
         then:
-        1 * delegate.store(cacheKey, writer) >> { throw new BuildCacheException("Error") }
-        1 * delegate.getDescription() >> "Test build cache"
+        maxFailures * delegate.store(key, writer) >> { throw new BuildCacheException("Error") }
+        _ * delegate.getDescription() >> "delegate"
         0 * _
+    }
 
+    def "does not suppress RuntimeException from load"() {
+        given:
+        delegate.load(key, reader) >> { throw new RuntimeException() }
         when:
-        wrapper.store(cacheKey, writer)
+        wrapper.load(key, reader)
         then:
-        0 * _
+        thrown(RuntimeException)
+    }
 
+    def "does not suppress BuildCacheException from load"() {
+        given:
+        delegate.load(key, reader) >> { throw new BuildCacheException() }
         when:
-        wrapper.store(cacheKey, writer)
+        wrapper.load(key, reader)
         then:
-        0 * _
+        thrown(BuildCacheException)
+    }
 
+    def "does not suppress RuntimeException from store"() {
+        given:
+        delegate.store(key, writer) >> { throw new RuntimeException() }
         when:
-        wrapper.close()
+        wrapper.store(key, writer)
         then:
-        1 * delegate.close()
-        1 * delegate.getDescription() >> "Test build cache"
-        0 * _
+        thrown(RuntimeException)
+    }
+
+    def "does not suppress BuildCacheException from store"() {
+        given:
+        delegate.store(key, writer) >> { throw new BuildCacheException() }
+        when:
+        wrapper.store(key, writer)
+        then:
+        thrown(BuildCacheException)
     }
 }

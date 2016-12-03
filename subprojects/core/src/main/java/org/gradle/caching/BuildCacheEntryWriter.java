@@ -18,7 +18,6 @@ package org.gradle.caching;
 
 import org.gradle.api.Incubating;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -31,5 +30,5 @@ public interface BuildCacheEntryWriter {
     /**
      * Serialize a build cache entry to the given stream.
      */
-    void writeTo(OutputStream output) throws IOException;
+    void writeTo(OutputStream output);
 }

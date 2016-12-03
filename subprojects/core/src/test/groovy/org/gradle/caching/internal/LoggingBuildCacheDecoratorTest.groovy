@@ -23,29 +23,31 @@ import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import spock.lang.Specification
 
-class ErrorLoggingBuildCacheDecoratorTest extends Specification {
+class LoggingBuildCacheDecoratorTest extends Specification {
     def delegate = Mock(BuildCache)
     def key = Mock(BuildCacheKey)
     def writer = Mock(BuildCacheEntryWriter)
     def reader = Mock(BuildCacheEntryReader)
-    def decorator = new ErrorLoggingBuildCacheDecorator(delegate)
+    def decorator = new LoggingBuildCacheDecorator(delegate)
 
     def "delegates to delegate"() {
         when:
         decorator.close()
         then:
         1 * delegate.close()
-        0 * _
+
         when:
         decorator.getDescription()
         then:
         1 * delegate.getDescription()
         0 * _
+
         when:
         decorator.store(key, writer)
         then:
         1 * delegate.store(key, writer)
         0 * _
+
         when:
         decorator.load(key, reader)
         then:
@@ -53,35 +55,39 @@ class ErrorLoggingBuildCacheDecoratorTest extends Specification {
         0 * _
     }
 
-    def "load returns false if the delegate throws BuildCacheException"() {
-        delegate.load(key, reader) >> { throw new BuildCacheException() }
-        expect:
-        !decorator.load(key, reader)
+    def "does not suppress RuntimeException from load"() {
+        given:
+        delegate.load(key, reader) >> { throw new RuntimeException() }
+        when:
+        decorator.load(key, reader)
+        then:
+        thrown(RuntimeException)
     }
 
-    def "store does not throw an exception if the delegate throws BuildCacheException"() {
+    def "does not suppress BuildCacheException from load"() {
+        given:
+        delegate.load(key, reader) >> { throw new BuildCacheException() }
+        when:
+        decorator.load(key, reader)
+        then:
+        thrown(BuildCacheException)
+    }
+
+    def "does not suppress RuntimeException from store"() {
+        given:
+        delegate.store(key, writer) >> { throw new RuntimeException() }
+        when:
+        decorator.store(key, writer)
+        then:
+        thrown(RuntimeException)
+    }
+
+    def "does not suppress BuildCacheException from store"() {
+        given:
         delegate.store(key, writer) >> { throw new BuildCacheException() }
         when:
         decorator.store(key, writer)
         then:
-        noExceptionThrown()
-    }
-
-    def "does not suppress non-BuildCacheException exceptions from load"() {
-        delegate.load(key, reader) >> { throw new RuntimeException("no load") }
-        when:
-        decorator.load(key, reader)
-        then:
-        RuntimeException e = thrown()
-        e.message == "no load"
-    }
-
-    def "does not suppress non-BuildCacheException exceptions from store"() {
-        delegate.store(key, writer) >> { throw new RuntimeException("no store") }
-        when:
-        decorator.store(key, writer)
-        then:
-        RuntimeException e = thrown()
-        e.message == "no store"
+        thrown(BuildCacheException)
     }
 }

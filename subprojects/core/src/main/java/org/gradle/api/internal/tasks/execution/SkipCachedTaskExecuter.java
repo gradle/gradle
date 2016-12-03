@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -98,8 +99,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                 if (taskState.isAllowedToUseCachedResults()) {
                                     boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                         @Override
-                                        public void readFrom(final InputStream input) throws IOException {
-                                            packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
+                                        public void readFrom(final InputStream input) {
+                                            try {
+                                                packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
+                                            } catch (IOException e) {
+                                                throw new UncheckedIOException(e);
+                                            }
                                             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                         }
                                     });
@@ -137,9 +142,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (state.getFailure() == null) {
                     getCache().store(cacheKey, new BuildCacheEntryWriter() {
                         @Override
-                        public void writeTo(OutputStream output) throws IOException {
+                        public void writeTo(OutputStream output) {
                             LOGGER.info("Packing {}", task.getPath());
-                            packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+                            try {
+                                packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
                         }
                     });
                 } else {

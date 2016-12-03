@@ -39,7 +39,7 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
-    public ShortCircuitingErrorHandlerBuildCacheWrapper(BuildCache delegate, int maxErrorCount) {
+    public ShortCircuitingErrorHandlerBuildCacheWrapper(int maxErrorCount, BuildCache delegate) {
         this.delegate = delegate;
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
@@ -50,8 +50,9 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
         if (enabled.get()) {
             try {
                 return delegate.load(key, reader);
-            } catch (BuildCacheException ex) {
-                handleErrorDuring("load", key, ex);
+            } catch (BuildCacheException e) {
+                recordFailure();
+                throw e;
             }
         }
         return false;
@@ -62,8 +63,9 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
         if (enabled.get()) {
             try {
                 delegate.store(key, writer);
-            } catch (BuildCacheException ex) {
-                handleErrorDuring("store", key, ex);
+            } catch (BuildCacheException e) {
+                recordFailure();
+                throw e;
             }
         }
     }
@@ -83,16 +85,7 @@ public class ShortCircuitingErrorHandlerBuildCacheWrapper implements BuildCache 
         delegate.close();
     }
 
-    private void handleErrorDuring(String operation, BuildCacheKey cacheKey, BuildCacheException exception) {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Could not {} cache entry {}: {}",
-                operation, cacheKey, exception.getMessage(), exception
-            );
-        } else {
-            LOGGER.warn("Could not {} cache entry {}: {}",
-                operation, cacheKey, exception.getMessage()
-            );
-        }
+    private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
             if (enabled.compareAndSet(true, false)) {
                 LOGGER.warn("{} is now disabled because {} errors were encountered", getDescription(), maxErrorCount);

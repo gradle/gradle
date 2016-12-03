@@ -76,7 +76,10 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public BuildCache getCache() {
         // TODO:LPTR Instantiate this as a service instead
         if (cache == null) {
-            this.cache = new ErrorLoggingBuildCacheDecorator(new ShortCircuitingErrorHandlerBuildCacheWrapper(factory.createCache(startParameter), 3));
+            this.cache = new LenientBuildCacheDecorator(
+                new ShortCircuitingErrorHandlerBuildCacheWrapper(3,
+                    new LoggingBuildCacheDecorator(
+                        factory.createCache(startParameter))));
         }
         return cache;
     }

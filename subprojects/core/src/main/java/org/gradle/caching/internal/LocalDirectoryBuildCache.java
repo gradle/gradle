@@ -88,8 +88,6 @@ public class LocalDirectoryBuildCache implements BuildCache, Closeable {
                         try {
                             reader.readFrom(stream);
                             return true;
-                        } catch (Throwable ex) {
-                            throw closer.rethrow(ex);
                         } finally {
                             closer.close();
                         }
@@ -113,8 +111,6 @@ public class LocalDirectoryBuildCache implements BuildCache, Closeable {
                     OutputStream output = closer.register(new FileOutputStream(file));
                     try {
                         result.writeTo(output);
-                    } catch (Throwable ex) {
-                        throw closer.rethrow(ex);
                     } finally {
                         closer.close();
                     }
