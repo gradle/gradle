@@ -18,8 +18,8 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.cache.internal.DefaultBuildCacheKeyBuilder
-import org.gradle.cache.internal.DefaultBuildCacheKeyBuilder.ByteArrayToStringer
+import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder
+import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder.ByteArrayToStringer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 
 pluginManager.withPlugin("com.gradle.build-scan") {
