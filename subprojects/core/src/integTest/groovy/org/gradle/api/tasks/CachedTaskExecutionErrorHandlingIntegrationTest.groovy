@@ -66,11 +66,6 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     def "cache switches off after third error for the current build"() {
-        // Populate cache
-        setupExecuter()
-        succeeds "assemble"
-        succeeds "clean"
-
         when:
         setupExecuter()
         executer.withStackTraceChecksDisabled()
