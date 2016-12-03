@@ -78,6 +78,8 @@ public class HttpBuildCache implements BuildCache {
                 throw new BuildCacheException(String.format("HTTP cache returned status %d: %s for key '%s' from %s", statusCode, statusLine.getReasonPhrase(), key, getDescription()));
             }
         } catch (IOException e) {
+            // TODO: We should consider different types of exceptions as fatal/recoverable.
+            // Right now, everything is considered recoverable.
             throw new BuildCacheException(String.format("loading key '%s' from %s", key, getDescription()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
@@ -121,6 +123,8 @@ public class HttpBuildCache implements BuildCache {
                 LOGGER.debug("Response for PUT {}: {}", uri, response.getStatusLine());
             }
         } catch (IOException e) {
+            // TODO: We should consider different types of exceptions as fatal/recoverable.
+            // Right now, everything is considered recoverable.
             throw new BuildCacheException(String.format("storing key '%s' in %s", key, getDescription()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
