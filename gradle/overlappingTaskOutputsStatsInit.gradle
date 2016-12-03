@@ -15,7 +15,6 @@
  */
 
 import org.gradle.api.internal.tasks.*
-import org.gradle.api.internal.tasks.properties.*
 
 def taskInfos = []
 
