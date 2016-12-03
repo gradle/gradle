@@ -47,7 +47,7 @@ fi]]></param>
       <build-trigger id="vcsTrigger" type="vcsTrigger">
         <parameters>
           <param name="branchFilter"><![CDATA[+:*
--:<default>		
+-:master		
 -:*-noci		
 -:*-no-ci]]></param>
           <param name="quietPeriodMode" value="DO_NOT_USE" />
