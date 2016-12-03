@@ -45,7 +45,6 @@ import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
 import org.junit.Assume
-
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
@@ -169,6 +168,14 @@ apply plugin: SomePlugin
             import org.gradle.api.logging.LogLevel;
 
             public class SubclassTask extends DefaultTask {
+                public SubclassTask() {
+                    // These methods changed in 3.2 in a backwards compatible way, but they
+                    // leak internal types that cannot be moved without causing a breakage.
+                    getInputs().file("someFile");
+                    getInputs().files("anotherFile", "yetAnotherFile");
+                    getInputs().dir("someDir");
+                }
+                
                 @TaskAction
                 public void doGet() {
                     // Note: not all of these specialise at time of writing, but may do in the future
