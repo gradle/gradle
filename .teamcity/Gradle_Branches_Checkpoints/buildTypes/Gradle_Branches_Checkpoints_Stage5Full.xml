@@ -60,7 +60,8 @@ fi]]></param>
     <build-triggers>
       <build-trigger id="vcsTrigger" type="vcsTrigger">
         <parameters>
-          <param name="branchFilter" value="+:refs/pull/*/head" />
+          <param name="branchFilter"><![CDATA[+:refs/pull/*/head
+-:<default>]]></param>
           <param name="quietPeriodMode" value="DO_NOT_USE" />
           <param name="triggerRules"><![CDATA[+:user=adammurdoch;root=Gradle_Branches_GradleInternalPRs:**
 +:user=big-guy;root=Gradle_Branches_GradleInternalPRs:**
