@@ -17,40 +17,17 @@
 package org.gradle.caching.internal
 
 import org.gradle.caching.BuildCache
-import org.gradle.caching.BuildCacheEntryReader
-import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
-import org.gradle.caching.BuildCacheKey
-import spock.lang.Specification
 
-class LenientBuildCacheDecoratorTest extends Specification {
-    def delegate = Mock(BuildCache)
-    def key = Mock(BuildCacheKey)
-    def writer = Mock(BuildCacheEntryWriter)
-    def reader = Mock(BuildCacheEntryReader)
+class LenientBuildCacheDecoratorTest extends AbstractBuildCacheDecoratorTest {
     def decorator = new LenientBuildCacheDecorator(delegate)
 
-    def "delegates to delegate"() {
-        when:
-        decorator.close()
-        then:
-        1 * delegate.close()
-        0 * _
-        when:
-        decorator.getDescription()
-        then:
-        1 * delegate.getDescription()
-        0 * _
-        when:
-        decorator.store(key, writer)
-        then:
-        1 * delegate.store(key, writer)
-        0 * _
-        when:
-        decorator.load(key, reader)
-        then:
-        1 * delegate.load(key, reader)
-        0 * _
+    BuildCache getDecorator() {
+        return decorator
+    }
+
+    List getExceptions() {
+        [ new RuntimeException() ]
     }
 
     def "load returns false if the delegate throws BuildCacheException"() {

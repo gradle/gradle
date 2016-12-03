@@ -17,77 +17,11 @@
 package org.gradle.caching.internal
 
 import org.gradle.caching.BuildCache
-import org.gradle.caching.BuildCacheEntryReader
-import org.gradle.caching.BuildCacheEntryWriter
-import org.gradle.caching.BuildCacheException
-import org.gradle.caching.BuildCacheKey
-import spock.lang.Specification
 
-class LoggingBuildCacheDecoratorTest extends Specification {
-    def delegate = Mock(BuildCache)
-    def key = Mock(BuildCacheKey)
-    def writer = Mock(BuildCacheEntryWriter)
-    def reader = Mock(BuildCacheEntryReader)
+class LoggingBuildCacheDecoratorTest extends AbstractBuildCacheDecoratorTest {
     def decorator = new LoggingBuildCacheDecorator(delegate)
 
-    def "delegates to delegate"() {
-        when:
-        decorator.close()
-        then:
-        1 * delegate.close()
-
-        when:
-        decorator.getDescription()
-        then:
-        1 * delegate.getDescription()
-        0 * _
-
-        when:
-        decorator.store(key, writer)
-        then:
-        1 * delegate.store(key, writer)
-        0 * _
-
-        when:
-        decorator.load(key, reader)
-        then:
-        1 * delegate.load(key, reader)
-        0 * _
-    }
-
-    def "does not suppress RuntimeException from load"() {
-        given:
-        delegate.load(key, reader) >> { throw new RuntimeException() }
-        when:
-        decorator.load(key, reader)
-        then:
-        thrown(RuntimeException)
-    }
-
-    def "does not suppress BuildCacheException from load"() {
-        given:
-        delegate.load(key, reader) >> { throw new BuildCacheException() }
-        when:
-        decorator.load(key, reader)
-        then:
-        thrown(BuildCacheException)
-    }
-
-    def "does not suppress RuntimeException from store"() {
-        given:
-        delegate.store(key, writer) >> { throw new RuntimeException() }
-        when:
-        decorator.store(key, writer)
-        then:
-        thrown(RuntimeException)
-    }
-
-    def "does not suppress BuildCacheException from store"() {
-        given:
-        delegate.store(key, writer) >> { throw new BuildCacheException() }
-        when:
-        decorator.store(key, writer)
-        then:
-        thrown(BuildCacheException)
+    BuildCache getDecorator() {
+        return decorator
     }
 }
