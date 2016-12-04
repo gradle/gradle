@@ -27,12 +27,22 @@ public class DefaultMemoryResourceManager implements MemoryResourceManager {
     }
 
     @Override
-    public void addListener(MemoryStatusListener listener) {
+    public void addListener(JvmMemoryStatusListener listener) {
         listenerManager.addListener(listener);
     }
 
     @Override
-    public void removeListener(MemoryStatusListener listener) {
+    public void addListener(OsMemoryStatusListener listener) {
+        listenerManager.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(JvmMemoryStatusListener listener) {
+        listenerManager.removeListener(listener);
+    }
+
+    @Override
+    public void removeListener(OsMemoryStatusListener listener) {
         listenerManager.removeListener(listener);
     }
 }

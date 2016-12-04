@@ -19,7 +19,7 @@ package org.gradle.process.internal.health.memory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandleFactory;
 
-public class MemoryInfo implements MemoryStatus {
+public class MemoryInfo {
 
     private final ExecHandleFactory execHandleFactory;
     private final long totalMemory; //this does not change
@@ -32,7 +32,6 @@ public class MemoryInfo implements MemoryStatus {
     /**
      * Max memory that this process can commit in bytes. Always returns the same value because maximum memory is determined at jvm start.
      */
-    @Override
     public long getMaxMemory() {
         return totalMemory;
     }
@@ -40,7 +39,6 @@ public class MemoryInfo implements MemoryStatus {
     /**
      * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is <= {@link #getMaxMemory()}
      */
-    @Override
     public long getCommittedMemory() {
         //querying runtime for each invocation
         return Runtime.getRuntime().totalMemory();
@@ -51,8 +49,7 @@ public class MemoryInfo implements MemoryStatus {
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
-    @Override
-    public long getTotalPhysicalMemory() {
+    public long getTotalPhysicalMemory() throws UnsupportedOperationException {
         return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", "TotalPhysicalMemorySize", Long.class);
     }
 
@@ -61,8 +58,7 @@ public class MemoryInfo implements MemoryStatus {
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
-    @Override
-    public long getFreePhysicalMemory() {
+    public long getFreePhysicalMemory() throws UnsupportedOperationException {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
             return new VmstatAvailableMemory(execHandleFactory).get();
@@ -72,7 +68,11 @@ public class MemoryInfo implements MemoryStatus {
         return new MBeanAvailableMemory().get();
     }
 
-    public MemoryStatus getSnapshot() {
-        return new MemoryStatusSnapshot(getMaxMemory(), getCommittedMemory(), getTotalPhysicalMemory(), getFreePhysicalMemory());
+    public JvmMemoryStatus getJvmSnapshot() {
+        return new JvmMemoryStatusSnapshot(getMaxMemory(), getCommittedMemory());
+    }
+
+    public OsMemoryStatus getOsSnapshot() throws UnsupportedOperationException {
+        return new OsMemoryStatusSnapshot(getTotalPhysicalMemory(), getFreePhysicalMemory());
     }
 }

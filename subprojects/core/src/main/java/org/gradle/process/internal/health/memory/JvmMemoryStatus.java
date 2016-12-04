@@ -16,14 +16,17 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface MemoryResourceManager {
+/**
+ * Current JVM memory status.
+ */
+public interface JvmMemoryStatus {
+    /**
+     * @return Current JVM maximum heap size in bytes
+     */
+    long getMaxMemory();
 
-    void addListener(JvmMemoryStatusListener listener);
-
-    void addListener(OsMemoryStatusListener listener);
-
-    void removeListener(JvmMemoryStatusListener listener);
-
-    void removeListener(OsMemoryStatusListener listener);
-
+    /**
+     * @return Current JVM committed heap size in bytes
+     */
+    long getCommittedMemory();
 }

@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
-import org.gradle.process.internal.health.memory.MemoryStatus
+import org.gradle.process.internal.health.memory.OsMemoryStatus
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
@@ -27,7 +27,7 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
 
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
     private static final long ONE_GIG = 1024 * 1024 * 1024
-    private final MemoryStatus mockMemoryStatus = Mock(MemoryStatus)
+    private final OsMemoryStatus mockMemoryStatus = Mock(OsMemoryStatus)
 
     def setup() {
         _ * mockMemoryStatus.totalPhysicalMemory >> { 16 * ONE_GIG }
@@ -38,7 +38,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(0)
 
         when:
-        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
+        expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
@@ -49,7 +49,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
 
         when:
-        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
+        expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
@@ -61,7 +61,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
         when:
         1 * mockMemoryStatus.freePhysicalMemory >> { 0 }
-        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
+        expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -75,7 +75,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
         when:
         1 * mockMemoryStatus.getFreePhysicalMemory() >> { ONE_GIG }
-        expirationStrategy.onMemoryStatusNotification(mockMemoryStatus)
+        expirationStrategy.onOsMemoryStatus(mockMemoryStatus)
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()

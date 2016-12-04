@@ -16,22 +16,18 @@
 
 package org.gradle.process.internal.health.memory;
 
-public class MemoryStatusSnapshot implements MemoryStatus {
-    private final long maxMemory;
+public class JvmMemoryStatusSnapshot implements JvmMemoryStatus {
+    private final long maximumMemory;
     private final long committedMemory;
-    private final long totalPhysicalMemory;
-    private final long freePhysicalMemory;
 
-    public MemoryStatusSnapshot(long maxMemory, long committedMemory, long totalPhysicalMemory, long freePhysicalMemory) {
-        this.maxMemory = maxMemory;
-        this.committedMemory = committedMemory;
-        this.totalPhysicalMemory = totalPhysicalMemory;
-        this.freePhysicalMemory = freePhysicalMemory;
+    public JvmMemoryStatusSnapshot(long maximumMemory, long commitedMemory) {
+        this.maximumMemory = maximumMemory;
+        this.committedMemory = commitedMemory;
     }
 
     @Override
     public long getMaxMemory() {
-        return maxMemory;
+        return maximumMemory;
     }
 
     @Override
@@ -40,17 +36,7 @@ public class MemoryStatusSnapshot implements MemoryStatus {
     }
 
     @Override
-    public long getTotalPhysicalMemory() {
-        return totalPhysicalMemory;
-    }
-
-    @Override
-    public long getFreePhysicalMemory() {
-        return freePhysicalMemory;
-    }
-
-    @Override
     public String toString() {
-        return "{ Max: " + maxMemory + ", Committed: " + committedMemory + ", TotalPhysical: " + totalPhysicalMemory + " FreePhysical: " + freePhysicalMemory + " }";
+        return "{Maximum: " + maximumMemory + ", Committed: " + committedMemory + '}';
     }
 }

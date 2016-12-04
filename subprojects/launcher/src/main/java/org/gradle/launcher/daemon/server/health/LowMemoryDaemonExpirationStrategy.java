@@ -22,17 +22,19 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.process.internal.health.memory.MemoryStatus;
-import org.gradle.process.internal.health.memory.MemoryStatusListener;
+import org.gradle.process.internal.health.memory.OsMemoryStatus;
+import org.gradle.process.internal.health.memory.OsMemoryStatusListener;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
-/** An expiry strategy which only triggers when system memory falls below a threshold. */
-public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy, MemoryStatusListener {
+/**
+ * An expiry strategy which only triggers when system memory falls below a threshold.
+ */
+public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy, OsMemoryStatusListener {
     private ReentrantLock lock = new ReentrantLock();
-    private MemoryStatus memoryStatus;
+    private OsMemoryStatus memoryStatus;
     private final double minFreeMemoryPercentage;
     private long memoryThresholdInBytes;
     private static final Logger LOG = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
@@ -71,15 +73,14 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     }
 
     @Override
-    public void onMemoryStatusNotification(MemoryStatus memoryStatus) {
+    public void onOsMemoryStatus(OsMemoryStatus newStatus) {
         lock.lock();
         try {
-            LOG.debug("Received memory status update: " + memoryStatus.toString());
-            this.memoryStatus = memoryStatus;
+            LOG.debug("Received memory status update: " + newStatus.toString());
+            this.memoryStatus = newStatus;
             this.memoryThresholdInBytes = normalizeThreshold((long) (memoryStatus.getTotalPhysicalMemory() * minFreeMemoryPercentage), MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
         } finally {
             lock.unlock();
         }
-
     }
 }
