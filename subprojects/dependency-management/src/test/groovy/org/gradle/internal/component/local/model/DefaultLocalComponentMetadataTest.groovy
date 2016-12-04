@@ -20,6 +20,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
@@ -209,6 +210,21 @@ class DefaultLocalComponentMetadataTest extends Specification {
         and:
         metadata.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
+    }
+
+    def "variants are attached to configuration but not its children"() {
+        def variant1 = Stub(OutgoingVariant)
+        def variant2 = Stub(OutgoingVariant)
+
+        when:
+        addConfiguration("conf1")
+        addConfiguration("conf2", ["conf1"])
+        metadata.addVariant("conf1", variant1)
+        metadata.addVariant("conf2", variant2)
+
+        then:
+        metadata.getConfiguration("conf1").variants.size() == 1
+        metadata.getConfiguration("conf2").variants.size() == 1
     }
 
     def "files attached to configuration and its children"() {

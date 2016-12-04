@@ -16,8 +16,9 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
@@ -30,11 +31,14 @@ public interface BuildableLocalComponentMetadata {
     void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
 
     /**
+     * Adds a variant to this component, extending from the given configuration.
+     */
+    void addVariant(String configuration, OutgoingVariant variant);
+
+    /**
      * Adds a configuration to this component.
      * @param hierarchy Must include name
-     * @param attributes the attributes of the configuration. Can be null.
-     * @param canBeConsumed
-     * @param canBeResolved
+     * @param attributes the attributes of the configuration.
      */
     void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, AttributeContainer attributes, boolean canBeConsumed, boolean canBeResolved);
 

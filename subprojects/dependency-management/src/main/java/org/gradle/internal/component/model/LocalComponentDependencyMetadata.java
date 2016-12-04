@@ -286,6 +286,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
+        public Set<? extends VariantMetadata> getVariants() {
+            return delegate.getVariants();
+        }
+
+        @Override
         public ModuleExclusion getExclusions() {
             return delegate.getExclusions();
         }

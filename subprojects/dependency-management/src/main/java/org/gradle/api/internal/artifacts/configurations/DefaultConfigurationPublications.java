@@ -16,25 +16,32 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-public class DefaultConfigurationPublications implements ConfigurationPublications {
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class DefaultConfigurationPublications implements ConfigurationPublications, OutgoingVariant {
     private final PublishArtifactSet artifacts;
+    private final AttributeContainerInternal parentAttributes;
     private final FactoryNamedDomainObjectContainer<Variant> variants;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
 
     public DefaultConfigurationPublications(PublishArtifactSet artifacts, final AttributeContainerInternal parentAttributes, final Instantiator instantiator, final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, final FileCollectionFactory fileCollectionFactory) {
         this.artifacts = artifacts;
+        this.parentAttributes = parentAttributes;
         variants = new FactoryNamedDomainObjectContainer<Variant>(Variant.class, instantiator, new NamedDomainObjectFactory<Variant>() {
             @Override
             public Variant create(String name) {
@@ -59,6 +66,23 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         ConfigurablePublishArtifact publishArtifact = artifactNotationParser.parseNotation(notation);
         artifacts.add(publishArtifact);
         configureAction.execute(publishArtifact);
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return parentAttributes;
+    }
+
+    @Override
+    public Set<? extends OutgoingVariant> getChildren() {
+        if (variants.isEmpty()) {
+            return ImmutableSet.of();
+        }
+        Set<OutgoingVariant> variants = new LinkedHashSet<OutgoingVariant>(this.variants.size());
+        for (Variant variant : this.variants) {
+            variants.add((OutgoingVariant) variant);
+        }
+        return variants;
     }
 
     @Override

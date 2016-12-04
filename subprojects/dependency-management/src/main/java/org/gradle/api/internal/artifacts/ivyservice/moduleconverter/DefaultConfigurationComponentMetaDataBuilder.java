@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 
@@ -35,7 +35,10 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
         for (ConfigurationInternal configuration : configurations) {
             addConfiguration(metaData, configuration);
             dependenciesConverter.addDependencyDescriptors(metaData, configuration);
-            addArtifacts(metaData, configuration);
+            metaData.addArtifacts(configuration.getName(), configuration.getOutgoingVariant().getArtifacts());
+            for (OutgoingVariant variant : configuration.getOutgoingVariant().getChildren()) {
+                metaData.addVariant(configuration.getName(), variant);
+            }
         }
     }
 
@@ -53,7 +56,4 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             configuration.isCanBeResolved());
     }
 
-    private void addArtifacts(BuildableLocalComponentMetadata metaData, Configuration configuration) {
-        metaData.addArtifacts(configuration.getName(), configuration.getArtifacts());
-    }
 }

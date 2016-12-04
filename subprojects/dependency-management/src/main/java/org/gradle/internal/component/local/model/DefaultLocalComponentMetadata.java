@@ -19,16 +19,20 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -45,6 +49,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
     private final Multimap<String, ComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
     private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
+    private final SetMultimap<String, DefaultVariant> allVariants = LinkedHashMultimap.create();
     private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -59,10 +64,12 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         this.attributesSchema = attributesSchema;
     }
 
+    @Override
     public ModuleVersionIdentifier getId() {
         return id;
     }
 
+    @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
             ComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
@@ -75,20 +82,28 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
+    public void addVariant(String configuration, OutgoingVariant variant) {
+        allVariants.put(configuration, new DefaultVariant(variant));
+    }
+
+    @Override
     public void addFiles(String configuration, LocalFileDependencyMetadata files) {
         allFiles.put(configuration, files);
     }
 
+    @Override
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, AttributeContainer attributes, boolean canBeConsumed, boolean canBeResolved) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved);
         allConfigurations.put(name, conf);
     }
 
+    @Override
     public void addDependency(LocalOriginDependencyMetadata dependency) {
         allDependencies.add(dependency);
     }
 
+    @Override
     public void addExclude(Exclude exclude) {
         allExcludes.add(exclude);
     }
@@ -98,34 +113,42 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return componentIdentifier.getDisplayName();
     }
 
+    @Override
     public ModuleSource getSource() {
         return null;
     }
 
+    @Override
     public ComponentResolveMetadata withSource(ModuleSource source) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isGenerated() {
         return false;
     }
 
+    @Override
     public boolean isChanging() {
         return false;
     }
 
+    @Override
     public String getStatus() {
         return status;
     }
 
+    @Override
     public List<String> getStatusScheme() {
         return DEFAULT_STATUS_SCHEME;
     }
 
+    @Override
     public ComponentIdentifier getComponentId() {
         return componentIdentifier;
     }
 
+    @Override
     public List<LocalOriginDependencyMetadata> getDependencies() {
         return allDependencies;
     }
@@ -139,7 +162,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return allConfigurations.keySet();
     }
 
-    public DefaultLocalConfigurationMetadata getConfiguration(final String name) {
+    @Override
+    public LocalConfigurationMetadata getConfiguration(final String name) {
         return allConfigurations.get(name);
     }
 
@@ -193,26 +217,32 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return DefaultLocalComponentMetadata.this;
         }
 
+        @Override
         public String getDescription() {
             return description;
         }
 
+        @Override
         public Set<String> getExtendsFrom() {
             return extendsFrom;
         }
 
+        @Override
         public String getName() {
             return name;
         }
 
+        @Override
         public Set<String> getHierarchy() {
             return hierarchy;
         }
 
+        @Override
         public boolean isTransitive() {
             return transitive;
         }
 
+        @Override
         public boolean isVisible() {
             return visible;
         }
@@ -220,6 +250,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         @Override
         public AttributeContainer getAttributes() {
             return attributes;
+        }
+
+        @Override
+        public Set<? extends VariantMetadata> getVariants() {
+            return allVariants.get(name);
         }
 
         @Override
@@ -292,6 +327,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return configurationExclude;
         }
 
+        @Override
         public Set<ComponentArtifactMetadata> getArtifacts() {
             if (configurationArtifacts == null) {
                 if (allArtifacts.isEmpty()) {
@@ -307,6 +343,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return configurationArtifacts;
         }
 
+        @Override
         public ComponentArtifactMetadata artifact(IvyArtifactName ivyArtifactName) {
             for (ComponentArtifactMetadata candidate : getArtifacts()) {
                 if (candidate.getName().equals(ivyArtifactName)) {
@@ -315,6 +352,24 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
 
             return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
+        }
+    }
+
+    private static class DefaultVariant implements VariantMetadata {
+        private final OutgoingVariant variant;
+
+        public DefaultVariant(OutgoingVariant variant) {
+            this.variant = variant;
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return variant.getAttributes();
+        }
+
+        @Override
+        public Set<ComponentArtifactMetadata> getArtifacts() {
+            throw new UnsupportedOperationException();
         }
     }
 }

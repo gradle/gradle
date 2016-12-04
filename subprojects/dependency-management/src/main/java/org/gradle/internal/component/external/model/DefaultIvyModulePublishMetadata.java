@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
@@ -112,6 +113,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
             ivyArtifact.setFile(artifact.getFile());
             ivyArtifact.addConfiguration(configuration);
         }
+    }
+
+    @Override
+    public void addVariant(String configuration, OutgoingVariant variant) {
+        // Ignore
     }
 
     public void addArtifact(IvyArtifactName artifact, File file) {

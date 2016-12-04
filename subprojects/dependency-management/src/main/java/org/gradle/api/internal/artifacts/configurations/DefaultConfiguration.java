@@ -579,6 +579,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public OutgoingVariant getOutgoingVariant() {
+        return outgoing;
+    }
+
+    @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
         action.execute(outgoing);
     }
