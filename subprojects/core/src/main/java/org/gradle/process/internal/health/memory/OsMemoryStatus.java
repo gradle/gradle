@@ -16,12 +16,17 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface MemoryStatus {
-    long getMaxMemory();
-
-    long getCommittedMemory();
-
+/**
+ * OS memory status.
+ */
+public interface OsMemoryStatus {
+    /**
+     * @return OS total memory in bytes
+     */
     long getTotalPhysicalMemory();
 
+    /**
+     * @return OS free memory in bytes
+     */
     long getFreePhysicalMemory();
 }

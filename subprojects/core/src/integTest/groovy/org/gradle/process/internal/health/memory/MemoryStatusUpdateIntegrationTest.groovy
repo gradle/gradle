@@ -16,38 +16,85 @@
 
 package org.gradle.process.internal.health.memory
 
-import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Timeout
 
-class MemoryStatusUpdateIntegrationTest extends DaemonIntegrationSpec {
-    @Timeout(20)
-    def "can register a listener for memory status update events"() {
-        buildFile << '''
+@IgnoreIf({ GradleContextualExecuter.daemon })
+class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
+
+    @Timeout(10)
+    def "can register a listener for JVM and OS memory status update events (daemon)"() {
+        given:
+        executer.requireIsolatedDaemons()
+        executer.requireDaemon()
+
+        and:
+        buildFile << waitForMemoryEventsTask()
+
+        when:
+        executer.withTasks("waitForMemoryEvents").withArgument("--debug").run()
+
+        then:
+        daemons.daemon.log.contains jvmLogStatement()
+        daemons.daemon.log.contains osLogStatement()
+    }
+
+    @Timeout(10)
+    def "can register a listener for JVM and OS memory status update events (embedded)"() {
+        given:
+        buildFile << waitForMemoryEventsTask()
+
+        when:
+        args '--debug'
+        succeeds 'waitForMemoryEvents'
+
+        then:
+        result.output.contains jvmLogStatement()
+        result.output.contains osLogStatement()
+    }
+
+    private static String waitForMemoryEventsTask() {
+        return '''
             import java.util.concurrent.CountDownLatch
             import org.gradle.process.internal.health.memory.*
 
-            task waitForEvent {
+            task waitForMemoryEvents {
                 doLast {
-                    final CountDownLatch notification = new CountDownLatch(1)
+                    final CountDownLatch notification = new CountDownLatch(2)
                     
                     MemoryResourceManager manager = project.services.get(MemoryResourceManager.class)
-                    manager.addListener(new MemoryStatusListener() {
-                        void onMemoryStatusNotification(MemoryStatus memoryStatus) {
-                            println "MemoryStatus notification: $memoryStatus"
+                    manager.addListener(new JvmMemoryStatusListener() {
+                        void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
+                            logger.debug "JVM MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
                     })
-                    logger.warn "Waiting for memory status event..."
+                    manager.addListener(new OsMemoryStatusListener() {
+                        void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
+                            logger.debug "OS MemoryStatus notification: $memoryStatus"
+                            notification.countDown()
+                        }
+                    })
+                    logger.warn "Waiting for memory status events..."
                     notification.await()
                 }
             }
         '''.stripIndent()
+    }
 
-        when:
-        executer.withTasks("waitForEvent").withArgument("--debug").run()
+    private static String jvmLogStatement() {
+        return 'JVM MemoryStatus notification'
+    }
 
-        then:
-        daemons.daemons.size() == 1
-        daemons.daemon.log.contains 'MemoryStatus notification'
+    private static String osLogStatement() {
+        return 'OS MemoryStatus notification'
+    }
+
+    private DaemonsFixture getDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }

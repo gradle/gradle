@@ -16,6 +16,27 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface MemoryStatusListener {
-    void onMemoryStatusNotification(MemoryStatus memoryStatus);
+public class OsMemoryStatusSnapshot implements OsMemoryStatus {
+    private final long totalMemory;
+    private final long freeMemory;
+
+    public OsMemoryStatusSnapshot(long totalMemory, long freeMemory) {
+        this.totalMemory = totalMemory;
+        this.freeMemory = freeMemory;
+    }
+
+    @Override
+    public long getTotalPhysicalMemory() {
+        return totalMemory;
+    }
+
+    @Override
+    public long getFreePhysicalMemory() {
+        return freeMemory;
+    }
+
+    @Override
+    public String toString() {
+        return "{Total: " + totalMemory + ", Free: " + freeMemory + '}';
+    }
 }

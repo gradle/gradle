@@ -27,25 +27,27 @@ import java.util.concurrent.TimeUnit;
 public class MemoryStatusBroadcaster {
     private static final Logger LOGGER = Logging.getLogger(MemoryStatusBroadcaster.class);
 
-    private static final int STATUS_INTERVAL = 5;
+    public static final int STATUS_INTERVAL = 5;
 
     private final ScheduledExecutorService scheduledExecutorService;
-    private final ListenerBroadcast<MemoryStatusListener> broadcast;
+    private final ListenerBroadcast<JvmMemoryStatusListener> jvmBroadcast;
+    private final ListenerBroadcast<OsMemoryStatusListener> osBroadcast;
     private final MemoryInfo memoryInfo;
+    private final boolean osMemoryStatusSupported;
 
     public MemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
         this.memoryInfo = memoryInfo;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.broadcast = listenerManager.createAnonymousBroadcaster(MemoryStatusListener.class);
+        this.jvmBroadcast = listenerManager.createAnonymousBroadcaster(JvmMemoryStatusListener.class);
+        this.osBroadcast = listenerManager.createAnonymousBroadcaster(OsMemoryStatusListener.class);
+        this.osMemoryStatusSupported = supportsOsMemoryStatus();
     }
 
     public void start() {
-        try {
-            memoryInfo.getFreePhysicalMemory();
-            scheduledExecutorService.scheduleAtFixedRate(getMemoryCheck(), 1, STATUS_INTERVAL, TimeUnit.SECONDS);
-            LOGGER.debug("Memory status broadcaster started");
-        } catch (UnsupportedOperationException e) {
-            LOGGER.info("This JVM does not support getting free system memory, so no memory status updates will be broadcast");
+        scheduledExecutorService.scheduleAtFixedRate(getMemoryCheck(), 0, STATUS_INTERVAL, TimeUnit.SECONDS);
+        LOGGER.debug("Memory status broadcaster started");
+        if (!osMemoryStatusSupported) {
+            LOGGER.warn("This JVM does not support getting OS system memory, so no memory status updates will be broadcast");
         }
     }
 
@@ -53,9 +55,24 @@ public class MemoryStatusBroadcaster {
         return new Runnable() {
             @Override
             public void run() {
-                LOGGER.debug("Sending memory status update");
-                broadcast.getSource().onMemoryStatusNotification(memoryInfo.getSnapshot());
+                if (osMemoryStatusSupported) {
+                    OsMemoryStatus os = memoryInfo.getOsSnapshot();
+                    LOGGER.debug("Emitting OS memory status event {}", os);
+                    osBroadcast.getSource().onOsMemoryStatus(os);
+                }
+                JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
+                LOGGER.debug("Emitting JVM memory status event {}", jvm);
+                jvmBroadcast.getSource().onJvmMemoryStatus(jvm);
             }
         };
+    }
+
+    private boolean supportsOsMemoryStatus() {
+        try {
+            memoryInfo.getOsSnapshot();
+            return true;
+        } catch (UnsupportedOperationException ex) {
+            return false;
+        }
     }
 }

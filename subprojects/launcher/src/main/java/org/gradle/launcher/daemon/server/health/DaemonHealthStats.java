@@ -24,7 +24,6 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.process.internal.health.memory.MemoryInfo;
-import org.gradle.process.internal.health.memory.MemoryStatus;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -33,7 +32,7 @@ import static java.lang.String.format;
 public class DaemonHealthStats {
 
     private final DaemonRunningStats runningStats;
-    private final MemoryStatus memoryStatus;
+    private final MemoryInfo memoryStatus;
     private final GarbageCollectionInfo gcInfo;
     private final GarbageCollectionMonitor gcMonitor;
 
@@ -42,7 +41,7 @@ public class DaemonHealthStats {
     }
 
     @VisibleForTesting
-    DaemonHealthStats(DaemonRunningStats runningStats, MemoryStatus memoryStatus, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
+    DaemonHealthStats(DaemonRunningStats runningStats, MemoryInfo memoryStatus, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
         this.runningStats = runningStats;
         this.memoryStatus = memoryStatus;
         this.gcInfo = gcInfo;
