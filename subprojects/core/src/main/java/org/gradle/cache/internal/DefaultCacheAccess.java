@@ -312,6 +312,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
         final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
+        LOG.info("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
                 return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
