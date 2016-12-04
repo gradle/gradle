@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyPreProcessor;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 
 import java.util.Map;
@@ -333,6 +334,8 @@ public interface DependencyHandler {
      * @return The dependency.
      */
     Dependency localGroovy();
+
+    void dependencyPreProcessor(Action<DependencyPreProcessor> dependencyPreProcessorAction);
 
     /**
      * Returns the component metadata handler for this project. The returned handler can be used for adding rules
