@@ -17,7 +17,7 @@
 package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
-import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold
+import org.gradle.testing.jacoco.tasks.rules.JacocoLimit
 import spock.lang.Specification
 
 class JacocoViolationRuleImplTest extends Specification {
@@ -27,31 +27,31 @@ class JacocoViolationRuleImplTest extends Specification {
     def "provides expected default field values"() {
         expect:
         rule.enabled
-        rule.scope == 'BUNDLE'
+        rule.element == 'BUNDLE'
         rule.includes == ['*']
         rule.excludes == []
     }
 
-    def "can add thresholds"() {
+    def "can add limits"() {
         when:
-        def threshold = rule.threshold {
-            metric = 'CLASS'
-            type = 'TOTALCOUNT'
+        def limit = rule.limit {
+            counter = 'CLASS'
+            value = 'TOTALCOUNT'
             minimum = 0.0
             maximum = 1.0
         }
 
         then:
-        rule.thresholds.size() == 1
-        rule.thresholds[0] == threshold
+        rule.limits.size() == 1
+        rule.limits[0] == limit
 
         when:
-        threshold = rule.threshold(new Action<JacocoThreshold>() {
+        limit = rule.limit(new Action<JacocoLimit>() {
             @Override
-            void execute(JacocoThreshold jacocoThreshold) {
-                jacocoThreshold.with {
-                    metric = 'COMPLEXITY'
-                    type = 'MISSEDCOUNT'
+            void execute(JacocoLimit jacocoLimit) {
+                jacocoLimit.with {
+                    counter = 'COMPLEXITY'
+                    value = 'MISSEDCOUNT'
                     minimum = 0.2
                     maximum = 0.6
                 }
@@ -59,11 +59,11 @@ class JacocoViolationRuleImplTest extends Specification {
         })
 
         then:
-        rule.thresholds.size() == 2
-        rule.thresholds[1] == threshold
+        rule.limits.size() == 2
+        rule.limits[1] == limit
     }
 
-    def "returned includes, excludes and thresholds are unmodifiable"() {
+    def "returned includes, excludes and limits are unmodifiable"() {
         when:
         rule.includes << ['*']
 
@@ -77,7 +77,7 @@ class JacocoViolationRuleImplTest extends Specification {
         thrown(UnsupportedOperationException)
 
         when:
-        rule.thresholds << new JacocoThresholdImpl()
+        rule.limits << new JacocoLimitImpl()
 
         then:
         thrown(UnsupportedOperationException)

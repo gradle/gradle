@@ -19,40 +19,40 @@ package org.gradle.testing.jacoco.tasks.rules;
 import org.gradle.api.Incubating;
 
 /**
- * Jacoco threshold.
+ * Defines a Jacoco rule limit.
  *
  * @since 4.0
  */
 @Incubating
-public interface JacocoThreshold {
+public interface JacocoLimit {
 
     /**
-     * The metric that applies to the threshold as defined by
+     * The counter that applies to the limit as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.CounterEntity.html">org.jacoco.core.analysis.ICoverageNode.CounterEntity</a>.
      * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
      */
-    String getMetric();
+    String getCounter();
 
-    void setMetric(String metric);
+    void setCounter(String counter);
 
     /**
-     * The value that applies to the threshold as defined by
+     * The value that applies to the limit as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICounter.CounterValue.html">org.jacoco.core.analysis.ICounter.CounterValue</a>.
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
      */
-    String getType();
+    String getValue();
 
-    void setType(String type);
+    void setValue(String value);
 
     /**
-     * Gets the minimum expected value for threshold. Default to null.
+     * Gets the minimum expected value for limit. Default to null.
      */
     Double getMinimum();
 
     void setMinimum(Double minimum);
 
     /**
-     * Gets the maximum expected value for threshold. Default to null.
+     * Gets the maximum expected value for limit. Default to null.
      */
     Double getMaximum();
 

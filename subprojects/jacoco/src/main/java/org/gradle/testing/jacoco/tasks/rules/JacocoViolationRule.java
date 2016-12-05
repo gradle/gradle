@@ -26,7 +26,7 @@ import java.util.List;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * Jacoco violation rule.
+ * Defines a Jacoco violation rule.
  *
  * @since 4.0
  */
@@ -40,14 +40,14 @@ public interface JacocoViolationRule {
      */
     boolean isEnabled();
 
-    void setScope(String scope);
+    void setElement(String element);
 
     /**
-     * Gets the scope for the rule as defined by
+     * Gets the element for the rule as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.ElementType.html">org.jacoco.core.analysis.ICoverageNode.ElementType</a>.
      * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
      */
-    String getScope();
+    String getElement();
 
     void setIncludes(List<String> includes);
 
@@ -66,14 +66,14 @@ public interface JacocoViolationRule {
     List<String> getExcludes();
 
     /**
-     * Gets all thresholds defined for this rule. Defaults to an empty list.
+     * Gets all limits defined for this rule. Defaults to an empty list.
      */
-    List<JacocoThreshold> getThresholds();
+    List<JacocoLimit> getLimits();
 
     /**
-     * Adds a threshold for this rule. There's no limitation to the number of thresholds that can be added.
+     * Adds a limit for this rule. Any number of limits can be added.
      */
-    JacocoThreshold threshold(@DelegatesTo(value = JacocoThreshold.class, strategy = DELEGATE_FIRST) Closure configureClosure);
+    JacocoLimit limit(@DelegatesTo(value = JacocoLimit.class, strategy = DELEGATE_FIRST) Closure configureClosure);
 
-    JacocoThreshold threshold(Action<? super JacocoThreshold> configureAction);
+    JacocoLimit limit(Action<? super JacocoLimit> configureAction);
 }

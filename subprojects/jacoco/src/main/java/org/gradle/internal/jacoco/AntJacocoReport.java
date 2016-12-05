@@ -24,7 +24,7 @@ import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
-import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
+import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
@@ -122,8 +122,8 @@ public class AntJacocoReport {
                     for (final JacocoViolationRule rule : filter(violationRules.getRules(), RULE_ENABLED_PREDICATE)) {
                         Map<String, Object> ruleArgs = new HashMap<String, Object>();
 
-                        if (rule.getScope() != null) {
-                            ruleArgs.put("element", rule.getScope());
+                        if (rule.getElement() != null) {
+                            ruleArgs.put("element", rule.getElement());
                         }
                         if (rule.getIncludes() != null && !rule.getIncludes().isEmpty()) {
                             ruleArgs.put("includes", Joiner.on(':').join(rule.getIncludes()));
@@ -135,20 +135,20 @@ public class AntJacocoReport {
                         antBuilder.invokeMethod("rule", new Object[] {ImmutableMap.copyOf(ruleArgs), new Closure<Object>(this, this) {
                             @SuppressWarnings("UnusedDeclaration")
                             public Object doCall(Object ignore) {
-                                for (JacocoThreshold threshold : rule.getThresholds()) {
+                                for (JacocoLimit limit : rule.getLimits()) {
                                     Map<String, Object> ruleArgs = new HashMap<String, Object>();
 
-                                    if (threshold.getMetric() != null) {
-                                        ruleArgs.put("counter", threshold.getMetric());
+                                    if (limit.getCounter() != null) {
+                                        ruleArgs.put("counter", limit.getCounter());
                                     }
-                                    if (threshold.getType() != null) {
-                                        ruleArgs.put("value", threshold.getType());
+                                    if (limit.getValue() != null) {
+                                        ruleArgs.put("value", limit.getValue());
                                     }
-                                    if (threshold.getMinimum() != null) {
-                                        ruleArgs.put("minimum", threshold.getMinimum());
+                                    if (limit.getMinimum() != null) {
+                                        ruleArgs.put("minimum", limit.getMinimum());
                                     }
-                                    if (threshold.getMaximum() != null) {
-                                        ruleArgs.put("maximum", threshold.getMaximum());
+                                    if (limit.getMaximum() != null) {
+                                        ruleArgs.put("maximum", limit.getMaximum());
                                     }
 
                                     antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(ruleArgs) });

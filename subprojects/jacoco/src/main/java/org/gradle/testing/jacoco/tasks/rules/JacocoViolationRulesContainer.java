@@ -49,7 +49,7 @@ public interface JacocoViolationRulesContainer {
     List<JacocoViolationRule> getRules();
 
     /**
-     * Adds a violation rule. There's no limitation to the number of rules that can be added.
+     * Adds a violation rule. Any number of rules can be added.
      */
     JacocoViolationRule rule(@DelegatesTo(value = JacocoViolationRule.class, strategy = DELEGATE_FIRST) Closure configureClosure);
 

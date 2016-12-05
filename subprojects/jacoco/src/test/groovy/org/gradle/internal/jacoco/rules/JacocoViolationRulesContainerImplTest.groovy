@@ -34,7 +34,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         when:
         def rule = violationRulesContainer.rule {
             enabled = false
-            scope = 'CLASS'
+            element = 'CLASS'
             includes = ['**/*.class']
             excludes = ['*Special*.class']
         }
@@ -49,7 +49,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
             void execute(JacocoViolationRule jacocoValidationRule) {
                 jacocoValidationRule.with {
                     enabled = true
-                    scope = 'PACKAGE'
+                    element = 'PACKAGE'
                     includes = ['**/*']
                     excludes = ['**/special/*']
                 }
