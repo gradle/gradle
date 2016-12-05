@@ -44,27 +44,11 @@ public class MemoryStatusBroadcaster {
     }
 
     public void start() {
-        scheduledExecutorService.scheduleAtFixedRate(getMemoryCheck(), 0, STATUS_INTERVAL, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(new MemoryCheck(), 0, STATUS_INTERVAL, TimeUnit.SECONDS);
         LOGGER.debug("Memory status broadcaster started");
         if (!osMemoryStatusSupported) {
             LOGGER.warn("This JVM does not support getting OS system memory, so no memory status updates will be broadcast");
         }
-    }
-
-    private Runnable getMemoryCheck() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                if (osMemoryStatusSupported) {
-                    OsMemoryStatus os = memoryInfo.getOsSnapshot();
-                    LOGGER.debug("Emitting OS memory status event {}", os);
-                    osBroadcast.getSource().onOsMemoryStatus(os);
-                }
-                JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
-                LOGGER.debug("Emitting JVM memory status event {}", jvm);
-                jvmBroadcast.getSource().onJvmMemoryStatus(jvm);
-            }
-        };
     }
 
     private boolean supportsOsMemoryStatus() {
@@ -73,6 +57,20 @@ public class MemoryStatusBroadcaster {
             return true;
         } catch (UnsupportedOperationException ex) {
             return false;
+        }
+    }
+
+    private class MemoryCheck implements Runnable {
+        @Override
+        public void run() {
+            if (osMemoryStatusSupported) {
+                OsMemoryStatus os = memoryInfo.getOsSnapshot();
+                LOGGER.debug("Emitting OS memory status event {}", os);
+                osBroadcast.getSource().onOsMemoryStatus(os);
+            }
+            JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
+            LOGGER.debug("Emitting JVM memory status event {}", jvm);
+            jvmBroadcast.getSource().onJvmMemoryStatus(jvm);
         }
     }
 }
