@@ -16,8 +16,6 @@
 
 package org.gradle.internal.jacoco.rules
 
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType
 import spock.lang.Specification
 
 class JacocoThresholdImplTest extends Specification {
@@ -26,8 +24,8 @@ class JacocoThresholdImplTest extends Specification {
 
     def "provides expected default field values"() {
         expect:
-        threshold.metric == JacocoThresholdMetric.INSTRUCTION
-        threshold.type == JacocoThresholdType.COVEREDRATIO
+        threshold.metric == 'INSTRUCTION'
+        threshold.type == 'COVEREDRATIO'
         !threshold.minimum
         !threshold.maximum
     }

@@ -17,33 +17,31 @@
 package org.gradle.internal.jacoco.rules;
 
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric;
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType;
 
 public class JacocoThresholdImpl implements JacocoThreshold {
 
-    private JacocoThresholdMetric metric = JacocoThresholdMetric.INSTRUCTION;
-    private JacocoThresholdType type = JacocoThresholdType.COVEREDRATIO;
+    private String metric = "INSTRUCTION";
+    private String type = "COVEREDRATIO";
     private Double minimum;
     private Double maximum;
 
     @Override
-    public JacocoThresholdMetric getMetric() {
+    public String getMetric() {
         return metric;
     }
 
     @Override
-    public void setMetric(JacocoThresholdMetric metric) {
+    public void setMetric(String metric) {
         this.metric = metric;
     }
 
     @Override
-    public JacocoThresholdType getType() {
+    public String getType() {
         return type;
     }
 
     @Override
-    public void setType(JacocoThresholdType type) {
+    public void setType(String type) {
         this.type = type;
     }
 

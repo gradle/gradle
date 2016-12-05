@@ -27,18 +27,22 @@ import org.gradle.api.Incubating;
 public interface JacocoThreshold {
 
     /**
-     * The metric that applies to the threshold defined by {@link JacocoThresholdMetric}. Defaults to INSTRUCTION.
+     * The metric that applies to the threshold as defined by
+     * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.CounterEntity.html">org.jacoco.core.analysis.ICoverageNode.CounterEntity</a>.
+     * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
      */
-    JacocoThresholdMetric getMetric();
+    String getMetric();
 
-    void setMetric(JacocoThresholdMetric metric);
+    void setMetric(String metric);
 
     /**
-     * The value that applies to the threshold defined by {@link JacocoThresholdType}. Defaults to COVEREDRATIO.
+     * The value that applies to the threshold as defined by
+     * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICounter.CounterValue.html">org.jacoco.core.analysis.ICounter.CounterValue</a>.
+     * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
      */
-    JacocoThresholdType getType();
+    String getType();
 
-    void setType(JacocoThresholdType type);
+    void setType(String type);
 
     /**
      * Gets the minimum expected value for threshold. Default to null.

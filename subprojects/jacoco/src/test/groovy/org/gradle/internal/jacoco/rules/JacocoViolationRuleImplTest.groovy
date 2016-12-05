@@ -17,10 +17,7 @@
 package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
-import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
-import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType
 import spock.lang.Specification
 
 class JacocoViolationRuleImplTest extends Specification {
@@ -30,7 +27,7 @@ class JacocoViolationRuleImplTest extends Specification {
     def "provides expected default field values"() {
         expect:
         rule.enabled
-        rule.scope == JacocoRuleScope.BUNDLE
+        rule.scope == 'BUNDLE'
         rule.includes == ['*']
         rule.excludes == []
     }
@@ -38,8 +35,8 @@ class JacocoViolationRuleImplTest extends Specification {
     def "can add thresholds"() {
         when:
         def threshold = rule.threshold {
-            metric = JacocoThresholdMetric.CLASS
-            type = JacocoThresholdType.TOTALCOUNT
+            metric = 'CLASS'
+            type = 'TOTALCOUNT'
             minimum = 0.0
             maximum = 1.0
         }
@@ -53,8 +50,8 @@ class JacocoViolationRuleImplTest extends Specification {
             @Override
             void execute(JacocoThreshold jacocoThreshold) {
                 jacocoThreshold.with {
-                    metric = JacocoThresholdMetric.COMPLEXITY
-                    type = JacocoThresholdType.MISSEDCOUNT
+                    metric = 'COMPLEXITY'
+                    type = 'MISSEDCOUNT'
                     minimum = 0.2
                     maximum = 0.6
                 }

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope;
 import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
@@ -31,7 +30,7 @@ import java.util.List;
 public class JacocoViolationRuleImpl implements JacocoViolationRule {
 
     private boolean enabled = true;
-    private JacocoRuleScope scope = JacocoRuleScope.BUNDLE;
+    private String scope = "BUNDLE";
     private List<String> includes = ImmutableList.of("*");
     private List<String> excludes = ImmutableList.of();
     private final List<JacocoThreshold> thresholds = new ArrayList<JacocoThreshold>();
@@ -47,12 +46,12 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     }
 
     @Override
-    public void setScope(JacocoRuleScope scope) {
+    public void setScope(String scope) {
         this.scope = scope;
     }
 
     @Override
-    public JacocoRuleScope getScope() {
+    public String getScope() {
         return scope;
     }
 
