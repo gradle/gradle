@@ -45,8 +45,6 @@ public interface ObjectConnectionBuilder {
      */
     <T> void addIncoming(Class<T> type, T instance);
 
-    <T> void addIncoming(Class<T> type, T instance, ClassLoader classLoader);
-
     /**
      * Use the given Classloader to deserialize method parameters for method invocations received from the peer, for those types where Java serialization is used.
      */

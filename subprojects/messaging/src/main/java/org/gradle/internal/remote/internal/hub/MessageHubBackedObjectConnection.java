@@ -36,6 +36,7 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,14 +69,13 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     }
 
     public <T> void addIncoming(Class<T> type, final T instance) {
-        addIncoming(type, instance, type.getClassLoader());
-    }
-
-    public <T> void addIncoming(Class<T> type, final T instance, ClassLoader classLoader) {
         if (connection != null) {
             throw new GradleException("Cannot add incoming message handler after connection established.");
         }
-        methodParamClassLoaders.add(type.getClassLoader());
+        // we don't want to add core classloader explicitly here.
+        if (type.getClassLoader() != getClass().getClassLoader()) {
+            methodParamClassLoaders.add(type.getClassLoader());
+        }
         Dispatch<MethodInvocation> handler = new ReflectionDispatch(instance);
         if (instance instanceof StreamCompletion) {
             handler = new BoundedDispatchWrapper((StreamCompletion) instance, handler);
@@ -100,6 +100,8 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         ClassLoader methodParamClassLoader;
         if (methodParamClassLoaders.size() == 0) {
             methodParamClassLoader = getClass().getClassLoader();
+        } else if (methodParamClassLoaders.size() == 1) {
+            methodParamClassLoader = CollectionUtils.single(methodParamClassLoaders);
         } else {
             methodParamClassLoader = new CachingClassLoader(new MultiParentClassLoader(methodParamClassLoaders));
         }

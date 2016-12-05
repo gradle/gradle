@@ -462,7 +462,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.logging.Logging;
             
             public class TestRunnable implements Runnable {
-                private static final String id = UUID.randomUUID().toString();
                 public TestRunnable(List<String> files, File outputDir, Foo foo) {
                 }
 
