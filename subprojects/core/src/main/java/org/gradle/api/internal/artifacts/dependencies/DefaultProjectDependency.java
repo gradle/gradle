@@ -81,7 +81,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
         if (!selectedConfiguration.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(selectedConfiguration.getName());
+            throw new ConfigurationNotConsumableException(dependencyProject.toString(), selectedConfiguration.getName());
         }
         return selectedConfiguration;
     }

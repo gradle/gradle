@@ -17,6 +17,8 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -111,7 +113,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
         AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
         if (useConfigurationAttributes) {
-            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, getConfigurationsAsHasAttributes(targetComponent), fromConfigurationAttributes, null);
+            Set<HasAttributes> consumableConfigurations = getConfigurationsAsHasAttributes(targetComponent);
+            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes, null);
             List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getMatchs());
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
@@ -130,7 +133,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
         if (!toConfiguration.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(toConfiguration.getName());
+            if (dependencyConfiguration == null) {
+                // this was a fallback to `default`, and `default` is not consumable
+                Set<String> configurationNames = Sets.newTreeSet();
+                configurationNames.addAll(targetComponent.getConfigurationNames());
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, Lists.newArrayList(configurationNames));
+            }
+            // explicit configuration selection
+            throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
         ConfigurationMetadata delegate = toConfiguration;
         if (consumerHasAttributes) {

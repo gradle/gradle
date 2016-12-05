@@ -493,7 +493,113 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Selected configuration 'default' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause "Unable to find a matching configuration in 'project :b' : None of the consumable configurations have attributes."
+
+    }
+
+    def "does not select explicit configuration when it's not consumable"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(path: ':b', configuration: 'someConf')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                apply plugin: 'base'
+                configurations {
+                    foo
+                    bar
+                    someConf {
+                        canBeConsumed = false
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause "Selected configuration 'someConf' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+
+    }
+
+    def "gives details about failing matchs when it cannot select default configuration when no match is found and default configuration is not consumable"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                apply plugin: 'base'
+                configurations {
+                    foo.attributes($freeRelease)
+                    bar.attributes($paid, $release)
+                    'default' {
+                        canBeConsumed = false
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failsWith '''Unable to find a matching configuration in 'project :b' :
+   - Configuration 'bar'      :
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found incompatible value 'paid'.
+   - Configuration 'foo'      :
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found compatible value 'free'.'''
 
     }
 
