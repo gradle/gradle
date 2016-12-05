@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Jacoco threshold.
  *
- * @since 3.3
+ * @since 4.0
  */
 @Incubating
 public interface JacocoThreshold {
