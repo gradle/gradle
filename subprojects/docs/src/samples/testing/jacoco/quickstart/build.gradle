@@ -56,3 +56,31 @@ jacocoTestReport {
     }
 }
 // END SNIPPET report-configuration
+
+// START SNIPPET violation-rules-configuration
+import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdMetric
+import org.gradle.testing.jacoco.tasks.rules.JacocoThresholdType
+
+jacocoTestReport {
+    violationRules {
+        rule {
+            threshold {
+                minimum = 0.5
+            }
+        }
+
+        rule {
+            enabled = false
+            scope = JacocoRuleScope.CLASS
+            includes = ['org.gradle.*']
+
+            threshold {
+                metric = JacocoThresholdMetric.LINE
+                type = JacocoThresholdType.TOTALCOUNT
+                maximum = 0.3
+            }
+        }
+    }
+}
+// END SNIPPET violation-rules-configuration
