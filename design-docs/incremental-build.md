@@ -244,13 +244,13 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 
 - `HashClassPathSnapshotter` uses an unbounded cache instantiated in [`GlobalScopeServices`](https://github.com/gradle/gradle/blob/56404fa2cd7c466d7a5e19e8920906beffa9f919/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/GlobalScopeServices.java#L211-L212)
 
-## Story: Cleanup stale output files from incremental task after Gradle version change
+## Story: Clean up stale output files from Java compilation after Gradle version change
 
 Tasks that define inputs and outputs to support incremental build functionality might leave behind stale output files in case task history does not exist. This situation might arise
 if the build changes the Gradle version or if `.gradle` is deleted manually _and_ one or many of the inputs have been changed. Any tasks using those outputs as inputs for further processing are affected as
 well.
 
-The issue is documented by [issue #821](https://github.com/gradle/gradle/issues/821).
+The issue is documented by [issue #821](https://github.com/gradle/gradle/issues/821). This story only addresses stale output files created by Java compilation.
 
 **Example:**
 
@@ -261,80 +261,91 @@ Let's assume the user upgrades the version of Gradle to Y _and_ one of the input
 Gradle does not have a task history for the task `compileJava` as `.gradle` directory is based on the used Gradle version e.g. `./gradle/3.1` vs. `.gradle/3.2`. As a result `compileJava` would compile
 source file A but not B as it doesn't exist anymore. The output directory of the compilation task would still contain A and B which leads to an incorrect result.
 
-The goal of this story is to 1) detect this situation and 2) clean up any stale output. Java compilation is only one scenario exposing the issue - the implementation needs
-to take into consideration other task types and ad-hoc tasks defining inputs/outputs.
+The goal of this story is to 1) detect this situation and 2) clean up any stale output.
 
 ### User visible changes
 
-Gradle detects and removes stale output files after a Gradle version change. Further processing of output files does not result in faulty behavior.
+Gradle detects and removes stale Java class files after a Gradle version change. Further processing of output files (e.g. by the `jar` task) does not result in faulty behavior.
 
 ### Implementation
 
-- Determine if task history cache exists in `.gradle/<version>` for corresponding Gradle version used to execute the task.
-    - If task history exists, then execute task based on existing input/output hashes. No additional action needed.
-    - If task history doesn't exist, then task has never been run with Gradle version or task history cache was deleted manually. Requires detection of existing stale files and potential deletion.
-- Detect output directories and files for all tasks in a build.
-    - Annotations considered: `@OutputDirectories`, `@OutputDirectory`, `@OutputFile`, `@OutputFiles`
-    - Programmatic assignments considered: `TaskOutputs.dir(Object)`, `TaskOutputs.dirs(Object...)`, `TaskOutputs.file(Object)`, `TaskOutputs.files(Object...)`
-    - Create an index on disk that maps task path to outputs.
-    - Expose internal API for accessing the data structure.
-    - API reads data from index when starting a build.
+- Establish a registry implementation that allows for registering strategies with the purpose of cleaning up outputs produced by previous builds.
+    - The registry is not specific to tasks. It's rather a global concept that allows for registering clean up strategies for any "thing" in Gradle.
+    - The registry is going to be an internal concept and is not going to be exposed via a public API.
+    - The registry needs to be instantiated by Gradle's global service registry. 
+    - When a build is executed, the registry is contacted and provides all registered strategies.
+    - If a strategy indicates that clean up is needed then delete all registered outputs.
 
 <!-- -->
 
-    public interface IncrementalOutputIndex {
+    public interface BuildOutputCleanupStrategy {
         /**
-         * Gets all output files mapped to the corresponding task path producing it.
+         * Determines if cleanup is needed based on provided Gradle instance.
          */
-        Map<String, Set<File>> getOutputs();
+        boolean needsCleanup(Gradle gradle);
+    }
     
+    public interface BuildOutputCleanup {
         /**
-         * Gets output files for a specific task path.
+         * Returns the clean up strategy.
          */
-        Set<File> getOutputs(String taskPath);
+        BuildOutputCleanupStrategy getStrategy();
         
         /**
-         * Adds output file to index for specific task.
+         * Returns the outputs that need to be cleaned if needed.
          */
-        void addOutput(File outputFile, String taskPath);
-        
-        /**
-         * Removes output file from index for specific task.
-         */
-        void removeOutput(File outputFile, String taskPath);
-        
-        /**
-         * Gets paths of task writing a given output directory or file.
-         */
-        Set<String> generatedBy(File outputFile);
-        
-        /**
-         * Identifies if at least two tasks write to the same output or write the same output files.
-         */
-        boolean hasOverlappingOutputs();
-    } 
+        List<File> getOutputs();
+    }
 
-- Delete the outputs of all tasks within the same build execution if no overlapping outputs are detected.
-    - Retrieve all outputs mapped by task.
-    - Delete files and directories.
-- Failure to delete the output (e.g. due to a file lock) results in a failed build caused by a thrown exception. Correctness over faulty behavior.
-- Cleaning the output of a task works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`).
+    public interface BuildOutputCleanupRegistry {
+        /**
+         * Registers clean up strategy for given outputs.
+         */
+        void registerCleanup(BuildOutputCleanup cleanups);
+        
+        /**
+         * Returns all clean ups.
+         */
+        List<BuildOutputCleanup> getCleanups();
+    }
+
+- Provide an implementation for a clean up strategy that identifies if task history is available.
+    - Create an instance of the implementation in Gradle's global service registry.
+    - Check if the `.gradle/<version>` directory exists for current version of Gradle used for build.
+    - Stale files produced by older versions of Gradle (that do not know about the registry implementation) are out of scope.
+
+<!-- -->
+
+    public class TaskHistoryCleanupStrategy implements BuildOutputCleanupStrategy {
+        @Override
+        public boolean needsCleanup(Gradle gradle) {
+            // identify existing task history
+        }
+    }
+
+- Clean up registry concept applies to output of Java compilation.
+    - Register the task history clean up implementation with the clean up registry in the `JavaPlugin`. 
+    - As output define outputs of the `main` and `test` source set.
+    - Add classes output directory via `sourceSet.getOutput().getClassesDir()`.
+    - Add resources output directory via `sourceSet.getOutput().getResourcesDir()`.
+- Delete outputs if needed.
+    - Retrieve all clean up strategies as one of the last things during the configuration phase.
+    - Delete outputs for a strategy if needed. If output does not exist then skip. Render an info message to the console that indicates operation.
+    - The delete operation is not represented by a task in task graph.
+    - Failure to delete an output (e.g. due to file locking) will render a helpful warning message but not fail the build.
+- Cleaning the output works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`).
+- As dogfooding exercise also use the registry for cleaning up `buildSrc` if task history is out-of-date.
 - Out of scope for this story are the following aspects:
-    - If other tasks write to the same output directory then do not automatically clean the output directory as it may cause side effects.
-    - Renamed or removed tasks are not taken under consideration.
-    - Renamed or removed projects (that are potentially part of the task path stored in the index) are not taken under consideration.
+    - Do not apply the concept to outputs of custom source sets created by a user.
+    - Outputs generated by renamed or removed tasks are not taken under consideration.
 
 ### Test coverage
 
-- Gradle upgrade occurs and input files stay unchanged. No need to remove outputs.
-- Gradle upgrade occurs and inputs files removed. Stale outputs in directories controlled by Gradle (only `buildDir`) are removed.
-    - Stale outputs can be removed if located in `buildDir`.
-    - Stale outputs can be removed if located outside of `buildDir`.
+- Task history for Gradle version exists. No need to remove outputs.
+- Task history does not exist for Gradle version.
+    - Registered classes and resources output directories are deleted including all contents.
+    - Expect a message rendered to the console information the user if run with `info` log level.
+    - A locked output file does not delete the output directory and renders an appropriate error message.
+    - The `GroovyPlugin` and `ScalaPlugin` work in the same way as they apply the `JavaPlugin`.
+    - The same behavior applies to `buildSrc`.
 - All test cases work with a multi-project build executed in parallel mode.
-- A locked output file causes the build to fail with an appropriate error message.
-- Write a performance test case that shows the impact on build execution times for a small, medium and large project.
-
-### Open issues
-
-- What's the acceptable trade off between correctness and performance impact?
-- How and when do we remove old entries in the index e.g. if a task has been renamed?
