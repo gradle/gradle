@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
-    public Set<ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
+    public Set<? extends ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
         return configuration.getArtifacts();
     }
 }

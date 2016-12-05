@@ -33,12 +33,12 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * Returns the dependencies that apply to this configuration.
      */
-    List<DependencyMetadata> getDependencies();
+    List<? extends DependencyMetadata> getDependencies();
 
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
-    Set<ComponentArtifactMetadata> getArtifacts();
+    Set<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the exclusions to apply to outgoing dependencies from this configuration.

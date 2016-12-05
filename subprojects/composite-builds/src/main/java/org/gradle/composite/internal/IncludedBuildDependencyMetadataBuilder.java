@@ -79,9 +79,9 @@ public class IncludedBuildDependencyMetadataBuilder {
                 originalConfiguration.isCanBeConsumed(),
                 originalConfiguration.isCanBeResolved());
 
-            Set<ComponentArtifactMetadata> artifacts = originalConfiguration.getArtifacts();
-            for (ComponentArtifactMetadata originalArtifact : artifacts) {
-                File artifactFile = ((LocalComponentArtifactMetadata) originalArtifact).getFile();
+            Set<? extends LocalComponentArtifactMetadata> artifacts = originalConfiguration.getArtifacts();
+            for (LocalComponentArtifactMetadata originalArtifact : artifacts) {
+                File artifactFile = originalArtifact.getFile();
                 Set<String> targetTasks = getArtifactTasks(originalArtifact);
                 CompositeProjectComponentArtifactMetadata artifact = new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
                 compositeComponentMetadata.addArtifact(configurationName, artifact);

@@ -16,9 +16,14 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 public interface LocalComponentMetadata extends ComponentResolveMetadata {
     AttributesSchema getAttributesSchema();
+
+    @Nullable
+    @Override
+    LocalConfigurationMetadata getConfiguration(String name);
 }

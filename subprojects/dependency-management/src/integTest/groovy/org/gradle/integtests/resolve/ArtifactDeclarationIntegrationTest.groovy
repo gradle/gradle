@@ -156,6 +156,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 configurations {
     compile {
+        attribute 'usage', 'for compile'
         outgoing {
             artifact file('lib1.jar')
             variants {
@@ -177,7 +178,8 @@ configurations {
 }
 task checkArtifacts {
     doLast {
-        // Doesn't do anythign yet
+        def classes = configurations.compile.outgoing.variants['classes']
+        classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 }
 """

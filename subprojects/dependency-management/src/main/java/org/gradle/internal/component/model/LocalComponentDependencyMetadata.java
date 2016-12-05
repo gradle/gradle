@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -276,12 +277,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public List<DependencyMetadata> getDependencies() {
+        public List<? extends LocalOriginDependencyMetadata> getDependencies() {
             return delegate.getDependencies();
         }
 
         @Override
-        public Set<ComponentArtifactMetadata> getArtifacts() {
+        public Set<? extends LocalComponentArtifactMetadata> getArtifacts() {
             return delegate.getArtifacts();
         }
 
