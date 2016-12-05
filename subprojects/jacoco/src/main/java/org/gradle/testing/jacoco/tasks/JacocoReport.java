@@ -110,7 +110,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
      * Return the violation rules set for this task.
      *
      * @return Violation rules container
-     * @since 3.3
+     * @since 4.0
      */
     @Nested
     @Incubating
@@ -135,7 +135,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
     /**
      * Configures the violation rules for this task. Requires JaCoCo version >= 0.6.3.
      *
-     * @since 3.3
+     * @since 4.0
      */
     @Incubating
     public JacocoViolationRulesContainer violationRules(@DelegatesTo(value = JacocoViolationRulesContainer.class, strategy = DELEGATE_FIRST) Closure closure) {
@@ -145,7 +145,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
     /**
      * Configures the violation rules for this task. Requires JaCoCo version >= 0.6.3.
      *
-     * @since 3.3
+     * @since 4.0
      */
     @Incubating
     public JacocoViolationRulesContainer violationRules(Action<? super JacocoViolationRulesContainer> configureAction) {

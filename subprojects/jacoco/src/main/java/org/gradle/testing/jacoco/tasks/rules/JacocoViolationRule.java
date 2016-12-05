@@ -28,7 +28,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
 /**
  * Jacoco violation rule.
  *
- * @since 3.3
+ * @since 4.0
  */
 @Incubating
 public interface JacocoViolationRule {
