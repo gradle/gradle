@@ -64,7 +64,7 @@ public interface AttributeContainerInternal extends AttributeContainer {
 
         @Override
         public AttributeContainer getAttributes() {
-            return null;
+            return this;
         }
     };
 
