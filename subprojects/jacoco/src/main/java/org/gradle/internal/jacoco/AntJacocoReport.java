@@ -139,10 +139,10 @@ public class AntJacocoReport {
                                     Map<String, Object> ruleArgs = new HashMap<String, Object>();
 
                                     if (threshold.getMetric() != null) {
-                                        ruleArgs.put("counter", threshold.getMetric().name());
+                                        ruleArgs.put("counter", threshold.getMetric());
                                     }
                                     if (threshold.getType() != null) {
-                                        ruleArgs.put("value", threshold.getType().name());
+                                        ruleArgs.put("value", threshold.getType());
                                     }
                                     if (threshold.getMinimum() != null) {
                                         ruleArgs.put("minimum", threshold.getMinimum());

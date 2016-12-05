@@ -17,7 +17,6 @@
 package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
-import org.gradle.testing.jacoco.tasks.rules.JacocoRuleScope
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule
 import spock.lang.Specification
 
@@ -35,7 +34,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         when:
         def rule = violationRulesContainer.rule {
             enabled = false
-            scope = JacocoRuleScope.CLASS
+            scope = 'CLASS'
             includes = ['**/*.class']
             excludes = ['*Special*.class']
         }
@@ -50,7 +49,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
             void execute(JacocoViolationRule jacocoValidationRule) {
                 jacocoValidationRule.with {
                     enabled = true
-                    scope = JacocoRuleScope.PACKAGE
+                    scope = 'PACKAGE'
                     includes = ['**/*']
                     excludes = ['**/special/*']
                 }

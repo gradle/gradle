@@ -40,12 +40,14 @@ public interface JacocoViolationRule {
      */
     boolean isEnabled();
 
-    void setScope(JacocoRuleScope scope);
+    void setScope(String scope);
 
     /**
-     * Gets the scope for the rule defined by {@link JacocoRuleScope}. Defaults to BUNDLE.
+     * Gets the scope for the rule as defined by
+     * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.ElementType.html">org.jacoco.core.analysis.ICoverageNode.ElementType</a>.
+     * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
      */
-    JacocoRuleScope getScope();
+    String getScope();
 
     void setIncludes(List<String> includes);
 
