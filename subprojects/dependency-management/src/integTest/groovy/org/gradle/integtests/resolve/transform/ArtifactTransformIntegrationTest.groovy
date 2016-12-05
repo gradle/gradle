@@ -287,6 +287,47 @@ class FileSizer extends ArtifactTransform {
         file("build/libs").assertIsEmptyDir()
     }
 
+    def "can transform based on consumer-only attributes"() {
+        mavenRepo.module("test", "test", "1.3").publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+            }
+            configurationAttributesSchema {
+                attribute(Attribute.of('viewType', String))
+            }
+            ${registerTransform('ViewTransform')}
+
+            task checkFiles {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['test-1.3.jar']
+                    assert configurations.compile.incoming.getFiles(viewType: 'transformed').collect { it.name } == ['transformed.txt']
+                }
+            }
+
+            class ViewTransform extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "transformed")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, "transformed.txt")
+                    output << "content"
+                    return [output]
+                }
+            }
+"""
+
+        expect:
+        succeeds "checkFiles"
+    }
+
     def "can use transform to selectively include artifacts based on arbitrary criteria"() {
         mavenRepo.module("test", "to-keep", "1.3").publish()
         mavenRepo.module("test", "to-exclude", "2.3").publish()
@@ -303,10 +344,13 @@ class FileSizer extends ArtifactTransform {
                 selection 'test:to-keep:1.3'
                 selection 'test:to-exclude:2.3'
             }
+            configurationAttributesSchema {
+                attribute(Attribute.of('viewType', String))
+            }
             ${registerTransform('ArtifactFilter')}
 
-            def filteredView = configurations.selection.incoming.getFiles(artifactType: 'filtered')
-            def unfilteredView = configurations.selection.incoming.getFiles(artifactType: 'unfiltered')
+            def filteredView = configurations.selection.incoming.getFiles(viewType: 'filtered')
+            def unfilteredView = configurations.selection.incoming.getFiles(viewType: 'unfiltered')
 
             task checkFiles {
                 doLast {
@@ -318,12 +362,14 @@ class FileSizer extends ArtifactTransform {
 
             class ArtifactFilter extends ArtifactTransform {
                 void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    targets.newTarget().attribute(Attribute.of('artifactType', String), "filtered")
-                    targets.newTarget().attribute(Attribute.of('artifactType', String), "unfiltered")
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "filtered")
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "unfiltered")
                 }
             
                 List<File> transform(File input, AttributeContainer target) {
-                    if (target.getAttribute(Attribute.of('artifactType', String)) == "unfiltered") {
+                    if (target.getAttribute(Attribute.of('viewType', String)) == "unfiltered") {
                         return [input]
                     }
                     if (input.name.startsWith('to-keep')) {

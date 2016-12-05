@@ -97,19 +97,20 @@ public class ArtifactTransformer {
         return new ArtifactVisitor() {
             @Override
             public void visitArtifact(final ResolvedArtifact artifact) {
-                if (matchArtifactsAttributes(artifact, immutableAttributes)) {
-                    visitor.visitArtifact(artifact);
+                final Transformer<List<File>, File> transform = getTransform(artifact, immutableAttributes);
+                if (transform == null) {
+                    if (matchArtifactsAttributes(artifact, immutableAttributes)) {
+                        visitor.visitArtifact(artifact);
+                        return;
+                    }
                     return;
                 }
+
                 List<ResolvedArtifact> transformResults = transformedArtifacts.get(Pair.of(artifact, immutableAttributes));
                 if (transformResults != null) {
                     for (ResolvedArtifact resolvedArtifact : transformResults) {
                         visitor.visitArtifact(resolvedArtifact);
                     }
-                    return;
-                }
-                final Transformer<List<File>, File> transform = getTransform(artifact, immutableAttributes);
-                if (transform == null) {
                     return;
                 }
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
@@ -139,17 +140,17 @@ public class ArtifactTransformer {
                     for (File file : files) {
                         try {
                             HasAttributes fileWithAttributes = DefaultArtifactAttributes.forFile(file);
-                            if (matchArtifactsAttributes(fileWithAttributes, immutableAttributes)) {
-                                result.add(file);
+                            Transformer<List<File>, File> transform = getTransform(fileWithAttributes, immutableAttributes);
+                            if (transform == null) {
+                                if (matchArtifactsAttributes(fileWithAttributes, immutableAttributes)) {
+                                    result.add(file);
+                                    continue;
+                                }
                                 continue;
                             }
                             List<File> transformResults = transformedFiles.get(Pair.of(file, immutableAttributes));
                             if (transformResults != null) {
                                 result.addAll(transformResults);
-                                continue;
-                            }
-                            Transformer<List<File>, File> transform = getTransform(fileWithAttributes, immutableAttributes);
-                            if (transform == null) {
                                 continue;
                             }
                             transformResults = transform.transform(file);
