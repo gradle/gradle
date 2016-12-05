@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.tasks;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -48,6 +49,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
+
+import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
@@ -135,7 +138,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
      * @since 3.3
      */
     @Incubating
-    public JacocoViolationRulesContainer violationRules(Closure closure) {
+    public JacocoViolationRulesContainer violationRules(@DelegatesTo(value = JacocoViolationRulesContainer.class, strategy = DELEGATE_FIRST) Closure closure) {
         return violationRules(new ClosureBackedAction<JacocoViolationRulesContainer>(closure));
     }
 
