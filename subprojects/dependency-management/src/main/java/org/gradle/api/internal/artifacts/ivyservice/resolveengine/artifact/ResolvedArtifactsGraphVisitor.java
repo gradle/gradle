@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -41,7 +40,7 @@ import java.util.Set;
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
-    private final Map<ResolvedConfigurationIdentifier, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
+    private final Map<Long, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
 
@@ -74,18 +73,17 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         artifactSetsByConfiguration.clear();
     }
 
-    private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
+    private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
         long id = idGenerator.generateId();
-        ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getResolvedConfigurationId();
-        ConfigurationMetadata configuration = childConfiguration.getMetadata();
-        ComponentResolveMetadata component = childConfiguration.getOwner().getMetadata();
+        ConfigurationMetadata configuration = toConfiguration.getMetadata();
+        ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
 
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
             return new DefaultArtifactSet(component.getId(), component.getSource(), ModuleExclusions.excludeNone(), artifacts, artifactResolver, allResolvedArtifacts, id);
         }
 
-        ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(configurationIdentifier);
+        ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             artifacts = doResolve(component, configuration);
 
@@ -93,7 +91,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions().mayExcludeArtifacts()) {
-                artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
+                artifactSetsByConfiguration.put(toConfiguration.getNodeId(), configurationArtifactSet);
             }
         }
 
@@ -103,6 +101,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private Set<? extends ComponentArtifactMetadata> doResolve(ComponentResolveMetadata component, ConfigurationMetadata configuration) {
         BuildableComponentArtifactsResolveResult result = new DefaultBuildableComponentArtifactsResolveResult();
         artifactResolver.resolveArtifacts(component, result);
-        return result.getResult().getArtifactsFor(configuration);
+        // Just grab the first variant
+        return result.getResult().getVariantsFor(configuration).iterator().next().getArtifacts();
     }
 }

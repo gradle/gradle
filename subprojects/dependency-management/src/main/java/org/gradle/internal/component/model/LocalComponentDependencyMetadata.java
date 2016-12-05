@@ -28,6 +28,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -104,7 +105,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
+        AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
         if (useConfigurationAttributes) {
             AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
@@ -237,22 +238,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
         private final LocalConfigurationMetadata delegate;
-        private final AttributeContainer attributes;
+        private final AttributeContainerInternal attributes;
 
-        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, AttributeContainer attributes) {
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, AttributeContainerInternal attributes) {
             if (md instanceof LocalConfigurationMetadata) {
                 return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
             return md;
         }
 
-        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, AttributeContainer attributes) {
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, AttributeContainerInternal attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
         }
 
         @Override
-        public AttributeContainer getAttributes() {
+        public AttributeContainerInternal getAttributes() {
             return attributes;
         }
 

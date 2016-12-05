@@ -28,6 +28,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -487,21 +488,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     private AttributeContainer attributes(Map<String, ?> src) {
-        def attributes = [:]
+        def attributes = new DefaultAttributeContainer()
         src.each { String name, Object value ->
             def key = Attribute.of(name, value.class)
-            attributes[key] = value
+            attributes.attribute(key, value)
         }
-        Mock(AttributeContainer) {
-            isEmpty() >> src.isEmpty()
-            getAttribute(_) >> { args -> attributes[args[0]] }
-            keySet() >> {
-                attributes.keySet()
-            }
-            contains(_) >> { args ->
-                attributes.containsKey(args[0])
-            }
-        }
+        return attributes
     }
 
     public enum JavaVersion {

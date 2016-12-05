@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import java.util.Set;
 
 public interface OutgoingVariant {
-    AttributeContainer getAttributes();
+    AttributeContainerInternal getAttributes();
 
     Set<? extends PublishArtifact> getArtifacts();
 

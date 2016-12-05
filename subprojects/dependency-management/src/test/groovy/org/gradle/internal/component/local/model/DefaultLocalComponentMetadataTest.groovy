@@ -16,14 +16,15 @@
 
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -174,6 +175,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup an unknown artifact given an Ivy artifact"() {
         def artifact = artifactName()
+
         given:
         addConfiguration("conf")
 
@@ -212,9 +214,35 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
+    def "when no variants are defined, includes an implicit variant containing the artifacts and attributes of the configuration itself"() {
+        def artifact1 = Stub(PublishArtifact)
+        def artifact2 = Stub(PublishArtifact)
+
+        when:
+        addConfiguration("conf1")
+        addConfiguration("conf2", ["conf1"])
+        metadata.addArtifacts("conf1", [artifact1])
+        metadata.addArtifacts("conf2", [artifact2])
+
+        then:
+        def config1 = metadata.getConfiguration("conf1")
+        config1.variants.size() == 1
+        config1.variants.first().attributes == config1.attributes
+        config1.variants.first().artifacts.size() == 1
+
+        def config2 = metadata.getConfiguration("conf2")
+        config2.variants.size() == 1
+        config2.variants.first().attributes == config2.attributes
+        config2.variants.first().artifacts.size() == 2
+    }
+
     def "variants are attached to configuration but not its children"() {
         def variant1 = Stub(OutgoingVariant)
         def variant2 = Stub(OutgoingVariant)
+        variant1.attributes >> attributes()
+        variant1.artifacts >> ([Stub(PublishArtifact)] as Set)
+        variant2.attributes >> attributes()
+        variant2.artifacts >> ([Stub(PublishArtifact)] as Set)
 
         when:
         addConfiguration("conf1")
@@ -223,8 +251,21 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.addVariant("conf2", variant2)
 
         then:
-        metadata.getConfiguration("conf1").variants.size() == 1
-        metadata.getConfiguration("conf2").variants.size() == 1
+        def config1 = metadata.getConfiguration("conf1")
+        config1.variants.size() == 1
+        config1.variants.first().attributes == variant1.attributes
+        config1.variants.first().artifacts.size() == 1
+
+        def config2 = metadata.getConfiguration("conf2")
+        config2.variants.size() == 1
+        config2.variants.first().attributes == variant2.attributes
+        config2.variants.first().artifacts.size() == 1
+    }
+
+    private AttributeContainerInternal attributes() {
+        def attrs = Stub(AttributeContainerInternal)
+        attrs.asImmutable() >> attrs
+        return attrs
     }
 
     def "files attached to configuration and its children"() {

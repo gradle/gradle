@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import java.util.List;
 import java.util.Set;
@@ -30,6 +31,9 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     String getName();
 
+    @Override
+    AttributeContainerInternal getAttributes();
+
     /**
      * Returns the dependencies that apply to this configuration.
      */
@@ -39,6 +43,11 @@ public interface ConfigurationMetadata extends HasAttributes {
      * Returns the artifacts associated with this configuration, if known.
      */
     Set<? extends ComponentArtifactMetadata> getArtifacts();
+
+    /**
+     * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
+     */
+    Set<? extends VariantMetadata> getVariants();
 
     /**
      * Returns the exclusions to apply to outgoing dependencies from this configuration.

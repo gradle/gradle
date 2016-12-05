@@ -19,8 +19,11 @@ package org.gradle.internal.component.model;
 import java.util.Set;
 
 /**
- * Represents the artifacts associated with each configuration of a particular component. Implementations must be immutable.
+ * Represents the variants associated with each configuration of a particular component. Implementations must be immutable.
  */
 public interface ComponentArtifacts {
-    Set<? extends ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration);
+    /**
+     * Returns the variants for the given configuration. The values that are returned are retained for the life of the current build, so should reference as little state as possible. Should also be immutable.
+     */
+    Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration);
 }

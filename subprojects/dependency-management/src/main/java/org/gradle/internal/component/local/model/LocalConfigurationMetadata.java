@@ -18,7 +18,6 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.List;
 import java.util.Set;
@@ -39,9 +38,4 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata {
      * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.
      */
     Set<LocalFileDependencyMetadata> getFiles();
-
-    /**
-     * Returns the child variants of this configuration.
-     */
-    Set<? extends VariantMetadata> getVariants();
 }

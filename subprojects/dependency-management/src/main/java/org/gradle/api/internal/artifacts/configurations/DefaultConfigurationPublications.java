@@ -23,7 +23,6 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -69,7 +68,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public AttributeContainerInternal getAttributes() {
         return parentAttributes;
     }
 

@@ -69,10 +69,15 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
         when:
         def md = metadata
+        def runtime = md.getConfiguration("runtime")
+        def compile = md.getConfiguration("compile")
 
         then:
-        md.getConfiguration("runtime").dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
-        md.getConfiguration("compile").dependencies*.requested*.version == ["1.2", "1.3", "1.5"]
+        runtime.dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
+        runtime.dependencies.is(runtime.dependencies)
+
+        compile.dependencies*.requested*.version == ["1.2", "1.3", "1.5"]
+        compile.dependencies.is(compile.dependencies)
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -82,10 +87,26 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         artifact("two", ["runtime"])
 
         when:
-        def artifacts = metadata.getConfiguration("runtime").artifacts
+        def runtime = metadata.getConfiguration("runtime")
 
         then:
-        artifacts*.name.name == ["one", "two"]
+        runtime.artifacts*.name.name == ["one", "two"]
+        runtime.artifacts.is(runtime.artifacts)
+    }
+
+    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+        given:
+        configuration("runtime")
+        artifact("one", ["runtime"])
+        artifact("two", ["runtime"])
+
+        when:
+        def runtime = metadata.getConfiguration("runtime")
+
+        then:
+        runtime.variants.size() == 1
+        runtime.variants.first().attributes.empty
+        runtime.variants.first().artifacts*.name.name == ["one", "two"]
     }
 
     def "artifacts include union of those inherited from other configurations"() {
