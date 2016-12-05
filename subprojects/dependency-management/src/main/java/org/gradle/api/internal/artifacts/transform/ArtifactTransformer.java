@@ -62,7 +62,7 @@ public class ArtifactTransformer {
     }
 
     private boolean matchArtifactsAttributes(HasAttributes artifact, AttributeContainer configuration) {
-        return attributeMatcher.attributesMatch(artifact, configuration);
+        return attributeMatcher.attributesMatch(artifact, configuration, artifact.getAttributes());
     }
 
     private Transformer<List<File>, File> getTransform(HasAttributes from, AttributeContainer to) {

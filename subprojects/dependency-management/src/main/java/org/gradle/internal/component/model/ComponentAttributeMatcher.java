@@ -44,12 +44,12 @@ public class ComponentAttributeMatcher {
     private final AttributesSchema producerAttributeSchema;
     private final Map<HasAttributes, MatchDetails> matchDetails = Maps.newHashMap();
     private final AttributeContainer consumerAttributesContainer;
-    private final Set<Attribute<?>> attributesToConsider;
+    private final AttributeContainer attributesToConsider;
 
     public ComponentAttributeMatcher(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
                                      Iterable<HasAttributes> candidates, //configAttributes + artifactAttributes
                                      AttributeContainer consumerAttributesContainer,
-                                     Set<Attribute<?>> attributesToConsider) {
+                                     AttributeContainer attributesToConsider) {
         this.consumerAttributeSchema = consumerAttributeSchema;
         this.producerAttributeSchema = producerAttributeSchema;
         for (HasAttributes cand : candidates) {
@@ -69,8 +69,8 @@ public class ComponentAttributeMatcher {
             MatchDetails details = entry.getValue();
             AttributeContainer producerAttributesContainer = key.getAttributes();
             Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(producerAttributesContainer.keySet());
-            Set<Attribute<Object>> filter = Cast.uncheckedCast(attributesToConsider);
-            Set<Attribute<Object>> allAttributes = filter!=null ? filter : Sets.union(requestedAttributes, dependencyAttributes);
+            Set<Attribute<Object>> filter = Cast.uncheckedCast(attributesToConsider != null ? attributesToConsider.keySet() : null);
+            Set<Attribute<Object>> allAttributes = filter != null ? filter : Sets.union(requestedAttributes, dependencyAttributes);
             for (Attribute<Object> attribute : allAttributes) {
                 AttributeValue<Object> consumerValue = attributeValue(attribute, consumerAttributeSchema, consumerAttributesContainer);
                 AttributeValue<Object> producerValue = attributeValue(attribute, producerAttributeSchema, producerAttributesContainer);

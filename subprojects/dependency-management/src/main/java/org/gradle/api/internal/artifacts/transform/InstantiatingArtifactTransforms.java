@@ -39,8 +39,8 @@ class InstantiatingArtifactTransforms implements ArtifactTransforms {
     @Override
     public Transformer<List<File>, File> getTransform(AttributeContainer from, AttributeContainer to) {
         for (ArtifactTransformRegistrations.ArtifactTransformRegistration transformReg : resolutionStrategy.getTransforms()) {
-            if (attributeMatcher.attributesMatch(from, transformReg.from)
-                && attributeMatcher.attributesMatch(to, transformReg.to)) {
+            if (attributeMatcher.attributesMatch(from, transformReg.from, transformReg.from)
+                && attributeMatcher.attributesMatch(to, transformReg.to, transformReg.to)) {
                 return createArtifactTransformer(transformReg);
             }
         }
