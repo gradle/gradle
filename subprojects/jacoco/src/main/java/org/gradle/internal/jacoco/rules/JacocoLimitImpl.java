@@ -16,33 +16,33 @@
 
 package org.gradle.internal.jacoco.rules;
 
-import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
+import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 
-public class JacocoThresholdImpl implements JacocoThreshold {
+public class JacocoLimitImpl implements JacocoLimit {
 
-    private String metric = "INSTRUCTION";
-    private String type = "COVEREDRATIO";
+    private String counter = "INSTRUCTION";
+    private String value = "COVEREDRATIO";
     private Double minimum;
     private Double maximum;
 
     @Override
-    public String getMetric() {
-        return metric;
+    public String getCounter() {
+        return counter;
     }
 
     @Override
-    public void setMetric(String metric) {
-        this.metric = metric;
+    public void setCounter(String counter) {
+        this.counter = counter;
     }
 
     @Override
-    public String getType() {
-        return type;
+    public String getValue() {
+        return value;
     }
 
     @Override
-    public void setType(String type) {
-        this.type = type;
+    public void setValue(String value) {
+        this.value = value;
     }
 
     @Override
@@ -74,12 +74,12 @@ public class JacocoThresholdImpl implements JacocoThreshold {
             return false;
         }
 
-        JacocoThresholdImpl that = (JacocoThresholdImpl) o;
+        JacocoLimitImpl that = (JacocoLimitImpl) o;
 
-        if (metric != that.metric) {
+        if (counter != that.counter) {
             return false;
         }
-        if (type != that.type) {
+        if (value != that.value) {
             return false;
         }
         if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) {
@@ -90,8 +90,8 @@ public class JacocoThresholdImpl implements JacocoThreshold {
 
     @Override
     public int hashCode() {
-        int result = metric != null ? metric.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
+        int result = counter != null ? counter.hashCode() : 0;
+        result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
         result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
         return result;

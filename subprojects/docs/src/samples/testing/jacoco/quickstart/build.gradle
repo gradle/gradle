@@ -61,19 +61,19 @@ jacocoTestReport {
 jacocoTestReport {
     violationRules {
         rule {
-            threshold {
+            limit {
                 minimum = 0.5
             }
         }
 
         rule {
             enabled = false
-            scope = 'CLASS'
+            element = 'CLASS'
             includes = ['org.gradle.*']
 
-            threshold {
-                metric = 'LINE'
-                type = 'TOTALCOUNT'
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
                 maximum = 0.3
             }
         }

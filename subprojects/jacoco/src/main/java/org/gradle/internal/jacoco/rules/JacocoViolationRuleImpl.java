@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.testing.jacoco.tasks.rules.JacocoThreshold;
+import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     private String scope = "BUNDLE";
     private List<String> includes = ImmutableList.of("*");
     private List<String> excludes = ImmutableList.of();
-    private final List<JacocoThreshold> thresholds = new ArrayList<JacocoThreshold>();
+    private final List<JacocoLimit> limits = new ArrayList<JacocoLimit>();
 
     @Override
     public boolean isEnabled() {
@@ -46,12 +46,12 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     }
 
     @Override
-    public void setScope(String scope) {
-        this.scope = scope;
+    public void setElement(String element) {
+        this.scope = element;
     }
 
     @Override
-    public String getScope() {
+    public String getElement() {
         return scope;
     }
 
@@ -76,21 +76,21 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     }
 
     @Override
-    public List<JacocoThreshold> getThresholds() {
-        return Collections.unmodifiableList(thresholds);
+    public List<JacocoLimit> getLimits() {
+        return Collections.unmodifiableList(limits);
     }
 
     @Override
-    public JacocoThreshold threshold(Closure configureClosure) {
-        return threshold(ClosureBackedAction.of(configureClosure));
+    public JacocoLimit limit(Closure configureClosure) {
+        return limit(ClosureBackedAction.of(configureClosure));
     }
 
     @Override
-    public JacocoThreshold threshold(Action<? super JacocoThreshold> configureAction) {
-        JacocoThreshold threshold = new JacocoThresholdImpl();
-        configureAction.execute(threshold);
-        thresholds.add(threshold);
-        return threshold;
+    public JacocoLimit limit(Action<? super JacocoLimit> configureAction) {
+        JacocoLimit limit = new JacocoLimitImpl();
+        configureAction.execute(limit);
+        limits.add(limit);
+        return limit;
     }
 
     @Override
@@ -116,7 +116,7 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
         if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
             return false;
         }
-        return thresholds != null ? thresholds.equals(that.thresholds) : that.thresholds == null;
+        return limits != null ? limits.equals(that.limits) : that.limits == null;
     }
 
     @Override
@@ -125,7 +125,7 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
         result = 31 * result + (scope != null ? scope.hashCode() : 0);
         result = 31 * result + (includes != null ? includes.hashCode() : 0);
         result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (thresholds != null ? thresholds.hashCode() : 0);
+        result = 31 * result + (limits != null ? limits.hashCode() : 0);
         return result;
     }
 }

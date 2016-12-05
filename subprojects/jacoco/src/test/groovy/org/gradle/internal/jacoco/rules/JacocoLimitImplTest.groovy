@@ -18,15 +18,15 @@ package org.gradle.internal.jacoco.rules
 
 import spock.lang.Specification
 
-class JacocoThresholdImplTest extends Specification {
+class JacocoLimitImplTest extends Specification {
 
-    JacocoThresholdImpl threshold = new JacocoThresholdImpl()
+    JacocoLimitImpl limit = new JacocoLimitImpl()
 
     def "provides expected default field values"() {
         expect:
-        threshold.metric == 'INSTRUCTION'
-        threshold.type == 'COVEREDRATIO'
-        !threshold.minimum
-        !threshold.maximum
+        limit.counter == 'INSTRUCTION'
+        limit.value == 'COVEREDRATIO'
+        !limit.minimum
+        !limit.maximum
     }
 }

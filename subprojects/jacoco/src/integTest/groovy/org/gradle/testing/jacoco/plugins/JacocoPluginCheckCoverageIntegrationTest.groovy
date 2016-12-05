@@ -45,7 +45,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
-    def "can define single rule without thresholds"() {
+    def "can define single rule without limits"() {
         given:
         buildFile << """
             jacocoTestReport {
@@ -68,9 +68,9 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        scope = 'CLASS'
+                        element = 'CLASS'
                         includes = ['com.company.*', 'org.gradle.*']
-                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -91,7 +91,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                 violationRules {
                     rule {
                         excludes = ['company', '$testDirectory.name']
-                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -115,7 +115,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                 }
                 violationRules {
                     rule {
-                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -136,7 +136,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        ${thresholds.join('\n')}
+                        ${limits.join('\n')}
                     }
                 }
             }
@@ -149,11 +149,11 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
 
         where:
-        thresholds                                        | description
-        [Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'
-        [Thresholds.Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
-        [Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO,
-         Thresholds.Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
+        limits                                        | description
+        [Limits.Sufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'
+        [Limits.Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
+        [Limits.Sufficient.LINE_METRIC_COVERED_RATIO,
+         Limits.Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
 
     }
 
@@ -164,7 +164,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        ${thresholds.join('\n')}
+                        ${limits.join('\n')}
                     }
                 }
             }
@@ -178,14 +178,14 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        thresholds                                          | description                                       | errorMessage
-        [Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'                  | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        [Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'                  | 'classes missed count is 0.0, but expected minimum is 0.5'
-        [Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO,
-         Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT] | 'first of multiple insufficient thresholds fails' | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        [Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO,
-         Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT,
-         Thresholds.Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient threshold fails'              | 'classes missed count is 0.0, but expected minimum is 0.5'
+        limits                                          | description                                   | errorMessage
+        [Limits.Insufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'              | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        [Limits.Insufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'              | 'classes missed count is 0.0, but expected minimum is 0.5'
+        [Limits.Insufficient.LINE_METRIC_COVERED_RATIO,
+         Limits.Insufficient.CLASS_METRIC_MISSED_COUNT] | 'first of multiple insufficient limits fails' | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        [Limits.Sufficient.LINE_METRIC_COVERED_RATIO,
+         Limits.Insufficient.CLASS_METRIC_MISSED_COUNT,
+         Limits.Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient limits fails'             | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
     def "can define multiple rules"() {
@@ -194,10 +194,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        $Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Sufficient.LINE_METRIC_COVERED_RATIO
                     }
                     rule {
-                        $Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT
+                        $Limits.Insufficient.CLASS_METRIC_MISSED_COUNT
                     }
                 }
             }
@@ -217,11 +217,11 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        $Thresholds.Sufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Sufficient.LINE_METRIC_COVERED_RATIO
                     }
                     rule {
                         enabled = false
-                        $Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT
+                        $Limits.Insufficient.CLASS_METRIC_MISSED_COUNT
                     }
                 }
             }
@@ -242,7 +242,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                     failOnViolation = true
 
                     rule {
-                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -265,7 +265,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             tasks.withType(JacocoReport) {
                 violationRules {
                     rule {
-                        $Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -291,7 +291,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             $reportTaskName {
                 violationRules {
                     rule {
-                        $threshold
+                        $limit
                     }
                 }
             }
@@ -305,41 +305,41 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        tasksPaths                              | reportTaskName                | threshold                                         | errorMessage
-        TEST_AND_JACOCO_REPORT_TASK_PATHS       | 'jacocoTestReport'            | Thresholds.Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS | 'jacocoIntegrationTestReport' | Thresholds.Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
+        tasksPaths                              | reportTaskName                | limit                                         | errorMessage
+        TEST_AND_JACOCO_REPORT_TASK_PATHS       | 'jacocoTestReport'            | Limits.Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS | 'jacocoIntegrationTestReport' | Limits.Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
-    static class Thresholds {
+    static class Limits {
         static class Sufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Thresholds.create('LINE', 'COVEREDRATIO', '0.0', '1.0')
-            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.create('CLASS', 'MISSEDCOUNT', null, '0')
+            static final String LINE_METRIC_COVERED_RATIO = Limits.create('LINE', 'COVEREDRATIO', '0.0', '1.0')
+            static final String CLASS_METRIC_MISSED_COUNT = Limits.create('CLASS', 'MISSEDCOUNT', null, '0')
         }
 
         static class Insufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Thresholds.create('LINE', 'COVEREDRATIO', '0.0', '0.5')
-            static final String CLASS_METRIC_MISSED_COUNT = Thresholds.create('CLASS', 'MISSEDCOUNT', '0.5', null)
+            static final String LINE_METRIC_COVERED_RATIO = Limits.create('LINE', 'COVEREDRATIO', '0.0', '0.5')
+            static final String CLASS_METRIC_MISSED_COUNT = Limits.create('CLASS', 'MISSEDCOUNT', '0.5', null)
         }
 
-        private static String create(String metric, String type, String minimum, String maximum) {
-            StringBuilder threshold = new StringBuilder()
-            threshold <<= 'threshold {\n'
+        private static String create(String counter, String value, String minimum, String maximum) {
+            StringBuilder limit = new StringBuilder()
+            limit <<= 'limit {\n'
 
-            if (metric) {
-                threshold <<= "    metric = '${metric}'\n"
+            if (counter) {
+                limit <<= "    counter = '${counter}'\n"
             }
-            if (type) {
-                threshold <<= "    type = '${type}'\n"
+            if (value) {
+                limit <<= "    value = '${value}'\n"
             }
             if (minimum) {
-                threshold <<= "    minimum = $minimum\n"
+                limit <<= "    minimum = $minimum\n"
             }
             if (maximum) {
-                threshold <<= "    maximum = $maximum\n"
+                limit <<= "    maximum = $maximum\n"
             }
 
-            threshold <<= '}'
-            threshold.toString()
+            limit <<= '}'
+            limit.toString()
         }
     }
 }
