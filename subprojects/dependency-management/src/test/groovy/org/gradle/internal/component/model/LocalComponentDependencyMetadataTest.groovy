@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
+import org.gradle.internal.component.NoMatchingConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
@@ -103,11 +104,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(queryAttributes)
         }
         fromConfig.hierarchy >> ["from"]
-        def defaultConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'default'
-            isCanBeResolved() >> true
-            isCanBeConsumed() >> true
-        }
+        def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> attributes(key: 'something')
@@ -138,22 +135,113 @@ class LocalComponentDependencyMetadataTest extends Specification {
         'partial match on key' | [key: 'something', extra: 'no'] | 'foo'
     }
 
-    @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
-    def "selects the target configuration from target component with Java proximity matching strategy"() {
+    def "revalidates default configuration if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata) {
             getConfigurationNames() >> ['foo', 'bar']
+            toString() >> 'target'
         }
         def fromConfig = Stub(LocalConfigurationMetadata) {
-            getAttributes() >> attributes(queryAttributes)
+            getAttributes() >> attributes(key: 'other')
         }
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
             isCanBeResolved() >> true
             isCanBeConsumed() >> true
+            getAttributes() >> attributes(will: 'fail')
         }
+        def toFooConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'foo'
+            getAttributes() >> attributes(key: 'something')
+            isCanBeConsumed() >> true
+        }
+        def toBarConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'bar'
+            getAttributes() >> attributes(key: 'something else')
+            isCanBeConsumed() >> true
+        }
+        def schema = Mock(AttributesSchema) {
+            getMatchingStrategy(_) >> new DefaultAttributeMatchingStrategy()
+            hasAttribute(_) >> { true }
+        }
+        schema.getAttributes() >> {
+            [Attribute.of('key', String)]
+        }
+
+        given:
+        toComponent.getConfiguration("default") >> defaultConfig
+        toComponent.getConfiguration("foo") >> toFooConfig
+        toComponent.getConfiguration("bar") >> toBarConfig
+
+        when:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, schema)*.name as Set
+
+        then:
+        def e = thrown(NoMatchingConfigurationSelectionException)
+        e.message.startsWith "Unable to find a matching configuration in 'target' :"
+        e.message.contains "Required key 'other' but no value provided."
+        e.message.contains "Found will 'fail' but wasn't required."
+    }
+
+    def "revalidates explicit configuration selection if it has attributes"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, 'bar', [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConfigurationNames() >> ['foo', 'bar']
+            toString() >> 'target'
+        }
+        def fromConfig = Stub(LocalConfigurationMetadata) {
+            getAttributes() >> attributes(key: 'something')
+        }
+        fromConfig.hierarchy >> ["from"]
+        def defaultConfig = defaultConfiguration()
+        def toFooConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'foo'
+            getAttributes() >> attributes(key: 'something')
+            isCanBeConsumed() >> true
+        }
+        def toBarConfig = Stub(LocalConfigurationMetadata) {
+            getName() >> 'bar'
+            getAttributes() >> attributes(key: 'something else')
+            isCanBeConsumed() >> true
+        }
+        def schema = Mock(AttributesSchema) {
+            getMatchingStrategy(_) >> new DefaultAttributeMatchingStrategy()
+            hasAttribute(_) >> { true }
+        }
+        schema.getAttributes() >> {
+            [Attribute.of('key', String)]
+        }
+
+        given:
+        toComponent.getConfiguration("default") >> defaultConfig
+        toComponent.getConfiguration("foo") >> toFooConfig
+        toComponent.getConfiguration("bar") >> toBarConfig
+
+        when:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent, schema)*.name as Set
+
+        then:
+        def e = thrown(NoMatchingConfigurationSelectionException)
+        e.message.startsWith "Unable to find a matching configuration in 'target' :"
+        e.message.contains "Required key 'something' and found incompatible value 'something else'."
+    }
+
+    @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
+    def "selects the target configuration from target component with Java proximity matching strategy"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConfigurationNames() >> ['foo', 'bar']
+            toString() >> 'target'
+        }
+        def fromConfig = Stub(LocalConfigurationMetadata) {
+            getAttributes() >> attributes(queryAttributes)
+        }
+        fromConfig.hierarchy >> ["from"]
+        def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> attributes(fooAttributes)
@@ -199,7 +287,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             assert result == [expected] as Set
         } catch (IllegalArgumentException e) {
             if (expected == null) {
-                assert e.message.startsWith("Cannot choose between the following configurations on 'Mock for type 'ComponentResolveMetadata' named 'toComponent'' : bar, foo. All of them match the consumer attributes:")
+                assert e.message.startsWith("Cannot choose between the following configurations on 'target' : bar, foo. All of them match the consumer attributes:")
             } else {
                 throw e
             }
@@ -237,11 +325,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(queryAttributes)
         }
         fromConfig.hierarchy >> ["from"]
-        def defaultConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'default'
-            isCanBeResolved() >> true
-            isCanBeConsumed() >> true
-        }
+        def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> attributes(fooAttributes)
@@ -362,11 +446,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(queryAttributes)
         }
         fromConfig.hierarchy >> ["from"]
-        def defaultConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'default'
-            isCanBeResolved() >> true
-            isCanBeConsumed() >> true
-        }
+        def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> attributes(key: 'something')
@@ -442,11 +522,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(key: 'something')
         }
         fromConfig.hierarchy >> ["from"]
-        def defaultConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'default'
-            isCanBeResolved() >> true
-            isCanBeConsumed() >> true
-        }
+        def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
             getAttributes() >> attributes(key: 'something')
@@ -495,6 +571,18 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         return attributes
     }
+
+    private LocalConfigurationMetadata defaultConfiguration() {
+        Stub(LocalConfigurationMetadata) {
+            getName() >> 'default'
+            isCanBeResolved() >> true
+            isCanBeConsumed() >> true
+            getAttributes() >> Mock(AttributeContainer) {
+                isEmpty() >> true
+            }
+        }
+    }
+
 
     public enum JavaVersion {
         JAVA5,

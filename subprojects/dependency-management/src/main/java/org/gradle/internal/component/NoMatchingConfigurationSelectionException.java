@@ -19,6 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
@@ -29,13 +30,15 @@ import java.util.Set;
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.*;
 
 public class NoMatchingConfigurationSelectionException extends IllegalArgumentException {
-    public NoMatchingConfigurationSelectionException(AttributeContainer fromConfigurationAttributes, ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, targetComponent));
+    public NoMatchingConfigurationSelectionException(
+        AttributeContainer fromConfigurationAttributes,
+        AttributesSchema consumerSchema,
+        ComponentResolveMetadata targetComponent,
+        List<String> candidateConfigurations) {
+        super(generateMessage(fromConfigurationAttributes, consumerSchema, targetComponent, candidateConfigurations));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, ComponentResolveMetadata targetComponent) {
-        Set<String> configurationNames = Sets.newTreeSet();
-        configurationNames.addAll(targetComponent.getConfigurationNames());
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, ComponentResolveMetadata targetComponent, List<String> configurationNames) {
         List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
         for (String name : configurationNames) {
             ConfigurationMetadata targetComponentConfiguration = targetComponent.getConfiguration(name);
@@ -44,7 +47,7 @@ public class NoMatchingConfigurationSelectionException extends IllegalArgumentEx
             }
         }
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
-        StringBuilder sb = new StringBuilder("Unable to find a matching configuration in " + targetComponent +".");
+        StringBuilder sb = new StringBuilder("Unable to find a matching configuration in '" + targetComponent +"' :");
         if (configurations.isEmpty()) {
             sb.append(" None of the consumable configurations have attributes.");
         } else {
@@ -53,7 +56,7 @@ public class NoMatchingConfigurationSelectionException extends IllegalArgumentEx
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (final String config : configurationNames) {
-                formatConfiguration(sb, fromConfigurationAttributes, configurations, requestedAttributes, maxConfLength, config);
+                formatConfiguration(sb, fromConfigurationAttributes, consumerSchema, configurations, requestedAttributes, maxConfLength, config);
             }
         }
         return sb.toString();

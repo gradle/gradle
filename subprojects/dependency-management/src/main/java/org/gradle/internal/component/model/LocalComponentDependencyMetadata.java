@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
+import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -106,17 +107,20 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
+        boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
+        AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
         if (useConfigurationAttributes) {
-            AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
             ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, getConfigurationsAsHasAttributes(targetComponent), fromConfigurationAttributes, null);
             List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getMatchs());
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, matches, targetComponent);
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, matches, targetComponent);
             }/* else {
-                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, targetComponent);
+                Set<String> configurationNames = Sets.newTreeSet();
+                configurationNames.addAll(targetComponent.getConfigurationNames());
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, targetComponent, configurationNames);
             }*/
         }
 
@@ -129,6 +133,15 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             throw new ConfigurationNotConsumableException(toConfiguration.getName());
         }
         ConfigurationMetadata delegate = toConfiguration;
+        if (consumerHasAttributes) {
+            if (!delegate.getAttributes().isEmpty()) {
+                // need to validate that the selected configuration still matches the consumer attributes
+                ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, Collections.singleton((HasAttributes) delegate), fromConfigurationAttributes, null);
+                if (matcher.getMatchs().isEmpty()) {
+                    throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, Collections.singletonList(targetConfiguration));
+                }
+            }
+        }
         if (useConfigurationAttributes) {
             delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
         }

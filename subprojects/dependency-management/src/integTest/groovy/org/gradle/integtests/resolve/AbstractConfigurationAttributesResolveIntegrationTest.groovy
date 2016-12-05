@@ -287,7 +287,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     }
                     freeRelease {
                        extendsFrom compile
-                       attributes($freeRelease)
+                       attributes($freeDebug)
                     }
                     bar {
                         extendsFrom compile
@@ -314,6 +314,71 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         then:
         executedAndNotSkipped ':b:barJar'
         notExecuted ':b:fooJar'
+
+    }
+
+    def "revalidates explicit configuration selection"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    compile
+                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.extendsFrom compile
+                    _compileFreeRelease.extendsFrom compile
+                }
+                dependencies {
+                    compile project(path:':b', configuration: 'bar')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile
+                    foo {
+                       extendsFrom compile
+                       attributes($freeDebug)
+                    }
+                    bar {
+                       extendsFrom compile
+                       attributes($freeRelease)
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failsWith '''Unable to find a matching configuration in 'project :b' :
+   - Configuration 'bar' :
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found compatible value 'free'.'''
 
         when:
         run ':a:checkRelease'
