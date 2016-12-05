@@ -49,10 +49,12 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
         .asSequence()
         .filter { it.name.startsWith("gradle-") }
         .flatMap(::pluginExtensionsFrom)
-        .map { (memberName, pluginId, implementationClass) ->
+        .map { (memberName, pluginId, website, implementationClass) ->
             """
             /**
              * The builtin Gradle plugin implemented by [$implementationClass].
+             *
+             * Visit the [plugin user guide]($website) for additional information.
              *
              * @see $implementationClass
              */
@@ -63,20 +65,22 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
 }
 
 private
-data class PluginExtension(val memberName: String, val pluginId: String, val implementationClass: String)
+data class PluginExtension(val memberName: String, val pluginId: String, val website: String, val implementationClass: String)
 
 private
 fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
     pluginEntriesFrom(file)
         .asSequence()
         .flatMap { (id, implementationClass) ->
+            val simpleId = id.substringAfter("org.gradle.")
+            val website = "https://docs.gradle.org/current/userguide/${simpleId}_plugin.html"
             sequenceOf(
                 // One plugin extension for the simple id, e.g., "application"
-                PluginExtension(id.substringAfter("org.gradle."), id, implementationClass),
+                PluginExtension(simpleId, id, website, implementationClass),
                 // And another extension for the full id, e.g., "org.gradle.application"
                 // but since the regular full-stop dot is not a valid member name character in Kotlin,
                 // the ONE DOT LEADER character ('\u2024') is being used as a replacement here.
-                PluginExtension(id.replace('.', '․'), id, implementationClass))
+                PluginExtension(id.replace('.', '․'), id, website, implementationClass))
         }
 
 private
