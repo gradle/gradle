@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -29,7 +30,10 @@ import org.gradle.api.internal.attributes.DefaultAttributeContainer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
-class DefaultVariant implements ConfigurationPublications.Variant {
+import java.util.Map;
+import java.util.Set;
+
+class DefaultVariant implements ConfigurationPublications.Variant, OutgoingVariant {
     private final String name;
     private final AttributeContainerInternal attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -48,8 +52,27 @@ class DefaultVariant implements ConfigurationPublications.Variant {
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public AttributeContainerInternal getAttributes() {
         return attributes;
+    }
+
+    @Override
+    public ConfigurationPublications.Variant attribute(String attributeName, String value) {
+        attributes.attribute(Attribute.of(attributeName, String.class), value);
+        return this;
+    }
+
+    @Override
+    public ConfigurationPublications.Variant attributes(Map<String, String> attributes) {
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            this.attributes.attribute(Attribute.of(entry.getKey(), String.class), entry.getValue());
+        }
+        return this;
+    }
+
+    @Override
+    public Set<? extends OutgoingVariant> getChildren() {
+        return ImmutableSet.of();
     }
 
     @Override

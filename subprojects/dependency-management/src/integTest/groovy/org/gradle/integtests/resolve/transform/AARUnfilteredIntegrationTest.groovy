@@ -31,12 +31,13 @@ class AARUnfilteredIntegrationTest extends AbstractAARFilterAndTransformIntegrat
         notExecuted ':java-lib:jar'
     }
 
-    def "resolves classes folder and manifest directly from local android library"() {
+    def "resolves classes folder directly from local android library"() {
         when:
         dependency "project(':android-lib')"
 
         then:
-        artifacts() == ['/android-lib/build/classes/main', '/android-lib/aar-image/AndroidManifest.xml']
+        // Currently selects a single variant, should fail instead
+        artifacts() == ['/android-lib/build/classes/main']
         executed ":android-lib:classes"
         notExecuted ":android-lib:jar"
         notExecuted ":android-lib:aar"

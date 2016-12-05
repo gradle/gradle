@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 /**
  * Collects all artifacts and their build dependencies.
@@ -34,7 +33,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
     private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
-    private final Set<ArtifactSet> buildableArtifactSets = new HashSet<ArtifactSet>();
+    private final Set<Long> buildableArtifactSets = new HashSet<Long>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
         this.buildProjectDependencies = buildProjectDependencies;
@@ -48,7 +47,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         if (!buildProjectDependencies) {
             return;
         }
-        if (buildableArtifactSets.contains(artifacts)) {
+        if (buildableArtifactSets.contains(artifacts.getId())) {
             return;
         }
 
@@ -68,7 +67,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             }
         }
 
-        buildableArtifactSets.add(artifacts);
+        buildableArtifactSets.add(artifacts.getId());
     }
 
     @Override
@@ -76,19 +75,13 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
-        Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+        Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
 
         for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
-            ResolvedArtifactSet resolvedArtifacts = entry.getValue().getArtifacts();
-            if (!buildableArtifactSets.contains(entry.getValue())) {
-                resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
-            }
-            allArtifactSets.add(resolvedArtifacts);
-            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
+            ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
+            artifactsById.put(entry.getKey(), resolvedArtifacts);
         }
-        ResolvedArtifactSet allArtifacts = CompositeArtifactSet.of(allArtifactSets);
 
-        return new DefaultResolvedArtifactResults(allArtifacts, resolvedArtifactsById);
+        return new DefaultResolvedArtifactResults(artifactsById, buildableArtifactSets);
     }
 }

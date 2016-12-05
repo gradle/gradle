@@ -168,17 +168,26 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
                 extension = 'aar'
             }
 
-            artifacts {
-                compile(classes.destinationDir) {
-                    type 'classes'
-                    builtBy classes
+            configurations {
+                getByName("default").outgoing.variants {
+                    classesOnly {
+                        artifact(classes.destinationDir) {
+                            type 'classes'
+                            builtBy classes
+                        }
+                    }
+                    manifestOnly {
+                        artifact(file('aar-image/AndroidManifest.xml')) {
+                            type 'android-manifest'
+                        }
+                    }
                 }
-                compile(file('aar-image/AndroidManifest.xml')) {
-                    type 'android-manifest'
+                runtime.outgoing {
+                    artifact jar
                 }
-
-                runtime jar
-                publish aar
+                publish.outgoing {
+                    artifact aar
+                }
             }
         }
         """

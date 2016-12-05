@@ -29,8 +29,9 @@ allprojects {
        attribute(Attribute.of('usage', String))
     }
     configurations {
-        compile {
-            attribute('usage', 'compile')
+        compile
+        "default" {
+            extendsFrom compile
         }
     }
 }

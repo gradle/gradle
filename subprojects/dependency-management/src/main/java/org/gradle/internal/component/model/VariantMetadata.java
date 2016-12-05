@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import java.util.Set;
 
@@ -24,7 +24,7 @@ import java.util.Set;
  * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
  */
 public interface VariantMetadata {
-    AttributeContainer getAttributes();
+    AttributeContainerInternal getAttributes();
 
     Set<? extends ComponentArtifactMetadata> getArtifacts();
 }

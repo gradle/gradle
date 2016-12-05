@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import java.util.Set;
@@ -31,7 +30,7 @@ public class DefaultVariantMetadata implements VariantMetadata {
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public AttributeContainerInternal getAttributes() {
         return attributes;
     }
 

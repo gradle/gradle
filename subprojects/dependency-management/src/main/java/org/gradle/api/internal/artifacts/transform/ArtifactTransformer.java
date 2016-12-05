@@ -32,8 +32,6 @@ import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
@@ -42,6 +40,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -70,16 +69,32 @@ public class ArtifactTransformer {
     }
 
     /**
-     * Returns a spec that selects artifacts matching the supplied attributes, or which can be transformed to match.
+     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match. The selector may return null to mean 'none of these'
      */
-    public Spec<ResolvedArtifact> select(final AttributeContainer attributes) {
-        if (attributes == null || attributes.isEmpty()) {
-            return Specs.satisfyAll();
+    public <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainer attributes) {
+        if (attributes.isEmpty()) {
+            return new Transformer<T, Collection<? extends T>>() {
+                @Override
+                public T transform(Collection<? extends T> variants) {
+                    // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
+                    return variants.iterator().next();
+                }
+            };
         }
-        return new Spec<ResolvedArtifact>() {
+        return new Transformer<T, Collection<? extends T>>() {
             @Override
-            public boolean isSatisfiedBy(ResolvedArtifact artifact) {
-                return getTransform(artifact, attributes) != null || matchArtifactsAttributes(artifact, attributes);
+            public T transform(Collection<? extends T> variants) {
+                // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
+                T canTransform = null;
+                for (T variant : variants) {
+                    if (matchArtifactsAttributes(variant, attributes)) {
+                        return variant;
+                    }
+                    if (getTransform(variant, attributes) != null) {
+                        canTransform = variant;
+                    }
+                }
+                return canTransform;
             }
         };
     }

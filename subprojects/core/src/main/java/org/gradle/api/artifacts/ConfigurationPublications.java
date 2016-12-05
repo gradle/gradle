@@ -22,6 +22,8 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.AttributeContainer;
 
+import java.util.Map;
+
 /**
  * Represents the outgoing artifacts associated with a configuration. These artifacts are used when the configuration is referenced during dependency resolution.
  *
@@ -32,7 +34,7 @@ import org.gradle.api.attributes.AttributeContainer;
 @Incubating
 public interface ConfigurationPublications {
     /**
-     * Returns the artifacts associated with this configuration. Any artifact added to this set is also included by all variants.
+     * Returns the artifacts associated with this configuration. Any artifact added to this set is also included by all variants. It is also inherited by all configurations that extend  this configuration.
      */
     PublishArtifactSet getArtifacts();
 
@@ -64,6 +66,16 @@ public interface ConfigurationPublications {
          * Returns the attributes that define this variant.
          */
         AttributeContainer getAttributes();
+
+        /**
+         * Defines some attributes for this variant.
+         */
+        Variant attributes(Map<String, String> attributes);
+
+        /**
+         * Defines an attribute for this variant.
+         */
+        Variant attribute(String attributeName, String value);
 
         /**
          * Returns the artifacts associated with this variant.

@@ -16,10 +16,12 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -27,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -43,6 +45,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -137,7 +140,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final List<Throwable> notFound = new LinkedList<Throwable>();
         public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(true);
-        public VisitedArtifactsResults artifactsResults;
+        public SelectedArtifactResults artifactsResults;
 
         @Override
         public void start(DependencyGraphNode root) {
@@ -168,7 +171,13 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void finishArtifacts() {
-            artifactsResults = artifactsBuilder.complete();
+            artifactsResults = artifactsBuilder.complete().select(new Transformer<HasAttributes, Collection<? extends HasAttributes>>() {
+                @Override
+                public HasAttributes transform(Collection<? extends HasAttributes> hasAttributes) {
+                    // Select the first variant
+                    return hasAttributes.iterator().next();
+                }
+            });
         }
     }
 }

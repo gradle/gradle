@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.Collection;
@@ -41,16 +41,9 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainer attributes) {
-        Spec<ResolvedArtifact> spec = artifactTransformer.select(attributes);
-        ResolvedArtifactSet selectedArtifacts;
-        ResolvedArtifactSet selectedFiles;
-        if (spec == Specs.<ResolvedArtifact>satisfyAll()) {
-            selectedArtifacts = artifactsResults.getArtifacts();
-            selectedFiles = fileDependencyResults.getFiles();
-        } else {
-            selectedArtifacts = artifactsResults.getArtifacts().select(spec);
-            selectedFiles = fileDependencyResults.getFiles().select(spec);
-        }
+        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransformer.variantSelector(attributes);
+        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(variantSelector).getArtifacts();
+        ResolvedArtifactSet selectedFiles = fileDependencyResults.select(variantSelector).getFiles();
         return new BuildDependenciesOnlySelectedArtifactSet(selectedArtifacts, selectedFiles);
     }
 

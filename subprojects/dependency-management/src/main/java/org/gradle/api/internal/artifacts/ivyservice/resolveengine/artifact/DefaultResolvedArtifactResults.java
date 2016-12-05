@@ -16,24 +16,66 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.attributes.HasAttributes;
+
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
-    private final ResolvedArtifactSet allArtifacts;
-    private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
+    private final Map<Long, ArtifactSet> artifactsById;
+    private final Set<Long> buildableArtifacts;
 
-    public DefaultResolvedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById) {
-        this.allArtifacts = allArtifacts;
-        this.resolvedArtifactsById = resolvedArtifactsById;
+    public DefaultResolvedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+        this.artifactsById = artifactsById;
+        this.buildableArtifacts = buildableArtifacts;
     }
 
     @Override
-    public ResolvedArtifactSet getArtifacts() {
-        return allArtifacts;
+    public SelectedArtifactResults select(Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
+        Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
+        final Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+
+        for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
+            Set<? extends ResolvedVariant> variants = entry.getValue().getVariants();
+            ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
+            ResolvedArtifactSet resolvedArtifacts;
+            if (selected == null) {
+                resolvedArtifacts = ResolvedArtifactSet.EMPTY;
+            } else {
+                resolvedArtifacts = selected.getArtifacts();
+                if (!buildableArtifacts.contains(entry.getValue().getId())) {
+                    resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
+                }
+                allArtifactSets.add(resolvedArtifacts);
+            }
+            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
+        }
+
+        return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById);
     }
 
-    @Override
-    public ResolvedArtifactSet getArtifacts(long id) {
-        return resolvedArtifactsById.get(id);
+    private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
+        private final ResolvedArtifactSet allArtifacts;
+        private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
+
+        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById) {
+            this.allArtifacts = allArtifacts;
+            this.resolvedArtifactsById = resolvedArtifactsById;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return allArtifacts;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts(long id) {
+            return resolvedArtifactsById.get(id);
+        }
     }
 }

@@ -72,8 +72,9 @@ allprojects {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
                     .artifact(name: 'some-jar', type: 'jar')
+                    .publish()
+        def m2 = ivyHttpRepo.module('org', 'test2', '1.0')
                     .artifact(name: 'some-classes', type: 'classes')
-                    .artifact(name: 'some-lib', type: 'lib')
                     .publish()
 
         buildFile << """
@@ -83,15 +84,29 @@ allprojects {
                     compile utilClasses.outputs.files
                     compile utilDir.outputs.files
                     compile 'org:test:1.0'
+                    compile 'org:test2:1.0'
                 }
-                artifacts {
-                    compile file: file('lib.jar'), builtBy: jar
-                    compile file: file('lib.classes'), builtBy: classes
-                    compile file: file('lib'), builtBy: dir
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                jarFormat {
+                                    artifact file: file('lib.jar'), builtBy: tasks.jar
+                                }
+                                classesFormat {
+                                    artifact file: file('lib.classes'), builtBy: tasks.classes
+                                }
+                                dirFormat {
+                                    artifact file: file('lib'), builtBy: tasks.dir
+                                }
+                            }
+                        }
+                    }
                 }
             }
             project(':ui') {
                 artifacts {
+                    compile file: file('ui.jar'), builtBy: jar
                     compile file: file('ui.classes'), builtBy: classes
                 }
             }
@@ -110,38 +125,40 @@ allprojects {
                 task resolve {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
 
                         // These do not include files from file dependencies
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ['lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == ['lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ['lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == ['lib.jar', 'ui.jar', 'some-jar-1.0.jar']
 
-                        assert configurations.compile.incoming.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolve().collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolve().collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
 
                         // Get a view specifying the default type
-                        assert configurations.compile.incoming.getFiles(artifactType: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.getFiles(artifactType: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
 
                         // Get a view without overriding the type
-                        assert configurations.compile.incoming.getFiles(otherAttribute: 'anything').collect { it.name } == ['lib-util.jar', 'lib.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.getFiles(otherAttribute: 'anything').collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
                     }
                 }
             }
         """
 
         m1.ivy.expectGet()
+        m2.ivy.expectGet()
         m1.getArtifact(name: 'some-jar', type: 'jar').expectGet()
 
         expect:
         succeeds "resolve"
         // Currently builds all file dependencies
-        result.assertTasksExecuted(":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
+        // TODO - builds all artifacts from configuration when it does not declare any variants, should not include ui:classes
+        result.assertTasksExecuted(":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":ui:jar", ":app:resolve")
     }
 
     // Documents existing matching behaviour, not desired behaviour
@@ -149,8 +166,9 @@ allprojects {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
                     .artifact(name: 'some-jar', type: 'jar')
+                    .publish()
+        def m2 = ivyHttpRepo.module('org', 'test2', '1.0')
                     .artifact(name: 'some-classes', type: 'classes')
-                    .artifact(name: 'some-lib', type: 'lib')
                     .publish()
 
         buildFile << """
@@ -160,16 +178,30 @@ allprojects {
                     compile utilClasses.outputs.files
                     compile utilDir.outputs.files
                     compile 'org:test:1.0'
+                    compile 'org:test2:1.0'
                 }
-                artifacts {
-                    compile file: file('lib.jar'), builtBy: jar
-                    compile file: file('lib.classes'), builtBy: classes
-                    compile file: file('lib'), builtBy: dir
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                jarFormat {
+                                    artifact file: file('lib.jar'), builtBy: tasks.jar
+                                }
+                                classesFormat {
+                                    artifact file: file('lib.classes'), builtBy: tasks.classes
+                                }
+                                dirFormat {
+                                    artifact file: file('lib'), builtBy: tasks.dir
+                                }
+                            }
+                        }
+                    }
                 }
             }
             project(':ui') {
                 artifacts {
                     compile file: file('ui.jar'), builtBy: jar
+                    compile file: file('ui.classes'), builtBy: classes
                 }
             }
 
@@ -188,19 +220,21 @@ allprojects {
                     def files = configurations.compile.incoming.getFiles(artifactType: 'classes')
                     inputs.files files
                     doLast {
-                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'some-classes-1.0.classes']
+                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'ui.classes', 'some-classes-1.0.classes']
                     }
                 }
             }
         """
 
         m1.ivy.expectGet()
-        m1.getArtifact(name: 'some-classes', type: 'classes').expectGet()
+        m2.ivy.expectGet()
+        m2.getArtifact(name: 'some-classes', type: 'classes').expectGet()
 
         expect:
         succeeds "resolve"
         // Currently builds all file dependencies
-        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
+        // TODO - builds all artifacts from configuration when it does not declare any variants, should not include ui:jar
+        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":ui:jar", ":app:resolve")
     }
 
     // Documents existing matching behaviour, not desired behaviour
@@ -208,8 +242,9 @@ allprojects {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
                     .artifact(name: 'some-jar', type: 'jar')
+                    .publish()
+        def m2 = ivyHttpRepo.module('org', 'test2', '1.0')
                     .artifact(name: 'some-classes', type: 'classes')
-                    .artifact(name: 'some-lib', type: 'lib')
                     .publish()
 
         buildFile << """
@@ -219,16 +254,30 @@ allprojects {
                     compile utilClasses.outputs.files
                     compile utilDir.outputs.files
                     compile 'org:test:1.0'
+                    compile 'org:test2:1.0'
                 }
-                artifacts {
-                    compile file: file('lib.jar'), builtBy: jar
-                    compile file: file('lib.classes'), builtBy: classes
-                    compile file: file('lib'), builtBy: dir
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                jarFormat {
+                                    artifact file: file('lib.jar'), builtBy: tasks.jar
+                                }
+                                classesFormat {
+                                    artifact file: file('lib.classes'), builtBy: tasks.classes
+                                }
+                                dirFormat {
+                                    artifact file: file('lib'), builtBy: tasks.dir
+                                }
+                            }
+                        }
+                    }
                 }
             }
             project(':ui') {
                 artifacts {
                     compile file: file('ui.jar'), builtBy: jar
+                    compile file: file('ui.classes'), builtBy: classes
                 }
             }
 
@@ -248,29 +297,43 @@ allprojects {
                     files.each { println it.name }
                     inputs.files files
                     doLast {
-                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'some-classes-1.0.classes']
+                        assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'ui.classes', 'some-classes-1.0.classes']
                     }
                 }
             }
         """
 
         m1.ivy.expectGet()
-        m1.getArtifact(name: 'some-classes', type: 'classes').expectGet()
+        m2.ivy.expectGet()
+        m2.getArtifact(name: 'some-classes', type: 'classes').expectGet()
 
         expect:
         succeeds "resolve"
         // Currently builds all file dependencies
-        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":app:resolve")
+        // TODO - builds all artifacts from configuration when it does not declare any variants, should not include ui:jar
+        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":ui:jar", ":app:resolve")
     }
 
     def "can create a view for configuration that has no attributes"() {
         given:
         buildFile << """
             project(':lib') {
-                artifacts {
-                    compile file: file('lib.jar'), builtBy: jar
-                    compile file: file('lib.classes'), builtBy: classes
-                    compile file: file('lib'), builtBy: dir
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                jarFormat {
+                                    artifact file: file('lib.jar'), builtBy: tasks.jar
+                                }
+                                classesFormat {
+                                    artifact file: file('lib.classes'), builtBy: tasks.classes
+                                }
+                                dirFormat {
+                                    artifact file: file('lib'), builtBy: tasks.dir
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

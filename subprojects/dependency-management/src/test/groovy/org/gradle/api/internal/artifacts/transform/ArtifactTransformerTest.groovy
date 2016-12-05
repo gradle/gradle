@@ -28,9 +28,7 @@ import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*
 
 class ArtifactTransformerTest extends Specification {
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
@@ -208,7 +206,7 @@ class ArtifactTransformerTest extends Specification {
         0 * _
     }
 
-    def "selects artifacts with requested attributes"() {
+    def "selects variant with requested attributes"() {
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
@@ -217,12 +215,11 @@ class ArtifactTransformerTest extends Specification {
         artifact2.attributes >> typeAttributes("jar")
 
         expect:
-        def spec = transformer.select(typeAttributes("classes"))
-        spec.isSatisfiedBy(artifact1)
-        !spec.isSatisfiedBy(artifact2)
+        def spec = transformer.variantSelector(typeAttributes("classes"))
+        spec.transform([artifact1, artifact2]) == artifact1
     }
 
-    def "selects artifacts with attributes that can be transformed to requested format"() {
+    def "selects variant with attributes that can be transformed to requested format"() {
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
@@ -234,9 +231,36 @@ class ArtifactTransformerTest extends Specification {
         artifactTransforms.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
 
         expect:
-        def spec = transformer.select(typeAttributes("classes"))
-        spec.isSatisfiedBy(artifact1)
-        !spec.isSatisfiedBy(artifact2)
+        def spec = transformer.variantSelector(typeAttributes("classes"))
+        spec.transform([artifact1, artifact2]) == artifact1
+    }
+
+    def "selects variant with requested attributes when another variant can be transformed"() {
+        def artifact1 = Stub(ResolvedArtifact)
+        def artifact2 = Stub(ResolvedArtifact)
+
+        given:
+        artifact1.attributes >> typeAttributes("jar")
+        artifact2.attributes >> typeAttributes("classes")
+
+        artifactTransforms.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+
+        expect:
+        def spec = transformer.variantSelector(typeAttributes("classes"))
+        spec.transform([artifact1, artifact2]) == artifact2
+    }
+
+    def "selects no variant when none match"() {
+        def artifact1 = Stub(ResolvedArtifact)
+        def artifact2 = Stub(ResolvedArtifact)
+
+        given:
+        artifact1.attributes >> typeAttributes("jar")
+        artifact2.attributes >> typeAttributes("classes")
+
+        expect:
+        def spec = transformer.variantSelector(typeAttributes("dll"))
+        spec.transform([artifact1, artifact2]) == null
     }
 
     private static AttributeContainer typeAttributes(String artifactType) {

@@ -29,8 +29,9 @@ rootProject.name = 'test'
         buildFile << """
 allprojects {
     configurations { 
-        compile {
-            attribute('usage', 'compile')
+        compile
+        "default" {
+            extendsFrom compile
         }
     }
 }

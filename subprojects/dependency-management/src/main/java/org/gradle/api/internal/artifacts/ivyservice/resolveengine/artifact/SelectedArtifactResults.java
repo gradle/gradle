@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import java.util.Set;
-
-public interface ArtifactSet {
-
-    long getId();
+public interface SelectedArtifactResults {
+    /**
+     * Returns all artifacts visited during graph traversal
+     */
+    ResolvedArtifactSet getArtifacts();
 
     /**
-     * Take a snapshot of this set, doing whatever work is required to calculate the variants of this set.
+     * Returns the set of artifacts with the given id.
      */
-    ArtifactSet snapshot();
-
-    Set<? extends ResolvedVariant> getVariants();
+    ResolvedArtifactSet getArtifacts(long id);
 }

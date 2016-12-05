@@ -16,22 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 
-public class TransientConfigurationResultsLoader implements Factory<TransientConfigurationResults> {
+public class TransientConfigurationResultsLoader {
     private final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
-    private final VisitedArtifactsResults artifactResults;
     private final ResolvedGraphResults graphResults;
 
-    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults, VisitedArtifactsResults artifactResults) {
+    public TransientConfigurationResultsLoader(TransientConfigurationResultsBuilder transientConfigurationResultsBuilder, ResolvedGraphResults graphResults) {
         this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
-        this.artifactResults = artifactResults;
         this.graphResults = graphResults;
     }
 
-    @Override
-    public TransientConfigurationResults create() {
+    /**
+     * Creates the result given the selected artifacts.
+     */
+    public TransientConfigurationResults create(SelectedArtifactResults artifactResults) {
         return transientConfigurationResultsBuilder.load(graphResults, artifactResults);
     }
 }

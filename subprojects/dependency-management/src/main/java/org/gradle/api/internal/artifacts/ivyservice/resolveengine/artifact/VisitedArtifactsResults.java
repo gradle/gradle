@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.attributes.HasAttributes;
+
+import java.util.Collection;
+
 public interface VisitedArtifactsResults {
     /**
-     * Returns all artifacts visited during graph traversal
+     * Selects the artifacts for the matching variant of each node seen during traversal.
      */
-    ResolvedArtifactSet getArtifacts();
-
-    /**
-     * Returns the set of artifacts with the given id.
-     */
-    ResolvedArtifactSet getArtifacts(long id);
+    SelectedArtifactResults select(Transformer<HasAttributes, Collection<? extends HasAttributes>> selector);
 }
