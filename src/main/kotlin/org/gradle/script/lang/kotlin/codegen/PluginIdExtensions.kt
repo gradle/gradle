@@ -18,6 +18,7 @@ package org.gradle.script.lang.kotlin.codegen
 
 import org.gradle.script.lang.kotlin.KotlinPluginDependenciesHandler
 
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 import java.io.File
@@ -30,7 +31,7 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
     file.bufferedWriter().use { it.apply {
         write(fileHeader)
         write("\n")
-        write("import ${KotlinPluginDependenciesHandler::class.qualifiedName}\n")
+        write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
         write("import ${PluginDependencySpec::class.qualifiedName}\n")
         pluginIdExtensionDeclarationsFor(gradleJars).forEach {
             write("\n")
@@ -42,7 +43,7 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
 
 private
 fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
-    val extendedType = KotlinPluginDependenciesHandler::class.simpleName
+    val extendedType = PluginDependenciesSpec::class.simpleName
     val extensionType = PluginDependencySpec::class.simpleName
     return jars
         .asSequence()

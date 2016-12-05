@@ -2,6 +2,7 @@ package org.gradle.script.lang.kotlin
 
 import org.gradle.groovy.scripts.StringScriptSource
 
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequest
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -43,7 +44,7 @@ class KotlinPluginDependenciesHandlerTest {
         }
     }
 
-    fun expecting(vararg expected: Plugin, block: KotlinPluginDependenciesHandler.() -> Unit) {
+    fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
         assertThat(
             plugins(block).map { Plugin(it.id.asString(), it.version, it.isApply) },
             equalTo(expected.asList()))

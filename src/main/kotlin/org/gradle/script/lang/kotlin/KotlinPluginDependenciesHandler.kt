@@ -23,9 +23,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  * @see PluginDependenciesSpec
  */
 @BuildScriptBlockMarker
-class KotlinPluginDependenciesHandler(private val plugins: PluginDependenciesSpec) {
-    fun id(id: String): PluginDependencySpec = plugins.id(id)
-}
+class KotlinPluginDependenciesHandler(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
 
 infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec = version(version)
 
