@@ -47,7 +47,7 @@ public class MemoryStatusBroadcaster {
         scheduledExecutorService.scheduleAtFixedRate(new MemoryCheck(), 0, STATUS_INTERVAL, TimeUnit.SECONDS);
         LOGGER.debug("Memory status broadcaster started");
         if (!osMemoryStatusSupported) {
-            LOGGER.warn("This JVM does not support getting OS system memory, so no memory status updates will be broadcast");
+            LOGGER.info("This JVM does not support getting OS system memory, so no memory status updates will be broadcast");
         }
     }
 
