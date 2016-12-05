@@ -81,6 +81,27 @@
         </imageobject>
     </section>
 
+    <section id="sec:jacoco_report_violation_rules">
+        <title>Enforcing code coverage metrics</title>
+        <para>
+            Every task of type <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport"/> can be configured to verify if code coverage
+            metrics are met based on configured rules. The methods
+            <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" method="violationRules(groovy.lang.Closure)"/> and
+            <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" method="violationRules(org.gradle.api.Action)"/>
+            are the main entry point of configuring rules.
+            It returns an instance of <apilink class="org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer"/> which provides
+            extensive configuration options. The build fails if any of the configured rules is not met. JaCoCo only reports the first violated rule.
+        </para>
+        <para>
+            Code coverage requirements can be specified for a project as a whole, for individual files, and for
+            particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example
+            describes the syntax.
+        </para>
+        <sample id="configViolationRules" dir="testing/jacoco/quickstart" title="Configuring violation rules">
+            <sourcefile file="build.gradle" snippet="violation-rules-configuration"/>
+        </sample>
+    </section>
+
     <section id="sec:jacoco_specific_task_configuration">
         <title>JaCoCo specific task configuration</title>
         <para>The JaCoCo plugin adds a
