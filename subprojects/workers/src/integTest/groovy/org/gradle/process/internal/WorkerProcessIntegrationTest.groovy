@@ -305,7 +305,6 @@ class LogSerializableLogAction extends SerializableLogAction {
 
     void execute() {
         Logging.getLogger(getClass()).log(logLevel, message)
-        System.err.println(message);
     }
 }
 
