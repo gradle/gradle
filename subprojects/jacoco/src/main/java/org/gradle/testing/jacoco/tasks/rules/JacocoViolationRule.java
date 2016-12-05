@@ -17,10 +17,13 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import java.util.List;
+
+import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * Jacoco violation rule.
@@ -68,7 +71,7 @@ public interface JacocoViolationRule {
     /**
      * Adds a threshold for this rule. There's no limitation to the number of thresholds that can be added.
      */
-    JacocoThreshold threshold(Closure configureClosure);
+    JacocoThreshold threshold(@DelegatesTo(value = JacocoThreshold.class, strategy = DELEGATE_FIRST) Closure configureClosure);
 
     JacocoThreshold threshold(Action<? super JacocoThreshold> configureAction);
 }
