@@ -26,7 +26,7 @@ import spock.lang.Timeout
 @IgnoreIf({ GradleContextualExecuter.daemon })
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
-    @Timeout(10)
+    @Timeout(20)
     def "can register a listener for JVM and OS memory status update events (daemon)"() {
         given:
         executer.requireIsolatedDaemons()
@@ -36,20 +36,19 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
         buildFile << waitForMemoryEventsTask()
 
         when:
-        executer.withTasks("waitForMemoryEvents").withArgument("--debug").run()
+        executer.withTasks("waitForMemoryEvents").run()
 
         then:
         daemons.daemon.log.contains jvmLogStatement()
         daemons.daemon.log.contains osLogStatement()
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "can register a listener for JVM and OS memory status update events (embedded)"() {
         given:
         buildFile << waitForMemoryEventsTask()
 
         when:
-        args '--debug'
         succeeds 'waitForMemoryEvents'
 
         then:
@@ -69,13 +68,13 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
                     MemoryResourceManager manager = project.services.get(MemoryResourceManager.class)
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
-                            logger.debug "JVM MemoryStatus notification: $memoryStatus"
+                            logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
                     })
                     manager.addListener(new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
-                            logger.debug "OS MemoryStatus notification: $memoryStatus"
+                            logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
                     })
