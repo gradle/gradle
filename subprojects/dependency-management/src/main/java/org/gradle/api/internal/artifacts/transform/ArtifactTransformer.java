@@ -79,8 +79,7 @@ public class ArtifactTransformer {
         return new Spec<ResolvedArtifact>() {
             @Override
             public boolean isSatisfiedBy(ResolvedArtifact artifact) {
-                return matchArtifactsAttributes(artifact, attributes)
-                    || getTransform(artifact, attributes) != null;
+                return getTransform(artifact, attributes) != null || matchArtifactsAttributes(artifact, attributes);
             }
         };
     }
@@ -97,6 +96,14 @@ public class ArtifactTransformer {
         return new ArtifactVisitor() {
             @Override
             public void visitArtifact(final ResolvedArtifact artifact) {
+                List<ResolvedArtifact> transformResults = transformedArtifacts.get(Pair.of(artifact, immutableAttributes));
+                if (transformResults != null) {
+                    for (ResolvedArtifact resolvedArtifact : transformResults) {
+                        visitor.visitArtifact(resolvedArtifact);
+                    }
+                    return;
+                }
+
                 final Transformer<List<File>, File> transform = getTransform(artifact, immutableAttributes);
                 if (transform == null) {
                     if (matchArtifactsAttributes(artifact, immutableAttributes)) {
@@ -106,13 +113,6 @@ public class ArtifactTransformer {
                     return;
                 }
 
-                List<ResolvedArtifact> transformResults = transformedArtifacts.get(Pair.of(artifact, immutableAttributes));
-                if (transformResults != null) {
-                    for (ResolvedArtifact resolvedArtifact : transformResults) {
-                        visitor.visitArtifact(resolvedArtifact);
-                    }
-                    return;
-                }
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
                 transformResults = Lists.newArrayList();
@@ -139,6 +139,12 @@ public class ArtifactTransformer {
                 try {
                     for (File file : files) {
                         try {
+                            List<File> transformResults = transformedFiles.get(Pair.of(file, immutableAttributes));
+                            if (transformResults != null) {
+                                result.addAll(transformResults);
+                                continue;
+                            }
+
                             HasAttributes fileWithAttributes = DefaultArtifactAttributes.forFile(file);
                             Transformer<List<File>, File> transform = getTransform(fileWithAttributes, immutableAttributes);
                             if (transform == null) {
@@ -146,11 +152,6 @@ public class ArtifactTransformer {
                                     result.add(file);
                                     continue;
                                 }
-                                continue;
-                            }
-                            List<File> transformResults = transformedFiles.get(Pair.of(file, immutableAttributes));
-                            if (transformResults != null) {
-                                result.addAll(transformResults);
                                 continue;
                             }
                             transformResults = transform.transform(file);

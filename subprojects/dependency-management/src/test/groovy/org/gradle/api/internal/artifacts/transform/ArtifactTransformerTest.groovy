@@ -54,16 +54,18 @@ class ArtifactTransformerTest extends Specification {
     def "forwards artifact whose type matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
         def artifact = Stub(ResolvedArtifact)
+        def requestAttributes = typeAttributes("classpath")
 
         given:
-        artifact.attributes >> typeAttributes("classpath")
+        artifact.attributes >> requestAttributes
 
         when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, requestAttributes)
         transformVisitor.visitArtifact(artifact)
 
         then:
         1 * visitor.visitArtifact(artifact)
+        1 * artifactTransforms.getTransform(requestAttributes, requestAttributes) >> null
         0 * _
     }
 
@@ -114,11 +116,14 @@ class ArtifactTransformerTest extends Specification {
         def id = Stub(ComponentIdentifier)
         def file = new File("thing.classpath")
 
+        def requestAttributes = typeAttributes("classpath")
+
         when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, requestAttributes)
         transformVisitor.visitFiles(id, [file])
 
         then:
+        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), requestAttributes) >> null
         1 * visitor.visitFiles(id, [file])
         0 * _
     }
