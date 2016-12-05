@@ -287,7 +287,6 @@ class FileSizer extends ArtifactTransform {
         file("build/libs").assertIsEmptyDir()
     }
 
-    @NotYetImplemented // Cannot use custom attribute in `ArtifactTransform`
     def "can use transform to selectively include artifacts based on arbitrary criteria"() {
         mavenRepo.module("test", "to-keep", "1.3").publish()
         mavenRepo.module("test", "to-exclude", "2.3").publish()
@@ -306,8 +305,8 @@ class FileSizer extends ArtifactTransform {
             }
             ${registerTransform('ArtifactFilter')}
 
-            def filteredView = configurations.selection.incoming.getFiles(viewType: 'filtered', artifactType: 'foo')
-            def unfilteredView = configurations.selection.incoming.getFiles(viewType: 'unfiltered', artifactType: 'foo')
+            def filteredView = configurations.selection.incoming.getFiles(artifactType: 'filtered')
+            def unfilteredView = configurations.selection.incoming.getFiles(artifactType: 'unfiltered')
 
             task checkFiles {
                 doLast {
@@ -319,12 +318,12 @@ class FileSizer extends ArtifactTransform {
 
             class ArtifactFilter extends ArtifactTransform {
                 void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    targets.newTarget().attribute(Attribute.of('viewType', String), "filtered")
-                    targets.newTarget().attribute(Attribute.of('viewType', String), "unfiltered")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "filtered")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "unfiltered")
                 }
             
                 List<File> transform(File input, AttributeContainer target) {
-                    if (target.getAttribute(Attribute.of('viewType', String)) == "unfiltered") {
+                    if (target.getAttribute(Attribute.of('artifactType', String)) == "unfiltered") {
                         return [input]
                     }
                     if (input.name.startsWith('to-keep')) {
