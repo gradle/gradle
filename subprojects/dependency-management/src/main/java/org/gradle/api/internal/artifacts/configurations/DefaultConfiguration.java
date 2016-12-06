@@ -487,7 +487,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return doGetTaskDependency(Specs.<Dependency>satisfyAll(), configurationAttributes);
     }
 
-    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainer attributes) {
+    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes) {
         synchronized (resolutionLock) {
             if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
                 // Force graph resolution as this is required to calculate build dependencies
@@ -503,15 +503,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 results = cachedResolverResults;
             }
             List<Object> buildDependencies = new ArrayList<Object>();
-            results.getVisitedArtifacts().select(dependencySpec, attributes).collectBuildDependencies(buildDependencies);
+            results.getVisitedArtifacts().select(dependencySpec, requestedAttributes).collectBuildDependencies(buildDependencies);
             return TaskDependencies.of(buildDependencies);
         }
     }
 
-    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec, AttributeContainer attributes) {
+    private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes) {
         synchronized (resolutionLock) {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, attributes).collectFiles(new LinkedHashSet<File>());
+            return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes).collectFiles(new LinkedHashSet<File>());
         }
     }
 
@@ -749,7 +749,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class ConfigurationFileCollection extends AbstractFileCollection {
         private final Spec<? super Dependency> dependencySpec;
-        private final AttributeContainer viewAttributes;
+        private final AttributeContainerInternal viewAttributes;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();

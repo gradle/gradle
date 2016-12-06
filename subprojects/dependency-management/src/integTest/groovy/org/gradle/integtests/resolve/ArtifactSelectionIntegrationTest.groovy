@@ -67,8 +67,7 @@ allprojects {
 """
     }
 
-    // Documents existing matching behaviour, not desired behaviour
-    def "excludes artifacts and files with format that does not match requested from the result"() {
+    def "selects artifacts and files whose format matches the requested"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
                     .artifact(name: 'some-jar', type: 'jar')
@@ -107,7 +106,6 @@ allprojects {
             project(':ui') {
                 artifacts {
                     compile file: file('ui.jar'), builtBy: jar
-                    compile file: file('ui.classes'), builtBy: classes
                 }
             }
 
@@ -157,11 +155,9 @@ allprojects {
         expect:
         succeeds "resolve"
         // Currently builds all file dependencies
-        // TODO - builds all artifacts from configuration when it does not declare any variants, should not include ui:classes
-        result.assertTasksExecuted(":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":ui:jar", ":app:resolve")
+        result.assertTasksExecuted(":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:jar", ":app:resolve")
     }
 
-    // Documents existing matching behaviour, not desired behaviour
     def "can create a view that selects different artifacts from the same dependency graph"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -200,7 +196,6 @@ allprojects {
             }
             project(':ui') {
                 artifacts {
-                    compile file: file('ui.jar'), builtBy: jar
                     compile file: file('ui.classes'), builtBy: classes
                 }
             }
@@ -233,11 +228,46 @@ allprojects {
         expect:
         succeeds "resolve"
         // Currently builds all file dependencies
-        // TODO - builds all artifacts from configuration when it does not declare any variants, should not include ui:jar
-        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":ui:jar", ":app:resolve")
+        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve")
     }
 
-    // Documents existing matching behaviour, not desired behaviour
+    def "fails when default variant contains artifacts whose format does not match the requested format"() {
+        given:
+        buildFile << """
+            project(':ui') {
+                artifacts {
+                    compile file: file('ui.classes'), builtBy: classes
+                    compile file: file('ui.jar'), builtBy: jar
+                }
+            }
+
+            project(':app') {
+                configurations {
+                    compile {
+                        attributes artifactType: 'jar'
+                    }
+                }
+
+                dependencies {
+                    compile project(':ui')
+                }
+
+                task resolve {
+                    inputs.files configurations.compile
+                    doLast {
+                        configurations.compile.collect { it.name }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails "resolve"
+        failure.assertHasCause("Artifact ui.classes (project :ui) is not compatible with requested attributes {artifactType=jar, usage=api}")
+        // Currently builds the default variant
+        result.assertTasksExecuted(":ui:classes", ":ui:jar", ":app:resolve")
+    }
+
     def "can query the content of view before task graph is calculated"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -276,7 +306,6 @@ allprojects {
             }
             project(':ui') {
                 artifacts {
-                    compile file: file('ui.jar'), builtBy: jar
                     compile file: file('ui.classes'), builtBy: classes
                 }
             }
@@ -310,8 +339,7 @@ allprojects {
         expect:
         succeeds "resolve"
         // Currently builds all file dependencies
-        // TODO - builds all artifacts from configuration when it does not declare any variants, should not include ui:jar
-        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":ui:jar", ":app:resolve")
+        result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve")
     }
 
     def "can create a view for configuration that has no attributes"() {

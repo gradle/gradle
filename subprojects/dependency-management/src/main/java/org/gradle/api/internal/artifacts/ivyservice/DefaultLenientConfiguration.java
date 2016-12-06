@@ -31,7 +31,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
@@ -48,6 +47,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
@@ -93,8 +93,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainer attributes) {
-        Transformer<HasAttributes, Collection<? extends HasAttributes>> selector = artifactTransformer.variantSelector(attributes);
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes) {
+        Transformer<HasAttributes, Collection<? extends HasAttributes>> selector = artifactTransformer.variantSelector(requestedAttributes);
         final SelectedArtifactResults artifactResults = this.artifactResults.select(selector);
         final SelectedFileDependencyResults fileDependencyResults = this.fileDependencyResults.select(selector);
         return new SelectedArtifactSet() {
@@ -107,7 +107,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
-                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, artifactResults, fileDependencyResults, visitor);
+                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, requestedAttributes, artifactResults, fileDependencyResults, visitor);
             }
 
             /**
@@ -118,7 +118,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 rethrowFailure();
                 ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
                 try {
-                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, artifactResults, fileDependencyResults, visitor);
+                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, requestedAttributes, artifactResults, fileDependencyResults, visitor);
                     // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts.
                     // This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
                     // File dependencies and artifacts are currently treated separately as a migration step
@@ -140,7 +140,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 rethrowFailure();
                 ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
                 try {
-                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, attributes, artifactResults, fileDependencyResults, visitor);
+                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, requestedAttributes, artifactResults, fileDependencyResults, visitor);
                 } catch (Throwable t) {
                     visitor.failures.add(t);
                 }
@@ -267,8 +267,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainer attributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
-        ArtifactVisitor transformingVisitor = artifactTransformer.visitor(visitor, attributes);
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
+        ArtifactVisitor transformingVisitor = artifactTransformer.visitor(visitor, requestedAttributes);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario

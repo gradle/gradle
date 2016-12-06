@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -30,7 +30,7 @@ public interface VisitedArtifactSet {
      * Not every query is available on the value returned from this method. Details are progressively refined during resolution and more queries become available.
      *
      * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
-     * @param attributes Select only those artifacts that match the provided attributes.
+     * @param requestedAttributes Select only those artifacts that match the provided attributes.
      */
-    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainer attributes);
+    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes);
 }

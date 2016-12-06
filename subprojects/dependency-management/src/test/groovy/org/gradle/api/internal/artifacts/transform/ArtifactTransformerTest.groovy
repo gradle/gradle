@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.internal.resolve.ArtifactResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.*
@@ -106,6 +107,8 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitArtifact(artifact)
 
         then:
+        def e = thrown(ArtifactResolveException)
+        e.message == "Artifact $artifact is not compatible with requested attributes {artifactType=classpath}"
         0 * visitor._
     }
 

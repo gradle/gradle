@@ -39,6 +39,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -117,11 +118,11 @@ public class ArtifactTransformer {
      * Returns a visitor that transforms files and artifacts to match the requested attributes
      * and then forwards the results to the given visitor.
      */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainer attributes) {
+    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes) {
         if (attributes == null || attributes.isEmpty()) {
             return visitor;
         }
-        final AttributeContainer immutableAttributes = ((AttributeContainerInternal) attributes).asImmutable();
+        final AttributeContainer immutableAttributes = attributes.asImmutable();
         return new ArtifactVisitor() {
             @Override
             public void visitArtifact(final ResolvedArtifact artifact) {
@@ -139,7 +140,7 @@ public class ArtifactTransformer {
                         visitor.visitArtifact(artifact);
                         return;
                     }
-                    return;
+                    throw new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + immutableAttributes);
                 }
 
                 TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
