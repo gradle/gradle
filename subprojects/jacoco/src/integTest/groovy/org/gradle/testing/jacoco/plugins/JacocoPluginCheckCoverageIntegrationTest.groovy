@@ -23,7 +23,9 @@ import spock.lang.Unroll
 class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
-    private final static String[] TEST_AND_JACOCO_REPORT_TASK_PATHS = [':test', ':jacocoTestReport'] as String[]
+    private final static String[] TEST_TASK_PATH = [':test'] as String[]
+    private final static String[] JACOCO_REPORT_TASK_PATH = [':jacocoTestReport'] as String[]
+    private final static String[] TEST_AND_JACOCO_REPORT_TASK_PATHS = TEST_TASK_PATH + JACOCO_REPORT_TASK_PATH
     private final static String[] INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestReport'] as String[]
 
     def setup() {
@@ -308,6 +310,43 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         tasksPaths                              | reportTaskName                | limit                                         | errorMessage
         TEST_AND_JACOCO_REPORT_TASK_PATHS       | 'jacocoTestReport'            | Limits.Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
         INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS | 'jacocoIntegrationTestReport' | Limits.Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
+    }
+
+    def "changes to violation rules re-run task"() {
+        buildFile << """
+            jacocoTestReport {
+                violationRules {
+                    rule {
+                        $Limits.Sufficient.LINE_METRIC_COVERED_RATIO
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+
+        when:
+        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executed(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+        skipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+
+        when:
+        buildFile << """
+            jacocoTestReport.violationRules.rules[0].limits[0].maximum = 0.5            
+        """
+
+        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executed(JACOCO_REPORT_TASK_PATH)
+        skipped(TEST_TASK_PATH)
+        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
     static class Limits {

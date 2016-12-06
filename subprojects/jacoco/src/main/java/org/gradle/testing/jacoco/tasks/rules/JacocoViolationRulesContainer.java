@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Input;
 
 import java.util.List;
 
@@ -39,13 +39,13 @@ public interface JacocoViolationRulesContainer {
     /**
      * Specifies whether build should fail in case of rule violations. Defaults to true.
      */
-    @Internal
+    @Input
     boolean isFailOnViolation();
 
     /**
      * Gets all violation rules. Defaults to an empty list.
      */
-    @Internal
+    @Input
     List<JacocoViolationRule> getRules();
 
     /**
