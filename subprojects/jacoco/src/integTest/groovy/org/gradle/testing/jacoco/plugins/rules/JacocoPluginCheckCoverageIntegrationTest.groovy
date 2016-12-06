@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.jacoco.plugins
+package org.gradle.testing.jacoco.plugins.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import spock.lang.Unroll
+
+import static JacocoViolationRulesLimit.Insufficient
+import static JacocoViolationRulesLimit.Sufficient
 
 class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
@@ -92,7 +95,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                     rule {
                         element = 'CLASS'
                         includes = ['com.company.*', 'org.gradle.*']
-                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -113,7 +116,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                 violationRules {
                     rule {
                         excludes = ['company', '$testDirectory.name']
-                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -137,7 +140,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                 }
                 violationRules {
                     rule {
-                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -171,11 +174,11 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
 
         where:
-        limits                                        | description
-        [Limits.Sufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'
-        [Limits.Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
-        [Limits.Sufficient.LINE_METRIC_COVERED_RATIO,
-         Limits.Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
+        limits                                 | description
+        [Sufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'
+        [Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
+        [Sufficient.LINE_METRIC_COVERED_RATIO,
+         Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
 
     }
 
@@ -200,14 +203,14 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        limits                                          | description                                   | errorMessage
-        [Limits.Insufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'              | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        [Limits.Insufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'              | 'classes missed count is 0.0, but expected minimum is 0.5'
-        [Limits.Insufficient.LINE_METRIC_COVERED_RATIO,
-         Limits.Insufficient.CLASS_METRIC_MISSED_COUNT] | 'first of multiple insufficient limits fails' | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        [Limits.Sufficient.LINE_METRIC_COVERED_RATIO,
-         Limits.Insufficient.CLASS_METRIC_MISSED_COUNT,
-         Limits.Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient limits fails'             | 'classes missed count is 0.0, but expected minimum is 0.5'
+        limits                                   | description                                   | errorMessage
+        [Insufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'              | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        [Insufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'              | 'classes missed count is 0.0, but expected minimum is 0.5'
+        [Insufficient.LINE_METRIC_COVERED_RATIO,
+         Insufficient.CLASS_METRIC_MISSED_COUNT] | 'first of multiple insufficient limits fails' | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        [Sufficient.LINE_METRIC_COVERED_RATIO,
+         Insufficient.CLASS_METRIC_MISSED_COUNT,
+         Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient limits fails'             | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
     def "can define multiple rules"() {
@@ -216,10 +219,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        $Limits.Sufficient.LINE_METRIC_COVERED_RATIO
+                        $Sufficient.LINE_METRIC_COVERED_RATIO
                     }
                     rule {
-                        $Limits.Insufficient.CLASS_METRIC_MISSED_COUNT
+                        $Insufficient.CLASS_METRIC_MISSED_COUNT
                     }
                 }
             }
@@ -239,11 +242,11 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        $Limits.Sufficient.LINE_METRIC_COVERED_RATIO
+                        $Sufficient.LINE_METRIC_COVERED_RATIO
                     }
                     rule {
                         enabled = false
-                        $Limits.Insufficient.CLASS_METRIC_MISSED_COUNT
+                        $Insufficient.CLASS_METRIC_MISSED_COUNT
                     }
                 }
             }
@@ -264,7 +267,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
                     failOnViolation = true
 
                     rule {
-                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -287,7 +290,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             tasks.withType(JacocoReport) {
                 violationRules {
                     rule {
-                        $Limits.Insufficient.LINE_METRIC_COVERED_RATIO
+                        $Insufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -327,9 +330,9 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        tasksPaths                              | reportTaskName                | limit                                         | errorMessage
-        TEST_AND_JACOCO_REPORT_TASK_PATHS       | 'jacocoTestReport'            | Limits.Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS | 'jacocoIntegrationTestReport' | Limits.Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
+        tasksPaths                              | reportTaskName                | limit                                  | errorMessage
+        TEST_AND_JACOCO_REPORT_TASK_PATHS       | 'jacocoTestReport'            | Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        INTEG_TEST_AND_JACOCO_REPORT_TASK_PATHS | 'jacocoIntegrationTestReport' | Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
     def "changes to violation rules re-run task"() {
@@ -337,7 +340,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport {
                 violationRules {
                     rule {
-                        $Limits.Sufficient.LINE_METRIC_COVERED_RATIO
+                        $Sufficient.LINE_METRIC_COVERED_RATIO
                     }
                 }
             }
@@ -367,38 +370,5 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executed(JACOCO_REPORT_TASK_PATH)
         skipped(TEST_TASK_PATH)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
-    }
-
-    static class Limits {
-        static class Sufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Limits.create('LINE', 'COVEREDRATIO', '0.0', '1.0')
-            static final String CLASS_METRIC_MISSED_COUNT = Limits.create('CLASS', 'MISSEDCOUNT', null, '0')
-        }
-
-        static class Insufficient {
-            static final String LINE_METRIC_COVERED_RATIO = Limits.create('LINE', 'COVEREDRATIO', '0.0', '0.5')
-            static final String CLASS_METRIC_MISSED_COUNT = Limits.create('CLASS', 'MISSEDCOUNT', '0.5', null)
-        }
-
-        private static String create(String counter, String value, String minimum, String maximum) {
-            StringBuilder limit = new StringBuilder()
-            limit <<= 'limit {\n'
-
-            if (counter) {
-                limit <<= "    counter = '${counter}'\n"
-            }
-            if (value) {
-                limit <<= "    value = '${value}'\n"
-            }
-            if (minimum) {
-                limit <<= "    minimum = $minimum\n"
-            }
-            if (maximum) {
-                limit <<= "    maximum = $maximum\n"
-            }
-
-            limit <<= '}'
-            limit.toString()
-        }
     }
 }
