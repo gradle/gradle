@@ -36,19 +36,14 @@ import org.gradle.util.TextUtil
  * - publish                        provides jar file or AAR file for publishing
  *
  * Registered transforms:
- * - AarTransform                       extracts 'jar', 'classes', 'classpath' and 'android-manifest' from AAR
- * - JarTransform                       extracts 'classes' from jar, and allows 'jar' artifact to be used as 'classpath' type
- * - ClassFolderTransform    allows 'classes' artifact to be used as 'classpath' type
+ * - AarTransform                   extracts 'jar', 'classes', 'classpath' and 'android-manifest' from AAR + predex
+ * - JarTransform                   extracts 'classes' from jar, and allows 'jar' artifact to be used as 'classpath' type + predex
+ * - ClassFolderTransform           allows 'classes' artifact to be used as 'classpath' type + predex
  */
 abstract class AbstractAndroidFilterAndTransformIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
-        settingsFile << """
-            rootProject.name = 'fake-android-build'
-            include 'java-lib'
-            include 'android-lib'
-            include 'android-app'
-        """.stripIndent()
+        settingsFile << "rootProject.name = 'fake-android-build'"
 
         buildFile << """
             ${localJavaLibrary('java-lib')}
@@ -95,6 +90,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         file("$name/classes/main/foo.txt") << "something"
         file("$name/classes/main/bar/baz.txt") << "something"
 
+        settingsFile << "\ninclude '$name'"
+
         """
         project(':$name') {
             configurations.create('default')
@@ -136,6 +133,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         // "Source" code
         file("$name/classes/main/foo.txt") << "something"
         file("$name/classes/main/bar/baz.txt") << "something"
+
+        settingsFile << "\ninclude '$name'"
 
         """
         project(':$name') {
@@ -199,7 +198,10 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
     }
 
     def localAndroidApp(String name) {
-        file('android-app').mkdirs()
+        file(name).mkdirs()
+        file("$name/classes/main/app/Main.txt") << "something"
+
+        settingsFile << "\ninclude '$name'"
 
         """
         project(':$name') {
@@ -208,6 +210,9 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             configurations {
                 resolve
             }
+            
+            boolean preDexLibrariesProp = findProperty('preDexLibraries') == null ? true : findProperty('preDexLibraries').toBoolean()
+            boolean jumboModeProp = findProperty('jumboMode') == null ? false : findProperty('jumboMode').toBoolean()
 
             configurations.all {
                 resolutionStrategy {
@@ -233,6 +238,23 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     configurationView.each { println it.absolutePath - rootDir }
                 }
             }
+            
+            def predexView = configurations.resolve.incoming.getFiles(artifactType: 'predex')
+            
+            task classes(type: Copy) {
+                from file('classes/main')
+                into file('build/classes/main')
+            }
+            
+            task dex {
+                dependsOn predexView
+                dependsOn classes
+                doLast {
+                    predexView.each { println it.absolutePath - rootDir }
+                    def preDexedClasses = PreDexTool.preDex(project, [classes.destinationDir], project.file("transformed"), preDexLibrariesProp, jumboModeProp)[0]
+                    println preDexedClasses.absolutePath - rootDir 
+                }
+            }
         }
         """
     }
@@ -241,6 +263,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         """
         class AarTransform extends ArtifactTransform {
             private Project files
+            private boolean preDexLibraries
+            private boolean jumboMode
             
             void configure(AttributeContainer from, ArtifactTransformTargets targets) {
                 def typeAttribute = Attribute.of("artifactType", String.class)
@@ -282,11 +306,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     case 'classes':
                         return explodedJarList
                     case 'predex':
-                        List<File> predexFileList = []
-                        for (final File explodedJarFolder : explodedJarList) {
-                            predexFileList.add(preDex(explodedJarFolder, getOutputDirectory(), config.getDexOptions()))
-                        }
-                        return predexFileList
+                        return PreDexTool.preDex(files, explodedJarList, getOutputDirectory(), preDexLibraries, jumboMode)
                     case 'android-manifest':
                         return [new File(explodedAar, "AndroidManifest.xml")]
                     case 'classpath':
@@ -307,7 +327,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                         }
                     }
                 }
-                return allFiles
+                return allFiles.sort()
             }
         }
         """
@@ -317,6 +337,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         """
         class JarTransform extends ArtifactTransform {
             private Project files
+            private boolean preDexLibraries
+            private boolean jumboMode
 
             void configure(AttributeContainer from, ArtifactTransformTargets targets) {
                 def typeAttribute = Attribute.of("artifactType", String.class)
@@ -342,7 +364,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     case 'classes':
                         return [classesFolder]
                     case 'predex':
-                        return [preDex(classesFolder, getOutputDirectory(), config.getDexOptions())]
+                        return PreDexTool.preDex(files, [classesFolder], getOutputDirectory(), preDexLibraries, jumboMode)
                     case 'classpath':
                         return [input]
                     default:
@@ -357,6 +379,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         """
         public class ClassFolderTransform extends ArtifactTransform {
             private Project files
+            private boolean preDexLibraries
+            private boolean jumboMode
             
             void configure(AttributeContainer from, ArtifactTransformTargets targets) {
                 def typeAttribute = Attribute.of("artifactType", String.class)
@@ -371,7 +395,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
                 switch (targetType) {
                     case 'predex':
-                        return [preDex(input, getOutputDirectory(), config.getDexOptions())]
+                        return PreDexTool.preDex(files, [input], getOutputDirectory(), preDexLibraries, jumboMode)
                     case 'classpath':
                         return [input]
                     default:
@@ -384,28 +408,33 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
 
     def preDexTool() {
         """
-        def File preDex(File input, File out, boolean preDexLibraries, boolean jumboMode)  {
-            if (preDexLibraries) {
-                return input
+        class PreDexTool {
+            static List<File> preDex(Project files, List<File> input, File out, boolean preDexLibraries, boolean jumboMode)  {
+                println "Running Predex for: " + input.collect { it.getPath() - files.rootDir }
+                if (!preDexLibraries) {
+                    return input
+                }
+        
+                String jumbo = jumboMode ? "jumbo" : "noJumbo"
+        
+                File preDexFile = new File(out, "pre-dexed/" + input[0].name + "_" + jumbo + "_" + (input[0].path - files.rootDir).hashCode() + ".predex")
+                preDexFile.getParentFile().mkdirs()
+                if (!preDexFile.exists()) {
+                    preDexFile << "Predexed from: " + input.collect { it.getPath() - files.rootDir }
+                }
+                return [preDexFile]
             }
-    
-            String jumbo = jumboMode ? "jumbo" : "noJumbo"
-    
-            File preDexFile = new File(out, "pre-dexed/" + input.name + "_" + jumbo + "_" + (input.path - files.rootDir).hashCode() + ".predex")
-            preDexFile.getParentFile().mkdirs()
-            if (!preDexFile.exists()) {
-                preDexFile << "Pre-Dexed from: " + input.getPath()
-            }
-            return preDexFile
         }
         """
     }
 
-    def  registerTransform(String implementationName) {
+    def registerTransform(String implementationName) {
         """
         registerTransform($implementationName) {
             outputDirectory = project.file("transformed")
             files = project
+            preDexLibraries = preDexLibrariesProp
+            jumboMode = jumboModeProp
         }
         """
     }
@@ -415,6 +444,16 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             project(':android-app') {
                 dependencies {
                     resolve ${notation}
+                }
+            }
+        """
+    }
+
+    def libDependency(String libName, String notation) {
+        buildFile << """
+            project(':$libName') {
+                dependencies {
+                    compile ${notation}
                 }
             }
         """
@@ -434,5 +473,29 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             }
         }
         result
+    }
+
+    def dex(boolean preDexLibraries = true, boolean jumboMode = false) {
+        executer.withArgument("-PpreDexLibraries=$preDexLibraries").withArgument("-PjumboMode=$jumboMode")
+
+        assert succeeds('dex')
+
+        def result = []
+        TextUtil.normaliseFileSeparators(output).eachLine { line ->
+            if (line.startsWith("/")) {
+                result.add(line)
+            }
+        }
+        result
+    }
+
+    int preDexExecutions() {
+        int count = 0
+        output.eachLine { line ->
+            if (line.startsWith("Running Predex for:")) {
+                count++
+            }
+        }
+        count
     }
 }
