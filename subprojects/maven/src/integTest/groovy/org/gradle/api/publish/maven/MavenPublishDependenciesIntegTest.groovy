@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -108,4 +109,68 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         "empty"     | "'group:projectA'"
         "null"      | "group:'group', name:'projectA', version:null"
     }
+
+    @NotYetImplemented
+    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
+    void "maps dependencies in the correct Maven scope"() {
+        given:
+        def repoModule = mavenRepo.module('group', 'root', '1.0')
+
+        file("settings.gradle") << '''
+            rootProject.name = 'root' 
+            include "b"
+        '''
+        buildFile << """
+            apply plugin: "$plugin"
+            apply plugin: "maven-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            
+            dependencies {
+                $gradleConfiguration project(':b')
+            }
+        """
+
+        file('b/build.gradle') << """
+            apply plugin: 'java'
+            
+            group = 'org.gradle.test'
+            version = '1.2'
+            
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublishedAsJavaModule()
+        repoModule.parsedPom.scopes."$mavenScope"?.expectDependency('org.gradle.test:b:1.2')
+
+        where:
+        plugin         | gradleConfiguration  | mavenScope
+        'java'         | 'compile'            | 'compile'
+        'java'         | 'implementation'     | 'runtime'
+        'java'         | 'testCompile'        | 'test'
+        'java'         | 'testImplementation' | 'test'
+
+        'java-library' | 'api'                | 'compile'
+        'java-library' | 'compile'            | 'compile'
+        'java-library' | 'implementation'     | 'runtime'
+        'java-library' | 'testCompile'        | 'test'
+        'java-library' | 'testImplementation' | 'test'
+
+    }
+
 }
