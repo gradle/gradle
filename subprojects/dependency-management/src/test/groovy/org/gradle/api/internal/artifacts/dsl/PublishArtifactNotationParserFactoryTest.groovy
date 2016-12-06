@@ -28,6 +28,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import java.awt.*
@@ -137,12 +138,12 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message.contains("""
+        e.message.contains(TextUtil.toPlatformLineSeparators("""
 The following types/formats are supported:
   - Instances of ConfigurablePublishArtifact.
   - Instances of PublishArtifact.
   - Instances of AbstractArchiveTask, for example jar.
   - Maps
-  - Instances of File.""")
+  - Instances of File."""))
     }
 }
