@@ -28,6 +28,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
@@ -577,7 +578,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'default'
             isCanBeResolved() >> true
             isCanBeConsumed() >> true
-            getAttributes() >> Mock(AttributeContainer) {
+            getAttributes() >> Mock(AttributeContainerInternal) {
                 isEmpty() >> true
             }
         }
