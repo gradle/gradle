@@ -24,13 +24,13 @@ class DexDownloadedAarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400_noJumbo_862294780.predex',
-            '/android-app/transformed/pre-dexed/main_noJumbo_1503502270.predex'
+            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar_noJumbo.predex',
+            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
-        file('android-app/transformed/pre-dexed/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400_noJumbo_862294780.predex').text ==
-            'Predexed from: [/android-app/transformed/expandedArchives/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400, ' +
-            '/android-app/transformed/expandedArchives/ext-android-lib-with-jars-1.0.aar_dep1.jar_850551400, ' +
-            '/android-app/transformed/expandedArchives/ext-android-lib-with-jars-1.0.aar_dep2.jar_850551400]'
+        file('android-app/transformed/pre-dexed/android-app_maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar_noJumbo.predex').text ==
+            'Predexed from: [/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar, ' +
+            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-with-jars-1.0.aar_dep1.jar, ' +
+            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-with-jars-1.0.aar_dep2.jar]'
     }
 
     def "Only one predex file is produced for a downloaded AAR file when it appears in multiple dependencies"() {
@@ -41,9 +41,9 @@ class DexDownloadedAarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400_noJumbo_862294780.predex',
-            '/android-app/transformed/pre-dexed/main_noJumbo_508835034.predex',
-            '/android-app/transformed/pre-dexed/main_noJumbo_1503502270.predex'
+            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar_noJumbo.predex',
+            '/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex',
+            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 3
         preDexExecutions() == 3
@@ -55,12 +55,12 @@ class DexDownloadedAarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400_noJumbo_862294780.predex',
-            '/android-app/transformed/pre-dexed/main_noJumbo_1503502270.predex'
+            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar_noJumbo.predex',
+            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
         dex(true, true) == [
-            '/android-app/transformed/pre-dexed/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400_jumbo_862294780.predex',
-            '/android-app/transformed/pre-dexed/main_jumbo_1503502270.predex'
+            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar_jumbo.predex',
+            '/android-app/transformed/pre-dexed/android-app_main_jumbo.predex'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 4
     }
@@ -71,9 +71,9 @@ class DexDownloadedAarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex(false) == [
-            '/android-app/transformed/expandedArchives/ext-android-lib-with-jars-1.0.aar_classes.jar_850551400',
-            '/android-app/transformed/expandedArchives/ext-android-lib-with-jars-1.0.aar_dep1.jar_850551400',
-            '/android-app/transformed/expandedArchives/ext-android-lib-with-jars-1.0.aar_dep2.jar_850551400',
+            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-with-jars-1.0.aar_classes.jar',
+            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-with-jars-1.0.aar_dep1.jar',
+            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-with-jars-1.0.aar_dep2.jar',
             '/android-app/build/classes/main'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 0

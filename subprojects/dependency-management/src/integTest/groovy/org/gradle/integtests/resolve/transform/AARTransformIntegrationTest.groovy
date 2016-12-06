@@ -81,7 +81,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "'org.gradle:ext-java-lib:1.0'"
 
         then:
-        artifacts('classes') == ['/android-app/transformed/expandedArchives/ext-java-lib-1.0.jar_-66173043']
+        artifacts('classes') == ['/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar']
     }
 
     def "classes artifacts include class folder extracted from published android modules"() {
@@ -89,7 +89,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('classes') == ['/android-app/transformed/expandedArchives/ext-android-lib-1.0.aar_classes.jar_980237636']
+        artifacts('classes') == ['/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar']
     }
 
     def "classes artifacts include class folders extracted from jar file dependencies"() {
@@ -107,7 +107,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "files('a.jar')"
 
         then:
-        artifacts('classes') == ['/android-app/transformed/expandedArchives/a.jar_168061811']
+        artifacts('classes') == ['/android-app/transformed/expandedArchives/android-app_a.jar']
     }
 
     def "classes artifacts include class folders from projects and libraries"() {
@@ -121,8 +121,8 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         artifacts('classes') == [
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
-            '/android-app/transformed/expandedArchives/ext-java-lib-1.0.jar_-66173043',
-            '/android-app/transformed/expandedArchives/ext-android-lib-1.0.aar_classes.jar_980237636'
+            '/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar',
+            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar'
         ]
     }
 
