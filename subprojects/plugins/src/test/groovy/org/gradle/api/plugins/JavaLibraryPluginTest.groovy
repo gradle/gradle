@@ -216,4 +216,19 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [':tools:compileJava', ':internal:compileJava'] as Set
     }
+
+    def "adds Java library component"() {
+        given:
+        javaLibraryPlugin.apply(project)
+
+        when:
+        def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
+        def javaLibrary = project.components.getByName("java")
+
+        then:
+        javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
+        javaLibrary.runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
+        javaLibrary.compileUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies
+    }
+
 }

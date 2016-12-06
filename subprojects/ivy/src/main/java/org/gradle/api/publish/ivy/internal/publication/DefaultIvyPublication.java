@@ -16,22 +16,23 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.Usage;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.api.plugins.Usage;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -43,6 +44,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.util.Collections;
@@ -97,16 +99,21 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
         configurations.maybeCreate("default");
 
-        for (Usage usage : this.component.getUsages()) {
-            String conf = usage.getName();
+        Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
+        for (UsageContext usageContext : this.component.getUsages()) {
+            Usage usage = usageContext.getUsage();
+            String conf = mapUsage(usage);
             configurations.maybeCreate(conf);
             configurations.getByName("default").extend(conf);
 
-            for (PublishArtifact publishArtifact : usage.getArtifacts()) {
-                artifact(publishArtifact).setConf(conf);
+            for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
+                if (!seenArtifacts.contains(publishArtifact)) {
+                    seenArtifacts.add(publishArtifact);
+                    artifact(publishArtifact).setConf(conf);
+                }
             }
 
-            for (ModuleDependency dependency : usage.getDependencies()) {
+            for (ModuleDependency dependency : usageContext.getDependencies()) {
                 // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
                 String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
                 if (dependency instanceof ProjectDependency) {
@@ -116,6 +123,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 }
             }
         }
+    }
+
+    private String mapUsage(Usage usage) {
+        if (Usage.FOR_COMPILE.equals(usage)) {
+            return "compile";
+        }
+        if (Usage.FOR_RUNTIME.equals(usage)) {
+            return "runtime";
+        }
+        return usage.getName();
     }
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
