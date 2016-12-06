@@ -37,6 +37,11 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
         this.parent = parent;
     }
 
+    @Override
+    public String toString() {
+        return asImmutable().toString();
+    }
+
     private void ensureAttributes() {
         if (this.attributes == null) {
             this.attributes = Maps.newHashMap();

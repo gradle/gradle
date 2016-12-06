@@ -187,4 +187,22 @@ class DefaultAttributeContainerTest extends Specification {
         child2.asImmutable().keySet() == [thing] as Set
         child2.copy().keySet() == [thing] as Set
     }
+
+    def "has useful string representation"() {
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+        def c = Attribute.of("c", String)
+
+        expect:
+        def container = new DefaultAttributeContainer()
+        container.toString() == "{}"
+        container.asImmutable().toString() == "{}"
+
+        container.attribute(b, "b")
+        container.attribute(c, "c")
+        container.attribute(a, "a")
+        container.toString() == "{a=a, b=b, c=c}"
+        container.asImmutable().toString() == "{a=a, b=b, c=c}"
+    }
+
 }

@@ -38,6 +38,7 @@ class ImmutableAttributes implements AttributeContainerInternal {
     private final Map<Attribute<?>, Object> attributes;
 
     ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
+        assert !attributes.isEmpty();
         this.attributes = ImmutableMap.copyOf(attributes);
     }
 
@@ -88,12 +89,9 @@ class ImmutableAttributes implements AttributeContainerInternal {
 
     @Override
     public String toString() {
-        if (attributes != null) {
-            TreeMap<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
-            sorted.putAll(attributes);
-            return sorted.toString();
-        }
-        return "{}";
+        Map<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
+        sorted.putAll(attributes);
+        return sorted.toString();
     }
 
     @Override

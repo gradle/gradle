@@ -28,6 +28,11 @@ public interface AttributeContainerInternal extends AttributeContainer {
      */
     AttributeContainerInternal EMPTY = new AttributeContainerInternal() {
         @Override
+        public String toString() {
+            return "{}";
+        }
+
+        @Override
         public Set<Attribute<?>> keySet() {
             return Collections.emptySet();
         }
