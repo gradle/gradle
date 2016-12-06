@@ -358,7 +358,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            jacocoTestReport.violationRules.rules[0].limits[0].maximum = 0.5            
+            jacocoTestReport.violationRules.rules[0].limits[0].maximum = 0.5
         """
 
         fails TEST_AND_JACOCO_REPORT_TASK_PATHS
