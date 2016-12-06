@@ -63,14 +63,18 @@ public class MemoryStatusBroadcaster {
     private class MemoryCheck implements Runnable {
         @Override
         public void run() {
-            if (osMemoryStatusSupported) {
-                OsMemoryStatus os = memoryInfo.getOsSnapshot();
-                LOGGER.debug("Emitting OS memory status event {}", os);
-                osBroadcast.getSource().onOsMemoryStatus(os);
+            try {
+                if (osMemoryStatusSupported) {
+                    OsMemoryStatus os = memoryInfo.getOsSnapshot();
+                    LOGGER.debug("Emitting OS memory status event {}", os);
+                    osBroadcast.getSource().onOsMemoryStatus(os);
+                }
+                JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
+                LOGGER.debug("Emitting JVM memory status event {}", jvm);
+                jvmBroadcast.getSource().onJvmMemoryStatus(jvm);
+            } catch (Exception ex) {
+                LOGGER.warn("Failed to collect memory status: {}", ex.getMessage(), ex);
             }
-            JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
-            LOGGER.debug("Emitting JVM memory status event {}", jvm);
-            jvmBroadcast.getSource().onJvmMemoryStatus(jvm);
         }
     }
 }
