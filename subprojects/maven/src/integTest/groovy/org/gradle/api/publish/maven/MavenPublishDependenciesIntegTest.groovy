@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -110,7 +109,6 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         "null"      | "group:'group', name:'projectA', version:null"
     }
 
-    @NotYetImplemented
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
         given:
@@ -160,16 +158,12 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         where:
         plugin         | gradleConfiguration  | mavenScope
-        'java'         | 'compile'            | 'compile'
+        'java'         | 'compile'            | 'runtime'
         'java'         | 'implementation'     | 'runtime'
-        'java'         | 'testCompile'        | 'test'
-        'java'         | 'testImplementation' | 'test'
 
         'java-library' | 'api'                | 'compile'
-        'java-library' | 'compile'            | 'compile'
+        'java-library' | 'compile'            | 'runtime'
         'java-library' | 'implementation'     | 'runtime'
-        'java-library' | 'testCompile'        | 'test'
-        'java-library' | 'testImplementation' | 'test'
 
     }
 

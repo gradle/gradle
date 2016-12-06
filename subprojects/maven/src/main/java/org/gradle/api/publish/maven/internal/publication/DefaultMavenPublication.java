@@ -16,17 +16,24 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.Usage;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.plugins.Usage;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -61,6 +68,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenProjectIdentity projectIdentity;
     private final DefaultMavenArtifactSet mavenArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
+    private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
@@ -99,30 +107,41 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
 
-        for (Usage usage : this.component.getUsages()) {
+        Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
+        for (UsageContext usageContext : this.component.getUsages()) {
             // TODO Need a smarter way to map usage to artifact classifier
-            for (PublishArtifact publishArtifact : usage.getArtifacts()) {
-                artifact(publishArtifact);
+            for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
+                if (!seenArtifacts.contains(publishArtifact)) {
+                    seenArtifacts.add(publishArtifact);
+                    artifact(publishArtifact);
+                }
             }
 
-            // TODO Need a smarter way to map usage to scope
-            for (ModuleDependency dependency : usage.getDependencies()) {
+            for (ModuleDependency dependency : usageContext.getDependencies()) {
+                Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
                 if (dependency instanceof ProjectDependency) {
-                    addProjectDependency((ProjectDependency) dependency);
+                    addProjectDependency((ProjectDependency) dependency, dependencies);
                 } else {
-                    addModuleDependency(dependency);
+                    addModuleDependency(dependency, dependencies);
                 }
             }
         }
     }
 
-    private void addProjectDependency(ProjectDependency dependency) {
-        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
-        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
+    private Set<MavenDependencyInternal> dependenciesFor(Usage usage) {
+        if (Usage.FOR_COMPILE.equals(usage)) {
+            return apiDependencies;
+        }
+        return runtimeDependencies;
     }
 
-    private void addModuleDependency(ModuleDependency dependency) {
-        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(dependency)));
+    private void addProjectDependency(ProjectDependency dependency, Set<MavenDependencyInternal> dependencies) {
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
+        dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
+    }
+
+    private void addModuleDependency(ModuleDependency dependency, Set<MavenDependencyInternal> dependencies) {
+        dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(dependency)));
     }
 
     private static Set<ExcludeRule> getExcludeRules(ModuleDependency dependency) {
@@ -182,6 +201,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return runtimeDependencies;
+    }
+
+    public Set<MavenDependencyInternal> getApiDependencies() {
+        return apiDependencies;
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {

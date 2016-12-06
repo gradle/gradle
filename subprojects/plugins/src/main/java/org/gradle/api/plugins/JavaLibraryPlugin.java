@@ -68,7 +68,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
         apiElementsConfiguration.setTransitive(false);
-        apiElementsConfiguration.attribute(JavaBasePlugin.Usage.USAGE_ATTRIBUTE, JavaBasePlugin.Usage.FOR_COMPILE);
+        apiElementsConfiguration.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
         Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
