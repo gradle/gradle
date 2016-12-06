@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+
 import java.util.Set;
 
 public interface ArtifactSet {
+
+    ComponentIdentifier getComponentIdentifier();
 
     long getId();
 

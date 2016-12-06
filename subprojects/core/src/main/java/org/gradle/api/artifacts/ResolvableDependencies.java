@@ -18,9 +18,11 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +69,15 @@ public interface ResolvableDependencies {
      */
     @Incubating
     FileCollection getFiles(Map<?, ?> attributes);
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes that are sourced from
+     * Components matching the specified filter.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    FileCollection getFiles(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
 
     /**
      * Returns the set of dependencies which will be resolved.

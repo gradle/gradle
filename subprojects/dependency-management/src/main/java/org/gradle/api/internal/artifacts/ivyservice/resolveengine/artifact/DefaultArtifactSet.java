@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultArtifactSet implements ArtifactSet {
+    private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleSource moduleSource;
     private final ModuleExclusion exclusions;
@@ -48,8 +50,9 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
 
-    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants,
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants,
                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
+        this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
         this.exclusions = exclusions;
@@ -57,6 +60,11 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
+    }
+
+    @Override
+    public ComponentIdentifier getComponentIdentifier() {
+        return componentIdentifier;
     }
 
     @Override
@@ -98,18 +106,25 @@ public class DefaultArtifactSet implements ArtifactSet {
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.of(resolvedArtifacts)));
+            result.add(new DefaultResolvedVariant(componentIdentifier, attributes, ArtifactBackedArtifactSet.of(resolvedArtifacts)));
         }
-        return new ArtifactSetSnapshot(id, result.build());
+        return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
     }
 
     private static class ArtifactSetSnapshot implements ArtifactSet {
         private final long id;
+        private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
 
-        public ArtifactSetSnapshot(long id, Set<ResolvedVariant> variants) {
+        public ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
             this.id = id;
+            this.componentIdentifier = componentIdentifier;
             this.variants = variants;
+        }
+
+        @Override
+        public ComponentIdentifier getComponentIdentifier() {
+            return componentIdentifier;
         }
 
         @Override
@@ -147,10 +162,12 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     private static class DefaultResolvedVariant implements ResolvedVariant {
+        private final ComponentIdentifier componentIdentifier;
         private final AttributeContainer attributes;
         private final ResolvedArtifactSet artifactSet;
 
-        DefaultResolvedVariant(AttributeContainer attributes, ResolvedArtifactSet artifactSet) {
+        DefaultResolvedVariant(ComponentIdentifier componentIdentifier, AttributeContainer attributes, ResolvedArtifactSet artifactSet) {
+            this.componentIdentifier = componentIdentifier;
             this.attributes = attributes;
             this.artifactSet = artifactSet;
         }

@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.Attribute
@@ -432,7 +433,7 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { it[0].addAll(files); return it[0] }
         }
 
@@ -449,7 +450,7 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
-        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { throw failure }
         }
         _ * resolvedConfiguration.hasError() >> true
@@ -516,7 +517,7 @@ class DefaultConfigurationSpec extends Specification {
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _ ) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _ , _) >> selectedArtifactSet
         _ * selectedArtifactSet.collectBuildDependencies(_) >> { it[0].add(artifactTaskDependencies); return it[0] }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -952,7 +953,7 @@ class DefaultConfigurationSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { return it[0] }
         }
 
@@ -1450,7 +1451,7 @@ All Artifacts:
     private visitedArtifacts() {
         def visitedArtifactSet = new VisitedArtifactSet() {
             @Override
-            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes) {
+            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentSpec) {
                 return new SelectedArtifactSet() {
                     @Override
                     def <T extends Collection<Object>> T collectBuildDependencies(T dest) {

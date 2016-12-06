@@ -88,14 +88,14 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransformer = artifactTransformer;
-        selectedArtifacts = artifactResults.select(artifactTransformer.variantSelector(configuration.getAttributes()));
+        selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransformer.variantSelector(configuration.getAttributes()));
         selectedFileDependencies = fileDependencyResults.select(artifactTransformer.variantSelector(configuration.getAttributes()));
     }
 
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes) {
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
         Transformer<HasAttributes, Collection<? extends HasAttributes>> selector = artifactTransformer.variantSelector(requestedAttributes);
-        final SelectedArtifactResults artifactResults = this.artifactResults.select(selector);
+        final SelectedArtifactResults artifactResults = this.artifactResults.select(componentSpec, selector);
         final SelectedFileDependencyResults fileDependencyResults = this.fileDependencyResults.select(selector);
         return new SelectedArtifactSet() {
             @Override
