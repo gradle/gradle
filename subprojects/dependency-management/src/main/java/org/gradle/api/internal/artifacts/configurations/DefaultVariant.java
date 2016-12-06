@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
-import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.Attribute;
@@ -33,7 +33,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.Map;
 import java.util.Set;
 
-class DefaultVariant implements ConfigurationPublications.Variant, OutgoingVariant {
+class DefaultVariant implements ConfigurationVariant, OutgoingVariant {
     private final String name;
     private final AttributeContainerInternal attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -57,13 +57,13 @@ class DefaultVariant implements ConfigurationPublications.Variant, OutgoingVaria
     }
 
     @Override
-    public ConfigurationPublications.Variant attribute(String attributeName, String value) {
+    public ConfigurationVariant attribute(String attributeName, String value) {
         attributes.attribute(Attribute.of(attributeName, String.class), value);
         return this;
     }
 
     @Override
-    public ConfigurationPublications.Variant attributes(Map<String, String> attributes) {
+    public ConfigurationVariant attributes(Map<String, String> attributes) {
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
             this.attributes.attribute(Attribute.of(entry.getKey(), String.class), entry.getValue());
         }

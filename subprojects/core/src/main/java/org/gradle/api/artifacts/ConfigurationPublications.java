@@ -18,11 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.attributes.AttributeContainer;
-
-import java.util.Map;
 
 /**
  * Represents the outgoing artifacts associated with a configuration. These artifacts are used when the configuration is referenced during dependency resolution.
@@ -51,45 +47,10 @@ public interface ConfigurationPublications {
     /**
      * Returns the variants of this configuration, if any.
      */
-    NamedDomainObjectContainer<Variant> getVariants();
+    NamedDomainObjectContainer<ConfigurationVariant> getVariants();
 
     /**
      * Configures the variants of this configuration.
      */
-    void variants(Action<? super NamedDomainObjectContainer<Variant>> configureAction);
-
-    /**
-     * Represents some variant of the component.
-     */
-    interface Variant extends Named {
-        /**
-         * Returns the attributes that define this variant.
-         */
-        AttributeContainer getAttributes();
-
-        /**
-         * Defines some attributes for this variant.
-         */
-        Variant attributes(Map<String, String> attributes);
-
-        /**
-         * Defines an attribute for this variant.
-         */
-        Variant attribute(String attributeName, String value);
-
-        /**
-         * Returns the artifacts associated with this variant.
-         */
-        PublishArtifactSet getArtifacts();
-
-        /**
-         * Adds an artifact to this variant.
-         */
-        void artifact(Object notation);
-
-        /**
-         * Adds an artifact to this variant, configuring it using the given action.
-         */
-        void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction);
-    }
+    void variants(Action<? super NamedDomainObjectContainer<ConfigurationVariant>> configureAction);
 }

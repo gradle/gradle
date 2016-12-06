@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -35,15 +36,15 @@ import java.util.Set;
 public class DefaultConfigurationPublications implements ConfigurationPublications, OutgoingVariant {
     private final PublishArtifactSet artifacts;
     private final AttributeContainerInternal parentAttributes;
-    private final FactoryNamedDomainObjectContainer<Variant> variants;
+    private final FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
 
     public DefaultConfigurationPublications(PublishArtifactSet artifacts, final AttributeContainerInternal parentAttributes, final Instantiator instantiator, final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, final FileCollectionFactory fileCollectionFactory) {
         this.artifacts = artifacts;
         this.parentAttributes = parentAttributes;
-        variants = new FactoryNamedDomainObjectContainer<Variant>(Variant.class, instantiator, new NamedDomainObjectFactory<Variant>() {
+        variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, new NamedDomainObjectFactory<ConfigurationVariant>() {
             @Override
-            public Variant create(String name) {
+            public ConfigurationVariant create(String name) {
                 return instantiator.newInstance(DefaultVariant.class, name, parentAttributes, artifactNotationParser, fileCollectionFactory);
             }
         });
@@ -78,19 +79,19 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             return ImmutableSet.of();
         }
         Set<OutgoingVariant> variants = new LinkedHashSet<OutgoingVariant>(this.variants.size());
-        for (Variant variant : this.variants) {
+        for (ConfigurationVariant variant : this.variants) {
             variants.add((OutgoingVariant) variant);
         }
         return variants;
     }
 
     @Override
-    public NamedDomainObjectContainer<Variant> getVariants() {
+    public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
         return variants;
     }
 
     @Override
-    public void variants(Action<? super NamedDomainObjectContainer<Variant>> configureAction) {
+    public void variants(Action<? super NamedDomainObjectContainer<ConfigurationVariant>> configureAction) {
         configureAction.execute(variants);
     }
 
