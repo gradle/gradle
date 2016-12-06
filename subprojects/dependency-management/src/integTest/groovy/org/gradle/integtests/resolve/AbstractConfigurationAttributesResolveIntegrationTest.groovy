@@ -281,13 +281,16 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurations {
                     compile
-                    foo {
+                    freeDebug {
                        extendsFrom compile
                        attributes($freeDebug)
                     }
-                    bar {
+                    freeRelease {
                        extendsFrom compile
                        attributes($freeRelease)
+                    }
+                    bar {
+                        extendsFrom compile
                     }
                 }
                 task fooJar(type: Jar) {
@@ -297,7 +300,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                    baseName = 'b-bar'
                 }
                 artifacts {
-                    foo fooJar
+                    freeDebug fooJar
+                    freeRelease fooJar
                     bar barJar
                 }
             }

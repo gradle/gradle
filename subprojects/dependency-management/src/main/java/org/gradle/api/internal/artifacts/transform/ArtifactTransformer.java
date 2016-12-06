@@ -24,6 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.DefaultAttributeContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
@@ -41,8 +43,10 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ArtifactTransformer {
     private final ArtifactTransforms artifactTransforms;
@@ -60,8 +64,8 @@ public class ArtifactTransformer {
         this.artifactTransforms = new InstantiatingArtifactTransforms(resolutionStrategy, this.attributeMatcher);
     }
 
-    private boolean matchArtifactsAttributes(HasAttributes artifact, AttributeContainer configuration) {
-        return attributeMatcher.attributesMatch(artifact, configuration, artifact.getAttributes());
+    private boolean matchArtifactsAttributes(HasAttributes candidate, AttributeContainer requested) {
+        return attributeMatcher.attributesMatch(candidate, requested, candidate.getAttributes());
     }
 
     private Transformer<List<File>, File> getTransform(HasAttributes from, AttributeContainer to) {
@@ -87,7 +91,17 @@ public class ArtifactTransformer {
                 // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
                 T canTransform = null;
                 for (T variant : variants) {
-                    if (matchArtifactsAttributes(variant, attributes)) {
+
+                    // For now, compare only the attributes that are in common
+                    DefaultAttributeContainer commonAttributes = new DefaultAttributeContainer();
+                    Set<Attribute<?>> keys = new HashSet<Attribute<?>>(variant.getAttributes().keySet());
+                    keys.retainAll(attributes.keySet());
+                    for (Attribute attribute : keys) {
+                        commonAttributes.attribute(attribute, variant.getAttributes().getAttribute(attribute));
+                    }
+
+                    boolean matches = attributeMatcher.attributesMatch(variant, attributes, commonAttributes);
+                    if (matches) {
                         return variant;
                     }
                     if (getTransform(variant, attributes) != null) {
