@@ -187,4 +187,55 @@ task checkArtifacts {
         expect:
         succeeds("checkArtifacts")
     }
+
+    // This isn't strictly supported and will be deprecated later
+    def "can use a custom PublishArtifact implementation"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                artifacts {
+                    def artifact = new PublishArtifact() {
+                        String name = "ignore-me"
+                        String extension = "jar"
+                        String type = "jar"
+                        String classifier
+                        File file
+                        Date date
+                        TaskDependency buildDependencies = new org.gradle.api.internal.tasks.DefaultTaskDependency()
+                    }
+                    artifact.file = file("lib1.jar")
+                    task jar
+                    compile(artifact) {
+                        name = "thing"
+                        builtBy jar
+                    }
+                }
+                task checkArtifacts {
+                    doLast {
+                        assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]
+                        assert configurations.compile.artifacts.collect { it.name }  == ["thing"]
+                    }
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    inputs.files configurations.compile
+                    doLast {
+                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["lib1.jar"]
+                        assert configurations.compile.incoming.artifacts.collect { it.id.displayName } == ["thing.jar (project :a)"]
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.name } == ["thing"]
+                    }
+                }
+            }
+"""
+
+        expect:
+        succeeds("checkArtifacts")
+        result.assertTasksExecuted(":a:checkArtifacts", ":a:jar", ":b:checkArtifacts")
+    }
+
 }

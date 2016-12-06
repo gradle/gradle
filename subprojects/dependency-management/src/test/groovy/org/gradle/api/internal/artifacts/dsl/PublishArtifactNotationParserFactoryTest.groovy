@@ -22,6 +22,7 @@ import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
@@ -44,6 +45,16 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
     }
 
     def createArtifactFromPublishArtifactInstance() {
+        def original = Stub(PublishArtifact)
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(original)
+
+        then:
+        publishArtifact instanceof DecoratingPublishArtifact
+    }
+
+    def createArtifactFromConfigurablePublishArtifactInstance() {
         ConfigurablePublishArtifact original = Mock()
 
         when:
@@ -125,6 +136,13 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifactNotationParser.parseNotation(new Point(1, 2))
 
         then:
-        thrown(UnsupportedNotationException)
+        def e = thrown(UnsupportedNotationException)
+        e.message.contains("""
+The following types/formats are supported:
+  - Instances of ConfigurablePublishArtifact.
+  - Instances of PublishArtifact.
+  - Instances of AbstractArchiveTask, for example jar.
+  - Maps
+  - Instances of File.""")
     }
 }

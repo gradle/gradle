@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
@@ -48,10 +49,22 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder
                 .toType(ConfigurablePublishArtifact.class)
+                .converter(new DecoratingConverter())
                 .converter(new ArchiveTaskNotationConverter())
                 .converter(new FileMapNotationConverter(fileConverter))
                 .converter(fileConverter)
                 .toComposite();
+    }
+
+    private class DecoratingConverter extends TypedNotationConverter<PublishArtifact, ConfigurablePublishArtifact> {
+        private DecoratingConverter() {
+            super(PublishArtifact.class);
+        }
+
+        @Override
+        protected ConfigurablePublishArtifact parseType(PublishArtifact notation) {
+            return instantiator.newInstance(DecoratingPublishArtifact.class, notation);
+        }
     }
 
     private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, ConfigurablePublishArtifact> {
