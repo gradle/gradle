@@ -16,13 +16,14 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002', '0.7.1.201405082137', '0.7.6.201602180812'])
+@TargetCoverage({ JacocoCoverage.ALL })
 class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)

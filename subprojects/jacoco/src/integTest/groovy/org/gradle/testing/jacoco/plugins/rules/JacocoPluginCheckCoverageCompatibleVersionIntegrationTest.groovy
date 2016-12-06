@@ -16,9 +16,10 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 
-@TargetVersions(['0.6.3.201306030806', '0.7.1.201405082137', '0.7.6.201602180812'])
+@TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_SUPPORTED })
 class JacocoPluginCheckCoverageCompatibleVersionIntegrationTest extends AbstractJacocoPluginCheckCoverageVersionIntegrationTest {
 
     def "can check code coverage for compatible versions"() {
