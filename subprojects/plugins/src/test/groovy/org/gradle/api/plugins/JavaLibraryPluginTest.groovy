@@ -51,7 +51,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         !api.visible
-        api.extendsFrom == [compile] as Set
+        api.extendsFrom == [] as Set
         !api.canBeConsumed
         !api.canBeResolved
 
