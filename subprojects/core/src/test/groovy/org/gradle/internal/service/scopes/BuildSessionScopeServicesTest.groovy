@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
@@ -57,6 +58,7 @@ class BuildSessionScopeServicesTest extends Specification {
         parent.get(CacheFactory) >> Stub(CacheFactory)
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
+        parent.get(OutputEventListener) >> Stub(OutputEventListener)
     }
 
     def "provides a DeploymentRegistry"() {

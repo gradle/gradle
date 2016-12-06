@@ -23,6 +23,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
@@ -30,22 +31,25 @@ import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassL
 import java.io.File;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
+
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
     private final JavaExecHandleFactory execHandleFactory;
+    private final OutputEventListener outputEventListener;
     private final ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory;
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
-                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
-        workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector);
+        this.outputEventListener = outputEventListener;
+        this.workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector);
     }
 
     public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
@@ -61,7 +65,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     }
 
     private DefaultWorkerProcessBuilder newWorker() {
-        DefaultWorkerProcessBuilder workerProcessBuilder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerFactory);
+        DefaultWorkerProcessBuilder workerProcessBuilder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerFactory, outputEventListener);
         workerProcessBuilder.setLogLevel(workerLogLevel);
         workerProcessBuilder.setGradleUserHomeDir(gradleUserHomeDir);
         workerProcessBuilder.setConnectTimeoutSeconds(connectTimeoutSeconds);

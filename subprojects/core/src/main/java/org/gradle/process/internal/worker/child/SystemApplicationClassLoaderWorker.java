@@ -20,15 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -69,6 +70,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         try {
             final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            configureLogging(loggingManager, connection);
 
             try {
                 // Read serialized worker
@@ -102,11 +104,19 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return null;
     }
 
+    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
+        connection.useParameterSerializers(WorkerLoggingSerializer.create());
+        WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
+        loggingManager.addOutputEventListener(new WorkerLogEventListener(workerLoggingProtocol));
+    }
+
     MessagingServices createClient() {
         return new MessagingServices();
     }
 
     LoggingManagerInternal createLoggingManager() {
-        return LoggingServiceRegistry.newCommandLineProcessLogging().newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManagerInternal = LoggingServiceRegistry.newEmbeddableLogging().newInstance(LoggingManagerInternal.class);
+        loggingManagerInternal.captureSystemSources();
+        return loggingManagerInternal;
     }
 }
