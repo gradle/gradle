@@ -20,7 +20,10 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static groovy.lang.Closure.DELEGATE_FIRST;
@@ -31,13 +34,14 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * @since 4.0
  */
 @Incubating
-public interface JacocoViolationRule {
+public interface JacocoViolationRule extends Serializable {
 
     void setEnabled(boolean enabled);
 
     /**
      * Indicates if the rule should be used when checking generated coverage metrics.
      */
+    @Input
     boolean isEnabled();
 
     void setElement(String element);
@@ -47,6 +51,7 @@ public interface JacocoViolationRule {
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.ElementType.html">org.jacoco.core.analysis.ICoverageNode.ElementType</a>.
      * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
      */
+    @Input
     String getElement();
 
     void setIncludes(List<String> includes);
@@ -55,6 +60,7 @@ public interface JacocoViolationRule {
      * List of elements that should be included in check. Names can use wildcards (* and ?).
      * If left empty, all elements will be included. Defaults to [*].
      */
+    @Input
     List<String> getIncludes();
 
     void setExcludes(List<String> excludes);
@@ -63,11 +69,13 @@ public interface JacocoViolationRule {
      * List of elements that should be excluded from check. Names can use wildcards (* and ?).
      * If left empty, no elements will be excluded. Defaults to an empty list.
      */
+    @Input
     List<String> getExcludes();
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
+    @Nested
     List<JacocoLimit> getLimits();
 
     /**

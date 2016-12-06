@@ -17,6 +17,10 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+
+import java.io.Serializable;
 
 /**
  * Defines a Jacoco rule limit.
@@ -24,13 +28,14 @@ import org.gradle.api.Incubating;
  * @since 4.0
  */
 @Incubating
-public interface JacocoLimit {
+public interface JacocoLimit extends Serializable {
 
     /**
      * The counter that applies to the limit as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.CounterEntity.html">org.jacoco.core.analysis.ICoverageNode.CounterEntity</a>.
      * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
      */
+    @Input
     String getCounter();
 
     void setCounter(String counter);
@@ -40,6 +45,7 @@ public interface JacocoLimit {
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICounter.CounterValue.html">org.jacoco.core.analysis.ICounter.CounterValue</a>.
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
      */
+    @Input
     String getValue();
 
     void setValue(String value);
@@ -47,6 +53,8 @@ public interface JacocoLimit {
     /**
      * Gets the minimum expected value for limit. Default to null.
      */
+    @Input
+    @Optional
     Double getMinimum();
 
     void setMinimum(Double minimum);
@@ -54,6 +62,8 @@ public interface JacocoLimit {
     /**
      * Gets the maximum expected value for limit. Default to null.
      */
+    @Input
+    @Optional
     Double getMaximum();
 
     void setMaximum(Double maximum);
