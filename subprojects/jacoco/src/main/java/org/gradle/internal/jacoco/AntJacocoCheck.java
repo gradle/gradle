@@ -103,38 +103,23 @@ public class AntJacocoCheck {
                 @SuppressWarnings("UnusedDeclaration")
                 public Object doCall(Object ignore) {
                     for (final JacocoViolationRule rule : filter(violationRules.getRules(), RULE_ENABLED_PREDICATE)) {
-                        Map<String, Object> ruleArgs = new HashMap<String, Object>();
-
-                        if (rule.getElement() != null) {
-                            ruleArgs.put("element", rule.getElement());
-                        }
-                        if (rule.getIncludes() != null && !rule.getIncludes().isEmpty()) {
-                            ruleArgs.put("includes", Joiner.on(':').join(rule.getIncludes()));
-                        }
-                        if (rule.getExcludes() != null && !rule.getExcludes().isEmpty()) {
-                            ruleArgs.put("excludes", Joiner.on(':').join(rule.getExcludes()));
-                        }
-
-                        antBuilder.invokeMethod("rule", new Object[] {ImmutableMap.copyOf(ruleArgs), new Closure<Object>(this, this) {
+                        Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of("element", rule.getElement(), "includes", Joiner.on(':').join(rule.getIncludes()), "excludes", Joiner.on(':').join(rule.getExcludes()));
+                        antBuilder.invokeMethod("rule", new Object[] {ruleArgs, new Closure<Object>(this, this) {
                             @SuppressWarnings("UnusedDeclaration")
                             public Object doCall(Object ignore) {
                                 for (JacocoLimit limit : rule.getLimits()) {
-                                    Map<String, Object> ruleArgs = new HashMap<String, Object>();
+                                    Map<String, Object> limitArgs = new HashMap<String, Object>();
+                                    limitArgs.put("counter", limit.getCounter());
+                                    limitArgs.put("value", limit.getValue());
 
-                                    if (limit.getCounter() != null) {
-                                        ruleArgs.put("counter", limit.getCounter());
-                                    }
-                                    if (limit.getValue() != null) {
-                                        ruleArgs.put("value", limit.getValue());
-                                    }
                                     if (limit.getMinimum() != null) {
-                                        ruleArgs.put("minimum", limit.getMinimum());
+                                        limitArgs.put("minimum", limit.getMinimum());
                                     }
                                     if (limit.getMaximum() != null) {
-                                        ruleArgs.put("maximum", limit.getMaximum());
+                                        limitArgs.put("maximum", limit.getMaximum());
                                     }
 
-                                    antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(ruleArgs) });
+                                    antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(limitArgs) });
                                 }
                                 return null;
                             }
