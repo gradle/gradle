@@ -16,32 +16,17 @@
 
 package org.gradle.internal.jacoco;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
-import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
-import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
-import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.collect.Iterables.filter;
-
 public class AntJacocoReport {
-
-    private static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
-        @Override
-        public boolean apply(JacocoViolationRule rule) {
-            return rule.isEnabled();
-        }
-    };
 
     private final IsolatedAntBuilder ant;
 
@@ -52,8 +37,7 @@ public class AntJacocoReport {
     public void execute(FileCollection classpath, final String projectName,
                         final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
                         final FileCollection executionData,
-                        final JacocoReportsContainer reports,
-                        final JacocoViolationRulesContainer violationRules) {
+                        final JacocoReportsContainer reports) {
         ant.withClasspath(classpath).execute(new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
             public Object doCall(Object it) {
@@ -89,22 +73,7 @@ public class AntJacocoReport {
                                 return null;
                             }
                         }});
-                        if (reports.getHtml().isEnabled()) {
-                            antBuilder.invokeMethod("html", new Object[]{
-                                ImmutableMap.<String, Object>of("destdir", reports.getHtml().getDestination())
-                            });
-                        }
-                        if (reports.getXml().isEnabled()) {
-                            antBuilder.invokeMethod("xml", new Object[]{
-                                ImmutableMap.<String, Object>of("destfile", reports.getXml().getDestination())
-                            });
-                        }
-                        if (reports.getCsv().isEnabled()) {
-                            antBuilder.invokeMethod("csv", new Object[]{
-                                ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
-                            });
-                        }
-                        configureCheck(antBuilder, violationRules);
+                        configureReportFormats(antBuilder, reports);
                         return null;
                     }
                 }});
@@ -113,53 +82,21 @@ public class AntJacocoReport {
         });
     }
 
-    private void configureCheck(final GroovyObjectSupport antBuilder, final JacocoViolationRulesContainer violationRules) {
-        if (!violationRules.getRules().isEmpty()) {
-            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !violationRules.isFailOnViolation());
-            antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
-                @SuppressWarnings("UnusedDeclaration")
-                public Object doCall(Object ignore) {
-                    for (final JacocoViolationRule rule : filter(violationRules.getRules(), RULE_ENABLED_PREDICATE)) {
-                        Map<String, Object> ruleArgs = new HashMap<String, Object>();
-
-                        if (rule.getElement() != null) {
-                            ruleArgs.put("element", rule.getElement());
-                        }
-                        if (rule.getIncludes() != null && !rule.getIncludes().isEmpty()) {
-                            ruleArgs.put("includes", Joiner.on(':').join(rule.getIncludes()));
-                        }
-                        if (rule.getExcludes() != null && !rule.getExcludes().isEmpty()) {
-                            ruleArgs.put("excludes", Joiner.on(':').join(rule.getExcludes()));
-                        }
-
-                        antBuilder.invokeMethod("rule", new Object[] {ImmutableMap.copyOf(ruleArgs), new Closure<Object>(this, this) {
-                            @SuppressWarnings("UnusedDeclaration")
-                            public Object doCall(Object ignore) {
-                                for (JacocoLimit limit : rule.getLimits()) {
-                                    Map<String, Object> ruleArgs = new HashMap<String, Object>();
-
-                                    if (limit.getCounter() != null) {
-                                        ruleArgs.put("counter", limit.getCounter());
-                                    }
-                                    if (limit.getValue() != null) {
-                                        ruleArgs.put("value", limit.getValue());
-                                    }
-                                    if (limit.getMinimum() != null) {
-                                        ruleArgs.put("minimum", limit.getMinimum());
-                                    }
-                                    if (limit.getMaximum() != null) {
-                                        ruleArgs.put("maximum", limit.getMaximum());
-                                    }
-
-                                    antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(ruleArgs) });
-                                }
-                                return null;
-                            }
-                        }});
-                    }
-                    return null;
-                }
-            }});
+    private void configureReportFormats(GroovyObjectSupport antBuilder, JacocoReportsContainer reports) {
+        if (reports.getHtml().isEnabled()) {
+            antBuilder.invokeMethod("html", new Object[]{
+                    ImmutableMap.<String, Object>of("destdir", reports.getHtml().getDestination())
+            });
+        }
+        if (reports.getXml().isEnabled()) {
+            antBuilder.invokeMethod("xml", new Object[]{
+                    ImmutableMap.<String, Object>of("destfile", reports.getXml().getDestination())
+            });
+        }
+        if (reports.getCsv().isEnabled()) {
+            antBuilder.invokeMethod("csv", new Object[]{
+                    ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
+            });
         }
     }
 }

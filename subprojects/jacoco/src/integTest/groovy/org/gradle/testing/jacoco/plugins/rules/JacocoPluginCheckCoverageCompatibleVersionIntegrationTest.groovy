@@ -24,9 +24,9 @@ class JacocoPluginCheckCoverageCompatibleVersionIntegrationTest extends Abstract
 
     def "can check code coverage for compatible versions"() {
         when:
-        succeeds TEST_AND_JACOCO_REPORT_TASK_PATHS
+        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
     }
 }

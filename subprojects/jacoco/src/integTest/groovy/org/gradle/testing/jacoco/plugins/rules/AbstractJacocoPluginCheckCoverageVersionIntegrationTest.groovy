@@ -27,7 +27,7 @@ import static JacocoViolationRulesLimit.Sufficient
 abstract class AbstractJacocoPluginCheckCoverageVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
-    protected final static String[] TEST_AND_JACOCO_REPORT_TASK_PATHS = [':test', ':jacocoTestReport'] as String[]
+    protected final static String[] TEST_AND_JACOCO_CHECK_TASK_PATHS = [':test', ':jacocoTestCheck'] as String[]
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
@@ -37,7 +37,7 @@ abstract class AbstractJacocoPluginCheckCoverageVersionIntegrationTest extends M
                 toolVersion = '$version'
             }
             
-            jacocoTestReport {
+            jacocoTestCheck {
                 violationRules {
                     rule {
                         $Sufficient.LINE_METRIC_COVERED_RATIO
