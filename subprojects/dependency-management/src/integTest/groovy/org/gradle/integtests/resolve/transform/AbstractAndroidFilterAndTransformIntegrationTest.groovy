@@ -46,6 +46,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         settingsFile << "rootProject.name = 'fake-android-build'"
 
         buildFile << """
+            import java.util.regex.Pattern
+            
             ${localJavaLibrary('java-lib')}
             ${localAndroidLibrary('android-lib')}
             ${localAndroidApp('android-app')}
@@ -289,7 +291,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     }
                 }
                 for (final File jarFile : findAllJars(explodedAar)) {
-                    File explodedJar = new File(getOutputDirectory(), "expandedArchives/" + (input.path - files.rootDir).split(File.separator)[1] + "_" + input.name + "_" + jarFile.name)
+                    File explodedJar = new File(getOutputDirectory(), "expandedArchives/" + (input.path - files.rootDir).split(Pattern.quote(File.separator))[1] + "_" + input.name + "_" + jarFile.name)
                     explodedJarList.add(explodedJar)
                     if (!explodedJar.exists()) {
                         files.copy {
@@ -351,7 +353,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             }
         
             List<File> transform(File input, AttributeContainer target) {
-                File classesFolder = new File(getOutputDirectory(), "expandedArchives/" + (input.path - files.rootDir).split(File.separator)[1] + "_" + input.name)
+                File classesFolder = new File(getOutputDirectory(), "expandedArchives/" + (input.path - files.rootDir).split(Pattern.quote(File.separator))[1] + "_" + input.name)
                 if (!classesFolder.exists()) {
                     files.copy {
                         from files.zipTree(input)
@@ -417,7 +419,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         
                 String jumbo = jumboMode ? "jumbo" : "noJumbo"
         
-                File preDexFile = new File(out, "pre-dexed/" + (input[0].path - files.rootDir).split(File.separator)[1] + "_" + input[0].name + "_" + jumbo + ".predex")
+                File preDexFile = new File(out, "pre-dexed/" + (input[0].path - files.rootDir).split(Pattern.quote(File.separator))[1] + "_" + input[0].name + "_" + jumbo + ".predex")
                 preDexFile.getParentFile().mkdirs()
                 if (!preDexFile.exists()) {
                     preDexFile << "Predexed from: " + input.collect { it.getPath() - files.rootDir }
