@@ -64,6 +64,26 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
+    def "Ant task reports error for unknown field value"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                violationRules {
+                    rule {
+                        element = 'UNKNOWN'
+                    }
+                }
+            }
+        """
+
+        when:
+        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+        errorOutput.contains("'UNKNOWN' is not a permitted value for org.jacoco.core.analysis.ICoverageNode\$ElementType")
+    }
+
     def "can define includes for single rule"() {
         given:
         buildFile << """
