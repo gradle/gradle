@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Collection;
@@ -28,11 +27,6 @@ import java.util.Set;
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
 public interface ResolvedArtifactSet {
-    /**
-     * Selects a subset of the artifacts of this set, and _all_ of the files (if any). Implementation may be eager or lazy, so the spec should be immutable.
-     */
-    ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec);
-
     /**
      * Returns the resolved artifacts in this set, if any.
      */
@@ -49,11 +43,6 @@ public interface ResolvedArtifactSet {
     void visit(ArtifactVisitor visitor);
 
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
-        @Override
-        public ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec) {
-            return this;
-        }
-
         @Override
         public Set<ResolvedArtifact> getArtifacts() {
             return Collections.emptySet();

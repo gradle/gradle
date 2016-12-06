@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
@@ -30,11 +29,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata) {
         this.dependencyMetadata = dependencyMetadata;
-    }
-
-    @Override
-    public ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec) {
-        return this;
     }
 
     @Override

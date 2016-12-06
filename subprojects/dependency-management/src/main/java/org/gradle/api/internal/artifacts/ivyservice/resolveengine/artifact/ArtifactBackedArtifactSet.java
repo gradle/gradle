@@ -19,12 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
@@ -42,17 +39,6 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
             return new SingletonSet(artifacts.iterator().next());
         }
         return new ArtifactBackedArtifactSet(artifacts);
-    }
-
-    @Override
-    public ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec) {
-        List<ResolvedArtifact> selected = new ArrayList<ResolvedArtifact>(artifacts.size());
-        for (ResolvedArtifact artifact : artifacts) {
-            if (artifactSpec.isSatisfiedBy(artifact)) {
-                selected.add(artifact);
-            }
-        }
-        return of(selected);
     }
 
     @Override
@@ -79,14 +65,6 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
 
         SingletonSet(ResolvedArtifact artifact) {
             this.artifact = artifact;
-        }
-
-        @Override
-        public ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec) {
-            if (artifactSpec.isSatisfiedBy(artifact)) {
-                return this;
-            }
-            return EMPTY;
         }
 
         @Override

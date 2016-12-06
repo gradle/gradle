@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.ArrayList;
@@ -38,24 +37,6 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
         for (ResolvedArtifactSet set : sets) {
             if (set != ResolvedArtifactSet.EMPTY) {
                 filtered.add(set);
-            }
-        }
-        if (filtered.isEmpty()) {
-            return EMPTY;
-        }
-        if (filtered.size() == 1) {
-            return filtered.get(0);
-        }
-        return new CompositeArtifactSet(filtered);
-    }
-
-    @Override
-    public ResolvedArtifactSet select(Spec<? super ResolvedArtifact> artifactSpec) {
-        List<ResolvedArtifactSet> filtered = new ArrayList<ResolvedArtifactSet>();
-        for (ResolvedArtifactSet set : sets) {
-            ResolvedArtifactSet selected = set.select(artifactSpec);
-            if (selected != ResolvedArtifactSet.EMPTY) {
-                filtered.add(selected);
             }
         }
         if (filtered.isEmpty()) {
