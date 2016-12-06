@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.DependencyPreProcessor;
+import org.gradle.api.artifacts.DependencyPreprocessor;
 
-public class DefaultDependencyPreProcessor implements DependencyPreProcessor {
+public class DefaultDependencyPreprocessor implements DependencyPreprocessor {
 
     private Object dependencyNotation;
 
-    public DefaultDependencyPreProcessor(Object dependencyNotation) {
+    public DefaultDependencyPreprocessor(Object dependencyNotation) {
         this.dependencyNotation = dependencyNotation;
     }
 

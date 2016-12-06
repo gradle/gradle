@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyPreProcessor;
+import org.gradle.api.artifacts.DependencyPreprocessor;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 
 import java.util.Map;
@@ -335,7 +335,13 @@ public interface DependencyHandler {
      */
     Dependency localGroovy();
 
-    void dependencyPreProcessor(Action<DependencyPreProcessor> dependencyPreProcessorAction);
+    /**
+     * Allows users to pre-process dependencies before gradle resolves them to a specific module.
+     *
+     * @param dependencyPreprocessorAction action to work against every dependency added in this project.
+     */
+    @Incubating
+    void dependencyPreprocessor(Action<DependencyPreprocessor> dependencyPreprocessorAction);
 
     /**
      * Returns the component metadata handler for this project. The returned handler can be used for adding rules

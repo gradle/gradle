@@ -16,7 +16,10 @@
 
 package org.gradle.api.artifacts;
 
-public interface DependencyPreProcessor {
+import org.gradle.api.Incubating;
+
+@Incubating
+public interface DependencyPreprocessor {
 
     /**
      *

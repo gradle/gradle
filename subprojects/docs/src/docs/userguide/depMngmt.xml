@@ -1533,6 +1533,25 @@ someroot/[artifact]-[revision].[ext]
                 However, it is possible to declare that multiple modules are replaced by a single module.
             </para>
         </section>
+        <section id="sec:dependency_preprocessor">
+            <title>Dependency Preprocessing</title>
+            <para>
+                Dependency preprocessing allows a plugin to change which dependency will be added to a configuration before the dependency is resolved. This would allow users to:
+                <itemizedlist>
+                    <listitem>Add organization specific notations to the dependencies.</listitem>
+                    <listitem>Allow a plugin to add more data to a dependency (such as nice name) to a dependency for tracking reasons.</listitem>
+                    <listitem>Add dependency to break a organization rule, but only when a reason is given.</listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                In the following sample, the preprocessor is able to override the version of a library to be something specific.
+                <sample id="dependency_preprocessing" dir="userguide/artifacts/dependency-preprocessor" title="Preprocessing Dependencies">
+                    <sourcefile file="build.gradle" snippet="dependency_preprocessor"/>
+                </sample>
+                Normally, when -PdisableVersionForce=true is not passed to Gradle the dependency would be forced to the value set in force. However when -PdisableVersionForce=true is passed,
+                the force will be removed, and the dynamic version will be allowed into the project.
+            </para>
+        </section>
     </section>
     <section id="sec:dependency_cache">
         <title>The dependency cache</title>

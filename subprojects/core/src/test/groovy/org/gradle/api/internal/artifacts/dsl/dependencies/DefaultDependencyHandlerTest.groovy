@@ -288,9 +288,9 @@ class DefaultDependencyHandlerTest extends Specification {
 
     void "transforms a dependency"() {
         Dependency dependency = Mock()
-        dependencyHandler.dependencyPreProcessor(new Action<DependencyPreProcessor>() {
+        dependencyHandler.dependencyPreprocessor(new Action<DependencyPreprocessor>() {
             @Override
-            void execute(DependencyPreProcessor dependencyPreProcessor) {
+            void execute(DependencyPreprocessor dependencyPreProcessor) {
                 dependencyPreProcessor.setDependencyNotation('otherNotation')
             }
         })

@@ -23,12 +23,12 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyPreProcessor;
+import org.gradle.api.artifacts.DependencyPreprocessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.internal.artifacts.DefaultDependencyPreProcessor;
+import org.gradle.api.internal.artifacts.DefaultDependencyPreprocessor;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -45,7 +45,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final ComponentMetadataHandler componentMetadataHandler;
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
-    private final Queue<Action<DependencyPreProcessor>> preProcessors = new LinkedList<Action<DependencyPreProcessor>>();
+    private final Queue<Action<DependencyPreprocessor>> preProcessors = new LinkedList<Action<DependencyPreprocessor>>();
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
                                     ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
@@ -71,8 +71,8 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     public Dependency create(Object dependencyNotation, Closure configureClosure) {
-        DefaultDependencyPreProcessor preprocessor = new DefaultDependencyPreProcessor(dependencyNotation);
-        for (Action<DependencyPreProcessor> action : preProcessors) {
+        DefaultDependencyPreprocessor preprocessor = new DefaultDependencyPreprocessor(dependencyNotation);
+        for (Action<DependencyPreprocessor> action : preProcessors) {
             action.execute(preprocessor);
         }
 
@@ -96,7 +96,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     @Override
-    public void dependencyPreProcessor(Action<DependencyPreProcessor> dependencyPreProcessorAction) {
+    public void dependencyPreprocessor(Action<DependencyPreprocessor> dependencyPreProcessorAction) {
         preProcessors.add(dependencyPreProcessorAction);
     }
 
