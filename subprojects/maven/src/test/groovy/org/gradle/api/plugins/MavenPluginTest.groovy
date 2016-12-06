@@ -67,8 +67,8 @@ class MavenPluginTest extends AbstractProjectBuilderSpec {
         def configurationContainer = project.configurations
         def mapping = scopeMappingContainer.mappings.get(configurationContainer.getByName(configurationName))
 
-        assert mapping.scope == scope
-        assert mapping.priority == priority
+        assert mapping?.scope == scope
+        assert mapping?.priority == priority
     }
 
     void "apply with Java plugin"() {
@@ -81,9 +81,42 @@ class MavenPluginTest extends AbstractProjectBuilderSpec {
             MavenPlugin.COMPILE_PRIORITY)
         assertHasConfigurationAndMapping(JavaPlugin.RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.RUNTIME,
             MavenPlugin.RUNTIME_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, Conf2ScopeMappingContainer.RUNTIME,
+            MavenPlugin.RUNTIME_PRIORITY)
         assertHasConfigurationAndMapping(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
             MavenPlugin.TEST_COMPILE_PRIORITY)
         assertHasConfigurationAndMapping(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
+            MavenPlugin.TEST_RUNTIME_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
+            MavenPlugin.TEST_RUNTIME_PRIORITY)
+
+        when:
+        def task = project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME)
+        def dependencies = task.taskDependencies.getDependencies(task)
+
+        then:
+        assert dependencies == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)] as Set
+    }
+
+    void "apply with Java library plugin"() {
+        when:
+        project.pluginManager.apply(JavaLibraryPlugin)
+        project.pluginManager.apply(MavenPlugin)
+
+        then:
+        assertHasConfigurationAndMapping(JavaPlugin.API_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
+            MavenPlugin.COMPILE_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
+            MavenPlugin.COMPILE_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.RUNTIME,
+            MavenPlugin.RUNTIME_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, Conf2ScopeMappingContainer.RUNTIME,
+            MavenPlugin.RUNTIME_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
+            MavenPlugin.TEST_COMPILE_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
+            MavenPlugin.TEST_RUNTIME_PRIORITY)
+        assertHasConfigurationAndMapping(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
             MavenPlugin.TEST_RUNTIME_PRIORITY)
 
         when:

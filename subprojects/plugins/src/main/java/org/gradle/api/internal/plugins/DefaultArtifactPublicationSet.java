@@ -18,6 +18,8 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 
+import static org.gradle.api.plugins.JavaLibraryPlugin.CLASS_DIRECTORY;
+
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
@@ -30,13 +32,17 @@ public class DefaultArtifactPublicationSet {
     }
 
     public void addCandidate(PublishArtifact artifact) {
+        String thisType = artifact.getType();
+        if (CLASS_DIRECTORY.equals(thisType)) {
+            return;
+        }
+
         if (defaultArtifact == null) {
             artifacts.add(artifact);
             defaultArtifact = artifact;
             return;
         }
 
-        String thisType = artifact.getType();
         String currentType = defaultArtifact.getType();
         if (thisType.equals("ear")) {
             replaceCurrent(artifact);
