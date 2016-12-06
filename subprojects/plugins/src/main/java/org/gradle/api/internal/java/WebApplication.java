@@ -19,14 +19,17 @@ package org.gradle.api.internal.java;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.Usage;
+import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.plugins.Usage;
+import org.gradle.api.plugins.Usages;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
+    private final static Usage USAGE = Usages.usage("master");
 
-    private final Usage webArchiveUsage = new WebArchiveUsage();
+    private final UsageContext webArchiveUsage = new WebArchiveUsageContext();
     private final PublishArtifact warArtifact;
 
     public WebApplication(PublishArtifact warArtifact) {
@@ -37,13 +40,13 @@ public class WebApplication implements SoftwareComponentInternal {
         return "web";
     }
 
-    public Set<Usage> getUsages() {
+    public Set<UsageContext> getUsages() {
         return Collections.singleton(webArchiveUsage);
     }
 
-    private class WebArchiveUsage implements Usage {
-        public String getName() {
-            return "master";
+    private class WebArchiveUsageContext implements UsageContext {
+        public Usage getUsage() {
+            return USAGE;
         }
 
         public Set<PublishArtifact> getArtifacts() {

@@ -20,7 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.Usage
+import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
@@ -375,7 +375,7 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies) {
-        def usage = Stub(Usage) {
+        def usage = Stub(UsageContext) {
             getName() >> "runtime"
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
