@@ -27,6 +27,7 @@ import static JacocoViolationRulesLimit.Sufficient
 abstract class AbstractJacocoPluginCheckCoverageVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+    protected final static String[] TEST_AND_JACOCO_REPORT_TASK_PATHS = [':test', ':jacocoTestReport'] as String[]
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
