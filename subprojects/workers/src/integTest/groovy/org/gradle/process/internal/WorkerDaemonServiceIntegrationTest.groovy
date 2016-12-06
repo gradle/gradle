@@ -17,25 +17,13 @@
 package org.gradle.process.internal
 
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 
+class WorkerDaemonServiceIntegrationTest extends AbstractWorkerDaemonServiceIntegrationTest {
 
-class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
-    def outputFileDir = file("build/workerDaemons")
-    def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
-    def list = [ 1, 2, 3 ]
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
-
-    def setup() {
-        buildFile << """
-            $taskTypeUsingWorkerDaemon
-        """
-    }
 
     def "can create and use a daemon runnable defined in buildSrc"() {
         withRunnableClassInBuildSrc()
@@ -84,23 +72,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertRunnableExecuted("runInDaemon")
-    }
-
-    def "stdout, stderr and logging output is redirect"() {
-
-        buildFile << """
-            ${runnableWithLogging}
-            task runInDaemon(type: DaemonTask)
-        """
-
-        when:
-        succeeds("runInDaemon")
-
-        then:
-        output.contains("stdout message")
-        output.contains("warn message")
-        errorOutput.contains("error message")
-        !output.contains("debug message")
     }
 
     def "produces a sensible error when there is a failure in the daemon runnable"() {
@@ -239,25 +210,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
-    @Ignore("Flaky")
-    def "worker daemon lifecycle is logged" () {
-        withRunnableClassInBuildSrc()
-
-        buildFile << """
-            task runInDaemon(type: DaemonTask)
-        """
-
-        when:
-        args("--info")
-        succeeds("runInDaemon")
-
-        then:
-        output.contains("Starting process 'Gradle Worker Daemon 1'.")
-        output.contains("Successfully started process 'Gradle Worker Daemon 1'")
-        output.contains("Executing org.gradle.test.TestRunnable in worker daemon")
-        output.contains("Successfully executed org.gradle.test.TestRunnable in worker daemon")
-    }
-
     def "throws if used from a thread with no current build operation"() {
         given:
         withRunnableClassInBuildSrc()
@@ -288,7 +240,7 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             task runInDaemon(type: DaemonTaskUsingCustomThreads)
         '''.stripIndent()
 
@@ -306,100 +258,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         } else {
             return "Unrecognized option: -foo"
         }
-    }
-
-    void assertRunnableExecuted(String taskName) {
-        list.each {
-            outputFileDir.file(taskName).file(it).assertExists()
-        }
-    }
-
-    void assertSameDaemonWasUsed(String task1, String task2) {
-        list.each {
-            assert outputFileDir.file(task1).file(it).text == outputFileDir.file(task2).file(it).text
-        }
-    }
-
-    void assertDifferentDaemonsWereUsed(String task1, String task2) {
-        list.each {
-            assert outputFileDir.file(task1).file(it).text != outputFileDir.file(task2).file(it).text
-        }
-    }
-
-    String getTaskTypeUsingWorkerDaemon() {
-        withParameterClassInBuildSrc()
-
-        return """
-            import javax.inject.Inject
-            import org.gradle.process.daemon.WorkerDaemonService
-            import org.gradle.other.Foo
-
-            @ParallelizableTask
-            class DaemonTask extends DefaultTask {
-                def list = $list
-                def outputFileDirPath = "${outputFileDirPath}/\${name}"
-                def additionalForkOptions = {}
-                def runnableClass = TestRunnable.class
-
-                @Inject
-                WorkerDaemonService getWorkerDaemons() {
-                    throw new UnsupportedOperationException()
-                }
-
-                @TaskAction
-                void executeTask() {
-                    workerDaemons.daemonRunnable(runnableClass)
-                        .forkOptions(additionalForkOptions)
-                        .params(list.collect { it as String }, new File(outputFileDirPath), new Foo())
-                        .execute()
-                }
-            }
-        """
-    }
-
-    String getRunnableThatCreatesFiles() {
-        return """
-            import java.io.File;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import java.io.PrintWriter;
-            import java.io.BufferedWriter;
-            import java.io.FileWriter;
-            import java.util.UUID;
-
-            public class TestRunnable implements Runnable {
-                private final List<String> files;
-                protected final File outputDir;
-                private final Foo foo;
-                private static final String id = UUID.randomUUID().toString();
-
-                public TestRunnable(List<String> files, File outputDir, Foo foo) {
-                    this.files = files;
-                    this.outputDir = outputDir;
-                    this.foo = foo;
-                }
-
-                public void run() {
-                    outputDir.mkdirs();
-
-                    for (String name : files) {
-                        PrintWriter out = null;
-                        try {
-                            File outputFile = new File(outputDir, name);
-                            outputFile.createNewFile();
-                            out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
-                            out.print(id);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            if (out != null) {
-                                out.close();
-                            }
-                        }
-                    }
-                }
-            }
-        """
     }
 
     String getBlockingRunnableThatCreatesFiles(String url) {
@@ -453,50 +311,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    String getRunnableWithLogging() {
-        return """
-            import java.io.File;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import java.util.UUID;
-            import org.gradle.api.logging.Logging;
-            
-            public class TestRunnable implements Runnable {
-                public TestRunnable(List<String> files, File outputDir, Foo foo) {
-                }
-
-                public void run() {
-                    Logging.getLogger(getClass()).warn("warn message");
-                    Logging.getLogger(getClass()).debug("debug message");
-                    Logging.getLogger(getClass()).error("error message");
-                    System.out.println("stdout message");
-                    System.err.println("stderr message");
-                }
-            }
-        """
-    }
-
-
-    void withParameterClassInBuildSrc() {
-        file("buildSrc/src/main/java/org/gradle/other/Foo.java") << """
-            package org.gradle.other;
-
-            import java.io.Serializable;
-
-            public class Foo implements Serializable { }
-        """
-    }
-
-    void withRunnableClassInBuildSrc() {
-        file("buildSrc/src/main/java/org/gradle/test/TestRunnable.java") << """
-            package org.gradle.test;
-
-            $runnableThatCreatesFiles
-        """
-
-        addImportToBuildScript("org.gradle.test.TestRunnable")
-    }
-
     void withBlockingRunnableClassInBuildSrc(String url) {
         file("buildSrc/src/main/java/org/gradle/test/BlockingRunnable.java") << """
             package org.gradle.test;
@@ -515,39 +329,5 @@ class WorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addImportToBuildScript("org.gradle.test.AlternateRunnable")
-    }
-
-    void withRunnableClassInBuildScript() {
-        buildFile << """
-            $runnableThatCreatesFiles
-        """
-    }
-
-    void withRunnableClassInExternalJar(File runnableJar) {
-        file("buildSrc").deleteDir()
-
-        def builder = artifactBuilder()
-        builder.sourceFile("org/gradle/test/TestRunnable.java") << """
-            package org.gradle.test;
-
-            $runnableThatCreatesFiles
-        """
-        builder.sourceFile("org/gradle/other/Foo.java") << """
-            package org.gradle.other;
-
-            import java.io.Serializable;
-
-            public class Foo implements Serializable { }
-        """
-        builder.buildJar(runnableJar)
-
-        addImportToBuildScript("org.gradle.test.TestRunnable")
-    }
-
-    void addImportToBuildScript(String className) {
-        buildFile.text = """
-            import ${className}
-            ${buildFile.text}
-        """
     }
 }
