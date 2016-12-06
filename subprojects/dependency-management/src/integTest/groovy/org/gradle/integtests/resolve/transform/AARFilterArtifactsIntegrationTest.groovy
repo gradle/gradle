@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.transform;
 
-class AARFilterArtifactsIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
+class AARFilterArtifactsIntegrationTest extends AbstractAndroidFilterAndTransformIntegrationTest {
 
     def "jar artifacts are resolved for published java module and local java configuration"() {
         when:

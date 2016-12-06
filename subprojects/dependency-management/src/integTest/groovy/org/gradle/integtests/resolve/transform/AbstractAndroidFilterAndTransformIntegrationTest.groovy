@@ -38,9 +38,9 @@ import org.gradle.util.TextUtil
  * Registered transforms:
  * - AarTransform                       extracts 'jar', 'classes', 'classpath' and 'android-manifest' from AAR
  * - JarTransform                       extracts 'classes' from jar, and allows 'jar' artifact to be used as 'classpath' type
- * - ClassesFolderClasspathTransform    allows 'classes' artifact to be used as 'classpath' type
+ * - ClassFolderTransform    allows 'classes' artifact to be used as 'classpath' type
  */
-abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDependencyResolutionTest {
+abstract class AbstractAndroidFilterAndTransformIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
         settingsFile << """
@@ -58,17 +58,19 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
             ${aarTransform()}
             ${jarTransform()}
             ${classFolderTransform()}
+            ${preDexTool()}
         """.stripIndent()
 
         publishJavaModule("ext-java-lib")
-        publishAndroidLibrary("ext-android-lib")
+        publishAndroidLibrary("ext-android-lib", false)
+        publishAndroidLibrary("ext-android-lib-with-jars", true)
     }
 
     private MavenModule publishJavaModule(String name) {
         mavenRepo.module("org.gradle", name).publish()
     }
 
-    private void publishAndroidLibrary(String name) {
+    private void publishAndroidLibrary(String name, boolean includeLibs) {
         // "Source" code
         file("$name/classes/main/foo.txt") << "something"
         file("$name/classes/main/bar/baz.txt") << "something"
@@ -76,8 +78,11 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
         def aarImage = file(name + '/aar-image')
         aarImage.file('AndroidManifest.xml') << "<AndroidManifest/>"
         file(name + '/classes').zipTo(aarImage.file('classes.jar'))
-        aarImage.file('libs/dep1.jar') << 'jar-content'
-        aarImage.file('libs/dep2.jar') << 'jar-content'
+        if (includeLibs) {
+            file("$name/libs/jar-content.txt") << "jar-content"
+            file("$name/libs").zipTo(aarImage.file('libs/dep1.jar'))
+            file("$name/libs").zipTo(aarImage.file('libs/dep2.jar'))
+        }
 
         // Publish an external version as AAR
         def module = mavenRepo.module("org.gradle", name).hasType('aar').publish()
@@ -206,9 +211,9 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
             configurations.all {
                 resolutionStrategy {
-                    ${registerTransform('AarExtractor')}
+                    ${registerTransform('AarTransform')}
                     ${registerTransform('JarTransform')}
-                    ${registerTransform('ClassesFolderClasspathTransform')}
+                    ${registerTransform('ClassFolderTransform')}
                 }
             }
 
@@ -234,85 +239,75 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def aarTransform() {
         """
-        import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
-        
-        /**
-         * Base class for `ArtifactTransform` that only cares about 'artifactType' attribute.
-         */
-        abstract class ArtifactTypeTransform extends ArtifactTransform {
-
-            protected abstract String getInputType()
-        
-            protected abstract Collection<String> getOutputTypes()
-        
-            protected abstract List<File> transform(File input, String outputType)
-        
-            @Override
-            public void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
-                from.attribute(ARTIFACT_FORMAT, getInputType())
-        
-                for (String outputType : getOutputTypes()) {
-                    targetRegistry.newTarget().attribute(ARTIFACT_FORMAT, outputType)
-                }
-            }
-        
-            @Override
-            public List<File> transform(File input, AttributeContainer target) {
-                String targetType = target.getAttribute(ARTIFACT_FORMAT)
-                return transform(input, targetType)
-            }
-        }
-
-        class AarExtractor extends ArtifactTypeTransform {
+        class AarTransform extends ArtifactTransform {
             private Project files
+            
+            void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                def typeAttribute = Attribute.of("artifactType", String.class)
+                
+                from.attribute(typeAttribute, "aar")
+        
+                targets.newTarget().attribute(typeAttribute, "jar")
+                targets.newTarget().attribute(typeAttribute, "android-manifest")
+                targets.newTarget().attribute(typeAttribute, "classes")
+                targets.newTarget().attribute(typeAttribute, "predex")
+                targets.newTarget().attribute(typeAttribute, "classpath")
+            }
+            
+            List<File> transform(File input, AttributeContainer target) {
+                File explodedAar = new File(outputDirectory, input.name + '/explodedAar')
+                List<File> explodedJarList = []
 
-            private File explodedAar
-            private File explodedJar
-            
-            String inputType = 'aar'
-            List<String> outputTypes = ['jar', 'classpath', 'classes', 'android-manifest']
-            
-            List<File> transform(File input, String targetType) {
-                explodeAar(input)
+                if (!explodedAar.exists()) {
+                    files.copy {
+                        from files.zipTree(input)   
+                        into explodedAar
+                    }
+                }
+                for (final File jarFile : findAllJars(explodedAar)) {
+                    File explodedJar = new File(getOutputDirectory(), "expandedArchives/" + input.name + "_" + jarFile.name + "_" + (input.path - files.rootDir).hashCode())
+                    explodedJarList.add(explodedJar)
+                    if (!explodedJar.exists()) {
+                        files.copy {
+                            from files.zipTree(jarFile)
+                            into explodedJar
+                        }
+                    }
+                }
+                    
+                String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
                 switch (targetType) {
                     case 'jar':
-                        return [new File(explodedAar, "classes.jar")]
-                    case 'classpath':
-                        def jars = [new File(explodedAar, "classes.jar")]
-                        def libDir = new File(explodedAar, 'libs')
-                        if (libDir.directory) {
-                            libDir.eachFile {
-                                jars << it
-                            }
-                        }
-                        return jars.sort() //make sure files are in deterministic order independent of directory traversal method
+                        return findAllJars(explodedAar)
                     case 'classes':
-                        return [explodedJar]
+                        return explodedJarList
+                    case 'predex':
+                        List<File> predexFileList = []
+                        for (final File explodedJarFolder : explodedJarList) {
+                            predexFileList.add(preDex(explodedJarFolder, getOutputDirectory(), config.getDexOptions()))
+                        }
+                        return predexFileList
                     case 'android-manifest':
                         return [new File(explodedAar, "AndroidManifest.xml")]
+                    case 'classpath':
+                        return findAllJars(explodedAar)
                     default:
                         throw new IllegalArgumentException("Not a supported target type: " + targetType)
                 }
             }
-
-            private void explodeAar(File input) {
-                assert input.name.endsWith('.aar')
-
-                explodedAar = new File(outputDirectory, input.name + '/explodedAar')
-                explodedJar = new File(outputDirectory, input.name + '/explodedClassesJar')
-
-                if (!explodedAar.exists()) {
-                    files.copy {
-                        from files.zipTree(input)
-                        into explodedAar
+            
+            private List<File> findAllJars(File explodedAar) {
+                List<File> allFiles = []
+                allFiles.add(new File(explodedAar, "classes.jar"))
+                File libsFolder = new File(explodedAar, "libs")
+                if (libsFolder.exists()) {
+                    for (File file : libsFolder.listFiles()) {
+                        if (file.name.endsWith("jar")) {
+                            allFiles.add(file)
+                        }
                     }
                 }
-                if (!explodedJar.exists()) {
-                    files.copy {
-                        from files.zipTree(new File(explodedAar, 'classes.jar'))
-                        into explodedJar
-                    }
-                }
+                return allFiles
             }
         }
         """
@@ -320,40 +315,38 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def jarTransform() {
         """
-        class JarTransform extends ArtifactTypeTransform {
+        class JarTransform extends ArtifactTransform {
             private Project files
 
-            private File jar
-            private File classesFolder
-
-            String inputType = 'jar'
-            List<String> outputTypes = ['classpath', 'classes']
-            
-            List<File> transform(File input, String targetType) {
-                explodeJar(input)
-                switch (targetType) {
-                    case 'classpath':
-                        return [jar]
-                    case 'classes':
-                        return [classesFolder]
-                    default:
-                        throw new IllegalArgumentException("Not a supported target type: " + targetType)
-                }
+            void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                def typeAttribute = Attribute.of("artifactType", String.class)
+                
+                from.attribute(typeAttribute, "jar")
+        
+                targets.newTarget().attribute(typeAttribute, "classes")
+                targets.newTarget().attribute(typeAttribute, "predex")
+                targets.newTarget().attribute(typeAttribute, "classpath")
             }
-            
-            private void explodeJar(File input) {
-                jar = input
-
-                //We could use a location based on the input, since the classes folder is similar for all consumers.
-                //Maybe the output should not be configured from the outside, but the context of the consumer should
-                //be always passed in automatically (as we do with "Project files") here. Then the consumer and
-                //properties of it (e.g. dex options) can be used in the output location
-                classesFolder = new File(outputDirectory, input.name + "/classes")
+        
+            List<File> transform(File input, AttributeContainer target) {
+                File classesFolder = new File(getOutputDirectory(), "expandedArchives/" + input.name + "_" + (input.path - files.rootDir).hashCode())
                 if (!classesFolder.exists()) {
                     files.copy {
                         from files.zipTree(input)
                         into classesFolder
                     }
+                }
+                
+                String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
+                switch (targetType) {
+                    case 'classes':
+                        return [classesFolder]
+                    case 'predex':
+                        return [preDex(classesFolder, getOutputDirectory(), config.getDexOptions())]
+                    case 'classpath':
+                        return [input]
+                    default:
+                        throw new IllegalArgumentException("Not a supported target type: " + targetType)
                 }
             }
         }
@@ -362,18 +355,48 @@ abstract class AbstractAARFilterAndTransformIntegrationTest extends AbstractDepe
 
     def classFolderTransform() {
         """
-        class ClassesFolderClasspathTransform extends ArtifactTypeTransform {
+        public class ClassFolderTransform extends ArtifactTransform {
             private Project files
-
-            private File classesFolder
             
-            String inputType = 'classes'
-            List<String> outputTypes = ['classpath']
-            
-            List<File> transform(File input, String targetType) {
-                assert targetType == 'classpath'
-                return [input]
+            void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                def typeAttribute = Attribute.of("artifactType", String.class)
+                
+                from.attribute(typeAttribute, "classes")
+        
+                targets.newTarget().attribute(typeAttribute, "classpath")
+                targets.newTarget().attribute(typeAttribute, "predex")
             }
+        
+            List<File> transform(File input, AttributeContainer target) {        
+                String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
+                switch (targetType) {
+                    case 'predex':
+                        return [preDex(input, getOutputDirectory(), config.getDexOptions())]
+                    case 'classpath':
+                        return [input]
+                    default:
+                        throw new IllegalArgumentException("Not a supported target type: " + targetType)
+                }
+            }
+        }
+        """
+    }
+
+    def preDexTool() {
+        """
+        def File preDex(File input, File out, boolean preDexLibraries, boolean jumboMode)  {
+            if (preDexLibraries) {
+                return input
+            }
+    
+            String jumbo = jumboMode ? "jumbo" : "noJumbo"
+    
+            File preDexFile = new File(out, "pre-dexed/" + input.name + "_" + jumbo + "_" + (input.path - files.rootDir).hashCode() + ".predex")
+            preDexFile.getParentFile().mkdirs()
+            if (!preDexFile.exists()) {
+                preDexFile << "Pre-Dexed from: " + input.getPath()
+            }
+            return preDexFile
         }
         """
     }

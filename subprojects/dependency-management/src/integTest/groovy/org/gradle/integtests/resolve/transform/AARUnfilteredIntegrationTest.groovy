@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import spock.lang.Unroll;
 
 @Unroll
-class AARUnfilteredIntegrationTest extends AbstractAARFilterAndTransformIntegrationTest {
+class AARUnfilteredIntegrationTest extends AbstractAndroidFilterAndTransformIntegrationTest {
 
     def "resolves class folder directly from local java library"() {
         when:
