@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.util.TextUtil
+
 class DexLocalAndroidLibraryTransformIntegrationTest extends AbstractAndroidFilterAndTransformIntegrationTest {
 
     def "One predex file is produce for a local Android library"() {
@@ -27,7 +29,7 @@ class DexLocalAndroidLibraryTransformIntegrationTest extends AbstractAndroidFilt
             '/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex',
             '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
-        file('/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex').text ==
+        TextUtil.normaliseFileSeparators(file('/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex').text) ==
             'Predexed from: [/android-lib/build/classes/main]'
     }
 

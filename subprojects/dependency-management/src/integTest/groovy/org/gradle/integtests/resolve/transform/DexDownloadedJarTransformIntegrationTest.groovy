@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.util.TextUtil
+
 class DexDownloadedJarTransformIntegrationTest extends AbstractAndroidFilterAndTransformIntegrationTest {
 
     def "One predex file is produce for a downloaded JAR file"() {
@@ -27,7 +29,7 @@ class DexDownloadedJarTransformIntegrationTest extends AbstractAndroidFilterAndT
             '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
             '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
-        file('/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex').text ==
+        TextUtil.normaliseFileSeparators(file('/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex').text) ==
             'Predexed from: [/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar]'
     }
 

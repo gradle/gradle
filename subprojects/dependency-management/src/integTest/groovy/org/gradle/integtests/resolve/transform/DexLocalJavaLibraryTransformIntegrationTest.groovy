@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.util.TextUtil
+
 /**
  * This test assumes an improved Java plugin which also exports the class folder as artifact (and not only the jar).
  */
@@ -30,7 +32,7 @@ class DexLocalJavaLibraryTransformIntegrationTest extends AbstractAndroidFilterA
             '/android-app/transformed/pre-dexed/java-lib_main_noJumbo.predex',
             '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
-        file('/android-app/transformed/pre-dexed/java-lib_main_noJumbo.predex').text ==
+        TextUtil.normaliseFileSeparators(file('/android-app/transformed/pre-dexed/java-lib_main_noJumbo.predex').text) ==
             'Predexed from: [/java-lib/build/classes/main]'
     }
 
