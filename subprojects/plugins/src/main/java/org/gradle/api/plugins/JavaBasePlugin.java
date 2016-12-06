@@ -19,13 +19,11 @@ package org.gradle.api.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -469,63 +467,4 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    /**
-     * Represents the usage of a configuration. Typical usages include compilation or runtime.
-     * This interface allows the user to customize usages by implementing this interface, or
-     * simply calling the {@link #usage(String)} method.
-     */
-    public interface Usage extends Named {
-        Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(Usage.class);
-
-        Usage FOR_COMPILE = usage("for compile");
-        Usage FOR_RUNTIME = usage("for runtime");
-
-    }
-
-    /**
-     * Creates a simple named usage.
-     * @param usage the usage name
-     * @return a usage with the provided name
-     */
-    public static Usage usage(final String usage) {
-        return new UsageImpl(usage);
-    }
-
-    private static class UsageImpl implements Usage {
-        private final String usage;
-
-        public UsageImpl(String usage) {
-            this.usage = usage;
-        }
-
-        @Override
-        public String getName() {
-            return usage;
-        }
-
-        @Override
-        public String toString() {
-            return usage;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            UsageImpl usage1 = (UsageImpl) o;
-
-            return usage.equals(usage1.usage);
-
-        }
-
-        @Override
-        public int hashCode() {
-            return usage.hashCode();
-        }
-    }
 }
