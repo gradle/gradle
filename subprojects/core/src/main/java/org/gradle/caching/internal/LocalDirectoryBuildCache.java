@@ -28,7 +28,6 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.Factory;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -38,7 +37,7 @@ import java.io.OutputStream;
 import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class LocalDirectoryBuildCache implements BuildCache, Closeable {
+public class LocalDirectoryBuildCache implements BuildCache {
     private final PersistentCache persistentCache;
 
     public LocalDirectoryBuildCache(CacheRepository cacheRepository, File directory) {

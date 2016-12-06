@@ -184,6 +184,17 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":clean"
     }
 
+    def "build does not leak credentials in cache URL"() {
+        def initScript = file("init-cache.gradle").text
+        file("init-cache.gradle").text = initScript.replace("http://localhost", "http://username:password@localhost")
+        when:
+        executer.withArgument("--info")
+        withHttpBuildCache().succeeds "assemble"
+        then:
+        !result.output.contains("username")
+        !result.output.contains("username")
+    }
+
     def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
@@ -231,7 +242,7 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":customTask"
     }
 
-    HttpBuildCacheIntegrationTest withHttpBuildCache() {
+    def withHttpBuildCache() {
         executer.withBuildCacheEnabled().withArgument "-I" withArgument "init-cache.gradle"
         this
     }

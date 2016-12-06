@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
@@ -45,12 +44,11 @@ class SkipCachedTaskExecuterTest extends Specification {
     def buildCache = Mock(BuildCache)
     def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal)
     def taskOutputPacker = Mock(TaskOutputPacker)
-    def startParameter = Mock(StartParameter)
     def cacheKey = Mock(BuildCacheKey)
     def taskOutputOriginFactory = Mock(TaskOutputOriginFactory)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
-    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
+    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
         when:
@@ -257,7 +255,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> { throw new RuntimeException("Bad cache key") }
     }
 
-    def "fails when cache backend throws unknown error while finding result"() {
+    def "fails when cache backend throws fatal exception while finding result"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -290,7 +288,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         e.message == "unknown error"
     }
 
-    def "fails when cache backend throws unknown error while storing cached result"() {
+    def "fails when cache backend throws fatal exception while storing cached result"() {
         when:
         executer.execute(task, taskState, taskContext)
 

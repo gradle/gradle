@@ -72,8 +72,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         succeeds "assemble", "-Dfail"
         then:
         output.count("Could not load cache entry") + output.count("Could not store cache entry") == 3
-        output.contains("Failing cache backend is now disabled because 3 errors were encountered")
-        output.contains("Failing cache backend was disabled during the build after encountering 3 errors.")
+        output.count("Failing cache backend is now disabled because 3 errors were encountered") == 1
+        output.count("Failing cache backend was disabled during the build after encountering 3 errors.") == 1
 
         expect:
         succeeds "clean"
