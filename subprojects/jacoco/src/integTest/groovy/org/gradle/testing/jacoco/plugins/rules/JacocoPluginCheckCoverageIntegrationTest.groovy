@@ -129,7 +129,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
     }
 
-    def "can check rules even all report formats are disabled"() {
+    def "can check rules even if all report formats are disabled"() {
         given:
         buildFile << """
             jacocoTestReport {
