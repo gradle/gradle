@@ -35,6 +35,8 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     MavenProjectIdentity getMavenProjectIdentity();
 
+    Set<MavenDependencyInternal> getApiDependencies();
+
     Set<MavenDependencyInternal> getRuntimeDependencies();
 
     MavenNormalizedPublication asNormalisedPublication();

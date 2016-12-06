@@ -39,9 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.plugins.JavaBasePlugin.Usage.FOR_COMPILE;
-import static org.gradle.api.plugins.JavaBasePlugin.Usage.FOR_RUNTIME;
-import static org.gradle.api.plugins.JavaBasePlugin.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.plugins.Usage.*;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -125,14 +123,15 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeConfiguration.getArtifacts().add(jarArtifact);
         runtimeElementsConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
-        project.getComponents().add(new JavaLibrary(jarArtifact, runtimeConfiguration.getAllDependencies()));
+
+        project.getComponents().add(new JavaLibrary(jarArtifact, project.getConfigurations()));
     }
 
     private void configureBuild(Project project) {
         addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
-                JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
         addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME), false,
-                JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
@@ -195,8 +194,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * projects that depend on this project based on the useDependOn argument.
      *
      * @param task Task to add dependencies to
-     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend
-     * on this one.
+     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend on this one.
      * @param otherProjectTaskName name of task in other projects
      * @param configurationName name of configuration to use to find the other projects
      */
