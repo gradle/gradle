@@ -35,6 +35,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
+import org.gradle.testing.jacoco.tasks.JacocoCheck;
 import org.gradle.testing.jacoco.tasks.JacocoMerge;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
@@ -78,7 +79,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         applyToDefaultTasks(extension);
         configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
-        addDefaultReportTasks(extension);
+        addDefaultReportAndCheckTasks(extension);
     }
 
     /**
@@ -199,11 +200,11 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     /**
-     * Adds report tasks for specific default test tasks.
+     * Adds report and check tasks for specific default test tasks.
      *
      * @param extension the extension describing the test task names
      */
-    private void addDefaultReportTasks(final JacocoPluginExtension extension) {
+    private void addDefaultReportAndCheckTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
@@ -212,6 +213,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     public void execute(Test task) {
                         if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
                             addDefaultReportTask(extension, task);
+                            addDefaultCheckTask(task);
                         }
                     }
                 });
@@ -246,5 +248,11 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+    }
+
+    private void addDefaultCheckTask(final Test task) {
+        final JacocoCheck checkTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Check", JacocoCheck.class);
+        checkTask.executionData(task);
+        checkTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
     }
 }

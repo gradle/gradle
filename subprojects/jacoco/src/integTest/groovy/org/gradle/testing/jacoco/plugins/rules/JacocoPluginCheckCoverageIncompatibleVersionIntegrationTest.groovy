@@ -24,10 +24,10 @@ class JacocoPluginCheckCoverageIncompatibleVersionIntegrationTest extends Abstra
 
     def "fails to check code coverage"() {
         when:
-        fails TEST_AND_JACOCO_REPORT_TASK_PATHS
+        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_REPORT_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
         errorOutput.contains("jacocoReport doesn't support the nested \"check\" element.")
     }
 }

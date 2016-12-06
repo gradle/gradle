@@ -75,6 +75,11 @@ class JavaProjectUnderTest {
                 executionData integrationTest
                 sourceSets sourceSets.main
             }
+            
+            task jacocoIntegrationTestCheck(type: JacocoCheck) {
+                executionData integrationTest
+                sourceSets sourceSets.main
+            }
         """
 
         writeTestSourceFile(testSrcDir)
