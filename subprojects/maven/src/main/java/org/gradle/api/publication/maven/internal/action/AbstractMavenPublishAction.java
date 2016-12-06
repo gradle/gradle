@@ -88,7 +88,12 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
             artifacts.add(mainArtifact);
         }
         artifacts.add(pomArtifact);
-        artifacts.addAll(attached);
+        for (Artifact artifact : attached) {
+            File file = artifact.getFile();
+            if (file != null && file.isFile()) {
+                artifacts.add(artifact);
+            }
+        }
 
         try {
             publishArtifacts(artifacts, newRepositorySystem(), session);
