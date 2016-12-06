@@ -29,7 +29,16 @@ class MemoryInfoIntegrationTest extends Specification {
     def execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver())
 
     @Requires(TestPrecondition.WINDOWS)
-    def "gets available memory on a real live Windows system"() {
+    def "gets OS total memory on a real live Windows system"() {
+        when:
+        new MemoryInfo(execHandleFactory).getTotalPhysicalMemory()
+
+        then:
+        notThrown UnsupportedOperationException
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "gets OS free memory on a real live Windows system"() {
         when:
         new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
@@ -38,7 +47,16 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.LINUX)
-    def "gets available memory on a real live Linux system"() {
+    def "gets OS total memory on a real live Linux system"() {
+        when:
+        new MemoryInfo(execHandleFactory).getTotalPhysicalMemory()
+
+        then:
+        notThrown UnsupportedOperationException
+    }
+
+    @Requires(TestPrecondition.LINUX)
+    def "gets OS free memory on a real live Linux system"() {
         when:
         new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
@@ -47,7 +65,16 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
-    def "gets available memory on a real live MacOS system"() {
+    def "gets OS total memory on a real live MacOS system"() {
+        when:
+        new MemoryInfo(execHandleFactory).getTotalPhysicalMemory()
+
+        then:
+        notThrown UnsupportedOperationException
+    }
+
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "gets OS free memory on a real live MacOS system"() {
         when:
         new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 

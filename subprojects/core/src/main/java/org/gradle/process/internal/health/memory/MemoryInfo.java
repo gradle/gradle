@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.health.memory;
 
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandleFactory;
 
@@ -50,7 +51,8 @@ public class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
     public long getTotalPhysicalMemory() throws UnsupportedOperationException {
-        return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", "TotalPhysicalMemorySize", Long.class);
+        String attribute = Jvm.current().isIbmJvm() ? "TotalPhysicalMemory" : "TotalPhysicalMemorySize";
+        return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", attribute, Long.class);
     }
 
     /**

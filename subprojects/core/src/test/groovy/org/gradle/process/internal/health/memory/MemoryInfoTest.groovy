@@ -32,23 +32,6 @@ class MemoryInfoTest extends Specification {
 
     def execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver())
 
-    // We can't exercise both paths at once because we have no control here over the JVM we're running on.
-    // However, this will be fully exercised since we test across JVMs.
-    def memTest(memCall) {
-        try {
-            memCall()
-            Class<?> sunClass = ClassLoader.getSystemClassLoader().loadClass("com.sun.management.OperatingSystemMXBean")
-            return sunClass != null
-        } catch (UnsupportedOperationException e) {
-            try {
-                ClassLoader.getSystemClassLoader().loadClass("com.sun.management.OperatingSystemMXBean")
-            } catch (ClassNotFoundException expected) {
-                return true
-            }
-            return false
-        }
-    }
-
     def "getTotalPhysicalMemory only throws when memory management methods are unavailable"() {
         expect:
         memTest({ new MemoryInfo(execHandleFactory).getTotalPhysicalMemory() })
@@ -61,5 +44,32 @@ class MemoryInfoTest extends Specification {
         memTest({ new MemoryInfo(execHandleFactory).getFreePhysicalMemory() })
     }
 
+    // We can't exercise both paths at once because we have no control here over the JVM we're running on.
+    // However, this will be fully exercised since we test across JVMs.
+    def memTest(memCall) {
+        try {
+            memCall()
+            return areSupportedJmxBeansTypesPresent()
+        } catch (UnsupportedOperationException ex) {
+            return !areSupportedJmxBeansTypesPresent()
+        }
+    }
 
+    def areSupportedJmxBeansTypesPresent() {
+        try {
+            def sunClass = ClassLoader.getSystemClassLoader().loadClass("com.sun.management.OperatingSystemMXBean")
+            if (sunClass != null) {
+                return true
+            }
+        } catch (ClassNotFoundException ex) {
+        }
+        try {
+            def ibmClass = ClassLoader.getSystemClassLoader().loadClass("com.ibm.lang.management.OperatingSystemMXBean")
+            if (ibmClass != null) {
+                return true
+            }
+        } catch (ClassNotFoundException ex) {
+        }
+        return false
+    }
 }
