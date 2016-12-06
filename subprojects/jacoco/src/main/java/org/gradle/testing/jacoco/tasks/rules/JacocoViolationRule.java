@@ -39,7 +39,7 @@ public interface JacocoViolationRule extends Serializable {
     void setEnabled(boolean enabled);
 
     /**
-     * Indicates if the rule should be used when checking generated coverage metrics.
+     * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
      */
     @Input
     boolean isEnabled();
