@@ -17,8 +17,6 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import spock.lang.Timeout
 
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
