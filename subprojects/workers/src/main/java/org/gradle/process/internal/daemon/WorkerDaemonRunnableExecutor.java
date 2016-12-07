@@ -18,6 +18,7 @@ package org.gradle.process.internal.daemon;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 
 import java.io.Serializable;
 
@@ -62,6 +63,8 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
                 Runnable runnable = DirectInstantiator.instantiate(runnableClass, (Object[])spec.getParams());
                 runnable.run();
                 return new WorkerDaemonResult(true, null);
+            } catch (ObjectInstantiationException e) {
+                return new WorkerDaemonResult(true, e.getCause());
             } catch (Throwable t) {
                 return new WorkerDaemonResult(true, t);
             }

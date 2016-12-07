@@ -33,4 +33,9 @@ public class WorkerDaemonServer implements WorkerDaemonProtocol {
             return new WorkerDaemonResult(true, t);
         }
     }
+
+    @Override
+    public String toString() {
+        return "WorkerDaemonServer{}";
+    }
 }
