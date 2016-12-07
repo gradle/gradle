@@ -68,8 +68,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
                     return ImmutableSet.of();
                 }
                 Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>(variants.size());
-                for (ConfigurationVariant variant : variants) {
-                    result.add((OutgoingVariant) variant);
+                for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
+                    result.add(variant.convertToOutgoingVariant());
                 }
                 return result;
             }

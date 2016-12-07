@@ -38,5 +38,8 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     void removeMutationValidator(MutationValidator validator);
 
+    /**
+     * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
+     */
     OutgoingVariant convertToOutgoingVariant();
 }
