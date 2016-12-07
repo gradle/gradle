@@ -117,8 +117,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
 
+            Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
-                Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
                 if (dependency instanceof ProjectDependency) {
                     addProjectDependency((ProjectDependency) dependency, dependencies);
                 } else {
