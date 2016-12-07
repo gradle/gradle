@@ -59,7 +59,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
         where:
         testProject       |  maxMemory
-        "bigOldJava"      | '512m'
+        "bigOldJava"      | '576m'
         "lotDependencies" | '256m'
     }
 }

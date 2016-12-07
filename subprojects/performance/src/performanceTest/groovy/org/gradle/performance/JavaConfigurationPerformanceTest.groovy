@@ -42,6 +42,6 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         "small"           | '128m'
         "multi"           | '128m'
         "lotDependencies" | '256m'
-        "bigOldJava"      | '512m'
+        "bigOldJava"      | '576m'
     }
 }

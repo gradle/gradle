@@ -84,7 +84,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         template            | maxMemory
         "smallOldJava"      | '128m'
         "mediumOldJava"     | '128m'
-        "bigOldJava"        | '512m'
+        "bigOldJava"        | '576m'
         "lotDependencies"   | '256m'
     }
 
@@ -142,7 +142,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         template            | maxMemory
         "smallOldJava"      | '128m'
         "mediumOldJava"     | '128m'
-        "bigOldJava"        | '512m'
+        "bigOldJava"        | '576m'
         "lotDependencies"   | '256m'
     }
 
