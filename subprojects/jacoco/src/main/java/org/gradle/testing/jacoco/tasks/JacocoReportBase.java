@@ -46,6 +46,13 @@ import java.util.concurrent.Callable;
 @Incubating
 public abstract class JacocoReportBase extends JacocoBase {
 
+    protected final Spec<File> fileExistsSpec = new Spec<File>() {
+        @Override
+        public boolean isSatisfiedBy(File file) {
+            return file.exists();
+        }
+    };
+
     private FileCollection executionData;
     private FileCollection sourceDirectories;
     private FileCollection classDirectories;
