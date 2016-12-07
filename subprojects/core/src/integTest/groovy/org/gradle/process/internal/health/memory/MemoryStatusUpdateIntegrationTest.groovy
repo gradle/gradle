@@ -19,29 +19,9 @@ package org.gradle.process.internal.health.memory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 import spock.lang.Timeout
 
-@IgnoreIf({ GradleContextualExecuter.daemon })
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
-
-    @Timeout(20)
-    def "can register a listener for JVM and OS memory status update events (daemon)"() {
-        given:
-        executer.requireIsolatedDaemons()
-        executer.requireDaemon()
-
-        and:
-        buildFile << waitForMemoryEventsTask()
-
-        when:
-        executer.withTasks("waitForMemoryEvents").run()
-
-        then:
-        daemons.daemon.log.contains jvmLogStatement()
-        daemons.daemon.log.contains osLogStatement()
-    }
 
     @Timeout(20)
     def "can register a listener for JVM and OS memory status update events (embedded)"() {
@@ -65,7 +45,7 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     final CountDownLatch notification = new CountDownLatch(2)
                     
-                    MemoryResourceManager manager = project.services.get(MemoryResourceManager.class)
+                    MemoryManager manager = project.services.get(MemoryManager.class)
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
@@ -91,9 +71,5 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
     private static String osLogStatement() {
         return 'OS MemoryStatus notification'
-    }
-
-    private DaemonsFixture getDaemons() {
-        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }

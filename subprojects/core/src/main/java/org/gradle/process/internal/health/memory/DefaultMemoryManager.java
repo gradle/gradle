@@ -18,11 +18,11 @@ package org.gradle.process.internal.health.memory;
 
 import org.gradle.internal.event.ListenerManager;
 
-public class DefaultMemoryResourceManager implements MemoryResourceManager {
+public class DefaultMemoryManager implements MemoryManager {
 
     private final ListenerManager listenerManager;
 
-    public DefaultMemoryResourceManager(ListenerManager listenerManager) {
+    public DefaultMemoryManager(ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
     }
 

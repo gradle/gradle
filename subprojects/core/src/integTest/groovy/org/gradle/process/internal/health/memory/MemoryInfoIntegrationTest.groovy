@@ -29,7 +29,7 @@ class MemoryInfoIntegrationTest extends Specification {
     def execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver())
 
     @Requires(TestPrecondition.WINDOWS)
-    def "gets OS total memory on a real live Windows system"() {
+    def "gets OS total memory on a Windows system"() {
         when:
         new MemoryInfo(execHandleFactory).getTotalPhysicalMemory()
 
@@ -38,7 +38,7 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "gets OS free memory on a real live Windows system"() {
+    def "gets OS free memory on a Windows system"() {
         when:
         new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
@@ -47,7 +47,7 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.LINUX)
-    def "gets OS total memory on a real live Linux system"() {
+    def "gets OS total memory on a Linux system"() {
         when:
         new MemoryInfo(execHandleFactory).getTotalPhysicalMemory()
 
@@ -56,7 +56,7 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.LINUX)
-    def "gets OS free memory on a real live Linux system"() {
+    def "gets OS free memory on a Linux system"() {
         when:
         new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 
@@ -65,7 +65,7 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
-    def "gets OS total memory on a real live MacOS system"() {
+    def "gets OS total memory on a MacOS system"() {
         when:
         new MemoryInfo(execHandleFactory).getTotalPhysicalMemory()
 
@@ -74,7 +74,7 @@ class MemoryInfoIntegrationTest extends Specification {
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
-    def "gets OS free memory on a real live MacOS system"() {
+    def "gets OS free memory on a MacOS system"() {
         when:
         new MemoryInfo(execHandleFactory).getFreePhysicalMemory()
 

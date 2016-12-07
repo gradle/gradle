@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface MemoryResourceManager {
+public interface MemoryManager {
 
     void addListener(JvmMemoryStatusListener listener);
 
