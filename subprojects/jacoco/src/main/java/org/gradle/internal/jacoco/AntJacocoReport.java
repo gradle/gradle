@@ -85,17 +85,17 @@ public class AntJacocoReport {
     private void configureReportFormats(GroovyObjectSupport antBuilder, JacocoReportsContainer reports) {
         if (reports.getHtml().isEnabled()) {
             antBuilder.invokeMethod("html", new Object[]{
-                    ImmutableMap.<String, Object>of("destdir", reports.getHtml().getDestination())
+                ImmutableMap.<String, Object>of("destdir", reports.getHtml().getDestination())
             });
         }
         if (reports.getXml().isEnabled()) {
             antBuilder.invokeMethod("xml", new Object[]{
-                    ImmutableMap.<String, Object>of("destfile", reports.getXml().getDestination())
+                ImmutableMap.<String, Object>of("destfile", reports.getXml().getDestination())
             });
         }
         if (reports.getCsv().isEnabled()) {
             antBuilder.invokeMethod("csv", new Object[]{
-                    ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
+                ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
             });
         }
     }
