@@ -147,7 +147,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
-    private ResolverResults cachedResolverResults = new DefaultResolverResults();
+    private ResolverResults cachedResolverResults;
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
@@ -337,6 +337,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 action.execute(dependencies);
             }
         }
+        // Discard actions
+        defaultDependencyActions.clear();
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
         }
@@ -437,6 +439,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
 
+                cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
                 dependenciesModified = false;
                 resolvedState = GRAPH_RESOLVED;
@@ -446,6 +449,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 markReferencedProjectConfigurationsObserved(requestedState);
 
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
+                // Discard listeners
+                dependencyResolutionListeners.removeAll();
             }
         });
     }
