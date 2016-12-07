@@ -17,18 +17,22 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
+import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Receiver implements ResponseProtocol, StreamCompletion {
+public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler, Stoppable {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(1);
     private final String baseName;
     private Object next;
+    private AtomicBoolean stopped = new AtomicBoolean(false);
 
     public Receiver(String baseName) {
         this.baseName = baseName;
@@ -37,6 +41,10 @@ public class Receiver implements ResponseProtocol, StreamCompletion {
     public boolean awaitNextResult() {
         try {
             if (next == null) {
+                // Receiver/worker have already begun stopping - there likely won't be a next result
+                if (stopped.get()) {
+                    return false;
+                }
                 next = received.take();
             }
         } catch (InterruptedException e) {
@@ -60,9 +68,18 @@ public class Receiver implements ResponseProtocol, StreamCompletion {
     }
 
     @Override
+    public void handleStreamFailure(Throwable t) {
+        failed(t);
+    }
+
+    @Override
     public void endStream() {
         try {
-            received.put(END);
+            // We do this in case there is a response already in the queue that will block
+            // the put from completing.
+            if (!stopped.get()) {
+                received.put(END);
+            }
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -89,6 +106,11 @@ public class Receiver implements ResponseProtocol, StreamCompletion {
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public void stop() {
+        stopped.set(true);
     }
 
     static class Failure {
