@@ -68,11 +68,6 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         }
 
         @Override
-        public T getConsumerValue() {
-            return delegate.getConsumerValue();
-        }
-
-        @Override
         public Set<T> getCandidateValues() {
             return delegate.getCandidateValues();
         }

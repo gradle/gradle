@@ -24,11 +24,11 @@ import org.gradle.api.GradleException;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
 import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
 import org.gradle.internal.Cast;
@@ -69,7 +69,7 @@ public class ComponentAttributeMatcher {
             MatchDetails details = entry.getValue();
             AttributeContainer producerAttributesContainer = key.getAttributes();
             Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(producerAttributesContainer.keySet());
-            Set<Attribute<Object>> filter = Cast.uncheckedCast(attributesToConsider);
+            Set<Attribute<Object>> filter = attributesToConsider != null ? Cast.<Set<Attribute<Object>>>uncheckedCast(attributesToConsider.keySet()) : null;
             Set<Attribute<Object>> allAttributes = filter != null ? filter : Sets.union(requestedAttributes, dependencyAttributes);
             for (Attribute<Object> attribute : allAttributes) {
                 AttributeValue<Object> consumerValue = attributeValue(attribute, consumerAttributeSchema, consumerAttributesContainer);
@@ -107,27 +107,28 @@ public class ComponentAttributeMatcher {
         return matchs;
     }
 
-    private List<HasAttributes> selectClosestMatches(List<HasAttributes> fullMatches) {
-        Set<Attribute<?>> requestedAttributes = consumerAttributesContainer.keySet();
+    private List<HasAttributes> selectClosestMatches(List<HasAttributes> matchs) {
         // if there's more than one compatible match, prefer the closest. However there's a catch.
         // We need to look at all candidates globally, and select the closest match for each attribute
         // then see if there's a non-empty intersection.
-        List<HasAttributes> remainingMatches = Lists.newArrayList(fullMatches);
-        List<HasAttributes> best = Lists.newArrayListWithCapacity(fullMatches.size());
+        List<HasAttributes> remainingMatches = Lists.newArrayList(matchs);
+        List<HasAttributes> best = Lists.newArrayListWithCapacity(matchs.size());
         final ListMultimap<Object, HasAttributes> candidatesByValue = ArrayListMultimap.create();
-        for (Attribute<?> attribute : requestedAttributes) {
-            Object requestedValue = consumerAttributesContainer.getAttribute(attribute);
-            for (HasAttributes match : fullMatches) {
+        Set<Attribute<?>> allAttributes = Sets.newHashSet();
+        for (MatchDetails details : matchDetails.values()) {
+            allAttributes.addAll(details.matchesByAttribute.keySet());
+        }
+        for (Attribute<?> attribute : allAttributes) {
+            for (HasAttributes match : matchs) {
                 Map<Attribute<Object>, Object> matchedAttributes = matchDetails.get(match).matchesByAttribute;
                 Object val = matchedAttributes.get(attribute);
-                if (val != null) {
-                    candidatesByValue.put(val, match);
-                }
+                candidatesByValue.put(val, match);
             }
-            disambiguate(remainingMatches, candidatesByValue, requestedValue, consumerAttributeSchema.getMatchingStrategy(attribute), best);
+            AttributesSchema schemaToUse = consumerAttributeSchema.hasAttribute(attribute) ? consumerAttributeSchema : producerAttributeSchema;
+            disambiguate(remainingMatches, candidatesByValue, schemaToUse.getMatchingStrategy(attribute), best);
             if (remainingMatches.isEmpty()) {
                 // the intersection is empty, so we cannot choose
-                return fullMatches;
+                return matchs;
             }
             candidatesByValue.clear();
             best.clear();
@@ -141,7 +142,6 @@ public class ComponentAttributeMatcher {
 
     private static void disambiguate(List<HasAttributes> remainingMatches,
                                      ListMultimap<Object, HasAttributes> candidatesByValue,
-                                     Object requested,
                                      AttributeMatchingStrategy<?> matchingStrategy,
                                      List<HasAttributes> best) {
         if (candidatesByValue.isEmpty()) {
@@ -149,7 +149,7 @@ public class ComponentAttributeMatcher {
             return;
         }
         AttributeMatchingStrategy<Object> ms = Cast.uncheckedCast(matchingStrategy);
-        MultipleCandidatesDetails<Object> details = new CandidateDetails(requested, candidatesByValue, best);
+        MultipleCandidatesDetails<Object> details = new CandidateDetails(candidatesByValue, best);
         DisambiguationRuleChainInternal<Object> disambiguationRules = (DisambiguationRuleChainInternal<Object>) ms.getDisambiguationRules();
         disambiguationRules.execute(details);
         remainingMatches.retainAll(best);
@@ -173,7 +173,13 @@ public class ComponentAttributeMatcher {
             AttributeMatchingStrategy<Object> strategy = schemaToUse.getMatchingStrategy(attribute);
             CompatibilityRuleChainInternal<Object> compatibilityRules = (CompatibilityRuleChainInternal<Object>) strategy.getCompatibilityRules();
             if (missingOrUnknown) {
-                compatible &= compatibilityRules.isCompatibleWhenMissing();
+                if (compatibilityRules.isCompatibleWhenMissing()) {
+                    if (producerValue.isPresent()) {
+                        matchesByAttribute.put(attribute, producerValue.get());
+                    }
+                } else {
+                    compatible = false;
+                }
                 return;
             }
             CompatibilityCheckDetails<Object> details = new CompatibilityCheckDetails<Object>() {
@@ -206,19 +212,12 @@ public class ComponentAttributeMatcher {
     }
 
     private static class CandidateDetails implements MultipleCandidatesDetails<Object> {
-        private final Object consumerValue;
         private final ListMultimap<Object, HasAttributes> candidatesByValue;
         private final List<HasAttributes> best;
 
-        public CandidateDetails(Object consumerValue, ListMultimap<Object, HasAttributes> candidatesByValue, List<HasAttributes> best) {
-            this.consumerValue = consumerValue;
+        public CandidateDetails(ListMultimap<Object, HasAttributes> candidatesByValue, List<HasAttributes> best) {
             this.candidatesByValue = candidatesByValue;
             this.best = best;
-        }
-
-        @Override
-        public Object getConsumerValue() {
-            return consumerValue;
         }
 
         @Override
