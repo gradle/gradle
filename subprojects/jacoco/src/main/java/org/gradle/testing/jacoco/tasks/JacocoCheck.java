@@ -21,15 +21,12 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
-
-import java.io.File;
 
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
@@ -80,12 +77,6 @@ public class JacocoCheck extends JacocoReportBase {
 
     @TaskAction
     public void check() {
-        Spec<File> fileExistsSpec = new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                return file.exists();
-            }
-        };
         new AntJacocoCheck(getAntBuilder()).execute(
                 getJacocoClasspath(),
                 getProject().getName(),
