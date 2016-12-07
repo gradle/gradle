@@ -573,7 +573,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executedTasks == [':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build']
     }
 
-    @Issue("gradle/gradle#769")
+    @Issue(["gradle/gradle#769", "gradle/gradle#841"])
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
         buildFile << """
