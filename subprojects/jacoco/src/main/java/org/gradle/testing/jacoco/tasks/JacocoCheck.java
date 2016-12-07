@@ -21,7 +21,6 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
@@ -37,7 +36,6 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  *
  * @since 4.0
  */
-@CacheableTask
 @Incubating
 public class JacocoCheck extends JacocoReportBase {
 
