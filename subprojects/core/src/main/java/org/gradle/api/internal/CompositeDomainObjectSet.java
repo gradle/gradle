@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
@@ -111,7 +110,16 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         if (store.isEmpty()) {
             return Iterators.emptyIterator();
         }
-        return new SetIterator();
+        Collection<Collection<T>> collections = getStore().getCollections();
+        Iterator<T> iterator;
+        if (collections instanceof List && collections.size()==1) {
+            // shortcut Apache Commons iterator() which creates a chaining iterator even if there's
+            // only one underlying collection
+            iterator = (((List<Collection<T>>) collections).get(0)).iterator();
+        } else {
+            iterator = getStore().iterator();
+        }
+        return SetIterator.wrap(iterator);
     }
 
     @SuppressWarnings("unchecked")
@@ -132,53 +140,4 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
     }
 
-    private class SetIterator implements Iterator<T> {
-        private final Set<T> visited = new HashSet<T>(64);
-        private final Iterator<T> iterator;
-
-        private T next;
-
-        @SuppressWarnings("unchecked")
-        public SetIterator() {
-            Collection<Collection<T>> collections = getStore().getCollections();
-            if (collections instanceof List && collections.size()==1) {
-                // shortcut Apache Commons iterator() which creates a chaining iterator even if there's
-                // only one underlying collection
-                iterator = (((List<Collection<T>>) collections).get(0)).iterator();
-            } else {
-                iterator = getStore().iterator();
-            }
-            fetchNext();
-        }
-
-        private void fetchNext() {
-            while (iterator.hasNext()) {
-                next = iterator.next();
-                if (!visited.contains(next)) {
-                    visited.add(next);
-                    return;
-                }
-            }
-            next = null;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        @Override
-        public T next() {
-            try {
-                return next;
-            } finally {
-                fetchNext();
-            }
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
 }
