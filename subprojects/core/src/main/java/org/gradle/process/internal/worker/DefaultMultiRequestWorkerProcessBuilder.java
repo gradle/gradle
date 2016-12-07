@@ -132,8 +132,6 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     return null;
                 }
                 if (method.equals(STOP_METHOD)) {
-                    receiver.stop();
-
                     if (requestProtocol != null) {
                         requestProtocol.stop();
                     }
