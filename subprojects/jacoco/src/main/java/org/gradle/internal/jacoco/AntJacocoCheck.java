@@ -21,19 +21,17 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.collect.Iterables.filter;
 
-public class AntJacocoCheck {
+public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRulesContainer> {
 
     private static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
         @Override
@@ -42,61 +40,12 @@ public class AntJacocoCheck {
         }
     };
 
-    private final IsolatedAntBuilder ant;
-
     public AntJacocoCheck(IsolatedAntBuilder ant) {
-        this.ant = ant;
+        super(ant);
     }
 
-    public void execute(FileCollection classpath, final String projectName,
-                        final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                        final FileCollection executionData,
-                        final JacocoViolationRulesContainer violationRules) {
-        ant.withClasspath(classpath).execute(new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
-            public Object doCall(Object it) {
-                final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
-                antBuilder.invokeMethod("taskdef", ImmutableMap.of(
-                        "name", "jacocoReport",
-                        "classname", "org.jacoco.ant.ReportTask"
-                ));
-                final Map<String, Object> emptyArgs = Collections.<String, Object>emptyMap();
-                antBuilder.invokeMethod("jacocoReport", new Object[]{emptyArgs, new Closure<Object>(this, this) {
-                    public Object doCall(Object ignore) {
-                        antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
-                            public Object doCall(Object ignore) {
-                                executionData.addToAntBuilder(antBuilder, "resources");
-                                return null;
-                            }
-                        }});
-                        Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", projectName);
-                        antBuilder.invokeMethod("structure", new Object[]{structureArgs, new Closure<Object>(this, this) {
-                            public Object doCall(Object ignore) {
-                                antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
-                                    public Object doCall(Object ignore) {
-                                        allClassesDirs.addToAntBuilder(antBuilder, "resources");
-                                        return null;
-                                    }
-                                }});
-                                antBuilder.invokeMethod("sourcefiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
-                                    public Object doCall(Object ignore) {
-                                        allSourcesDirs.addToAntBuilder(antBuilder, "resources");
-                                        return null;
-                                    }
-                                }});
-                                return null;
-                            }
-                        }});
-                        configureCheck(antBuilder, violationRules);
-                        return null;
-                    }
-                }});
-                return null;
-            }
-        });
-    }
-
-    private void configureCheck(final GroovyObjectSupport antBuilder, final JacocoViolationRulesContainer violationRules) {
+    @Override
+    protected void configureReport(final GroovyObjectSupport antBuilder, final JacocoViolationRulesContainer violationRules) {
         if (!violationRules.getRules().isEmpty()) {
             Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !violationRules.isFailOnViolation());
             antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
