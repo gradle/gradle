@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -26,7 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 
-public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol {
+public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
@@ -99,5 +100,10 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         } catch (Throwable t) {
             responder.infrastructureFailed(t);
         }
+    }
+
+    @Override
+    public void handleStreamFailure(Throwable t) {
+        responder.failed(t);
     }
 }

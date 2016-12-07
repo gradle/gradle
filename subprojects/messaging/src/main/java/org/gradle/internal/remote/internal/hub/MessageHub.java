@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.dispatch.BoundedDispatch;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.remote.internal.Connection;
+import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.remote.internal.hub.protocol.*;
 import org.gradle.internal.remote.internal.hub.queue.EndPointQueue;
@@ -119,9 +120,15 @@ public class MessageHub implements AsyncStoppable {
             } else {
                 boundedDispatch = DISCARD;
             }
+            StreamFailureHandler streamFailureHandler;
+            if (handler instanceof StreamFailureHandler) {
+                streamFailureHandler = (StreamFailureHandler) handler;
+            } else {
+                streamFailureHandler = DISCARD;
+            }
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
-            workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener));
+            workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));
         } finally {
             lock.unlock();
         }
@@ -222,7 +229,7 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
-    private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener {
+    private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener, StreamFailureHandler {
         public void dispatch(Object message) {
         }
 
@@ -231,6 +238,10 @@ public class MessageHub implements AsyncStoppable {
         }
 
         public void messageDiscarded(Object message) {
+        }
+
+        @Override
+        public void handleStreamFailure(Throwable t) {
         }
     }
 
@@ -247,16 +258,17 @@ public class MessageHub implements AsyncStoppable {
             try {
                 try {
                     while (true) {
-                        InterHubMessage message = connection.receive();
+                        InterHubMessage message;
+                        try {
+                            message = connection.receive();
+                        } catch (RecoverableMessageIOException e) {
+                            addToIncoming(new StreamFailureMessage(e));
+                            continue;
+                        }
                         if (message == null || message instanceof EndOfStream) {
                             return;
                         }
-                        lock.lock();
-                        try {
-                            incomingQueue.queue(message);
-                        } finally {
-                            lock.unlock();
-                        }
+                        addToIncoming(message);
                     }
                 } finally {
                     lock.lock();
@@ -269,6 +281,15 @@ public class MessageHub implements AsyncStoppable {
             } catch (Throwable e) {
                 errorHandler.execute(e);
             }
+        }
+    }
+
+    private void addToIncoming(InterHubMessage message) {
+        lock.lock();
+        try {
+            incomingQueue.queue(message);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -295,7 +316,11 @@ public class MessageHub implements AsyncStoppable {
                             lock.unlock();
                         }
                         for (InterHubMessage message : messages) {
-                            connection.dispatch(message);
+                            try {
+                                connection.dispatch(message);
+                            } catch (RecoverableMessageIOException e) {
+                                addToIncoming(new StreamFailureMessage(e));
+                            }
                             if (message instanceof EndOfStream) {
                                 connection.flush();
                                 return;
@@ -348,12 +373,14 @@ public class MessageHub implements AsyncStoppable {
         private final Dispatch<Object> dispatch;
         private final BoundedDispatch<Object> boundedDispatch;
         private final RejectedMessageListener listener;
+        private final StreamFailureHandler streamFailureHandler;
 
-        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, BoundedDispatch<Object> boundedDispatch, RejectedMessageListener listener) {
+        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, BoundedDispatch<Object> boundedDispatch, RejectedMessageListener listener, StreamFailureHandler streamFailureHandler) {
             this.queue = queue;
             this.dispatch = dispatch;
             this.boundedDispatch = boundedDispatch;
             this.listener = listener;
+            this.streamFailureHandler = streamFailureHandler;
         }
 
         public void run() {
@@ -378,6 +405,9 @@ public class MessageHub implements AsyncStoppable {
                             } else if (message instanceof RejectedMessage) {
                                 RejectedMessage rejectedMessage = (RejectedMessage) message;
                                 listener.messageDiscarded(rejectedMessage.getPayload());
+                            } else if (message instanceof StreamFailureMessage){
+                                StreamFailureMessage streamFailureMessage = (StreamFailureMessage) message;
+                                streamFailureHandler.handleStreamFailure(streamFailureMessage.getFailure());
                             } else {
                                 throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                             }

@@ -17,7 +17,6 @@
 package org.gradle.process.internal
 
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -72,52 +71,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractWorkerDaemonServiceInte
 
         then:
         assertRunnableExecuted("runInDaemon")
-    }
-
-    def "produces a sensible error when there is a failure in the daemon runnable"() {
-        withRunnableClassInBuildSrc()
-
-        buildFile << """
-            $runnableThatFails
-
-            task runInDaemon(type: DaemonTask) {
-                runnableClass = RunnableThatFails.class
-            }
-        """
-
-        when:
-        fails("runInDaemon")
-
-        then:
-        failureHasCause("A failure occurred while executing RunnableThatFails")
-
-        and:
-        failureHasCause("Failure from runnable")
-    }
-
-    def "produces a sensible error when there is a failure starting a daemon"() {
-        executer.withStackTraceChecksDisabled()
-        withRunnableClassInBuildSrc()
-
-        buildFile << """
-            task runInDaemon(type: DaemonTask) {
-                additionalForkOptions = {
-                    it.jvmArgs "-foo"
-                }
-            }
-        """
-
-        when:
-        fails("runInDaemon")
-
-        then:
-        errorOutput.contains(unrecognizedOptionError)
-
-        and:
-        failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
-
-        and:
-        failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
     def "re-uses an existing idle daemon" () {
@@ -251,15 +204,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractWorkerDaemonServiceInte
         failure.assertHasCause 'No build operation associated with the current thread'
     }
 
-    String getUnrecognizedOptionError() {
-        def jvm = Jvm.current()
-        if (jvm.ibmJvm) {
-            return "Command-line option unrecognised: -foo"
-        } else {
-            return "Unrecognized option: -foo"
-        }
-    }
-
     String getBlockingRunnableThatCreatesFiles(String url) {
         return """
             import java.io.File;
@@ -294,18 +238,6 @@ class WorkerDaemonServiceIntegrationTest extends AbstractWorkerDaemonServiceInte
             public class AlternateRunnable extends TestRunnable {
                 public AlternateRunnable(List<String> files, File outputDir, Foo foo) {
                     super(files, outputDir, foo);
-                }
-            }
-        """
-    }
-
-    String getRunnableThatFails() {
-        return """
-            public class RunnableThatFails implements Runnable {
-                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { }
-
-                public void run() {
-                    throw new RuntimeException("Failure from runnable");
                 }
             }
         """
