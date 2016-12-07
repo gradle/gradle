@@ -74,7 +74,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);
 
-        //Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
-        //apiConfiguration.extendsFrom(compileConfiguration);
+        Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
+        apiConfiguration.extendsFrom(compileConfiguration);
     }
 }
