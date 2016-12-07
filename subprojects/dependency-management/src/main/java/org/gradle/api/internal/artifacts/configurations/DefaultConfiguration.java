@@ -579,8 +579,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public OutgoingVariant getOutgoingVariant() {
-        return outgoing;
+    public OutgoingVariant convertToOutgoingVariant() {
+        return outgoing.convertToOutgoingVariant();
     }
 
     @Override

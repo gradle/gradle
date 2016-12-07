@@ -23,6 +23,7 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -33,22 +34,46 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultConfigurationPublications implements ConfigurationPublications, OutgoingVariant {
+public class DefaultConfigurationPublications implements ConfigurationPublications {
     private final PublishArtifactSet artifacts;
     private final AttributeContainerInternal parentAttributes;
-    private final FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
+    private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
+    private final FileCollectionFactory fileCollectionFactory;
+    private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
 
     public DefaultConfigurationPublications(PublishArtifactSet artifacts, final AttributeContainerInternal parentAttributes, final Instantiator instantiator, final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, final FileCollectionFactory fileCollectionFactory) {
         this.artifacts = artifacts;
         this.parentAttributes = parentAttributes;
-        variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, new NamedDomainObjectFactory<ConfigurationVariant>() {
-            @Override
-            public ConfigurationVariant create(String name) {
-                return instantiator.newInstance(DefaultVariant.class, name, parentAttributes, artifactNotationParser, fileCollectionFactory);
-            }
-        });
+        this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
+        this.fileCollectionFactory = fileCollectionFactory;
+    }
+
+    public OutgoingVariant convertToOutgoingVariant() {
+        return new OutgoingVariant() {
+            @Override
+            public AttributeContainerInternal getAttributes() {
+                return parentAttributes;
+            }
+
+            @Override
+            public Set<? extends PublishArtifact> getArtifacts() {
+                return artifacts;
+            }
+
+            @Override
+            public Set<? extends OutgoingVariant> getChildren() {
+                if (variants == null || variants.isEmpty()) {
+                    return ImmutableSet.of();
+                }
+                Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>(variants.size());
+                for (ConfigurationVariant variant : variants) {
+                    result.add((OutgoingVariant) variant);
+                }
+                return result;
+            }
+        };
     }
 
     @Override
@@ -69,30 +94,22 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     }
 
     @Override
-    public AttributeContainerInternal getAttributes() {
-        return parentAttributes;
-    }
-
-    @Override
-    public Set<? extends OutgoingVariant> getChildren() {
-        if (variants.isEmpty()) {
-            return ImmutableSet.of();
-        }
-        Set<OutgoingVariant> variants = new LinkedHashSet<OutgoingVariant>(this.variants.size());
-        for (ConfigurationVariant variant : this.variants) {
-            variants.add((OutgoingVariant) variant);
-        }
-        return variants;
-    }
-
-    @Override
     public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
+        if (variants == null) {
+            // Create variants container only as required
+            variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, new NamedDomainObjectFactory<ConfigurationVariant>() {
+                @Override
+                public ConfigurationVariant create(String name) {
+                    return instantiator.newInstance(DefaultVariant.class, name, parentAttributes, artifactNotationParser, fileCollectionFactory);
+                }
+            });
+        }
         return variants;
     }
 
     @Override
     public void variants(Action<? super NamedDomainObjectContainer<ConfigurationVariant>> configureAction) {
-        configureAction.execute(variants);
+        configureAction.execute(getVariants());
     }
 
 }

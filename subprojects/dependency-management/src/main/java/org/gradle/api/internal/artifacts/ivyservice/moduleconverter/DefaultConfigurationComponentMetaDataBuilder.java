@@ -35,8 +35,9 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
         for (ConfigurationInternal configuration : configurations) {
             addConfiguration(metaData, configuration);
             dependenciesConverter.addDependencyDescriptors(metaData, configuration);
-            metaData.addArtifacts(configuration.getName(), configuration.getOutgoingVariant().getArtifacts());
-            for (OutgoingVariant variant : configuration.getOutgoingVariant().getChildren()) {
+            OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
+            metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
+            for (OutgoingVariant variant : outgoingVariant.getChildren()) {
                 metaData.addVariant(configuration.getName(), variant);
             }
         }

@@ -33,7 +33,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.Map;
 import java.util.Set;
 
-class DefaultVariant implements ConfigurationVariant, OutgoingVariant {
+public class DefaultVariant implements ConfigurationVariant, OutgoingVariant {
     private final String name;
     private final AttributeContainerInternal attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
