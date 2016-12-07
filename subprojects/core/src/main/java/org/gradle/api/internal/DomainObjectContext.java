@@ -26,5 +26,5 @@ public interface DomainObjectContext {
     /**
      * Returns a path for the item with the given name that is unique within the current build.
      */
-    String absoluteProjectPath(String name);
+    Path projectPath(String name);
 }

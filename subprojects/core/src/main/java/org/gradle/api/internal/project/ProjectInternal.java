@@ -103,6 +103,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     AttributesSchema getAttributesSchema();
 
     /**
+     * Returns a unique path for this project within its containing build.
+     */
+    Path getProjectPath();
+
+    /**
      * Returns a unique path for this project within the current Gradle invocation.
      */
     Path getIdentityPath();

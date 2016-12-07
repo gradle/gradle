@@ -32,7 +32,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.Path
 import spock.lang.Specification
 
-public class DefaultConfigurationContainerSpec extends Specification {
+class DefaultConfigurationContainerSpec extends Specification {
 
     private ConfigurationResolver resolver = Mock()
     private Instantiator instantiator = DirectInstantiator.INSTANCE
@@ -50,8 +50,8 @@ public class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor);
 
     def "adds and gets"() {
-        1 * domainObjectContext.identityPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
+        1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
 
         when:
         def compile = configurationContainer.create("compile")
@@ -80,8 +80,8 @@ public class DefaultConfigurationContainerSpec extends Specification {
     }
 
     def "configures and finds"() {
-        1 * domainObjectContext.identityPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
+        1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
 
         when:
         def compile = configurationContainer.create("compile") {

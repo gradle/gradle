@@ -59,7 +59,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     private Path absolutePath(String path) {
-        return this.path.resolve(path);
+        return this.path.child(path);
     }
 
     private boolean isRootDescriptor() {

@@ -120,7 +120,7 @@ public class BuildSourceBuilder {
         if (build.getParent().findIdentityPath() == null) {
             // When nested inside a nested build, we need to synthesize a path for this build, as the root project is not yet known for the parent build
             // Use the directory structure to do this. This means that the buildSrc build and its containing build may end up with different paths
-            Path path = build.getParent().getParent().getIdentityPath().resolve(startParameter.getCurrentDir().getParentFile().getName()).resolve(startParameter.getCurrentDir().getName());
+            Path path = build.getParent().getParent().getIdentityPath().child(startParameter.getCurrentDir().getParentFile().getName()).child(startParameter.getCurrentDir().getName());
             build.setIdentityPath(path);
         }
         return gradleLauncher;
