@@ -152,7 +152,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                       }
                       disambiguationRules.add { details ->
                          details.candidateValues.each { producerValue ->
-                            if (details.consumerValue == producerValue) {
+                            if (producerValue.value.toLowerCase() == producerValue.value) {
                                 details.closestMatch(producerValue)
                             }
                          }
@@ -230,7 +230,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                          }
                       }
                       disambiguationRules.add { details ->
-                          details.candidateValues.findAll { it == details.consumerValue }.each { details.closestMatch(it) }
+                         details.candidateValues.each { producerValue ->
+                            if (producerValue.value.toLowerCase() == producerValue.value) {
+                                details.closestMatch(producerValue)
+                            }
+                         }
                       }
                   }
                }
@@ -316,17 +320,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                          }
                       }
                       disambiguationRules.add { details ->
-                         details.candidateValues.findAll { it == details.consumerValue }.each { details.closestMatch(it) }
+                         details.candidateValues.each { producerValue ->
+                            if (producerValue.value.toLowerCase() == producerValue.value) {
+                                details.closestMatch(producerValue)
+                            }
+                         }
                       }
                   }
 
-                  // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
+                  // for testing purposes, this strategy says that all build types are compatible, but returns the debug value as best
                   attribute(buildType) {
                      compatibilityRules.add { details ->
                         details.compatible()
                      }
                      disambiguationRules.add { details ->
-                        details.candidateValues.findAll { it == details.consumerValue }.each { details.closestMatch(it) }
+                         details.closestMatch(BuildType.debug)
                      }
                   }
                }
@@ -391,5 +399,165 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         executedAndNotSkipped ':b:foo2Jar'
         notExecuted ':b:fooJar', ':b:barJar', ':b:bar2Jar'
     }
+
+    def "can select configuration thanks to producer schema disambiguation"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':b') {
+               configurationAttributesSchema {
+                  attribute(buildType)
+                  attribute(flavor) {
+                       disambiguationRules.add { details ->
+                            details.closestMatch(details.candidateValues.sort { it }.first())
+                       }
+
+                  }
+               }
+            }
+
+            project(':a') {
+                configurationAttributesSchema {
+                    def field = delegate.class.superclass.getDeclaredField('strategies')
+                    field.accessible = true
+                    field.get(delegate).remove(flavor) // for tests only, don't do this at home!!!
+                }
+                configurations {
+                    compile.attributes($debug)
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurationAttributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.assumeCompatibleWhenMissing()
+                    }
+                }
+                configurations {
+                    foo.attributes($free, $debug)
+                    bar.attributes($paid, $debug)
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+    }
+
+    def "both dependencies will choose the same default value"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << """
+            enum Arch {
+               x86,
+               arm64
+            }
+            def arch = Attribute.of(Arch)
+            def dummy = Attribute.of('dummy', String)
+
+            allprojects {
+               configurationAttributesSchema {
+                  attribute(dummy)
+               }
+            }
+
+            project(':b') {
+               configurationAttributesSchema {
+                    attribute(arch) {
+                       compatibilityRules.assumeCompatibleWhenMissing()
+                       disambiguationRules.pickLast { a,b -> a<=>b }
+                  }
+               }
+            }
+            project(':c') {
+                configurationAttributesSchema {
+                    attribute(arch) {
+                       compatibilityRules.assumeCompatibleWhenMissing()
+                       disambiguationRules.pickLast { a,b -> a<=>b }
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes(dummy: 'dummy')
+                }
+                dependencies {
+                    compile project(':b')
+                    compile project(':c')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:barJar', ':c:barJar'
+        notExecuted ':b:fooJar', ':c:fooJar'
+    }
+
 
 }

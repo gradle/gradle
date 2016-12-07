@@ -21,19 +21,12 @@ import java.util.Set;
 
 /**
  * Provides context about candidates for an attribute. In particular, this class gives access to
- * the value of an attribute as found on the consumer, but also a list of candidates for the same
- * attribute on the producer side. It is possible to determine what to do in case an attribute is
- * missing, or unknown, on both the consumer and producer sides.
+ * the list of candidates on the producer side.
  *
  * @param <T> the concrete type of the attribute
  */
 @Incubating
 public interface MultipleCandidatesDetails<T> {
-    /**
-     * The value of the attribute on the consumer side
-     * @return the value of the attribute as found on the consumer side
-     */
-    T getConsumerValue();
 
     /**
      * A set of candidate values.
