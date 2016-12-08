@@ -21,7 +21,8 @@ import org.gradle.api.GradleException
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
 import org.gradle.internal.resource.transport.http.SslContextFactory
-import org.gradle.plugin.use.PluginId
+import DefaultPluginId
+import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.use.internal.InternalPluginRequest
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
@@ -32,7 +33,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
     private sslContextFactory = Mock(SslContextFactory)
     private client = new HttpPluginResolutionServiceClient(sslContextFactory, resourceAccessor)
     private request = Stub(InternalPluginRequest) {
-        getId() >> PluginId.of("foo")
+        getId() >> DefaultPluginId.of("foo")
     }
 
     def "returns plugin metadata for successful query"() {
@@ -112,7 +113,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
     def "id and version are properly encoded"() {
         given:
         def customRequest = Stub(InternalPluginRequest) {
-            getId() >> new PluginId("foo/bar")
+            getId() >> new DefaultPluginId("foo/bar")
             getVersion() >> "1/0"
         }
 
