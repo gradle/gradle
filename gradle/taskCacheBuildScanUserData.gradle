@@ -99,6 +99,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     }
                     def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                     new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
+                    int actionIndex = 0
+                    task.actionClassLoaders.each { new Visitor(task.project.buildScan, hasher, "${task.path}-action-classloader-${actionIndex++}").visit(it) }
                 }
             }
 
@@ -130,9 +132,13 @@ class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     int counter
 
     Visitor(buildScan, ClassLoaderHierarchyHasher hasher, Task task) {
+        this(buildScan, hasher, "${task.path}-classloader")
+    }
+
+    Visitor(buildScan, ClassLoaderHierarchyHasher hasher, String prefix) {
         this.buildScan = buildScan
         this.hasher = hasher
-        this.prefix = "${task.path}-classloader"
+        this.prefix = prefix
     }
 
     private String classloaderHash(ClassLoader loader) {
@@ -148,8 +154,9 @@ class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     void visit(ClassLoader classLoader) {
         def hash = classloaderHash(classLoader)
         if (hash) {
-            buildScan.value("${prefix}-${counter++}-${classLoader.getClass().getSimpleName()}-hash", hash)
-            if ((counter <= 2) && (classLoader instanceof URLClassLoader)) {
+            def classloaderName = classLoader.getClass().getSimpleName()
+            buildScan.value("${prefix}-${counter++}-${ classloaderName}-hash", hash)
+            if ((counter <= 2) && (classLoader instanceof URLClassLoader && (!classloaderName.contains('ExtClassLoader')))) {
                 buildScan.value("${prefix}-${counter - 1}-classpath", classLoader.getURLs().join(':'))
             }
         }
