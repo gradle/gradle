@@ -6,7 +6,8 @@
     <description>The first project</description>
   </info>
   <configurations>
-    <conf name="default" visibility="public" extends="runtime"/>
+    <conf name="compile" visibility="public"/>
+    <conf name="default" visibility="public" extends="runtime,compile"/>
     <conf name="runtime" visibility="public"/>
   </configurations>
   <publications>
