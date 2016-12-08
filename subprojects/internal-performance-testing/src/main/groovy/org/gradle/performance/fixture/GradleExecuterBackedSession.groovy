@@ -22,21 +22,19 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 
 @CompileStatic
 class GradleExecuterBackedSession implements GradleSession {
 
     final GradleInvocationSpec invocation
 
-    private final TestDirectoryProvider testDirectoryProvider
-
     private final IntegrationTestBuildContext integrationTestBuildContext
 
     private GradleExecuter executer
     private GradleExecuter executerForStopping
 
-    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext integrationTestBuildContext) {
-        this.testDirectoryProvider = testDirectoryProvider
+    GradleExecuterBackedSession(GradleInvocationSpec invocation, IntegrationTestBuildContext integrationTestBuildContext) {
         this.invocation = invocation
         this.integrationTestBuildContext = integrationTestBuildContext
     }
@@ -83,7 +81,17 @@ class GradleExecuterBackedSession implements GradleSession {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
         def createNewExecuter = {
-            invocation.gradleDistribution.executer(testDirectoryProvider, integrationTestBuildContext)
+            invocation.gradleDistribution.executer(new TestDirectoryProvider() {
+                @Override
+                TestFile getTestDirectory() {
+                    new TestFile(invocationInfo.projectDir)
+                }
+
+                @Override
+                void suppressCleanup() {
+
+                }
+            }, integrationTestBuildContext)
         }
         if (executer == null) {
             executer = createNewExecuter()
@@ -93,15 +101,11 @@ class GradleExecuterBackedSession implements GradleSession {
 
         executer.
             requireOwnGradleUserHomeDir().
-            withReuseUserHomeServices(true).
             requireGradleDistribution().
             requireIsolatedDaemons().
             withFullDeprecationStackTraceDisabled().
             withStackTraceChecksDisabled().
-            withArgument('-u').
-            inDirectory(invocation.workingDirectory).
-            withTasks(invocation.tasksToRun).
-            withOutputCapturing(false)
+            withTasks(invocation.tasksToRun)
 
         executer.withBuildJvmOpts(invocation.jvmOpts)
 

@@ -43,7 +43,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
+        tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)

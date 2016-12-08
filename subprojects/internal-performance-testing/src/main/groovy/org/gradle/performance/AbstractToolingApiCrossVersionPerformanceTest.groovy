@@ -173,6 +173,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
                     toolingApi.requireIsolatedDaemons()
                     toolingApi.requireIsolatedUserHome()
+                    toolingApi.requireIsolatedToolingApi()
                     warmup(toolingApi, workingDirProvider.testDirectory)
                     measure(results, toolingApi, version, workingDirProvider.testDirectory)
                     toolingApi.daemons.killAll()

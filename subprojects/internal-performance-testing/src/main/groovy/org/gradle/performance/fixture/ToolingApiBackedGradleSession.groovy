@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -31,14 +30,12 @@ class ToolingApiBackedGradleSession implements GradleSession {
 
     final GradleInvocationSpec invocation
 
-    private final TestDirectoryProvider testDirectoryProvider
     private final GradleExecuterBackedSession executerBackedSession
     private ProjectConnection projectConnection
 
-    ToolingApiBackedGradleSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
-        this.testDirectoryProvider = testDirectoryProvider
+    ToolingApiBackedGradleSession(GradleInvocationSpec invocation) {
         this.invocation = invocation
-        this.executerBackedSession = new GradleExecuterBackedSession(invocation, testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
+        this.executerBackedSession = new GradleExecuterBackedSession(invocation, IntegrationTestBuildContext.INSTANCE)
     }
 
     @Override
@@ -47,10 +44,10 @@ class ToolingApiBackedGradleSession implements GradleSession {
 
         DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
         projectConnection = connector
-                .daemonBaseDir(testDirectoryProvider.testDirectory.file("daemon"))
+                .daemonBaseDir(new File(invocation.workingDirectory, "daemon"))
                 .forProjectDirectory(invocation.workingDirectory)
                 .useInstallation(invocation.gradleDistribution.gradleHomeDir)
-                .useGradleUserHomeDir(testDirectoryProvider.testDirectory.file("gradleUserHome"))
+                .useGradleUserHomeDir(new File(invocation.workingDirectory, "gradleUserHome"))
                 .connect()
     }
 
