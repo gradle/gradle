@@ -164,6 +164,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setParent(ideaProject)
             .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
             .setContentRoots(Collections.singletonList(contentRoot))
+            .setJdkName(ideaModule.getJdkName())
             .setCompilerOutput(new DefaultIdeaCompilerOutput()
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
