@@ -3,7 +3,8 @@
 <ivy-module version="2.0">
   <info organisation="org.gradle.sample.impl" module="project2-impl" revision="2.3" status="integration" publication="«PUBLICATION-TIME-STAMP»"/>
   <configurations>
-    <conf name="default" visibility="public" extends="runtime"/>
+    <conf name="compile" visibility="public"/>
+    <conf name="default" visibility="public" extends="runtime,compile"/>
     <conf name="runtime" visibility="public"/>
   </configurations>
   <publications>
