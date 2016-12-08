@@ -39,6 +39,7 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private IdeaCompilerOutput compilerOutput;
 
     private DefaultIdeaJavaLanguageSettings javaLanguageSettings;
+    private String jdkName;
 
     public String getName() {
         return name;
@@ -112,6 +113,15 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
 
     public DefaultIdeaModule setJavaLanguageSettings(DefaultIdeaJavaLanguageSettings javaLanguageSettings) {
         this.javaLanguageSettings = javaLanguageSettings;
+        return this;
+    }
+
+    public String getJdkName() {
+        return jdkName;
+    }
+
+    public DefaultIdeaModule setJdkName(String jdkName) {
+        this.jdkName = jdkName;
         return this;
     }
 

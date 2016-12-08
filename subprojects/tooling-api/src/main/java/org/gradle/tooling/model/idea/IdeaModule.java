@@ -38,6 +38,14 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
     IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
 
     /**
+     * Returns the name of the JDK.
+     *
+     * @return The name of the JDK.
+     * @since 3.3
+     */
+    String getJdkName() throws UnsupportedMethodException;
+
+    /**
      * All content roots. Most idea modules have a single content root.
      *
      * @return content roots
