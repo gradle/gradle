@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -90,6 +91,7 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -989,10 +991,35 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public ArtifactCollection getArtifacts() {
+            return new ConfigurationArtifactCollection();
+        }
+    }
+
+    private class ConfigurationArtifactCollection implements ArtifactCollection {
+        private final FileCollection fileCollection;
+        private Spec<ComponentIdentifier> componentFilter = Specs.satisfyAll();;
+
+        ConfigurationArtifactCollection() {
+            assertResolvingAllowed();
+            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+        }
+
+        @Override
+        public FileCollection getArtifactFiles() {
+            return fileCollection;
+        }
+
+        @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), configurationAttributes, componentFilter);
             return artifactSet.collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
+        }
+
+        @Override
+        public Iterator<ResolvedArtifactResult> iterator() {
+            return getArtifacts().iterator();
         }
     }
 
