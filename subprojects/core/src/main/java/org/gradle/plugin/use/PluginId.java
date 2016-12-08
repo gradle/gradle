@@ -16,110 +16,51 @@
 
 package org.gradle.plugin.use;
 
-import com.google.common.base.CharMatcher;
 import org.gradle.api.Nullable;
-import org.gradle.plugin.internal.InvalidPluginIdException;
 
-import static com.google.common.base.CharMatcher.anyOf;
-import static com.google.common.base.CharMatcher.inRange;
+/**
+ * A description of a plugin.
+ */
+public interface PluginId {
+    /**
+     * @return true when plugin name has a dot in it.
+     */
+    boolean isQualified();
 
-public class PluginId {
+    /**
+     * Takes an existing plugin, and add a qualifier.
+     * @param qualification the qualifier to add.
+     * @return a new PluginId when this is not qualified, otherwise this.
+     */
+    PluginId maybeQualify(String qualification);
 
-    public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + PluginId.SEPARATOR + "'";
-    public static final String DOUBLE_SEPARATOR = "cannot contain '" + PluginId.SEPARATOR + PluginId.SEPARATOR + "'";
-
-    public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.', '_' and '-'";
-    public static final CharMatcher INVALID_PLUGIN_ID_CHAR_MATCHER = inRange('a', 'z')
-            .or(inRange('A', 'Z'))
-            .or(inRange('0', '9'))
-            .or(anyOf(".-_"))
-            .negate();
-    public static final String SEPARATOR = ".";
-
-    private final String value;
-
-    private PluginId(String value) {
-        this.value = value;
-    }
-
-    public static PluginId of(String value) throws InvalidPluginIdException {
-        validate(value);
-        return new PluginId(value);
-    }
-
-    public static PluginId unvalidated(String value) {
-        return new PluginId(value);
-    }
-
-    public static void validate(String value) throws InvalidPluginIdException {
-        if (value.startsWith(SEPARATOR) || value.endsWith(SEPARATOR)) {
-            throw new InvalidPluginIdException(value, ID_SEPARATOR_ON_START_OR_END);
-        } else if (value.contains(PluginId.SEPARATOR + PluginId.SEPARATOR)) {
-            throw new InvalidPluginIdException(value, DOUBLE_SEPARATOR);
-        } else {
-            int invalidCharIndex = PluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(value);
-            if (invalidCharIndex >= 0) {
-                char invalidChar = value.charAt(invalidCharIndex);
-                throw new InvalidPluginIdException(value, invalidPluginIdCharMessage(invalidChar));
-            }
-        }
-    }
-
-    public static String invalidPluginIdCharMessage(char invalidChar) {
-        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PluginId.PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
-    }
-
-    public boolean isQualified() {
-        return value.contains(PluginId.SEPARATOR);
-    }
-
-    public PluginId maybeQualify(String qualification) {
-        return isQualified() ? this : new PluginId(qualification + PluginId.SEPARATOR + value);
-    }
-
+    /**
+     *
+     * @return the substring of the plugin if before the last dot. Null when not qualified.
+     */
     @Nullable
-    public String getNamespace() {
-        return isQualified() ? value.substring(0, value.lastIndexOf(SEPARATOR)) : null;
-    }
+    String getNamespace();
 
-    public boolean inNamespace(String namespace) {
-        return isQualified() && getNamespace().equals(namespace);
-    }
+    /**
+     * Checks if this plugin is inside of a namespace.
+     *
+     * @param namespace the namespace to check
+     * @return true when the namespaces match.
+     */
+    boolean inNamespace(String namespace);
 
-    public String getName() {
-        return isQualified() ? value.substring(value.lastIndexOf(PluginId.SEPARATOR) + 1) : value;
-    }
+    /**
+     * @return The name of the plugin, without any qualifier.
+     */
+    String getName();
 
-    public PluginId getUnqualified() {
-        return isQualified() ? new PluginId(getName()) : this;
-    }
+    /**
+     * @return If this is not qualified, then this, otherwise a new instance of PluginId without the qualification
+     */
+    PluginId getUnqualified();
 
-    @Override
-    public String toString() {
-        return value;
-    }
-
-    public String asString() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        PluginId pluginId = (PluginId) o;
-
-        return value.equals(pluginId.value);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
+    /**
+     * @return The fully qualified (if applicable) plugin.
+     */
+    String asString();
 }
