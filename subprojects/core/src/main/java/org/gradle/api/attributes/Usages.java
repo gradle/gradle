@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+
+package org.gradle.api.attributes;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
