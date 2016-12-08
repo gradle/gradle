@@ -19,9 +19,19 @@ package org.gradle.plugin.repository.rules;
 import org.gradle.api.Nullable;
 import org.gradle.plugin.use.PluginId;
 
+/**
+ * Contains information about the plugin that has been requested.
+ */
 public interface PluginRequest {
+
+    /**
+     * @return The ID of the plugin requested. Never null.
+     */
     PluginId getId();
 
+    /**
+     * @return If a version was specified, the version. If not null.
+     */
     @Nullable
     String getVersion();
 }
