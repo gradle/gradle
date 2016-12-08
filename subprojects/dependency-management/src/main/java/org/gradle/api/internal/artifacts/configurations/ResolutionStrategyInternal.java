@@ -16,9 +16,11 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -83,4 +85,16 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return transforms registered with this resolution strategy
      */
     Iterable<ArtifactTransformRegistrations.ArtifactTransformRegistration> getTransforms();
+
+    /**
+     * Register an artifact transformation.
+     *
+     * @param type implementation type of the artifact transformation
+     * @param config a configuration action
+     *
+     * @see ArtifactTransform
+     * @since 3.3
+     */
+    @Incubating
+    void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
 }

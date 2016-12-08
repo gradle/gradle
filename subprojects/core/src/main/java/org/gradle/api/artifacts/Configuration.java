@@ -384,15 +384,6 @@ public interface Configuration extends FileCollection, HasAttributes {
     ResolvableDependencies getIncoming();
 
     /**
-     * Returns the outgoing artifacts of this configuration.
-     *
-     * @return The outgoing artifacts of this configuration.
-     * @since 3.3
-     */
-    @Incubating
-    ConfigurationPublications getOutgoing();
-
-    /**
      * Configures the outgoing artifacts of this configuration.
      *
      * @param action The action to perform the configuration.
