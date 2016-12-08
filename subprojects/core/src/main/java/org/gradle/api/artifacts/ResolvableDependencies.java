@@ -65,7 +65,7 @@ public interface ResolvableDependencies {
     /**
      * Returns a view of this set containing files matching the requested attributes.
      *
-     * @since 3.3
+     * @since 3.4
      */
     @Incubating
     FileCollection getFiles(Map<?, ?> attributes);
@@ -129,7 +129,7 @@ public interface ResolvableDependencies {
      * Returns the resolved artifacts, performing the resolution if required. This will resolve and download the files as required.
      *
      * @throws ResolveException On failure to resolve or download any artifact.
-     * @since 3.3
+     * @since 3.4
      */
     @Incubating
     Set<ResolvedArtifactResult> getArtifacts() throws ResolveException;

@@ -42,7 +42,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), RESULT_STORE, buildContext) {
+    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)

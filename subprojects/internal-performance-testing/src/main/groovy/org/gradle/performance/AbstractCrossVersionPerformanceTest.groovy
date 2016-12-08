@@ -40,7 +40,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
+        new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
 
     def setup() {
         runner.workingDir = tmpDir.testDirectory

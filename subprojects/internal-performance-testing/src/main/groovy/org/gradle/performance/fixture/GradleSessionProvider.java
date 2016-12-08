@@ -17,23 +17,20 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 public class GradleSessionProvider {
 
-    private final TestDirectoryProvider testDirectoryProvider;
     private final IntegrationTestBuildContext buildContext;
 
-    public GradleSessionProvider(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        this.testDirectoryProvider = testDirectoryProvider;
+    public GradleSessionProvider(IntegrationTestBuildContext buildContext) {
         this.buildContext = buildContext;
     }
 
     public GradleSession session(GradleInvocationSpec buildSpec) {
         if (buildSpec.isUseToolingApi()) {
-            return new ToolingApiBackedGradleSession(buildSpec, testDirectoryProvider);
+            return new ToolingApiBackedGradleSession(buildSpec);
         } else {
-            return new GradleExecuterBackedSession(buildSpec, testDirectoryProvider, buildContext);
+            return new GradleExecuterBackedSession(buildSpec, buildContext);
         }
 
     }

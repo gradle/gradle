@@ -75,7 +75,7 @@ class BuildScanPluginPerformanceTest extends Specification {
 
 
 
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), resultStore, pluginCommitId, buildContext) {
+        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
