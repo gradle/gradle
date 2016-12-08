@@ -387,7 +387,7 @@ public interface Configuration extends FileCollection, HasAttributes {
      * Returns the outgoing artifacts of this configuration.
      *
      * @return The outgoing artifacts of this configuration.
-     * @since 3.3
+     * @since 3.4
      */
     @Incubating
     ConfigurationPublications getOutgoing();
@@ -396,7 +396,7 @@ public interface Configuration extends FileCollection, HasAttributes {
      * Configures the outgoing artifacts of this configuration.
      *
      * @param action The action to perform the configuration.
-     * @since 3.3
+     * @since 3.4
      */
     @Incubating
     void outgoing(Action<? super ConfigurationPublications> action);

@@ -294,7 +294,7 @@ public interface ResolutionStrategy {
      * @param config a configuration action
      *
      * @see ArtifactTransform
-     * @since 3.3
+     * @since 3.4
      */
     @Incubating
     void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
