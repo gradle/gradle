@@ -215,10 +215,18 @@ transformDocument {
     body().children()[0].html(bodyContent.outerHtml())
 }
 
-// Turn Gradle issue numbers into issue links
+// Turn Gradle Jira issue numbers into issue links
 transformDocument {
     def rewritten = body().html().replaceAll(~/GRADLE-\d+/) {
         "<a href='https://issues.gradle.org/browse/${it}'>${it}</a>"
+    }
+    body().html(rewritten)
+}
+
+// Turn Gradle Github issue numbers into issue links
+transformDocument {
+    def rewritten = body().html().replaceAll(~/(gradle\/[a-zA-Z\-_]+)#(\d+)/) { all, repository, issue ->
+        "<a href='https://github.com/${repository}/issues/${issue}'>${all}</a>"
     }
     body().html(rewritten)
 }
