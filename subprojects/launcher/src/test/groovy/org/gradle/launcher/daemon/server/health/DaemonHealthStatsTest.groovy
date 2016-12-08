@@ -16,25 +16,29 @@
 
 package org.gradle.launcher.daemon.server.health
 
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
-import org.gradle.process.internal.health.memory.MemoryInfo
+import org.gradle.process.internal.health.memory.DefaultMemoryManager
+import org.gradle.process.internal.health.memory.JvmMemoryStatusListener
+import org.gradle.process.internal.health.memory.JvmMemoryStatusSnapshot
 import spock.lang.Specification
 
 class DaemonHealthStatsTest extends Specification {
 
-    def memoryInfo = Stub(MemoryInfo)
+    def listenerManager = new DefaultListenerManager()
+    def jvmMemoryBroadcast = listenerManager.getBroadcaster(JvmMemoryStatusListener);
+    def memoryResourceManager = new DefaultMemoryManager(listenerManager)
     def gcInfo = Stub(GarbageCollectionInfo)
     def gcMonitor = Stub(GarbageCollectionMonitor)
     def runningStats = Stub(DaemonRunningStats)
-    def healthStats = new DaemonHealthStats(runningStats, memoryInfo, gcInfo, gcMonitor)
+    def healthStats = new DaemonHealthStats(runningStats, memoryResourceManager, gcInfo, gcMonitor)
 
     def "consumes first build"() {
         when:
-        memoryInfo.getCommittedMemory() >> 5000000
-        memoryInfo.getMaxMemory() >> 10000000
+        jvmMemoryBroadcast.onJvmMemoryStatus(new JvmMemoryStatusSnapshot(10000000, 5000000))
         runningStats.getBuildCount() >> 0
 
         then:

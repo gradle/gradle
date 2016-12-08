@@ -18,7 +18,6 @@ package org.gradle.process.internal.health.memory;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,16 +29,16 @@ public class MemoryStatusBroadcaster {
     public static final int STATUS_INTERVAL_SECONDS = 5;
 
     private final ScheduledExecutorService scheduledExecutorService;
-    private final ListenerBroadcast<JvmMemoryStatusListener> jvmBroadcast;
-    private final ListenerBroadcast<OsMemoryStatusListener> osBroadcast;
+    private final JvmMemoryStatusListener jvmBroadcast;
+    private final OsMemoryStatusListener osBroadcast;
     private final MemoryInfo memoryInfo;
     private final boolean osMemoryStatusSupported;
 
     public MemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
         this.memoryInfo = memoryInfo;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.jvmBroadcast = listenerManager.createAnonymousBroadcaster(JvmMemoryStatusListener.class);
-        this.osBroadcast = listenerManager.createAnonymousBroadcaster(OsMemoryStatusListener.class);
+        this.jvmBroadcast = listenerManager.getBroadcaster(JvmMemoryStatusListener.class);
+        this.osBroadcast = listenerManager.getBroadcaster(OsMemoryStatusListener.class);
         this.osMemoryStatusSupported = supportsOsMemoryStatus();
     }
 
@@ -67,11 +66,11 @@ public class MemoryStatusBroadcaster {
                 if (osMemoryStatusSupported) {
                     OsMemoryStatus os = memoryInfo.getOsSnapshot();
                     LOGGER.debug("Emitting OS memory status event {}", os);
-                    osBroadcast.getSource().onOsMemoryStatus(os);
+                    osBroadcast.onOsMemoryStatus(os);
                 }
                 JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
                 LOGGER.debug("Emitting JVM memory status event {}", jvm);
-                jvmBroadcast.getSource().onJvmMemoryStatus(jvm);
+                jvmBroadcast.onJvmMemoryStatus(jvm);
             } catch (Exception ex) {
                 LOGGER.warn("Failed to collect memory status: {}", ex.getMessage(), ex);
             }

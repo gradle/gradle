@@ -23,7 +23,9 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.process.internal.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.JvmMemoryStatus;
+import org.gradle.process.internal.health.memory.JvmMemoryStatusListener;
+import org.gradle.process.internal.health.memory.MemoryManager;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -32,20 +34,25 @@ import static java.lang.String.format;
 public class DaemonHealthStats {
 
     private final DaemonRunningStats runningStats;
-    private final MemoryInfo memoryStatus;
     private final GarbageCollectionInfo gcInfo;
     private final GarbageCollectionMonitor gcMonitor;
+    private JvmMemoryStatus memoryStatus;
 
-    public DaemonHealthStats(DaemonRunningStats runningStats, MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService) {
-        this(runningStats, memoryInfo, new GarbageCollectionInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
+    public DaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, ScheduledExecutorService scheduledExecutorService) {
+        this(runningStats, memoryManager, new GarbageCollectionInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
     }
 
     @VisibleForTesting
-    DaemonHealthStats(DaemonRunningStats runningStats, MemoryInfo memoryStatus, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
+    DaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
         this.runningStats = runningStats;
-        this.memoryStatus = memoryStatus;
         this.gcInfo = gcInfo;
         this.gcMonitor = gcMonitor;
+        memoryManager.addListener(new JvmMemoryStatusListener() {
+            @Override
+            public void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
+                memoryStatus = jvmMemoryStatus;
+            }
+        });
     }
 
     /**
@@ -68,7 +75,10 @@ public class DaemonHealthStats {
     String getHealthInfo() {
         int nextBuildNum = runningStats.getBuildCount() + 1;
         if (nextBuildNum == 1) {
-            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memoryStatus.getMaxMemory()));
+            if (memoryStatus != null) {
+                return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memoryStatus.getMaxMemory()));
+            }
+            return format("Starting build in new daemon");
         } else {
             if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
                 GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
