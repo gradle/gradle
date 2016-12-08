@@ -991,7 +991,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
         }
 
-        @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
             return cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), configurationAttributes).collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());

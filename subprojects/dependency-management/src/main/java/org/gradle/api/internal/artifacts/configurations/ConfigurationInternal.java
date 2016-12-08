@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -53,4 +54,13 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     @Incubating
     ConfigurationPublications getOutgoing();
+
+    /**
+     * Configures the outgoing artifacts of this configuration.
+     *
+     * @param action The action to perform the configuration.
+     * @since 3.3
+     */
+    @Incubating
+    void outgoing(Action<? super ConfigurationPublications> action);
 }
