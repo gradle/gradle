@@ -36,8 +36,10 @@ allprojects {
         repositories {
             ivy { url '${ivyHttpRepo.uri}' }
         }
-        configurationAttributesSchema {
-           attribute(Attribute.of('usage', String))
+        dependencies {
+            attributesSchema {
+               attribute(Attribute.of('usage', String))
+            }
         }
     }
     configurations {

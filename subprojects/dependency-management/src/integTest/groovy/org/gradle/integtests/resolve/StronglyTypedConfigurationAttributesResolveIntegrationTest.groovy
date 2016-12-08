@@ -38,10 +38,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def extra = Attribute.of('extra', String)
 
             allprojects {
-               configurationAttributesSchema {
-                  attribute(flavor)
-                  attribute(buildType)
-                  attribute(extra)
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor)
+                      attribute(buildType)
+                      attribute(extra)
+                   }
                }
             }
         '''
@@ -96,9 +98,11 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
-                configurationAttributesSchema {
-                    attribute(Attribute.of('flavor', String))
-                    attribute(Attribute.of('buildType', String))
+                dependencies {
+                    attributesSchema {
+                        attribute(Attribute.of('flavor', String))
+                        attribute(Attribute.of('buildType', String))
+                    }
                 }
                 configurations {
                     create('default')
@@ -144,20 +148,22 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':a') {
-               configurationAttributesSchema {
-                  attribute(flavor) {
-                      compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
-                      compatibilityRules.add { details ->
-                         details.compatible()
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor) {
+                          compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
+                          compatibilityRules.add { details ->
+                             details.compatible()
+                          }
+                          disambiguationRules.add { details ->
+                             details.candidateValues.each { producerValue ->
+                                if (producerValue.value.toLowerCase() == producerValue.value) {
+                                    details.closestMatch(producerValue)
+                                }
+                             }
+                          }
                       }
-                      disambiguationRules.add { details ->
-                         details.candidateValues.each { producerValue ->
-                            if (producerValue.value.toLowerCase() == producerValue.value) {
-                                details.closestMatch(producerValue)
-                            }
-                         }
-                      }
-                  }
+                   }
                }
             }
 
@@ -222,7 +228,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':a') {
-               configurationAttributesSchema {
+               dependencies.attributesSchema {
                   attribute(flavor) {
                       compatibilityRules.add { details ->
                          if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
@@ -312,7 +318,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':a') {
-               configurationAttributesSchema {
+               dependencies.attributesSchema {
                   attribute(flavor) {
                       compatibilityRules.add { details ->
                          if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
@@ -407,7 +413,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':b') {
-               configurationAttributesSchema {
+               dependencies.attributesSchema {
                   attribute(buildType)
                   attribute(flavor) {
                        disambiguationRules.add { details ->
@@ -419,7 +425,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
 
             project(':a') {
-                configurationAttributesSchema {
+                dependencies.attributesSchema {
                     def field = delegate.class.superclass.getDeclaredField('strategies')
                     field.accessible = true
                     field.get(delegate).remove(flavor) // for tests only, don't do this at home!!!
@@ -437,7 +443,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
-                configurationAttributesSchema {
+                dependencies.attributesSchema {
                     attribute(flavor) {
                         compatibilityRules.assumeCompatibleWhenMissing()
                     }
@@ -480,13 +486,15 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def dummy = Attribute.of('dummy', String)
 
             allprojects {
-               configurationAttributesSchema {
-                  attribute(dummy)
+               dependencies {
+                   attributesSchema {
+                      attribute(dummy)
+                   }
                }
             }
 
             project(':b') {
-               configurationAttributesSchema {
+               dependencies.attributesSchema {
                     attribute(arch) {
                        compatibilityRules.assumeCompatibleWhenMissing()
                        disambiguationRules.pickLast { a,b -> a<=>b }
@@ -494,7 +502,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                }
             }
             project(':c') {
-                configurationAttributesSchema {
+                dependencies.attributesSchema {
                     attribute(arch) {
                        compatibilityRules.assumeCompatibleWhenMissing()
                        disambiguationRules.pickLast { a,b -> a<=>b }

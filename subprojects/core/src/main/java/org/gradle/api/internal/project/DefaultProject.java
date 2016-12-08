@@ -35,9 +35,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -122,28 +119,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import static java.util.Collections.singletonMap;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 import static org.gradle.util.GUtil.addMaps;
 import static org.gradle.util.GUtil.isTrue;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
-    private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
-        @Override
-        public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
-            CompatibilityRuleChain<String> compatibilityRules = stringAttributeMatchingStrategy.getCompatibilityRules();
-            compatibilityRules.assumeCompatibleWhenMissing();
-        }
-    };
-    private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
-        @Override
-        public void execute(AttributesSchema attributesSchema) {
-            attributesSchema.attribute(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.attribute(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.attribute(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
-        }
-    };
-
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
     private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
@@ -209,8 +189,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private final Path path;
     private Path identityPath;
 
-    private final AttributesSchema configurationAttributesSchema;
-
     public DefaultProject(String name,
                           ProjectInternal parent,
                           File projectDir,
@@ -249,14 +227,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        configurationAttributesSchema = services.get(AttributesSchema.class);
-
         populateModelRegistry(services.get(ModelRegistry.class));
-        configureSchema();
-    }
-
-    private void configureSchema() {
-        configurationAttributesSchema(CONFIGURE_DEFAULT_SCHEMA_ACTION);
     }
 
     static class BasicServicesRules extends RuleSource {
@@ -1142,14 +1113,4 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         getDeferredProjectConfiguration().fire();
     }
 
-    @Override
-    public AttributesSchema configurationAttributesSchema(Action<? super AttributesSchema> configureAction) {
-        configureAction.execute(configurationAttributesSchema);
-        return configurationAttributesSchema;
-    }
-
-    @Override
-    public AttributesSchema getAttributesSchema() {
-        return configurationAttributesSchema;
-    }
 }

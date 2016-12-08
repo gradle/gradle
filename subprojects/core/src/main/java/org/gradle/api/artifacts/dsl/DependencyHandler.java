@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.attributes.AttributesSchema;
 
 import java.util.Map;
 
@@ -383,4 +384,25 @@ public interface DependencyHandler {
      */
     @Incubating
     ArtifactResolutionQuery createArtifactResolutionQuery();
+
+    /**
+     * Configures the attributes schema. The action is passed a {@link AttributesSchema} instance.
+     * @param configureAction the configure action
+     * @return the configured schema
+     *
+     * @since 3.4
+     */
+    @Incubating
+    AttributesSchema attributesSchema(Action<? super AttributesSchema> configureAction);
+
+
+    /**
+     * Returns the attributes schema for this handler.
+     * @return the attributes schema
+     *
+     * @since 3.4
+     */
+    @Incubating
+    AttributesSchema getAttributesSchema();
+
 }

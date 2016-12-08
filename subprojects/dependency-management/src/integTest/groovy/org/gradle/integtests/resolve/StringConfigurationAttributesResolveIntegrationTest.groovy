@@ -28,10 +28,12 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
             def extra = Attribute.of('extra', String)
 
             allprojects {
-               configurationAttributesSchema {
-                  attribute(flavor)
-                  attribute(buildType)
-                  attribute(extra)
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor)
+                      attribute(buildType)
+                      attribute(extra)
+                   }
                }
             }
         '''
