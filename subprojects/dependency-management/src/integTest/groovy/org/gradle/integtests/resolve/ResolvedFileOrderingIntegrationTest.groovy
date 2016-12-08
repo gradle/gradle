@@ -25,8 +25,10 @@ rootProject.name = 'test'
 """
         buildFile << """
 allprojects {
-    configurationAttributesSchema {
-       attribute(Attribute.of('usage', String))
+    dependencies {
+        attributesSchema {
+           attribute(Attribute.of('usage', String))
+        }
     }
     configurations {
         compile

@@ -28,8 +28,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
 allprojects {
-    configurationAttributesSchema {
-       attribute(Attribute.of('usage', String))
+    dependencies {
+        attributesSchema {
+            attribute(Attribute.of('usage', String))
+        }
     }
     configurations {
         compile {
@@ -297,10 +299,11 @@ class FileSizer extends ArtifactTransform {
             }
             dependencies {
                 compile 'test:test:1.3'
+                attributesSchema {
+                    attribute(Attribute.of('viewType', String))
+                }
             }
-            configurationAttributesSchema {
-                attribute(Attribute.of('viewType', String))
-            }
+            
             ${registerTransform('ViewTransform')}
 
             task checkFiles {
@@ -343,10 +346,11 @@ class FileSizer extends ArtifactTransform {
             dependencies {
                 selection 'test:to-keep:1.3'
                 selection 'test:to-exclude:2.3'
+                attributesSchema {
+                    attribute(Attribute.of('viewType', String))
+                }
             }
-            configurationAttributesSchema {
-                attribute(Attribute.of('viewType', String))
-            }
+            
             ${registerTransform('ArtifactFilter')}
 
             def filteredView = configurations.selection.incoming.getFiles(viewType: 'filtered')

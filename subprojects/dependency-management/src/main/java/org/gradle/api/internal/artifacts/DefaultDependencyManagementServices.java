@@ -144,14 +144,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory) {
+                                                  ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
+                                                  ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                     configurationContainer,
                     dependencyFactory,
                     projectFinder,
                     componentMetadataHandler,
                     componentModuleMetadataHandler,
-                    resolutionQueryFactory);
+                    resolutionQueryFactory,
+                    attributesSchema);
         }
 
         DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator) {

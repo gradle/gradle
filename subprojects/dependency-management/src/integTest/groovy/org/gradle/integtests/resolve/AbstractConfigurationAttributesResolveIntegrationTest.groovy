@@ -609,16 +609,16 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         buildFile << """
             $typeDefs
 
-            project(':a') {
-                configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                }
+            project(':a') {                
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
@@ -671,18 +671,18 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
-                configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                    attribute(buildType) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
@@ -753,9 +753,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
-                 configurationAttributesSchema {
-                    attribute(extra) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
+                dependencies {
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                     }
                 }
                 configurations {
@@ -862,9 +864,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
-                 configurationAttributesSchema {
-                    attribute(extra) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
+                dependencies {
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                     }
                 }
                 configurations {
@@ -930,12 +934,14 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
-                 configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                    attribute(buildType) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
+                dependencies { 
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                     }
                 }
                 configurations {
@@ -1214,9 +1220,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         buildFile << """
             $typeDefs
             allprojects {
-                 configurationAttributesSchema {
-                    attribute(extra) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
+                dependencies { 
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                     }
                 }
             }
@@ -1476,15 +1484,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
-                configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
@@ -1543,9 +1551,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
-                configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                     }
                 }
                 configurations {
@@ -1585,12 +1595,14 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             allprojects {
-                configurationAttributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                    attribute(buildType) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                     }
                 }
             }
@@ -1670,15 +1682,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
-                configurationAttributesSchema {
-                    attribute(extra) {
-                        compatibilityRules.assumeCompatibleWhenMissing()
-                    }
-                }
                 configurations {
                     _compileFreeDebug.attributes($freeDebug, extra: 'EXTRA')
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
