@@ -25,6 +25,15 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         }
     });
     private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
+    private final SerializerClassMatcherStrategy classMatcher;
+
+    public DefaultSerializerRegistry() {
+        this(true);
+    }
+
+    public DefaultSerializerRegistry(boolean supportClassHierarchy) {
+        this.classMatcher = supportClassHierarchy ? SerializerClassMatcherStrategy.HIERARCHY : SerializerClassMatcherStrategy.STRICT;
+    }
 
     @Override
     public <T> void register(Class<T> implementationType, Serializer<T> serializer) {
@@ -38,7 +47,17 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     @Override
     public boolean canSerialize(Class<?> baseType) {
-        return serializerMap.containsKey(baseType) || javaSerialization.contains(baseType);
+        for (Class<?> candidate : serializerMap.keySet()) {
+            if (classMatcher.matches(baseType, candidate)) {
+                return true;
+            }
+        }
+        for (Class<?> candidate : javaSerialization) {
+            if (classMatcher.matches(baseType, candidate)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -132,6 +151,28 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
                 }
             }
             throw new IllegalArgumentException(String.format("Don't know how to serialize an object of type %s.", valueType.getName()));
+        }
+    }
+
+    private interface SerializerClassMatcherStrategy {
+        SerializerClassMatcherStrategy STRICT = new StrictSerializerMatcher();
+        SerializerClassMatcherStrategy HIERARCHY = new HierarchySerializerMatcher();
+
+        boolean matches(Class<?> baseType, Class<?> candidate);
+
+    }
+
+    private static final class HierarchySerializerMatcher implements SerializerClassMatcherStrategy {
+        @Override
+        public boolean matches(Class<?> baseType, Class<?> candidate) {
+            return baseType.isAssignableFrom(candidate);
+        }
+    }
+
+    private static class StrictSerializerMatcher implements SerializerClassMatcherStrategy {
+        @Override
+        public boolean matches(Class<?> baseType, Class<?> candidate) {
+            return baseType.equals(candidate);
         }
     }
 }
