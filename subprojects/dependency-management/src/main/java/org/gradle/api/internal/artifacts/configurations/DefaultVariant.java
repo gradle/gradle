@@ -33,7 +33,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.Map;
 import java.util.Set;
 
-class DefaultVariant implements ConfigurationVariant, OutgoingVariant {
+public class DefaultVariant implements ConfigurationVariant {
     private final String name;
     private final AttributeContainerInternal attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -49,6 +49,25 @@ class DefaultVariant implements ConfigurationVariant, OutgoingVariant {
     @Override
     public String getName() {
         return name;
+    }
+
+    public OutgoingVariant convertToOutgoingVariant() {
+        return new OutgoingVariant() {
+            @Override
+            public AttributeContainerInternal getAttributes() {
+                return attributes;
+            }
+
+            @Override
+            public Set<? extends PublishArtifact> getArtifacts() {
+                return artifacts;
+            }
+
+            @Override
+            public Set<? extends OutgoingVariant> getChildren() {
+                return ImmutableSet.of();
+            }
+        };
     }
 
     @Override
@@ -68,11 +87,6 @@ class DefaultVariant implements ConfigurationVariant, OutgoingVariant {
             this.attributes.attribute(Attribute.of(entry.getKey(), String.class), entry.getValue());
         }
         return this;
-    }
-
-    @Override
-    public Set<? extends OutgoingVariant> getChildren() {
-        return ImmutableSet.of();
     }
 
     @Override

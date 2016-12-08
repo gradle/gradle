@@ -85,7 +85,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     @Override
     protected Configuration doCreate(String name) {
         DefaultResolutionStrategy resolutionStrategy = instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory);
-        return instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.absoluteProjectPath(name), name, this, resolver,
+        return instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.projectPath(name), name, this, resolver,
                 listenerManager, dependencyMetaDataProvider, resolutionStrategy, projectAccessListener, projectFinder,
                 configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser);
     }
@@ -113,7 +113,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
-                context.identityPath(name), context.absoluteProjectPath(name), name, detachedConfigurationsProvider, resolver,
+                context.identityPath(name), context.projectPath(name), name, detachedConfigurationsProvider, resolver,
                 listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(globalDependencySubstitutionRules, componentIdentifierFactory), projectAccessListener, projectFinder,
                 configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();

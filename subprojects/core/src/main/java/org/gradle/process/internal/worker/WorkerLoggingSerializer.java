@@ -34,7 +34,7 @@ import org.gradle.internal.serialize.SerializerRegistry;
 public class WorkerLoggingSerializer {
 
     public static SerializerRegistry create() {
-        DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
+        DefaultSerializerRegistry registry = new DefaultSerializerRegistry(false);
 
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);

@@ -21,8 +21,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -37,6 +35,8 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -122,9 +122,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import static java.util.Collections.singletonMap;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 import static org.gradle.util.GUtil.addMaps;
 import static org.gradle.util.GUtil.isTrue;
 
@@ -236,9 +234,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             path = Path.ROOT;
             depth = 0;
         } else {
-            String path = parent.absoluteProjectPath(name);
+            path = parent.getProjectPath().child(name);
             depth = parent.getDepth() + 1;
-            this.path = Path.path(path);
         }
 
         services = serviceRegistryFactory.createFor(this);
@@ -519,7 +516,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             if (parent == null) {
                 identityPath = gradle.getIdentityPath();
             } else {
-                identityPath = parent.getIdentityPath().resolve(name);
+                identityPath = parent.getIdentityPath().child(name);
             }
         }
         return identityPath;
@@ -554,7 +551,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Path identityPath(String name) {
-        return getIdentityPath().resolve(name);
+        return getIdentityPath().child(name);
+    }
+
+    @Override
+    public Path getProjectPath() {
+        return path;
+    }
+
+    @Override
+    public Path projectPath(String name) {
+        return path.child(name);
     }
 
     public String relativeProjectPath(String path) {

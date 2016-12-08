@@ -45,11 +45,11 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
 
         given:
         config1.name >> "config1"
-        config1.outgoingVariant >> variant1
+        config1.convertToOutgoingVariant() >> variant1
         variant1.artifacts >> artifacts1
         variant1.children >> [childVariant1, childVariant2]
         config2.name >> "config2"
-        config2.outgoingVariant >> variant2
+        config2.convertToOutgoingVariant() >> variant2
         variant2.artifacts >> artifacts2
 
         when:

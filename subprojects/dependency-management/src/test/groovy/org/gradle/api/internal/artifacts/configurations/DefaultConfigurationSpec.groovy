@@ -1483,7 +1483,7 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(Path.path(path), path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+        new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory, new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser))
     }
 

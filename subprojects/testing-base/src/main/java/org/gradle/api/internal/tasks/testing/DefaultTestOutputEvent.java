@@ -18,9 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-import java.io.Serializable;
-
-public class DefaultTestOutputEvent implements Serializable, TestOutputEvent {
+public class DefaultTestOutputEvent implements TestOutputEvent {
 
     private final Destination destination;
     private final String message;

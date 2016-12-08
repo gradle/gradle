@@ -68,7 +68,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
         corruptMetadata({ metadata -> metadata.text = "corrupt" })
         withBuildCache().fails("cacheable")
         then:
-        errorOutput.contains "Cached result format error, corrupted origin metadata."
+        failure.assertHasDescription("Cached result format error, corrupted origin metadata.")
 
         when:
         file("build").deleteDir()
@@ -76,7 +76,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
         corruptMetadata({ metadata -> metadata.delete() })
         withBuildCache().fails("cacheable")
         then:
-        errorOutput.contains "Cached result format error, no origin metadata was found."
+        failure.assertHasDescription("Cached result format error, no origin metadata was found.")
     }
 
     def corruptMetadata(Closure corrupter) {

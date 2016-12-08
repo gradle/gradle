@@ -27,6 +27,8 @@ import java.io.IOException;
  * <p>
  *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
  *     Non-fatal failures could include failing to retrieve a cache entry or unsuccessfully completing an upload a new cache entry.
+ *     Gradle will not fail the build when catching a {@code BuildCacheException}, but it may disable caching for the build if too
+ *     many failures occur.
  * </p>
  * <p>
  *     All other failures will be considered fatal and cause the Gradle build to fail.

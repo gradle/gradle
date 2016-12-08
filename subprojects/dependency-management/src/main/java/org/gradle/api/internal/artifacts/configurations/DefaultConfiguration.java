@@ -131,7 +131,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final Path identityPath;
     // These fields are not covered by mutation lock
-    private final String path;
+    private final Path path;
     private final String name;
     private final DefaultConfigurationPublications outgoing;
 
@@ -148,13 +148,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
-    private ResolverResults cachedResolverResults = new DefaultResolverResults();
+    private ResolverResults cachedResolverResults;
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
     private final DefaultAttributeContainer configurationAttributes = new DefaultAttributeContainer();
 
-    public DefaultConfiguration(Path identityPath, String path, String name,
+    public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
@@ -338,6 +338,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 action.execute(dependencies);
             }
         }
+        // Discard actions
+        defaultDependencyActions.clear();
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
         }
@@ -438,6 +440,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
 
+                cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
                 dependenciesModified = false;
                 resolvedState = GRAPH_RESOLVED;
@@ -447,6 +450,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 markReferencedProjectConfigurationsObserved(requestedState);
 
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
+                // Discard listeners
+                dependencyResolutionListeners.removeAll();
             }
         });
     }
@@ -581,8 +586,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public OutgoingVariant getOutgoingVariant() {
-        return outgoing;
+    public OutgoingVariant convertToOutgoingVariant() {
+        return outgoing.convertToOutgoingVariant();
     }
 
     @Override
@@ -608,7 +613,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, Path.path(identityPath.toString() + "Copy"), path + "Copy", name + "Copy",
+        String newName = name + "Copy";
+        Path newIdentityPath = identityPath.getParent().child(newName);
+        Path newPath = path.getParent().child(newName);
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -678,7 +686,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getPath() {
-        return path;
+        return path.getPath();
     }
 
     @Override
@@ -946,7 +954,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getPath() {
-            return path;
+            return path.getPath();
         }
 
         @Override

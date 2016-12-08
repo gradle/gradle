@@ -25,7 +25,8 @@ public class BasicDomainObjectContext implements DomainObjectContext {
         return Path.path(name);
     }
 
-    public String absoluteProjectPath(String name) {
-        return name;
+    @Override
+    public Path projectPath(String name) {
+        return Path.path(name);
     }
 }

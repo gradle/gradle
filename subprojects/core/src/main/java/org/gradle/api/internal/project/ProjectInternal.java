@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
@@ -103,7 +105,20 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     AttributesSchema getAttributesSchema();
 
     /**
+     * Returns a unique path for this project within its containing build.
+     */
+    Path getProjectPath();
+
+    /**
      * Returns a unique path for this project within the current Gradle invocation.
      */
     Path getIdentityPath();
+
+    /**
+     * Configures the configuration attributes schema. The action is passed a {@link AttributesSchema} instance.
+     * @param configureAction the configure action
+     * @return the configured schema
+     */
+    @Incubating
+    AttributesSchema configurationAttributesSchema(Action<? super AttributesSchema> configureAction);
 }

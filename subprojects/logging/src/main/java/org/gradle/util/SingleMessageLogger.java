@@ -85,65 +85,87 @@ public class SingleMessageLogger {
     }
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
-        nagUserWith(String.format(
-                "The %s plugin %s. Please use the %s plugin instead.",
-                pluginName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s plugin %s. Please use the %s plugin instead.",
+                    pluginName, getDeprecationMessage(), replacement));
+        }
     }
 
     public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
-        nagUserWith(String.format(
-                "The %s plugin %s. Consider using the %s plugin instead.",
-                pluginName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s plugin %s. Consider using the %s plugin instead.",
+                    pluginName, getDeprecationMessage(), replacement));
+        }
     }
 
     public static void nagUserOfReplacedTask(String taskName, String replacement) {
-        nagUserWith(String.format(
-                "The %s task %s. Please use the %s task instead.",
-                taskName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s task %s. Please use the %s task instead.",
+                    taskName, getDeprecationMessage(), replacement));
+        }
     }
 
     public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
-        nagUserWith(String.format(
-                "The %s task type %s. Please use the %s instead.",
-                taskName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s task type %s. Please use the %s instead.",
+                    taskName, getDeprecationMessage(), replacement));
+        }
     }
 
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
-        nagUserWith(String.format(
-                "The %s method %s. Please use the %s method instead.",
-                methodName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s method %s. Please use the %s method instead.",
+                    methodName, getDeprecationMessage(), replacement));
+        }
     }
 
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
-        nagUserWith(String.format(
-                "The %s property %s. Please use the %s property instead.",
-                propertyName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s property %s. Please use the %s property instead.",
+                    propertyName, getDeprecationMessage(), replacement));
+        }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName) {
-        nagUserWith(String.format("The %s method %s.",
-                methodName, getDeprecationMessage()));
+        if (isEnabled()) {
+            nagUserWith(String.format("The %s method %s.",
+                    methodName, getDeprecationMessage()));
+        }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
-        nagUserWith(String.format("The %s method %s. %s",
-                methodName, getDeprecationMessage(), advice));
+        if (isEnabled()) {
+            nagUserWith(String.format("The %s method %s. %s",
+                    methodName, getDeprecationMessage(), advice));
+        }
     }
 
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
-        nagUserWith(String.format("The %s property %s. %s",
-                propertyName, getDeprecationMessage(), advice));
+        if (isEnabled()) {
+            nagUserWith(String.format("The %s property %s. %s",
+                    propertyName, getDeprecationMessage(), advice));
+        }
     }
 
     public static void nagUserOfDiscontinuedApi(String api, String advice) {
-        nagUserWith(String.format("The %s %s. %s",
-            api, getDeprecationMessage(), advice));
+        if (isEnabled()) {
+            nagUserWith(String.format("The %s %s. %s",
+                api, getDeprecationMessage(), advice));
+        }
     }
 
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
-        nagUserWith(String.format(
-                "The %s named parameter %s. Please use the %s named parameter instead.",
-                parameterName, getDeprecationMessage(), replacement));
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s named parameter %s. Please use the %s named parameter instead.",
+                    parameterName, getDeprecationMessage(), replacement));
+        }
     }
 
     /**
@@ -164,15 +186,21 @@ public class SingleMessageLogger {
      * Avoid using this method, use the variant with an explanation instead.
      */
     public static void nagUserOfDeprecated(String thing) {
-        nagUserWith(String.format("%s %s", thing, getDeprecationMessage()));
+        if (isEnabled()) {
+            nagUserWith(String.format("%s %s", thing, getDeprecationMessage()));
+        }
     }
 
     public static void nagUserOfDeprecated(String thing, String explanation) {
-        nagUserWith(String.format("%s %s. %s.", thing, getDeprecationMessage(), explanation));
+        if (isEnabled()) {
+            nagUserWith(String.format("%s %s. %s.", thing, getDeprecationMessage(), explanation));
+        }
     }
 
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
-        nagUserOfDeprecated(String.format("%s. This behaviour", behaviour));
+        if (isEnabled()) {
+            nagUserOfDeprecated(String.format("%s. This behaviour", behaviour));
+        }
     }
 
     public static <T> T whileDisabled(Factory<T> factory) {

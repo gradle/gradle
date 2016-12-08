@@ -85,7 +85,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
-    private final String path;
+    private final Path path;
 
     private boolean enabled = true;
 
@@ -145,8 +145,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.publicType = taskInfo.publicType;
         assert project != null;
         assert name != null;
-        path = project.absoluteProjectPath(name);
-        identityPath = project.getIdentityPath().resolve(name);
+        path = project.getProjectPath().child(name);
+        identityPath = project.getIdentityPath().child(name);
         toStringValue = "task '" + identityPath + "'";
         state = new TaskStateInternal(toString());
         TaskContainerInternal tasks = project.getTasks();
@@ -318,7 +318,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public String getPath() {
-        return path;
+        return path.getPath();
     }
 
     @Override

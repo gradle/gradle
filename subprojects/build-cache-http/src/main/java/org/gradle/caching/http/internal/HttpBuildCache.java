@@ -30,6 +30,7 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Build cache implementation that delegates to a service accessible via HTTP.
@@ -47,6 +49,7 @@ public class HttpBuildCache implements BuildCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCache.class);
 
     private final URI root;
+    private final URI safeUri;
     private final CloseableHttpClient httpClient;
 
     public HttpBuildCache(URI root) {
@@ -54,6 +57,7 @@ public class HttpBuildCache implements BuildCache {
             throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
         }
         this.root = root;
+        this.safeUri = safeUri(root);
         this.httpClient = HttpClients.createDefault();
     }
 
@@ -66,7 +70,7 @@ public class HttpBuildCache implements BuildCache {
             response = httpClient.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for GET {}: {}", uri, statusLine);
+                LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusLine);
             }
             int statusCode = statusLine.getStatusCode();
             if (statusCode >= 200 && statusCode < 300) {
@@ -75,7 +79,8 @@ public class HttpBuildCache implements BuildCache {
             } else if (statusCode == 404) {
                 return false;
             } else {
-                throw new BuildCacheException(String.format("HTTP cache returned status %d: %s for key '%s' from %s", statusCode, statusLine.getReasonPhrase(), key, getDescription()));
+                // TODO: We should consider different status codes as fatal/recoverable
+                throw new BuildCacheException(String.format("For key '%s', using %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase()));
             }
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
@@ -120,7 +125,7 @@ public class HttpBuildCache implements BuildCache {
         try {
             response = httpClient.execute(httpPut);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for PUT {}: {}", uri, response.getStatusLine());
+                LOGGER.debug("Response for PUT {}: {}", safeUri(uri), response.getStatusLine());
             }
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
@@ -133,11 +138,25 @@ public class HttpBuildCache implements BuildCache {
 
     @Override
     public String getDescription() {
-        return "HTTP cache at " + root;
+        return "HTTP cache at " + safeUri;
     }
 
     @Override
     public void close() throws IOException {
         httpClient.close();
+    }
+
+    /**
+     * Create a safe URI from the given one by stripping out user info.
+     *
+     * @param uri Original URI
+     * @return a new URI with no user info
+     */
+    private static URI safeUri(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

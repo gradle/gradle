@@ -43,13 +43,15 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
 
         expect:
         registry.canSerialize(Long)
-        !registry.canSerialize(Number)
-        !registry.canSerialize(Object)
+        registry.canSerialize(Number)
+        registry.canSerialize(Object)
         !registry.canSerialize(BigDecimal)
 
         registry.canSerialize(StringBuilder)
+        registry.canSerialize(CharSequence)
         !registry.canSerialize(String)
     }
+
 
     def "serializes type information with a value"() {
         given:
