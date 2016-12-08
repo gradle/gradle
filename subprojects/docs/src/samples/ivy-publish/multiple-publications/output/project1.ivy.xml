@@ -5,7 +5,8 @@
     <ns:myElement xmlns:ns="http://my.namespace">Some value</ns:myElement>
   </info>
   <configurations>
-    <conf name="default" visibility="public" extends="runtime"/>
+    <conf name="compile" visibility="public"/>
+    <conf name="default" visibility="public" extends="runtime,compile"/>
     <conf name="runtime" visibility="public"/>
   </configurations>
   <publications>
