@@ -249,7 +249,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public void pluginRepositories(Action<PluginRepositoriesSpec> pluginSettings) {
+    public void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings) {
         PluginRepositoryFactory pluginRepositoryFactory = getServices().get(PluginRepositoryFactory.class);
         PluginRepositoryRegistry pluginRepositoryRegistry = getServices().get(PluginRepositoryRegistry.class);
         DefaultPluginRepositoriesSpec spec = new DefaultPluginRepositoriesSpec(pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
@@ -262,6 +262,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    
     public void settingsEvaluated(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
     }

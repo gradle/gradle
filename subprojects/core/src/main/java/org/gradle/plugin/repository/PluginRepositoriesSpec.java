@@ -24,6 +24,10 @@ import org.gradle.api.Incubating;
  * <p>
  * Plugin repositories added via this interface will used to resolve plugins specified
  * in the <code>plugins {}</code> block.
+ *
+ * When defining multiple <code>pluginRepository {}</code> blocks (like possible with
+ * init scripts), the order in which they are applied is the order in which Gradle will
+ * search for the plugin.
  */
 @Incubating
 public interface PluginRepositoriesSpec {

@@ -268,9 +268,15 @@
                     omit the <code>gradlePluginPortal()</code> line. Finally, the Ivy repository at <literal>ivy-repo</literal> will be checked.
                 </para>
                 <para>
-                    The <code>pluginRepositories {}</code> block may only appear in the <code>settings.gradle</code> file, and must be the first block in the file.
+                    The <code>pluginRepositories {}</code> when in the <code>settings.gradle</code> file must be the first block in the file.
                     Custom Maven and Ivy plugin repositories must contain <link linkend="sec:plugin_markers">plugin marker artifacts</link> in addition to the artifacts
                     which actually implement the plugin. For more information on publishing plugins to custom repositories read <xref linkend="javaGradle_plugin" />.
+                </para>
+                <para>
+                    It is also possible to add a custom plugin repositories using an <link linkend="init_scripts">Init Script</link> using
+                    then <apilink class="org.gradle.api.invocation.Gradle" method="pluginRepositories"/> method. When using both an init script and
+                    <code>settings.gradle</code> the order in which they apply will be the order Gradle searches for the plugin. Once a plugin is applied using
+                    <code>plugins {}</code> DSL, you can no longer add custom plugin repositories.
                 </para>
                 <para>
                     See <apilink class="org.gradle.plugin.repository.PluginRepositoriesSpec" /> for complete documentation for using the

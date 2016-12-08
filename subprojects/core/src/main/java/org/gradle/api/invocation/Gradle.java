@@ -187,19 +187,9 @@ public interface Gradle extends PluginAware {
      * Adds a action to be called to configure {@code PluginRepositoriesSpec}
      *
      * @param pluginSettings The action to execute
-     * @throws IllegalStateException when settings are evaluated
+     * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
      */
-    void pluginRepositories(Action<PluginRepositoriesSpec> pluginSettings);
-
-    /**
-     * Adds a closure to be called to configure pluginRepositories.
-     *
-     * This {@code PluginRepositoriesSpec} instance is passed to the closure as the first parameter.
-     *
-     * @param closure The closure to execute.
-     * @throws IllegalStateException when settings are evaluated
-     */
-    void pluginRepositories(Closure closure);
+    void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings);
 
     /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.
