@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.plugins.Usage;
+import org.gradle.api.attributes.Usage;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;

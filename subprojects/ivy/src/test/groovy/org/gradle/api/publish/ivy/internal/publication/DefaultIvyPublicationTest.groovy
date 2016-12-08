@@ -29,7 +29,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.plugins.Usage
+import org.gradle.api.attributes.Usage
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
