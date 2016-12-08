@@ -18,7 +18,7 @@ package org.gradle.api.internal.component;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.plugins.Usage;
+import org.gradle.api.attributes.Usage;
 
 import java.util.Set;
 

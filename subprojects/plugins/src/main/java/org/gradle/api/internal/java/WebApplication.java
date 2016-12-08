@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.plugins.Usage;
-import org.gradle.api.plugins.Usages;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.Usages;
 
 import java.util.Collections;
 import java.util.Set;
