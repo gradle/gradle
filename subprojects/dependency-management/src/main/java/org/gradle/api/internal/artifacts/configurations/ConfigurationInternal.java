@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
@@ -44,13 +42,4 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
      */
     OutgoingVariant convertToOutgoingVariant();
-
-    /**
-     * Returns the outgoing artifacts of this configuration.
-     *
-     * @return The outgoing artifacts of this configuration.
-     * @since 3.3
-     */
-    @Incubating
-    ConfigurationPublications getOutgoing();
 }

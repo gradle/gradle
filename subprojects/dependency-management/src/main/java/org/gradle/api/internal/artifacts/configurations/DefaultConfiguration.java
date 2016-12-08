@@ -960,6 +960,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         }
 
+        @Override
         public FileCollection getFiles(Map<?, ?> attributeMap) {
             AttributeContainerInternal attributes = configurationAttributes.copy();
             populateAttributesFromMap(attributeMap, attributes);
