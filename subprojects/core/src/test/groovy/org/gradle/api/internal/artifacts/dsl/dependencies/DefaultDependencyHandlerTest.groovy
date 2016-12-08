@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
@@ -283,5 +284,24 @@ class DefaultDependencyHandlerTest extends Specification {
 
         then:
         1 * dependencyFactory.createDependency(null)
+    }
+
+    void "transforms a dependency"() {
+        Dependency dependency = Mock()
+        dependencyHandler.dependencyPreprocessor(new Action<DependencyPreprocessor>() {
+            @Override
+            void execute(DependencyPreprocessor dependencyPreProcessor) {
+                dependencyPreProcessor.setDependencyNotation('otherNotation')
+            }
+        })
+
+        when:
+        def result = dependencyHandler.create("someNotation")
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("otherNotation") >> dependency
     }
 }
