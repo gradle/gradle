@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+
+package org.gradle.api.attributes;
 
 import org.gradle.api.Named;
-import org.gradle.api.attributes.Attribute;
 
 /**
  * Represents the usage of a configuration. Typical usages include compilation or runtime.
