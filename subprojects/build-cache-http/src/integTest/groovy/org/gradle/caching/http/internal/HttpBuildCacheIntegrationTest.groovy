@@ -192,7 +192,7 @@ class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         withHttpBuildCache().succeeds "assemble"
         then:
         !result.output.contains("username")
-        !result.output.contains("username")
+        !result.output.contains("password")
     }
 
     def "cacheable task with cache disabled doesn't get cached"() {
