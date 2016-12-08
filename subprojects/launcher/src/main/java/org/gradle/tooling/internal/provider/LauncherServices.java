@@ -40,9 +40,6 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     @Override
@@ -91,12 +88,6 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
 
         ClassLoaderCache createClassLoaderCache() {
             return new ClassLoaderCache();
-        }
-
-        ScheduledExecutorService createScheduledExecutorService() {
-            ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
-            scheduledThreadPoolExecutor.setKeepAliveTime(10, TimeUnit.SECONDS);
-            return scheduledThreadPoolExecutor;
         }
     }
 
