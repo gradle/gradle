@@ -38,6 +38,9 @@ class WorkerDaemonServiceErrorHandlingIntegrationTest extends AbstractWorkerDaem
 
         and:
         failureHasCause("Failure from runnable")
+
+        and:
+        errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from runnable")
     }
 
     def "produces a sensible error when there is a failure starting a daemon"() {
@@ -259,7 +262,7 @@ class WorkerDaemonServiceErrorHandlingIntegrationTest extends AbstractWorkerDaem
             }
         """
     }
-    
+
     String getRunnableThatFailsInstantiation() {
         return """
             public class RunnableThatFails implements Runnable {
