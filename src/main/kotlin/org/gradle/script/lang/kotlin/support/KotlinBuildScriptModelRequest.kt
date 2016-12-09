@@ -23,6 +23,7 @@ import org.gradle.tooling.ProjectConnection
 
 import java.io.File
 
+internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
     val gradleInstallation: File,
@@ -30,6 +31,7 @@ data class KotlinBuildScriptModelRequest(
     val javaHome: File? = null,
     val jvmOptions: List<String> = emptyList())
 
+internal
 fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
     withConnectionFrom(connectorFor(request.projectDir, request.gradleInstallation)) {
         model(KotlinBuildScriptModel::class.java)?.run {
@@ -42,17 +44,22 @@ fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): Kotl
         }
     }
 
-private val modelSpecificJvmOptions =
+private
+val modelSpecificJvmOptions =
     listOf("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
 
-internal val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.script"
+internal
+val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.script"
 
+internal
 fun connectorFor(projectDir: File, gradleInstallation: File): GradleConnector =
     GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation)
 
+internal
 inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
     connector.connect().use(block)
 
+internal
 inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
     try {
         return block(this)

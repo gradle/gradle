@@ -18,10 +18,12 @@ package org.gradle.script.lang.kotlin.support
 
 import java.io.File
 
+internal
 interface SourcePathProvider {
     fun sourcePathFor(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel): Collection<File>
 }
 
+internal
 object DefaultSourcePathProvider : SourcePathProvider {
 
     override fun sourcePathFor(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel): Collection<File> {
