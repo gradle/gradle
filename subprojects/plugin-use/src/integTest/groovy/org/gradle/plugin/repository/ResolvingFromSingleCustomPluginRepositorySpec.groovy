@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreRest
 import spock.lang.Unroll
 
 @LeaksFileHandles
@@ -48,12 +49,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     private String useCustomRepository(String repoType, PathType pathType) {
-        def repoUrl = 'Nothing'
-        if (repoType == MAVEN) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
-        } else if (repoType == IVY) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
-        }
+        def repoUrl = buildRepoPath(repoType, pathType)
         settingsFile << """
           pluginRepositories {
               ${repoType} {
@@ -61,6 +57,16 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
               }
           }
         """
+        return repoUrl
+    }
+
+    private String buildRepoPath(String repoType, PathType pathType) {
+        def repoUrl = 'Nothing'
+        if (repoType == MAVEN) {
+            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
+        } else if (repoType == IVY) {
+            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
+        }
         return repoUrl
     }
 
@@ -115,6 +121,94 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         where:
         repoType << [IVY, MAVEN]
+    }
+
+    @Unroll
+    def "can resolve plugin from #pathType #repoType repo using rule based plugin repository"() {
+        given:
+        publishTestPlugin(repoType)
+        buildScript """
+          plugins {
+              id "org.example.plugin"
+          }
+        """
+
+        and:
+        settingsFile << """
+            pluginRepositories {
+                rules {
+                    description = 'testing repo'
+                    artifactRepositories { repos ->
+                        repos.${repoType} {
+                            url "${buildRepoPath(repoType, pathType)}"
+                        }
+                    }
+                    pluginResolution { resolution ->
+                        if(resolution.requestedPlugin.id.namespace == 'org.example' && resolution.requestedPlugin.id.name == 'plugin') {
+                            resolution.useModule('org.example.plugin:plugin:1.0')
+                        }
+                    }
+                }
+            }
+        """
+
+
+        when:
+        succeeds("pluginTask")
+
+        then:
+        output.contains("from plugin")
+
+        where:
+        repoType | pathType
+        IVY      | PathType.ABSOLUTE
+        IVY      | PathType.RELATIVE
+        MAVEN    | PathType.ABSOLUTE
+        MAVEN    | PathType.RELATIVE
+    }
+
+    @Unroll
+    def "can resolve plugin from #pathType #repoType and change plugin id"() {
+        given:
+        publishTestPlugin(repoType)
+        buildScript """
+          plugins {
+              id "org.acme.plugin"
+          }
+        """
+
+        and:
+        settingsFile << """
+            pluginRepositories {
+                rules {
+                    description = 'testing repo'
+                    artifactRepositories { repos ->
+                        repos.${repoType} {
+                            url "${buildRepoPath(repoType, pathType)}"
+                        }
+                    }
+                    pluginResolution { resolution ->
+                        if(resolution.requestedPlugin.id.namespace == 'org.acme' && resolution.requestedPlugin.id.name == 'plugin') {
+                            resolution.useModule('org.example.plugin:plugin:1.0').withPluginName('org.example.plugin')
+                        }
+                    }
+                }
+            }
+        """
+
+
+        when:
+        succeeds("pluginTask")
+
+        then:
+        output.contains("from plugin")
+
+        where:
+        repoType | pathType
+        IVY      | PathType.ABSOLUTE
+        IVY      | PathType.RELATIVE
+        MAVEN    | PathType.ABSOLUTE
+        MAVEN    | PathType.RELATIVE
     }
 
     @Unroll

@@ -44,24 +44,23 @@ public class RulesBasedPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         DefaultPluginDependencyHandler defaultPluginDependency = new DefaultPluginDependencyHandler(pluginRequest);
         resolution.execute(defaultPluginDependency);
 
-        if(null == defaultPluginDependency.options) {
+        if (null == defaultPluginDependency.options) {
             result.notFound(getDescription(), null);
             return;
         }
 
         final DefaultPluginModuleOptions pluginOptions = defaultPluginDependency.options;
 
-        if(pluginOptions.isolatedClasspath) {
+        if (pluginOptions.isolatedClasspath) {
             ClassPath classPath = resolutionServiceResolver.resolvePluginDependencies(pluginOptions.dependencyNotation, description);
             PluginResolution resolution = resolutionServiceResolver.buildPluginResolution(pluginRequest.getId(), Factories.constant(classPath));
             result.found(getDescription(), resolution);
         } else {
-            String name = pluginRequest.getId().getName();
-            final PluginId pluginId = DefaultPluginId.of(name);
+            final PluginId pluginId = DefaultPluginId.of(pluginOptions.pluginName);
             result.found(getDescription(), new PluginResolution() {
                 @Override
                 public PluginId getPluginId() {
@@ -95,7 +94,7 @@ public class RulesBasedPluginResolver implements PluginResolver {
 
         @Override
         public PluginModuleOptions useModule(Object dependencyNotation) {
-            options = new DefaultPluginModuleOptions(dependencyNotation);
+            options = new DefaultPluginModuleOptions(dependencyNotation, pluginRequest.getId().asString());
             return options;
         }
     }
@@ -104,9 +103,11 @@ public class RulesBasedPluginResolver implements PluginResolver {
 
         private final Object dependencyNotation;
         private boolean isolatedClasspath = false;
+        private String pluginName;
 
-        private DefaultPluginModuleOptions(Object dependencyNotation) {
+        private DefaultPluginModuleOptions(Object dependencyNotation, String pluginName) {
             this.dependencyNotation = dependencyNotation;
+            this.pluginName = pluginName;
         }
 
         @Override
@@ -118,6 +119,17 @@ public class RulesBasedPluginResolver implements PluginResolver {
         @Override
         public Object getDependencyNotation() {
             return dependencyNotation;
+        }
+
+        @Override
+        public PluginModuleOptions withPluginName(String pluginName) {
+            this.pluginName = pluginName;
+            return this;
+        }
+
+        @Override
+        public String getPluginName() {
+            return pluginName;
         }
     }
 }
