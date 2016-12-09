@@ -88,18 +88,17 @@ class KotlinBuildScriptCompiler(
     private fun compileTopLevelScript(): (Project) -> Unit {
         return { target ->
             executeBuildscriptBlockOn(target)
-            val scriptClassLoader = scriptBodyClassLoaderFor(target)
-            val scriptClass = compileScriptFile(scriptClassLoader)
-            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
+            executeScriptBodyOn(target)
         }
     }
 
-    private fun compileScriptPlugin(): (Project) -> Unit {
-        return { target ->
-            val scriptClassLoader = scriptBodyClassLoaderFor(target)
-            val scriptClass = compileScriptFile(scriptClassLoader)
-            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
-        }
+    private fun compileScriptPlugin(): (Project) -> Unit =
+        { target -> executeScriptBodyOn(target) }
+
+    private fun executeScriptBodyOn(target: Project) {
+        val scriptClassLoader = scriptBodyClassLoaderFor(target)
+        val scriptClass = compileScriptFile(scriptClassLoader)
+        executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
     }
 
     private fun executeBuildscriptBlockOn(target: Project) {
