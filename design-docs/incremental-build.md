@@ -319,7 +319,7 @@ Gradle detects and removes stale Java class files after a Gradle version change.
 
 <!-- -->
 
-    public class TaskHistoryCleanupStrategy implements BuildOutputCleanupStrategy {
+    public class PersistedGradleVersionCleanupStrategy implements BuildOutputCleanupStrategy {
         @Override
         public boolean needsCleanup(Gradle gradle) {
             // identify existing task history
