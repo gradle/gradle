@@ -274,7 +274,7 @@ Gradle detects and removes stale Java class files after a Gradle version change.
     - The registry is going to be an internal concept and is not going to be exposed via a public API.
     - The registry needs to be instantiated by Gradle's global service registry. 
     - When a build is executed, the registry is contacted and provides all registered strategies.
-    - If a strategy indicates that clean up is needed then delete all registered outputs.
+    - If any of the strategies indicate that a clean up is needed then delete all registered outputs.
 
 <!-- -->
 
@@ -284,29 +284,32 @@ Gradle detects and removes stale Java class files after a Gradle version change.
          */
         boolean needsCleanup(Gradle gradle);
     }
-    
-    public interface BuildOutputCleanup {
-        /**
-         * Returns the clean up strategy.
-         */
-        BuildOutputCleanupStrategy getStrategy();
-        
-        /**
-         * Returns the outputs that need to be cleaned if needed.
-         */
-        List<File> getOutputs();
-    }
 
     public interface BuildOutputCleanupRegistry {
         /**
-         * Registers clean up strategy for given outputs.
+         * Registers clean up strategy.
          */
-        void registerCleanup(BuildOutputCleanup cleanups);
+        void registerStrategy(BuildOutputCleanupStrategy strategy);
         
         /**
-         * Returns all clean ups.
+         * Returns all registered clean up strategies.
          */
-        List<BuildOutputCleanup> getCleanups();
+        List<BuildOutputCleanupStrategy> getStrategies();
+        
+        /**
+         * Registers outputs to be cleaned up.
+         */
+        void registerOutputs(File... outputs);
+
+        /**
+         * Registers outputs to be cleaned up.
+         */
+        void registerOutputs(List<File> outputs);
+        
+        /**
+         * Returns all registed outputs.
+         */
+        List<File> getOutputs();
     }
 
 - Provide an implementation for a clean up strategy that identifies if task history is available.
