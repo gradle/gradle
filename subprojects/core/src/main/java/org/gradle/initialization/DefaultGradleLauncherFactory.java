@@ -50,7 +50,6 @@ import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
@@ -64,12 +63,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
-        ListenerManager listenerManager, MemoryStatusBroadcaster memoryStatusBroadcaster, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
+        ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
         this.globalListenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
-
-        // Start broadcasting memory status updates
-        memoryStatusBroadcaster.start();
 
         // Register default loggers
         buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
