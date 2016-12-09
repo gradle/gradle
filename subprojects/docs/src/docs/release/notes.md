@@ -126,6 +126,10 @@ The Ant-based Java compiler itself was removed in Gradle 2.0. We now have deprec
 * `FileCollectionDependency.registerWatchPoints()` is deprecated. This method is intended only for internal use and will be removed in Gradle 4.0. You can use the new `getFiles()` method as a replacement, if required.
 * The `@OrderSensitive` annotation and the `TaskInputFilePropertyBuilder.orderSensitive()` methods are deprecated and will be removed in Gradle 4.0. For classpath properties, you should use the `@Classpath` annotation instead.
 
+### The Gradle GUI
+
+The [Gradle GUI](userguide/tutorial_gradle_gui.html) has been deprecated and will be removed in Gradle 4.0. Consider using an IDE with support for Gradle e.g. Eclipse, IntelliJ or NetBeans instead.
+
 ## Potential breaking changes
 
 ### BuildInvocations model is always returned for the connected project
