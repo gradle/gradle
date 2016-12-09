@@ -330,7 +330,7 @@ Gradle detects and removes stale Java class files after a Gradle version change.
     - Add resources output directory via `sourceSet.getOutput().getResourcesDir()`.
 - Delete outputs if needed.
     - Retrieve all clean up strategies as one of the last things during the configuration phase.
-    - Delete outputs for a strategy if needed. If output does not exist then skip. Render an info message to the console that indicates operation.
+    - Delete outputs for a strategy if needed. If output does not exist then skip. Render a message with log level `quiet` to the console that indicates operation.
     - The delete operation is not represented by a task in task graph.
     - Failure to delete an output (e.g. due to file locking) will render a helpful warning message but not fail the build.
 - Cleaning the output works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`).
@@ -344,7 +344,7 @@ Gradle detects and removes stale Java class files after a Gradle version change.
 - Task history for Gradle version exists. No need to remove outputs.
 - Task history does not exist for Gradle version.
     - Registered classes and resources output directories are deleted including all contents.
-    - Expect a message rendered to the console information the user if run with `info` log level.
+    - Expect a message rendered to the console information the user if run with `quiet` log level.
     - A locked output file does not delete the output directory and renders an appropriate error message.
     - The `GroovyPlugin` and `ScalaPlugin` work in the same way as they apply the `JavaPlugin`.
     - The same behavior applies to `buildSrc`.
