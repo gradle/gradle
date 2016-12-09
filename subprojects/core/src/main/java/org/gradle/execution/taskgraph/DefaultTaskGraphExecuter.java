@@ -46,6 +46,7 @@ import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +127,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", closure));
+        whenReady(ConfigureUtil.<TaskExecutionGraph>configureUsing(closure));
     }
 
     public void whenReady(final Action<TaskExecutionGraph> action) {
@@ -147,7 +148,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void beforeTask(final Closure closure) {
-        taskListeners.add(new ClosureBackedMethodInvocationDispatch("beforeExecute", closure));
+        beforeTask(ConfigureUtil.<Task>configureUsing(closure));
     }
 
     public void beforeTask(final Action<Task> action) {

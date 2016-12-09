@@ -825,11 +825,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     public void beforeEvaluate(Closure closure) {
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
+        beforeEvaluate(ConfigureUtil.configureUsing(closure));
     }
 
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        afterEvaluate(ConfigureUtil.configureUsing(closure));
     }
 
     public Logger getLogger() {

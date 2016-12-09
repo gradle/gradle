@@ -83,6 +83,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -987,7 +988,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Closure action) {
-            dependencyResolutionListeners.add(new ClosureBackedMethodInvocationDispatch("beforeResolve", action));
+            beforeResolve(ConfigureUtil.configureUsing(action));
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
@@ -995,7 +996,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void afterResolve(Closure action) {
-            dependencyResolutionListeners.add(new ClosureBackedMethodInvocationDispatch("afterResolve", action));
+            afterResolve(ConfigureUtil.configureUsing(action));
         }
 
         public ResolutionResult getResolutionResult() {
