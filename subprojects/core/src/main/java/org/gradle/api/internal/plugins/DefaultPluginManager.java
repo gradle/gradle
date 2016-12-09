@@ -30,14 +30,15 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.util.Map;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
 
-    public static final String CORE_PLUGIN_NAMESPACE = "org" + PluginId.SEPARATOR + "gradle";
-    public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + PluginId.SEPARATOR;
+    public static final String CORE_PLUGIN_NAMESPACE = "org" + DefaultPluginId.SEPARATOR + "gradle";
+    public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + DefaultPluginId.SEPARATOR;
 
     private final Instantiator instantiator;
     private final PluginApplicator applicator;
@@ -105,7 +106,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public void apply(String pluginId) {
-        PluginImplementation<?> plugin = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
+        PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
@@ -180,7 +181,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public DomainObjectSet<PluginWithId> pluginsForId(String id) {
-        PluginId pluginId = PluginId.unvalidated(id);
+        PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
             pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newLinkedHashSet());

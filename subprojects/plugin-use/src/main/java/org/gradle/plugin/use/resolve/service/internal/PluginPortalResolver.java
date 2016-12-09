@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.internal.Factories;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -103,7 +104,7 @@ public class PluginPortalResolver implements PluginResolver {
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
-        final PluginId pluginId = PluginId.of(metadata.id);
+        final PluginId pluginId = DefaultPluginId.of(metadata.id);
         result.found(getDescription(), new PluginResolution() {
             @Override
             public PluginId getPluginId() {
