@@ -37,7 +37,7 @@ Doing so helps to ensure that:
 All code contributions should contain the following:
 
 * Unit Tests (using [Spock](http://spockframework.org/spock/docs/1.1-rc-2/index.html)) for any logic introduced
-* Integration Test coverage of the bug/feature at the level of build execution
+* Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
 * Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 * Javadoc `@author` tags and committer names are not used in the codebase (contributions are recognised in the commit history and release notes)
 
