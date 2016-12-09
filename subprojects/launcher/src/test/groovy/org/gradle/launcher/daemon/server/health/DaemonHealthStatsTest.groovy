@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.health
 
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
@@ -24,13 +25,14 @@ import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
 import org.gradle.process.internal.health.memory.DefaultMemoryManager
 import org.gradle.process.internal.health.memory.JvmMemoryStatusListener
 import org.gradle.process.internal.health.memory.JvmMemoryStatusSnapshot
+import org.gradle.process.internal.health.memory.MemoryInfo
 import spock.lang.Specification
 
 class DaemonHealthStatsTest extends Specification {
 
     def listenerManager = new DefaultListenerManager()
     def jvmMemoryBroadcast = listenerManager.getBroadcaster(JvmMemoryStatusListener);
-    def memoryResourceManager = new DefaultMemoryManager(listenerManager)
+    def memoryResourceManager = new DefaultMemoryManager(Stub(MemoryInfo), listenerManager, Stub(ExecutorFactory))
     def gcInfo = Stub(GarbageCollectionInfo)
     def gcMonitor = Stub(GarbageCollectionMonitor)
     def runningStats = Stub(DaemonRunningStats)

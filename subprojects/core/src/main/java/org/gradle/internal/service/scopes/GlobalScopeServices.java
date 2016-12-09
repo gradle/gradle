@@ -87,7 +87,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableScheduledExecutor;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
@@ -134,11 +133,8 @@ import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
@@ -172,12 +168,8 @@ public class GlobalScopeServices {
         }
     }
 
-    StoppableScheduledExecutor createScheduledExecutorService(ExecutorFactory executorFactory) {
-        return executorFactory.createScheduled("Global scheduled executor", 10, TimeUnit.SECONDS);
-    }
-
-    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, MemoryStatusBroadcaster memoryStatusBroadcaster, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
-        return new DefaultGradleLauncherFactory(listenerManager, memoryStatusBroadcaster, progressLoggerFactory, userHomeScopeServiceRegistry);
+    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
+        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
     }
 
     BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
@@ -413,11 +405,7 @@ public class GlobalScopeServices {
         return new MemoryInfo(execHandleFactory);
     }
 
-    MemoryStatusBroadcaster createMemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        return new MemoryStatusBroadcaster(memoryInfo, scheduledExecutorService, listenerManager);
-    }
-
-    MemoryManager createMemoryManager(ListenerManager listenerManager) {
-        return new DefaultMemoryManager(listenerManager);
+    MemoryManager createMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        return new DefaultMemoryManager(memoryInfo, listenerManager, executorFactory);
     }
 }

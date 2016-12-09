@@ -25,7 +25,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
@@ -39,10 +38,9 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final ServiceRegistry userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
     final ServiceRegistry sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY)
     final ListenerManager listenerManager = globalServices.get(ListenerManager)
-    final MemoryStatusBroadcaster memoryStatusBroadcaster = globalServices.get(MemoryStatusBroadcaster)
     final ProgressLoggerFactory progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, memoryStatusBroadcaster, progressLoggerFactory, userHomeScopeServiceRegistry);
+    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
 
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)

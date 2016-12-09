@@ -63,7 +63,6 @@ import org.gradle.process.internal.health.memory.MemoryManager;
 
 import java.io.File;
 import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -128,8 +127,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new HealthExpirationStrategy(memoryStatus);
     }
 
-    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, ScheduledExecutorService scheduledExecutorService) {
-        return new DaemonHealthStats(runningStats, memoryManager, scheduledExecutorService);
+    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, ExecutorFactory executorFactory) {
+        return new DaemonHealthStats(runningStats, memoryManager, executorFactory);
     }
 
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
@@ -163,7 +162,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             get(DaemonContext.class),
             new DaemonCommandExecuter(actions),
             get(ExecutorFactory.class),
-            get(ScheduledExecutorService.class),
             get(ListenerManager.class)
         );
     }
