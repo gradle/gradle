@@ -65,6 +65,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.util.CollectionUtils.collect;
@@ -775,6 +776,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
+        if (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
+            properties.put(REUSE_USER_HOME_SERVICES, "false");
+        }
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {
                 tmpDir = getDefaultTmpDir();
