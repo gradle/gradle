@@ -1,4 +1,7 @@
 buildscript {
+    repositories {
+        gradleScriptKotlin()
+    }
     dependencies {
         classpath(kotlinModule("gradle-plugin"))
     }
@@ -6,4 +9,8 @@ buildscript {
 
 apply {
     plugin("kotlin")
+}
+
+dependencies {
+    compile(kotlinModule("stdlib"))
 }

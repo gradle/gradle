@@ -11,7 +11,7 @@ allprojects {
 
     version = "1.0"
 
-    configure(listOf(repositories, buildscript.repositories)) {
+    repositories {
         gradleScriptKotlin()
     }
 }
