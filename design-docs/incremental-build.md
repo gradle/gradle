@@ -311,7 +311,10 @@ Gradle detects and removes stale Java class files after a Gradle version change.
 
 - Provide an implementation for a clean up strategy that identifies if task history is available.
     - Create an instance of the implementation in Gradle's global service registry.
-    - Check if the `.gradle/<version>` directory exists for current version of Gradle used for build.
+    - Persist the Gradle version to a cross-version file [similar to what we have for `buildSrc`](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/initialization/buildsrc/BuildSourceBuilder.java#L103).
+    - Only initiate a clean if one of the following conditions is encountered:
+        - If the cross-version file does not exist.
+        - If the current Gradle version used by the build is different from the one persisted in the cross-version file.
     - Stale files produced by older versions of Gradle (that do not know about the registry implementation) are out of scope.
 
 <!-- -->
