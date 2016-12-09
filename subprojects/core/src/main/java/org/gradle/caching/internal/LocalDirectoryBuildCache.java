@@ -126,7 +126,7 @@ public class LocalDirectoryBuildCache implements BuildCache {
 
     @Override
     public String getDescription() {
-        return "local directory cache in " + persistentCache.getBaseDir();
+        return "a local build cache (" + persistentCache.getBaseDir() + ")";
     }
 
     @Override
