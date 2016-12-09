@@ -28,7 +28,7 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     private final String scriptDisplayName;
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(PluginId.of(id), version, apply, lineNumber, scriptSource);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
@@ -36,7 +36,7 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     }
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(PluginId.of(id), version, apply, lineNumber, scriptDisplayName);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName);
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName) {

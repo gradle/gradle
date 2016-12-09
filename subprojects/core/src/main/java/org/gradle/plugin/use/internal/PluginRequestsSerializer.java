@@ -31,7 +31,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
         int requestCount = decoder.readSmallInt();
         List<InternalPluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
-            PluginId pluginId = PluginId.unvalidated(decoder.readString());
+            PluginId pluginId = DefaultPluginId.unvalidated(decoder.readString());
             String version = decoder.readNullableString();
             boolean apply = decoder.readBoolean();
             int lineNumber = decoder.readSmallInt();

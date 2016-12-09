@@ -50,7 +50,7 @@ public class PluginRequestCollector {
         private final int lineNumber;
 
         private DependencySpecImpl(String id, int lineNumber) {
-            this.id = PluginId.of(id);
+            this.id = DefaultPluginId.of(id);
             this.apply = true;
             this.lineNumber = lineNumber;
         }

@@ -24,6 +24,7 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
@@ -44,7 +45,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin apply(String id) {
-        PluginImplementation plugin = pluginRegistry.lookup(PluginId.unvalidated(id));
+        PluginImplementation plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(id));
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
