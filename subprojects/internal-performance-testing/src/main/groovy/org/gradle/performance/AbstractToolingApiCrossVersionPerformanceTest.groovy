@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import groovy.transform.Canonical
 import groovy.transform.InheritConstructors
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -68,9 +69,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
 
     protected ToolingApiExperimentSpec experimentSpec
-    // caching class loaders at this level because for performance experiments
-    // we don't want caches of the TAPI to be visible between different experiments
-    protected final Map<String, ClassLoader> testClassLoaders = [:]
 
     protected ClassLoader tapiClassLoader
 
@@ -163,17 +161,16 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     def toolingApiDistribution = resolver.resolve(dist.version.version)
-                    def testClassPath = [*experimentSpec.extraTestClassPath]
+                    List<File> testClassPath = [*experimentSpec.extraTestClassPath]
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
-                    tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
+                    tapiClassLoader = getTestClassLoader([:], toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
                     assert tapiClazz != ToolingApi
-                    def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
+                    def toolingApi = tapiClazz.newInstance(new PerformanceTestGradleDistribution(dist, workingDirProvider.testDirectory), workingDirProvider)
                     toolingApi.requireIsolatedDaemons()
                     toolingApi.requireIsolatedUserHome()
-                    toolingApi.requireIsolatedToolingApi()
                     warmup(toolingApi, workingDirProvider.testDirectory)
                     measure(results, toolingApi, version, workingDirProvider.testDirectory)
                     toolingApi.daemons.killAll()
@@ -275,6 +272,27 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 return Integer.valueOf(value)
             }
             return defaultValue
+        }
+    }
+
+    /**
+     * Gradle's performance slightly depends on the length of the Gradle home path. This
+     * class ensures fairness between the version under development and the baseline versions,
+     * which live at different depth inside the Gradle repository.
+     */
+    @Canonical
+    private static class PerformanceTestGradleDistribution implements GradleDistribution {
+        @Delegate
+        GradleDistribution delegate
+        TestFile testDir
+        TestFile gradleHome
+
+        TestFile getGradleHomeDir() {
+            if (!gradleHome) {
+                gradleHome = testDir.file("gradle-home")
+                GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
+            }
+            gradleHome
         }
     }
 }

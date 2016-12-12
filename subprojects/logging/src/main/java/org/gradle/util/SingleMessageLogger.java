@@ -100,6 +100,14 @@ public class SingleMessageLogger {
         }
     }
 
+    public static void nagUserOfToolReplacedWithExternalOne(String toolName, String replacement) {
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                    "The %s %s. Consider using %s instead.",
+                    toolName, getDeprecationMessage(), replacement));
+        }
+    }
+
     public static void nagUserOfReplacedTask(String taskName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
