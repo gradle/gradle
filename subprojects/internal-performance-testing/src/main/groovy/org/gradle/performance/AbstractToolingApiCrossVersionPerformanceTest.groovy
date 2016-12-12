@@ -18,7 +18,9 @@ package org.gradle.performance
 
 import groovy.transform.Canonical
 import groovy.transform.InheritConstructors
+import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -40,6 +42,7 @@ import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
@@ -272,27 +275,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 return Integer.valueOf(value)
             }
             return defaultValue
-        }
-    }
-
-    /**
-     * Gradle's performance slightly depends on the length of the Gradle home path. This
-     * class ensures fairness between the version under development and the baseline versions,
-     * which live at different depth inside the Gradle repository.
-     */
-    @Canonical
-    private static class PerformanceTestGradleDistribution implements GradleDistribution {
-        @Delegate
-        GradleDistribution delegate
-        TestFile testDir
-        TestFile gradleHome
-
-        TestFile getGradleHomeDir() {
-            if (!gradleHome) {
-                gradleHome = testDir.file("gradle-home")
-                GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
-            }
-            gradleHome
         }
     }
 }
