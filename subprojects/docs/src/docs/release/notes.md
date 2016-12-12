@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 3.3.
 
-This release of Gradle introduces a made a small but significant change to **significantly improve the performance of `gradle tasks`**. 
+This release of Gradle introduces a small but significant change to **improve the performance of `gradle tasks`**. 
 By default, it will now only display tasks which have been assigned a task group. You can report on tasks without a task group by running `gradle tasks --all`. Task dependencies are no longer rendered as well. 
 This change makes `gradle tasks` over an order of magnitude faster on medium-to-large projects. For example, execution time was reduced from [675 seconds](https://scans.gradle.com/s/iqmi72moz3crs) to [21 seconds](https://scans.gradle.com/s/p4w42uhewxysy) on our [perf-enterprise-large benchmark project](https://github.com/gradle/perf-enterprise-large/) — **over 30x faster**! 
 See technical details on how and why this change was made [further down](#improved-performance-of-tasks-report)
