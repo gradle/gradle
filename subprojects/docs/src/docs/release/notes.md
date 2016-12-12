@@ -1,3 +1,17 @@
+The Gradle team is pleased to announce Gradle 3.3.
+
+This release of Gradle introduces a made a small but significant change to **significantly improve the performance of `gradle tasks`**. 
+By default, it will now only display tasks which have been assigned a task group. You can report on tasks without a task group by running `gradle tasks --all`. Task dependencies are no longer rendered as well. 
+This change makes `gradle tasks` over an order of magnitude faster on medium-to-large projects. For example, execution time was reduced from [675 seconds](https://scans.gradle.com/s/iqmi72moz3crs) to [21 seconds](https://scans.gradle.com/s/p4w42uhewxysy) on our [perf-enterprise-large benchmark project](https://github.com/gradle/perf-enterprise-large/) — **over 30x faster**! 
+See technical details on how and why this change was made [further down](#improved-performance-of-tasks-report)
+
+It is now possible to **compile native applications using Visual Studio 2015**. Gradle will locate the [Universal C Runtime](https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx) required by the Visual C++ toolchain.
+
+**Kotlin build script** support has further improved with significantly **faster startup performance**, increased API parity with Groovy-based build scripts, and better interoperability with Groovy plugins. See the [gradle-script-kotlin v0.5.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.5.0) for details.
+
+**Scala compilation startup time is improved** through enhancements to Gradle's handling of the Zinc compiler interface JAR. 
+
+Lastly, the [Gradle GUI](userguide/tutorial_gradle_gui.html) **has been deprecated** and will be removed in Gradle 4.0. An IDE which provides a UI for Gradle — IntelliJ IDEA, Eclipse, or NetBeans, for example, is recommended.
 
 ## New and noteworthy
 
@@ -13,13 +27,13 @@ Add-->
 
 ### Improved performance of tasks report
 
-In previous versions of Gradle, the [tasks report](userguide/tutorial_gradle_command_line.html#sec:obtaining_information_about_your_build) suffered from poor execution performance especially in large multi-project builds with many sub projects. This version of Gradle improves the tasks report generation performance significantly. In the wake of this change, the report now renders tasks based on different rules. By default, the report shows only those tasks which have been assigned to a task group, so-called _visible_ tasks. Tasks which have not been assigned to a task group, so-called _hidden_ tasks, can be included in the report by enabling the command line option `--all`. Task dependencies are not rendered as indented task nodes anymore.
+In previous versions of Gradle, the [tasks report](userguide/tutorial_gradle_command_line.html#sec:obtaining_information_about_your_build) suffered from poor execution performance especially in large multi-project builds with many sub projects. Previously, the `gradle tasks` report would generate and traverse the task graph to find edge nodes — this intelligence came at great performance cost for medium-to-large projects. This version of Gradle improves the tasks report generation performance significantly. In the wake of this change, the report now renders tasks based on different rules. By default, the report shows only those tasks which have been assigned to a task group, so-called _visible_ tasks. Tasks which have not been assigned to a task group, so-called _hidden_ tasks, can be included in the report by enabling the command line option `--all`. Task dependencies are not rendered as indented task nodes anymore.
 
 For Gradle's own build the time to print the task report dropped from 55s to 4s thanks to this change.
 
-### Clickable links to project reports
+### Click-able links to project reports
 
-When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a clickable URL.
+When generating project reports with the [Project Reports Plugin](userguide/project_reports_plugin.html), Gradle now displays a click-able URL.
 
 ### Incremental build improvements
 
@@ -64,13 +78,13 @@ It is also possible to pass a `Callable`, such as a Groovy Closure, returning a 
         }).withPropertyName("outputFiles")
     }
 
-#### Tasks loaded via custom classloaders are never up-to-date
+#### Tasks loaded via custom classloaders are never considered UP-TO-DATE
 
 Since 3.0 Gradle tracks the implementation of a task's type, and marks tasks out-of-date when it detects changes. But it can only do this reliably with task types that were loaded via Gradle's own classloaders. From this version Gradle will always mark tasks loaded via custom classloaders as out-of-date. This also applies to tasks that have custom actions attached that were loaded via a custom classloader.
 
 ### Visual Studio 2015 Support
 
-It is now possible to compile native application with the Visual C++ toolchain packaged with all versions of Visual Studio 2015.
+It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2015.
 With this release, Gradle will locate the [Universal C Runtime](https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx) required by the Visual C++ toolchain.
 
 ### Tooling API generates more progress events
@@ -85,6 +99,11 @@ The Tooling API now generates progress events for more build activity:
 
 The new `WriteProperties` task is available to create Java properties files in a reproducible manner. For more information
 see the User guide section on "[Properties files](userguide/working_with_files.html#sec:properties_files)".
+
+### Improved initial Scala compilation performance
+
+Previously, large multi-project Scala builds suffered from poor startup performance due to how the Zinc compiler interface was generated and file locking around it. 
+[Fedor Korotkov](https://github.com/fkorotkov) kindly contributed a smarter locking strategy that improves performance and prevents cache pollution from using different versions of Zinc in one build. Thank you, Fedor!
 
 ## Promoted features
 
