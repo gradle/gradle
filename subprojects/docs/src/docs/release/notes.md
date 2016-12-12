@@ -116,6 +116,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+## Additional upgrade instructions
+
+If you are upgrading from Gradle 3.2 and using the [Gradle wrapper](userguide/gradle_wrapper.html), re-run `./gradlew wrapper` and commit the result to avoid a mis-configured wrapper script.
+
 ## Fixed issues
 
 ## Deprecations
