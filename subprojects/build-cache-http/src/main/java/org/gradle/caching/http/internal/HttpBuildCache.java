@@ -138,7 +138,7 @@ public class HttpBuildCache implements BuildCache {
 
     @Override
     public String getDescription() {
-        return "a HTTP cache (" + safeUri + ")";
+        return "an HTTP build cache (" + safeUri + ")";
     }
 
     @Override

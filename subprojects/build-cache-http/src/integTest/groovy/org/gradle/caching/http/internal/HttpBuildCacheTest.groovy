@@ -95,6 +95,6 @@ class HttpBuildCacheTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "For key '${key.hashCode}', using a HTTP cache (${server.uri}/cache/) response status 500: broken"
+        exception.message == "For key '${key.hashCode}', using an HTTP build cache (${server.uri}/cache/) response status 500: broken"
     }
 }
