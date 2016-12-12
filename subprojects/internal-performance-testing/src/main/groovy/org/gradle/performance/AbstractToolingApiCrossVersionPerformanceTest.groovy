@@ -16,11 +16,8 @@
 
 package org.gradle.performance
 
-import groovy.transform.Canonical
 import groovy.transform.InheritConstructors
-import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
