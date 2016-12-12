@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GFileUtils
@@ -47,6 +48,9 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
         if (!gradleHome) {
             gradleHome = new TestFile(testDir, "gradle-home")
             GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
+            if (OperatingSystem.current().isUnix()) {
+                Runtime.getRuntime().exec("chmod u+x " + gradleHome + "/bin/gradle");
+            }
         }
         gradleHome
     }
