@@ -1,17 +1,18 @@
 The Gradle team is pleased to announce Gradle 3.3.
 
-This release of Gradle introduces a small but significant change to **improve the performance of `gradle tasks`**. 
-By default, it will now only display tasks which have been assigned a task group. You can report on tasks without a task group by running `gradle tasks --all`. Task dependencies are no longer rendered as well. 
-This change makes `gradle tasks` over an order of magnitude faster on medium-to-large projects. For example, execution time was reduced from [675 seconds](https://scans.gradle.com/s/iqmi72moz3crs) to [21 seconds](https://scans.gradle.com/s/p4w42uhewxysy) on our [perf-enterprise-large benchmark project](https://github.com/gradle/perf-enterprise-large/) — **over 30x faster**! 
-See technical details on how and why this change was made [further down](#improved-performance-of-tasks-report)
+This release of Gradle makes **gradle tasks much faster** for medium-to-large projects. By default, `gradle tasks` will now only display tasks which have been assigned a task group.
+For example, execution time was reduced from [554 seconds](https://gradle.com/s/djfdqmgfspm5u) to [8 seconds](https://gradle.com/s/umd7btfu7u7tq) on our [perf-enterprise-large benchmark project](https://github.com/gradle/perf-enterprise-large/) — **over 60x faster**! 
+See the technical details on how and why this change was made [further down](#improved-performance-of-tasks-report).
 
 It is now possible to **compile native applications using Visual Studio 2015**. Gradle will locate the [Universal C Runtime](https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx) required by the Visual C++ toolchain.
 
 **Kotlin build script** support has further improved with significantly **faster startup performance**, increased API parity with Groovy-based build scripts, and better interoperability with Groovy plugins. See the [gradle-script-kotlin v0.5.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.5.0) for details.
 
-**Scala compilation startup time is improved** through enhancements to Gradle's handling of the Zinc compiler interface JAR. 
+Scala compilation startup time in large multi-project builds has been improved through [enhancements](https://github.com/gradle/gradle/pull/707) to Gradle's integration with the Zinc Scala compiler. In earlier versions of Gradle, builds with many Scala projects could timeout and fail when building in parallel. 
 
-Lastly, the [Gradle GUI](userguide/tutorial_gradle_gui.html) **has been deprecated** and will be removed in Gradle 4.0. An IDE which provides a UI for Gradle — IntelliJ IDEA, Eclipse, or NetBeans, for example, is recommended.
+The [Gradle GUI](userguide/tutorial_gradle_gui.html) **has been deprecated** and will be removed in Gradle 4.0. An IDE which provides a UI for Gradle — IntelliJ IDEA, Eclipse, or NetBeans, for example, is recommended.
+
+**Heads up**: If you use the [Gradle Wrapper](userguide/gradle_wrapper.html) and previously generated the wrapper with Gradle 3.2, re-run `./gradlew wrapper` to avoid a mis-configured wrapper script.
 
 ## New and noteworthy
 
@@ -222,5 +223,3 @@ We love getting contributions from the Gradle community. For information on cont
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-**Wrapper upgrade note:** If you previously used Gradle 3.2 to generate a [Gradle Wrapper](userguide/wrapperPlugin.html), re-run `./gradlew wrapper` after upgrading to avoid a mis-configured wrapper script. See [gradle/gradle#865](https://github.com/gradle/gradle/issues/865) and [gradle/gradle#877](https://github.com/gradle/gradle/issues/877) for more details.
