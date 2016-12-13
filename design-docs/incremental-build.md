@@ -339,7 +339,8 @@ Gradle detects and removes stale Java class files after a Gradle version change.
     - Delete outputs for a strategy if needed. If output does not exist then skip. Render a message with log level `quiet` to the console that indicates operation.
     - The delete operation is not represented by a task in task graph.
     - Failure to delete an output (e.g. due to file locking) will render a helpful warning message but not fail the build.
-- Cleaning the output works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`).
+- Cleaning the output works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`) with and without
+the use of configuration on demand (via `--configure-on-demand` command line option or setting in `gradle.properties`).
 - As dogfooding exercise also use the registry for cleaning up `buildSrc` if task history is out-of-date.
 - Out of scope for this story are the following aspects:
     - Do not apply the concept to outputs of custom source sets created by a user.
