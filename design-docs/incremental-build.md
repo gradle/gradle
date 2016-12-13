@@ -355,4 +355,4 @@ the use of configuration on demand (via `--configure-on-demand` command line opt
     - A locked output file does not delete the output directory and renders an appropriate error message.
     - The `GroovyPlugin` and `ScalaPlugin` work in the same way as they apply the `JavaPlugin`.
     - The same behavior applies to `buildSrc`.
-- All test cases work with a multi-project build executed in parallel mode.
+- All test cases work with a multi-project build executed in parallel mode and configure on demand.
