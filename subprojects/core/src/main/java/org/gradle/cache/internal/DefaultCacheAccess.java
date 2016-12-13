@@ -18,8 +18,8 @@ package org.gradle.cache.internal;
 import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -33,6 +33,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -512,11 +513,11 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return fileAccess;
     }
 
-    protected static class IndexedCacheEntry {
+    private static class IndexedCacheEntry {
         private final MultiProcessSafePersistentIndexedCache cache;
         private final PersistentIndexedCacheParameters parameters;
 
-        public IndexedCacheEntry(PersistentIndexedCacheParameters parameters, MultiProcessSafePersistentIndexedCache cache) {
+        IndexedCacheEntry(PersistentIndexedCacheParameters parameters, MultiProcessSafePersistentIndexedCache cache) {
             this.parameters = parameters;
             this.cache = cache;
         }
@@ -529,23 +530,23 @@ public class DefaultCacheAccess implements CacheCoordinator {
             return parameters;
         }
 
-        public void assertCompatibleCacheParameters(PersistentIndexedCacheParameters parameters) {
+        void assertCompatibleCacheParameters(PersistentIndexedCacheParameters parameters) {
             List<String> faultMessages = new ArrayList<String>();
 
-            assertCacheNameMatch(faultMessages, parameters.getCacheName());
-            assertCompatibleKeySerializer(faultMessages, parameters.getKeySerializer());
-            assertCompatibleValueSerializer(faultMessages, parameters.getValueSerializer());
-            assertCompatibleCacheDecorator(faultMessages, parameters.getCacheDecorator());
+            checkCacheNameMatch(faultMessages, parameters.getCacheName());
+            checkCompatibleKeySerializer(faultMessages, parameters.getKeySerializer());
+            checkCompatibleValueSerializer(faultMessages, parameters.getValueSerializer());
+            checkCompatibleCacheDecorator(faultMessages, parameters.getCacheDecorator());
 
             if (!faultMessages.isEmpty()) {
                 String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-                String faultMessage = StringUtils.join(faultMessages, lineSeparator);
+                String faultMessage = CollectionUtils.join(lineSeparator, faultMessages);
                 throw new InvalidCacheReuseException(
-                    "The cache couldn't be reuse because of the following mismatch:" + lineSeparator + faultMessage);
+                    "The cache couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
             }
         }
 
-        private void assertCacheNameMatch(Collection<String> faultMessages, String cacheName) {
+        private void checkCacheNameMatch(Collection<String> faultMessages, String cacheName) {
             if (!Objects.equal(cacheName, parameters.getCacheName())) {
                 faultMessages.add(
                     String.format(" * Requested cache name (%s) doesn't match current cache name (%s)", cacheName,
@@ -553,7 +554,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         }
 
-        private void assertCompatibleKeySerializer(Collection<String> faultMessages, Serializer keySerializer) {
+        private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer keySerializer) {
             if (!Objects.equal(keySerializer.getClass(), parameters.getKeySerializer().getClass())) {
                 faultMessages.add(
                     String.format(" * Requested key serializer type (%s) doesn't match current cache type (%s)",
@@ -562,7 +563,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         }
 
-        private void assertCompatibleValueSerializer(Collection<String> faultMessages, Serializer valueSerializer) {
+        private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer valueSerializer) {
             if (!Objects.equal(valueSerializer.getClass(), parameters.getValueSerializer().getClass())) {
                 faultMessages.add(
                     String.format(" * Requested value serializer type (%s) doesn't match current cache type (%s)",
@@ -571,9 +572,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         }
 
-        private void assertCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
-            String requestClassName = ClassUtils.getShortCanonicalName(cacheDecorator, "null");
-            String currentClassName = ClassUtils.getShortCanonicalName(parameters.getCacheDecorator(), "null");
+        private void checkCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
+            String requestClassName = ClassUtils.getShortCanonicalName(cacheDecorator, null);
+            String currentClassName = ClassUtils.getShortCanonicalName(parameters.getCacheDecorator(), null);
             if (!Objects.equal(requestClassName, currentClassName)) {
                 faultMessages.add(
                     String.format(" * Requested cache decorator type (%s) doesn't match current cache type (%s)",
@@ -582,8 +583,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    private static class InvalidCacheReuseException extends IllegalArgumentException {
-        public InvalidCacheReuseException(String message) {
+    private static class InvalidCacheReuseException extends GradleException {
+        InvalidCacheReuseException(String message) {
             super(message);
         }
     }
