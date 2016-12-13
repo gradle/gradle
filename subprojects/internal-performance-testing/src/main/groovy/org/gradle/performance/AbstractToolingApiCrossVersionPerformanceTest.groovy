@@ -21,8 +21,10 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.integtests.tooling.fixture.ExternalToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
+import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
@@ -160,7 +162,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
-                    def toolingApiDistribution = resolver.resolve(dist.version.version)
+                    def toolingApiDistribution = new PerformanceTestToolingApiDistribution(resolver.resolve(dist.version.version), workingDirProvider.testDirectory)
                     List<File> testClassPath = [*experimentSpec.extraTestClassPath]
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
@@ -272,6 +274,21 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 return Integer.valueOf(value)
             }
             return defaultValue
+        }
+    }
+
+    private static class PerformanceTestToolingApiDistribution extends ExternalToolingApiDistribution {
+
+        PerformanceTestToolingApiDistribution(ToolingApiDistribution delegate, File testDir) {
+            super(delegate.version.version, copyClasspath(delegate, testDir))
+        }
+
+        private static List<File> copyClasspath(ToolingApiDistribution delegate, File testDir) {
+            File tapiDir = new File(testDir, "tooling-api")
+            delegate.classpath.each {
+                GFileUtils.copyFile(it, new File(tapiDir, it.name))
+            }
+            tapiDir.listFiles()
         }
     }
 }
