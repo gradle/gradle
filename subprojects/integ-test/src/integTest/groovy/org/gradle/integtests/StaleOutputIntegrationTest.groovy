@@ -16,9 +16,7 @@
 
 package org.gradle.integtests
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
@@ -110,30 +108,5 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         !outputFile.exists()
         skippedTasks.contains(':test')
-    }
-
-    @NotYetImplemented
-    @Issue("GRADLE-1501")
-    def "stale outputs are deleted after task history is deleted"() {
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << "apply plugin: 'java'"
-        file("src/main/java/Main.java") << "public class Main {}"
-        file("src/main/java/Redundant.java") << "public class Redundant {}"
-
-        when:
-        succeeds "jar"
-        then:
-        file("build/classes/main/Main.class").assertIsFile()
-        file("build/classes/main/Redundant.class").assertIsFile()
-        new JarTestFixture(file("build/libs/test.jar")).hasDescendants("Main.class", "Redundant.class")
-
-        when:
-        file(".gradle").assertIsDir().deleteDir()
-        file("src/main/java/Redundant.java").delete()
-        succeeds "jar"
-        then:
-        file("build/classes/main/Main.class").assertIsFile()
-        file("build/classes/main/Redundant.class").assertDoesNotExist()
-        new JarTestFixture(file("build/libs/test.jar")).hasDescendants("Main.class")
     }
 }
