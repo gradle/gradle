@@ -33,17 +33,22 @@ fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? =
     KotlinLexer().run {
         start(script)
         while (tokenType != null) {
-            findTopLevelIdentifier(identifier)?.let { sectionStart ->
-                advance()
-                skipWhiteSpaceAndComments()
-                if (tokenType == LBRACE) {
-                    findBlockEnd()?.let { sectionEnd ->
-                        return sectionStart..sectionEnd
-                    }
-                }
+            nextTopLevelSection(identifier)?.let {
+                return it
             }
         }
         return null
+    }
+
+private fun KotlinLexer.nextTopLevelSection(identifier: String): IntRange? =
+    findTopLevelIdentifier(identifier)?.let { sectionStart ->
+        advance()
+        skipWhiteSpaceAndComments()
+        if (tokenType == LBRACE) {
+            findBlockEnd()?.let { sectionEnd ->
+                sectionStart..sectionEnd
+            }
+        } else null
     }
 
 private fun KotlinLexer.skipWhiteSpaceAndComments() {
