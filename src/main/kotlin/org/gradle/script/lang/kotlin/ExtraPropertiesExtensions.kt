@@ -27,10 +27,10 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 //region Support for extra delegated properties (val p: String by extensionAware.extra)
-operator fun <T> ExtraPropertiesExtension.setValue(nothing: Nothing?, property: KProperty<*>, value: T) =
+operator fun <T> ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: T) =
     set(property.name, value)
 
-operator fun <T> ExtraPropertiesExtension.getValue(nothing: Nothing?, property: KProperty<*>): T =
+operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
     /* We would like to be able to express optional properties via nullability of the return type
        but Kotlin won't let us reflect on `property.returnType` here and complain with:
            Not supported for local property reference.
