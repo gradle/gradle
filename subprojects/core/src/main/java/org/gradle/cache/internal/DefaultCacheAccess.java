@@ -499,4 +499,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
     FileAccess getFileAccess() {
         return fileAccess;
     }
+
+    private static class InvalidCacheReuseException extends IllegalArgumentException {
+        public InvalidCacheReuseException(String message) {
+            super(message);
+        }
+    }
 }
