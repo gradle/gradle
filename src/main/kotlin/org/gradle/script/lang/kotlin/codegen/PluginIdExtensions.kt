@@ -16,8 +16,6 @@
 
 package org.gradle.script.lang.kotlin.codegen
 
-import org.gradle.script.lang.kotlin.KotlinPluginDependenciesHandler
-
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
@@ -71,16 +69,11 @@ private
 fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
     pluginEntriesFrom(file)
         .asSequence()
-        .flatMap { (id, implementationClass) ->
+        .map { (id, implementationClass) ->
             val simpleId = id.substringAfter("org.gradle.")
             val website = "https://docs.gradle.org/current/userguide/${simpleId}_plugin.html"
-            sequenceOf(
-                // One plugin extension for the simple id, e.g., "application"
-                PluginExtension(simpleId, id, website, implementationClass),
-                // And another extension for the full id, e.g., "org.gradle.application"
-                // but since the regular full-stop dot is not a valid member name character in Kotlin,
-                // the ONE DOT LEADER character ('\u2024') is being used as a replacement here.
-                PluginExtension(id.replace('.', '․'), id, website, implementationClass))
+            // One plugin extension for the simple id, e.g., "application"
+            PluginExtension(simpleId, id, website, implementationClass)
         }
 
 private
