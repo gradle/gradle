@@ -32,6 +32,8 @@ abstract class CheckstyleInvoker {
         def source = checkstyleTask.source
         def classpath = checkstyleTask.classpath
         def showViolations = checkstyleTask.showViolations
+        def maxErrors = checkstyleTask.maxErrors
+        def maxWarnings = checkstyleTask.maxWarnings
         def reports = checkstyleTask.reports
         def configProperties = checkstyleTask.configProperties
         def ignoreFailures = checkstyleTask.ignoreFailures
@@ -50,7 +52,9 @@ abstract class CheckstyleInvoker {
                 ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
             }
 
-            ant.checkstyle(config: config.asFile(), failOnViolation: false, failureProperty: FAILURE_PROPERTY_NAME) {
+            ant.checkstyle(config: config.asFile(), failOnViolation: false,
+                    maxErrors: maxErrors, maxWarnings: maxWarnings, failureProperty: FAILURE_PROPERTY_NAME) {
+
                 source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 classpath.addToAntBuilder(ant, 'classpath')
 
