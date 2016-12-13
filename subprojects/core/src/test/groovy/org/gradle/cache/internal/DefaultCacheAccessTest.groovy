@@ -698,19 +698,15 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "returns the same cache object when cache decorator match"() {
         def access = newAccess(None)
-        def decorator1 = Mock(CacheDecorator)
-        def decorator2 = Mock(CacheDecorator)
+        def decorator = Mock(CacheDecorator)
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        decorator1.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
-            persistentCache
-        }
-        decorator2.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             persistentCache
         }
 
         when:
-        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator1))
-        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator2))
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
 
         then:
         noExceptionThrown()
