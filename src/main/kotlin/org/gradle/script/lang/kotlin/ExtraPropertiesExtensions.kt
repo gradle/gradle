@@ -27,13 +27,17 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 //region Support for extra delegated properties (val p: String by extensionAware.extra)
-//
-// Not really useful in the current setting until Kotlin supports local delegated
-// properties (http://kotlin.link/articles/Kotlin-Post-1-0-Roadmap.html)
-operator fun <T> ExtraPropertiesExtension.setValue(nothing: Nothing?, property: KProperty<*>, value: T?) =
-    this.set(property.name, value)
+operator fun <T> ExtraPropertiesExtension.setValue(nothing: Nothing?, property: KProperty<*>, value: T) =
+    set(property.name, value)
 
-operator fun <T> ExtraPropertiesExtension.getValue(nothing: Nothing?, property: KProperty<*>): T? =
-    uncheckedCast<T>(this.get(property.name))
+operator fun <T> ExtraPropertiesExtension.getValue(nothing: Nothing?, property: KProperty<*>): T =
+    /* We would like to be able to express optional properties via nullability of the return type
+       but Kotlin won't let us reflect on `property.returnType` here and complain with:
+           Not supported for local property reference.
+    uncheckedCast(
+        if (property.returnType.isMarkedNullable && !has(property.name)) null
+        else get(property.name))
+    */
+    uncheckedCast(get(property.name))
 //endregion
 
