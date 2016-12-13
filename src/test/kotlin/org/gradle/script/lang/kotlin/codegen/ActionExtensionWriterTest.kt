@@ -82,7 +82,7 @@ fun org.gradle.api.Project.afterEvaluate(p0: org.gradle.api.Project.() -> Unit):
  * This is an automatically generated extension for [org.gradle.api.Project.configure].
  */
 fun <T : Any> org.gradle.api.Project.configure(p0: Iterable<T>, p1: T.() -> Unit): Iterable<T> =
-	configure(p0, Action { it.p1() })
+	configure<T>(p0, Action { it.p1() })
 
 /**
  * This is an automatically generated extension for [org.gradle.api.Project.copy].

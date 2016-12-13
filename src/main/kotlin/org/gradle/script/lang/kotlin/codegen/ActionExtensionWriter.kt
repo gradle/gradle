@@ -66,16 +66,25 @@ import org.gradle.api.Action
         // extension declaration
         writeKDocFor(className, method, kDoc)
         write("fun ")
-        if (signature.typeParameters.isNotEmpty()) {
-            write(signature.typeParameters.joinToString(prefix = "<", postfix = "> ") {
-                "${it.name} : ${it.bound.kotlinTypeName}"
-            })
+
+        fun writeTypeParameters(postfix: String = "", format: (TypeParameter) -> String) {
+            if (signature.typeParameters.isNotEmpty()) {
+                write(signature.typeParameters.joinToString(prefix = "<", postfix = ">") { format(it) })
+                write(postfix)
+            }
         }
+
+        writeTypeParameters(postfix=" ") {
+            "${it.name} : ${it.bound.kotlinTypeName}"
+        }
+
         val parameterDeclarations = parameters.joinToString { "${it.name}: ${it.type}" }
         write("$className.${method.name}($parameterDeclarations): ${signature.returnType.kotlinTypeName} =\n")
 
         // original member invocation
-        write("\t${method.name}(")
+        write("\t${method.name}")
+        writeTypeParameters { it.name }
+        write("(")
         parameters.forEachIndexed { i, p ->
             write(
                 if (i == parameters.lastIndex)
