@@ -21,10 +21,10 @@ import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import java.io.File
 
 buildscript {
-    val kotlinVersion = file("kotlin-version.txt").readText().trim()
-    val kotlinRepo = "https://repo.gradle.org/gradle/repo"
-    extra["kotlinVersion"] = kotlinVersion
-    extra["kotlinRepo"] = kotlinRepo
+    var kotlinVersion: String by extra
+    kotlinVersion = file("kotlin-version.txt").readText().trim()
+    var kotlinRepo: String by extra
+    kotlinRepo = "https://repo.gradle.org/gradle/repo"
 
     repositories {
         maven { setUrl(kotlinRepo) }
@@ -93,8 +93,8 @@ val generateConfigurationExtensions = task<GenerateConfigurationExtensions>("gen
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
 }
 
-val kotlinVersion = extra["kotlinVersion"] as String
-val kotlinRepo = extra["kotlinRepo"] as String
+val kotlinVersion: String by extra
+val kotlinRepo: String by extra
 
 val generateKotlinDependencyExtensions = task<GenerateKotlinDependencyExtensions>("generateKotlinDependencyExtensions") {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")

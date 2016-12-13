@@ -1,14 +1,16 @@
 val myTask = task("myTask") {
 
-    extra["foo"] = 42
+    var foo: Int by extra
+    foo = 42
 
     doLast {
-        println("Extra property value: ${extra["foo"]}")
+        println("Extra property value: $foo")
     }
 }
 
+val foo: Int by myTask.extra
 afterEvaluate {
-    println("myTask.foo = ${myTask.extra["foo"]}")
+    println("myTask.foo = $foo")
 }
 
 defaultTasks(myTask.name)
