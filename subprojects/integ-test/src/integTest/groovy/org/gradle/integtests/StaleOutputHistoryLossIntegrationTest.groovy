@@ -37,7 +37,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         mostRecentFinalReleaseExecuter.cleanup()
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-1501")
     def "production sources files are removed"() {
         given:
@@ -68,7 +67,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-1501")
     def "task history is deleted"() {
         def javaProjectFixture = new JavaProjectFixture()
