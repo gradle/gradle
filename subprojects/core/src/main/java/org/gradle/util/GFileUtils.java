@@ -26,6 +26,7 @@ import org.gradle.util.internal.LimitedDescription;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -41,6 +42,21 @@ public class GFileUtils {
             return FileUtils.openInputStream(file);
         } catch (IOException e) {
             throw new RuntimeException("Problems opening file input stream for file: " + file, e);
+        }
+    }
+
+    public static void copy(InputStream inputStream, OutputStream outputStream) throws IOException {
+        // Testing a performance improvement when copying files
+        if (inputStream instanceof FileInputStream && outputStream instanceof FileOutputStream) {
+            FileChannel in = ((FileInputStream)inputStream).getChannel();
+            FileChannel out = ((FileOutputStream)outputStream).getChannel();
+            long size = in.size();
+            long transferred = in.transferTo(0, size, out);
+            while (transferred != size) {
+                transferred += in.transferTo(transferred, size - transferred, out);
+            }
+        } else {
+            IOUtils.copyLarge(inputStream, outputStream);
         }
     }
 
