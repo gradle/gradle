@@ -946,8 +946,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         configure(getAllprojects(), configureClosure);
     }
 
+    @Override
     public Project project(String path, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, project(path));
+    }
+
+    @Override
+    public Project project(String path, Action<? super Project> configureAction) {
+        return Actions.with(project(path), configureAction);
     }
 
     public Object configure(Object object, Closure configureClosure) {
