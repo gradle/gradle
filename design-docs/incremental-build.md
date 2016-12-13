@@ -302,7 +302,7 @@ Gradle detects and removes stale Java class files after a Gradle version change.
         void registerOutputs(File... outputs);
 
         /**
-         * Registers outputs to be cleaned up.
+         * Registers outputs to be cleaned up. An output can be file or directorie.
          */
         void registerOutputs(List<File> outputs);
         
