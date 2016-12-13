@@ -356,3 +356,15 @@ the use of configuration on demand (via `--configure-on-demand` command line opt
     - The `GroovyPlugin` and `ScalaPlugin` work in the same way as they apply the `JavaPlugin`.
     - The same behavior applies to `buildSrc`.
 - All test cases work with a multi-project build executed in parallel mode and configure on demand.
+
+## Story: Expose stale output clean up concept as public API
+
+This story is a continuation of the previous story. There are use cases that would require a user to register use-defined outputs for clean up. 
+
+Some examples:
+
+- A build defines custom source sets. Each of these source sets would create a compilation task need writes to output directories.
+- A build incorporates code generation logic or uses annotation processing. Outputs are likely written to custom directories.
+
+Gradle cannot anticipate outputs defined by custom logic that are meant to be cleaned up. For supporting these uses cases, the existing API would
+have to be exposed as public API.
