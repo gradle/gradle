@@ -29,6 +29,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.testing.TestListener
+import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.internal.IoActions
 
 import java.util.concurrent.TimeUnit
@@ -81,6 +83,22 @@ class DistributedPerformanceTest extends PerformanceTest {
     Map<String, List<File>> testResultFilesForBuild = [:]
     private File workerTestResultsTempDir
 
+    private final JUnitXmlTestEventsGenerator testEventsGenerator
+
+    DistributedPerformanceTest() {
+        this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
+    }
+
+    @Override
+    void addTestListener(TestListener listener) {
+        testEventsGenerator.addTestListener(listener)
+    }
+
+    @Override
+    void addTestOutputListener(TestOutputListener listener) {
+        testEventsGenerator.addTestOutputListener(listener)
+    }
+
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
         this.scenarioList = scenarioList
@@ -92,6 +110,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         try {
             doExecuteTests()
         } finally {
+            testEventsGenerator.release()
             cleanTempFiles()
         }
     }
@@ -226,9 +245,18 @@ class DistributedPerformanceTest extends PerformanceTest {
         finishedBuilds += response.data
 
         try {
-            testResultFilesForBuild.put(jobId, fetchTestResults(jobId, response.data))
+            def results = fetchTestResults(jobId, response.data)
+            testResultFilesForBuild.put(jobId, results)
+            fireTestListener(results, response.data)
         } catch (e) {
             e.printStackTrace(System.err)
+        }
+    }
+
+    private void fireTestListener(List<File> results, Object build) {
+        def xmlFiles = results.findAll { it.name.endsWith('.xml') }
+        xmlFiles.each {
+            testEventsGenerator.processXmlFile(it, build)
         }
     }
 
