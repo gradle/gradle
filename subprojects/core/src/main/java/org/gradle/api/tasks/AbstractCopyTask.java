@@ -60,8 +60,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
-    // FIXME wolfs: True for now to see any side effects
-    private boolean reproducibleFileOrder = true;
+    private boolean reproducibleFileOrder;
 
     protected AbstractCopyTask() {
         this.rootSpec = createRootSpec();
@@ -181,7 +180,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem, reproducibleFileOrder);
+        CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem, isReproducibleFileOrder());
         CopyAction copyAction = createCopyAction();
         WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
         setDidWork(didWork.getDidWork());

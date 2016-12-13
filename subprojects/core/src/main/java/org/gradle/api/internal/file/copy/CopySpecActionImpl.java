@@ -66,7 +66,7 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {
-            if (details.isRealFile()) {
+            if (details.isPhysicalFile()) {
                 copyDetailsInternals.add(details);
             } else {
                 sort();

@@ -65,7 +65,7 @@ class MissingFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
-    public boolean isRealFile() {
+    public boolean isPhysicalFile() {
         return true;
     }
 

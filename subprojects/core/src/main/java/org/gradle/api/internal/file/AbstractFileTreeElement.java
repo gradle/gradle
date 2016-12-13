@@ -103,7 +103,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     @Override
-    public boolean isRealFile() {
+    public boolean isPhysicalFile() {
         return true;
     }
 }

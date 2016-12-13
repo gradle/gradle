@@ -228,7 +228,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public boolean isRealFile() {
-        return fileDetails.isRealFile();
+    public boolean isPhysicalFile() {
+        return fileDetails.isPhysicalFile();
     }
 }

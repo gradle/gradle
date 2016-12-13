@@ -170,7 +170,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         @Override
-        public boolean isRealFile() {
+        public boolean isPhysicalFile() {
             return false;
         }
     }

@@ -142,7 +142,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         @Override
-        public boolean isRealFile() {
+        public boolean isPhysicalFile() {
             return false;
         }
 

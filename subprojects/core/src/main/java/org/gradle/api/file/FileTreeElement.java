@@ -104,5 +104,8 @@ public interface FileTreeElement {
      */
     int getMode();
 
-    boolean isRealFile();
+    /**
+     * @return true if the file is a regular file or directory on disk. False for files in zip or tar files.
+     */
+    boolean isPhysicalFile();
 }
