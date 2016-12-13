@@ -40,19 +40,21 @@ When generating project reports with the [Project Reports Plugin](userguide/proj
 
 #### Custom task property annotations can be overridden in subclasses
 
-In previous versions of Gradle, a custom task class overriding a property from a base class couldn't reliably change the type of the property via annotations. It is now possible to change an `@InputFiles` property to `@Classpath` or an `@OutputFile` to `@OutputDirectory`. This can be useful when extending or working around problems with custom tasks that you do not control.
+In previous versions of Gradle, a custom task class overriding a property from a base class couldn't reliably change the type of the property via annotations used for incremental builds. 
+Gradle now chooses the annotation based on the class hierarchy so that subclasses can override a parent class's annotation. A subclass can turn an `@InputFiles` property into a `@Classpath` property or an `@OutputFile` property into an `@OutputDirectory` property or any other combination.
+This can be useful when extending or working around problems with custom tasks that you do not control.
 
-    class BrokenTask extends DefaultTask {
-        @InputFile File inputFile // wrong, task does not depend on the contents of this file.
+    class ThirdPartyBrokenTask extends DefaultTask {
+        @Input File inputFile // wrong, task depends on the contents of this file, not just the path.
         @OutputDirectory File outputDir
         @TaskAction void generate() { ... }
     }
 
-    class FixedTask extends BrokenTask {
-        @Internal File inputFile // fixed, internal properties are ignored in up-to-date checks.
+    class FixedTask extends ThirdPartyBrokenTask {
+        @InputFile File inputFile // fixed, property is appropriately annotated as an input.
     }
 
-In the above example, `FixedTask.inputFile` will be a ignored in up-to-date checks.
+In the above example, the contents of `FixedTask.inputFile` will be used in up-to-date checks.
 
 #### `@OutputFiles` and `@OutputDirectories` are allowed on `Map` properties
 
