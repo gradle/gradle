@@ -17,15 +17,15 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
-public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersionSelector> {
+public class ModuleVersionSelectorSerializer extends AbstractSerializer<ModuleVersionSelector> {
     public ModuleVersionSelector read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();

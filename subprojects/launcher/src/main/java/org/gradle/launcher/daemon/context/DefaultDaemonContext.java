@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -77,7 +78,7 @@ public class DefaultDaemonContext implements DaemonContext {
         return daemonOpts;
     }
 
-    private static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
+    private static class Serializer extends AbstractSerializer<DefaultDaemonContext> {
 
         @Override
         public DefaultDaemonContext read(Decoder decoder) throws Exception {

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public class BaseSerializerFactory {
         return new DefaultSerializer<T>(type.getClassLoader());
     }
 
-    private static class EnumSerializer<T extends Enum> implements Serializer<T> {
+    private static class EnumSerializer<T extends Enum> extends AbstractSerializer<T> {
         private final Class<T> type;
 
         private EnumSerializer(Class<T> type) {
@@ -69,9 +70,24 @@ public class BaseSerializerFactory {
         public void write(Encoder encoder, T value) throws Exception {
             encoder.writeSmallInt((byte) value.ordinal());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            EnumSerializer<T> rhs = (EnumSerializer<T>) obj;
+            return Objects.equal(type, rhs.type);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), type);
+        }
     }
 
-    private static class LongSerializer implements Serializer<Long> {
+    private static class LongSerializer extends AbstractSerializer<Long> {
         public Long read(Decoder decoder) throws Exception {
             return decoder.readLong();
         }
@@ -81,7 +97,7 @@ public class BaseSerializerFactory {
         }
     }
 
-    private static class StringSerializer implements Serializer<String> {
+    private static class StringSerializer extends AbstractSerializer<String> {
         public String read(Decoder decoder) throws Exception {
             return decoder.readString();
         }
@@ -91,7 +107,7 @@ public class BaseSerializerFactory {
         }
     }
 
-    private static class FileSerializer implements Serializer<File> {
+    private static class FileSerializer extends AbstractSerializer<File> {
         public File read(Decoder decoder) throws Exception {
             return new File(decoder.readString());
         }
@@ -101,7 +117,7 @@ public class BaseSerializerFactory {
         }
     }
 
-    private static class ByteArraySerializer implements Serializer<byte[]> {
+    private static class ByteArraySerializer extends AbstractSerializer<byte[]> {
         public byte[] read(Decoder decoder) throws Exception {
             return decoder.readBinary();
         }
@@ -111,7 +127,7 @@ public class BaseSerializerFactory {
         }
     }
 
-    private static class StringMapSerializer implements Serializer<Map<String, String>> {
+    private static class StringMapSerializer extends AbstractSerializer<Map<String, String>> {
         public Map<String, String> read(Decoder decoder) throws Exception {
             int pairs = decoder.readSmallInt();
             ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
@@ -130,7 +146,7 @@ public class BaseSerializerFactory {
         }
     }
 
-    private static class BooleanSerializer implements Serializer<Boolean> {
+    private static class BooleanSerializer extends AbstractSerializer<Boolean> {
         @Override
         public Boolean read(Decoder decoder) throws Exception {
             return decoder.readBoolean();
@@ -142,7 +158,7 @@ public class BaseSerializerFactory {
         }
     }
 
-    private static class ThrowableSerializer implements Serializer<Throwable> {
+    private static class ThrowableSerializer extends AbstractSerializer<Throwable> {
         public Throwable read(Decoder decoder) throws Exception {
             return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
         }

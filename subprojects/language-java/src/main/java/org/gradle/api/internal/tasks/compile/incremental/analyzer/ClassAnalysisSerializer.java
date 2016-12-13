@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.base.Objects;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 
 import java.util.Set;
 
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
-public class ClassAnalysisSerializer implements Serializer<ClassAnalysis> {
+public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
 
     private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
@@ -40,5 +41,20 @@ public class ClassAnalysisSerializer implements Serializer<ClassAnalysis> {
     public void write(Encoder encoder, ClassAnalysis value) throws Exception {
         encoder.writeBoolean(value.isDependencyToAll());
         setSerializer.write(encoder, value.getClassDependencies());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        ClassAnalysisSerializer rhs = (ClassAnalysisSerializer) obj;
+        return Objects.equal(setSerializer, rhs.setSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), setSerializer);
     }
 }

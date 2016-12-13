@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.serialize;
 
-public class NullSafeStringSerializer extends AbstractSerializer<String> {
-    public String read(Decoder decoder) throws Exception {
-        return decoder.readNullableString();
+import com.google.common.base.Objects;
+
+public abstract class AbstractSerializer<T> implements Serializer<T> {
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        return Objects.equal(obj.getClass(), getClass());
     }
 
-    public void write(Encoder encoder, String value) throws Exception {
-        encoder.writeNullableString(value);
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getClass());
     }
 }

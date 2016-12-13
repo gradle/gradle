@@ -20,9 +20,9 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +98,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         }
     }
 
-    private static class ModuleKeySerializer implements Serializer<ModuleKey> {
+    private static class ModuleKeySerializer extends AbstractSerializer<ModuleKey> {
         public void write(Encoder encoder, ModuleKey value) throws Exception {
             encoder.writeString(value.repositoryId);
             encoder.writeString(value.moduleId.getGroup());
@@ -113,7 +113,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         }
     }
 
-    private static class ModuleVersionsCacheEntrySerializer implements Serializer<ModuleVersionsCacheEntry> {
+    private static class ModuleVersionsCacheEntrySerializer extends AbstractSerializer<ModuleVersionsCacheEntry> {
 
         public void write(Encoder encoder, ModuleVersionsCacheEntry value) throws Exception {
             Set<String> versions = value.moduleVersionListing;

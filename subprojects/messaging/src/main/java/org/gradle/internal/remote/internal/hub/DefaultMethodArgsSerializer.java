@@ -16,11 +16,14 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import com.google.common.base.Objects;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
+import java.util.Arrays;
 import java.util.List;
 
 class DefaultMethodArgsSerializer implements MethodArgsSerializer {
@@ -57,7 +60,7 @@ class DefaultMethodArgsSerializer implements MethodArgsSerializer {
         return new ArraySerializer(serializers);
     }
 
-    private static class ArraySerializer implements Serializer<Object[]> {
+    private static class ArraySerializer extends AbstractSerializer<Object[]> {
         private final Serializer<Object>[] serializers;
 
         ArraySerializer(Serializer<Object>[] serializers) {
@@ -79,9 +82,24 @@ class DefaultMethodArgsSerializer implements MethodArgsSerializer {
                 serializers[i].write(encoder, value[i]);
             }
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            ArraySerializer rhs = (ArraySerializer) obj;
+            return Arrays.equals(serializers, rhs.serializers);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), Arrays.hashCode(serializers));
+        }
     }
 
-    private class EmptyArraySerializer implements Serializer<Object[]> {
+    private class EmptyArraySerializer extends AbstractSerializer<Object[]> {
         @Override
         public Object[] read(Decoder decoder) {
             return ZERO_ARGS;

@@ -16,11 +16,25 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import org.gradle.api.internal.tasks.testing.*;
+import com.google.common.base.Objects;
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
-import org.gradle.internal.serialize.*;
+import org.gradle.internal.serialize.AbstractSerializer;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TestEventSerializer {
     public static SerializerRegistry create() {
@@ -40,7 +54,7 @@ public class TestEventSerializer {
         return registry;
     }
 
-    private static class NullableSerializer<T> implements Serializer<T> {
+    private static class NullableSerializer<T> extends AbstractSerializer<T> {
         private final Serializer<T> serializer;
 
         private NullableSerializer(Serializer<T> serializer) {
@@ -62,9 +76,24 @@ public class TestEventSerializer {
                 serializer.write(encoder, value);
             }
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            NullableSerializer rhs = (NullableSerializer) obj;
+            return Objects.equal(serializer, rhs.serializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), serializer);
+        }
     }
 
-    private static class IdSerializer implements Serializer<CompositeIdGenerator.CompositeId> {
+    private static class IdSerializer extends AbstractSerializer<CompositeIdGenerator.CompositeId> {
         @Override
         public CompositeIdGenerator.CompositeId read(Decoder decoder) throws Exception {
             return new CompositeIdGenerator.CompositeId(decoder.readLong(), decoder.readLong());
@@ -77,7 +106,7 @@ public class TestEventSerializer {
         }
     }
 
-    private static class DefaultTestClassRunInfoSerializer implements Serializer<DefaultTestClassRunInfo> {
+    private static class DefaultTestClassRunInfoSerializer extends AbstractSerializer<DefaultTestClassRunInfo> {
         @Override
         public DefaultTestClassRunInfo read(Decoder decoder) throws Exception {
             return new DefaultTestClassRunInfo(decoder.readString());
@@ -89,7 +118,7 @@ public class TestEventSerializer {
         }
     }
 
-    private static class TestStartEventSerializer implements Serializer<TestStartEvent> {
+    private static class TestStartEventSerializer extends AbstractSerializer<TestStartEvent> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new NullableSerializer<CompositeIdGenerator.CompositeId>(new IdSerializer());
 
         @Override
@@ -104,9 +133,24 @@ public class TestEventSerializer {
             encoder.writeLong(value.getStartTime());
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getParentId());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            TestStartEventSerializer rhs = (TestStartEventSerializer) obj;
+            return Objects.equal(idSerializer, rhs.idSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), idSerializer);
+        }
     }
 
-    private static class TestCompleteEventSerializer implements Serializer<TestCompleteEvent> {
+    private static class TestCompleteEventSerializer extends AbstractSerializer<TestCompleteEvent> {
         private final Serializer<TestResult.ResultType> typeSerializer = new NullableSerializer<TestResult.ResultType>(new BaseSerializerFactory().getSerializerFor(TestResult.ResultType.class));
 
         @Override
@@ -121,9 +165,24 @@ public class TestEventSerializer {
             encoder.writeLong(value.getEndTime());
             typeSerializer.write(encoder, value.getResultType());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            TestCompleteEventSerializer rhs = (TestCompleteEventSerializer) obj;
+            return Objects.equal(typeSerializer, rhs.typeSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), typeSerializer);
+        }
     }
 
-    private static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
+    private static class DefaultTestOutputEventSerializer extends AbstractSerializer<DefaultTestOutputEvent> {
         private final Serializer<TestOutputEvent.Destination> destinationSerializer = new BaseSerializerFactory().getSerializerFor(TestOutputEvent.Destination.class);
 
         @Override
@@ -138,9 +197,24 @@ public class TestEventSerializer {
             destinationSerializer.write(encoder, value.getDestination());
             encoder.writeString(value.getMessage());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            DefaultTestOutputEventSerializer rhs = (DefaultTestOutputEventSerializer) obj;
+            return Objects.equal(destinationSerializer, rhs.destinationSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), destinationSerializer);
+        }
     }
 
-    private static class DefaultTestSuiteDescriptorSerializer implements Serializer<DefaultTestSuiteDescriptor> {
+    private static class DefaultTestSuiteDescriptorSerializer extends AbstractSerializer<DefaultTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -155,9 +229,24 @@ public class TestEventSerializer {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            DefaultTestSuiteDescriptorSerializer rhs = (DefaultTestSuiteDescriptorSerializer) obj;
+            return Objects.equal(idSerializer, rhs.idSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), idSerializer);
+        }
     }
 
-    private static class WorkerTestSuiteDescriptorSerializer implements Serializer<WorkerTestClassProcessor.WorkerTestSuiteDescriptor> {
+    private static class WorkerTestSuiteDescriptorSerializer extends AbstractSerializer<WorkerTestClassProcessor.WorkerTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -172,9 +261,24 @@ public class TestEventSerializer {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            WorkerTestSuiteDescriptorSerializer rhs = (WorkerTestSuiteDescriptorSerializer) obj;
+            return Objects.equal(idSerializer, rhs.idSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), idSerializer);
+        }
     }
 
-    private static class DefaultTestClassDescriptorSerializer implements Serializer<DefaultTestClassDescriptor> {
+    private static class DefaultTestClassDescriptorSerializer extends AbstractSerializer<DefaultTestClassDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -189,9 +293,24 @@ public class TestEventSerializer {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            DefaultTestClassDescriptorSerializer rhs = (DefaultTestClassDescriptorSerializer) obj;
+            return Objects.equal(idSerializer, rhs.idSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), idSerializer);
+        }
     }
 
-    private static class DefaultTestDescriptorSerializer implements Serializer<DefaultTestDescriptor> {
+    private static class DefaultTestDescriptorSerializer extends AbstractSerializer<DefaultTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -208,9 +327,24 @@ public class TestEventSerializer {
             encoder.writeString(value.getClassName());
             encoder.writeString(value.getName());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            DefaultTestDescriptorSerializer rhs = (DefaultTestDescriptorSerializer) obj;
+            return Objects.equal(idSerializer, rhs.idSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), idSerializer);
+        }
     }
 
-    private static class DefaultTestMethodDescriptorSerializer implements Serializer<DefaultTestMethodDescriptor> {
+    private static class DefaultTestMethodDescriptorSerializer extends AbstractSerializer<DefaultTestMethodDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
@@ -226,6 +360,21 @@ public class TestEventSerializer {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getClassName());
             encoder.writeString(value.getName());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            DefaultTestMethodDescriptorSerializer rhs = (DefaultTestMethodDescriptorSerializer) obj;
+            return Objects.equal(idSerializer, rhs.idSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), idSerializer);
         }
     }
 }

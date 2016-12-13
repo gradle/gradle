@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -32,9 +33,9 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -197,9 +198,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return bestMatch;
     }
 
-    private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
+    private static class TaskExecutionListSerializer extends AbstractSerializer<ImmutableList<TaskExecutionSnapshot>> {
         private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
-        private final StringInterner stringInterner;
+        private final StringInterner stringInterner;  // TODO(daniel): Should this be consider in the equality andhashCode
 
         TaskExecutionListSerializer(StringInterner stringInterner) {
             this.stringInterner = stringInterner;
@@ -350,7 +351,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 outputFilesSnapshotIds);
         }
 
-        static class TaskExecutionSnapshotSerializer implements Serializer<TaskExecutionSnapshot> {
+        static class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExecutionSnapshot> {
             private final InputPropertiesSerializer inputPropertiesSerializer;
             private final StringInterner stringInterner;
 
@@ -440,6 +441,22 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(true);
                     inputPropertiesSerializer.write(encoder, execution.getInputProperties());
                 }
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!super.equals(obj)) {
+                    return false;
+                }
+
+                // TODO(daniel): Need to validate it's ok to ignore stringInterner
+                TaskExecutionSnapshotSerializer rhs = (TaskExecutionSnapshotSerializer) obj;
+                return Objects.equal(inputPropertiesSerializer, rhs.inputPropertiesSerializer);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(super.hashCode(), inputPropertiesSerializer);
             }
 
             private static ImmutableSortedMap<String, Long> readSnapshotIds(Decoder decoder) throws IOException {

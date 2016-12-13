@@ -16,13 +16,15 @@
 
 package org.gradle.internal.logging.serializer;
 
+import com.google.common.base.Objects;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-public class LogLevelChangeEventSerializer implements Serializer<LogLevelChangeEvent> {
+public class LogLevelChangeEventSerializer extends AbstractSerializer<LogLevelChangeEvent> {
     private final Serializer<LogLevel> logLevelSerializer;
 
     public LogLevelChangeEventSerializer(Serializer<LogLevel> logLevelSerializer) {
@@ -38,5 +40,20 @@ public class LogLevelChangeEventSerializer implements Serializer<LogLevelChangeE
     public LogLevelChangeEvent read(Decoder decoder) throws Exception {
         LogLevel logLevel = logLevelSerializer.read(decoder);
         return new LogLevelChangeEvent(logLevel);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        LogLevelChangeEventSerializer rhs = (LogLevelChangeEventSerializer) obj;
+        return Objects.equal(logLevelSerializer, rhs.logLevelSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), logLevelSerializer);
     }
 }

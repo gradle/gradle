@@ -16,6 +16,8 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.common.base.Objects;
+
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -41,6 +43,21 @@ public class SetSerializer<T> extends AbstractCollectionSerializer<T> implements
 
     public void write(Encoder encoder, Set<T> value) throws Exception {
         writeValues(encoder, value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        SetSerializer rhs = (SetSerializer) obj;
+        return linkedHashSet == rhs.linkedHashSet;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), linkedHashSet);
     }
 
 }

@@ -16,18 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ComponentResultSerializer implements Serializer<ComponentResult> {
+public class ComponentResultSerializer extends AbstractSerializer<ComponentResult> {
 
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
     private final ComponentSelectionReasonSerializer reasonSerializer = new ComponentSelectionReasonSerializer();
@@ -46,5 +47,21 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        ComponentResultSerializer rhs = (ComponentResultSerializer) obj;
+        return Objects.equal(idSerializer, rhs.idSerializer) && Objects.equal(reasonSerializer, rhs.reasonSerializer)
+            && Objects.equal(componentIdSerializer, rhs.componentIdSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), idSerializer, reasonSerializer, componentIdSerializer);
     }
 }

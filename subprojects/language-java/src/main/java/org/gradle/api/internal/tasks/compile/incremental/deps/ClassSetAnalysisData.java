@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.base.Objects;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.MapSerializer;
@@ -38,7 +40,7 @@ public class ClassSetAnalysisData {
         return dependents.get(className);
     }
 
-    public static class Serializer implements org.gradle.internal.serialize.Serializer<ClassSetAnalysisData> {
+    public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
 
         private final MapSerializer<String, DependentsSet> serializer = new MapSerializer<String, DependentsSet>(
                 STRING_SERIALIZER, new DependentsSetSerializer());
@@ -55,7 +57,22 @@ public class ClassSetAnalysisData {
             serializer.write(encoder, value.dependents);
         }
 
-        private static class DependentsSetSerializer implements org.gradle.internal.serialize.Serializer<DependentsSet> {
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            Serializer rhs = (Serializer) obj;
+            return Objects.equal(serializer, rhs.serializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), serializer);
+        }
+
+        private static class DependentsSetSerializer extends AbstractSerializer<DependentsSet> {
 
             private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
@@ -82,6 +99,21 @@ public class ClassSetAnalysisData {
                 } else {
                     throw new IllegalArgumentException("Don't know how to serialize value of type: " + value.getClass() + ", value: " + value);
                 }
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!super.equals(obj)) {
+                    return false;
+                }
+
+                DependentsSetSerializer rhs = (DependentsSetSerializer) obj;
+                return Objects.equal(setSerializer, rhs.setSerializer);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(super.hashCode(), setSerializer);
             }
         }
     }

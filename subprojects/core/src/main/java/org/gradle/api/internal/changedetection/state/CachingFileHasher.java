@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
@@ -23,10 +24,10 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
@@ -99,7 +100,7 @@ public class CachingFileHasher implements FileHasher {
         }
     }
 
-    private static class FileInfoSerializer implements Serializer<FileInfo> {
+    private static class FileInfoSerializer extends AbstractSerializer<FileInfo> {
         private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
         public FileInfo read(Decoder decoder) throws Exception {
@@ -113,6 +114,21 @@ public class CachingFileHasher implements FileHasher {
             hashCodeSerializer.write(encoder, value.hash);
             encoder.writeLong(value.timestamp);
             encoder.writeLong(value.length);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            FileInfoSerializer rhs = (FileInfoSerializer) obj;
+            return Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), hashCodeSerializer);
         }
     }
 }
