@@ -53,5 +53,3 @@ We love getting contributions from the Gradle community. For information on cont
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-**Wrapper upgrade note:** If you previously used Gradle 3.2 to generate a [Gradle Wrapper](userguide/wrapperPlugin.html), re-run `./gradlew wrapper` after upgrading to avoid a mis-configured wrapper script. See [gradle/gradle#865](https://github.com/gradle/gradle/issues/865) and [gradle/gradle#877](https://github.com/gradle/gradle/issues/877) for more details.

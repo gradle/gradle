@@ -81,7 +81,8 @@ class GradleExecuterBackedSession implements GradleSession {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
         def createNewExecuter = {
-            invocation.gradleDistribution.executer(new TestDirectoryProvider() {
+            def distribution = new PerformanceTestGradleDistribution(invocation.gradleDistribution, invocationInfo.projectDir)
+            def testDirectoryProvider = new TestDirectoryProvider() {
                 @Override
                 TestFile getTestDirectory() {
                     new TestFile(invocationInfo.projectDir)
@@ -91,7 +92,8 @@ class GradleExecuterBackedSession implements GradleSession {
                 void suppressCleanup() {
 
                 }
-            }, integrationTestBuildContext)
+            }
+            distribution.executer(testDirectoryProvider, integrationTestBuildContext)
         }
         if (executer == null) {
             executer = createNewExecuter()
