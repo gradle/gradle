@@ -155,19 +155,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         if (stage == Stage.Load) {
             // Configure build
-            buildOperationExecutor.run("Configure build", new Action<BuildOperationContext>() {
-                @Override
-                public void execute(BuildOperationContext buildOperationContext) {
-                    buildConfigurer.configure(gradle);
-
-                    if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                        buildListener.projectsEvaluated(gradle);
-                    }
-
-                    modelConfigurationListener.onConfigure(gradle);
-                }
-            });
-
+            buildOperationExecutor.run("Configure build", new ConfigureBuildAction());
             stage = Stage.Configure;
         }
 
@@ -179,23 +167,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Build;
 
         // Populate task graph
-        buildOperationExecutor.run("Calculate task graph", new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                buildConfigurationActionExecuter.select(gradle);
-                if (gradle.getStartParameter().isConfigureOnDemand()) {
-                    buildListener.projectsEvaluated(gradle);
-                }
-            }
-        });
+        buildOperationExecutor.run("Calculate task graph", new CalculateTaskGraphAction());
 
         // Execute build
-        buildOperationExecutor.run("Run tasks", new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                buildExecuter.execute(gradle);
-            }
-        });
+        buildOperationExecutor.run("Run tasks", new RunTasksAction());
     }
 
     /**
@@ -247,6 +222,36 @@ public class DefaultGradleLauncher implements GradleLauncher {
             CompositeStoppable.stoppable(listeners).add(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private class ConfigureBuildAction implements Action<BuildOperationContext> {
+        @Override
+        public void execute(BuildOperationContext buildOperationContext) {
+            buildConfigurer.configure(gradle);
+
+            if (!gradle.getStartParameter().isConfigureOnDemand()) {
+                buildListener.projectsEvaluated(gradle);
+            }
+
+            modelConfigurationListener.onConfigure(gradle);
+        }
+    }
+
+    private class CalculateTaskGraphAction implements Action<BuildOperationContext> {
+        @Override
+        public void execute(BuildOperationContext buildOperationContext) {
+            buildConfigurationActionExecuter.select(gradle);
+            if (gradle.getStartParameter().isConfigureOnDemand()) {
+                buildListener.projectsEvaluated(gradle);
+            }
+        }
+    }
+
+    private class RunTasksAction implements Action<BuildOperationContext> {
+        @Override
+        public void execute(BuildOperationContext buildOperationContext) {
+            buildExecuter.execute(gradle);
         }
     }
 }
