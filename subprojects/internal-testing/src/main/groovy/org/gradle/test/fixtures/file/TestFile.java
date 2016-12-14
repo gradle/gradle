@@ -399,7 +399,7 @@ public class TestFile extends File {
 
     public String getMd5Hash() {
         try {
-            return Files.hash(file(this), Hashing.md5()).toString();
+            return Files.hash(this, Hashing.md5()).toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
