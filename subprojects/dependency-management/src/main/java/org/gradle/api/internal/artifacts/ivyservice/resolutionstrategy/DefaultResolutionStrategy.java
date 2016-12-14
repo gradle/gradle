@@ -73,7 +73,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
 
-        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substituion rule
+        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
 
