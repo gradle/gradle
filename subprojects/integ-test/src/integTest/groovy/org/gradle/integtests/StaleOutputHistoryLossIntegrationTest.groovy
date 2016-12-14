@@ -43,12 +43,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def "production sources files are removed"() {
         given:
         def javaProjectFixture = new JavaProjectFixture()
+        buildFile << "apply plugin: 'java'"
 
         when:
         def result = runWithMostRecentFinalRelease(JAR_TASK_PATH)
 
         then:
-        result.executedTasks.contains(JAR_TASK_PATH)
+        result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
         !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
@@ -59,7 +60,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds JAR_TASK_PATH
 
         then:
-        executedAndNotSkipped(JAR_TASK_PATH)
+        executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
         outputContains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
@@ -79,12 +80,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1501")
     def "task history is deleted"() {
         def javaProjectFixture = new JavaProjectFixture()
+        buildFile << "apply plugin: 'java'"
 
         when:
         succeeds JAR_TASK_PATH
 
         then:
-        result.executedTasks.contains(JAR_TASK_PATH)
+        result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
         !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
@@ -96,7 +98,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds JAR_TASK_PATH
 
         then:
-        executedAndNotSkipped(JAR_TASK_PATH)
+        executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
+        outputContains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
@@ -122,6 +125,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.contains(taskPath)
+        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
@@ -132,6 +136,17 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(taskPath)
+        outputContains(javaProjectFixture.classesOutputCleanupMessage)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+
+        when:
+        succeeds taskPath
+
+        then:
+        executedAndNotSkipped(taskPath)
+        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
@@ -448,11 +463,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             redundantSourceFile = writeJavaSourceFile('Redundant')
             mainClassFile = determineClassFile(mainSourceFile)
             redundantClassFile = determineClassFile(redundantSourceFile)
-            writeBuildFile()
-        }
-
-        private void writeBuildFile() {
-            buildFile << "apply plugin: 'java'"
         }
 
         private TestFile writeJavaSourceFile(String className) {
