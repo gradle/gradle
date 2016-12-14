@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 3.3.
 
-This release of Gradle makes **gradle tasks much faster** for medium-to-large projects. By default, `gradle tasks` will now only display tasks which have been assigned a task group.
+This release of Gradle makes the **gradle tasks report much faster** for medium-to-large projects. By default, `gradle tasks` will now only display tasks which have been assigned a task group.
 For example, execution time was reduced from [554 seconds](https://gradle.com/s/djfdqmgfspm5u) to [3 seconds](https://gradle.com/s/2e32tytb37vas) on our [perf-enterprise-large benchmark project](https://github.com/gradle/perf-enterprise-large/) — **over 100x faster**! 
 See the technical details on how and why this change was made [further down](#improved-performance-of-tasks-report).
 
