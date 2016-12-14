@@ -49,6 +49,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.contains(JAR_TASK_PATH)
+        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
@@ -84,6 +85,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.contains(JAR_TASK_PATH)
+        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
