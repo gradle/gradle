@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.RelativeFile;
@@ -123,7 +124,7 @@ public class JavaScriptMinify extends SourceTask {
 
     @TaskAction
     void compileJavaScriptSources() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner((TaskOutputsInternal) getOutputs());
         cleaner.setDestinationDir(getDestinationDir());
         cleaner.execute();
 

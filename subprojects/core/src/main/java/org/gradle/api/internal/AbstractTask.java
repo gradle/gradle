@@ -51,7 +51,9 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -461,11 +463,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.group = group;
     }
 
-    public TaskInputsInternal getInputs() {
+    @Override
+    public TaskInputs getInputs() {
         return taskInputs;
     }
 
-    public TaskOutputsInternal getOutputs() {
+    @Override
+    public TaskOutputs getOutputs() {
         return taskOutputs;
     }
 
