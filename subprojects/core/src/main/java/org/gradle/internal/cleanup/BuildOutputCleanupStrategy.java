@@ -19,7 +19,7 @@ package org.gradle.internal.cleanup;
 public interface BuildOutputCleanupStrategy {
 
     /**
-     * Determines if cleanup is needed based on provided Gradle instance.
+     * Determines if clean up is required.
      */
-    boolean needsCleanup();
+    boolean requiresCleanup();
 }

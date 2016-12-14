@@ -39,31 +39,35 @@ public class BuildOutputCleanupListener implements ModelConfigurationListener {
 
     @Override
     public void onConfigure(GradleInternal model) {
-        if (needsCleanup()) {
+        if (requiresCleanup()) {
             for (File output : buildOutputCleanupRegistry.getOutputs()) {
-                try {
-                    if (output.isDirectory()) {
-                        GFileUtils.cleanDirectory(output);
-                        LOGGER.quiet(String.format("Cleaned up directory '%s'", output));
-                    } else if (output.isFile()) {
-                        GFileUtils.forceDelete(output);
-                        LOGGER.quiet(String.format("Cleaned up file '%s'", output));
-                    }
-                } catch (UncheckedIOException e) {
-                    LOGGER.warn(String.format("Unable to clean up '%s'", output), e);
-                }
+                deleteOutput(output);
             }
         }
     }
 
-    private boolean needsCleanup() {
+    private boolean requiresCleanup() {
         List<BuildOutputCleanupStrategy> strategiesToBeCleanedUp = CollectionUtils.filter(buildOutputCleanupRegistry.getStrategies(), new Spec<BuildOutputCleanupStrategy>() {
             @Override
             public boolean isSatisfiedBy(BuildOutputCleanupStrategy strategy) {
-                return strategy.needsCleanup();
+                return strategy.requiresCleanup();
             }
         });
 
         return !strategiesToBeCleanedUp.isEmpty();
+    }
+
+    private void deleteOutput(File output) {
+        try {
+            if (output.isDirectory() && output.list().length > 0) {
+                GFileUtils.cleanDirectory(output);
+                LOGGER.quiet(String.format("Cleaned up directory '%s'", output));
+            } else if (output.isFile()) {
+                GFileUtils.forceDelete(output);
+                LOGGER.quiet(String.format("Cleaned up file '%s'", output));
+            }
+        } catch (UncheckedIOException e) {
+            LOGGER.warn(String.format("Unable to clean up '%s'", output), e);
+        }
     }
 }

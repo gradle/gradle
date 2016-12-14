@@ -26,6 +26,8 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
+import static org.gradle.integtests.StaleOutputHistoryLossIntegrationTest.JavaProjectFixture.COMPILE_JAVA_TASK_PATH
+import static org.gradle.integtests.StaleOutputHistoryLossIntegrationTest.JavaProjectFixture.JAR_TASK_PATH
 import static org.gradle.util.GFileUtils.forceDelete
 
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
@@ -41,60 +43,71 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def "production sources files are removed"() {
         given:
         def javaProjectFixture = new JavaProjectFixture()
-        def jarFile = file('build/libs/test.jar')
-        def taskPath = ':jar'
-
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << "apply plugin: 'java'"
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        def result = runWithMostRecentFinalRelease(JAR_TASK_PATH)
 
         then:
-        result.executedTasks.contains(taskPath)
+        result.executedTasks.contains(JAR_TASK_PATH)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
 
         when:
         forceDelete(javaProjectFixture.redundantSourceFile)
-        succeeds taskPath
+        succeeds JAR_TASK_PATH
 
         then:
-        executedAndNotSkipped(taskPath)
+        executedAndNotSkipped(JAR_TASK_PATH)
+        outputContains(javaProjectFixture.classesOutputCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+
+        when:
+        succeeds JAR_TASK_PATH
+
+        then:
+        skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
+        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
     }
 
     @Issue("GRADLE-1501")
     def "task history is deleted"() {
         def javaProjectFixture = new JavaProjectFixture()
-        def jarFile = file('build/libs/test.jar')
-        def taskPath = ':jar'
-
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << "apply plugin: 'java'"
 
         when:
-        succeeds taskPath
+        succeeds JAR_TASK_PATH
 
         then:
-        result.executedTasks.contains(taskPath)
+        result.executedTasks.contains(JAR_TASK_PATH)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
 
         when:
         file('.gradle').assertIsDir().deleteDir()
         forceDelete(javaProjectFixture.redundantSourceFile)
-        succeeds taskPath
+        succeeds JAR_TASK_PATH
 
         then:
-        executedAndNotSkipped(taskPath)
+        executedAndNotSkipped(JAR_TASK_PATH)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+
+        when:
+        succeeds JAR_TASK_PATH
+
+        then:
+        skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
+        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
+        javaProjectFixture.mainClassFile.assertIsFile()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
     }
 
     def "source files under buildSrc are removed"() {
@@ -416,6 +429,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private class JavaProjectFixture {
+        private final static String COMPILE_JAVA_TASK_PATH = ':compileJava'
+        private final static String JAR_TASK_PATH = ':jar'
         private final String rootDirName
         private final TestFile mainSourceFile
         private final TestFile redundantSourceFile
@@ -432,6 +447,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             redundantSourceFile = writeJavaSourceFile('Redundant')
             mainClassFile = determineClassFile(mainSourceFile)
             redundantClassFile = determineClassFile(redundantSourceFile)
+            writeBuildFiles()
+        }
+
+        private void writeBuildFiles() {
+            settingsFile << "rootProject.name = 'test'"
+            buildFile << "apply plugin: 'java'"
         }
 
         private TestFile writeJavaSourceFile(String className) {
@@ -462,6 +483,14 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         TestFile getRedundantClassFile() {
             redundantClassFile
+        }
+
+        TestFile getJarFile() {
+            file('build/libs/test.jar')
+        }
+
+        String getClassesOutputCleanupMessage() {
+            "Cleaned up directory '${new File(testDirectory, 'build/classes/main')}'"
         }
     }
 }

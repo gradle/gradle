@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cleanup;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -24,6 +25,7 @@ import org.gradle.internal.Factory;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -39,19 +41,16 @@ public class PersistedGradleVersionCleanupStrategy implements BuildOutputCleanup
     }
 
     @Override
-    public boolean needsCleanup() {
-        final PersistentCache cache = createCache();
+    public boolean requiresCleanup() {
+        PersistentCache cache = null;
 
         try {
-            return cache.useCache("build cleanup cache", new Factory<Boolean>() {
-                @Override
-                public Boolean create() {
-                    File markerFile = new File(cache.getBaseDir(), "built.bin");
-                    return !markerFile.exists();
-                }
-            });
+            cache = createCache();
+            return cache.useCache("build cleanup cache", new MarkerFileExistenceFactory(cache));
         } finally {
-            cache.close();
+            if (cache != null) {
+                cache.close();
+            }
         }
     }
 
@@ -63,5 +62,30 @@ public class PersistedGradleVersionCleanupStrategy implements BuildOutputCleanup
             .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
+    }
+
+    private static class MarkerFileExistenceFactory implements Factory<Boolean> {
+
+        private final PersistentCache cache;
+
+        public MarkerFileExistenceFactory(PersistentCache cache) {
+            this.cache = cache;
+        }
+
+        @Override
+        public Boolean create() {
+            File markerFile = new File(cache.getBaseDir(), "built.bin");
+            boolean markerFileExists = markerFile.exists();
+
+            if (!markerFileExists) {
+                try {
+                    markerFile.createNewFile();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
+            return !markerFileExists;
+        }
     }
 }
