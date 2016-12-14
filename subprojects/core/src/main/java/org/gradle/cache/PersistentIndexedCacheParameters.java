@@ -15,7 +15,6 @@
  */
 package org.gradle.cache;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.gradle.api.Nullable;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -67,26 +66,5 @@ public class PersistentIndexedCacheParameters<K, V> {
         assert cacheDecorator != null;
         this.cacheDecorator = cacheDecorator;
         return this;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
-
-        PersistentIndexedCacheParameters<K, V> rhs = (PersistentIndexedCacheParameters<K, V>) obj;
-        return new EqualsBuilder()
-            .append(cacheName, rhs.cacheName)
-            .append(keySerializer, rhs.keySerializer)
-            .append(valueSerializer, rhs.valueSerializer)
-            .append(null == cacheDecorator?null:cacheDecorator.getClass(), null == rhs.cacheDecorator?null:rhs.cacheDecorator.getClass())  // TODO(daniel): Shortcut!
-            .isEquals();
     }
 }
