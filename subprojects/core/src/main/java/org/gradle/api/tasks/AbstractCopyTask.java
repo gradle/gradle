@@ -60,7 +60,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
-    private boolean reproducibleFileOrder;
+    // FIXME wolfs: turn this off by default
+    private boolean reproducibleFileOrder = true;
 
     protected AbstractCopyTask() {
         this.rootSpec = createRootSpec();
