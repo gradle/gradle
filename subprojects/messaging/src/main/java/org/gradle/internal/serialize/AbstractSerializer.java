@@ -18,6 +18,13 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 
+/**
+ * This abstract class provide a sensible default implementation for {@code Serializer} equality. This equality
+ * implementation is required to enable cache instance reuse within the same Gradle runtime. Serializers are used
+ * as cache parameter which need to be compared to determine compatible cache.
+ *
+ * \see https://github.com/gradle/gradle/issues/933
+ */
 public abstract class AbstractSerializer<T> implements Serializer<T> {
     @Override
     public boolean equals(Object obj) {

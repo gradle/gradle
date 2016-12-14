@@ -77,7 +77,7 @@ public class BaseSerializerFactory {
                 return false;
             }
 
-            EnumSerializer<T> rhs = (EnumSerializer<T>) obj;
+            EnumSerializer rhs = (EnumSerializer) obj;
             return Objects.equal(type, rhs.type);
         }
 

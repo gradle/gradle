@@ -200,7 +200,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static class TaskExecutionListSerializer extends AbstractSerializer<ImmutableList<TaskExecutionSnapshot>> {
         private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
-        private final StringInterner stringInterner;  // TODO(daniel): Should this be consider in the equality andhashCode
+        private final StringInterner stringInterner;
 
         TaskExecutionListSerializer(StringInterner stringInterner) {
             this.stringInterner = stringInterner;
@@ -449,7 +449,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     return false;
                 }
 
-                // TODO(daniel): Need to validate it's ok to ignore stringInterner
                 TaskExecutionSnapshotSerializer rhs = (TaskExecutionSnapshotSerializer) obj;
                 return Objects.equal(inputPropertiesSerializer, rhs.inputPropertiesSerializer);
             }

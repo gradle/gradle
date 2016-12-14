@@ -157,7 +157,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(super.hashCode(), Arrays.hashCode(addresses.toArray()));
+            return Objects.hashCode(super.hashCode(), addresses);
         }
 
         private void writeAddressIndex(Encoder encoder, DaemonInfo info) throws IOException {
