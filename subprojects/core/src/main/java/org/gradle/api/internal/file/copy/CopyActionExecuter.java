@@ -32,12 +32,19 @@ public class CopyActionExecuter {
     }
 
     public WorkResult execute(final CopySpecInternal spec, CopyAction action) {
-        final CopyAction effectiveVisitor = new DuplicateHandlingCopyActionDecorator(
+        final CopyAction effectiveVisitor = sortIfNecessary(new DuplicateHandlingCopyActionDecorator(
                 new NormalizingCopyActionDecorator(action, fileSystem)
+            )
         );
 
-        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(spec, instantiator, fileSystem, reproducibleFileOrder);
+        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(spec, instantiator, fileSystem);
         return effectiveVisitor.execute(processingStream);
     }
 
+    private CopyAction sortIfNecessary(CopyAction delegate) {
+        if (reproducibleFileOrder) {
+            return new SortingCopyActionDecorator(delegate);
+        }
+        return delegate;
+    }
 }

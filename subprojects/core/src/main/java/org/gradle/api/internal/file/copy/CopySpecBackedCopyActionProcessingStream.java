@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -25,16 +26,21 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
     private final CopySpecInternal spec;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
-    private final boolean reproducibleFileOrder;
 
-    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
+    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, FileSystem fileSystem) {
         this.spec = spec;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
-        this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
     public void process(final CopyActionProcessingStreamAction action) {
-        spec.walk(new CopySpecActionImpl(action, instantiator, fileSystem, reproducibleFileOrder));
+        spec.walk(closableResolver(new CopySpecActionImpl(action, instantiator, fileSystem), action));
+    }
+
+    public Action<CopySpecResolver> closableResolver(Action<CopySpecResolver> delegate, CopyActionProcessingStreamAction action) {
+        if (action instanceof Flushable) {
+            return new FlushingCopySpecResolverActionDecorator(delegate, (Flushable) action);
+        }
+        return delegate;
     }
 }
