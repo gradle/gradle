@@ -25,6 +25,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
@@ -146,7 +147,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private Iterable<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
         // Find all output properties that go into the cache key
         Iterable<TaskOutputFilePropertySpec> outputPropertiesForCacheKey =
-            Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
+            Iterables.filter(((TaskOutputsInternal) task.getOutputs()).getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
                 @Override
                 public boolean apply(TaskOutputFilePropertySpec propertySpec) {
                     if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {

@@ -20,6 +20,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
@@ -194,7 +195,7 @@ public class JavaCompile extends AbstractCompile {
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
+        return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), (TaskOutputsInternal) getOutputs());
     }
 
     @Nested

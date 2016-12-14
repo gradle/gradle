@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -104,7 +105,7 @@ public class RoutesCompile extends SourceTask {
     @TaskAction
     void compile() {
         RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getInjectedRoutesGenerator(), getAdditionalImports());
-        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
+        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), (TaskOutputsInternal) getOutputs()).execute(spec);
     }
 
     @Internal

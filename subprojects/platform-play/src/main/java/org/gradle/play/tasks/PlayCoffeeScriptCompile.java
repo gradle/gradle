@@ -19,6 +19,7 @@ package org.gradle.play.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
@@ -48,7 +49,7 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
 
     @Override
     public void doCompile() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner((TaskOutputsInternal) getOutputs());
         cleaner.setDestinationDir(getDestinationDir());
         cleaner.execute();
         super.doCompile();

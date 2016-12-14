@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
@@ -30,7 +31,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     private final OutputFilesSnapshotter outputSnapshotter;
 
     public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
+        super(task.getName(), previous, current, snapshotterRegistry, "Output", ((TaskOutputsInternal) task.getOutputs()).getFileProperties());
         this.outputSnapshotter = outputSnapshotter;
     }
 
