@@ -16,9 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import com.google.common.hash.Funnels
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
@@ -172,7 +169,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
             task zip(type: Zip) {
                 reproducibleFileOrder = true
                 fixedTimestamps = true
-                from files(${files.collect {"'${it}'"}.join(',')})
+                from files(${files.collect { "'${it}'" }.join(',')})
                 destinationDir = buildDir
                 archiveName = 'test.zip'
             }
@@ -182,7 +179,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'zip'
 
         then:
-        fileHash('build/test.zip') == '527eb62eec82af74a83514708f52dbf4'
+        file('build/test.zip').md5Hash == '527eb62eec82af74a83514708f52dbf4'
 
         where:
         files << ['dir1/file1.txt', 'dir2/file2.txt', 'dir3/file3.txt'].permutations()
@@ -205,7 +202,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'zip'
 
         then:
-        def firstFileHash = fileHash('build/test.zip')
+        def firstFileHash = file('build/test.zip').md5Hash
 
         when:
         file('dir1/file1.txt').makeOlder()
@@ -213,13 +210,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'zip'
 
         then:
-        fileHash('build/test.zip') == firstFileHash
-    }
-
-    private String fileHash(String fileName) {
-        def hasher = Hashing.md5().newHasher()
-        Files.copy(file(fileName), Funnels.asOutputStream(hasher))
-        hasher.hash().toString()
+        file('build/test.zip').md5Hash == firstFileHash
     }
 
     @Unroll

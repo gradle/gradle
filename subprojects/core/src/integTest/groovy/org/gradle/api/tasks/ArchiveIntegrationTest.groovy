@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
@@ -115,7 +113,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'tar'
         then:
-        Files.hash(file('build/test.tar'), Hashing.md5()).toString() == 'f2d39f1058de40bc0bfd9ee875fa2c5b'
+        file('build/test.tar').md5Hash == 'f2d39f1058de40bc0bfd9ee875fa2c5b'
     }
 
     @Unroll
@@ -135,7 +133,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             task tar(type: Tar) {
                 fixedTimestamps = true     
                 reproducibleFileOrder = true
-                from files(${files.collect {"'${it}'"}.join(',')})
+                from files(${files.collect { "'${it}'" }.join(',')})
                 destinationDir = buildDir
                 archiveName = 'test.tar'
             }
@@ -145,7 +143,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'tar'
 
         then:
-        Files.hash(file('build/test.tar'), Hashing.md5()).toString() == 'f03e910d1711b5cc279c04f8f13b2816'
+        file('build/test.tar').md5Hash == 'f03e910d1711b5cc279c04f8f13b2816'
 
         where:
         files << ['dir1/file1.txt', 'dir2/file2.txt', 'dir3/file3.txt'].permutations()
@@ -398,11 +396,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def expandDir = file('expanded')
         file('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'prefix/dir1/renamed_file1.txt',
-                'prefix/renamed_file1.txt',
-                'prefix/dir2/renamed_file2.txt',
-                'scripts/dir2/script.sh',
-                'conf/dir2/config.properties')
+            'prefix/dir1/renamed_file1.txt',
+            'prefix/renamed_file1.txt',
+            'prefix/dir2/renamed_file2.txt',
+            'scripts/dir2/script.sh',
+            'conf/dir2/config.properties')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
     }
@@ -462,20 +460,20 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def expandDir = file('expandedUncompressed')
         file('build/uncompressedTest.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'prefix/dir1/file1.txt',
-                'prefix/file1.txt',
-                'prefix/dir2/file2.txt',
-                'scripts/dir2/script.sh')
+            'prefix/dir1/file1.txt',
+            'prefix/file1.txt',
+            'prefix/dir2/file2.txt',
+            'scripts/dir2/script.sh')
 
         expandDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
 
         def expandCompressedDir = file('expandedCompressed')
         file('build/compressedTest.zip').unzipTo(expandCompressedDir)
         expandCompressedDir.assertHasDescendants(
-                'prefix/dir1/file1.txt',
-                'prefix/file1.txt',
-                'prefix/dir2/file2.txt',
-                'scripts/dir2/script.sh')
+            'prefix/dir1/file1.txt',
+            'prefix/file1.txt',
+            'prefix/dir2/file2.txt',
+            'scripts/dir2/script.sh')
 
         expandCompressedDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
     }
@@ -615,7 +613,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy', 'zip'
         then:
         file('build/exploded').assertHasDescendants(
-                'lib/file1.txt', 'src/dir3/file2.txt'
+            'lib/file1.txt', 'src/dir3/file2.txt'
         )
         def expandDir = file('expanded')
         file('build/test.zip').unzipTo(expandDir)
@@ -656,10 +654,10 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'explodedZip', 'copyFromRootSpec'
         then:
         file('build/exploded').assertHasDescendants(
-                'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
+            'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
         )
         file('build/copy').assertHasDescendants(
-                'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
+            'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
         )
     }
 
