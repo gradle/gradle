@@ -113,7 +113,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def "source files under buildSrc are removed"() {
         given:
         def javaProjectFixture = new JavaProjectFixture('buildSrc')
-        def jarFile = file('buildSrc/build/libs/buildSrc.jar')
         def taskPath = ':help'
 
         when:
@@ -123,7 +122,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.contains(taskPath)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
 
         when:
         forceDelete(javaProjectFixture.redundantSourceFile)
@@ -133,7 +132,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(taskPath)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
     }
 
     def "tasks have common output directories"() {
@@ -447,11 +446,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             redundantSourceFile = writeJavaSourceFile('Redundant')
             mainClassFile = determineClassFile(mainSourceFile)
             redundantClassFile = determineClassFile(redundantSourceFile)
-            writeBuildFiles()
+            writeBuildFile()
         }
 
-        private void writeBuildFiles() {
-            settingsFile << "rootProject.name = 'test'"
+        private void writeBuildFile() {
             buildFile << "apply plugin: 'java'"
         }
 
@@ -486,11 +484,14 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         TestFile getJarFile() {
-            file('build/libs/test.jar')
+            String jarFileName = rootDirName ? "${rootDirName}.jar" : "${testDirectory.name}.jar"
+            String path = prependRootDirName("build/libs/$jarFileName")
+            file(path)
         }
 
         String getClassesOutputCleanupMessage() {
-            "Cleaned up directory '${new File(testDirectory, 'build/classes/main')}'"
+            String path = prependRootDirName('build/classes/main')
+            "Cleaned up directory '${new File(testDirectory, path)}'"
         }
     }
 }
