@@ -63,7 +63,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Timer clock = Timers.startTimer();
 
-        final TaskOutputsInternal taskOutputs = (TaskOutputsInternal) task.getOutputs();
+        final TaskOutputsInternal taskOutputs = task.getOutputs();
 
         boolean cacheEnabled;
         try {

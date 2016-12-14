@@ -16,7 +16,6 @@
 package org.gradle.language.jvm.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.Copy;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
@@ -30,7 +29,7 @@ public class ProcessResources extends Copy {
 
     @Override
     protected void copy() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner((TaskOutputsInternal) getOutputs());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
         cleaner.setDestinationDir(getDestinationDir());
         cleaner.execute();
         super.copy();

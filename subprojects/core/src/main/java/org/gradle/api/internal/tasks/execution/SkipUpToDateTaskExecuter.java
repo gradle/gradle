@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -56,8 +55,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             }
             logOutOfDateMessages(messages, task, clock.getElapsed());
 
-            TaskOutputsInternal outputs = (TaskOutputsInternal) task.getOutputs();
-            outputs.setHistory(taskArtifactState.getExecutionHistory());
+            task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
 
             taskArtifactState.beforeTask();
             try {
@@ -66,7 +64,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
                     taskArtifactState.afterTask();
                 }
             } finally {
-                outputs.setHistory(null);
+                task.getOutputs().setHistory(null);
             }
         } finally {
             taskArtifactState.finished();

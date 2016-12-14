@@ -28,7 +28,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
@@ -66,7 +65,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             @Override
             public void childSpecAdded(CopySpecInternal.CopySpecAddress path, final CopySpecInternal spec) {
                 if (getState().getExecuting()) {
-                    if (((TaskOutputsInternal) getOutputs()).isCacheEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
+                    if (getOutputs().isCacheEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
                         throw new GradleException("It is not allowed to modify child specs of the task at execution time when task output caching is enabled. "
                             + CONFIGURE_SPEC_DURING_CONFIGURATION + ".");
                     }

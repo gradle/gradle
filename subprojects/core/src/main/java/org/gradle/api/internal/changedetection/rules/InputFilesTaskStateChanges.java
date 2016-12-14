@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
@@ -26,7 +25,7 @@ import java.util.Map;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Input", ((TaskInputsInternal) task.getInputs()).getFileProperties());
+        super(task.getName(), previous, current, snapshotterRegistry, "Input", task.getInputs().getFileProperties());
         // Inputs are considered to be unchanged during task execution
         current.setInputFilesSnapshot(getCurrent());
     }
