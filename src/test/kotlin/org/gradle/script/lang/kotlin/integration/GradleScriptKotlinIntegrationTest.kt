@@ -281,6 +281,28 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
             containsString("build.gradle.kts:5"))
     }
 
+    @Test
+    fun `given a script with more than one buildscript block, it throws exception with offending block line number`() {
+        withBuildScript(""" // line 1
+            buildscript {}  // line 2
+            buildscript {}  // line 3
+        """)
+        assertThat(
+            buildFailureOutput(),
+            containsString("build.gradle.kts(3,13): Unexpected `buildscript` block found. Only one `buildscript` block is allowed per script."))
+    }
+
+    @Test
+    fun `given a script with more than one plugins block, it throws exception with offending block line number`() {
+        withBuildScript(""" // line 1
+            plugins {}      // line 2
+            plugins {}      // line 3
+        """)
+        assertThat(
+            buildFailureOutput(),
+            containsString("build.gradle.kts(3,13): Unexpected `plugins` block found. Only one `plugins` block is allowed per script."))
+    }
+
     private val fixturesRepository: File
         get() = File("fixtures/repository").absoluteFile
 }

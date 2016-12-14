@@ -87,13 +87,20 @@ class KotlinBuildScriptCompiler(
 
     private fun compileTopLevelScript(): (Project) -> Unit {
         return { target ->
-            executeBuildscriptBlockOn(target)
-            executeScriptBodyOn(target)
+            withUnexpectedBlockHandling {
+                executeBuildscriptBlockOn(target)
+                executeScriptBodyOn(target)
+            }
         }
     }
 
-    private fun compileScriptPlugin(): (Project) -> Unit =
-        { target -> executeScriptBodyOn(target) }
+    private fun compileScriptPlugin(): (Project) -> Unit {
+        return { target ->
+            withUnexpectedBlockHandling {
+                executeScriptBodyOn(target)
+            }
+        }
+    }
 
     private fun executeScriptBodyOn(target: Project) {
         val scriptClassLoader = scriptBodyClassLoaderFor(target)
@@ -205,6 +212,16 @@ class KotlinBuildScriptCompiler(
 
     private inline fun <reified T : Any> instantiate(scriptClass: Class<*>, target: T) {
         scriptClass.getConstructor(T::class.java).newInstance(target)
+    }
+
+    private inline fun withUnexpectedBlockHandling(action: () -> Unit) {
+        try {
+            action()
+        } catch (e: UnexpectedBlockException) {
+            val (line, column) = script.lineAndColumnFromRange(e.blockLocation)
+            val message = "$scriptFile($line,$column): Unexpected `${e.blockIdentifier}` block found. Only one `${e.blockIdentifier}` block is allowed per script."
+            throw IllegalStateException(message, e)
+        }
     }
 
     private fun logClassLoaderHierarchyOf(scriptClass: Class<*>, project: Project) {

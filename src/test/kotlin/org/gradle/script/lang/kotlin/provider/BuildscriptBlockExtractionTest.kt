@@ -6,6 +6,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import kotlin.test.assertNull
+import kotlin.test.fail
 
 class BuildscriptBlockExtractionTest {
 
@@ -74,6 +75,18 @@ class BuildscriptBlockExtractionTest {
     @Test
     fun `given block commented buildscript it returns null`() {
         assertNoBuildscript("/* /* no */ buildscript {} here either */")
+    }
+
+    @Test
+    fun `given more than one top level buildscript block it throws IllegalStateException`() {
+        try {
+            extractBuildscriptBlockFrom("buildscript {} buildscript {}")
+            fail("Expecting ${UnexpectedBlockException::class.simpleName}!")
+        } catch (e: UnexpectedBlockException) {
+            assertThat(e.blockIdentifier, equalTo("buildscript"))
+            assertThat(e.blockLocation, equalTo(15..28))
+            assertThat(e.message, equalTo("Unexpected block found."))
+        }
     }
 
     private fun assertNoBuildscript(script: String) {

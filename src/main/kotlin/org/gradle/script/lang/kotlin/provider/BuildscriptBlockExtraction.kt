@@ -19,6 +19,9 @@ package org.gradle.script.lang.kotlin.provider
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.*
 
+class UnexpectedBlockException(val blockIdentifier: String, val blockLocation: IntRange)
+    : RuntimeException("Unexpected block found.")
+
 fun extractBuildscriptBlockFrom(script: String) =
     extractTopLevelSectionFrom(script, "buildscript")
 
@@ -28,17 +31,26 @@ fun extractBuildscriptBlockFrom(script: String) =
  *     [identifier] { anything* }
  *
  * @return range of found section or null if no top-level section with the given [identifier] could be found
+ * @throws UnexpectedBlockException if more than one top-level section with the given [identifier] is found
  */
 fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? =
     KotlinLexer().run {
         start(script)
         while (tokenType != null) {
             nextTopLevelSection(identifier)?.let {
+                advance()
+                expectNoMore(identifier)
                 return it
             }
         }
         return null
     }
+
+private fun KotlinLexer.expectNoMore(identifier: String) {
+    nextTopLevelSection(identifier)?.let {
+        throw UnexpectedBlockException(identifier, it)
+    }
+}
 
 private fun KotlinLexer.nextTopLevelSection(identifier: String): IntRange? =
     findTopLevelIdentifier(identifier)?.let { sectionStart ->

@@ -20,6 +20,17 @@ fun CharSequence.linePreservingSubstring(range: IntRange): String =
     linePreservingSubstring_(range).second
 
 fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
-    val lineCount = subSequence(0, range.start).count { it == '\n' }
+    val lineCount = take(range.start).count { it == '\n' }
     return lineCount to "\n".repeat(lineCount) + substring(range)
+}
+
+/**
+ * Computes the 1-based line and column numbers from the given [range].
+ */
+fun CharSequence.lineAndColumnFromRange(range: IntRange): Pair<Int, Int> {
+    require(range.endInclusive <= lastIndex)
+    val prefix = take(range.start)
+    val lineCountBefore = prefix.count { it == '\n' }
+    val lastNewLineIndex = prefix.lastIndexOf('\n')
+    return (lineCountBefore + 1) to (range.start - lastNewLineIndex)
 }
