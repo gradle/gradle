@@ -44,7 +44,11 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
             public Map<File, JarSnapshot> create() {
                 final Map<File, JarSnapshot> out = new HashMap<File, JarSnapshot>();
                 for (Map.Entry<File, HashCode> entry : jarHashes.entrySet()) {
-                    JarSnapshot snapshot = new JarSnapshot(cache.getCache().get(entry.getValue()));
+                    JarSnapshotData snapshotData = cache.getCache().get(entry.getValue());
+                    if (snapshotData == null) {
+                        throw new IllegalStateException("No Jar snapshot data available for " + entry.getKey() + " with hash " + entry.getValue() + ".");
+                    }
+                    JarSnapshot snapshot = new JarSnapshot(snapshotData);
                     out.put(entry.getKey(), snapshot);
                 }
                 return out;
