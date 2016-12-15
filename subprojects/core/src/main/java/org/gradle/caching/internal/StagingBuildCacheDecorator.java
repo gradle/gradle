@@ -18,7 +18,6 @@ package org.gradle.caching.internal;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -44,11 +43,14 @@ public class StagingBuildCacheDecorator implements BuildCache {
     private final boolean stageCacheEntries;
     private final TemporaryFileProvider temporaryFileProvider;
 
-    public StagingBuildCacheDecorator(BuildCache delegate) {
+    public StagingBuildCacheDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, BuildCache delegate) {
         this.delegate = delegate;
-        this.stageCacheEntries = !(delegate instanceof LocalDirectoryBuildCache);
-        // TODO: This should be injected
-        this.temporaryFileProvider = new TmpDirTemporaryFileProvider();
+        this.stageCacheEntries = stageCacheEntries;
+        this.temporaryFileProvider = temporaryFileProvider;
+    }
+
+    public StagingBuildCacheDecorator(TemporaryFileProvider temporaryFileProvider, BuildCache delegate) {
+        this(temporaryFileProvider, !(delegate instanceof LocalDirectoryBuildCache), delegate);
     }
 
     @Override

@@ -17,6 +17,7 @@
 package org.gradle.caching.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCache;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -80,7 +81,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             this.cache = new LenientBuildCacheDecorator(
                 new ShortCircuitingErrorHandlerBuildCacheDecorator(3,
                     new LoggingBuildCacheDecorator(
-                        new StagingBuildCacheDecorator(
+                        new StagingBuildCacheDecorator(new TmpDirTemporaryFileProvider(),
                             factory.createCache(startParameter)))));
             if (isPullAllowed() && isPushAllowed()) {
                 SingleMessageLogger.incubatingFeatureUsed("Using " + cache.getDescription());
