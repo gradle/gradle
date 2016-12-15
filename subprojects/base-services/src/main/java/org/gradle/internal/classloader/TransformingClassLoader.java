@@ -16,11 +16,12 @@
 
 package org.gradle.internal.classloader;
 
+import com.google.common.io.ByteStreams;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -66,7 +67,7 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
             throw new ClassNotFoundException(name);
         }
 
-        String packageName = getPackageName(name);
+        String packageName = StringUtils.substringBeforeLast(name, ".");
         Package p = getPackage(packageName);
         if (p == null) {
             definePackage(packageName, null, null, null, null, null, null, null);
@@ -82,16 +83,7 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     private byte[] loadBytecode(URL resource) throws IOException {
         InputStream inputStream = resource.openStream();
         try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buffer = new byte[8192];
-            while (true) {
-                int read = inputStream.read(buffer);
-                if (read == -1) {
-                    break;
-                }
-                out.write(buffer, 0, read);
-            }
-            return out.toByteArray();
+            return ByteStreams.toByteArray(inputStream);
         } finally {
             inputStream.close();
         }
@@ -102,12 +94,4 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     }
 
     protected abstract byte[] transform(String className, byte[] bytes);
-
-    private static String getPackageName(String str) {
-        int pos = str.lastIndexOf(".");
-        if (pos == -1) {
-            return null;
-        }
-        return str.substring(0, pos);
-    }
 }
