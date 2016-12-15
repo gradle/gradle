@@ -18,11 +18,11 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressEvent;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
-public class ProgressEventSerializer extends AbstractSerializer<ProgressEvent> {
+public class ProgressEventSerializer implements Serializer<ProgressEvent> {
     @Override
     public void write(Encoder encoder, ProgressEvent event) throws Exception {
         encoder.writeSmallLong(event.getOperationId().getId());

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import com.google.common.base.Objects;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
@@ -33,7 +32,6 @@ import org.gradle.internal.logging.serializer.ProgressEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -71,7 +69,7 @@ public class DaemonMessageSerializer {
         return registry.build(Message.class);
     }
 
-    private static class FailureSerializer extends AbstractSerializer<Failure> {
+    private static class FailureSerializer implements Serializer<Failure> {
         private final Serializer<Throwable> throwableSerializer;
 
         public FailureSerializer(Serializer<Throwable> throwableSerializer) {
@@ -87,24 +85,9 @@ public class DaemonMessageSerializer {
         public Failure read(Decoder decoder) throws Exception {
             return new Failure(throwableSerializer.read(decoder));
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            FailureSerializer rhs = (FailureSerializer) obj;
-            return Objects.equal(throwableSerializer, rhs.throwableSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), throwableSerializer);
-        }
     }
 
-    private static class BuildEventSerializer extends AbstractSerializer<BuildEvent> {
+    private static class BuildEventSerializer implements Serializer<BuildEvent> {
         private final Serializer<Object> payloadSerializer = new DefaultSerializer<Object>();
 
         @Override
@@ -116,24 +99,9 @@ public class DaemonMessageSerializer {
         public BuildEvent read(Decoder decoder) throws Exception {
             return new BuildEvent(payloadSerializer.read(decoder));
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            BuildEventSerializer rhs = (BuildEventSerializer) obj;
-            return Objects.equal(payloadSerializer, rhs.payloadSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), payloadSerializer);
-        }
     }
 
-    private static class ProgressStartEventSerializer extends AbstractSerializer<ProgressStartEvent> {
+    private static class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
         @Override
         public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
             encoder.writeSmallLong(event.getOperationId().getId());
@@ -165,7 +133,7 @@ public class DaemonMessageSerializer {
         }
     }
 
-    private static class ForwardInputSerializer extends AbstractSerializer<ForwardInput> {
+    private static class ForwardInputSerializer implements Serializer<ForwardInput> {
         @Override
         public void write(Encoder encoder, ForwardInput message) throws Exception {
             encoder.writeBinary(message.getBytes());
@@ -177,7 +145,7 @@ public class DaemonMessageSerializer {
         }
     }
 
-    private static class CloseInputSerializer extends AbstractSerializer<CloseInput> {
+    private static class CloseInputSerializer implements Serializer<CloseInput> {
         @Override
         public void write(Encoder encoder, CloseInput value) {
         }
@@ -188,7 +156,7 @@ public class DaemonMessageSerializer {
         }
     }
 
-    private static class OutputMessageSerializer extends AbstractSerializer<OutputMessage> {
+    private static class OutputMessageSerializer implements Serializer<OutputMessage> {
         private final Serializer<OutputEvent> eventSerializer;
 
         public OutputMessageSerializer(Serializer<OutputEvent> eventSerializer) {
@@ -203,21 +171,6 @@ public class DaemonMessageSerializer {
         @Override
         public OutputMessage read(Decoder decoder) throws Exception {
             return new OutputMessage(eventSerializer.read(decoder));
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            OutputMessageSerializer rhs = (OutputMessageSerializer) obj;
-            return Objects.equal(eventSerializer, rhs.eventSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), eventSerializer);
         }
     }
 }
