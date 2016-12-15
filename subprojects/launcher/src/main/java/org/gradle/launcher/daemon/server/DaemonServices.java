@@ -127,8 +127,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new HealthExpirationStrategy(memoryStatus);
     }
 
-    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, ExecutorFactory executorFactory) {
-        return new DaemonHealthStats(runningStats, memoryManager, executorFactory);
+    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
+        return new DaemonHealthStats(runningStats, executorFactory);
     }
 
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
