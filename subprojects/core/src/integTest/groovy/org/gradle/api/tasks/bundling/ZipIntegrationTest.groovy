@@ -162,58 +162,6 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "order of files #files is not important for reproducible file order"() {
-        given:
-        createTestFiles()
-        buildFile << """
-            task zip(type: Zip) {
-                reproducibleFileOrder = true
-                fixedTimestamps = true
-                from files(${files.collect { "'${it}'" }.join(',')})
-                destinationDir = buildDir
-                archiveName = 'test.zip'
-            }
-            """
-
-        when:
-        succeeds 'zip'
-
-        then:
-        file('build/test.zip').md5Hash == '527eb62eec82af74a83514708f52dbf4'
-
-        where:
-        files << ['dir1/file1.txt', 'dir2/file2.txt', 'dir3/file3.txt'].permutations()
-
-    }
-
-    def "timestamps can be ignored"() {
-        given:
-        createTestFiles()
-        buildFile << """
-            task zip(type: Zip) {
-                fixedTimestamps = true
-                from 'dir1'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
-            }
-            """
-
-        when:
-        succeeds 'zip'
-
-        then:
-        def firstFileHash = file('build/test.zip').md5Hash
-
-        when:
-        file('dir1/file1.txt').makeOlder()
-        file('build/test.zip').delete()
-        succeeds 'zip'
-
-        then:
-        file('build/test.zip').md5Hash == firstFileHash
-    }
-
-    @Unroll
     def "reports error for #metadataCharset metadata charset"() {
         given:
         createTestFiles()
