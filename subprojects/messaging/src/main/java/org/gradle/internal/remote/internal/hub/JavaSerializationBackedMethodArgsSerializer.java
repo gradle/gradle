@@ -16,10 +16,9 @@
 
 package org.gradle.internal.remote.internal.hub;
 
-import org.gradle.internal.serialize.AbstractSerializer;
-import org.gradle.internal.serialize.Message;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Message;
 import org.gradle.internal.serialize.Serializer;
 
 class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerializer {
@@ -38,7 +37,7 @@ class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerialize
         return new ArraySerializer();
     }
 
-    private class EmptyArraySerializer extends AbstractSerializer<Object[]> {
+    private class EmptyArraySerializer implements Serializer<Object[]> {
         @Override
         public Object[] read(Decoder decoder) {
             return ZERO_ARGS;
@@ -49,7 +48,7 @@ class JavaSerializationBackedMethodArgsSerializer implements MethodArgsSerialize
         }
     }
 
-    private class ArraySerializer extends AbstractSerializer<Object[]> {
+    private class ArraySerializer implements Serializer<Object[]> {
         @Override
         public Object[] read(Decoder decoder) throws Exception {
             return (Object[]) Message.receive(decoder.getInputStream(), classLoader);
