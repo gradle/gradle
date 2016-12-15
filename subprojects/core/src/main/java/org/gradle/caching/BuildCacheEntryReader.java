@@ -18,6 +18,7 @@ package org.gradle.caching;
 
 import org.gradle.api.Incubating;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -29,6 +30,9 @@ import java.io.InputStream;
 public interface BuildCacheEntryReader {
     /**
      * Read a build cache entry from the given input stream.
+     *
+     * @param input input stream that contains the build cache entry
+     * @throws IOException when an I/O error occurs when reading the cache entry from the given input stream
      */
-    void readFrom(InputStream input);
+    void readFrom(InputStream input) throws IOException;
 }

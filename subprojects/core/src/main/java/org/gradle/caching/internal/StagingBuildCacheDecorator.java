@@ -92,7 +92,7 @@ public class StagingBuildCacheDecorator implements BuildCache {
         }
 
         @Override
-        public void readFrom(InputStream input) {
+        public void readFrom(InputStream input) throws IOException {
             File destination = temporaryFileProvider.createTemporaryFile("gradle_cache", "entry");
             try {
                 stageCacheEntry(input, destination);
@@ -102,19 +102,17 @@ public class StagingBuildCacheDecorator implements BuildCache {
             }
         }
 
-        private void stageCacheEntry(InputStream input, File destination) {
+        private void stageCacheEntry(InputStream input, File destination) throws IOException {
             OutputStream fileOutputStream = null;
             try {
                 fileOutputStream = new BufferedOutputStream(new FileOutputStream(destination));
                 IOUtils.copyLarge(input, fileOutputStream);
-            } catch (IOException e) {
-                throw new BuildCacheException("Couldn't copy cache entry from build cache", e);
             } finally {
                 IOUtils.closeQuietly(fileOutputStream);
             }
         }
 
-        private void readCacheEntry(File destination) {
+        private void readCacheEntry(File destination) throws IOException {
             InputStream fileInputStream = null;
             try {
                 fileInputStream = new BufferedInputStream(new FileInputStream(destination));
@@ -140,7 +138,7 @@ public class StagingBuildCacheDecorator implements BuildCache {
         }
 
         @Override
-        public void writeTo(OutputStream output) {
+        public void writeTo(OutputStream output) throws IOException {
             File destination = temporaryFileProvider.createTemporaryFile("gradle_cache", "entry");
             try {
                 writeCacheEntry(destination);
@@ -150,7 +148,7 @@ public class StagingBuildCacheDecorator implements BuildCache {
             }
         }
 
-        private void writeCacheEntry(File destination) {
+        private void writeCacheEntry(File destination) throws IOException {
             OutputStream fileOutputStream = null;
             try {
                 fileOutputStream = new BufferedOutputStream(new FileOutputStream(destination));
@@ -162,13 +160,11 @@ public class StagingBuildCacheDecorator implements BuildCache {
             }
         }
 
-        private void unstageCacheEntry(OutputStream output, File destination) {
+        private void unstageCacheEntry(OutputStream output, File destination) throws IOException {
             InputStream fileInputStream = null;
             try {
                 fileInputStream = new BufferedInputStream(new FileInputStream(destination));
                 IOUtils.copyLarge(fileInputStream, output);
-            } catch (IOException e) {
-                throw new BuildCacheException("Couldn't copy cache entry to build cache", e);
             } finally {
                 IOUtils.closeQuietly(fileInputStream);
             }
