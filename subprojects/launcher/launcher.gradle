@@ -1,3 +1,5 @@
+import org.gradle.internal.jvm.Jvm
+
 // Main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -55,7 +57,6 @@ jar {
 task startScripts(type: StartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     classpath = configurations.startScriptGenerator
-    asmVersion = versions.asm
     launcherJar = jar.outputs.files
 }
 
@@ -69,9 +70,6 @@ class StartScriptGenerator extends DefaultTask {
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     FileCollection launcherJar
-
-    @Input
-    String asmVersion
 
     @OutputFile
     File getShellScript() {
@@ -92,7 +90,7 @@ class StartScriptGenerator extends DefaultTask {
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
         generator.mainClassName = 'org.gradle.launcher.GradleMain'
         generator.scriptRelPath = 'bin/gradle'
-        generator.classpath = ["lib/${launcherJar.singleFile.name}" as String, "lib/asm-all-${asmVersion}.jar" as String]
+        generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
         generator.appNameSystemProperty = 'org.gradle.appname'
         generator.generateUnixScript(shellScript)
         generator.generateWindowsScript(batchFile)
