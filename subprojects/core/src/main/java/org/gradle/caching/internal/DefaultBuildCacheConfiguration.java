@@ -80,7 +80,8 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             this.cache = new LenientBuildCacheDecorator(
                 new ShortCircuitingErrorHandlerBuildCacheDecorator(3,
                     new LoggingBuildCacheDecorator(
-                        factory.createCache(startParameter))));
+                        new StagingBuildCacheDecorator(
+                            factory.createCache(startParameter)))));
             if (isPullAllowed() && isPushAllowed()) {
                 SingleMessageLogger.incubatingFeatureUsed("Using " + cache.getDescription());
             } else if (isPushAllowed()) {
