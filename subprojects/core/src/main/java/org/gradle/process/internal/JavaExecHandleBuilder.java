@@ -15,19 +15,27 @@
  */
 package org.gradle.process.internal;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.classpath.ManifestUtil;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private String mainClass;
@@ -35,6 +43,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private FileCollection classpath;
     private final JavaForkOptions javaOptions;
     private final FileResolver fileResolver;
+    private Boolean manifestOnlyJar;
 
     public JavaExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
@@ -47,7 +56,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     public List<String> getAllJvmArgs() {
         List<String> allArgs = new ArrayList<String>();
         allArgs.addAll(javaOptions.getAllJvmArgs());
-        if (!classpath.isEmpty()) {
+        if (!classpath.isEmpty() && !useManifestOnlyJar()) {
             allArgs.add("-cp");
             allArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getFiles()));
         }
@@ -194,12 +203,31 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         return classpath;
     }
 
+    public void setManifestOnlyJar(Boolean useManifestOnlyJar) {
+        this.manifestOnlyJar = useManifestOnlyJar;
+    }
+
     @Override
     public List<String> getAllArguments() {
         List<String> arguments = new ArrayList<String>();
         arguments.addAll(getAllJvmArgs());
-        arguments.add(mainClass);
+        if (useManifestOnlyJar()) {
+            arguments.add("-jar");
+            arguments.add(getManifestOnlyJar().toString());
+        } else {
+            arguments.add(mainClass);
+        }
         arguments.addAll(getArgs());
+
+        if (OperatingSystem.current().isWindows()
+            &&
+            manifestOnlyJar == null
+            &&
+            CollectionUtils.join(" ", arguments).length() > 30000) {
+            manifestOnlyJar = true;
+            return getAllArguments();
+        }
+
         return arguments;
     }
 
@@ -218,5 +246,29 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         super.setIgnoreExitValue(ignoreExitValue);
         return this;
+    }
+
+    private boolean useManifestOnlyJar() {
+        if (manifestOnlyJar != null) {
+            return manifestOnlyJar;
+        } else {
+            return false;
+        }
+    }
+
+    private File getManifestOnlyJar() {
+        try {
+            File jar = File.createTempFile("javaExec", ".jar");
+            Manifest manifest = new Manifest();
+            Attributes attributes = manifest.getMainAttributes();
+            // nothing is written unless the Manifest-Version is set?
+            attributes.putValue(Attributes.Name.MANIFEST_VERSION.toString(), "1.0");
+            attributes.putValue(Attributes.Name.MAIN_CLASS.toString(), getMain());
+            attributes.putValue(Attributes.Name.CLASS_PATH.toString(), ManifestUtil.createManifestClasspath(jar, classpath.getFiles()));
+            new JarOutputStream(new FileOutputStream(jar), manifest).close();
+            return jar;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

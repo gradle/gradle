@@ -15,19 +15,25 @@
  */
 package org.gradle.process.internal
 
+import org.gradle.api.internal.classpath.ManifestUtil
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
+import java.util.jar.Attributes
+import java.util.jar.JarInputStream
+import java.util.jar.Manifest
 
 import static java.util.Arrays.asList
 
-public class JavaExecHandleBuilderTest extends Specification {
+class JavaExecHandleBuilderTest extends Specification {
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver())
 
-    public void cannotSetAllJvmArgs() {
+    void cannotSetAllJvmArgs() {
         when:
         builder.setAllJvmArgs(asList("arg"))
 
@@ -36,7 +42,7 @@ public class JavaExecHandleBuilderTest extends Specification {
     }
 
     @Unroll("buildsCommandLineForJavaProcess - input encoding #inputEncoding")
-    public void buildsCommandLineForJavaProcess() {
+     void buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
 
@@ -60,7 +66,7 @@ public class JavaExecHandleBuilderTest extends Specification {
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+        commandLine == [executable, '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
 
         where:
         inputEncoding | expectedEncoding
@@ -69,11 +75,63 @@ public class JavaExecHandleBuilderTest extends Specification {
     }
 
     def "detects null entries early"() {
-        when: builder.args(1, null)
-        then: thrown(IllegalArgumentException)
+        when:
+        builder.args(1, null)
+        then:
+        thrown(IllegalArgumentException)
     }
 
-    private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
+    def "builds an appropriate command-line for a manifest-only jar"() {
+        File dependency = new File("file1.jar").canonicalFile
+        builder.main = 'mainClass'
+        builder.classpath(dependency)
+        builder.manifestOnlyJar = true
+
+        when:
+        List allArgs = builder.getAllArguments()
+        List jarArgs = allArgs.takeRight(2)
+
+        then:
+        //noinspection GroovyPointlessBoolean
+        allArgs.contains('-cp') == false
+        jarArgs.first() == '-jar'
+        jarArgs.last().endsWith('.jar')
+    }
+
+    def "builds a jar holding a manifest with the main class and classpath"() {
+        File jar1 = new File("file1.jar").canonicalFile
+        File jar2 = new File("file2.jar").canonicalFile
+
+        builder.main = 'mainClass'
+        builder.classpath(jar1, jar2)
+        builder.manifestOnlyJar = true
+
+        when:
+        File jar = new File(builder.getAllArguments().last())
+        Manifest manifest = new JarInputStream(new FileInputStream(jar)).manifest
+        List<URI> classpath = ManifestUtil.parseManifestClasspath(jar)
+
+        then:
+        manifest.mainAttributes.getValue(Attributes.Name.MAIN_CLASS) == 'mainClass'
+        classpath == [jar1.toURI(), jar2.toURI()]
+    }
+
+    @IgnoreIf({ ! OperatingSystem.current().isWindows() })
+    def "automatically uses a manifest jar when a large classpath is discovered"() {
+        builder.main = 'mainClass'
+        for (int i = 0; i < 32768; i++) {
+            builder.classpath(new File("${i}.jar").canonicalFile)
+        }
+
+        when:
+        List jarArguments = builder.getAllArguments().takeRight(2)
+
+        then:
+        jarArguments.first() == '-jar'
+        jarArguments.last().endsWith('.jar')
+    }
+
+    private static String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
         return "-Dfile.encoding=$encoding"
     }
 
