@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.local;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.Resource;
+package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import java.io.File;
-import java.util.Date;
+import org.gradle.internal.resource.TextResource;
 
-public interface LocallyAvailableResource extends Resource {
+import java.net.URI;
 
-    File getFile();
-
-    HashValue getSha1();
-
-    long getLastModified();
-
-    long getContentLength();
-
-    @Nullable
-    Date getValidUntil();
+public interface CachingUrlRequester {
+    TextResource getResource(URI source);
 }

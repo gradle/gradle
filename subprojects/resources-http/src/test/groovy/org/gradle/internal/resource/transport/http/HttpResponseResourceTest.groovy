@@ -41,6 +41,27 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         resource().metaData.etag == null
     }
 
+    def 'extracts cache time'() {
+        given:
+        addHeader(HttpHeaders.CACHE_CONTROL, 'public, max-age=2592000')
+        addHeader(HttpHeaders.DATE, 'Thu, 15 Dec 2016 17:25:27 GMT') //1481822727000 ms since epoch
+
+        def resource = resource()
+        expect:
+        resource.metaData.validUntil != null
+        resource.metaData.validUntil == new Date(1481822727000 + 2592000000)
+    }
+
+    def 'extracts cache time from expires at header'() {
+        given:
+        addHeader(HttpHeaders.EXPIRES, 'Thu, 15 Dec 2016 17:25:27 GMT') //1481822727000 ms since epoch
+
+        def resource = resource()
+        expect:
+        resource.metaData.validUntil != null
+        resource.metaData.validUntil == new Date(1481822727000)
+    }
+
     def "is not openable more than once"() {
         setup:
         1 * response.entity >> Mock(HttpEntity)

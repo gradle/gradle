@@ -41,6 +41,7 @@ import org.gradle.caching.internal.BuildCacheConfiguration;
 import org.gradle.caching.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.groovy.scripts.internal.ScriptSourceProvider;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -355,7 +356,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), new ScriptSourceProvider(cachingUrlRequester), this);
     }
 
     @Override

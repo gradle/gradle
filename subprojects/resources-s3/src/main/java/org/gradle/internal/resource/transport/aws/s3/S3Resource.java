@@ -61,6 +61,7 @@ public class S3Resource implements ExternalResourceReadResponse {
                 getContentLength(),
                 s3Object.getObjectMetadata().getContentType(),
                 s3Object.getObjectMetadata().getETag(),
+                null,
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
     }
 

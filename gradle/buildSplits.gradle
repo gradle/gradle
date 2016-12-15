@@ -25,6 +25,7 @@ def buckets = [
         ":resourcesS3",
         ":jetty",
         ":resources",
+        ":resourcesCore",
         ":jvmServices",
         ":docs",
         ":distributions",

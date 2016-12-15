@@ -26,26 +26,28 @@ import java.util.Date;
 public class DefaultExternalResourceMetaData implements ExternalResourceMetaData, Serializable {
     private final URI location;
     private final Date lastModified;
+    private final Date validUntil;
     private final long contentLength;
     private final String etag;
     private final String sha1;
     private final String contentType;
 
     public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null);
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null, null);
     }
 
-    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1);
+    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1, @Nullable Date validUntil) {
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1, validUntil);
     }
 
-    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1) {
+    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1, @Nullable Date validUntil) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
         this.contentType = contentType;
         this.etag = etag;
         this.sha1 = sha1 == null ? null : sha1.asHexString();
+        this.validUntil = validUntil;
     }
 
     public URI getLocation() {
@@ -74,5 +76,11 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
 
     public HashValue getSha1() {
         return sha1 == null ? null : HashValue.parse(sha1);
+    }
+
+    @Nullable
+    @Override
+    public Date getValidUntil() {
+        return validUntil;
     }
 }

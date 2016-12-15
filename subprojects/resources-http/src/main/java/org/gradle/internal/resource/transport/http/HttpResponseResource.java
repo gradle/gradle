@@ -16,12 +16,15 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.message.BasicHeaderValueParser;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -32,6 +35,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
@@ -48,7 +54,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag));
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getValidUntil());
     }
 
     public URI getURI() {
@@ -66,6 +72,27 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     public int getStatusCode() {
         return response.getStatusLine().getStatusCode();
+    }
+
+    public Date getValidUntil() {
+        Header cacheControlHeader = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+        Header dateHeader = response.getFirstHeader(HttpHeaders.DATE);
+        if(cacheControlHeader != null && dateHeader != null) {
+            for (HeaderElement headerElement : cacheControlHeader.getElements()) {
+                if (!"max-age".equalsIgnoreCase(headerElement.getName())) {
+                    continue;
+                }
+                Date serverDate = DateUtils.parseDate(dateHeader.getValue());
+                return new Date(serverDate.getTime() + Long.parseLong(headerElement.getValue()) * 1000);
+            }
+        }
+
+        Header expiresHeader = response.getFirstHeader(HttpHeaders.EXPIRES);
+        if(expiresHeader != null) {
+            return DateUtils.parseDate(expiresHeader.getValue());
+        }
+
+        return null;
     }
 
     public long getLastModified() {

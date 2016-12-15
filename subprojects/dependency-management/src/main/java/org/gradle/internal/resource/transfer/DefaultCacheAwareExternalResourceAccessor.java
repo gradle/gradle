@@ -47,6 +47,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Date;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -58,6 +59,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
+    private boolean isOffline = false;
 
     public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         this.delegate = delegate;
@@ -76,8 +78,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
         }
 
-        // We might be able to use a cached/locally available version
-        if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
+        // We might be able to use a cached/locally available version, when offline return the cached value
+        if (cached != null && (!externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached)) || isResourceStillValid(timeProvider, cached) || isOffline)) {
             return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
         }
 
@@ -216,6 +218,19 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     public long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
+    }
+
+    public boolean isResourceStillValid(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
+        if(cached.getExternalResourceMetaData() == null) {
+            return false;
+        }
+
+        Date validUntil = cached.getExternalResourceMetaData().getValidUntil();
+        if(validUntil == null) {
+            return false;
+        }
+
+        return timeProvider.getCurrentTime() <= validUntil.getTime();
     }
 
     private static class DownloadToFileAction implements ExternalResource.ContentAction<Object> {

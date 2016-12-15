@@ -15,9 +15,11 @@
  */
 package org.gradle.internal.resource.local;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
+import java.util.Date;
 
 public class DefaultLocallyAvailableResource extends AbstractLocallyAvailableResource {
     private final File origin;
@@ -33,5 +35,11 @@ public class DefaultLocallyAvailableResource extends AbstractLocallyAvailableRes
 
     public File getFile() {
         return origin;
+    }
+
+    @Nullable
+    @Override
+    public Date getValidUntil() {
+        return null;
     }
 }

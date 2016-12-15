@@ -68,6 +68,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
                 objectMetadata.getContentLength(),
                 objectMetadata.getContentType(),
                 objectMetadata.getETag(),
+                null,
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
         } finally {
             IoActions.closeQuietly(s3Object);
