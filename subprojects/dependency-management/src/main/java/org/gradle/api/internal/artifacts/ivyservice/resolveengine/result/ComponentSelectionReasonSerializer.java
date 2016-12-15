@@ -19,15 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
 
-public class ComponentSelectionReasonSerializer extends AbstractSerializer<ComponentSelectionReason> {
+public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
     private static final BiMap<Byte, ComponentSelectionReason> REASONS = HashBiMap.create(7);
 
