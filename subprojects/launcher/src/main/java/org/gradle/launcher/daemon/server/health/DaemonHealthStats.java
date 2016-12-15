@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableScheduledExecutor;
@@ -27,12 +26,6 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.process.internal.health.memory.JvmMemoryStatus;
-import org.gradle.process.internal.health.memory.JvmMemoryStatusListener;
-import org.gradle.process.internal.health.memory.MemoryManager;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
@@ -42,35 +35,20 @@ public class DaemonHealthStats implements Stoppable {
     private final StoppableScheduledExecutor scheduler;
     private final GarbageCollectionInfo gcInfo;
     private final GarbageCollectionMonitor gcMonitor;
-    private final CountDownLatch memoryStatusLatch = new CountDownLatch(1);
-    private JvmMemoryStatus memoryStatus;
 
-    public DaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, ExecutorFactory executorFactory) {
+    public DaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
         this.scheduler = executorFactory.createScheduled("Daemon health stats", GarbageCollectionMonitor.POLL_INTERVAL_SECONDS);
         this.gcInfo = new GarbageCollectionInfo();
         this.gcMonitor = new GarbageCollectionMonitor(scheduler);
-        registerMemoryStatusListener(memoryManager);
     }
 
     @VisibleForTesting
-    DaemonHealthStats(DaemonRunningStats runningStats, MemoryManager memoryManager, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
+    DaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectionInfo gcInfo, GarbageCollectionMonitor gcMonitor) {
         this.runningStats = runningStats;
         this.scheduler = null;
         this.gcInfo = gcInfo;
         this.gcMonitor = gcMonitor;
-        registerMemoryStatusListener(memoryManager);
-    }
-
-    private void registerMemoryStatusListener(final MemoryManager memoryManager) {
-        memoryManager.addListener(new JvmMemoryStatusListener() {
-            @Override
-            public void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
-                memoryManager.removeListener(this);
-                memoryStatus = jvmMemoryStatus;
-                memoryStatusLatch.countDown();
-            }
-        });
     }
 
     @Override
@@ -97,15 +75,7 @@ public class DaemonHealthStats implements Stoppable {
     }
 
     private String getFirstBuildHealthInfo() {
-        try {
-            memoryStatusLatch.await(6, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
-        }
-        if (memoryStatus != null) {
-            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memoryStatus.getMaxMemory()));
-        }
-        return "Starting build in new daemon [memory: unknown]";
+        return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(Runtime.getRuntime().maxMemory()));
     }
 
     private String getBuildHealthInfo(int nextBuildNum) {
