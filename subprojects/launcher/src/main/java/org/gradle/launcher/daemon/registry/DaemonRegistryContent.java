@@ -20,7 +20,6 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.remote.internal.inet.SocketInetAddress;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -110,7 +109,7 @@ public class DaemonRegistryContent implements Serializable {
      * 3 - number of stop events
      * 4 - stop events
      */
-    private static class Serializer extends AbstractSerializer<DaemonRegistryContent> {
+    private static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonRegistryContent> {
 
         @Override
         public DaemonRegistryContent read(Decoder decoder) throws Exception {

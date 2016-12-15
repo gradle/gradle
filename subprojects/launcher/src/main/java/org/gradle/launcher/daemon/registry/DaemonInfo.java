@@ -17,11 +17,8 @@
 package org.gradle.launcher.daemon.registry;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import org.gradle.internal.remote.Address;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.time.TimeProvider;
@@ -117,7 +114,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         return String.format("DaemonInfo{pid=%s, address=%s, state=%s, lastBusy=%s, context=%s}", context.getPid(), address, state, lastBusy, context);
     }
 
-    public static class Serializer extends AbstractSerializer<DaemonInfo> {
+    public static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonInfo> {
 
         private final List<Address> addresses;
 
@@ -142,21 +139,6 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
             encoder.writeByte((byte) info.state.ordinal());
             encoder.writeLong(info.lastBusy);
             DefaultDaemonContext.SERIALIZER.write(encoder, (DefaultDaemonContext) info.context);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            Serializer rhs = (Serializer) obj;
-            return Iterables.elementsEqual(addresses, rhs.addresses);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), addresses);
         }
 
         private void writeAddressIndex(Encoder encoder, DaemonInfo info) throws IOException {

@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
@@ -107,7 +106,7 @@ public class DaemonStopEvent implements Serializable {
         return timestamp.after(cal.getTime());
     }
 
-    private static class Serializer extends AbstractSerializer<DaemonStopEvent> {
+    private static class Serializer implements org.gradle.internal.serialize.Serializer<DaemonStopEvent> {
 
         @Override
         public DaemonStopEvent read(Decoder decoder) throws EOFException, Exception {
