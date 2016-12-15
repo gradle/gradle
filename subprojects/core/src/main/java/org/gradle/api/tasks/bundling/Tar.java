@@ -43,7 +43,7 @@ public class Tar extends AbstractArchiveTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        return new TarCopyAction(getArchivePath(), getCompressor(), isFixedTimestamps());
+        return new TarCopyAction(getArchivePath(), getCompressor(), isPreserveFileTimestamps());
     }
 
     @Internal

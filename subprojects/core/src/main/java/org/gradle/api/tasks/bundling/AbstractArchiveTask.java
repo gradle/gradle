@@ -38,7 +38,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String version;
     private String extension;
     private String classifier = "";
-    private boolean fixedTimestamps;
+    private boolean preserveFileTimestamps = true;
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -213,24 +213,26 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Returns whether fixed timestamps should be used for archive entries
+     * Returns whether file timestamps should be used preserved for archive entries
+     * If false, then a fixed timestamp will be used.
      *
-     * @return wether fixed timestamps should be used for archive entries
+     * @return whether file timestamps should be preserved for archive entries
      */
     @Input
     @Incubating
-    public boolean isFixedTimestamps() {
-        return fixedTimestamps;
+    public boolean isPreserveFileTimestamps() {
+        return preserveFileTimestamps;
     }
 
     /**
-     * Configures if fixed timestamps should be used in the archive.
-     * This ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * Configures if file timestamps should be preserved in the archive.
+     * When set to false this ensures that archive entries have the same time for builds between different machines,
+     * Java versions and operating systems.
      *
-     * @param fixedTimestamps
+     * @param preserveFileTimestamps
      */
     @Incubating
-    public void setFixedTimestamps(boolean fixedTimestamps) {
-        this.fixedTimestamps = fixedTimestamps;
+    public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
+        this.preserveFileTimestamps = preserveFileTimestamps;
     }
 }

@@ -37,7 +37,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 from files(${files.collect { "'${it}'" }.join(',')})
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
@@ -69,7 +69,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 from 'dir1'
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
@@ -104,7 +104,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 from('dir2') {
                     into 'dir2'
                 }
@@ -150,14 +150,14 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task aTar(type: Tar) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 from('dir1')
                 destinationDir = buildDir
                 archiveName = 'test.tar'
             }
             task aZip(type: Zip) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 from('dir2')
                 destinationDir = buildDir
                 archiveName = 'test.zip'
@@ -165,7 +165,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 destinationDir = buildDir
                 archiveName = 'combined.${fileExtension}'
 
@@ -252,7 +252,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
         task ${taskName}(type: ${taskType}) {
             reproducibleFileOrder = true
-            fixedTimestamps = true
+            preserveFileTimestamps = false
             destinationDir = buildDir
             archiveName = 'test.${fileExtension}'
 
@@ -285,7 +285,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
         task ${taskName}(type: ${taskType}) {
             reproducibleFileOrder = true
-            fixedTimestamps = true
+            preserveFileTimestamps = false
             destinationDir = buildDir
             archiveName = 'test.${fileExtension}'
 
@@ -320,7 +320,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
-                fixedTimestamps = true
+                preserveFileTimestamps = false
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
                 
