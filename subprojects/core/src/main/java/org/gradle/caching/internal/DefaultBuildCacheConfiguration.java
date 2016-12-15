@@ -78,7 +78,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         // TODO:LPTR Instantiate this as a service instead
         if (cache == null) {
             this.cache = new LenientBuildCacheDecorator(
-                new ShortCircuitingErrorHandlerBuildCacheWrapper(3,
+                new ShortCircuitingErrorHandlerBuildCacheDecorator(3,
                     new LoggingBuildCacheDecorator(
                         factory.createCache(startParameter))));
             if (isPullAllowed() && isPushAllowed()) {
