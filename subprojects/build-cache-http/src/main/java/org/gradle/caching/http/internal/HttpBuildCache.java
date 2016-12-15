@@ -127,6 +127,7 @@ public class HttpBuildCache implements BuildCache {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for PUT {}: {}", safeUri(uri), response.getStatusLine());
             }
+            // TODO: We should examine the status to make sure the PUT was successful
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
