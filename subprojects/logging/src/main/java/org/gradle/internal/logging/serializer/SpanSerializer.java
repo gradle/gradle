@@ -16,15 +16,13 @@
 
 package org.gradle.internal.logging.serializer;
 
-import com.google.common.base.Objects;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-public class SpanSerializer extends AbstractSerializer<StyledTextOutputEvent.Span> {
+public class SpanSerializer implements Serializer<StyledTextOutputEvent.Span> {
     private final Serializer<StyledTextOutput.Style> styleSerializer;
 
     public SpanSerializer(Serializer<StyledTextOutput.Style> styleSerializer) {
@@ -40,20 +38,5 @@ public class SpanSerializer extends AbstractSerializer<StyledTextOutputEvent.Spa
     @Override
     public StyledTextOutputEvent.Span read(Decoder decoder) throws Exception {
         return new StyledTextOutputEvent.Span(styleSerializer.read(decoder), decoder.readString());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        SpanSerializer rhs = (SpanSerializer) obj;
-        return Objects.equal(styleSerializer, rhs.styleSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), styleSerializer);
     }
 }

@@ -16,17 +16,15 @@
 
 package org.gradle.internal.logging.serializer;
 
-import com.google.common.base.Objects;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.List;
 
-public class StyledTextOutputEventSerializer extends AbstractSerializer<StyledTextOutputEvent> {
+public class StyledTextOutputEventSerializer implements Serializer<StyledTextOutputEvent> {
     private final Serializer<LogLevel> logLevelSerializer;
     private final Serializer<List<StyledTextOutputEvent.Span>> spanSerializer;
 
@@ -50,22 +48,6 @@ public class StyledTextOutputEventSerializer extends AbstractSerializer<StyledTe
         LogLevel logLevel = logLevelSerializer.read(decoder);
         List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
         return new StyledTextOutputEvent(timestamp, category, logLevel, spans);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        StyledTextOutputEventSerializer rhs = (StyledTextOutputEventSerializer) obj;
-        return Objects.equal(logLevelSerializer, rhs.logLevelSerializer)
-            && Objects.equal(spanSerializer, rhs.spanSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), logLevelSerializer, spanSerializer);
     }
 }
 
