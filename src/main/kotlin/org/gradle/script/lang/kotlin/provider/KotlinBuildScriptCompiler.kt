@@ -204,7 +204,7 @@ class KotlinBuildScriptCompiler(
             instantiate(scriptClass, target)
         } catch(e: InvocationTargetException) {
             if (e.cause is Error) {
-                logClassLoaderHierarchyOf(scriptClass, target)
+                tryToLogClassLoaderHierarchyOf(scriptClass, target)
             }
             throw e.targetException
         }
@@ -221,6 +221,14 @@ class KotlinBuildScriptCompiler(
             val (line, column) = script.lineAndColumnFromRange(e.blockLocation)
             val message = "$scriptFile($line,$column): Unexpected `${e.blockIdentifier}` block found. Only one `${e.blockIdentifier}` block is allowed per script."
             throw IllegalStateException(message, e)
+        }
+    }
+
+    private fun tryToLogClassLoaderHierarchyOf(scriptClass: Class<*>, target: Project) {
+        try {
+            logClassLoaderHierarchyOf(scriptClass, target)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -247,11 +255,15 @@ class KotlinBuildScriptCompiler(
 
     private fun baseDirsOf(project: Project) =
         arrayListOf<Pair<String, String>>().apply {
-            withBaseDir("PROJECT_ROOT", project.rootDir)
-            withBaseDir("GRADLE", project.gradle.gradleHomeDir)
-            withBaseDir("GRADLE_USER", project.gradle.gradleUserHomeDir)
             withBaseDir("HOME", userHome())
+            withBaseDir("PROJECT_ROOT", project.rootDir)
+            withOptionalBaseDir("GRADLE", project.gradle.gradleHomeDir)
+            withOptionalBaseDir("GRADLE_USER", project.gradle.gradleUserHomeDir)
         }
+
+    private fun ArrayList<Pair<String, String>>.withOptionalBaseDir(key: String, dir: File?) {
+        dir?.let { withBaseDir(key, it) }
+    }
 
     private fun ArrayList<Pair<String, String>>.withBaseDir(key: String, dir: File) {
         val label = '$' + key
