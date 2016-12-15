@@ -16,19 +16,22 @@
 
 package org.gradle.api.internal.file.pattern;
 
-import java.util.List;
-
-public class FixedStepsPathMatcher implements PathMatcher {
-    private final List<PatternStep> steps;
+public class FixedStepPathMatcher implements PathMatcher {
+    private final PatternStep step;
     private final PathMatcher next;
     private final int minSegments;
     private final int maxSegments;
 
-    public FixedStepsPathMatcher(List<PatternStep> steps, PathMatcher next) {
-        this.steps = steps;
+    public FixedStepPathMatcher(PatternStep step, PathMatcher next) {
+        this.step = step;
         this.next = next;
-        minSegments = steps.size() + next.getMinSegments();
-        maxSegments = next.getMaxSegments() == Integer.MAX_VALUE ? Integer.MAX_VALUE : next.getMaxSegments() + steps.size();
+        minSegments = 1 + next.getMinSegments();
+        maxSegments = next.getMaxSegments() == Integer.MAX_VALUE ? Integer.MAX_VALUE : next.getMaxSegments() + 1;
+    }
+
+    @Override
+    public String toString() {
+        return "{fixed-step: " + step + ", next: " + next + "}";
     }
 
     public int getMinSegments() {
@@ -44,27 +47,25 @@ public class FixedStepsPathMatcher implements PathMatcher {
         if (remaining < minSegments || remaining > maxSegments) {
             return false;
         }
-        int pos = startIndex;
-        for (int i = 0; i < steps.size(); i++, pos++) {
-            PatternStep step = steps.get(i);
-            if (!step.matches(segments[pos])) {
-                return false;
-            }
+        if (!step.matches(segments[startIndex])) {
+            return false;
         }
-        return next.matches(segments, pos);
+        return next.matches(segments, startIndex + 1);
     }
 
     public boolean isPrefix(String[] segments, int startIndex) {
-        int pos = startIndex;
-        for (int i = 0; pos < segments.length && i < steps.size(); i++, pos++) {
-            PatternStep step = steps.get(i);
-            if (!step.matches(segments[pos])) {
-                return false;
-            }
-        }
-        if (pos == segments.length) {
+        if (startIndex == segments.length) {
+            // Empty path, might match when more elements added
             return true;
         }
-        return next.isPrefix(segments, pos);
+        if (!step.matches(segments[startIndex])) {
+            // Does not match element, will never match when more elements added
+            return false;
+        }
+        if (startIndex +1 == segments.length) {
+            // End of path, might match when more elements added
+            return true;
+        }
+        return next.isPrefix(segments, startIndex + 1);
     }
 }

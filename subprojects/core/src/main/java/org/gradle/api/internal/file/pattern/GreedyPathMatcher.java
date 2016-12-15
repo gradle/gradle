@@ -23,6 +23,11 @@ public class GreedyPathMatcher implements PathMatcher {
         this.next = next;
     }
 
+    @Override
+    public String toString() {
+        return "{greedy next: " + next + "}";
+    }
+
     public int getMaxSegments() {
         return Integer.MAX_VALUE;
     }

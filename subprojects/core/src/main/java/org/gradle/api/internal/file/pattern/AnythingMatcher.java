@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,25 @@
 
 package org.gradle.api.internal.file.pattern;
 
-/**
- * A pattern step for a fixed pattern segment that does not contain any wildcards.
- */
-public class FixedPatternStep implements PatternStep {
-    private final String value;
-    private final boolean caseSensitive;
-
-    public FixedPatternStep(String value, boolean caseSensitive) {
-        this.value = value;
-        this.caseSensitive = caseSensitive;
-    }
-
+public class AnythingMatcher implements PathMatcher {
     @Override
     public String toString() {
-        return "{match: " + value + "}";
+        return "{anything}";
     }
 
-    public boolean matches(String candidate) {
-        return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
+    public int getMaxSegments() {
+        return Integer.MAX_VALUE;
+    }
+
+    public int getMinSegments() {
+        return 0;
+    }
+
+    public boolean matches(String[] segments, int startIndex) {
+        return true;
+    }
+
+    public boolean isPrefix(String[] segments, int startIndex) {
+        return true;
     }
 }
