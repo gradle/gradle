@@ -29,8 +29,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A wrapper around a {@link BuildCache} that passes through the underlying implementation
- * until a number of errors occur. After that the wrapper short-circuits cache requests.
+ * A decorator around a {@link BuildCache} that passes through the underlying implementation
+ * until a number of errors occur.
+ *
+ * After that the decorator short-circuits cache requests as no-ops.
  */
 public class ShortCircuitingErrorHandlerBuildCacheDecorator implements BuildCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheDecorator.class);
