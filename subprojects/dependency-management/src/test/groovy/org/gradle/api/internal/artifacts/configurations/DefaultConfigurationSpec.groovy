@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -317,6 +318,17 @@ class DefaultConfigurationSpec extends Specification {
         t == failure
     }
 
+    def "build dependencies are resolved lazily"() {
+        given:
+        def configuration = conf()
+
+        when:
+        configuration.getBuildDependencies()
+
+        then:
+        0 * _._
+    }
+
     def "state indicates failure resolving graph"() {
         given:
         def configuration = conf()
@@ -329,11 +341,11 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        configuration.getBuildDependencies()
+        configuration.getBuildDependencies().getDependencies(null)
 
         then:
-        def t = thrown(ResolveException)
-        t == failure
+        def t = thrown(GradleException)
+        t.cause == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
@@ -1010,7 +1022,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
@@ -1030,7 +1042,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
@@ -1050,7 +1062,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
@@ -1083,7 +1095,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED

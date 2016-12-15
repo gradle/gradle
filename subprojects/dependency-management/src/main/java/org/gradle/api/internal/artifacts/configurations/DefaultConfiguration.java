@@ -67,7 +67,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -493,26 +494,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return doGetTaskDependency(Specs.<Dependency>satisfyAll(), configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
     }
 
-    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes,
-                                               Spec<? super ComponentIdentifier> componentIdentifierSpec) {
-        synchronized (resolutionLock) {
-            if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
-                // Force graph resolution as this is required to calculate build dependencies
-                resolveToStateOrLater(GRAPH_RESOLVED);
-            }
-            ResolverResults results;
-            if (getState() == State.UNRESOLVED) {
-                // Traverse graph
-                results = new DefaultResolverResults();
-                resolver.resolveBuildDependencies(this, results);
-            } else {
-                // Otherwise, already have a result, so reuse it
-                results = cachedResolverResults;
-            }
-            List<Object> buildDependencies = new ArrayList<Object>();
-            results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectBuildDependencies(buildDependencies);
-            return TaskDependencies.of(buildDependencies);
-        }
+    private TaskDependency doGetTaskDependency(final Spec<? super Dependency> dependencySpec,
+                                               final AttributeContainerInternal requestedAttributes,
+                                               final Spec<? super ComponentIdentifier> componentIdentifierSpec) {
+        return new ConfigurationTaskDependency(dependencySpec, requestedAttributes, componentIdentifierSpec);
     }
 
     private Set<File> doGetFiles(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec) {
@@ -1015,4 +1000,39 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Attribute.of(name, String.class);
     }
 
+    private class ConfigurationTaskDependency extends AbstractTaskDependency {
+        private final Spec<? super Dependency> dependencySpec;
+        private final AttributeContainerInternal requestedAttributes;
+        private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
+
+        public ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec) {
+            this.dependencySpec = dependencySpec;
+            this.requestedAttributes = requestedAttributes;
+            this.componentIdentifierSpec = componentIdentifierSpec;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            synchronized (resolutionLock) {
+                if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+                    // Force graph resolution as this is required to calculate build dependencies
+                    resolveToStateOrLater(GRAPH_RESOLVED);
+                }
+                ResolverResults results;
+                if (getState() == State.UNRESOLVED) {
+                    // Traverse graph
+                    results = new DefaultResolverResults();
+                    resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+                } else {
+                    // Otherwise, already have a result, so reuse it
+                    results = cachedResolverResults;
+                }
+                List<Object> buildDependencies = new ArrayList<Object>();
+                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectBuildDependencies(buildDependencies);
+                for (Object buildDependency : buildDependencies) {
+                    context.add(buildDependency);
+                }
+            }
+        }
+    }
 }
