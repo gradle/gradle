@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ModuleVersionIdentifierSerializer extends AbstractSerializer<ModuleVersionIdentifier> {
+public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersionIdentifier> {
     public void write(Encoder encoder, ModuleVersionIdentifier value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());

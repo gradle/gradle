@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ResolvedConfigurationIdentifierSerializer extends AbstractSerializer<ResolvedConfigurationIdentifier> {
+public class ResolvedConfigurationIdentifierSerializer implements Serializer<ResolvedConfigurationIdentifier> {
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
 
     public ResolvedConfigurationIdentifier read(Decoder decoder) throws IOException {
@@ -36,20 +35,5 @@ public class ResolvedConfigurationIdentifierSerializer extends AbstractSerialize
     public void write(Encoder encoder, ResolvedConfigurationIdentifier value) throws IOException {
         idSerializer.write(encoder, value.getId());
         encoder.writeString(value.getConfiguration());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        ResolvedConfigurationIdentifierSerializer rhs = (ResolvedConfigurationIdentifierSerializer) obj;
-        return Objects.equal(idSerializer, rhs.idSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), idSerializer);
     }
 }
