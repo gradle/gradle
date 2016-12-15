@@ -81,7 +81,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
                 LOGGER.debug("Emitting JVM memory status event {}", jvm);
                 jvmBroadcast.onJvmMemoryStatus(jvm);
             } catch (Exception ex) {
-                LOGGER.warn("Failed to collect memory status: {}", ex.getMessage(), ex);
+                LOGGER.debug("Failed to collect memory status: {}", ex.getMessage(), ex);
             }
         }
     }
