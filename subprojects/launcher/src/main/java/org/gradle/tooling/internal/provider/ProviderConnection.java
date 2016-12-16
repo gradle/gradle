@@ -18,13 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -41,9 +35,9 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
-import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
@@ -54,6 +48,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +103,8 @@ public class ProviderConnection {
                     params.gradleUserhome,
                     GradleVersion.current().getVersion(),
                     params.daemonParams.getEffectiveJvm().getJavaHome(),
-                    params.daemonParams.getEffectiveJvmArgs());
+                    params.daemonParams.getEffectiveJvmArgs(),
+                    params.daemonParams.getEnvironmentVariables());
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
@@ -186,6 +182,14 @@ public class ProviderConnection {
         List<String> jvmArguments = operationParameters.getJvmArguments();
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
+        }
+        try {
+            Map<String, String> envVariables = operationParameters.getEnvironmentVariables();
+            if (envVariables != null) {
+                daemonParams.setEnvironmentVariables(envVariables);
+            }
+        } catch (UnsupportedMethodException e) {
+            LOGGER.warn("Unable to set environment variables", e);
         }
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {

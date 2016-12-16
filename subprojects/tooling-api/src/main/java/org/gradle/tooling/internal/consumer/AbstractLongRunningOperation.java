@@ -29,10 +29,7 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
@@ -110,6 +107,12 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T setJvmArguments(Iterable<String> jvmArguments) {
         operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        return getThis();
+    }
+
+    @Override
+    public T setEnvironmentVariables(Map<String, String> envVariables) {
+        operationParamsBuilder.setEnvironmentVariables(envVariables);
         return getThis();
     }
 
