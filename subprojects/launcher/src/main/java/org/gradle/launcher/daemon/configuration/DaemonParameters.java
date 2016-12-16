@@ -45,6 +45,7 @@ public class DaemonParameters {
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
+    private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
     private boolean foreground;
@@ -147,6 +148,10 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 
+    public void setEnvironmentVariables(Map<String, String> envVariables) {
+        this.envVariables = envVariables;
+    }
+
     public void setDebug(boolean debug) {
         jvmOptions.setDebug(debug);
     }
@@ -182,5 +187,9 @@ public class DaemonParameters {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public Map<String, String> getEnvironmentVariables() {
+        return envVariables == null ? System.getenv() : envVariables;
     }
 }
