@@ -123,7 +123,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureSchema(ProjectInternal project) {
-        project.getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
+        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
