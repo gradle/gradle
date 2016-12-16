@@ -25,9 +25,9 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+import spock.lang.Unroll
 
-import static org.gradle.integtests.StaleOutputHistoryLossIntegrationTest.JavaProjectFixture.COMPILE_JAVA_TASK_PATH
-import static org.gradle.integtests.StaleOutputHistoryLossIntegrationTest.JavaProjectFixture.JAR_TASK_PATH
+import static org.gradle.integtests.StaleOutputHistoryLossIntegrationTest.JavaProjectFixture.*
 import static org.gradle.util.GFileUtils.forceDelete
 
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
@@ -40,7 +40,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1501")
-    def "production sources files are removed"() {
+    def "production sources files are removed in a single project build"() {
         given:
         def javaProjectFixture = new JavaProjectFixture()
         buildFile << "apply plugin: 'java'"
@@ -131,6 +131,70 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
         newMainClassFileName.assertIsFile()
         newRedundantClassFileName.assertDoesNotExist()
+    }
+
+    @Unroll
+    @Issue("GRADLE-1501")
+    def "production sources files are removed in a multi-project build executed #description"() {
+        given:
+        def projectCount = 3
+        def javaProjectFixtures = (1..projectCount).collect { new JavaProjectFixture(createProjectName(it)) }
+
+        buildFile << """
+            subprojects {
+                apply plugin: 'java'
+            }
+        """
+
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
+
+        when:
+        def result = runWithMostRecentFinalRelease(arguments as String[])
+
+        then:
+        javaProjectFixtures.each {
+            def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
+            assert result.executedTasks.containsAll(expectedTaskPaths)
+            !result.output.contains(it.classesOutputCleanupMessage)
+            assert it.mainClassFile.assertIsFile()
+            assert it.redundantClassFile.assertIsFile()
+            assert hasDescendants(it.jarFile, it.mainClassFile.name, it.redundantClassFile.name)
+        }
+
+        when:
+        javaProjectFixtures.each {
+            forceDelete(it.redundantSourceFile)
+        }
+        succeeds arguments as String[]
+
+        then:
+        javaProjectFixtures.each {
+            def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
+            assert result.executedTasks.containsAll(expectedTaskPaths)
+            outputContains(it.classesOutputCleanupMessage)
+            assert it.mainClassFile.assertIsFile()
+            assert it.redundantClassFile.assertDoesNotExist()
+            assert hasDescendants(it.jarFile, it.mainClassFile.name)
+        }
+
+        when:
+        succeeds arguments as String[]
+
+        then:
+        javaProjectFixtures.each {
+            def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
+            skipped expectedTaskPaths as String[]
+            assert !output.contains(it.classesOutputCleanupMessage)
+            assert it.mainClassFile.assertIsFile()
+            assert it.redundantClassFile.assertDoesNotExist()
+            assert hasDescendants(it.jarFile, it.mainClassFile.name)
+        }
+
+        where:
+        arguments                                              | description
+        [JAR_TASK_NAME]                                        | 'without additional argument'
+        [JAR_TASK_NAME, '--parallel']                          | 'in parallel'
+        [JAR_TASK_NAME, '--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
     }
 
     @Issue("GRADLE-1501")
@@ -501,8 +565,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private class JavaProjectFixture {
+        private final static String JAR_TASK_NAME = 'jar'
         private final static String COMPILE_JAVA_TASK_PATH = ':compileJava'
-        private final static String JAR_TASK_PATH = ':jar'
+        private final static String JAR_TASK_PATH = ":$JAR_TASK_NAME"
         private final String rootDirName
         private final TestFile mainSourceFile
         private final TestFile redundantSourceFile
@@ -539,6 +604,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             rootDirName ? "$rootDirName/$filePath" : filePath
         }
 
+        String getRootDirName() {
+            rootDirName
+        }
+
         TestFile getRedundantSourceFile() {
             redundantSourceFile
         }
@@ -561,5 +630,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             String path = prependRootDirName('build/classes/main')
             "Cleaned up directory '${new File(testDirectory, path)}'"
         }
+    }
+
+    static String createProjectName(int projectNo) {
+        "project$projectNo"
     }
 }
