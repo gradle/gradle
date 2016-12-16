@@ -77,6 +77,62 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
     }
 
+    @NotYetImplemented
+    @Issue("GRADLE-1501")
+    def "production sources files are removed even if output directory is reconfigured during execution phase"() {
+        given:
+        def javaProjectFixture = new JavaProjectFixture()
+        buildFile << """
+            apply plugin: 'java'
+            
+            compileJava {
+                doFirst {
+                    sourceSets.main.output.classesDir = file('out')
+                }
+            }
+        """
+        def customClassesOutputDir = file('out')
+        def newMainClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.mainClassFile.name)
+        def newRedundantClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.redundantClassFile.name)
+
+        when:
+        def result = runWithMostRecentFinalRelease(JAR_TASK_PATH)
+
+        then:
+        result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
+        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
+        javaProjectFixture.mainClassFile.assertDoesNotExist()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        newMainClassFileName.assertIsFile()
+        newRedundantClassFileName.assertIsFile()
+
+        when:
+        forceDelete(javaProjectFixture.redundantSourceFile)
+        succeeds JAR_TASK_PATH
+
+        then:
+        executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
+        outputContains(javaProjectFixture.classesOutputCleanupMessage)
+        javaProjectFixture.mainClassFile.assertDoesNotExist()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        newMainClassFileName.assertIsFile()
+        newRedundantClassFileName.assertDoesNotExist()
+
+        when:
+        succeeds JAR_TASK_PATH
+
+        then:
+        skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
+        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
+        javaProjectFixture.mainClassFile.assertDoesNotExist()
+        javaProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        newMainClassFileName.assertIsFile()
+        newRedundantClassFileName.assertDoesNotExist()
+    }
+
     @Issue("GRADLE-1501")
     def "task history is deleted"() {
         def javaProjectFixture = new JavaProjectFixture()
