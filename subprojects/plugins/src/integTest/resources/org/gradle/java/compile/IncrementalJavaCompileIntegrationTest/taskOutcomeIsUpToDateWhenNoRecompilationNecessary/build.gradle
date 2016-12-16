@@ -1,0 +1,9 @@
+
+plugins {
+    id 'java'
+}
+
+tasks.withType(JavaCompile) {
+    it.options.incremental = true
+    it.inputs.file 'input.txt'
+}

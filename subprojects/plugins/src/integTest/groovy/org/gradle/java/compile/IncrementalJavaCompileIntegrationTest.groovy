@@ -91,6 +91,19 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
         file("build/dependency-cache/dependencies.txt").assertExists();
     }
 
+    @Test
+    public void taskOutcomeIsUpToDateWhenNoRecompilationNecessary() {
+        executer.withTasks(':compileJava').run()
+            .assertTasksExecuted(':compileJava')
+            .assertTaskNotSkipped(':compileJava')
+
+        file("input.txt").writelns("second run, triggers task execution, but no recompilation is necessary")
+
+        executer.withTasks(':compileJava').run()
+            .assertTasksExecuted(':compileJava')
+            .assertTaskSkipped(':compileJava')
+    }
+
     private void writeShortInterface() {
         file("src/main/java/IPerson.java").writelns(
                 "interface IPerson {",
