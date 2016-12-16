@@ -37,6 +37,12 @@ package org.gradle.script.lang.kotlin
 import org.gradle.api.Action
 
 /**
+ * This is an automatically generated extension for [org.gradle.api.Project.project].
+ */
+fun org.gradle.api.Project.project(p0: String, p1: org.gradle.api.Project.() -> Unit): org.gradle.api.Project =
+	project(p0, Action { it.p1() })
+
+/**
  * This is an automatically generated extension for [org.gradle.api.Project.delete].
  */
 fun org.gradle.api.Project.delete(p0: org.gradle.api.file.DeleteSpec.() -> Unit): org.gradle.api.tasks.WorkResult =
