@@ -573,9 +573,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         private void checkCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
-            String requestClassName = ClassUtils.getShortCanonicalName(cacheDecorator, null);
-            String currentClassName = ClassUtils.getShortCanonicalName(parameters.getCacheDecorator(), null);
-            if (!Objects.equal(requestClassName, currentClassName)) {
+            if (!Objects.equal(cacheDecorator, parameters.getCacheDecorator())) {
+                String requestClassName = ClassUtils.getShortCanonicalName(cacheDecorator, null);
+                String currentClassName = ClassUtils.getShortCanonicalName(parameters.getCacheDecorator(), null);
                 faultMessages.add(
                     String.format(" * Requested cache decorator type (%s) doesn't match current cache type (%s)",
                         requestClassName, currentClassName));
