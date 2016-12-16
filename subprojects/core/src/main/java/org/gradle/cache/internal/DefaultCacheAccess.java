@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.lang.ClassUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
@@ -574,11 +573,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
         private void checkCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
             if (!Objects.equal(cacheDecorator, parameters.getCacheDecorator())) {
-                String requestClassName = ClassUtils.getShortCanonicalName(cacheDecorator, null);
-                String currentClassName = ClassUtils.getShortCanonicalName(parameters.getCacheDecorator(), null);
                 faultMessages.add(
                     String.format(" * Requested cache decorator type (%s) doesn't match current cache type (%s)",
-                        requestClassName, currentClassName));
+                        cacheDecorator, parameters.getCacheDecorator()));
             }
         }
     }
