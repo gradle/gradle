@@ -38,4 +38,33 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         executedAndNotSkipped ":compileMainJarMainJava", ":createMainJar", ":mainJar"
     }
 
+    def "task outcome is up to date when no recompilation necessary"() {
+        given:
+        buildFile << '''
+            tasks.withType(org.gradle.api.tasks.compile.AbstractCompile) { task ->
+                task.options.incremental = true
+                task.inputs.file 'input.txt' 
+            }
+        '''.stripIndent()
+        file('input.txt') << 'first run'
+
+        when:
+        succeeds mainCompileTaskName
+
+        then:
+        executedAndNotSkipped mainCompileTaskName
+
+        when:
+        file('input.txt') << 'second run, triggers task execution, but no recompilation is necessary'
+
+        and:
+        succeeds mainCompileTaskName, '--debug'
+
+        then:
+        executed mainCompileTaskName
+        skipped mainCompileTaskName
+
+        and:
+        result.output.contains "Executing actions for task '${mainCompileTaskName}'."
+    }
 }
