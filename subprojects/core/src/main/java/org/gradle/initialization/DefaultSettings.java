@@ -25,6 +25,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CachingUrlRequester;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -203,7 +204,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), new ScriptSourceProvider(cachingUrlRequester), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), new ScriptSourceProvider(getCachingUrlRequester()), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -216,6 +217,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     protected ServiceRegistry getServices() {
         return services;
+    }
+
+    @Inject
+    public CachingUrlRequester getCachingUrlRequester() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject

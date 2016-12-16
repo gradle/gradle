@@ -40,15 +40,11 @@ public class DefaultCachingUrlRequester implements CachingUrlRequester {
     public TextResource getResource(URI source) {
         DefaultResourceAwareResolveResult defaultResourceAwareResolveResult = new DefaultResourceAwareResolveResult();
         try {
-            if(externalResourceUrlResolver.artifactExists(source.toURL(), defaultResourceAwareResolveResult)) {
-                LocallyAvailableExternalResource resource = externalResourceUrlResolver.resolveUrl(source.toURL(), defaultResourceAwareResolveResult);
-                if(resource == null) {
-                    throw new RuntimeException("Unable to find " + source.toString());
-                }
-                return new CachingTextResource(new UriTextResource("cached-script", resource.getLocalResource().getFile()));
+            LocallyAvailableExternalResource resource = externalResourceUrlResolver.resolveUrl(source.toURL(), defaultResourceAwareResolveResult);
+            if(resource == null) {
+                throw new RuntimeException("Unable to find " + source.toString());
             }
-
-            throw new RuntimeException("Unable to find " + source.toString());
+            return new CachingTextResource(new UriTextResource("cached-script", resource.getLocalResource().getFile()));
         } catch (MalformedURLException e) {
             throw new UncheckedIOException(e);
         }
