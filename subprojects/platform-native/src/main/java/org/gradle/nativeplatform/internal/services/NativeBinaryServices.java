@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.internal.services;
 
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.NativeBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativePlatformResolver;
@@ -60,5 +62,12 @@ public class NativeBinaryServices implements PluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectCompilerServices());
+    }
+
+    private static final class ProjectCompilerServices {
+        CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
+            return new CompilerOutputFileNamingSchemeFactory(fileResolver);
+        }
     }
 }

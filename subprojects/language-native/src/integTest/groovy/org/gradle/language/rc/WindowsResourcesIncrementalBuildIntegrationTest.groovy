@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -31,7 +31,7 @@ class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledT
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
     ExecutableFixture mainExe
-    def mainResourceFile
+    File mainResourceFile
     def unusedHeaderFile
 
     def "setup"() {
@@ -123,7 +123,7 @@ model {
 
     def "stale .res files are removed when a resource source file is renamed"() {
         setup:
-        def outputFileNameScheme = new CompilerOutputFileNamingScheme()
+        def outputFileNameScheme = new CompilerOutputFileNamingSchemeFactory(null).create()
                 .withOutputBaseFolder(file("build/objs/main/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def oldResFile = outputFileNameScheme.map(mainResourceFile)
@@ -146,7 +146,7 @@ model {
     def "recompiles resource when included header is changed"() {
 
         given: "set the generated res file timestamp to zero"
-        def outputFileNameScheme = new CompilerOutputFileNamingScheme()
+        def outputFileNameScheme = new CompilerOutputFileNamingSchemeFactory(null).create()
                 .withOutputBaseFolder(file("build/objs/main/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def resourceFile = outputFileNameScheme.map(mainResourceFile)

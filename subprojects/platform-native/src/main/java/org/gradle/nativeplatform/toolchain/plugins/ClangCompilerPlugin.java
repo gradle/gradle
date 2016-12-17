@@ -27,6 +27,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -50,13 +51,14 @@ public class ClangCompilerPlugin implements Plugin<Project> {
         public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
+            final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = serviceRegistry.get(CompilerOutputFileNamingSchemeFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
             final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
 
             toolChainRegistry.registerFactory(Clang.class, new NamedDomainObjectFactory<Clang>() {
                 public Clang create(String name) {
-                    return instantiator.newInstance(ClangToolChain.class, name, buildOperationProcessor, OperatingSystem.current(), fileResolver, execActionFactory, metaDataProviderFactory, instantiator);
+                    return instantiator.newInstance(ClangToolChain.class, name, buildOperationProcessor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, instantiator);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang.class);
