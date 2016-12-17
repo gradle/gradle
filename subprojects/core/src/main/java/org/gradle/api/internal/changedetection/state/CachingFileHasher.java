@@ -36,9 +36,9 @@ public class CachingFileHasher implements FileHasher {
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector) {
+    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName) {
         this.delegate = delegate;
-        this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
+        this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
     }

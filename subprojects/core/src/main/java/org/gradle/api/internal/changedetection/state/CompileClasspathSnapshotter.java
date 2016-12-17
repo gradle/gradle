@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal;
+package org.gradle.api.internal.changedetection.state;
 
-public class SimpleAnnotationValue extends AnnotationValue<Object> {
-
-    public SimpleAnnotationValue(String name, Object value) {
-        super(name, value);
-    }
+/**
+ * Responsible for calculating a {@link FileCollectionSnapshot} for a {@link org.gradle.api.file.FileCollection} representing a Java
+ * compile classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
+ *
+ * @see org.gradle.api.tasks.CompileClasspath
+ */
+public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
 }

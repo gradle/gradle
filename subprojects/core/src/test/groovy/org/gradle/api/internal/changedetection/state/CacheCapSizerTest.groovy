@@ -37,12 +37,12 @@ class CacheCapSizerTest extends Specification {
 
         where:
         maxHeapMB | expectedCaps
-        100       | [taskArtifacts:400, compilationState:200, fileHashes:80000, fileSnapshots:2000]
-        200       | [taskArtifacts:400, compilationState:200, fileHashes:80000, fileSnapshots:2000]
-        768       | [taskArtifacts: 1600, compilationState: 800, fileHashes: 325200, fileSnapshots: 8100]
-        1024      | [taskArtifacts: 2300, fileHashes: 459900, compilationState: 1100, fileSnapshots: 11500]
-        1536      | [taskArtifacts: 3600, fileHashes: 729400, compilationState: 1800, fileSnapshots: 18200]
-        2048      | [taskArtifacts: 4900, fileHashes: 998900, compilationState: 2400, fileSnapshots: 24900]
+        100       | [taskArtifacts:400, compilationState:200, fileHashes:80000, fileSnapshots:2000, jvmClassHashes:80000]
+        200       | [taskArtifacts:400, compilationState:200, fileHashes:80000, fileSnapshots:2000, jvmClassHashes:80000]
+        768       | [taskArtifacts: 1600, compilationState: 800, fileHashes: 325200, fileSnapshots: 8100, jvmClassHashes:325200]
+        1024      | [taskArtifacts: 2300, fileHashes: 459900, compilationState: 1100, fileSnapshots: 11500, jvmClassHashes:459900]
+        1536      | [taskArtifacts: 3600, fileHashes: 729400, compilationState: 1800, fileSnapshots: 18200, jvmClassHashes:729400]
+        2048      | [taskArtifacts: 4900, fileHashes: 998900, compilationState: 2400, fileSnapshots: 24900, jvmClassHashes:998900]
     }
 
     def "cache cap sizer honors reserved space when specified"() {
@@ -58,11 +58,11 @@ class CacheCapSizerTest extends Specification {
 
         where:
         maxHeapMB | reserved | expectedCaps
-        100       | 50       | [taskArtifacts: 400, compilationState: 200, fileHashes: 80000, fileSnapshots: 2000]
-        200       | 200      | [taskArtifacts: 400, compilationState: 200, fileHashes: 80000, fileSnapshots: 2000]
-        968       | 200      | [taskArtifacts: 1600, compilationState: 800, fileHashes: 325200, fileSnapshots: 8100]
-        1224      | 200      | [taskArtifacts: 2300, fileHashes: 459900, compilationState: 1100, fileSnapshots: 11500]
-        2036      | 500      | [taskArtifacts: 3600, fileHashes: 729400, compilationState: 1800, fileSnapshots: 18200]
-        4096      | 2048     | [taskArtifacts: 4900, fileHashes: 998900, compilationState: 2400, fileSnapshots: 24900]
+        100       | 50       | [taskArtifacts: 400, compilationState: 200, fileHashes: 80000, fileSnapshots: 2000, jvmClassHashes:80000]
+        200       | 200      | [taskArtifacts: 400, compilationState: 200, fileHashes: 80000, fileSnapshots: 2000, jvmClassHashes:80000]
+        968       | 200      | [taskArtifacts: 1600, compilationState: 800, fileHashes: 325200, fileSnapshots: 8100, jvmClassHashes:325200]
+        1224      | 200      | [taskArtifacts: 2300, fileHashes: 459900, compilationState: 1100, fileSnapshots: 11500, jvmClassHashes:459900]
+        2036      | 500      | [taskArtifacts: 3600, fileHashes: 729400, compilationState: 1800, fileSnapshots: 18200, jvmClassHashes:729400]
+        4096      | 2048     | [taskArtifacts: 4900, fileHashes: 998900, compilationState: 2400, fileSnapshots: 24900, jvmClassHashes:998900]
     }
 }
