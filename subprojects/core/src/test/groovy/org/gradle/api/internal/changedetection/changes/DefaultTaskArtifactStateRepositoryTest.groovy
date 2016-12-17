@@ -357,6 +357,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         when:
         TaskArtifactState state = repository.getStateFor(task1)
         state.isUpToDate([])
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
         state.afterTask()
 
@@ -364,6 +365,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         !state.upToDate
 
         when:
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
         outputDir.deleteDir()
 
         and:
@@ -374,6 +376,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         !state.isUpToDate([])
 
         when:
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
         state.afterTask()
 
@@ -487,6 +490,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
 
         when:
         task.execute()
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
         otherFile.write("new content")
         state.afterTask()
         otherFile.delete()
@@ -524,6 +528,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         upToDate noInputsTask
 
         when:
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
         outputDirFile.delete()
 
         then:

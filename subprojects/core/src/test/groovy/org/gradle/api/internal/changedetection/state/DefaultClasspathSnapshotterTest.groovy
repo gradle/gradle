@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.FileHasher
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -63,6 +64,8 @@ class DefaultClasspathSnapshotterTest extends Specification {
         then:
         snapshotInOriginalOrder.elements == [rootFile1, rootDir, subFile1, subFile2, rootFile2]
         1 * directoryFileTreeFactory.create(rootDir) >> rootDirTree
+        _ * rootDirTree.patterns >> new PatternSet()
+        _ * rootDirTree.dir >> rootFile1
         1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
             visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))
             visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))
@@ -73,6 +76,8 @@ class DefaultClasspathSnapshotterTest extends Specification {
         then:
         snapshotInReverseOrder.elements == [rootFile2, rootFile1, rootDir, subFile1, subFile2]
         1 * directoryFileTreeFactory.create(rootDir) >> rootDirTree
+        _ * rootDirTree.patterns >> new PatternSet()
+        _ * rootDirTree.dir >> rootFile2
         1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
             visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))
             visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))

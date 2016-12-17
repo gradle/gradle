@@ -52,6 +52,8 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     // Map from interned absolute path for a file to known details for the file. Currently used only for root files, not those nested in a directory
     private final Map<String, DefaultFileDetails> rootFiles = new ConcurrentHashMap<String, DefaultFileDetails>();
+    // Map from interned absolute path for a directory to known details for the directory.
+    private final Map<String, List<DefaultFileDetails>> trees = new ConcurrentHashMap<String, List<DefaultFileDetails>>();
 
     public AbstractFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.hasher = hasher;
@@ -64,6 +66,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     public void beforeTaskOutputsGenerated() {
         // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
         rootFiles.clear();
+        trees.clear();
     }
 
     public void registerSerializers(SerializerRegistry registry) {
@@ -157,7 +160,24 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, fileTreeElements);
+            if (!directoryTree.getPatterns().isEmpty()) {
+                // Currently handle only those trees where we want everything from a directory
+                AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, fileTreeElements);
+                return;
+            }
+
+            List<DefaultFileDetails> treeDetails = trees.get(directoryTree.getDir().getAbsolutePath());
+            if (treeDetails != null) {
+                // Reuse the details
+                fileTreeElements.addAll(treeDetails);
+                return;
+            }
+
+            String path = getPath(directoryTree.getDir());
+            treeDetails = Lists.newArrayList();
+            AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, treeDetails);
+            trees.put(path, treeDetails);
+            fileTreeElements.addAll(treeDetails);
         }
     }
 

@@ -180,6 +180,7 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
+        snapshotter.beforeTaskOutputsGenerated()
         file.delete()
         file.createDir()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
@@ -221,6 +222,7 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
+        snapshotter.beforeTaskOutputsGenerated()
         dir.deleteDir()
         dir.createFile()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
@@ -248,6 +250,7 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
+        snapshotter.beforeTaskOutputsGenerated()
         file.createFile()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
@@ -262,6 +265,7 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
+        snapshotter.beforeTaskOutputsGenerated()
         file.delete()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
