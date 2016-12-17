@@ -22,6 +22,5 @@ import org.gradle.api.tasks.TaskInputs;
 import java.util.SortedSet;
 
 public interface TaskInputsInternal extends TaskInputs {
-    // NOTE: Do not add method overrides to this interface with different return types since it can leak internal types into the public API.
     SortedSet<TaskInputFilePropertySpec> getFileProperties();
 }
