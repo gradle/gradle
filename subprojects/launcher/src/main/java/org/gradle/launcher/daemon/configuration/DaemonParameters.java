@@ -62,6 +62,7 @@ public class DaemonParameters {
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
+        envVariables = new HashMap<String, String>(System.getenv());
     }
 
     public boolean isInteractive() {
@@ -149,7 +150,7 @@ public class DaemonParameters {
     }
 
     public void setEnvironmentVariables(Map<String, String> envVariables) {
-        this.envVariables = envVariables;
+        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
     }
 
     public void setDebug(boolean debug) {
@@ -190,6 +191,6 @@ public class DaemonParameters {
     }
 
     public Map<String, String> getEnvironmentVariables() {
-        return envVariables == null ? System.getenv() : envVariables;
+        return envVariables;
     }
 }
