@@ -33,9 +33,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        buildEnvironment != null
-        buildEnvironment.environmentVariables != null
-        buildEnvironment.environmentVariables == System.getenv()
+        buildEnvironment?.environmentVariables == System.getenv()
     }
 
     @ToolingApiVersion(">=3.4")
@@ -50,9 +48,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        buildEnvironment != null
-        buildEnvironment.environmentVariables != null
-        buildEnvironment.environmentVariables == ["var": "val"]
+        buildEnvironment?.environmentVariables == ["var": "val"]
     }
 
 }
