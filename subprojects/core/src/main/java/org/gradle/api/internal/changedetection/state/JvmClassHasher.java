@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipFileTree;
+import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.internal.UncheckedException;
@@ -72,48 +73,32 @@ public class JvmClassHasher implements FileHasher {
         }
     }
 
-    private void hashClassBytes(Hasher hasher, byte[] src) {
+    private static void hashClassBytes(Hasher hasher, byte[] classBytes) {
         // Use the ABI as the hash
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
-        byte[] signature = extractor.extractApiClassFrom(new Java9ClassReader(src));
-        hasher.putBytes(signature);
+        Java9ClassReader reader = new Java9ClassReader(classBytes);
+        if (extractor.shouldExtractApiClassFrom(reader)) {
+            byte[] signature = extractor.extractApiClassFrom(reader);
+            /*
+            Hasher tmp = createHasher();
+            tmp.putBytes(signature);
+            System.out.println(tmp.hash());
+            */
+            hasher.putBytes(signature);
+        }
     }
 
-    private HashCode hashJarFile(File file) {
+    private static HashCode hashJarFile(File file) {
         ZipFileTree zipTree = new ZipFileTree(file, null, null, null);
         final Hasher hasher = createHasher();
-        zipTree.visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                // directories don't matter
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                InputStream inputStream = fileDetails.open();
-                byte[] src;
-                try {
-                    src = ByteStreams.toByteArray(inputStream);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                } finally {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-                if (fileDetails.getName().endsWith(".class")) {
-                    hashClassBytes(hasher, src);
-                } else {
-                    hasher.putBytes(src);
-                }
-            }
-        });
-        return hasher.hash();
+        FileTreeAdapter adapter = new FileTreeAdapter(zipTree);
+        adapter.visit(new HashingJarVisitor(hasher));
+        HashCode hash = hasher.hash();
+        //System.err.println(file.getName() + " = " + hash);
+        return hash;
     }
 
-    private Hasher createHasher() {
+    private static Hasher createHasher() {
         final Hasher hasher = Hashing.md5().newHasher();
         hasher.putBytes(SIGNATURE);
         return hasher;
@@ -122,5 +107,47 @@ public class JvmClassHasher implements FileHasher {
     @Override
     public HashCode hash(FileTreeElement fileDetails) {
         return hash(fileDetails.getFile());
+    }
+
+    private static class HashingJarVisitor implements FileVisitor {
+        private final Hasher hasher;
+
+        public HashingJarVisitor(Hasher hasher) {
+            this.hasher = hasher;
+        }
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            InputStream inputStream = fileDetails.open();
+            byte[] src;
+            try {
+                src = ByteStreams.toByteArray(inputStream);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            if (fileDetails.getName().endsWith(".class")) {
+                // System.out.print("Class = " + fileDetails.getName() + " : ");
+                hashClassBytes(hasher, src);
+            } else {
+                // TODO: Excluding resources is not a good idea for release
+                // because we cannot make the difference between using a compiler
+                // that cares about them or not (javac vs APT vs groovy ...)
+                //System.out.println("Regular file = " + fileDetails.getName());
+
+                //hasher.putBytes(src);
+            }
+
+        }
     }
 }
