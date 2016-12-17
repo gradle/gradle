@@ -84,7 +84,7 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
      *
      * @return the environment as a map of variable names to values
      */
-    public Map<String, String> getEnvironmentVariables(){
+    public Map<String, String> getEnvironmentVariables() {
         return envVariables;
     }
 }

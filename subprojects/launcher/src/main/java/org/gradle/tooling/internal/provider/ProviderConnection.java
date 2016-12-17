@@ -18,7 +18,13 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
