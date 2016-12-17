@@ -340,16 +340,16 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    implementation 'org.apache.commons:commons-lang3:3.3'
+                    implementation 'org.apache.commons:commons-math3:3.4'
                 }
             """)
             src {
                 main {
                     java {
                         'ToolImpl.java'('''
-                            import org.apache.commons.lang3.StringUtils;
+                            import org.apache.commons.math3.util.BigReal;
                             
-                            public class ToolImpl { public void execute() { StringUtils.capitalize("foo"); } }
+                            public class ToolImpl { public void execute() { BigReal read = BigReal.ONE; } }
                         ''')
                     }
                 }
@@ -363,7 +363,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':a:compileJava'
 
         when:
-        file('a/build.gradle').text = file('a/build.gradle').text.replace("3.3.1", "3.3.2")
+        file('a/build.gradle').text = file('a/build.gradle').text.replace("3.4", "3.4.1")
 
         then:
         succeeds 'a:compileJava'
