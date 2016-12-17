@@ -181,16 +181,12 @@ The [Gradle GUI](userguide/tutorial_gradle_gui.html) has been deprecated and wil
 
 ### Incompatibilities introduced by internal API changes in 3.2
 
-In Gradle 3.2, an internal API leaked into the public API and caused plugins built with Gradle 3.2 and 3.2.1 to inadvertently use an internal types that made the plugins incompatible with all other Gradle 3.x releases. Only plugins that call `getInputs().file()`, `getInputs().files()` or `getInputs().dir()` directly are impacted.
+In Gradle 3.2, an internal API leaked into the public API and caused some plugins built with Gradle 3.2 and 3.2.1 to inadvertently use an internal type that made the plugins incompatible with all Gradle releases. Only plugins that call `task.getInputs().file()`, `task.getInputs().files()` or `task.getInputs().dir()` directly are impacted. When an incompatible plugin is used, the Gradle build will fail with a `NoSuchMethodError` error.
 
 This release restores the public type on the `Task` API. 
 
-Plugins that need to continue to build with Gradle 3.2 or 3.2.1 can avoid this binary incompatibility problem by using [custom annotations](userguide/more_about_tasks.html#sec:task_input_output_annotations) instead of the programmatic `getInputs()` API when adding inputs to their tasks.
+Plugins that must continue to use Gradle 3.2 or 3.2.1 can avoid this binary incompatibility problem by using [custom annotations](userguide/more_about_tasks.html#sec:task_input_output_annotations) instead of the programmatic `getInputs()` API when adding inputs to their tasks. There is no way to fix the problem without recompilation.
 
-Plugins may also cast `getInputs()` to the public API type:
-
-    ((TaskInputs)getInputs()).file("somefile");
-    
 Plugins built with Gradle 3.3 should be compatible with all earlier 3.x releases and not require special workarounds.
 
 ### BuildInvocations model is always returned for the connected project
