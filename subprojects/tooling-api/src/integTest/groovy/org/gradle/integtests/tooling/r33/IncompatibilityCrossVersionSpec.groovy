@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r33
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -25,6 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 @ToolingApiVersion("current")
@@ -89,7 +89,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
 
     // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
     // newer versions of Gradle.
-    @NotYetImplemented
+    @Ignore
     @TargetGradleVersion(">=3.3")
     def "can use plugin built with Gradle 3.2.1 with"() {
         expect:
@@ -99,7 +99,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
 
     // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
     // older versions of Gradle.
-    @NotYetImplemented
+    @Ignore
     @TargetGradleVersion("=3.0")
     def "can use plugin built with Gradle 3.2.1 with old version"() {
         expect:
@@ -109,7 +109,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
 
     // Gradle 3.x leaked internal types that fail when used with older
     // versions of Gradle.
-    @NotYetImplemented
+    @Ignore
     @TargetGradleVersion("=2.10")
     def "can use plugin built with current Gradle with old version"() {
         expect:
