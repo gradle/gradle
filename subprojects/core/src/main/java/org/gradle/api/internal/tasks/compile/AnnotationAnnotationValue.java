@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal;
+package org.gradle.api.internal.tasks.compile;
 
-public class EnumAnnotationValue extends SimpleAnnotationValue {
+public class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
 
-    private final String typeDesc;
-
-    public EnumAnnotationValue(String name, String value, String typeDesc) {
+    public AnnotationAnnotationValue(String name, AnnotationMember value) {
         super(name, value);
-        this.typeDesc = typeDesc;
-    }
-
-    public String getTypeDesc() {
-        return typeDesc;
     }
 }

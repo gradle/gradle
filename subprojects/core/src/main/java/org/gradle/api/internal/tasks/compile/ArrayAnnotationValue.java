@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal;
+package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.collect.ComparisonChain;
+public class ArrayAnnotationValue extends AnnotationValue<AnnotationValue<?>[]> {
 
-public abstract class AccessibleMember extends Member {
-
-    private final int access;
-
-    public AccessibleMember(int access, String name) {
-        super(name);
-        this.access = access;
-    }
-
-    public int getAccess() {
-        return access;
-    }
-
-    protected ComparisonChain compare(AccessibleMember o) {
-        return super.compare(o).compare(access, o.access);
+    public ArrayAnnotationValue(String name, AnnotationValue<?>[] value) {
+        super(name, value);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal;
+package org.gradle.api.internal.tasks.compile;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -22,11 +22,8 @@ import org.objectweb.asm.ClassWriter;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.jvm.tasks.api.internal.ApiMemberSelector.isCandidateApiMember;
-
 /**
- * Extracts an "API class" from an original "runtime class" for subsequent inclusion
- * into an {@link org.gradle.jvm.tasks.api.ApiJar}.
+ * Extracts an "API class" from an original "runtime class".
  */
 public class ApiClassExtractor {
 
@@ -58,7 +55,7 @@ public class ApiClassExtractor {
      * @return whether the given class is a candidate for API extraction
      */
     public boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
-        if (!isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
+        if (!ApiMemberSelector.isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
             return false;
         }
         String originalClassName = originalClassReader.getClassName();

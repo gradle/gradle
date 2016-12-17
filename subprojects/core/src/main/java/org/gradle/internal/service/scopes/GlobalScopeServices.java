@@ -335,7 +335,7 @@ public class GlobalScopeServices {
     }
 
     FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
-        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner);
+        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner, "fileHashes");
     }
 
     ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {

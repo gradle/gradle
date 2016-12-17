@@ -266,6 +266,131 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         skipped ':a:compileJava'
     }
 
+    def "doesn't recompile consumer if implementation detail of producer changed"() {
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    implementation 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public abstract class Tool { void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/src/main/java/Tool.java').text = '''
+            public abstract class Tool { void execute() { System.out.println("Foo"); } }
+        '''
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        skipped ':a:compileJava'
+    }
+
+    def "doesn't recompile consumer if private method of producer changed"() {
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    implementation 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public abstract class Tool { void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/src/main/java/Tool.java').text = '''
+            public abstract class Tool {
+                private void debug() { System.out.println("Foo"); } 
+                void execute() { debug(); } 
+            }
+        '''
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        skipped ':a:compileJava'
+    }
+
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
         file("settings.gradle") << "include '$name'\n"
         def subprojectDir = file(name)

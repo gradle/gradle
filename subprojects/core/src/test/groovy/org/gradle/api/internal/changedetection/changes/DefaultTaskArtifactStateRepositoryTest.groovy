@@ -79,7 +79,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache())
         def stringInterner = new StringInterner()
-        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner)
+        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, "fileHashes")
         fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
