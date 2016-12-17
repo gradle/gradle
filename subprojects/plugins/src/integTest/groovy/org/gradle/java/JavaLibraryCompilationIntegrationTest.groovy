@@ -327,6 +327,49 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         skipped ':a:compileJava'
     }
 
+    // TEST SHOULD LIVE ELSEWHERE
+    def "doesn't recompile if implementation dependency changed in ABI compatible way"() {
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    implementation 'org.apache.commons:commons-lang3:3.3'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('''
+                            import org.apache.commons.lang3.StringUtils;
+                            
+                            public class ToolImpl { public void execute() { StringUtils.capitalize("foo"); } }
+                        ''')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+
+        when:
+        file('a/build.gradle').text = file('a/build.gradle').text.replace("3.3.1", "3.3.2")
+
+        then:
+        succeeds 'a:compileJava'
+        skipped ':a:compileJava'
+    }
+
     def "doesn't recompile consumer if private method of producer changed"() {
         def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
 
