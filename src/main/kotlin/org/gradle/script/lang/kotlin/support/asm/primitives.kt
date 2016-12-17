@@ -33,51 +33,81 @@ import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+
+internal
 typealias ZipInputStreamEntryPredicate = ZipInputStreamEntry.() -> Boolean
 
-fun removeMethodsMatching(predicate: MethodPredicate,
-                          input: InputStream,
-                          output: OutputStream,
-                          shouldTransformEntry: ZipInputStreamEntryPredicate = { zipEntry.name.endsWith(".class") },
-                          onProgress: () -> Unit = {}) {
-    transformClasses(input, output, shouldTransformEntry, onProgress) { classVisitor ->
+
+typealias MethodPredicate = (MethodDescriptor) -> Boolean
+
+
+internal
+fun removeMethodsMatching(
+    predicate: MethodPredicate,
+    input: InputStream,
+    output: OutputStream,
+    entryCondition: ZipInputStreamEntryPredicate = { zipEntry.name.endsWith(".class") },
+    onProgress: () -> Unit = {}) {
+
+    transformClasses(input, output, onProgress, entryCondition) { classVisitor ->
         MethodRemovingVisitor(predicate, classVisitor)
     }
 }
 
-typealias MethodPredicate = (MethodDescriptor) -> Boolean
 
-fun transformClasses(input: InputStream,
-                     output: OutputStream,
-                     shouldTransformEntry: ZipInputStreamEntryPredicate,
-                     onProgress: () -> Unit,
-                     decorator: (ClassVisitor) -> ClassVisitor) {
+internal
+fun transformClasses(
+    input: InputStream,
+    output: OutputStream,
+    onProgress: () -> Unit,
+    condition: ZipInputStreamEntryPredicate,
+    transformation: (ClassVisitor) -> ClassVisitor) {
+
     ZipOutputStream(output).use { zos ->
         zos.setLevel(0)
         forEachZipEntryIn(input) {
             when {
-                zipEntry.isDirectory -> {
-                    zos.putNextEntry(ZipEntry(zipEntry))
-                    zos.closeEntry()
-                }
-                else -> {
-                    val resultingEntryBytes =
-                        if (shouldTransformEntry()) transformClass(zipInputStream, decorator)
-                        else zipInputStream.readBytes()
-                    zos.putNextEntry(ZipEntry(zipEntry.name).apply {
-                        time = zipEntry.time
-                        size = resultingEntryBytes.size.toLong()
-                    })
-                    zos.write(resultingEntryBytes)
-                    zos.closeEntry()
-                }
+                zipEntry.isDirectory ->
+                    copyTo(zos)
+                else ->
+                    transformTo(zos, condition, transformation)
             }
             onProgress()
         }
     }
 }
 
-fun transformClass(inputStream: InputStream, decorator: (ClassVisitor) -> ClassVisitor): ByteArray {
+
+private
+fun ZipInputStreamEntry.copyTo(zos: ZipOutputStream) {
+    zos.putNextEntry(ZipEntry(zipEntry))
+    zos.closeEntry()
+}
+
+
+private
+fun ZipInputStreamEntry.transformTo(
+    zos: ZipOutputStream,
+    condition: ZipInputStreamEntryPredicate,
+    transformation: (ClassVisitor) -> ClassVisitor) {
+
+    val resultingEntryBytes =
+        if (condition()) transformClass(zipInputStream, transformation)
+        else zipInputStream.readBytes()
+    zos.putNextEntry(ZipEntry(zipEntry.name).apply {
+        time = zipEntry.time
+        size = resultingEntryBytes.size.toLong()
+    })
+    zos.write(resultingEntryBytes)
+    zos.closeEntry()
+}
+
+
+private
+fun transformClass(
+    inputStream: InputStream,
+    decorator: (ClassVisitor) -> ClassVisitor): ByteArray {
+
     val classReader = ClassReader(inputStream)
     val classWriter = ClassWriter(classReader, 0)
     classReader.accept(
@@ -86,22 +116,28 @@ fun transformClass(inputStream: InputStream, decorator: (ClassVisitor) -> ClassV
     return classWriter.toByteArray()
 }
 
+
+private
 class MethodRemovingVisitor(
     val predicate: MethodPredicate,
     classVisitor: ClassVisitor) : ClassVisitor(Opcodes.ASM5, classVisitor) {
 
     private var nonGeneric = true
 
-    override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
+    override fun visit(
+        version: Int, access: Int,
+        name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
+
         super.visit(version, access, name, signature, superName, interfaces)
         nonGeneric = isNonGenericType(signature)
     }
 
-    // TODO: move predicate out of this class
     private fun isNonGenericType(signature: String?) =
         signature?.let { ClassSignature.from(it).typeParameters.isEmpty() } ?: true
 
-    override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+    override fun visitMethod(
+        access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+
         return when {
             nonGeneric && predicate(MethodDescriptor(name, signature ?: desc, access)) -> null
             else -> super.visitMethod(access, name, desc, signature, exceptions)

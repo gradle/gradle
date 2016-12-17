@@ -38,11 +38,15 @@ import java.io.File
 
 import java.util.zip.ZipFile
 
+
 typealias JarCache = (String, JarGenerator) -> File
+
 
 typealias JarGenerator = (File) -> Unit
 
+
 typealias JarsProvider = () -> Collection<File>
+
 
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
@@ -125,21 +129,28 @@ class KotlinScriptClassPathProvider(
     private fun gradleJars() = classPathRegistry.gradleJars()
 }
 
+
 fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory): JarsProvider =
     { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
+
 
 fun gradleScriptKotlinJarsFrom(classPathRegistry: ClassPathRegistry): List<File> =
     classPathRegistry.gradleJars().filter {
         it.name.let { isKotlinJar(it) || it.startsWith("gradle-script-kotlin-") }
     }
 
+
 fun ClassPathRegistry.gradleJars(): Collection<File> =
     getClassPath(gradleApiNotation.name).asFiles
+
 
 fun DependencyFactory.gradleApi(): Dependency =
     createDependency(gradleApiNotation)
 
-private val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
+
+private
+val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
+
 
 // TODO: make the predicate more precise
 fun isKotlinJar(name: String): Boolean =

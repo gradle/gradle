@@ -16,23 +16,33 @@
 
 package org.gradle.script.lang.kotlin.codegen
 
+
+internal
 fun ZipInputStreamEntry.isApiClassEntry() =
     zipEntry.isFile
         && zipEntry.name.endsWith(".class")
         && zipEntry.name.startsWith("org/gradle/api/")
         && !zipEntry.name.contains("/internal/")
 
+
+internal
 fun conflictsWithExtension(method: MethodDescriptor) =
     method.isPublic && !method.isSynthetic && hasLastParameterOfTypeAction(method)
 
+
+internal
 fun hasLastParameterOfTypeAction(method: MethodDescriptor) =
     lastParameterOrNullOf(method)?.let {
         it is GenericType && isActionClassType(it.definition)
     } ?: false
 
+
+internal
 fun lastParameterOrNullOf(method: MethodDescriptor) =
     method.signature.parameters.lastOrNull()
 
+
+internal
 fun isActionClassType(definition: JvmType) =
     definition is ClassType && definition.internalName == "org/gradle/api/Action"
 

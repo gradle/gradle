@@ -22,6 +22,7 @@ import org.objectweb.asm.signature.SignatureVisitor
 
 import java.lang.IllegalStateException
 
+
 data class MethodSignature(
     val parameters: List<JvmType>,
     val returnType: JvmType,
@@ -55,7 +56,7 @@ data class MethodSignature(
                     }
 
                 override fun visitReturnType(): SignatureVisitor =
-                    JvmTypeBuilder() {
+                    JvmTypeBuilder {
                         returnType = it
                     }
             })
@@ -64,11 +65,14 @@ data class MethodSignature(
     }
 }
 
+
 data class TypeParameter(val name: String, val bound: JvmType)
+
 
 sealed class JvmType {
     abstract val kotlinTypeName: String
 }
+
 
 data class PrimitiveType(val descriptor: Char) : JvmType() {
 
@@ -87,6 +91,7 @@ data class PrimitiveType(val descriptor: Char) : JvmType() {
         }
 }
 
+
 data class ClassType(val internalName: String) : JvmType() {
 
     override val kotlinTypeName: String
@@ -98,11 +103,13 @@ data class ClassType(val internalName: String) : JvmType() {
         }
 }
 
+
 data class ArrayType(val elementType: JvmType) : JvmType() {
 
     override val kotlinTypeName: String
         get() = "Array<${elementType.kotlinTypeName}>"
 }
+
 
 data class GenericType(val definition: JvmType, val arguments: List<JvmType>) : JvmType() {
 
@@ -110,11 +117,13 @@ data class GenericType(val definition: JvmType, val arguments: List<JvmType>) : 
         get() = definition.kotlinTypeName + arguments.joinToString(prefix = "<", postfix = ">") { it.kotlinTypeName }
 }
 
+
 data class GenericTypeVariable(val name: String) : JvmType() {
 
     override val kotlinTypeName: String
         get() = name
 }
+
 
 class WildcardType : JvmType() {
 
@@ -126,6 +135,7 @@ class WildcardType : JvmType() {
         get() = "*"
 }
 
+
 /**
  * <li><i>TypeSignature</i> = <tt>visitBaseType</tt> |
  * <tt>visitTypeVariable</tt> | <tt>visitArrayType</tt> | (
@@ -133,7 +143,8 @@ class WildcardType : JvmType() {
  * <tt>visitInnerClassType</tt> <tt>visitTypeArgument</tt>* )* <tt>visitEnd</tt>
  * ) )</li>
  */
-internal class JvmTypeBuilder(val onEnd: (JvmType) -> Unit) : SignatureVisitor(Opcodes.ASM5) {
+internal
+class JvmTypeBuilder(val onEnd: (JvmType) -> Unit) : SignatureVisitor(Opcodes.ASM5) {
 
     var type: JvmType? = null
     val typeArguments = arrayListOf<JvmType>()

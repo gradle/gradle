@@ -51,11 +51,13 @@ import org.slf4j.Logger
 import java.io.File
 
 internal
-fun compileKotlinScriptToDirectory(outputDirectory: File,
-                                   scriptFile: File,
-                                   scriptDef: KotlinScriptDefinition,
-                                   classLoader: ClassLoader,
-                                   log: Logger): Class<*> {
+fun compileKotlinScriptToDirectory(
+    outputDirectory: File,
+    scriptFile: File,
+    scriptDef: KotlinScriptDefinition,
+    classLoader: ClassLoader,
+    log: Logger): Class<*> {
+
     withRootDisposable { rootDisposable ->
         withMessageCollectorFor(log) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, scriptFile).apply {
@@ -71,26 +73,35 @@ fun compileKotlinScriptToDirectory(outputDirectory: File,
     }
 }
 
+
 internal
-fun compileToJar(outputJar: File,
-                 sourceFiles: Iterable<File>,
-                 logger: Logger,
-                 classPath: Iterable<File> = emptyList()): Boolean =
+fun compileToJar(
+    outputJar: File,
+    sourceFiles: Iterable<File>,
+    logger: Logger,
+    classPath: Iterable<File> = emptyList()): Boolean =
+
     compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
 
+
 internal
-fun compileToDirectory(outputDirectory: File,
-                       sourceFiles: Iterable<File>,
-                       logger: Logger,
-                       classPath: Iterable<File> = emptyList()): Boolean =
+fun compileToDirectory(
+    outputDirectory: File,
+    sourceFiles: Iterable<File>,
+    logger: Logger,
+    classPath: Iterable<File> = emptyList()): Boolean =
+
     compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
 
+
 private
-fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
-              output: File,
-              sourceFiles: Iterable<File>,
-              logger: Logger,
-              classPath: Iterable<File>): Boolean {
+fun compileTo(
+    outputConfigurationKey: CompilerConfigurationKey<File>,
+    output: File,
+    sourceFiles: Iterable<File>,
+    logger: Logger,
+    classPath: Iterable<File>): Boolean {
+
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
@@ -105,9 +116,11 @@ fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
     }
 }
 
+
 private
 val kotlinStdlibJar: File
     get() = PathUtil.getResourcePathForClass(Unit::class.java)
+
 
 private
 inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
@@ -118,6 +131,7 @@ inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
         dispose(rootDisposable)
     }
 }
+
 
 private
 inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
@@ -134,9 +148,11 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
     }
 }
 
+
 private
 fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: File) =
     compilerConfigurationFor(messageCollector, listOf(sourceFile))
+
 
 private
 fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
@@ -146,19 +162,23 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: It
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
+
 private
 fun CompilerConfiguration.setModuleName(name: String) {
     put(CommonConfigurationKeys.MODULE_NAME, name)
 }
+
 
 private
 fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
     add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
 }
 
+
 private
 fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
     KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+
 
 private
 fun messageCollectorFor(log: Logger): MessageCollector =

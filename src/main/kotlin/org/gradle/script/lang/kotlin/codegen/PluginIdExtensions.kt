@@ -20,9 +20,10 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 import java.io.File
-import java.util.*
 
+import java.util.Properties
 import java.util.jar.JarFile
+
 
 internal
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
@@ -38,6 +39,7 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
         }
     }}
 }
+
 
 private
 fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
@@ -62,8 +64,14 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
         }
 }
 
+
 private
-data class PluginExtension(val memberName: String, val pluginId: String, val website: String, val implementationClass: String)
+data class PluginExtension(
+    val memberName: String,
+    val pluginId: String,
+    val website: String,
+    val implementationClass: String)
+
 
 private
 fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
@@ -76,8 +84,10 @@ fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
             PluginExtension(simpleId, id, website, implementationClass)
         }
 
+
 private
 data class PluginEntry(val pluginId: String, val implementationClass: String)
+
 
 private
 fun pluginEntriesFrom(jar: File): List<PluginEntry> =

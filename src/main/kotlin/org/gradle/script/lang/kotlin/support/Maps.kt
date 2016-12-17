@@ -16,10 +16,12 @@
 
 package org.gradle.script.lang.kotlin.support
 
+
 fun excludeMapFor(group: String?, module: String?): Map<String, String> =
     mapOfNonNullValuesOf(
         "group" to group,
         "module" to module)
+
 
 fun mapOfNonNullValuesOf(vararg entries: Pair<String, String?>): Map<String, String> =
     mutableMapOf<String, String>().apply {

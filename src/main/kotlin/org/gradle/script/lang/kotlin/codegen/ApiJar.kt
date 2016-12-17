@@ -27,7 +27,7 @@ fun generateKotlinGradleApiJar(outputFile: File, gradleApiJar: File, onProgress:
                 ::conflictsWithExtension,
                 input.buffered(),
                 output.buffered(),
-                shouldTransformEntry = { isApiClassEntry() },
+                entryCondition = { isApiClassEntry() },
                 onProgress = onProgress)
         }
     }

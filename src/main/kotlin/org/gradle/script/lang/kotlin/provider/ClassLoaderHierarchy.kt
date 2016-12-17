@@ -27,22 +27,28 @@ import java.net.URL
 
 import java.util.*
 
+
 /**
  * A formatter for strings that might contain file system paths.
  */
 typealias PathStringFormatter = (String) -> String
 
+
 internal
-fun classLoaderHierarchyJsonFor(klass: Class<*>,
-                                targetScope: ClassLoaderScope,
-                                pathFormatter: PathStringFormatter = { it }) =
+fun classLoaderHierarchyJsonFor(
+    klass: Class<*>,
+    targetScope: ClassLoaderScope,
+    pathFormatter: PathStringFormatter = { it }) =
+
     classLoaderHierarchyJsonFor(
         hierarchyOf(klass.classLoader),
         hierarchyOf(targetScope),
         pathFormatter)
 
+
 private
 typealias ClassLoaderId = String
+
 
 private
 class ClassLoaderNode(
@@ -53,9 +59,10 @@ class ClassLoaderNode(
 
 
 private
-fun classLoaderHierarchyJsonFor(classLoaders: List<ClassLoaderNode>,
-                                scopes: List<ClassLoaderScope>,
-                                pathFormatter: PathStringFormatter): String {
+fun classLoaderHierarchyJsonFor(
+    classLoaders: List<ClassLoaderNode>,
+    scopes: List<ClassLoaderScope>,
+    pathFormatter: PathStringFormatter): String {
 
     fun labelFor(scope: ClassLoaderScope) =
         pathFormatter(if (scope is AbstractClassLoaderScope) scope.path else scope.toString())
@@ -79,6 +86,7 @@ fun classLoaderHierarchyJsonFor(classLoaders: List<ClassLoaderNode>,
         ))
 }
 
+
 private
 fun hierarchyOf(initialScope: ClassLoaderScope): List<ClassLoaderScope> {
     val result = arrayListOf(initialScope)
@@ -90,8 +98,10 @@ fun hierarchyOf(initialScope: ClassLoaderScope): List<ClassLoaderScope> {
     return result
 }
 
+
 private
 fun hierarchyOf(classLoader: ClassLoader): ArrayList<ClassLoaderNode> {
+
     val classLoaders = arrayListOf<ClassLoaderNode>()
     val visitedClassLoaders = IdentityHashMap<ClassLoader, Boolean>()
     val stack = ArrayDeque<ClassLoaderNode>()
@@ -126,6 +136,7 @@ fun hierarchyOf(classLoader: ClassLoader): ArrayList<ClassLoaderNode> {
     visitor.visit(classLoader)
     return classLoaders
 }
+
 
 private
 fun idOf(classLoader: ClassLoader): String =

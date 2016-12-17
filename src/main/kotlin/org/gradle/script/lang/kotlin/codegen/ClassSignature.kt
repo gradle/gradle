@@ -20,6 +20,7 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.signature.SignatureVisitor
 
+
 data class ClassSignature(val typeParameters: List<TypeParameter>) {
 
     companion object {

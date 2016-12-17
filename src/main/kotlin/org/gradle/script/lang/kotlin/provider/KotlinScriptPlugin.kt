@@ -26,7 +26,9 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import java.lang.IllegalArgumentException
 
-class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -> Unit) : ScriptPlugin {
+class KotlinScriptPlugin(
+    val scriptSource: ScriptSource,
+    val script: (Project) -> Unit) : ScriptPlugin {
 
     private val logger = loggerFor<KotlinScriptPlugin>()
 

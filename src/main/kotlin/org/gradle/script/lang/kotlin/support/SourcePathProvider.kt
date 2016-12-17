@@ -18,15 +18,22 @@ package org.gradle.script.lang.kotlin.support
 
 import java.io.File
 
+
 internal
 interface SourcePathProvider {
-    fun sourcePathFor(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel): Collection<File>
+    fun sourcePathFor(
+        request: KotlinBuildScriptModelRequest,
+        response: KotlinBuildScriptModel): Collection<File>
 }
+
 
 internal
 object DefaultSourcePathProvider : SourcePathProvider {
 
-    override fun sourcePathFor(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel): Collection<File> {
+    override fun sourcePathFor(
+        request: KotlinBuildScriptModelRequest,
+        response: KotlinBuildScriptModel): Collection<File> {
+
         val gradleScriptKotlinJar = response.classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
         val projectBuildSrcRoots = buildSrcRootsOf(request.projectDir)
         val gradleSourceRoots = sourceRootsOf(request.gradleInstallation)

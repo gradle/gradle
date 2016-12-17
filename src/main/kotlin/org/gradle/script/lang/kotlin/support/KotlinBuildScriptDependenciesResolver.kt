@@ -36,10 +36,11 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 
     internal var assembler: KotlinBuildScriptDependenciesAssembler = DefaultKotlinBuildScriptDependenciesAssembler
 
-    override fun resolve(script: ScriptContents,
-                         environment: Environment?,
-                         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
-                         previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> {
+    override fun resolve(
+        script: ScriptContents,
+        environment: Environment?,
+        report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
+        previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> {
 
         if (environment == null)
             return previousDependencies.asFuture()
@@ -95,9 +96,10 @@ class KotlinBuildScriptDependencies(
 internal
 interface KotlinBuildScriptDependenciesAssembler {
 
-    fun assembleDependenciesFrom(environment: Environment,
-                                 scriptFile: File?,
-                                 buildscriptBlockHash: ByteArray?): KotlinBuildScriptDependencies?
+    fun assembleDependenciesFrom(
+        environment: Environment,
+        scriptFile: File?,
+        buildscriptBlockHash: ByteArray?): KotlinBuildScriptDependencies?
 }
 
 
@@ -106,9 +108,11 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
 
     private val sourcePathProvider: SourcePathProvider = DefaultSourcePathProvider
 
-    override fun assembleDependenciesFrom(environment: Environment,
-                                          scriptFile: File?,
-                                          buildscriptBlockHash: ByteArray?): KotlinBuildScriptDependencies? =
+    override fun assembleDependenciesFrom(
+        environment: Environment,
+        scriptFile: File?,
+        buildscriptBlockHash: ByteArray?): KotlinBuildScriptDependencies? =
+
         modelRequestFrom(environment, scriptFile)?.let { request ->
             modelFor(request)?.let { response ->
                 dependenciesFrom(buildscriptBlockHash, request, response)
@@ -132,9 +136,11 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         return null
     }
 
-    private fun dependenciesFrom(hash: ByteArray?,
-                                 request: KotlinBuildScriptModelRequest,
-                                 response: KotlinBuildScriptModel) =
+    private fun dependenciesFrom(
+        hash: ByteArray?,
+        request: KotlinBuildScriptModelRequest,
+        response: KotlinBuildScriptModel) =
+
         KotlinBuildScriptDependencies(
             response.classPath,
             ImplicitImports.list,

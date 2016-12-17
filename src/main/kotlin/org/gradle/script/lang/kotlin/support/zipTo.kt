@@ -24,10 +24,12 @@ import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+
 fun zipTo(zipFile: File, baseDir: File) {
     val files = baseDir.walkTopDown().filter { it.isFile }
     zipTo(zipFile, baseDir, files)
 }
+
 
 fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
     val entries = files.map { file ->
@@ -38,9 +40,11 @@ fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
     zipTo(zipFile, entries)
 }
 
+
 fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
     zipTo(zipFile.outputStream(), entries)
 }
+
 
 fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>) {
     ZipOutputStream(outputStream).use { zos ->

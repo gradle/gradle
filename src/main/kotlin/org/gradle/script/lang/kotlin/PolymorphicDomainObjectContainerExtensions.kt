@@ -19,6 +19,7 @@ package org.gradle.script.lang.kotlin
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PolymorphicDomainObjectContainer
 
+
 /**
  * Creates a domain object with the specified name and type, adds it to the container,
  * and configures it with the specified action.
@@ -31,9 +32,12 @@ import org.gradle.api.PolymorphicDomainObjectContainer
  * exists or the container does not support creating a domain object with the specified
  * type
  */
-inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String,
-                                                                           crossinline configuration: U.() -> Unit) =
+inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
+    name: String,
+    crossinline configuration: U.() -> Unit) =
+
     this.create(name, U::class.java, { configuration(it) })!!
+
 
 /**
  * Creates a domain object with the specified name and type, and adds it to the container.

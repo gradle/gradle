@@ -29,8 +29,10 @@ class KotlinScriptPluginFactoryProvider @Inject constructor(
 
     override fun getFor(fileName: String): ScriptPluginFactory? =
         when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider, kotlinCompiler, pluginRequestApplicator)
-            else -> null
+            fileName.endsWith(".kts") ->
+                KotlinScriptPluginFactory(classPathProvider, kotlinCompiler, pluginRequestApplicator)
+            else ->
+                null
         }
 }
 

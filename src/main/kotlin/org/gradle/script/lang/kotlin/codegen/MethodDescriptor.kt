@@ -18,6 +18,7 @@ package org.gradle.script.lang.kotlin.codegen
 
 import org.objectweb.asm.Opcodes
 
+
 data class MethodDescriptor(val name: String, val signatureOrDesc: String, val access: Int) {
 
     val signature by lazy {

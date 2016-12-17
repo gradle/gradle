@@ -24,8 +24,10 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
+
 @DslMarker
 annotation class BuildScriptBlockMarker
+
 
 /**
  * Base class for Kotlin build scripts.

@@ -19,6 +19,7 @@ package org.gradle.script.lang.kotlin
 import groovy.lang.Closure
 import org.gradle.internal.Cast.uncheckedCast
 
+
 /**
  * Adapts a Kotlin function to a single argument Groovy [Closure].
  *
@@ -29,6 +30,7 @@ import org.gradle.internal.Cast.uncheckedCast
  */
 fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
     KotlinClosure(action, this, this)
+
 
 /**
  * Adapts a Kotlin function to a Groovy [Closure] that operates on the
@@ -44,6 +46,7 @@ fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
         @Suppress("unused") // to be called dynamically by Groovy
         fun doCall() = uncheckedCast<T>(delegate).action()
     }
+
 
 /**
  * Adapts a Kotlin function to a single argument Groovy [Closure].

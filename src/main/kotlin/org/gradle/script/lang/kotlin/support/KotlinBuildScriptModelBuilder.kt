@@ -30,9 +30,11 @@ import org.gradle.internal.classloader.ClasspathUtil
 import java.io.File
 import java.io.Serializable
 
+
 interface KotlinBuildScriptModel {
     val classPath: List<File>
 }
+
 
 internal
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
@@ -85,7 +87,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             .filter { it.isDirectory }
 }
 
-class StandardKotlinBuildScriptModel(override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
+
+class StandardKotlinBuildScriptModel(
+    override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
+
 
 internal
 fun gradleScriptKotlinApiOf(project: Project): List<File> =
@@ -93,9 +98,11 @@ fun gradleScriptKotlinApiOf(project: Project): List<File> =
         gradleApi.asFiles + gradleScriptKotlinJars.asFiles
     }
 
+
 internal
 fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
+
 
 internal
 inline fun <reified T : Any> Project.serviceOf(): T =

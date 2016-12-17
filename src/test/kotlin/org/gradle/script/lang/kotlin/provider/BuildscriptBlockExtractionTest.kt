@@ -81,11 +81,11 @@ class BuildscriptBlockExtractionTest {
     fun `given more than one top level buildscript block it throws IllegalStateException`() {
         try {
             extractBuildscriptBlockFrom("buildscript {} buildscript {}")
-            fail("Expecting ${UnexpectedBlockException::class.simpleName}!")
-        } catch (e: UnexpectedBlockException) {
-            assertThat(e.blockIdentifier, equalTo("buildscript"))
-            assertThat(e.blockLocation, equalTo(15..28))
-            assertThat(e.message, equalTo("Unexpected block found."))
+            fail("Expecting ${UnexpectedBlock::class.simpleName}!")
+        } catch (unexpectedBlock: UnexpectedBlock) {
+            assertThat(unexpectedBlock.identifier, equalTo("buildscript"))
+            assertThat(unexpectedBlock.location, equalTo(15..28))
+            assertThat(unexpectedBlock.message, equalTo("Unexpected block found."))
         }
     }
 

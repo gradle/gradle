@@ -33,16 +33,20 @@ class KotlinScriptPluginFactory(
     val kotlinCompiler: CachingKotlinCompiler,
     val pluginRequestApplicator: PluginRequestApplicator) : ScriptPluginFactory {
 
-    override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
-                        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-                        topLevelScript: Boolean): ScriptPlugin =
+    override fun create(
+        scriptSource: ScriptSource, scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
+        topLevelScript: Boolean): ScriptPlugin =
+
         KotlinScriptPlugin(
             scriptSource,
             compile(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript))
 
-    private fun compile(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
-                        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-                        topLevelScript: Boolean): (Project) -> Unit =
+    private fun compile(
+        scriptSource: ScriptSource, scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
+        topLevelScript: Boolean): (Project) -> Unit =
+
         with(compilerFor(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)) {
             if (topLevelScript && inClassPathMode())
                 compileForClassPath()
@@ -50,9 +54,11 @@ class KotlinScriptPluginFactory(
                 compile()
         }
 
-    private fun compilerFor(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
-                            targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-                            topLevelScript: Boolean) =
+    private fun compilerFor(
+        scriptSource: ScriptSource, scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
+        topLevelScript: Boolean) =
+
         KotlinBuildScriptCompiler(
             kotlinCompiler,
             scriptSource, topLevelScript,

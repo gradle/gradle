@@ -25,6 +25,8 @@ import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 
+
+internal
 class ActionExtensionWriter(val writer: Writer, val kDocProvider: KDocProvider? = null) {
 
     init {
@@ -110,7 +112,8 @@ import org.gradle.api.Action
         val signature = "$className.${method.name}(${parameterTypeNames.joinToString()})"
         return kDocProvider?.invoke(signature)?.apply {
             if (parameterNames.size != parameterTypeNames.size) {
-                throw IllegalArgumentException("KDoc for `$signature` has wrong number of @param tags, expecting ${parameterTypeNames.size}, got ${parameterNames.size}")
+                throw IllegalArgumentException(
+                    "KDoc for `$signature` has wrong number of @param tags, expecting ${parameterTypeNames.size}, got ${parameterNames.size}")
             }
         }
     }

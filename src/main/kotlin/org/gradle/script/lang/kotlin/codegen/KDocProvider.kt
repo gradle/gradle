@@ -16,7 +16,9 @@
 
 package org.gradle.script.lang.kotlin.codegen
 
+
 typealias KDocProvider = (String) -> KDoc?
+
 
 data class KDoc(val text: String) {
 
@@ -46,8 +48,10 @@ data class KDoc(val text: String) {
         }
 }
 
+
 private
 val kDocParamRegex = Regex("^@param\\s+(\\w+)", RegexOption.MULTILINE)
+
 
 object MarkdownKDocProvider {
 

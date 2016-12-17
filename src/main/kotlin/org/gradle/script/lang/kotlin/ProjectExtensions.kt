@@ -40,6 +40,7 @@ import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
+
 /**
  * Applies the given plugin. Does nothing if the plugin has already been applied.
  *
@@ -52,6 +53,7 @@ import kotlin.reflect.KProperty
 inline fun <reified T : Plugin<Project>> Project.apply() =
     pluginManager.apply(T::class.java)
 
+
 /**
  * Applies a script to the project.
  *
@@ -60,6 +62,7 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  */
 fun Project.applyFrom(script: Any) =
     apply { it.from(script) }
+
 
 /**
  * Executes the given configuration block against the [plugin convention]
@@ -72,8 +75,10 @@ fun Project.applyFrom(script: Any) =
 inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
     configure(T::class, configuration)
 
+
 inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) =
     the(extensionType).configuration()
+
 
 /**
  * Returns the plugin convention or extension of the specified type.
@@ -81,31 +86,40 @@ inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: 
 inline fun <reified T : Any> Project.the() =
     the(T::class)
 
+
 @Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
 inline fun <T : Any> Project.the(extensionType: KClass<T>) =
     convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
 
+
 inline fun <reified T : Any> Convention.getPlugin() =
     getPlugin(T::class)
+
 
 @Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
 inline fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
     getPlugin(conventionType.java)!!
 
+
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)
+
 
 inline fun <reified T : Task> Project.task(name: String) =
     tasks.create(name, T::class.java)
 
+
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     createTask(name, type, configuration)
+
 
 fun Project.task(name: String, configuration: Task.() -> Unit) =
     createTask(name, DefaultTask::class, configuration)
 
+
 fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     tasks.create(name, type.java, configuration)!!
+
 
 /**
  * Configures the repositories for this project.
@@ -118,6 +132,7 @@ fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: 
 fun Project.repositories(configuration: KotlinRepositoryHandler.() -> Unit) =
     KotlinRepositoryHandler(repositories).configuration()
 
+
 /**
  * Configures the dependencies for this project.
  *
@@ -129,11 +144,13 @@ fun Project.repositories(configuration: KotlinRepositoryHandler.() -> Unit) =
 fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Unit) =
     KotlinDependencyHandler(dependencies).configuration()
 
+
 /**
  * Locates a [Project] property using [Project.findProperty].
  */
 operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
     findProperty(property.name)
+
 
 /**
  * Creates a dependency on the API of the current version of Gradle Script Kotlin.
@@ -148,5 +165,7 @@ fun Project.gradleScriptKotlinApi(): Dependency =
             gradleScriptKotlinApiOf(project),
             "gradleScriptKotlinApi") as FileCollectionInternal)
 
-private fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
+
+private
+fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
     DefaultFileCollectionFactory().fixed(name, files)

@@ -16,13 +16,16 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+
 fun CharSequence.linePreservingSubstring(range: IntRange): String =
     linePreservingSubstring_(range).second
+
 
 fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
     val lineCount = take(range.start).count { it == '\n' }
     return lineCount to "\n".repeat(lineCount) + substring(range)
 }
+
 
 /**
  * Computes the 1-based line and column numbers from the given [range].

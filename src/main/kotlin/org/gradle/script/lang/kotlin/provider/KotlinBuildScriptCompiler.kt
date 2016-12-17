@@ -141,8 +141,10 @@ class KotlinBuildScriptCompiler(
         }
     }
 
-    private fun executeCompiledPluginsBlockOn(pluginRequestCollector: PluginRequestCollector,
-                                              compiledPluginsBlock: CachingKotlinCompiler.CompiledPluginsBlock) {
+    private fun executeCompiledPluginsBlockOn(
+        pluginRequestCollector: PluginRequestCollector,
+        compiledPluginsBlock: CachingKotlinCompiler.CompiledPluginsBlock) {
+
         val (lineNumber, pluginsBlockClass) = compiledPluginsBlock
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
         withContextClassLoader(pluginsBlockClassLoader) {
@@ -217,10 +219,10 @@ class KotlinBuildScriptCompiler(
     private inline fun withUnexpectedBlockHandling(action: () -> Unit) {
         try {
             action()
-        } catch (e: UnexpectedBlockException) {
-            val (line, column) = script.lineAndColumnFromRange(e.blockLocation)
-            val message = "$scriptFile($line,$column): Unexpected `${e.blockIdentifier}` block found. Only one `${e.blockIdentifier}` block is allowed per script."
-            throw IllegalStateException(message, e)
+        } catch (unexpectedBlock: UnexpectedBlock) {
+            val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
+            val message = "$scriptFile($line,$column): Unexpected `${unexpectedBlock.identifier}` block found. Only one `${unexpectedBlock.identifier}` block is allowed per script."
+            throw IllegalStateException(message, unexpectedBlock)
         }
     }
 
@@ -278,6 +280,7 @@ class KotlinBuildScriptCompiler(
             (baseScope.exportClassLoader as? URLClassLoader)?.urLs?.map { File(it.toURI()) })
 }
 
+
 private
 inline fun ignoringErrors(block: () -> Unit) {
     try {
@@ -287,6 +290,8 @@ inline fun ignoringErrors(block: () -> Unit) {
     }
 }
 
+
+private
 inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     val currentThread = Thread.currentThread()
     val previous = currentThread.contextClassLoader

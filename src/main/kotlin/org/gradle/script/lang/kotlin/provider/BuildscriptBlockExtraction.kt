@@ -19,11 +19,14 @@ package org.gradle.script.lang.kotlin.provider
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.*
 
-class UnexpectedBlockException(val blockIdentifier: String, val blockLocation: IntRange)
+
+class UnexpectedBlock(val identifier: String, val location: IntRange)
     : RuntimeException("Unexpected block found.")
+
 
 fun extractBuildscriptBlockFrom(script: String) =
     extractTopLevelSectionFrom(script, "buildscript")
+
 
 /**
  * Extract a top-level section from the given [script]. The section must be in the form:
@@ -31,7 +34,7 @@ fun extractBuildscriptBlockFrom(script: String) =
  *     [identifier] { anything* }
  *
  * @return range of found section or null if no top-level section with the given [identifier] could be found
- * @throws UnexpectedBlockException if more than one top-level section with the given [identifier] is found
+ * @throws UnexpectedBlock if more than one top-level section with the given [identifier] is found
  */
 fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? =
     KotlinLexer().run {
@@ -46,13 +49,17 @@ fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? =
         return null
     }
 
-private fun KotlinLexer.expectNoMore(identifier: String) {
+
+private
+fun KotlinLexer.expectNoMore(identifier: String) {
     nextTopLevelSection(identifier)?.let {
-        throw UnexpectedBlockException(identifier, it)
+        throw UnexpectedBlock(identifier, it)
     }
 }
 
-private fun KotlinLexer.nextTopLevelSection(identifier: String): IntRange? =
+
+private
+fun KotlinLexer.nextTopLevelSection(identifier: String): IntRange? =
     findTopLevelIdentifier(identifier)?.let { sectionStart ->
         advance()
         skipWhiteSpaceAndComments()
@@ -63,13 +70,17 @@ private fun KotlinLexer.nextTopLevelSection(identifier: String): IntRange? =
         } else null
     }
 
-private fun KotlinLexer.skipWhiteSpaceAndComments() {
+
+private
+fun KotlinLexer.skipWhiteSpaceAndComments() {
     while (tokenType in WHITE_SPACE_OR_COMMENT_BIT_SET) {
         advance()
     }
 }
 
-private fun KotlinLexer.findTopLevelIdentifier(identifier: String): Int? {
+
+private
+fun KotlinLexer.findTopLevelIdentifier(identifier: String): Int? {
     var depth: Int = 0
     while (tokenType != null) {
         when (tokenType) {
@@ -85,7 +96,9 @@ private fun KotlinLexer.findTopLevelIdentifier(identifier: String): Int? {
     return null
 }
 
-private fun KotlinLexer.findBlockEnd(): Int? {
+
+private
+fun KotlinLexer.findBlockEnd(): Int? {
     var depth: Int = 0
     while (tokenType != null) {
         when (tokenType) {
