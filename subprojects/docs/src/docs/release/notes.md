@@ -6,11 +6,11 @@ See the technical details on how and why this change was made [further down](#im
 
 It is now possible to **compile native applications using Visual Studio 2015**. Gradle will locate the [Universal C Runtime](https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx) required by the Visual C++ toolchain.
 
-**Kotlin build script** support has further improved with significantly **faster startup performance**, increased API parity with Groovy-based build scripts, and better interoperability with Groovy plugins. See the [gradle-script-kotlin v0.5.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.5.0) for details.
+**Kotlin build script** support has further improved with  **faster startup performance**, increased API parity with Groovy-based build scripts, and better interoperability with Groovy plugins. See the [gradle-script-kotlin v0.5.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.5.0) for details.
 
 Scala compilation startup time in large multi-project builds has been improved through [enhancements](https://github.com/gradle/gradle/pull/707) to Gradle's integration with the Zinc Scala compiler. In earlier versions of Gradle, builds with many Scala projects could timeout and fail when building in parallel.
  
-Tooling API generates more progress events. This means that IDEs will show a much clearer picture of what Gradle is doing during configuration, dependency resolution, and using composite builds. Details and pictures [below](#tooling-api-generates-more-progress-events).
+Tooling API generates more progress events. This means that IDEs will show a much clearer picture of what Gradle is doing during the configuration phase, resolving dependencies, and using composite builds. Details and pictures [below](#tooling-api-generates-more-progress-events).
 
 The [Gradle GUI](userguide/tutorial_gradle_gui.html) **has been deprecated** and will be removed in Gradle 4.0. An IDE which provides a UI for Gradle — IntelliJ IDEA, Eclipse, or NetBeans, for example, is recommended.
 
@@ -185,7 +185,7 @@ In previous Gradle versions, when connected to a sub-project and asking for the 
 the `BuildInvocations` model for the root project was returned instead. Gradle will now
 return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
 
-### Java `Test` task doesn't track working directory as input
+### Java `Test` task does not track working directory as input
 
 Previously changing the working directory for a `Test` task made the task out-of-date. Changes to the contents had no such effect: Gradle was only tracking the path of the working directory. Tracking the contents would have been problematic since the default working directory is the project directory. 
 
