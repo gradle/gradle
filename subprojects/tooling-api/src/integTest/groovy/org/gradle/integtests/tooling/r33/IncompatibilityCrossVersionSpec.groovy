@@ -23,7 +23,10 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 @ToolingApiVersion("current")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {
