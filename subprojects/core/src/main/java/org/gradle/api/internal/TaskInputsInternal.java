@@ -16,21 +16,12 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.tasks.TaskInputs;
 
 import java.util.SortedSet;
 
 public interface TaskInputsInternal extends TaskInputs {
-    @Override
-    TaskInputFilePropertyBuilderInternal files(Object... paths);
-
-    @Override
-    TaskInputFilePropertyBuilderInternal file(Object path);
-
-    @Override
-    TaskInputFilePropertyBuilderInternal dir(Object dirPath);
-
+    // NOTE: Do not add method overrides to this interface with different return types since it can leak internal types into the public API.
     SortedSet<TaskInputFilePropertySpec> getFileProperties();
 }

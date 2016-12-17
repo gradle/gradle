@@ -19,6 +19,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
+import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,6 +30,8 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.*
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheAccessTest extends ConcurrentSpec {
+    private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory()
+
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final CacheInitializationAction initializationAction = Mock()
@@ -627,6 +630,117 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lock.close()
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when using same cache parameters"() {
+        def access = newAccess(None)
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+
+        then:
+        cache1 == cache2
+
+        cleanup:
+        access?.close()
+    }
+
+    def "throws InvalidCacheReuseException when cache value type differs"() {
+        def access = newAccess(None)
+
+        when:
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, String.class))
+
+        then:
+        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+
+        cleanup:
+        access?.close()
+    }
+
+    def "throws InvalidCacheReuseException when cache key type differs"() {
+        def access = newAccess(None)
+
+        when:
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.newCache(new PersistentIndexedCacheParameters('cache', Integer.class, Integer.class))
+
+        then:
+        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+
+        cleanup:
+        access?.close()
+    }
+
+    def "throws InvalidCacheReuseException when cache decorator differs"() {
+        def access = newAccess(None)
+        def decorator = Mock(CacheDecorator)
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+            persistentCache
+        }
+
+        when:
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+
+        then:
+        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when cache decorator match"() {
+        def access = newAccess(None)
+        def decorator = Mock(CacheDecorator)
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+            persistentCache
+        }
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+
+        then:
+        noExceptionThrown()
+        cache1 == cache2
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when using compatible value serializer"() {
+        def access = newAccess(None)
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
+
+        then:
+        noExceptionThrown()
+        cache1 == cache2
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when using compatible key serializer"() {
+        def access = newAccess(None)
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', SERIALIZER_FACTORY.getSerializerFor(String.class), SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
+
+        then:
+        noExceptionThrown()
+        cache1 == cache2
 
         cleanup:
         access?.close()

@@ -19,24 +19,24 @@ package org.gradle.caching.internal
 import org.gradle.caching.BuildCache
 import org.gradle.caching.BuildCacheException
 
-class ShortCircuitingErrorHandlerBuildCacheWrapperTest extends AbstractBuildCacheDecoratorTest {
+class ShortCircuitingErrorHandlerBuildCacheDecoratorTest extends AbstractBuildCacheDecoratorTest {
     def maxFailures = 2
-    def wrapper = new ShortCircuitingErrorHandlerBuildCacheWrapper(maxFailures, delegate)
+    def decorator = new ShortCircuitingErrorHandlerBuildCacheDecorator(maxFailures, delegate)
 
     BuildCache getDecorator() {
-        return wrapper
+        return decorator
     }
 
     def "stops calling through after defined number of read errors"() {
         when:
         (maxFailures+1).times {
             try {
-                wrapper.load(key, reader)
+                decorator.load(key, reader)
             } catch (Exception e) {
                 // ignore
             }
         }
-        wrapper.store(key, writer)
+        decorator.store(key, writer)
 
         then:
         maxFailures * delegate.load(key, reader) >> { throw new BuildCacheException("Error") }
@@ -48,12 +48,12 @@ class ShortCircuitingErrorHandlerBuildCacheWrapperTest extends AbstractBuildCach
         when:
         (maxFailures+1).times {
             try {
-                wrapper.store(key, writer)
+                decorator.store(key, writer)
             } catch (Exception e) {
                 // ignore
             }
         }
-        wrapper.load(key, reader)
+        decorator.load(key, reader)
 
         then:
         maxFailures * delegate.store(key, writer) >> { throw new BuildCacheException("Error") }

@@ -162,6 +162,9 @@ apply plugin: SomePlugin
             }
         """
 
+        boolean previousVersionLeaksInternal = (previous.version == GradleVersion.version("3.2") ||
+            previous.version == GradleVersion.version("3.2.1"))
+
         file("producer/src/main/java/SubclassTask.java") << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.*;
@@ -169,11 +172,9 @@ apply plugin: SomePlugin
 
             public class SubclassTask extends DefaultTask {
                 public SubclassTask() {
-                    // These methods changed in 3.2 in a backwards compatible way, but they
-                    // leak internal types that cannot be moved without causing a breakage.
-                    getInputs().file("someFile");
-                    getInputs().files("anotherFile", "yetAnotherFile");
-                    getInputs().dir("someDir");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
                 }
                 
                 @TaskAction

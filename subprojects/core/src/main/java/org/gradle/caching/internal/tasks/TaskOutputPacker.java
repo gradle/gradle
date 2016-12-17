@@ -20,12 +20,11 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface TaskOutputPacker {
-    void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
+    void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 
-    void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
+    void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin);
 }
