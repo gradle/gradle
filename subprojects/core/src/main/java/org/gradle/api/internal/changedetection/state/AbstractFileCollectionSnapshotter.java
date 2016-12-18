@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
@@ -88,27 +89,37 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         for (DefaultFileDetails fileDetails : fileTreeElements) {
             String absolutePath = fileDetails.path;
             if (!snapshots.containsKey(absolutePath)) {
-                IncrementalFileSnapshot snapshot;
-                switch (fileDetails.getType()) {
-                    case Missing:
-                        snapshot = MissingFileSnapshot.getInstance();
-                        break;
-                    case Directory:
-                        snapshot = DirSnapshot.getInstance();
-                        break;
-                    case RegularFile:
-                        snapshot = new FileHashSnapshot(hasher.hash(fileDetails.details), fileDetails.details.getLastModified());
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-                NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
+                NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, fileDetails.snapshot, stringInterner);
                 if (normalizedSnapshot != null) {
                     snapshots.put(absolutePath, normalizedSnapshot);
                 }
             }
         }
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
+    }
+
+    private DirSnapshot dirSnapshot() {
+        return DirSnapshot.getInstance();
+    }
+
+    private MissingFileSnapshot missingFileSnapshot() {
+        return MissingFileSnapshot.getInstance();
+    }
+
+    private FileHashSnapshot fileSnapshot(FileTreeElement fileDetails) {
+        return new FileHashSnapshot(hasher.hash(fileDetails), fileDetails.getLastModified());
+    }
+
+    private String getPath(File file) {
+        return stringInterner.intern(file.getAbsolutePath());
+    }
+
+    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<DefaultFileDetails> fileTreeElements) {
+        fileTree.visitTreeOrBackingFile(new FileVisitorImpl(fileTreeElements));
+    }
+
+    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<DefaultFileDetails> fileTreeElements) {
+        directoryTree.visit(new FileVisitorImpl(fileTreeElements));
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
@@ -145,11 +156,12 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         private DefaultFileDetails calculateDetails(File file) {
             String path = getPath(file);
             if (!file.exists()) {
-                return new DefaultFileDetails(path, Missing, new MissingFileVisitDetails(file));
+                return new DefaultFileDetails(path, Missing, new MissingFileVisitDetails(file), missingFileSnapshot());
             } else if (file.isDirectory()) {
-                return new DefaultFileDetails(path, Directory, new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, true));
+                return new DefaultFileDetails(path, Directory, new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, true), dirSnapshot());
             } else {
-                return new DefaultFileDetails(path, RegularFile, new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, false));
+                SingletonFileTree.SingletonFileVisitDetails fileDetails = new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, false);
+                return new DefaultFileDetails(path, RegularFile, fileDetails, fileSnapshot(fileDetails));
             }
         }
 
@@ -181,33 +193,21 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         }
     }
 
-    private String getPath(File file) {
-        return stringInterner.intern(file.getAbsolutePath());
-    }
-
-    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<DefaultFileDetails> fileTreeElements) {
-        fileTree.visitTreeOrBackingFile(new FileVisitorImpl(fileTreeElements));
-    }
-
-    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<DefaultFileDetails> fileTreeElements) {
-        directoryTree.visit(new FileVisitorImpl(fileTreeElements));
-    }
-
     private class FileVisitorImpl implements FileVisitor {
         private final List<DefaultFileDetails> fileTreeElements;
 
-        public FileVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
+        FileVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
-            fileTreeElements.add(new DefaultFileDetails(getPath(dirDetails.getFile()), Directory, dirDetails));
+            fileTreeElements.add(new DefaultFileDetails(getPath(dirDetails.getFile()), Directory, dirDetails, dirSnapshot()));
         }
 
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
-            fileTreeElements.add(new DefaultFileDetails(getPath(fileDetails.getFile()), RegularFile, fileDetails));
+            fileTreeElements.add(new DefaultFileDetails(getPath(fileDetails.getFile()), RegularFile, fileDetails, fileSnapshot(fileDetails)));
         }
     }
 }

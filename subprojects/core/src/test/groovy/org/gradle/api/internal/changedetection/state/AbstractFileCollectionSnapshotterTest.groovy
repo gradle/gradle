@@ -195,6 +195,7 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
+        snapshotter.beforeTaskOutputsGenerated()
         file.write('new content')
         changes(snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE), snapshot, listener)
 

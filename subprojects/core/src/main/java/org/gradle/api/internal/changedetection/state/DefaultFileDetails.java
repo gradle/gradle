@@ -24,11 +24,13 @@ class DefaultFileDetails implements FileDetails {
     final String path;
     final FileType type;
     final FileTreeElement details;
+    final IncrementalFileSnapshot snapshot;
 
-    DefaultFileDetails(String path, FileType type, FileTreeElement details) {
+    DefaultFileDetails(String path, FileType type, FileTreeElement details, IncrementalFileSnapshot snapshot) {
         this.path = path;
         this.type = type;
         this.details = details;
+        this.snapshot = snapshot;
     }
 
     @Override

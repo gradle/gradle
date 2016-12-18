@@ -55,25 +55,19 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
         List<FileDetails> fileTreeElements = []
         files.asFileTree.visit(new FileVisitor() {
             @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, FileDetails.FileType.Directory, dirDetails))
+            void visitDir(FileVisitDetails dirDetails) {
+                fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, FileDetails.FileType.Directory, dirDetails, DirSnapshot.instance))
             }
 
             @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, FileDetails.FileType.RegularFile, fileDetails))
+            void visitFile(FileVisitDetails fileDetails) {
+                fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, FileDetails.FileType.RegularFile, fileDetails, new FileHashSnapshot(HashCode.fromInt(1))))
             }
         })
 
         Map<File, String> snapshots = [:]
         fileTreeElements.each { details ->
-            IncrementalFileSnapshot snapshot
-            if (details.type == FileDetails.FileType.Directory) {
-                snapshot = DirSnapshot.instance
-            } else {
-                snapshot = new FileHashSnapshot(HashCode.fromInt(1))
-            }
-            def normalizedSnapshot = type.getNormalizedSnapshot(details, snapshot, interner)
+            def normalizedSnapshot = type.getNormalizedSnapshot(details, details.snapshot, interner)
             String normalizedPath
             if (normalizedSnapshot == null) {
                 normalizedPath = "NO SNAPSHOT"
