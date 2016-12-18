@@ -18,8 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -46,20 +44,10 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<FileDetails> fileTreeElements) {
+    protected List<FileDetails> normalise(List<FileDetails> nonRootElements) {
         // Sort non-root elements as their order is not important
-        List<FileDetails> subElements = Lists.newArrayList();
-        super.visitTreeOrBackingFile(fileTree, subElements);
-        Collections.sort(subElements, FILE_DETAILS_COMPARATOR);
-        fileTreeElements.addAll(subElements);
-    }
-
-    @Override
-    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<FileDetails> fileTreeElements) {
-        // Sort non-root elements as their order is not important
-        List<FileDetails> subElements = Lists.newArrayList();
-        super.visitDirectoryTree(directoryTree, subElements);
-        Collections.sort(subElements, FILE_DETAILS_COMPARATOR);
-        fileTreeElements.addAll(subElements);
+        List<FileDetails> sorted = Lists.newArrayList(nonRootElements);
+        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
+        return sorted;
     }
 }

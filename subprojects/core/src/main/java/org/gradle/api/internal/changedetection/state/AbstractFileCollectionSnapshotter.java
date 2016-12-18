@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
@@ -103,12 +104,8 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<FileDetails> fileTreeElements) {
-        fileTree.visitTreeOrBackingFile(new FileVisitorImpl(fileTreeElements));
-    }
-
-    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<FileDetails> fileTreeElements) {
-        directoryTree.visit(new FileVisitorImpl(fileTreeElements));
+    protected List<FileDetails> normalise(List<FileDetails> treeNonRootElements) {
+        return treeNonRootElements;
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
@@ -156,28 +153,35 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            AbstractFileCollectionSnapshotter.this.visitTreeOrBackingFile(fileTree, fileTreeElements);
+            List<FileDetails> elements = Lists.newArrayList();
+            fileTree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
+            elements = normalise(elements);
+            fileTreeElements.addAll(elements);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+            List<FileDetails> elements;
             if (!directoryTree.getPatterns().isEmpty()) {
                 // Currently handle only those trees where we want everything from a directory
-                AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, fileTreeElements);
-                return;
+                elements = Lists.newArrayList();
+                directoryTree.visit(new FileVisitorImpl(elements));
+            } else {
+                DirectoryTreeDetails treeDetails = fileSystemMirror.getDirectoryTree(directoryTree.getDir().getAbsolutePath());
+                if (treeDetails != null) {
+                    // Reuse the details
+                    elements = treeDetails.elements;
+                } else {
+                    // Scan the directory
+                    String path = getPath(directoryTree.getDir());
+                    elements = Lists.newArrayList();
+                    directoryTree.visit(new FileVisitorImpl(elements));
+                    DirectoryTreeDetails details = new DirectoryTreeDetails(path, ImmutableList.copyOf(elements));
+                    fileSystemMirror.putDirectory(details);
+                }
             }
 
-            DirectoryTreeDetails treeDetails = fileSystemMirror.getDirectoryTree(directoryTree.getDir().getAbsolutePath());
-            if (treeDetails != null) {
-                // Reuse the details
-                fileTreeElements.addAll(treeDetails.elements);
-                return;
-            }
-
-            String path = getPath(directoryTree.getDir());
-            List<FileDetails> elements = Lists.newArrayList();
-            AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, elements);
-            fileSystemMirror.putDirectory(new DirectoryTreeDetails(path, elements));
+            elements = normalise(elements);
             fileTreeElements.addAll(elements);
         }
     }
