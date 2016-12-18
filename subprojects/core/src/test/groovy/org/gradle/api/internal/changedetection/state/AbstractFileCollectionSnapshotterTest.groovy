@@ -32,9 +32,13 @@ import spock.lang.Specification
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 
-public class AbstractFileCollectionSnapshotterTest extends Specification {
+class AbstractFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
-    def snapshotter = new AbstractFileCollectionSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory()) {
+    def fileSystemMirror = Stub(FileSystemMirror) {
+        getFile(_) >> null
+        getDirectoryTree(_) >> null
+    }
+    def snapshotter = new AbstractFileCollectionSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror) {
         @Override
         Class<? extends FileCollectionSnapshotter> getRegisteredType() {
             FileCollectionSnapshotter
@@ -180,7 +184,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
-        snapshotter.beforeTaskOutputsGenerated()
         file.delete()
         file.createDir()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
@@ -195,7 +198,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
-        snapshotter.beforeTaskOutputsGenerated()
         file.write('new content')
         changes(snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE), snapshot, listener)
 
@@ -223,7 +225,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
-        snapshotter.beforeTaskOutputsGenerated()
         dir.deleteDir()
         dir.createFile()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
@@ -251,7 +252,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
-        snapshotter.beforeTaskOutputsGenerated()
         file.createFile()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
@@ -266,7 +266,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
-        snapshotter.beforeTaskOutputsGenerated()
         file.delete()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
@@ -297,36 +296,6 @@ public class AbstractFileCollectionSnapshotterTest extends Specification {
         then:
         snapshot.files.empty
         1 * listener.added(file.path)
-        0 * listener._
-    }
-
-    def "caches file type in memory until notified of potential changes"() {
-        def dir = tmpDir.createDir('dir')
-        def file = tmpDir.createFile('file')
-        def missing = tmpDir.file('missing')
-
-        given:
-        def snapshot = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
-
-        when:
-        dir.deleteDir().createFile()
-        missing.createFile()
-
-        def snapshot2 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
-        changes(snapshot2, snapshot, listener)
-
-        then:
-        0 * listener._
-
-        when:
-        snapshotter.beforeTaskOutputsGenerated()
-
-        def snapshot3 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
-        changes(snapshot3, snapshot, listener)
-
-        then:
-        1 * listener.changed(dir.absolutePath)
-        1 * listener.changed(missing.absolutePath)
         0 * listener._
     }
 

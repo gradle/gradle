@@ -29,15 +29,15 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private static final Comparator<DefaultFileDetails> FILE_DETAILS_COMPARATOR = new Comparator<DefaultFileDetails>() {
+    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
         @Override
-        public int compare(DefaultFileDetails o1, DefaultFileDetails o2) {
+        public int compare(FileDetails o1, FileDetails o2) {
             return o1.getPath().compareTo(o2.getPath());
         }
     };
 
-    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
+    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
     }
 
     @Override
@@ -46,18 +46,18 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<DefaultFileDetails> fileTreeElements) {
+    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<FileDetails> fileTreeElements) {
         // Sort non-root elements as their order is not important
-        List<DefaultFileDetails> subElements = Lists.newArrayList();
+        List<FileDetails> subElements = Lists.newArrayList();
         super.visitTreeOrBackingFile(fileTree, subElements);
         Collections.sort(subElements, FILE_DETAILS_COMPARATOR);
         fileTreeElements.addAll(subElements);
     }
 
     @Override
-    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<DefaultFileDetails> fileTreeElements) {
+    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<FileDetails> fileTreeElements) {
         // Sort non-root elements as their order is not important
-        List<DefaultFileDetails> subElements = Lists.newArrayList();
+        List<FileDetails> subElements = Lists.newArrayList();
         super.visitDirectoryTree(directoryTree, subElements);
         Collections.sort(subElements, FILE_DETAILS_COMPARATOR);
         fileTreeElements.addAll(subElements);

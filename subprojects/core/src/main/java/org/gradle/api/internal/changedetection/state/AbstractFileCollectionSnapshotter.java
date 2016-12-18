@@ -31,45 +31,32 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.api.internal.changedetection.state.FileDetails.FileType.*;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
- *
- * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #beforeTaskOutputsGenerated()}.</p>
  */
-public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskOutputsGenerationListener {
+public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    // Map from interned absolute path for a file to known details for the file. Currently used only for root files, not those nested in a directory
-    private final Map<String, DefaultFileDetails> rootFiles = new ConcurrentHashMap<String, DefaultFileDetails>();
-    // Map from interned absolute path for a directory to known details for the directory.
-    private final Map<String, List<DefaultFileDetails>> trees = new ConcurrentHashMap<String, List<DefaultFileDetails>>();
+    private final FileSystemMirror fileSystemMirror;
 
-    public AbstractFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public AbstractFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-    }
-
-    @Override
-    public void beforeTaskOutputsGenerated() {
-        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
-        rootFiles.clear();
-        trees.clear();
+        this.fileSystemMirror = fileSystemMirror;
     }
 
     public void registerSerializers(SerializerRegistry registry) {
@@ -78,7 +65,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        final List<DefaultFileDetails> fileTreeElements = Lists.newLinkedList();
+        final List<FileDetails> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
@@ -88,8 +75,8 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         }
 
         Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-        for (DefaultFileDetails fileDetails : fileTreeElements) {
-            String absolutePath = fileDetails.path;
+        for (FileDetails fileDetails : fileTreeElements) {
+            String absolutePath = fileDetails.getPath();
             if (!snapshots.containsKey(absolutePath)) {
                 NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, stringInterner);
                 if (normalizedSnapshot != null) {
@@ -116,30 +103,30 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<DefaultFileDetails> fileTreeElements) {
+    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<FileDetails> fileTreeElements) {
         fileTree.visitTreeOrBackingFile(new FileVisitorImpl(fileTreeElements));
     }
 
-    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<DefaultFileDetails> fileTreeElements) {
+    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<FileDetails> fileTreeElements) {
         directoryTree.visit(new FileVisitorImpl(fileTreeElements));
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<DefaultFileDetails> fileTreeElements;
+        private final List<FileDetails> fileTreeElements;
 
-        FileCollectionVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
+        FileCollectionVisitorImpl(List<FileDetails> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                DefaultFileDetails details = rootFiles.get(file.getPath());
+                FileDetails details = fileSystemMirror.getFile(file.getPath());
                 if (details == null) {
                     details = calculateDetails(file);
-                    rootFiles.put(details.path, details);
+                    fileSystemMirror.putFile(details);
                 }
-                switch (details.type) {
+                switch (details.getType()) {
                     case Missing:
                     case RegularFile:
                         fileTreeElements.add(details);
@@ -180,25 +167,25 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 return;
             }
 
-            List<DefaultFileDetails> treeDetails = trees.get(directoryTree.getDir().getAbsolutePath());
+            DirectoryTreeDetails treeDetails = fileSystemMirror.getDirectoryTree(directoryTree.getDir().getAbsolutePath());
             if (treeDetails != null) {
                 // Reuse the details
-                fileTreeElements.addAll(treeDetails);
+                fileTreeElements.addAll(treeDetails.elements);
                 return;
             }
 
             String path = getPath(directoryTree.getDir());
-            treeDetails = Lists.newArrayList();
-            AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, treeDetails);
-            trees.put(path, treeDetails);
-            fileTreeElements.addAll(treeDetails);
+            List<FileDetails> elements = Lists.newArrayList();
+            AbstractFileCollectionSnapshotter.this.visitDirectoryTree(directoryTree, elements);
+            fileSystemMirror.putDirectory(new DirectoryTreeDetails(path, elements));
+            fileTreeElements.addAll(elements);
         }
     }
 
     private class FileVisitorImpl implements FileVisitor {
-        private final List<DefaultFileDetails> fileTreeElements;
+        private final List<FileDetails> fileTreeElements;
 
-        FileVisitorImpl(List<DefaultFileDetails> fileTreeElements) {
+        FileVisitorImpl(List<FileDetails> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 

@@ -26,6 +26,7 @@ import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepo
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.CachingFileHasher
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
@@ -72,6 +73,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
     }
     DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
+    DefaultFileSystemMirror fileSystemMirror
 
     def setup() {
         gradle = project.getGradle()
@@ -80,7 +82,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner)
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+        fileSystemMirror = new DefaultFileSystemMirror()
+        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
@@ -357,7 +360,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         when:
         TaskArtifactState state = repository.getStateFor(task1)
         state.isUpToDate([])
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
         state.afterTask()
 
@@ -365,7 +368,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         !state.upToDate
 
         when:
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDir.deleteDir()
 
         and:
@@ -376,7 +379,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         !state.isUpToDate([])
 
         when:
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
         state.afterTask()
 
@@ -490,7 +493,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
 
         when:
         task.execute()
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
         state.afterTask()
         otherFile.delete()
@@ -528,7 +531,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         upToDate noInputsTask
 
         when:
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.delete()
 
         then:
@@ -621,12 +624,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
             // reset state
-            fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+            fileSystemMirror.beforeTaskOutputsGenerated()
             task.execute()
             state.afterTask()
         }
         // reset state
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
     }
 
     private static class ChangedFiles {
