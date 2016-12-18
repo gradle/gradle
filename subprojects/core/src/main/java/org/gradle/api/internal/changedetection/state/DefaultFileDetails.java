@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.collections.SingletonFileTree;
 
 class DefaultFileDetails implements FileDetails {
     final String path;
     final FileType type;
-    final FileTreeElement details;
-    final IncrementalFileSnapshot snapshot;
+    private final RelativePath relativePath;
+    private final boolean root;
+    private final IncrementalFileSnapshot content;
 
-    DefaultFileDetails(String path, FileType type, FileTreeElement details, IncrementalFileSnapshot snapshot) {
+    DefaultFileDetails(String path, RelativePath relativePath, FileType type, boolean root, IncrementalFileSnapshot content) {
         this.path = path;
+        this.relativePath = relativePath;
         this.type = type;
-        this.details = details;
-        this.snapshot = snapshot;
+        this.root = root;
+        this.content = content;
     }
 
     @Override
@@ -40,17 +40,22 @@ class DefaultFileDetails implements FileDetails {
 
     @Override
     public String getName() {
-        return details.getFile().getName();
+        return relativePath.getLastName();
     }
 
     @Override
     public boolean isRoot() {
-        return details instanceof SingletonFileTree.SingletonFileVisitDetails;
+        return root;
     }
 
     @Override
     public RelativePath getRelativePath() {
-        return details.getRelativePath();
+        return relativePath;
+    }
+
+    @Override
+    public IncrementalFileSnapshot getContent() {
+        return content;
     }
 
     @Override
