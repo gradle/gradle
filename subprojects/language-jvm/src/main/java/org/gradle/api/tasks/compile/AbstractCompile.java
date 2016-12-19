@@ -16,9 +16,8 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 
@@ -40,7 +39,7 @@ public abstract class AbstractCompile extends SourceTask {
      *
      * @return The classpath.
      */
-    @CompileClasspath @Internal
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }
