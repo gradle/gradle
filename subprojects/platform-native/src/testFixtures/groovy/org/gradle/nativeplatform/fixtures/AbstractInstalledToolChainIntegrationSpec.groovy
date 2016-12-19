@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.file.RelativeFilePathResolver
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -57,6 +56,10 @@ allprojects { p ->
         return toolChain.executable(file(path))
     }
 
+    def LinkerOptionsFixture linkerOptionsFor(String taskName, TestFile projectDir = testDirectory) {
+        return toolChain.linkerOptionsFor(projectDir.file("build/tmp/$taskName/options.txt"))
+    }
+
     def TestFile objectFile(Object path) {
         return toolChain.objectFile(file(path))
     }
@@ -78,7 +81,7 @@ allprojects { p ->
                         .withObjectFileNameSuffix(OperatingSystem.current().isWindows() ? ".obj" : ".o")
                         .withOutputBaseFolder(file(rootObjectFilesDir))
                         .map(file(sourceFile))
-        return file(getTestDirectory().toURI().relativize(objectFile.toURI()));
+        return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
     }
 
     private class RelativeFileResolver implements RelativeFilePathResolver {
@@ -94,9 +97,5 @@ allprojects { p ->
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }
-    }
-
-    String hashFor(File inputFile){
-        HashUtil.createCompactMD5(inputFile.getAbsolutePath());
     }
 }
