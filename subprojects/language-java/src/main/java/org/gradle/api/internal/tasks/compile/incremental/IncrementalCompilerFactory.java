@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.internal.changedetection.state.JvmClassHasher;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
@@ -45,7 +46,7 @@ public class IncrementalCompilerFactory {
                                       List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs) {
         this.inputs = inputs;
         //bunch of services that enable incremental java compilation.
-        FileHasher hasher = new DefaultFileHasher(); //TODO SF use caching hasher
+        FileHasher hasher = new JvmClassHasher(new DefaultFileHasher()); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(snapshotter, analyzer, compileCaches.getJarSnapshotCache());
 

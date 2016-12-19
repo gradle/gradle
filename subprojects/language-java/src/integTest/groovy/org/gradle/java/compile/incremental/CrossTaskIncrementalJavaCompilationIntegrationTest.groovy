@@ -17,6 +17,7 @@
 
 package org.gradle.java.compile.incremental
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 
@@ -208,7 +209,56 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         run "impl:compileJava"
 
         then:
-        impl.recompiledClasses('ImplB')
+        impl.noneRecompiled()
+    }
+
+    def "addition of unused class in upstream project does not rebuild"() {
+        java api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class C { }"]
+        run "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
+    }
+
+    def "removal of unused class in upstream project does not rebuild"() {
+        java api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        def c =  java api: ["class C { }"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        c.delete()
+        run "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
+    }
+
+    @NotYetImplemented
+    def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
+        given:
+        buildFile << '''
+            project(':impl') {
+                repositories { jcenter() }
+                dependencies { compile 'org.apache.commons:commons-lang3:3.3' }
+            }
+        '''
+        java api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
+
+            class ImplB extends B { 
+               public static String HELLO = StringUtils.capitalize("hello"); 
+            }"""]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        buildFile.text = buildFile.text.replace('3.3', '3.3.1')
+        run 'impl:compileJava'
+
+        then:
+        impl.noneRecompiled()
     }
 
     def "detects changed classes when upstream project was built in isolation"() {
