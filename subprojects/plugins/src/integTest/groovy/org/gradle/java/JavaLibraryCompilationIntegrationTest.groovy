@@ -138,16 +138,13 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "recompiles consumer if API dependency of producer changed"() {
-        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
-
         given:
         subproject('a') {
             'build.gradle'("""
                 apply plugin: 'java'
 
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    jcenter()
                 }
 
                 dependencies {
@@ -168,11 +165,11 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java-library'
 
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    jcenter()
                 }
 
                 dependencies {
-                    api 'org.gradle.test:shared:1.0'
+                    api 'org.apache.commons:commons-lang3:3.0'
                 }
             """)
             src {
@@ -192,10 +189,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
 
         when:
-        file('b/build.gradle').text = file('b/build.gradle').text.replace(/api 'org.gradle.test:shared:1.0'/, '''
-            // update an API dependency
-            api 'org.gradle.test:shared:1.1'
-        ''')
+        file('b/build.gradle').text = file('b/build.gradle').text.replace('3.0', '3.0.1')
 
         then:
         succeeds ':a:compileJava', 'a:compileJava'
@@ -204,16 +198,13 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "doesn't recompile consumer if implementation dependency of producer changed"() {
-        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
-
         given:
         subproject('a') {
             'build.gradle'("""
                 apply plugin: 'java'
 
                 dependencies {
-                    compile project(':b')
+                    implementation project(':b')
                 }
             """)
             src {
@@ -230,11 +221,11 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java-library'
 
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    jcenter()
                 }
 
                 dependencies {
-                    implementation 'org.gradle.test:shared:1.0'
+                    implementation 'org.apache.commons:commons-lang3:3.0'
                 }
             """)
             src {
@@ -254,10 +245,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
 
         when:
-        file('b/build.gradle').text = file('b/build.gradle').text.replace(/implementation 'org.gradle.test:shared:1.0'/, '''
-            // update an API dependency
-            implementation 'org.gradle.test:shared:1.1'
-        ''')
+        file('b/build.gradle').text = file('b/build.gradle').text.replace('3.0', '3.0.1')
 
         then:
         succeeds 'a:compileJava'
