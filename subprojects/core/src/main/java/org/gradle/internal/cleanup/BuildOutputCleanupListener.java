@@ -20,41 +20,65 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.GradleVersion;
 
+import java.io.Closeable;
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
+import java.util.Collections;
 
-public class BuildOutputCleanupListener implements ModelConfigurationListener {
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
+public class BuildOutputCleanupListener implements ModelConfigurationListener, Closeable {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultBuildOutputCleanupRegistry.class);
+    private final PersistentCache cache;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
+    private final File markerFile;
 
-    public BuildOutputCleanupListener(BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    public BuildOutputCleanupListener(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        this.cache = createCache(cacheRepository, cacheBaseDir);
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
+        markerFile = new File(cache.getBaseDir(), "built.bin");
+    }
+
+    private PersistentCache createCache(CacheRepository cacheRepository, File cacheBaseDir) {
+        return cacheRepository
+                .cache(cacheBaseDir)
+                .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
+                .withDisplayName("persisted gradle version state cache")
+                .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+                .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+                .open();
     }
 
     @Override
     public void onConfigure(GradleInternal model) {
-        if (requiresCleanup()) {
-            for (File output : buildOutputCleanupRegistry.getOutputs()) {
-                deleteOutput(output);
-            }
-        }
-    }
-
-    private boolean requiresCleanup() {
-        List<BuildOutputCleanupStrategy> strategiesToBeCleanedUp = CollectionUtils.filter(buildOutputCleanupRegistry.getStrategies(), new Spec<BuildOutputCleanupStrategy>() {
+        cache.useCache("build cleanup cache", new Runnable() {
             @Override
-            public boolean isSatisfiedBy(BuildOutputCleanupStrategy strategy) {
-                return strategy.requiresCleanup();
+            public void run() {
+                boolean markerFileExists = markerFile.exists();
+
+                if (!markerFileExists) {
+                    for (File output : buildOutputCleanupRegistry.getOutputs()) {
+                        deleteOutput(output);
+                    }
+
+                    GFileUtils.touch(markerFile);
+                }
             }
         });
+    }
 
-        return !strategiesToBeCleanedUp.isEmpty();
+    @Override
+    public void close() throws IOException {
+        cache.close();
     }
 
     private void deleteOutput(File output) {

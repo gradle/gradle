@@ -128,9 +128,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
-import org.gradle.internal.cleanup.BuildOutputCleanupStrategy;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
-import org.gradle.internal.cleanup.PersistedGradleVersionCleanupStrategy;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -298,7 +296,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
                                                                 ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
         return new DefaultSettingsLoaderFactory(
@@ -307,7 +305,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                cacheRepository,
                 buildOperationExecutor,
                 cachedClasspathTransformer),
             buildLoader,
@@ -421,15 +418,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    BuildOutputCleanupStrategy createBuildOutputCleanupStrategy(CacheRepository cacheRepository, StartParameter startParameter) {
+    BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(CacheRepository cacheRepository, StartParameter startParameter, ListenerManager listenerManager) {
         File cacheBaseDir = new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildOutputCleanup");
-        return new PersistedGradleVersionCleanupStrategy(cacheRepository, cacheBaseDir);
-    }
-
-    BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(BuildOutputCleanupStrategy buildOutputCleanupStrategy, ListenerManager listenerManager) {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = new DefaultBuildOutputCleanupRegistry();
-        buildOutputCleanupRegistry.registerStrategy(buildOutputCleanupStrategy);
-        BuildOutputCleanupListener buildOutputCleanupListener = new BuildOutputCleanupListener(buildOutputCleanupRegistry);
+        BuildOutputCleanupListener buildOutputCleanupListener = new BuildOutputCleanupListener(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
         listenerManager.addListener(buildOutputCleanupListener);
         return buildOutputCleanupRegistry;
     }

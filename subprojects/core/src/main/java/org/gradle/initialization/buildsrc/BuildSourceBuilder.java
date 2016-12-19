@@ -20,10 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -32,29 +28,22 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.Collections;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
-    private final CacheRepository cacheRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
+    private BuildSrcBuildListenerFactory buildSrcBuildListenerFactory = new BuildSrcBuildListenerFactory();
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
-        this.cacheRepository = cacheRepository;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
@@ -84,30 +73,13 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(StartParameter startParameter) {
-        // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
-        // Otherwise, just to a regular build
-        final PersistentCache buildSrcCache = createCache(startParameter);
-        try {
-            GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
-            try {
-                return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
-            } finally {
-                gradleLauncher.stop();
-            }
-        } finally {
-            // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
-            buildSrcCache.close();
-        }
-    }
+        GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
 
-    PersistentCache createCache(StartParameter startParameter) {
-        return cacheRepository
-                .cache(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
-                .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
-                .withDisplayName("buildSrc state cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
-                .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
-                .open();
+        try {
+            return new BuildSrcUpdateFactory(gradleLauncher, buildSrcBuildListenerFactory).create();
+        } finally {
+            gradleLauncher.stop();
+        }
     }
 
     private GradleLauncher buildGradleLauncher(StartParameter startParameter) {
@@ -124,5 +96,9 @@ public class BuildSourceBuilder {
             build.setIdentityPath(path);
         }
         return gradleLauncher;
+    }
+
+    void setBuildSrcBuildListenerFactory(BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
+        this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
     }
 }

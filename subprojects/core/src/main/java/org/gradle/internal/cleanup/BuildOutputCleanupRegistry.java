@@ -22,16 +22,6 @@ import java.util.List;
 public interface BuildOutputCleanupRegistry {
 
     /**
-     * Registers clean up strategy.
-     */
-    void registerStrategy(BuildOutputCleanupStrategy strategy);
-
-    /**
-     * Returns all registered clean up strategies.
-     */
-    List<BuildOutputCleanupStrategy> getStrategies();
-
-    /**
      * Registers outputs to be cleaned up.
      */
     void registerOutputs(File... outputs);
@@ -42,7 +32,7 @@ public interface BuildOutputCleanupRegistry {
     void registerOutputs(List<File> outputs);
 
     /**
-     * Returns all registed outputs.
+     * Returns all registered outputs.
      */
     List<File> getOutputs();
 }

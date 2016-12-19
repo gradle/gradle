@@ -24,18 +24,7 @@ import java.util.List;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
-    private final List<BuildOutputCleanupStrategy> strategies = new ArrayList<BuildOutputCleanupStrategy>();
     private final List<File> outputs = new ArrayList<File>();
-
-    @Override
-    public void registerStrategy(BuildOutputCleanupStrategy strategy) {
-        strategies.add(strategy);
-    }
-
-    @Override
-    public List<BuildOutputCleanupStrategy> getStrategies() {
-        return strategies;
-    }
 
     @Override
     public void registerOutputs(File... outputs) {
