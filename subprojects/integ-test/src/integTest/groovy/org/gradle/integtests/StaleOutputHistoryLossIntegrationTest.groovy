@@ -85,11 +85,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             
-            compileJava {
-                doFirst {
+            task configureCompileJava {
+                doLast {
                     sourceSets.main.output.classesDir = file('out')
                 }
             }
+            
+            compileJava.dependsOn configureCompileJava
         """
         def customClassesOutputDir = file('out')
         def newMainClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.mainClassFile.name)
