@@ -16,8 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.file.RelativeFilePathResolver
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -32,14 +33,7 @@ class OutputCleaningCompilerTest extends Specification {
 
     TestFile outputDir = tmpDirProvider.createDir("objs")
 
-    private class RelativeFileResolver implements RelativeFilePathResolver {
-        @Override
-        String resolveAsRelativePath(Object path) {
-            tmpDirProvider.root.toPath().relativize(((File)path).toPath()).toString()
-        }
-    }
-
-    def compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new RelativeFileResolver())
+    def compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), tmpDirProvider.root, TestFiles.getPatternSetFactory()))
     def namingScheme = compilerOutputFileNamingSchemeFactory.create()
 
     private static final String O_EXT = ".o"

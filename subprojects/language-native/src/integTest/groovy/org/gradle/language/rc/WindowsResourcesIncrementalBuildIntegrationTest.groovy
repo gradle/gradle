@@ -15,6 +15,8 @@
  */
 package org.gradle.language.rc
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
@@ -28,7 +30,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @RequiresInstalledToolChain(VISUALCPP)
 class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-
+    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), temporaryFolder.root, TestFiles.getPatternSetFactory())).create()
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
     ExecutableFixture mainExe
     File mainResourceFile
@@ -123,7 +125,7 @@ model {
 
     def "stale .res files are removed when a resource source file is renamed"() {
         setup:
-        def outputFileNameScheme = new CompilerOutputFileNamingSchemeFactory(null).create()
+        def outputFileNameScheme = compilerOutputFileNamingScheme
                 .withOutputBaseFolder(file("build/objs/main/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def oldResFile = outputFileNameScheme.map(mainResourceFile)
@@ -146,7 +148,7 @@ model {
     def "recompiles resource when included header is changed"() {
 
         given: "set the generated res file timestamp to zero"
-        def outputFileNameScheme = new CompilerOutputFileNamingSchemeFactory(null).create()
+        def outputFileNameScheme = compilerOutputFileNamingScheme
                 .withOutputBaseFolder(file("build/objs/main/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def resourceFile = outputFileNameScheme.map(mainResourceFile)

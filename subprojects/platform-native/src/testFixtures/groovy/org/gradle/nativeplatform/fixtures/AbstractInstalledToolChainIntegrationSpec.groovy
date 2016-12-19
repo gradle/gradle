@@ -16,8 +16,9 @@
 
 package org.gradle.nativeplatform.fixtures
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.file.RelativeFilePathResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -77,18 +78,11 @@ allprojects { p ->
     }
 
     def objectFileFor(File sourceFile, String rootObjectFilesDir = "build/objs/main/main${sourceType}") {
-        File objectFile = new CompilerOutputFileNamingSchemeFactory(new RelativeFileResolver()).create()
+        File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
                         .withObjectFileNameSuffix(OperatingSystem.current().isWindows() ? ".obj" : ".o")
                         .withOutputBaseFolder(file(rootObjectFilesDir))
                         .map(file(sourceFile))
         return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
-    }
-
-    private class RelativeFileResolver implements RelativeFilePathResolver {
-        @Override
-        String resolveAsRelativePath(Object path) {
-            testDirectory.toPath().relativize(((File)path).toPath()).toString()
-        }
     }
 
     protected void maybeWait() {

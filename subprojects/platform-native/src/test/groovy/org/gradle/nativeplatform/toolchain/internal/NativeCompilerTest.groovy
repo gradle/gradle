@@ -17,8 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.api.Action
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.file.RelativeFilePathResolver
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
@@ -33,14 +34,7 @@ import spock.lang.Unroll
 abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
-    private class RelativeFileResolver implements RelativeFilePathResolver {
-        @Override
-        String resolveAsRelativePath(Object path) {
-            tmpDirProvider.root.toPath().relativize(((File)path).toPath()).toString()
-        }
-    }
-
-    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new RelativeFileResolver())
+    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), tmpDirProvider.root, TestFiles.getPatternSetFactory()))
     private static final String O_EXT = ".o"
 
     protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile)
