@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.ApiMemberSelector;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
