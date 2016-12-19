@@ -138,7 +138,11 @@ public class JvmClassHasher implements FileHasher {
             }
             if (fileDetails.getName().endsWith(".class")) {
                 // System.out.print("Class = " + fileDetails.getName() + " : ");
-                hashClassBytes(hasher, src);
+                try {
+                    hashClassBytes(hasher, src);
+                } catch (Exception e) {
+                    hasher.putBytes(src);
+                }
             } /* else {
                 // TODO: Excluding resources is not a good idea for release
                 // because we cannot make the difference between using a compiler
