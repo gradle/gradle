@@ -217,6 +217,14 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
+
+    tasks.withType(Delete) { cleanTask ->
+        tasks.all { otherTask ->
+            if (!(otherTask instanceof Delete) && (cleanTask != otherTask) && (otherTask.name != 'killExistingDaemons')) {
+                otherTask.mustRunAfter cleanTask
+            }
+        }
+    }
 }
 
 subprojects {
