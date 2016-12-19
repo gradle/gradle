@@ -24,4 +24,4 @@ buildscript {
     }
 }
 
-apply plugin: org.gradle.ci.tagging.plugin.TeamCityBuildTagPlugin
+apply plugin: org.gradle.ci.tagging.plugin.TagSingleBuildPlugin
