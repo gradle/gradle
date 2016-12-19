@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -41,8 +40,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
 
-        TaskOutputsInternal outputs = (TaskOutputsInternal) task.getOutputs();
-        if (!outputs.getHasOutput()) { // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
+        if (!task.getOutputs().getHasOutput()) { // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
             return new NoHistoryArtifactState();
         }
 
@@ -52,7 +50,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return new RerunTaskArtifactState(state, task, "Executed with '--rerun-tasks'.");
         }
 
-        if (!outputs.getUpToDateSpec().isSatisfiedBy(task)) {
+        if (!task.getOutputs().getUpToDateSpec().isSatisfiedBy(task)) {
             return new RerunTaskArtifactState(state, task, "Task.upToDateWhen is false.");
         }
 

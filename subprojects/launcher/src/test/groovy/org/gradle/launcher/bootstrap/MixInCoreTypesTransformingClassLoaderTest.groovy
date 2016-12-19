@@ -27,9 +27,11 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 import javax.tools.ToolProvider
 
+@Subject(MixInCoreTypesTransformingClassLoader)
 class MixInCoreTypesTransformingClassLoaderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -79,6 +81,10 @@ class MixInCoreTypesTransformingClassLoaderTest extends Specification {
             package org.gradle.api.internal;
 
             public interface TaskInternal extends org.gradle.api.Task {
+                @Override
+                TaskInputsInternal getInputs();
+                @Override
+                TaskOutputsInternal getOutputs();
             }
         """)
 
@@ -110,12 +116,12 @@ class MixInCoreTypesTransformingClassLoaderTest extends Specification {
 
             public class MyTask extends org.gradle.api.internal.AbstractTask {
                 @Override
-                public TaskInputs getInputs() {
+                public TaskInputsInternal getInputs() {
                     return new TaskInputsInternal() {};
                 }
 
                 @Override
-                public TaskOutputs getOutputs() {
+                public TaskOutputsInternal getOutputs() {
                     return new TaskOutputsInternal() {};
                 }
             }
@@ -188,17 +194,17 @@ class MixInCoreTypesTransformingClassLoaderTest extends Specification {
             
             public class DefaultTaskInputs implements TaskInputsInternal {
                 @Override
-                public TaskInputFilePropertyBuilderInternal files(Object... paths) {
+                public TaskInputFilePropertyBuilder files(Object... paths) {
                     return new TaskInputFilePropertyBuilderInternal() {};
                 }
                 
                 @Override
-                public TaskInputFilePropertyBuilderInternal file(Object path) {
+                public TaskInputFilePropertyBuilder file(Object path) {
                     return new TaskInputFilePropertyBuilderInternal() {};
                 }
                 
                 @Override
-                public TaskInputFilePropertyBuilderInternal dir(Object dirPath) {
+                public TaskInputFilePropertyBuilder dir(Object dirPath) {
                     return new TaskInputFilePropertyBuilderInternal() {};
                 }
             }

@@ -29,6 +29,8 @@ import org.objectweb.asm.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.objectweb.asm.Opcodes.ILOAD;
+
 /**
  * Mixes in internal methods to core Gradle types.
  */
@@ -37,16 +39,16 @@ public class MixInCoreTypesTransformingClassLoader extends TransformingClassLoad
 
     static {
         Map<String, VisitorFactory> transformedTypes = new HashMap<String, VisitorFactory>();
-        transformedTypes.put("org.gradle.api.internal.TaskInternal", new VisitorFactory() {
+        transformedTypes.put("org.gradle.api.internal.TaskInputsInternal", new VisitorFactory() {
             @Override
             public ClassVisitor createVisitor(ClassVisitor parent) {
-                return new TaskInternalTransformer(parent);
+                return new TaskInputsInternalTransformer(parent);
             }
         });
-        transformedTypes.put("org.gradle.api.internal.AbstractTask", new VisitorFactory() {
+        transformedTypes.put("org.gradle.api.internal.DefaultTaskInputs", new VisitorFactory() {
             @Override
             public ClassVisitor createVisitor(ClassVisitor parent) {
-                return new AbstractTaskTransformer(parent);
+                return new DefaultTaskInputsTransformer(parent);
             }
         });
         TRANSFORMED_TYPES = transformedTypes;
@@ -71,51 +73,62 @@ public class MixInCoreTypesTransformingClassLoader extends TransformingClassLoad
     }
 
     /**
-     * Adds overrides with internal return types for {@link org.gradle.api.Task#getInputs()} and
-     * {@link org.gradle.api.Task#getOutputs()} to {@link org.gradle.api.internal.TaskInternal}.
+     * Adds overrides with internal return types for {@link org.gradle.api.tasks.TaskInputs#file()} and
+     * {@code dir()} and {@code files()} to {@link org.gradle.api.internal.tasks.DefaultTaskInputs}.
      */
-    private static class TaskInternalTransformer extends ClassVisitor {
-        public TaskInternalTransformer(ClassVisitor cv) {
+    private static class TaskInputsInternalTransformer extends ClassVisitor {
+        public TaskInputsInternalTransformer(ClassVisitor cv) {
             super(Opcodes.ASM5, cv);
         }
 
         @Override
         public void visitEnd() {
             addInterfaceMethod(cv,
-                getType("org.gradle.api.internal.TaskInputsInternal"),
-                "getInputs"
+                getType("org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal"),
+                "file",
+                Type.getType(Object.class)
             );
             addInterfaceMethod(cv,
-                getType("org.gradle.api.internal.TaskOutputsInternal"),
-                "getOutputs"
-            );
+                getType("org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal"),
+                "dir",
+                Type.getType(Object.class));
+            addInterfaceMethod(cv,
+                getType("org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal"),
+                "files",
+                Type.getType(Object[].class));
             super.visitEnd();
         }
     }
-
     /**
-     * Adds overrides with internal return types for {@link org.gradle.api.Task#getInputs()} and
-     * {@link org.gradle.api.Task#getOutputs()} to {@link org.gradle.api.internal.AbstractTask}.
+     * Adds overrides with internal return types for {@link org.gradle.api.tasks.TaskInputs#file()} and
+     * {@code dir()} and {@code files()} to {@link org.gradle.api.internal.tasks.DefaultTaskInputs}.
      */
-    private static class AbstractTaskTransformer extends ClassVisitor {
-        public AbstractTaskTransformer(ClassVisitor cv) {
+    private static class DefaultTaskInputsTransformer extends ClassVisitor {
+        public DefaultTaskInputsTransformer(ClassVisitor cv) {
             super(Opcodes.ASM5, cv);
         }
 
         @Override
         public void visitEnd() {
             addBridgeMethod(cv,
-                getType("org.gradle.api.internal.TaskInputsInternal"),
-                "getInputs",
-                getType("org.gradle.api.Task"),
-                getType("org.gradle.api.tasks.TaskInputs")
+                getType("org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal"),
+                "file",
+                getType("org.gradle.api.tasks.TaskInputs"),
+                getType("org.gradle.api.tasks.TaskInputFilePropertyBuilder"),
+                Type.getType(Object.class)
             );
             addBridgeMethod(cv,
-                getType("org.gradle.api.internal.TaskOutputsInternal"),
-                "getOutputs",
-                getType("org.gradle.api.Task"),
-                getType("org.gradle.api.tasks.TaskOutputs")
-            );
+                getType("org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal"),
+                "dir",
+                getType("org.gradle.api.tasks.TaskInputs"),
+                getType("org.gradle.api.tasks.TaskInputFilePropertyBuilder"),
+                Type.getType(Object.class));
+            addBridgeMethod(cv,
+                getType("org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal"),
+                "files",
+                getType("org.gradle.api.tasks.TaskInputs"),
+                getType("org.gradle.api.tasks.TaskInputFilePropertyBuilder"),
+                Type.getType(Object[].class));
             super.visitEnd();
         }
     }
@@ -143,7 +156,7 @@ public class MixInCoreTypesTransformingClassLoader extends TransformingClassLoad
     }
 
     private static void putMethodArgumentOnStack(MethodVisitor methodVisitor, Type type, int index) {
-        methodVisitor.visitVarInsn(type.getOpcode(Opcodes.ILOAD), index + 1);
+        methodVisitor.visitVarInsn(type.getOpcode(ILOAD), index + 1);
     }
 
     private static Type getType(String name) {
