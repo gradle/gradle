@@ -94,6 +94,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def customClassesOutputDir = file('out')
         def newMainClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.mainClassFile.name)
         def newRedundantClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.redundantClassFile.name)
+        def newCleanupMessage = "Cleaned up directory '$customClassesOutputDir'"
 
         when:
         def result = runWithMostRecentFinalRelease(JAR_TASK_PATH)
@@ -113,7 +114,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        outputContains(javaProjectFixture.classesOutputCleanupMessage)
+        outputContains(newCleanupMessage)
         javaProjectFixture.mainClassFile.assertDoesNotExist()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
@@ -125,7 +126,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
-        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
+        !output.contains(newCleanupMessage)
         javaProjectFixture.mainClassFile.assertDoesNotExist()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
