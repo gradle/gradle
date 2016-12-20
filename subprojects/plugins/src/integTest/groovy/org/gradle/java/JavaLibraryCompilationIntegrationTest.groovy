@@ -17,8 +17,12 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 
 class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "project can declare an API dependency"() {
         given:
@@ -313,6 +317,71 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':b:compileJava'
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
         skipped ':a:compileJava'
+    }
+
+    def "recompiles consumer if private method of producer changed and classpath snapshotting is disabled"() {
+
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        System.setProperty("org.gradle.tasks.compileclasspath.snapshotting.disabled", "true")
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    implementation 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public abstract class Tool { void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/src/main/java/Tool.java').text = '''
+            public abstract class Tool {
+                private void debug() { System.out.println("Foo"); } 
+                void execute() { debug(); } 
+            }
+        '''
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava', ':a:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
     }
 
     def "doesn't recompile consumer if private method of producer changed"() {
