@@ -16,10 +16,7 @@
 
 package org.gradle.internal.cleanup;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -37,10 +34,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildOutputCleanupListener implements ModelConfigurationListener, Closeable {
 
-    private static final Logger LOGGER = Logging.getLogger(DefaultBuildOutputCleanupRegistry.class);
     private final PersistentCache cache;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final File markerFile;
+    private final BuildOutputDeleter buildOutputDeleter = new BuildOutputDeleter();
 
     public BuildOutputCleanupListener(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         this.cache = createCache(cacheRepository, cacheBaseDir);
@@ -66,10 +63,7 @@ public class BuildOutputCleanupListener implements ModelConfigurationListener, C
                 boolean markerFileExists = markerFile.exists();
 
                 if (!markerFileExists) {
-                    for (File output : buildOutputCleanupRegistry.getOutputs()) {
-                        deleteOutput(output);
-                    }
-
+                    buildOutputDeleter.delete(buildOutputCleanupRegistry.getOutputs());
                     GFileUtils.touch(markerFile);
                 }
             }
@@ -79,23 +73,5 @@ public class BuildOutputCleanupListener implements ModelConfigurationListener, C
     @Override
     public void close() throws IOException {
         cache.close();
-    }
-
-    private void deleteOutput(File output) {
-        try {
-            if (output.isDirectory()) {
-                forceDelete(output);
-                LOGGER.quiet(String.format("Cleaned up directory '%s'", output));
-            } else if (output.isFile()) {
-                forceDelete(output);
-                LOGGER.quiet(String.format("Cleaned up file '%s'", output));
-            }
-        } catch (UncheckedIOException e) {
-            LOGGER.warn(String.format("Unable to clean up '%s'", output), e);
-        }
-    }
-
-    private void forceDelete(File output) {
-        GFileUtils.forceDelete(output);
     }
 }
