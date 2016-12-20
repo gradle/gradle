@@ -36,6 +36,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -351,7 +352,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 outputFilesSnapshotIds);
         }
 
-        static class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExecutionSnapshot> {
+        static class TaskExecutionSnapshotSerializer implements Serializer<TaskExecutionSnapshot> {
             private final InputPropertiesSerializer inputPropertiesSerializer;
             private final StringInterner stringInterner;
 
@@ -441,21 +442,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(true);
                     inputPropertiesSerializer.write(encoder, execution.getInputProperties());
                 }
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (!super.equals(obj)) {
-                    return false;
-                }
-
-                TaskExecutionSnapshotSerializer rhs = (TaskExecutionSnapshotSerializer) obj;
-                return Objects.equal(inputPropertiesSerializer, rhs.inputPropertiesSerializer);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hashCode(super.hashCode(), inputPropertiesSerializer);
             }
 
             private static ImmutableSortedMap<String, Long> readSnapshotIds(Decoder decoder) throws IOException {
