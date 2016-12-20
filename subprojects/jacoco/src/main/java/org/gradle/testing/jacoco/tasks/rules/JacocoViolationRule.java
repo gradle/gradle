@@ -31,7 +31,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
 /**
  * Defines a Jacoco violation rule.
  *
- * @since 4.0
+ * @since 3.4
  */
 @Incubating
 public interface JacocoViolationRule extends Serializable {

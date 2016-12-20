@@ -25,7 +25,7 @@ import java.io.Serializable;
 /**
  * Defines a Jacoco rule limit.
  *
- * @since 4.0
+ * @since 3.4
  */
 @Incubating
 public interface JacocoLimit extends Serializable {
