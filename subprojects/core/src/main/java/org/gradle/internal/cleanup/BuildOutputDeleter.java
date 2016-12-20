@@ -26,7 +26,11 @@ import java.util.List;
 
 public class BuildOutputDeleter {
 
-    private static final Logger LOGGER = Logging.getLogger(BuildOutputDeleter.class);
+    private Logger logger = Logging.getLogger(BuildOutputDeleter.class);
+
+    void setLogger(Logger logger) {
+        this.logger = logger;
+    }
 
     public void delete(List<File> outputs) {
         for (File output : outputs) {
@@ -38,14 +42,18 @@ public class BuildOutputDeleter {
         try {
             if (output.isDirectory()) {
                 forceDelete(output);
-                LOGGER.quiet(String.format("Cleaned up directory '%s'", output));
+                logger.quiet(createMessage("directory", output));
             } else if (output.isFile()) {
                 forceDelete(output);
-                LOGGER.quiet(String.format("Cleaned up file '%s'", output));
+                logger.quiet(createMessage("file", output));
             }
         } catch (UncheckedIOException e) {
-            LOGGER.warn(String.format("Unable to clean up '%s'", output), e);
+            logger.warn(String.format("Unable to clean up '%s'", output), e);
         }
+    }
+
+    private String createMessage(String type, File output) {
+        return String.format("Cleaned up %s '%s'", type, output);
     }
 
     private void forceDelete(File output) {
