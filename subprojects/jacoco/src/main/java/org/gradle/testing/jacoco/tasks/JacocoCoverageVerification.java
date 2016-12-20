@@ -34,7 +34,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  * Requires JaCoCo version >= 0.6.3.
  *
- * @since 4.0
+ * @since 3.4
  */
 @Incubating
 public class JacocoCoverageVerification extends JacocoReportBase {

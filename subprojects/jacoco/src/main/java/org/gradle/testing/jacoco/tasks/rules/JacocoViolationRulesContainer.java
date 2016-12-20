@@ -29,7 +29,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
 /**
  * The violation rules configuration for the {@link org.gradle.testing.jacoco.tasks.JacocoReport} task.
  *
- * @since 4.0
+ * @since 3.4
  */
 @Incubating
 public interface JacocoViolationRulesContainer {
