@@ -80,7 +80,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         assert builder.projectName
         assert builder.workingDirectory
-        builder.invocation.workingDirectory = builder.workingDirectory
+        builder.invocation.workingDirectory = new File(builder.workingDirectory, builder.displayName)
     }
 
     protected List<String> customizeJvmOptions(List<String> jvmOptions) {
