@@ -89,10 +89,10 @@
             </para>
         </note>
         <para>
-            The <apilink class="org.gradle.testing.jacoco.tasks.JacocoCheck"/> task can be used to verify if code coverage
+            The <apilink class="org.gradle.testing.jacoco.tasks.JacocoCoverageVerification"/> task can be used to verify if code coverage
             metrics are met based on configured rules. Its API exposes two methods,
-            <apilink class="org.gradle.testing.jacoco.tasks.JacocoCheck" method="violationRules(groovy.lang.Closure)"/> and
-            <apilink class="org.gradle.testing.jacoco.tasks.JacocoCheck" method="violationRules(org.gradle.api.Action)"/>,
+            <apilink class="org.gradle.testing.jacoco.tasks.JacocoCoverageVerification" method="violationRules(groovy.lang.Closure)"/> and
+            <apilink class="org.gradle.testing.jacoco.tasks.JacocoCoverageVerification" method="violationRules(org.gradle.api.Action)"/>,
             the main entry point for configuring rules.
             Invoking any of those methods returns an instance of <apilink class="org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer"/> providing
             extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
@@ -243,11 +243,11 @@
             </tr>
             <tr>
                 <td>
-                    <literal>jacocoTestCheck</literal>
+                    <literal>jacocoTestCoverageVerification</literal>
                 </td>
                 <td>-</td>
                 <td>
-                    <apilink class="org.gradle.testing.jacoco.tasks.JacocoCheck"/>
+                    <apilink class="org.gradle.testing.jacoco.tasks.JacocoCoverageVerification"/>
                 </td>
                 <td>Verifies code coverage metrics based on specified rules for the test task.</td>
             </tr>

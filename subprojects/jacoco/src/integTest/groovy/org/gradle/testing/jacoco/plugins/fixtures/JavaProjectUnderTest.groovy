@@ -76,7 +76,7 @@ class JavaProjectUnderTest {
                 sourceSets sourceSets.main
             }
             
-            task jacocoIntegrationTestCheck(type: JacocoCheck) {
+            task jacocoIntegrationTestCoverageVerification(type: JacocoCoverageVerification) {
                 executionData integrationTest
                 sourceSets sourceSets.main
             }
