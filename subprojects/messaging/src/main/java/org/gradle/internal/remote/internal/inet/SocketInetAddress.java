@@ -72,7 +72,7 @@ public class SocketInetAddress implements InetEndpoint {
         return port;
     }
 
-    private static class Serializer implements  org.gradle.internal.serialize.Serializer<SocketInetAddress> {
+    private static class Serializer implements org.gradle.internal.serialize.Serializer<SocketInetAddress> {
 
         @Override
         public SocketInetAddress read(Decoder decoder) throws Exception {
