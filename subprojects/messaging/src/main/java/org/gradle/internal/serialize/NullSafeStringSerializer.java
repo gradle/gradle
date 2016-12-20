@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.serialize;
 
-public class NullSafeStringSerializer extends AbstractSerializer<String> {
+public class NullSafeStringSerializer implements Serializer<String> {
     public String read(Decoder decoder) throws Exception {
         return decoder.readNullableString();
     }
