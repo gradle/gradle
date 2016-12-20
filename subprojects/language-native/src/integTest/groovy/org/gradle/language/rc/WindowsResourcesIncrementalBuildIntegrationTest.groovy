@@ -30,11 +30,12 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @RequiresInstalledToolChain(VISUALCPP)
 class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), temporaryFolder.root, TestFiles.getPatternSetFactory())).create()
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
     ExecutableFixture mainExe
     File mainResourceFile
     def unusedHeaderFile
+    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), temporaryFolder.testDirectory, TestFiles.getPatternSetFactory())).create()
+
 
     def "setup"() {
         buildFile << helloWorldApp.pluginScript
