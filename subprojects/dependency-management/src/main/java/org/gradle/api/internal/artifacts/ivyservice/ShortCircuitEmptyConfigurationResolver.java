@@ -93,7 +93,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentSpec) {
             return this;
         }
 

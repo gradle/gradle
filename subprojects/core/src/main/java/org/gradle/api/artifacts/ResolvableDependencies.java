@@ -18,8 +18,14 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.specs.Spec;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A set of {@link Dependency} objects which can be resolved to a set of files. There are various methods on this type that you can use to get the result in different forms:
@@ -27,6 +33,7 @@ import org.gradle.api.file.FileCollection;
  * <ul>
  *     <li>{@link #getFiles()} returns a {@link FileCollection} that provides the result as a set of {@link java.io.File} instances.</li>
  *     <li>{@link #getResolutionResult()} returns a {@link ResolutionResult} that provides information about the dependency graph.</li>
+ *     <li>{@link #getArtifacts()} returns a set of {@link ResolvedArtifactResult} that provides additional information about the files.</li>
  * </ul>
  *
  * <p>The dependencies are resolved once only, when the result is first requested. The result is reused and returned for subsequent calls. Once resolved, any mutation to the dependencies will result in an error.</p>
@@ -54,6 +61,23 @@ public interface ResolvableDependencies {
      * @return The collection. Never null.
      */
     FileCollection getFiles();
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    FileCollection getFiles(Map<?, ?> attributes);
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes that are sourced from
+     * Components matching the specified filter.
+     *
+     * @since 3.3
+     */
+    @Incubating
+    FileCollection getFiles(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
 
     /**
      * Returns the set of dependencies which will be resolved.
@@ -100,4 +124,13 @@ public interface ResolvableDependencies {
      */
     @Incubating
     ResolutionResult getResolutionResult();
+
+    /**
+     * Returns the resolved artifacts, performing the resolution if required. This will resolve and download the files as required.
+     *
+     * @throws ResolveException On failure to resolve or download any artifact.
+     * @since 3.4
+     */
+    @Incubating
+    Set<ResolvedArtifactResult> getArtifacts() throws ResolveException;
 }

@@ -16,27 +16,32 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.hash.HashUtil
+import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.language.base.internal.compile.Compiler;
 
 class OutputCleaningCompilerTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
+    TestFile outputDir = tmpDirProvider.createDir("objs")
+
+    def compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), tmpDirProvider.testDirectory, TestFiles.getPatternSetFactory()))
+    def namingScheme = compilerOutputFileNamingSchemeFactory.create()
+
     private static final String O_EXT = ".o"
 
-    NativeCompileSpec spec = Mock(NativeCompileSpec);
+    NativeCompileSpec spec = Mock(NativeCompileSpec)
     Compiler delegateCompiler = Mock(Compiler)
 
-    OutputCleaningCompiler cleanCompiler = new OutputCleaningCompiler<NativeCompileSpec>(delegateCompiler, O_EXT);
-
-    TestFile outputDir = tmpDirProvider.createDir("objs")
+    OutputCleaningCompiler cleanCompiler = new OutputCleaningCompiler<NativeCompileSpec>(delegateCompiler, compilerOutputFileNamingSchemeFactory, O_EXT);
 
     WorkResult workResult = Mock(WorkResult)
     List<TestFile> sourceFiles
@@ -110,7 +115,10 @@ class OutputCleaningCompilerTest extends Specification {
     }
 
     def createObjDummy(File sourceFile) {
-        TestFile objectFile = outputDir.file("${HashUtil.createCompactMD5(sourceFile.absolutePath)}/${sourceFile.name - ".c" + ".o" }")
+        def objectFile = new TestFile(namingScheme.withObjectFileNameSuffix(O_EXT).
+            withOutputBaseFolder(outputDir).
+            map(sourceFile))
+
         objectFile.touch()
         objectFile.text = sourceFile.absolutePath
     }

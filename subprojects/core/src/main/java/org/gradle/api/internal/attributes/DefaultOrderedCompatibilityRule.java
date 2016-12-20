@@ -16,7 +16,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 
 import java.util.Comparator;
@@ -32,20 +31,16 @@ public class DefaultOrderedCompatibilityRule<T> implements Action<CompatibilityC
 
     @Override
     public void execute(CompatibilityCheckDetails<T> details) {
-        AttributeValue<T> consumerValue = details.getConsumerValue();
-        AttributeValue<T> producerValue = details.getProducerValue();
-        if (consumerValue.isPresent() && producerValue.isPresent()) {
-            T consumerPresent = consumerValue.get();
-            T producerPresent = producerValue.get();
-            int cmp = comparator.compare(consumerPresent, producerPresent);
-            if (reverse) {
-                cmp = -cmp;
-            }
-            if (cmp >= 0) {
-                details.compatible();
-            } else {
-                details.incompatible();
-            }
+        T consumerValue = details.getConsumerValue();
+        T producerValue = details.getProducerValue();
+        int cmp = comparator.compare(consumerValue, producerValue);
+        if (reverse) {
+            cmp = -cmp;
+        }
+        if (cmp >= 0) {
+            details.compatible();
+        } else {
+            details.incompatible();
         }
     }
 

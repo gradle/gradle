@@ -31,13 +31,13 @@ public interface CompatibilityCheckDetails<T> {
      * The value of the attribute as found on the consumer side.
      * @return the value from the consumer
      */
-    AttributeValue<T> getConsumerValue();
+    T getConsumerValue();
 
     /**
      * The value of the attribute as found on the producer side.
      * @return the value from the producer
      */
-    AttributeValue<T> getProducerValue();
+    T getProducerValue();
 
     /**
      * Calling this method will indicate that the attributes are compatible.

@@ -21,25 +21,18 @@ import java.util.Set;
 
 /**
  * Provides context about candidates for an attribute. In particular, this class gives access to
- * the value of an attribute as found on the consumer, but also a list of candidates for the same
- * attribute on the producer side. It is possible to determine what to do in case an attribute is
- * missing, or unknown, on both the consumer and producer sides.
+ * the list of candidates on the producer side.
  *
  * @param <T> the concrete type of the attribute
  */
 @Incubating
 public interface MultipleCandidatesDetails<T> {
-    /**
-     * The value of the attribute on the consumer side. All possible outcomes are valid (present, missing, unknown)
-     * @return the value of the attribute as found on the consumer side
-     */
-    AttributeValue<T> getConsumerValue();
 
     /**
      * A set of candidate values.
      * @return the set of candidates
      */
-    Set<AttributeValue<T>> getCandidateValues();
+    Set<T> getCandidateValues();
 
     /**
      * Calling this method indicates that the candidate is the closest match. It is allowed to call this method several times with
@@ -47,6 +40,6 @@ public interface MultipleCandidatesDetails<T> {
      *
      * @param candidate the closest match
      */
-    void closestMatch(AttributeValue<T> candidate);
+    void closestMatch(T candidate);
 
 }

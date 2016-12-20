@@ -222,9 +222,6 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     private static boolean isPackagePrivateMember(int access) {
-        return access == 0
-            || access == ACC_STATIC
-            || access == ACC_SUPER
-            || access == (ACC_SUPER | ACC_STATIC);
+        return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
     }
 }

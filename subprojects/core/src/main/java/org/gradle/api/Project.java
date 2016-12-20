@@ -572,6 +572,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Project project(String path, Closure configureClosure);
 
     /**
+     * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
+     * interpreted relative to this project.</p>
+     *
+     * @param path The path.
+     * @param configureAction The action to use to configure the project.
+     * @return The project with the given path. Never returns null.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    Project project(String path, Action<? super Project> configureAction);
+
+    /**
      * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
      *
      * @param recursive If true, returns the tasks of this project and its subprojects.  If false, returns the tasks of

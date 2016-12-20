@@ -38,15 +38,15 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationTes
 
         // Check tests have run
         def result = new DefaultTestExecutionResult(projectDir)
-        result.assertTestClassesExecuted('org.gradle.sample.impl.PersonImplTest')
+        result.assertTestClassesExecuted('org.gradle.sample.PersonSpec')
 
         // Check contents of Jar
         TestFile jarContents = file('jar')
-        projectDir.file("build/libs/customizedLayout.jar").unzipTo(jarContents)
+        projectDir.file("build/libs/customizedLayout-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
-                'org/gradle/sample/api/Person.class',
-                'org/gradle/sample/impl/PersonImpl.class'
+                'org/gradle/sample/Named.class',
+                'org/gradle/sample/Person.class'
         )
     }
 }

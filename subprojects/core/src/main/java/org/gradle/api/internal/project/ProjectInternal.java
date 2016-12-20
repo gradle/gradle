@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -35,9 +31,10 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.util.Path;
@@ -102,8 +99,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
 
     void fireDeferredConfiguration();
 
-    AttributesSchema getAttributesSchema();
-
     /**
      * Returns a unique path for this project within its containing build.
      */
@@ -114,11 +109,5 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
      */
     Path getIdentityPath();
 
-    /**
-     * Configures the configuration attributes schema. The action is passed a {@link AttributesSchema} instance.
-     * @param configureAction the configure action
-     * @return the configured schema
-     */
-    @Incubating
-    AttributesSchema configurationAttributesSchema(Action<? super AttributesSchema> configureAction);
+
 }

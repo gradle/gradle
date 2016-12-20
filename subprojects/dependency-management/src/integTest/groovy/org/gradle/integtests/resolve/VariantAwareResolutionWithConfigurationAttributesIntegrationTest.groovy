@@ -37,7 +37,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
 
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
-                        p.configurationAttributesSchema {
+                        p.dependencies.attributesSchema {
                            attribute(Attribute.of('buildType', String))
                            attribute(Attribute.of('usage', String))
                            attribute(Attribute.of('flavor', String))

@@ -19,7 +19,6 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
@@ -27,6 +26,7 @@ import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Specs;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.ByteArrayOutputStream;
@@ -74,20 +75,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        Closer closer = Closer.create();
-        TarOutputStream outputStream = closer.register(new TarOutputStream(output, "utf-8"));
-        outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
-        outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
-        outputStream.setAddPaxHeadersForNonAsciiNames(true);
-        try {
-            packMetadata(writeOrigin, outputStream);
-            pack(taskOutputs, outputStream);
-        } catch (Throwable ex) {
-            throw closer.rethrow(ex);
-        } finally {
-            closer.close();
-        }
+    public void pack(final TaskOutputsInternal taskOutputs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
+        IoActions.withResource(new TarOutputStream(output, "utf-8"), new Action<TarOutputStream>() {
+            @Override
+            public void execute(TarOutputStream outputStream) {
+                outputStream.setLongFileMode(TarOutputStream.LONGFILE_POSIX);
+                outputStream.setBigNumberMode(TarOutputStream.BIGNUMBER_POSIX);
+                outputStream.setAddPaxHeadersForNonAsciiNames(true);
+                try {
+                    packMetadata(writeOrigin, outputStream);
+                    pack(taskOutputs, outputStream);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
     }
 
     private void packMetadata(TaskOutputOriginWriter writeMetadata, TarOutputStream outputStream) throws IOException {
@@ -199,16 +201,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException {
-        Closer closer = Closer.create();
-        TarInputStream tarInput = new TarInputStream(input);
-        try {
-            unpack(taskOutputs, tarInput, readOrigin);
-        } catch (Throwable ex) {
-            throw closer.rethrow(ex);
-        } finally {
-            closer.close();
-        }
+    public void unpack(final TaskOutputsInternal taskOutputs, InputStream input, final TaskOutputOriginReader readOrigin) {
+        IoActions.withResource(new TarInputStream(input), new Action<TarInputStream>() {
+            @Override
+            public void execute(TarInputStream tarInput) {
+                try {
+                    unpack(taskOutputs, tarInput, readOrigin);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
     }
 
     private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
@@ -259,7 +262,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 fileSystem.chmod(outputFile, entry.getMode() & 0777);
                 long lastModified = getModificationTime(entry);
                 if (!outputFile.setLastModified(lastModified)) {
-                    throw new IOException(String.format("Could not set modification time for '%s'", outputFile));
+                    throw new UnsupportedOperationException(String.format("Could not set modification time for '%s'", outputFile));
                 }
             }
         }

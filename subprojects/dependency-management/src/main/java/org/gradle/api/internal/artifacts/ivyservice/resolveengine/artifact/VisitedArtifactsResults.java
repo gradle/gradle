@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 
@@ -25,5 +27,5 @@ public interface VisitedArtifactsResults {
     /**
      * Selects the artifacts for the matching variant of each node seen during traversal.
      */
-    SelectedArtifactResults select(Transformer<HasAttributes, Collection<? extends HasAttributes>> selector);
+    SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector);
 }

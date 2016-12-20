@@ -18,7 +18,6 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
 import java.util.Comparator;
@@ -69,17 +68,12 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         }
 
         @Override
-        public AttributeValue<T> getConsumerValue() {
-            return delegate.getConsumerValue();
-        }
-
-        @Override
-        public Set<AttributeValue<T>> getCandidateValues() {
+        public Set<T> getCandidateValues() {
             return delegate.getCandidateValues();
         }
 
         @Override
-        public void closestMatch(AttributeValue<T> candidate) {
+        public void closestMatch(T candidate) {
             determined = true;
             delegate.closestMatch(candidate);
         }

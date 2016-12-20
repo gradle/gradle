@@ -27,7 +27,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributeValue;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
@@ -109,13 +108,13 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
                 final Object producerValue = producerAttributes.getAttribute(attribute);
                 compatibilityRules.execute(new CompatibilityCheckDetails<Object>() {
                     @Override
-                    public AttributeValue<Object> getConsumerValue() {
-                        return AttributeValue.of(consumerValue);
+                    public Object getConsumerValue() {
+                        return consumerValue;
                     }
 
                     @Override
-                    public AttributeValue<Object> getProducerValue() {
-                        return AttributeValue.of(producerValue);
+                    public Object getProducerValue() {
+                        return producerValue;
                     }
 
                     @Override

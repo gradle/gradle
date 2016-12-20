@@ -37,6 +37,11 @@ public class HasSuffixPatternStep implements PatternStep {
         this.prefixLength = prefixLength;
     }
 
+    @Override
+    public String toString() {
+        return "{suffix: " + suffix + "}";
+    }
+
     public boolean matches(String candidate) {
         return isLongEnough(candidate) && candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
     }

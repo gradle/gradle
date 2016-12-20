@@ -244,6 +244,10 @@ public class AvailableToolChains {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
         }
 
+        public LinkerOptionsFixture linkerOptionsFor(Object path) {
+            return new LinkerOptionsFixture(new TestFile(path.toString()));
+        }
+
         public TestFile objectFile(Object path) {
             return new TestFile(path.toString() + objectFileNameSuffix);
         }

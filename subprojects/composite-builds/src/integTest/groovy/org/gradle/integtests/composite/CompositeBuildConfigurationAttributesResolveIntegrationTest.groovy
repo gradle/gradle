@@ -36,9 +36,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         """
         buildFile << '''
             allprojects {
-                configurationAttributesSchema {
-                    attribute(Attribute.of('buildType', String))
-                    attribute(Attribute.of('flavor', String))
+                dependencies {
+                    attributesSchema {
+                        attribute(Attribute.of('buildType', String))
+                        attribute(Attribute.of('flavor', String))
+                    }
                 }
             }
             project(':a') {
@@ -80,9 +82,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
 
-            configurationAttributesSchema {
-                attribute(Attribute.of('buildType', String))
-                attribute(Attribute.of('flavor', String))
+            dependencies {
+                attributesSchema {
+                    attribute(Attribute.of('buildType', String))
+                    attribute(Attribute.of('flavor', String))
+                }
             }
 
             configurations {
@@ -140,9 +144,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             ${usesTypedAttributesPlugin(v1, usePluginsDSL)}
 
             allprojects {
-                configurationAttributesSchema {
-                    attribute(flavor)
-                    attribute(buildType)
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor)
+                        attribute(buildType)
+                    }
                 }
             }
             project(':a') {
@@ -185,9 +191,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
 
-            configurationAttributesSchema {
-                attribute(buildType)
-                attribute(flavor)
+            dependencies {
+                attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor)
+                }
             }
 
             configurations {
@@ -324,7 +332,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
                                     class TypedAttributesPlugin implements Plugin<Project> {
                                         void apply(Project p) {
-                                            p.configurationAttributesSchema {
+                                            p.dependencies.attributesSchema {
                                                 attribute(Attribute.of(Flavor))
                                                 attribute(Attribute.of(BuildType))
                                             }

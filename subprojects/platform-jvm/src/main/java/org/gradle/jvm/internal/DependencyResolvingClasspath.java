@@ -171,7 +171,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void finishArtifacts() {
-            artifactsResults = artifactsBuilder.complete().select(new Transformer<HasAttributes, Collection<? extends HasAttributes>>() {
+            artifactsResults = artifactsBuilder.complete().select(Specs.<ComponentIdentifier>satisfyAll(), new Transformer<HasAttributes, Collection<? extends HasAttributes>>() {
                 @Override
                 public HasAttributes transform(Collection<? extends HasAttributes> hasAttributes) {
                     // Select the first variant

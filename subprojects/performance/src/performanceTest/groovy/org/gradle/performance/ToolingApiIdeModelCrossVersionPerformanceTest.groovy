@@ -31,8 +31,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         given:
 
         experiment(template, "get $template EclipseProject model") {
-            warmUpCount = 100
-            invocationCount = 100
             action {
                 def model = model(tapiClass(EclipseProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
@@ -92,8 +90,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
     def "building IDEA model for a #template project"() {
         given:
         experiment(template, "get $template IdeaProject model") {
-            warmUpCount = 100
-            invocationCount = 100
             action {
                 def model = model(tapiClass(IdeaProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()

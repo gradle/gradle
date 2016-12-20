@@ -25,17 +25,6 @@ import java.util.Comparator;
 
 public abstract class AttributeMatchingRules {
     private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
-    private static final Action<CompatibilityCheckDetails<?>> ASSUME_COMPATIBLE_WHEN_MISSING = new Action<CompatibilityCheckDetails<?>>() {
-        @Override
-        public void execute(CompatibilityCheckDetails<?> details) {
-            if (details.getProducerValue().isMissing()
-                || details.getProducerValue().isUnknown()
-                || details.getConsumerValue().isMissing()
-                || details.getConsumerValue().isUnknown()) {
-                details.compatible();
-            }
-        }
-    };
 
     public static <T> Action<? super CompatibilityCheckDetails<T>> equalityCompatibility() {
         return Cast.uncheckedCast(EQUALITY_RULE);
@@ -47,9 +36,5 @@ public abstract class AttributeMatchingRules {
 
     public static <T> Action<? super MultipleCandidatesDetails<T>> orderedDisambiguation(Comparator<? super T> comparator, boolean pickFirst) {
         return new DefaultOrderedDisambiguationRule<T>(comparator, pickFirst);
-    }
-
-    public static <T> Action<? super CompatibilityCheckDetails<T>> assumeCompatibleWhenMissing() {
-        return Cast.uncheckedCast(ASSUME_COMPATIBLE_WHEN_MISSING);
     }
 }

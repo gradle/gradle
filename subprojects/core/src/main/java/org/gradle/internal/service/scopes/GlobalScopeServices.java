@@ -130,8 +130,13 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStra
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.health.memory.DefaultMemoryManager;
+import org.gradle.process.internal.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
@@ -282,7 +287,7 @@ public class GlobalScopeServices {
     }
 
     InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        if(environment.isLongLivingProcess()) {
+        if (environment.isLongLivingProcess()) {
             return new InMemoryTaskArtifactCache();
         } else {
             return new ShortLivedProcessInMemoryTaskArtifactCache();
@@ -396,5 +401,17 @@ public class GlobalScopeServices {
 
     TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
+    }
+
+    MemoryInfo createMemoryInfo(ExecHandleFactory execHandleFactory) {
+        return new MemoryInfo(execHandleFactory);
+    }
+
+    MemoryStatusBroadcaster createMemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+        return new MemoryStatusBroadcaster(memoryInfo, scheduledExecutorService, listenerManager);
+    }
+
+    MemoryManager createMemoryManager(ListenerManager listenerManager) {
+        return new DefaultMemoryManager(listenerManager);
     }
 }

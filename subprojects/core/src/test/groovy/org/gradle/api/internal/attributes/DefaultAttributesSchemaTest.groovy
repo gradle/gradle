@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeValue
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import spock.lang.Specification
@@ -116,33 +115,21 @@ class DefaultAttributesSchemaTest extends Specification {
             it.compatibilityRules.add { CompatibilityCheckDetails<Map> details ->
                 def producerValue = details.producerValue
                 def consumerValue = details.consumerValue
-                if (producerValue.present && consumerValue.present) {
-                    if (producerValue.get().size() == consumerValue.get().size()) {
-                        // arbitrary, just for testing purposes
-                        details.compatible()
-                    }
+                if (producerValue.size() == consumerValue.size()) {
+                    // arbitrary, just for testing purposes
+                    details.compatible()
                 }
             }
-            it.disambiguationRules.add { MultipleCandidatesDetails<Map> details ->
-                def optionalAttribute = details.consumerValue
-                def candidateValues = details.candidateValues
-                if (optionalAttribute.present) {
-                    candidateValues.findAll { it == optionalAttribute }.each {
-                        details.closestMatch(it)
-                    }
-                } else if (optionalAttribute.missing) {
-                    details.closestMatch(candidateValues.first())
-                } else {
-                    candidateValues.each { details.closestMatch(it) }
-                }
+            it.disambiguationRules.add { details ->
+                details.closestMatch(details.candidateValues.first())
             }
         }
         def strategy = schema.getMatchingStrategy(attr)
         def checkDetails = Mock(CompatibilityCheckDetails)
         def candidateDetails = Mock(MultipleCandidatesDetails)
 
-        def aFoo_bBar = AttributeValue.of([a: 'foo', b: 'bar'])
-        def cFoo_dBar = AttributeValue.of([c: 'foo', d: 'bar'])
+        def aFoo_bBar = [a: 'foo', b: 'bar']
+        def cFoo_dBar = [c: 'foo', d: 'bar']
 
         when:
         checkDetails.getConsumerValue() >> aFoo_bBar
@@ -163,7 +150,6 @@ class DefaultAttributesSchemaTest extends Specification {
         0 * checkDetails.incompatible()
 
         when:
-        candidateDetails.consumerValue >> aFoo_bBar
         candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
         strategy.disambiguationRules.execute(candidateDetails)
 
@@ -171,23 +157,5 @@ class DefaultAttributesSchemaTest extends Specification {
         1 * candidateDetails.closestMatch(aFoo_bBar)
         0 * candidateDetails._
 
-        when:
-        candidateDetails.consumerValue >> AttributeValue.missing()
-        candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
-        strategy.disambiguationRules.execute(candidateDetails)
-
-        then:
-        1 * candidateDetails.closestMatch(aFoo_bBar)
-        0 * candidateDetails._
-
-        when:
-        candidateDetails.consumerValue >> AttributeValue.unknown()
-        candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
-        strategy.disambiguationRules.execute(candidateDetails)
-
-        then:
-        1 * candidateDetails.closestMatch(aFoo_bBar)
-        1 * candidateDetails.closestMatch(cFoo_dBar)
-        0 * candidateDetails._
     }
 }

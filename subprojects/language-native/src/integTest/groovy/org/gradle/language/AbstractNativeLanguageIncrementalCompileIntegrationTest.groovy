@@ -177,7 +177,9 @@ model {
 
         when:
         run "mainExecutable"
+
         then:
+        executed compileTask
         skipped compileTask
     }
 
@@ -396,7 +398,10 @@ model {
         run "mainExecutable"
 
         then:
+        executed compileTask
         skipped compileTask
+
+        and:
         outputs.noneRecompiled()
     }
 
@@ -434,7 +439,10 @@ model {
         run "mainExecutable"
 
         then:
+        executed compileTask
         skipped compileTask
+
+        and:
         outputs.noneRecompiled()
 
         where:
@@ -615,6 +623,9 @@ model {
         run "mainExecutable"
 
         then:
+        executedAndNotSkipped compileTask
+
+        and:
         objectFileFor(extraSource).assertDoesNotExist()
         outputs.noneRecompiled()
     }

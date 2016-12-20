@@ -85,14 +85,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
             Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(AttributeContainerInternal.EMPTY, artifacts));
-            return new DefaultArtifactSet(component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, artifactResolver, allResolvedArtifacts, id);
+            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, artifactResolver, allResolvedArtifacts, id);
         }
 
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getId(), component.getSource(), dependency.getExclusions(), variants, artifactResolver, allResolvedArtifacts, id);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(), variants, artifactResolver, allResolvedArtifacts, id);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions().mayExcludeArtifacts()) {

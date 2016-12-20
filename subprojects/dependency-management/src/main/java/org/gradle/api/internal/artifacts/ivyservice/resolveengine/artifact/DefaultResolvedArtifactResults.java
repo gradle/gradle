@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,19 +38,23 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
     }
 
     @Override
-    public SelectedArtifactResults select(Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
         final Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
 
         for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
-            Set<? extends ResolvedVariant> variants = entry.getValue().getVariants();
+            ArtifactSet artifactSet = entry.getValue();
+            if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
+                continue;
+            }
+            Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
             ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
             ResolvedArtifactSet resolvedArtifacts;
             if (selected == null) {
                 resolvedArtifacts = ResolvedArtifactSet.EMPTY;
             } else {
                 resolvedArtifacts = selected.getArtifacts();
-                if (!buildableArtifacts.contains(entry.getValue().getId())) {
+                if (!buildableArtifacts.contains(artifactSet.getId())) {
                     resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
                 }
                 allArtifactSets.add(resolvedArtifacts);

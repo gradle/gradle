@@ -562,6 +562,16 @@ class DefaultProjectTest {
     }
 
     @Test
+    void testGetProjectWithAction() {
+        def child1 = project.project("child1")
+        def action = context.mock(Action)
+        context.checking {
+            one(action).execute(child1)
+        }
+        assert child1 == project.project("child1", action)
+    }
+
+    @Test
     void testMethodMissing() {
         boolean closureCalled = false
         Closure testConfigureClosure = { closureCalled = true }

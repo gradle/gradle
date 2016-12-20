@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -57,7 +58,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.select(dependencySpec, attributes).collectFiles(new LinkedHashSet<File>());
+        return configuration.select(dependencySpec, attributes, Specs.<ComponentIdentifier>satisfyAll()).collectFiles(new LinkedHashSet<File>());
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
@@ -73,7 +74,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         rethrowFailure();
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        configuration.select(Specs.<Dependency>satisfyAll(), attributes).visitArtifacts(visitor);
+        configuration.select(Specs.<Dependency>satisfyAll(), attributes, Specs.<ComponentIdentifier>satisfyAll()).visitArtifacts(visitor);
         return visitor.artifacts;
     }
 }

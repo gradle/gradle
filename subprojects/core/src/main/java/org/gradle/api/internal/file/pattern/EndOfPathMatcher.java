@@ -17,6 +17,11 @@
 package org.gradle.api.internal.file.pattern;
 
 public class EndOfPathMatcher implements PathMatcher {
+    @Override
+    public String toString() {
+        return "{end-of-path}";
+    }
+
     public int getMaxSegments() {
         return 0;
     }

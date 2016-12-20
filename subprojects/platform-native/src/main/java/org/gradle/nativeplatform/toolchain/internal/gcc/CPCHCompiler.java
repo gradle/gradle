@@ -18,13 +18,14 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 
 public class CPCHCompiler extends GccCompatibleNativeCompiler<CPCHCompileSpec> {
-    public CPCHCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, new CPCHCompileArgsTransformer(), Transformers.<CPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
+    public CPCHCompiler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new CPCHCompileArgsTransformer(), Transformers.<CPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
     private static class CPCHCompileArgsTransformer extends GccCompilerArgsTransformer<CPCHCompileSpec> {

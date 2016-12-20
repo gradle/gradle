@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -30,6 +31,7 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.Attribute
@@ -316,6 +318,17 @@ class DefaultConfigurationSpec extends Specification {
         t == failure
     }
 
+    def "build dependencies are resolved lazily"() {
+        given:
+        def configuration = conf()
+
+        when:
+        configuration.getBuildDependencies()
+
+        then:
+        0 * _._
+    }
+
     def "state indicates failure resolving graph"() {
         given:
         def configuration = conf()
@@ -328,11 +341,11 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        configuration.getBuildDependencies()
+        configuration.getBuildDependencies().getDependencies(null)
 
         then:
-        def t = thrown(ResolveException)
-        t == failure
+        def t = thrown(GradleException)
+        t.cause == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
@@ -432,7 +445,7 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { it[0].addAll(files); return it[0] }
         }
 
@@ -449,7 +462,7 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
-        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { throw failure }
         }
         _ * resolvedConfiguration.hasError() >> true
@@ -516,7 +529,7 @@ class DefaultConfigurationSpec extends Specification {
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _ ) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _ , _) >> selectedArtifactSet
         _ * selectedArtifactSet.collectBuildDependencies(_) >> { it[0].add(artifactTaskDependencies); return it[0] }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -952,7 +965,7 @@ class DefaultConfigurationSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { return it[0] }
         }
 
@@ -1009,7 +1022,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
@@ -1029,7 +1042,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
@@ -1049,7 +1062,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
@@ -1082,7 +1095,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
@@ -1450,7 +1463,7 @@ All Artifacts:
     private visitedArtifacts() {
         def visitedArtifactSet = new VisitedArtifactSet() {
             @Override
-            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes) {
+            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentSpec) {
                 return new SelectedArtifactSet() {
                     @Override
                     def <T extends Collection<Object>> T collectBuildDependencies(T dest) {
