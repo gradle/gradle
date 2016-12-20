@@ -30,8 +30,8 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'waitForMemoryEvents'
 
         then:
-        result.output.contains jvmLogStatement()
-        result.output.contains osLogStatement()
+        file("jvmReceived").exists()
+        file("osReceived").exists()
     }
 
     private static String waitForMemoryEventsTask() {
@@ -41,33 +41,29 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
             task waitForMemoryEvents {
                 doLast {
-                    final CountDownLatch notification = new CountDownLatch(2)
+                    final CountDownLatch osNotification = new CountDownLatch(1)
+                    final CountDownLatch jvmNotification = new CountDownLatch(1)
                     
                     MemoryManager manager = project.services.get(MemoryManager.class)
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
-                            notification.countDown()
+                            file("jvmReceived").createNewFile()
+                            jvmNotification.countDown()
                         }
                     })
                     manager.addListener(new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
                             logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
-                            notification.countDown()
+                            file("osReceived").createNewFile()
+                            osNotification.countDown()
                         }
                     })
                     logger.warn "Waiting for memory status events..."
-                    notification.await()
+                    jvmNotification.await()
+                    osNotification.await()
                 }
             }
         '''.stripIndent()
-    }
-
-    private static String jvmLogStatement() {
-        return 'JVM MemoryStatus notification'
-    }
-
-    private static String osLogStatement() {
-        return 'OS MemoryStatus notification'
     }
 }
