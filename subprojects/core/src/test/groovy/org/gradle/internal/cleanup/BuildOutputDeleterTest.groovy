@@ -132,6 +132,7 @@ class BuildOutputDeleterTest extends Specification {
 
         then:
         1 * logger.warn("Unable to clean up '%'", file)
+        file.exists()
 
         cleanup:
         lock?.release()
