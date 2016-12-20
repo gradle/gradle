@@ -17,7 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.SYMLINKS)
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
