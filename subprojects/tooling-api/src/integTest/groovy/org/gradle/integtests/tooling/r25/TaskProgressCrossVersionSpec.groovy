@@ -29,6 +29,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.5")
@@ -149,7 +150,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         def processResources = events.operation('Task :processResources')
         processResources.descriptor.name == ":processResources"
         processResources.descriptor.taskPath == ":processResources"
-        processResources.result.upToDate
+        assertEmptyInputsTask(processResources)
 
         def disabled = events.operation('Task :disabled')
         disabled.descriptor.name == ":disabled"
@@ -268,6 +269,48 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: 'the parent of the task events is null'
         events.tasks.every { it.descriptor.parent == null }
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=3.4")
+    def "task with empty skipwhenempty inputs marked as skipped with NO-SOURCE"() {
+        given:
+        buildFile << """
+           task empty(type:EmptyTask){
+                someInputs = files()
+           }
+
+           class EmptyTask extends DefaultTask {
+                @SkipWhenEmpty
+                @InputFiles FileCollection someInputs
+                @TaskAction void doNothing(){}
+            }
+        """
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('empty').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
+        }
+
+        then:
+
+        def emptyTask = events.operation('Task :empty')
+        emptyTask.descriptor.name == ":empty"
+        emptyTask.descriptor.taskPath == ":empty"
+        emptyTask.result instanceof TaskSkippedResult
+        emptyTask.result.skipMessage == "NO-SOURCE"
+    }
+
+    def assertEmptyInputsTask(ProgressEvents.Operation taskOperation) {
+        if (targetVersion < GradleVersion.version("3.4")) {
+            assert taskOperation.result.upToDate
+        } else {
+            assert taskOperation.result instanceof TaskSkippedResult
+            assert taskOperation.result.skipMessage == "NO-SOURCE"
+        }
+        true
     }
 
     def goodCode() {
