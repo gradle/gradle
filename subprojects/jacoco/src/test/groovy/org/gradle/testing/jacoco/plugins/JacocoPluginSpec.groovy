@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -94,5 +95,18 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
 
         where:
         includeNoLocationClassesValue << [true, false]
+    }
+
+    def "declares task property values for group and description"() {
+        given:
+        project.apply plugin: 'java'
+
+        expect:
+        def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')
+        def jacocoCheckTask = project.tasks.getByName('jacocoTestCheck')
+        jacocoTestReportTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
+        jacocoCheckTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
+        jacocoTestReportTask.description == 'Generates code coverage report for the test task.'
+        jacocoCheckTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
     }
 }
