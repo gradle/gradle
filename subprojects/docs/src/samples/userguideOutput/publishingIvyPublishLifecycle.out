@@ -1,5 +1,5 @@
 :generateDescriptorFileForIvyJavaPublication
-:compileJava UP-TO-DATE
+:compileJava NO-SOURCE
 :processResources NO-SOURCE
 :classes UP-TO-DATE
 :jar
