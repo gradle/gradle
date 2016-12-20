@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http.internal
 
+import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
@@ -30,13 +31,13 @@ import javax.servlet.http.HttpServletResponse
 
 class HttpBuildCacheTest extends Specification {
     public static final List<Integer> FATAL_HTTP_ERROR_CODES = [
-        305, // Use proxy
-        400, // Bad request
-        401, 403, 407, // Authentication problems
-        405, // Method not allowed
-        406, 411, 415, 417, // Problems with request caused by client, e.g. not acceptable or unsupported media type
-        426, // Update required
-        505, // HTTP version not supported
+        HttpStatus.SC_USE_PROXY,
+        HttpStatus.SC_BAD_REQUEST,
+        HttpStatus.SC_UNAUTHORIZED, HttpStatus.SC_FORBIDDEN, HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
+        HttpStatus.SC_METHOD_NOT_ALLOWED,
+        HttpStatus.SC_NOT_ACCEPTABLE, HttpStatus.SC_LENGTH_REQUIRED, HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, HttpStatus.SC_EXPECTATION_FAILED,
+        426, // Upgrade required
+        HttpStatus.SC_HTTP_VERSION_NOT_SUPPORTED,
         511 // network authentication required
     ]
 
@@ -114,7 +115,7 @@ class HttpBuildCacheTest extends Specification {
         exception.message == "Loading key '${key.hashCode}' from an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
 
         where:
-        httpCode << [500, 501]
+        httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
     }
 
     def "load reports non-recoverable error on http code #httpCode"(int httpCode) {
@@ -161,7 +162,7 @@ class HttpBuildCacheTest extends Specification {
         exception.message == "Storing key '${key.hashCode}' in an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
 
         where:
-        httpCode << [500, 501]
+        httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {
