@@ -58,7 +58,7 @@ public class VmstatAvailableMemory implements AvailableMemory {
         try {
             StreamByteBuffer buffer = new StreamByteBuffer();
             ExecHandleBuilder builder = execHandleFactory.newExec();
-            builder.setWorkingDir(new File(".").getAbsolutePath());
+            builder.setWorkingDir(new File("/").getAbsolutePath());
             builder.setCommandLine(VMSTAT_EXECUTABLE_PATH);
             builder.setStandardOutput(buffer.getOutputStream());
             builder.build().start().waitForFinish().assertNormalExitValue();
