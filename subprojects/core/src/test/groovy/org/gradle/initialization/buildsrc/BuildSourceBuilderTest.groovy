@@ -21,6 +21,7 @@ import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -35,7 +36,8 @@ class BuildSourceBuilderTest extends Specification {
     def executor = new TestBuildOperationExecutor()
     def transformer = Mock(CachedClasspathTransformer)
     def buildSrcBuildListenerFactory = Stub(BuildSrcBuildListenerFactory)
-    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [buildFactory, classLoaderScope, executor, transformer])
+    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
+    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [buildFactory, classLoaderScope, executor, transformer, buildOutputCleanupRegistry])
 
     def parameter = new StartParameter()
 
