@@ -17,9 +17,11 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Timeout
 
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
+    @Timeout(20)
     def "can register a listener for JVM and OS memory status update events"() {
         given:
         buildFile << waitForMemoryEventsTask()
@@ -35,7 +37,6 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
     private static String waitForMemoryEventsTask() {
         return '''
             import java.util.concurrent.CountDownLatch
-            import java.util.concurrent.TimeUnit
             import org.gradle.process.internal.health.memory.*
 
             task waitForMemoryEvents {
@@ -61,7 +62,7 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
                         manager.addListener(osMemoryStatusListener)
                         logger.warn "Waiting for memory status events..."
 
-                        notification.await(20, TimeUnit.SECONDS)
+                        notification.await()
                     } finally {
                         manager.removeListener(osMemoryStatusListener)
                         manager.removeListener(jvmMemoryStatusListener)
