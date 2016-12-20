@@ -276,15 +276,10 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     def "task with empty skipwhenempty inputs marked as skipped with NO-SOURCE"() {
         given:
         buildFile << """
-           task empty(type:EmptyTask){
-                someInputs = files()
+           task empty {
+                inputs.files(project.files()).skipWhenEmpty()
+                doLast{}
            }
-
-           class EmptyTask extends DefaultTask {
-                @SkipWhenEmpty
-                @InputFiles FileCollection someInputs
-                @TaskAction void doNothing(){}
-            }
         """
 
         when:

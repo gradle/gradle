@@ -54,16 +54,10 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
     def "executed tasks with no inputs are marked with no-source"() {
         given:
         buildFile << """
-            task empty(type:EmptyTask){
-                someInputs = files()
-            }
-            
-            class EmptyTask extends DefaultTask {
-                @SkipWhenEmpty
-                @InputFiles FileCollection someInputs
-                @TaskAction void doNothing(){
-                }
-            }
+           task empty {
+                inputs.files(project.files()).skipWhenEmpty()
+                doLast{}
+           }
         """
 
         when:
