@@ -26,6 +26,6 @@ import org.gradle.api.internal.hash.FileHasher;
  */
 public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
     interface HasherSelector {
-        FileHasher selectHasher(TaskExecution execution);
+        FileHasher selectHasher(boolean includeResources);
     }
 }

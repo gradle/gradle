@@ -40,7 +40,6 @@ import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.JvmClassHasher;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -172,14 +171,20 @@ public class TaskExecutionServices {
         return snapshotter;
     }
 
-    CompileClasspathSnapshotter createCompileClasspathSnapshotter(final FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager, TaskHistoryStore store) {
+    CompileClasspathSnapshotter createCompileClasspathSnapshotter(final CompileClasspathSnapshotter.HasherSelector selector, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultCompileClasspathSnapshotter snapshotter = new DefaultCompileClasspathSnapshotter(selector, stringInterner, fileSystem, directoryFileTreeFactory);
+        listenerManager.addListener(snapshotter);
+        return snapshotter;
+    }
+
+    private CompileClasspathSnapshotter.HasherSelector createHasherSelector(final FileHasher hasher, StringInterner stringInterner, TaskHistoryStore store) {
         CompileClasspathSnapshotter.HasherSelector selector;
         if (Boolean.getBoolean("org.gradle.tasks.compileclasspath.snapshotting.disabled")) {
             // This system property is only meant to be used if a blocking bug is found in classpath snapshotting
             // in which case we fallback to the good old snapshotting strategy
             selector = new CompileClasspathSnapshotter.HasherSelector() {
                 @Override
-                public FileHasher selectHasher(TaskExecution execution) {
+                public FileHasher selectHasher(boolean includeResources) {
                     return hasher;
                 }
             };
@@ -188,9 +193,8 @@ public class TaskExecutionServices {
             final CachingFileHasher resourcesIgnoringHasher = new CachingFileHasher(new JvmClassHasher(hasher, false), store, stringInterner, "jvmClassHashes");
             selector = new CompileClasspathSnapshotter.HasherSelector() {
                 @Override
-                public FileHasher selectHasher(TaskExecution execution) {
-                    Boolean incremental = (Boolean) execution.getInputProperties().get("options.incremental");
-                    if (incremental != null && incremental) {
+                public FileHasher selectHasher(boolean includeResources) {
+                    if (!includeResources) {
                         // if the compiler is incremental, then we can safely ignore resources in snapshotting, because
                         // the compiler is not compatible with annotation processing
                         return resourcesIgnoringHasher;
@@ -203,9 +207,7 @@ public class TaskExecutionServices {
                 }
             };
         }
-        DefaultCompileClasspathSnapshotter snapshotter = new DefaultCompileClasspathSnapshotter(selector, stringInterner, fileSystem, directoryFileTreeFactory);
-        listenerManager.addListener(snapshotter);
-        return snapshotter;
+        return selector;
     }
 
     FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {

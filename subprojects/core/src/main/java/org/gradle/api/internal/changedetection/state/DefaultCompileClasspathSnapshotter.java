@@ -68,6 +68,11 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
     @Override
     protected HashCode doHash(DefaultFileDetails fileDetails, TaskExecution current) {
-        return hasherSelector.selectHasher(current).hash(fileDetails.details);
+        boolean includeResources = true;
+        Boolean incremental = (Boolean) current.getInputProperties().get("options.incremental");
+        if (incremental != null && incremental) {
+            includeResources = false;
+        }
+        return hasherSelector.selectHasher(includeResources).hash(fileDetails.details);
     }
 }
