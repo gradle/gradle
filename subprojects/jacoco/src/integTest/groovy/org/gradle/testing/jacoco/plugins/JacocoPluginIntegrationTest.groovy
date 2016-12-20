@@ -308,6 +308,40 @@ public class ThingTest {
         ':jacocoTestReport' in nonSkippedTasks
     }
 
+    def "skips report task if none of the execution data files does not exist"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                executionData = files('unknown.exec', 'data/test.exec')
+            }
+        """
+
+        when:
+        succeeds 'test', 'jacocoTestReport'
+
+        then:
+        ':test' in nonSkippedTasks
+        ':jacocoTestReport' in skippedTasks
+    }
+
+    def "fails report task if only some of the execution data files do not exist"() {
+        given:
+        def execFileName = 'unknown.exec'
+        buildFile << """
+            jacocoTestReport {
+                executionData(files('$execFileName'))
+            }
+        """
+
+        when:
+        fails 'test', 'jacocoTestReport'
+
+        then:
+        ':test' in nonSkippedTasks
+        ':jacocoTestReport' in executedTasks
+        errorOutput.contains("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+    }
+
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
     }
