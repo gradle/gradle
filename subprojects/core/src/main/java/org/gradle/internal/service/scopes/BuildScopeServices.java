@@ -298,7 +298,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
-                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
+                                                                BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -306,7 +307,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 buildOperationExecutor,
-                cachedClasspathTransformer),
+                cachedClasspathTransformer,
+                buildOutputCleanupRegistry),
             buildLoader,
             serviceRegistry
         );
@@ -416,13 +418,5 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
         return new DefaultAuthenticationSchemeRegistry();
-    }
-
-    BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(CacheRepository cacheRepository, StartParameter startParameter, ListenerManager listenerManager) {
-        File cacheBaseDir = new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildOutputCleanup");
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = new DefaultBuildOutputCleanupRegistry();
-        BuildOutputCleanupListener buildOutputCleanupListener = new BuildOutputCleanupListener(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
-        listenerManager.addListener(buildOutputCleanupListener);
-        return buildOutputCleanupRegistry;
     }
 }

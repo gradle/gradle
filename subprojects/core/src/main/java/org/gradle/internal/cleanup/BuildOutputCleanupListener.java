@@ -83,15 +83,19 @@ public class BuildOutputCleanupListener implements ModelConfigurationListener, C
 
     private void deleteOutput(File output) {
         try {
-            if (output.isDirectory() && output.list().length > 0) {
-                GFileUtils.cleanDirectory(output);
+            if (output.isDirectory()) {
+                forceDelete(output);
                 LOGGER.quiet(String.format("Cleaned up directory '%s'", output));
             } else if (output.isFile()) {
-                GFileUtils.forceDelete(output);
+                forceDelete(output);
                 LOGGER.quiet(String.format("Cleaned up file '%s'", output));
             }
         } catch (UncheckedIOException e) {
             LOGGER.warn(String.format("Unable to clean up '%s'", output), e);
         }
+    }
+
+    private void forceDelete(File output) {
+        GFileUtils.forceDelete(output);
     }
 }

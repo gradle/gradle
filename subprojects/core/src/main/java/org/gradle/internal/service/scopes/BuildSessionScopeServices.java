@@ -32,7 +32,11 @@ import org.gradle.caching.internal.DefaultBuildCacheConfiguration;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupListener;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationProcessor;
@@ -51,6 +55,8 @@ import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
 import org.gradle.util.GradleVersion;
+
+import java.io.File;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
@@ -118,5 +124,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
+    }
+
+    BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(CacheRepository cacheRepository, StartParameter startParameter, ListenerManager listenerManager) {
+        File cacheBaseDir = new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildOutputCleanup");
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = new DefaultBuildOutputCleanupRegistry();
+        BuildOutputCleanupListener buildOutputCleanupListener = new BuildOutputCleanupListener(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
+        listenerManager.addListener(buildOutputCleanupListener);
+        return buildOutputCleanupRegistry;
     }
 }

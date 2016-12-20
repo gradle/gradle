@@ -25,12 +25,15 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
@@ -39,13 +42,15 @@ public class BuildSourceBuilder {
     private final ClassLoaderScope classLoaderScope;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
+    private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private BuildSrcBuildListenerFactory buildSrcBuildListenerFactory = new BuildSrcBuildListenerFactory();
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
+        this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
     }
 
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
@@ -64,6 +69,9 @@ public class BuildSourceBuilder {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return new DefaultClassPath();
         }
+
+        buildOutputCleanupRegistry.registerOutputs(new File(startParameter.getCurrentDir(), "build"));
+
         return buildOperationExecutor.run(BuildOperationDetails.displayName("Build buildSrc").progressDisplayName("buildSrc").build(), new Transformer<ClassPath, BuildOperationContext>() {
             @Override
             public ClassPath transform(BuildOperationContext buildOperationContext) {

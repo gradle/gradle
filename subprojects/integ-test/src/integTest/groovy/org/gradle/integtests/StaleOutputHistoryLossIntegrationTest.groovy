@@ -240,9 +240,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     def "source files under buildSrc are removed"() {
         given:
-        def javaProjectFixture = new JavaProjectFixture('buildSrc')
+        def projectName = 'buildSrc'
+        def javaProjectFixture = new JavaProjectFixture(projectName)
         def helpTaskPath = ':help'
-        def buildSrcCleanTaskPath = ':buildSrc:clean'
+        def buildSrcCleanTaskPath = ":$projectName:clean"
+        def buildSrcOutputDir = new File(testDirectory, "$projectName/build")
+        def buildSrcCleanupMessage = "Cleaned up directory '$buildSrcOutputDir'"
 
         when:
         def result = runWithMostRecentFinalRelease(helpTaskPath)
@@ -261,7 +264,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
-        outputContains(javaProjectFixture.classesOutputCleanupMessage)
+        outputContains(buildSrcCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
@@ -272,7 +275,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
-        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
+        !output.contains(buildSrcCleanupMessage)
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
