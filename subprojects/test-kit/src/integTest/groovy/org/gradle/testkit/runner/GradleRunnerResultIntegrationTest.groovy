@@ -51,6 +51,32 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
         result.taskPaths(FAILED).empty
     }
 
+    def "executed tasks with no inputs are marked with no-source"() {
+        given:
+        buildFile << """
+            task empty(type:EmptyTask){
+                someInputs = files()
+            }
+            
+            class EmptyTask extends DefaultTask {
+                @SkipWhenEmpty
+                @InputFiles FileCollection someInputs
+                @TaskAction void doNothing(){
+                }
+            }
+        """
+
+        when:
+        def result = runner('empty')
+            .build()
+
+        then:
+        result.tasks.collect { it.path } == [':empty']
+        result.taskPaths(SUCCESS) == []
+        result.taskPaths(NO_SOURCE) == [':empty']
+    }
+
+
     def "executed buildSrc tasks are not part of tasks in result object"() {
         given:
         file('buildSrc/src/main/groovy/pkg/Message.groovy') << """
