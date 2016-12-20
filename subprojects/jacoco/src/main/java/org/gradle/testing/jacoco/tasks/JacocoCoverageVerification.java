@@ -37,11 +37,11 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * @since 4.0
  */
 @Incubating
-public class JacocoCheck extends JacocoReportBase {
+public class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
 
-    public JacocoCheck() {
+    public JacocoCoverageVerification() {
         super();
         violationRules = getInstantiator().newInstance(JacocoViolationRulesContainerImpl.class);
     }

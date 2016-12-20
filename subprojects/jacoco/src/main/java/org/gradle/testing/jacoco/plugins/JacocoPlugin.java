@@ -36,7 +36,7 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
-import org.gradle.testing.jacoco.tasks.JacocoCheck;
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoMerge;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
@@ -214,7 +214,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     public void execute(Test task) {
                         if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
                             addDefaultReportTask(extension, task);
-                            addDefaultCheckTask(task);
+                            addDefaultCoverageVerificationTask(task);
                         }
                     }
                 });
@@ -253,11 +253,11 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addDefaultCheckTask(final Test task) {
-        final JacocoCheck checkTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Check", JacocoCheck.class);
-        checkTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-        checkTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
-        checkTask.executionData(task);
-        checkTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+    private void addDefaultCoverageVerificationTask(final Test task) {
+        final JacocoCoverageVerification coverageVerificationTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "CoverageVerification", JacocoCoverageVerification.class);
+        coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+        coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
+        coverageVerificationTask.executionData(task);
+        coverageVerificationTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
     }
 }

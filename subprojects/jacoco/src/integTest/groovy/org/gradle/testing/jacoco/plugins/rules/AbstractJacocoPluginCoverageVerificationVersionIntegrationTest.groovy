@@ -24,10 +24,10 @@ import org.gradle.util.TestPrecondition
 import static JacocoViolationRulesLimit.Sufficient
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-abstract class AbstractJacocoPluginCheckCoverageVersionIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class AbstractJacocoPluginCoverageVerificationVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
-    protected final static String[] TEST_AND_JACOCO_CHECK_TASK_PATHS = [':test', ':jacocoTestCheck'] as String[]
+    protected final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':test', ':jacocoTestCoverageVerification'] as String[]
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
@@ -37,7 +37,7 @@ abstract class AbstractJacocoPluginCheckCoverageVersionIntegrationTest extends M
                 toolVersion = '$version'
             }
             
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         $Sufficient.LINE_METRIC_COVERED_RATIO

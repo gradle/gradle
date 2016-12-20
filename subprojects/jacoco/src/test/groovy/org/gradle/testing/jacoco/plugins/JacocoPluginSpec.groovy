@@ -100,10 +100,10 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
 
         expect:
         def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')
-        def jacocoCheckTask = project.tasks.getByName('jacocoTestCheck')
+        def jacocoTestCoverageVerificationTask = project.tasks.getByName('jacocoTestCoverageVerification')
         jacocoTestReportTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
-        jacocoCheckTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
+        jacocoTestCoverageVerificationTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
         jacocoTestReportTask.description == 'Generates code coverage report for the test task.'
-        jacocoCheckTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
+        jacocoTestCoverageVerificationTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
     }
 }

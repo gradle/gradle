@@ -19,15 +19,14 @@ package org.gradle.testing.jacoco.plugins.rules
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 
-@TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_UNSUPPORTED })
-class JacocoPluginCheckCoverageIncompatibleVersionIntegrationTest extends AbstractJacocoPluginCheckCoverageVersionIntegrationTest {
+@TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_SUPPORTED })
+class JacocoPluginCoverageVerificationCompatibleVersionIntegrationTest extends AbstractJacocoPluginCoverageVerificationVersionIntegrationTest {
 
-    def "fails to check code coverage"() {
+    def "can verify code coverage metrics for compatible versions"() {
         when:
-        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
-        errorOutput.contains("jacocoReport doesn't support the nested \"check\" element.")
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 }

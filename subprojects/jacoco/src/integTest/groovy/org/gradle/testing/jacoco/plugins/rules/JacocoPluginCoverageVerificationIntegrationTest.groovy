@@ -26,13 +26,13 @@ import static JacocoViolationRulesLimit.Sufficient
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 @Requires(FIX_TO_WORK_ON_JAVA9)
-class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
+class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private final static String[] TEST_TASK_PATH = [':test'] as String[]
-    private final static String[] JACOCO_CHECK_TASK_PATH = [':jacocoTestCheck'] as String[]
-    private final static String[] TEST_AND_JACOCO_CHECK_TASK_PATHS = TEST_TASK_PATH + JACOCO_CHECK_TASK_PATH
-    private final static String[] INTEG_TEST_AND_JACOCO_CHECK_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestCheck'] as String[]
+    private final static String[] JACOCO_COVERAGE_VERIFICATION_TASK_PATH = [':jacocoTestCoverageVerification'] as String[]
+    private final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = TEST_TASK_PATH + JACOCO_COVERAGE_VERIFICATION_TASK_PATH
+    private final static String[] INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestCoverageVerification'] as String[]
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
@@ -41,22 +41,22 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
     def "can define no rules"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {}
             }
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
     def "can define single rule without limits"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {}
                 }
@@ -64,16 +64,16 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
     def "Ant task reports error for unknown field value"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         element = 'UNKNOWN'
@@ -83,17 +83,17 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
+        fails TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
         errorOutput.contains("'UNKNOWN' is not a permitted value for org.jacoco.core.analysis.ICoverageNode\$ElementType")
     }
 
     def "can define includes for single rule"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         element = 'CLASS'
@@ -105,17 +105,17 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
+        fails TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
         errorOutput.contains("Rule violated for class org.gradle.Class1: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
     def "can define excludes for single rule"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         excludes = ['company', '$testDirectory.name']
@@ -126,17 +126,17 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
     @Unroll
     def "can define rule with sufficient coverage for #description"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         ${limits.join('\n')}
@@ -146,10 +146,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
 
         where:
         limits                                 | description
@@ -164,7 +164,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
     def "can define rule with insufficient coverage for #description"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         ${limits.join('\n')}
@@ -174,10 +174,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
+        fails TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
@@ -194,7 +194,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
     def "can define multiple rules"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         $Sufficient.LINE_METRIC_COVERED_RATIO
@@ -207,17 +207,17 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
+        fails TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: classes missed count is 0.0, but expected minimum is 0.5")
     }
 
     def "can disable rules"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         $Sufficient.LINE_METRIC_COVERED_RATIO
@@ -231,16 +231,16 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
     def "can ignore failures"() {
         given:
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     failOnViolation = true
 
@@ -252,10 +252,10 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
@@ -265,7 +265,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
 
         buildFile << """
-            tasks.withType(JacocoCheck) {
+            tasks.withType(JacocoCoverageVerification) {
                 violationRules {
                     rule {
                         $Insufficient.LINE_METRIC_COVERED_RATIO
@@ -282,7 +282,7 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
 
         where:
-        tasksPaths << [TEST_AND_JACOCO_CHECK_TASK_PATHS, INTEG_TEST_AND_JACOCO_CHECK_TASK_PATHS]
+        tasksPaths << [TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS, INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS]
     }
 
     @Unroll
@@ -308,14 +308,14 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        tasksPaths                             | reportTaskName               | limit                                  | errorMessage
-        TEST_AND_JACOCO_CHECK_TASK_PATHS       | 'jacocoTestCheck'            | Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        INTEG_TEST_AND_JACOCO_CHECK_TASK_PATHS | 'jacocoIntegrationTestCheck' | Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
+        tasksPaths                                             | reportTaskName                              | limit                                  | errorMessage
+        TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS       | 'jacocoTestCoverageVerification'            | Insufficient.LINE_METRIC_COVERED_RATIO | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS | 'jacocoIntegrationTestCoverageVerification' | Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
     def "task is never UP-TO-DATE as it does not define any outputs"() {
         buildFile << """
-            jacocoTestCheck {
+            jacocoTestCoverageVerification {
                 violationRules {
                     rule {
                         $Sufficient.LINE_METRIC_COVERED_RATIO
@@ -325,27 +325,27 @@ class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executedAndNotSkipped(TEST_AND_JACOCO_CHECK_TASK_PATHS)
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
 
         when:
-        succeeds TEST_AND_JACOCO_CHECK_TASK_PATHS
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executed(JACOCO_CHECK_TASK_PATH)
+        executed(JACOCO_COVERAGE_VERIFICATION_TASK_PATH)
         skipped(TEST_TASK_PATH)
 
         when:
         buildFile << """
-            jacocoTestCheck.violationRules.rules[0].limits[0].maximum = 0.5
+            jacocoTestCoverageVerification.violationRules.rules[0].limits[0].maximum = 0.5
         """
 
-        fails TEST_AND_JACOCO_CHECK_TASK_PATHS
+        fails TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
 
         then:
-        executed(JACOCO_CHECK_TASK_PATH)
+        executed(JACOCO_COVERAGE_VERIFICATION_TASK_PATH)
         skipped(TEST_TASK_PATH)
         errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
