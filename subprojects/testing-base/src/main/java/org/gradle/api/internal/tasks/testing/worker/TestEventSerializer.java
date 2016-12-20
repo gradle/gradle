@@ -16,24 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import com.google.common.base.Objects;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
-import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
-import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
-import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
-import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.DefaultSerializerRegistry;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.*;
 
 public class TestEventSerializer {
     public static SerializerRegistry create() {
@@ -74,21 +61,6 @@ public class TestEventSerializer {
             if (value != null) {
                 serializer.write(encoder, value);
             }
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            NullableSerializer rhs = (NullableSerializer) obj;
-            return Objects.equal(serializer, rhs.serializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), serializer);
         }
     }
 
