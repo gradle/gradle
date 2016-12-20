@@ -18,11 +18,14 @@ package org.gradle.testing.jacoco.plugins.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import org.gradle.util.Requires
 import spock.lang.Unroll
 
 import static JacocoViolationRulesLimit.Insufficient
 import static JacocoViolationRulesLimit.Sufficient
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
+@Requires(FIX_TO_WORK_ON_JAVA9)
 class JacocoPluginCheckCoverageIntegrationTest extends AbstractIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
