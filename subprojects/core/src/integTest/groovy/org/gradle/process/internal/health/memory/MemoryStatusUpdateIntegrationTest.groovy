@@ -17,11 +17,9 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Timeout
 
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
-    @Timeout(20)
     def "can register a listener for JVM and OS memory status update events"() {
         given:
         buildFile << waitForMemoryEventsTask()
@@ -37,27 +35,37 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
     private static String waitForMemoryEventsTask() {
         return '''
             import java.util.concurrent.CountDownLatch
+            import java.util.concurrent.TimeUnit
             import org.gradle.process.internal.health.memory.*
 
             task waitForMemoryEvents {
                 doLast {
                     final CountDownLatch notification = new CountDownLatch(2)
-                    
+
                     MemoryManager manager = project.services.get(MemoryManager.class)
-                    manager.addListener(new JvmMemoryStatusListener() {
+                    JvmMemoryStatusListener jvmMemoryStatusListener = new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
-                    })
-                    manager.addListener(new OsMemoryStatusListener() {
+                    };
+                    OsMemoryStatusListener osMemoryStatusListener = new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
                             logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
-                    })
-                    logger.warn "Waiting for memory status events..."
-                    notification.await()
+                    };
+
+                    try {
+                        manager.addListener(jvmMemoryStatusListener)
+                        manager.addListener(osMemoryStatusListener)
+                        logger.warn "Waiting for memory status events..."
+
+                        notification.await(20, TimeUnit.SECONDS)
+                    } finally {
+                        manager.removeListener(osMemoryStatusListener)
+                        manager.removeListener(jvmMemoryStatusListener)
+                    }
                 }
             }
         '''.stripIndent()
