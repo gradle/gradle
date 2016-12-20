@@ -34,6 +34,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCheck;
 import org.gradle.testing.jacoco.tasks.JacocoMerge;
@@ -223,6 +224,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
 
     private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
         final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Report", JacocoReport.class);
+        reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+        reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
         reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
         ConventionMapping taskMapping = ((IConventionAware) reportTask).getConventionMapping();
@@ -252,6 +255,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
 
     private void addDefaultCheckTask(final Test task) {
         final JacocoCheck checkTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Check", JacocoCheck.class);
+        checkTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+        checkTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
         checkTask.executionData(task);
         checkTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
     }
