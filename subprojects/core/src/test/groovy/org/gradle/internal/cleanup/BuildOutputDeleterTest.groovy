@@ -19,6 +19,8 @@ package org.gradle.internal.cleanup
 import org.gradle.api.logging.Logger
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -115,5 +117,24 @@ class BuildOutputDeleterTest extends Specification {
         !dir2.exists()
         !file1.exists()
         !file2.exists()
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "logs warning if file cannot be deleted"() {
+        given:
+        def file = temporaryFolder.createFile('test.txt')
+        file.text << 'Hello World'
+
+        when:
+        def channel = new RandomAccessFile(file, 'rw').channel
+        def lock = channel.lock()
+        buildOutputDeleter.delete([file])
+
+        then:
+        1 * logger.warn("Unable to clean up '%'", file)
+
+        cleanup:
+        lock?.release()
+        channel?.close()
     }
 }
