@@ -33,6 +33,14 @@ import org.gradle.internal.event.ListenerBroadcast
 
 import javax.xml.datatype.DatatypeFactory
 
+/**
+ * This class is responsible for publishing events to {@link TestListener} and {@link TestOutputListener}
+ * from a JUnit xml file produced by the performance tests. The Teamcity test listeners need to be
+ * added for teamcity to discover the tests. We are ignoring the test listeners provided by Gradle itself
+ * in {@link JUnitXmlTestEventsGenerator#addTestListener(org.gradle.api.tasks.testing.TestListener)} and
+ * {@link JUnitXmlTestEventsGenerator#addTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)}
+ * in order to avoid problems with resources closed by the "actual" test execution (in particular {@code outputWriter}).
+ */
 class JUnitXmlTestEventsGenerator {
     private final ListenerBroadcast<TestListener> testListenerBroadcast
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcast
@@ -109,13 +117,18 @@ class JUnitXmlTestEventsGenerator {
         properties.find { it.@name == 'scenario' }.@value.text()
     }
 
-
+    /**
+     * Add a test listener. Gradle internal test listeners are ignored.
+     */
     void addTestListener(TestListener listener) {
         if (!listener.getClass().getName().startsWith('org.gradle.api.internal')) {
             testListenerBroadcast.add(listener)
         }
     }
 
+    /**
+     * Add a test output listener. Gradle internal test output listeners are ignored.
+     */
     void addTestOutputListener(TestOutputListener listener) {
         if (!listener.getClass().getName().startsWith('org.gradle.api.internal')) {
             testOutputListenerBroadcast.add(listener)
