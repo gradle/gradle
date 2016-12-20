@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Objects;
 import org.gradle.api.GradleException;
 import org.gradle.internal.serialize.*;
 
@@ -24,7 +23,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
-class InputPropertiesSerializer extends AbstractSerializer<Map<String, Object>> {
+class InputPropertiesSerializer implements Serializer<Map<String, Object>> {
 
     private final MapSerializer<String, Object> serializer;
 
@@ -42,20 +41,5 @@ class InputPropertiesSerializer extends AbstractSerializer<Map<String, Object>> 
         } catch (MapSerializer.EntrySerializationException e) {
             throw new GradleException(format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", e.getKey(), e.getValue()), e);
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        InputPropertiesSerializer rhs = (InputPropertiesSerializer) obj;
-        return Objects.equal(serializer, rhs.serializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), serializer);
     }
 }
