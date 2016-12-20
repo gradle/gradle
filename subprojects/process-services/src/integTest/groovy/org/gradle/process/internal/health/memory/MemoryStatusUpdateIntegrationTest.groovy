@@ -42,31 +42,22 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
             task waitForMemoryEvents {
                 doLast {
                     final CountDownLatch notification = new CountDownLatch(2)
-
+                    
                     MemoryManager manager = project.services.get(MemoryManager.class)
-                    JvmMemoryStatusListener jvmMemoryStatusListener = new JvmMemoryStatusListener() {
+                    manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
-                    };
-                    OsMemoryStatusListener osMemoryStatusListener = new OsMemoryStatusListener() {
+                    })
+                    manager.addListener(new OsMemoryStatusListener() {
                         void onOsMemoryStatus(OsMemoryStatus memoryStatus) {
                             logger.lifecycle "OS MemoryStatus notification: $memoryStatus"
                             notification.countDown()
                         }
-                    };
-
-                    try {
-                        manager.addListener(jvmMemoryStatusListener)
-                        manager.addListener(osMemoryStatusListener)
-                        logger.warn "Waiting for memory status events..."
-
-                        notification.await()
-                    } finally {
-                        manager.removeListener(osMemoryStatusListener)
-                        manager.removeListener(jvmMemoryStatusListener)
-                    }
+                    })
+                    logger.warn "Waiting for memory status events..."
+                    notification.await()
                 }
             }
         '''.stripIndent()
