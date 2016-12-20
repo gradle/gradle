@@ -63,16 +63,13 @@ public abstract class JacocoReportBase extends JacocoBase {
         onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                //TODO SF it should be 'any' instead of 'all'
-                return Iterables.all(getExecutionData(), new Predicate<File>() {
+                return Iterables.any(getExecutionData(), new Predicate<File>() {
                     @Override
                     public boolean apply(File file) {
                         return file.exists();
                     }
-
                 });
             }
-
         });
     }
 
