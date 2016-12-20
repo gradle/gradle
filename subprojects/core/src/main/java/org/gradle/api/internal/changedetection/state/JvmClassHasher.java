@@ -39,10 +39,13 @@ import java.util.Collections;
 
 public class JvmClassHasher implements FileHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(JvmClassHasher.class.getName(), Charsets.UTF_8).asBytes();
+    private static final HashCode IGNORED = createHasher().hash();
     private final FileHasher delegate;
+    private final boolean hashResources;
 
-    public JvmClassHasher(FileHasher hasher) {
+    public JvmClassHasher(FileHasher hasher, boolean hashResources) {
         this.delegate = hasher;
+        this.hashResources = hashResources;
     }
 
     @Override
@@ -57,9 +60,13 @@ public class JvmClassHasher implements FileHasher {
             return hashClassFile(file);
 
         } else if (fileName.endsWith(".jar")) {
-            return hashJarFile(file);
+            return hashJarFile(file, hashResources);
         }
-        return delegate.hash(file);
+        if (hashResources) {
+            return delegate.hash(file);
+        } else {
+            return IGNORED;
+        }
     }
 
     private HashCode hashClassFile(File file) {
@@ -88,11 +95,11 @@ public class JvmClassHasher implements FileHasher {
         }
     }
 
-    private static HashCode hashJarFile(File file) {
+    private static HashCode hashJarFile(File file, boolean hashResources) {
         ZipFileTree zipTree = new ZipFileTree(file, null, null, null);
         final Hasher hasher = createHasher();
         FileTreeAdapter adapter = new FileTreeAdapter(zipTree);
-        adapter.visit(new HashingJarVisitor(hasher));
+        adapter.visit(new HashingJarVisitor(hasher, hashResources));
         HashCode hash = hasher.hash();
         //System.err.println(file.getName() + " = " + hash);
         return hash;
@@ -111,9 +118,11 @@ public class JvmClassHasher implements FileHasher {
 
     private static class HashingJarVisitor implements FileVisitor {
         private final Hasher hasher;
+        private final boolean hashResources;
 
-        public HashingJarVisitor(Hasher hasher) {
+        public HashingJarVisitor(Hasher hasher, boolean hashResources) {
             this.hasher = hasher;
+            this.hashResources = hashResources;
         }
 
         @Override
@@ -143,15 +152,11 @@ public class JvmClassHasher implements FileHasher {
                 } catch (Exception e) {
                     hasher.putBytes(src);
                 }
-            } /* else {
-                // TODO: Excluding resources is not a good idea for release
-                // because we cannot make the difference between using a compiler
-                // that cares about them or not (javac vs APT vs groovy ...)
-                //System.out.println("Regular file = " + fileDetails.getName());
-
-                //hasher.putBytes(src);
+            }  else {
+                if (hashResources) {
+                    hasher.putBytes(src);
+                }
             }
-            */
         }
     }
 }

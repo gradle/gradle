@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.hash.FileHasher;
+
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a {@link org.gradle.api.file.FileCollection} representing a Java
  * compile classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
@@ -23,4 +25,7 @@ package org.gradle.api.internal.changedetection.state;
  * @see org.gradle.api.tasks.CompileClasspath
  */
 public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
+    interface HasherSelector {
+        FileHasher selectHasher(TaskExecution execution);
+    }
 }

@@ -29,6 +29,7 @@ class CacheCapSizer {
         DEFAULT_CAP_SIZES.put("taskArtifacts", 2000);
         DEFAULT_CAP_SIZES.put("fileHashes", 400000);
         DEFAULT_CAP_SIZES.put("jvmClassHashes", 400000);
+        DEFAULT_CAP_SIZES.put("jvmClassHashesWithResources", 400000);
         DEFAULT_CAP_SIZES.put("compilationState", 1000);
     }
 

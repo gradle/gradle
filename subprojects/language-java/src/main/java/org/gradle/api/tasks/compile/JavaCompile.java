@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -37,7 +36,6 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.ParallelizableTask;
@@ -136,13 +134,18 @@ public class JavaCompile extends AbstractCompile {
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
-        final CacheRepository cacheRepository = getCacheRepository();
-        final GeneralCompileCaches generalCompileCaches = getGeneralCompileCaches();
+        CompileCaches compileCaches = createCompileCaches();
+        IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
+            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
+        Compiler<JavaCompileSpec> compiler = factory.createCompiler();
+        performCompilation(spec, compiler);
+    }
 
-        CompileCaches compileCaches = new CompileCaches() {
-            private final CacheRepository repository = cacheRepository;
+    private CompileCaches createCompileCaches() {
+        return new CompileCaches() {
+            private final CacheRepository repository = getCacheRepository();
             private final JavaCompile javaCompile = JavaCompile.this;
-            private final GeneralCompileCaches generalCaches = generalCompileCaches;
+            private final GeneralCompileCaches generalCaches = getGeneralCompileCaches();
 
             public ClassAnalysisCache getClassAnalysisCache() {
                 return generalCaches.getClassAnalysisCache();
@@ -160,10 +163,6 @@ public class JavaCompile extends AbstractCompile {
                 return new LocalClassSetAnalysisStore(repository, javaCompile);
             }
         };
-        IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
-        Compiler<JavaCompileSpec> compiler = factory.createCompiler();
-        performCompilation(spec, compiler);
     }
 
     @Inject
@@ -254,9 +253,4 @@ public class JavaCompile extends AbstractCompile {
         return compileOptions;
     }
 
-    @Override
-    @CompileClasspath
-    public FileCollection getClasspath() {
-        return super.getClasspath();
-    }
 }

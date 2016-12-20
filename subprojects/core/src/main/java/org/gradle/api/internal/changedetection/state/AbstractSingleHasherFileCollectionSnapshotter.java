@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
-public class DefaultGenericFileCollectionSnapshotter extends AbstractSingleHasherFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
-    public DefaultGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
+public abstract class AbstractSingleHasherFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
+    private final FileHasher hasher;
+
+    public AbstractSingleHasherFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        super(stringInterner, fileSystem, directoryFileTreeFactory);
+        this.hasher = hasher;
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
-        return GenericFileCollectionSnapshotter.class;
+    protected HashCode doHash(DefaultFileDetails fileDetails, TaskExecution current) {
+        return hasher.hash(fileDetails.details);
     }
 }

@@ -315,49 +315,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         skipped ':a:compileJava'
     }
 
-    // TEST SHOULD LIVE ELSEWHERE
-    def "doesn't recompile if implementation dependency changed in ABI compatible way"() {
-
-        given:
-        subproject('a') {
-            'build.gradle'("""
-                apply plugin: 'java'
-
-                repositories {
-                    jcenter()
-                }
-
-                dependencies {
-                    implementation 'org.apache.commons:commons-math3:3.4'
-                }
-            """)
-            src {
-                main {
-                    java {
-                        'ToolImpl.java'('''
-                            import org.apache.commons.math3.util.BigReal;
-                            
-                            public class ToolImpl { public void execute() { BigReal read = BigReal.ONE; } }
-                        ''')
-                    }
-                }
-            }
-        }
-
-        when:
-        succeeds 'a:compileJava'
-
-        then:
-        executedAndNotSkipped ':a:compileJava'
-
-        when:
-        file('a/build.gradle').text = file('a/build.gradle').text.replace("3.4", "3.4.1")
-
-        then:
-        succeeds 'a:compileJava'
-        skipped ':a:compileJava'
-    }
-
     def "doesn't recompile consumer if private method of producer changed"() {
         def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
 
