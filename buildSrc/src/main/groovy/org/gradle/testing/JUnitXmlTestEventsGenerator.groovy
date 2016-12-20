@@ -36,6 +36,7 @@ import javax.xml.datatype.DatatypeFactory
 class JUnitXmlTestEventsGenerator {
     private final ListenerBroadcast<TestListener> testListenerBroadcast
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcast
+    CoordinatorBuild coordinatorBuild
 
     JUnitXmlTestEventsGenerator(ListenerBroadcast<TestListener> testListenerBroadcast, ListenerBroadcast<TestOutputListener> testOutputListenerListenerBroadcast) {
         this.testOutputListenerBroadcast = testOutputListenerListenerBroadcast
@@ -88,15 +89,19 @@ class JUnitXmlTestEventsGenerator {
     }
 
     private void publishAdditionalMetadata(DecoratingTestDescriptor testCaseDescriptor, Object build) {
+        List<String> outputs = []
+        def scenarioId = getScenarioId(build)
+        outputs.add("Scenario: ${scenarioId}")
+        if (coordinatorBuild) {
+            outputs.add("Performance report: " +
+                "https://builds.gradle.org/repository/download/${coordinatorBuild.buildTypeId}/${coordinatorBuild.id}:id/results/performance/build/performance-tests/" +
+                "report/tests/${scenarioId.replaceAll(" ", "-")}.html")
+        }
         def buildUrl = build.@webUrl
         if (buildUrl) {
-            testOutputListener.onOutput(testCaseDescriptor, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut,
-                """
-                    Scenario: ${getScenarioId(build)}
-                    Worker build url: ${buildUrl}
-                """.stripIndent())
-            )
+            outputs.add("Worker build url: ${buildUrl}")
         }
+        testOutputListener.onOutput(testCaseDescriptor, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, outputs.join("\n")))
     }
 
     private String getScenarioId(Object build) {

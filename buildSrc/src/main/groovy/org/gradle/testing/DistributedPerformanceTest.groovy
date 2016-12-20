@@ -139,9 +139,11 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         createClient()
 
-        def lastChangeId = resolveLastChangeId()
+        def coordinatorBuild = resolveCoordinatorBuild()
+        testEventsGenerator.coordinatorBuild = coordinatorBuild
+
         scenarios.each {
-            schedule(it, lastChangeId)
+            schedule(it, coordinatorBuild?.lastChangeId)
         }
 
         scheduledBuilds.each {
@@ -216,11 +218,11 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String resolveLastChangeId() {
+    private CoordinatorBuild resolveCoordinatorBuild() {
         if (coordinatorBuildId) {
             def response = client.get(path: "builds/id:$coordinatorBuildId")
             if (response.success) {
-                return findLastChangeIdInXml(response.data)
+                return new CoordinatorBuild(id: coordinatorBuildId, lastChangeId: findLastChangeIdInXml(response.data), buildTypeId: response.data.@buildTypeId.text())
             }
         }
         return null
