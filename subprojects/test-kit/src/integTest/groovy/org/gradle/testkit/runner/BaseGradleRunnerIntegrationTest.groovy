@@ -38,6 +38,7 @@ import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
@@ -55,6 +56,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
     public static final GradleVersion CUSTOM_DAEMON_DIR_SUPPORT_VERSION = GradleVersion.version("2.2")
+    public static final GradleVersion NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION = GradleVersion.version("3.4")
 
     // Context set by multi run infrastructure
     public static GradleVersion gradleVersion
@@ -314,6 +316,11 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
                 if (testDetails.getAnnotation(CustomDaemonDirectory)) {
                     if (gradleVersion < BaseGradleRunnerIntegrationTest.CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
+                        return false
+                    }
+                }
+                if (testDetails.getAnnotation(WithNoSourceTaskOutcome)) {
+                    if (gradleVersion < BaseGradleRunnerIntegrationTest.NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION) {
                         return false
                     }
                 }
