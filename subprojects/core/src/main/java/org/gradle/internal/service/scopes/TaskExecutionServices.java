@@ -177,12 +177,15 @@ public class TaskExecutionServices {
     }
 
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager, TaskHistoryStore store, FileTimeStampInspector fileTimeStampInspector) {
-        CachingFileHasher cachingFileHasher = new CachingFileHasher(new JvmClassHasher(hasher), store, stringInterner, fileTimeStampInspector, "jvmClassHashes");
+        FileHasher jvmClassHasher;
+        if (Boolean.getBoolean("org.gradle.tasks.compileclasspath.snapshotting.disabled")) {
+            jvmClassHasher = hasher;
+        } else {
+            jvmClassHasher = new CachingFileHasher(new JvmClassHasher(hasher), store, stringInterner, fileTimeStampInspector, "jvmClassHashes");
+        }
         DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
         listenerManager.addListener(fileSystemMirror);
-        DefaultCompileClasspathSnapshotter snapshotter = new DefaultCompileClasspathSnapshotter(cachingFileHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
-        listenerManager.addListener(snapshotter);
-        return snapshotter;
+        return new DefaultCompileClasspathSnapshotter(jvmClassHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
     }
 
     FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {

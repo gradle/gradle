@@ -39,6 +39,7 @@ import java.util.Collections;
 
 public class JvmClassHasher implements FileHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(JvmClassHasher.class.getName(), Charsets.UTF_8).asBytes();
+    private static final HashCode IGNORED = createHasher().hash();
     private final FileHasher delegate;
 
     public JvmClassHasher(FileHasher hasher) {
@@ -59,7 +60,7 @@ public class JvmClassHasher implements FileHasher {
         } else if (fileName.endsWith(".jar")) {
             return hashJarFile(file);
         }
-        return delegate.hash(file);
+        return IGNORED;
     }
 
     private HashCode hashClassFile(File file) {
@@ -131,14 +132,7 @@ public class JvmClassHasher implements FileHasher {
             }
             if (fileDetails.getName().endsWith(".class")) {
                 hashClassBytes(hasher, src);
-                // TODO: Excluding resources is not a good idea for release
-//            } else {
-                // because we cannot make the difference between using a compiler
-                // that cares about them or not (javac vs APT vs groovy ...)
-
-                //hasher.putBytes(src);
             }
-
         }
     }
 }
