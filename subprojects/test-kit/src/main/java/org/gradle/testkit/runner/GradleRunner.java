@@ -300,6 +300,22 @@ public abstract class GradleRunner {
     public abstract GradleRunner withDebug(boolean flag);
 
     /**
+    * Sets JVM arguments for the build
+    *
+    * @param jvmArguments The JVM arguments for the build
+    * @return this
+    */
+    public abstract GradleRunner withJvmArguments(List<String> jvmArguments);
+
+    /**
+    * Sets JVM arguments for the build
+    *
+    * @param jvmArguments The JVM arguments for the build
+    * @return this
+    */
+    public abstract GradleRunner withJvmArguments(String... jvmArguments);
+
+    /**
      * Configures the runner to forward standard output from builds to the given writer.
      * <p>
      * The output of the build is always available via {@link BuildResult#getOutput()}.

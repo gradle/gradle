@@ -100,12 +100,14 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
-    public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
+    @Override
+    public GradleRunner withJvmArguments(List<String> jvmArguments) {
         this.jvmArguments = Collections.unmodifiableList(new ArrayList<String>(jvmArguments));
         return this;
     }
 
-    public DefaultGradleRunner withJvmArguments(String... jvmArguments) {
+    @Override
+    public GradleRunner withJvmArguments(String... jvmArguments) {
         return withJvmArguments(Arrays.asList(jvmArguments));
     }
 
