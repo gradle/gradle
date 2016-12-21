@@ -25,15 +25,21 @@ import org.objectweb.asm.commons.InstructionAdapter;
 
 import java.util.Set;
 
-class ClassDependenciesVisitor extends ClassVisitor {
+public class ClassDependenciesVisitor extends ClassVisitor {
 
     private final static int API = Opcodes.ASM5;
-    final Set<Integer> constants = Sets.newHashSet();
-    final Set<Integer> literals = Sets.newHashSet();
+    final Set<Integer> constants;
+    final Set<Integer> literals;
     boolean dependentToAll;
 
     public ClassDependenciesVisitor() {
+        this(Sets.<Integer>newHashSet(), Sets.<Integer>newHashSet());
+    }
+
+    public ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector) {
         super(API);
+        this.constants = constantsCollector;
+        this.literals = literalsCollector;
     }
 
     @Override
