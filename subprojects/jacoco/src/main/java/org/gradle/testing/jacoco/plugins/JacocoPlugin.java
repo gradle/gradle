@@ -50,6 +50,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JacocoPlugin implements Plugin<ProjectInternal> {
 
+    public static final String DEFAULT_JACOCO_VERSION = "0.7.8";
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
@@ -67,6 +68,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         addJacocoConfigurations();
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, project);
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
+        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
         ((IConventionAware) extension).getConventionMapping().map("reportsDir", new Callable<File>() {
             @Override

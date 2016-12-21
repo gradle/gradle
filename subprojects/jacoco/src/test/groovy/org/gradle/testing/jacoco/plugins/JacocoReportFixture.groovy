@@ -33,7 +33,7 @@ class JacocoReportFixture {
 
     public String jacocoVersion() {
         def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
-        def footer = parsedHtmlReport.select("div.footer:has(a[href=http://www.eclemma.org/jacoco])")
+        def footer = parsedHtmlReport.select("div.footer:has(a[href~=http://www.eclemma.org/jacoco|http://www.jacoco.org/jacoco])")
         String text = footer.text()
         return text.startsWith("Created with JaCoCo ") ? text.substring(20) : text
     }

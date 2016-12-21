@@ -43,7 +43,7 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
         then:
         def report = htmlReport()
         report.totalCoverage() == 100
-        report.jacocoVersion() == version
+        report.jacocoVersion() == version || report.jacocoVersion().startsWith(version)
     }
 
     private JacocoReportFixture htmlReport(String basedir = "build/reports/jacoco/test/html") {
